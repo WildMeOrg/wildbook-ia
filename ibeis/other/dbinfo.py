@@ -474,8 +474,8 @@ def get_dbinfo(ibs, verbose=True,
     ] if not short else []
 
     annot_per_qualview_block_lines = [
-        '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
-        '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
+        None if short else '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
+        None if short else '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
     ]
 
     annot_per_agesex_block_lines = [
@@ -493,10 +493,10 @@ def get_dbinfo(ibs, verbose=True,
     img_block_lines = [
         ('--' * num_tabs),
         ('# Img                        = %d' % len(valid_gids)),
-        ('# Img reviewed               = %d' % sum(image_reviewed_list)),
-        ('# Img with gps               = %d' % len(gps_list)),
+        None if short else ('# Img reviewed               = %d' % sum(image_reviewed_list)),
+        None if short else ('# Img with gps               = %d' % len(gps_list)),
         #('# Img with timestamp         = %d' % len(valid_unixtime_list)),
-        ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
+        None if short else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
     ]
 
     info_str_lines = (
@@ -513,7 +513,7 @@ def get_dbinfo(ibs, verbose=True,
         imgsize_stat_lines +
         [('L============================'), ]
     )
-    info_str = '\n'.join(info_str_lines)
+    info_str = '\n'.join(ut.filter_Nones(info_str_lines))
     info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
     if verbose:
         print(info_str2)
@@ -521,28 +521,152 @@ def get_dbinfo(ibs, verbose=True,
     return locals_
 
 
-def dbstats(ibs):
+def latex_dbstats(ibs_list):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.dbinfo --test-dbstats --db testdb1
-        python -m ibeis.other.dbinfo --test-dbstats --db PZ_Master0 --show
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist testdb1
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 testdb1 --show
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> tabular_str = dbstats(ibs)
-        >>> print(ut.latex_newcommand(ut.latex_sanatize_command_name(ibs.get_dbname() + 'Info'), tabular_str))
+        >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
+        >>> ibs_list = [ibeis.opendb(db=db) for db in db_list]
+        >>> tabular_str = latex_dbstats(ibs_list)
+        >>> print(ut.latex_newcommand(ut.latex_sanatize_command_name('DatabaseInfo'), tabular_str))
         >>> ut.quit_if_noshow()
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
+    #title = db_name + ' database statistics'
+    title = 'Database statistics'
+    stat_title = '# Annot per name (multiton)'
+
+    #col_lbls = [
+    #    'multiton',
+    #    #'singleton',
+    #    'total',
+    #    'multiton',
+    #    'singleton',
+    #    'total',
+    #]
+    key_to_col_lbls = {
+        'num_names_multiton':   'multiton',
+        'num_names_singleton':  'singleton',
+        'num_names':            'total',
+
+        'num_multiton_annots':  'multiton',
+        'num_singleton_annots': 'singleton',
+        'num_unknown_annots':   'unknown',
+        'num_annots':           'total',
+    }
+    # Structure of columns / multicolumns
+    multi_col_keys = [
+        ('# Names', (
+            'num_names_multiton',
+            #'num_names_singleton',
+            'num_names',
+        )),
+
+        ('# Annots', (
+            'num_multiton_annots',
+            'num_singleton_annots',
+            'num_unknown_annots',
+            'num_annots')),
+    ]
+    #multicol_lbls = [('# Names', 3), ('# Annots', 3)]
+    multicol_lbls = [(mcolname, len(mcols)) for mcolname, mcols in multi_col_keys]
+
+    # Flatten column labels
+    col_keys = ut.flatten(ut.get_list_column(multi_col_keys, 1))
+    col_lbls = ut.dict_take(key_to_col_lbls, col_keys)
+
+    row_lbls   = []
+    row_values = []
+
+    stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
+    #stat_row_lbls = ['# Annot per Name (multiton)']
+    stat_row_lbls = []
+    stat_row_values = []
+
+    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
+
+    SINGLE_TABLE = False
+    EXTRA = True
+
+    for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
+        row_ = ut.dict_take(dbinfo_locals, col_keys)
+        row_lbls.append(ibs.get_dbname())
+        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
+        stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
+        if SINGLE_TABLE:
+            row_.extend(stat_rows)
+        else:
+            stat_row_lbls.append(ibs.get_dbname())
+            stat_row_values.append(stat_rows)
+
+        row_values.append(row_)
+
+    if EXTRA:
+        extra_keys = [
+            'species2_nAids',
+            'qualtext2_nAnnots',
+            'yawtext2_nAnnots',
+        ]
+        extra_titles = {
+            'species2_nAids': 'Annots per Species',
+            'qualtext2_nAnnots': 'Annots per Quality',
+            'yawtext2_nAnnots': 'Annots per Viewpoint',
+        }
+        extra_collbls = ut.ddict(list)
+        extra_rowvalues = ut.ddict(list)
+        extra_tables = ut.ddict(list)
+
+        for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
+            for key in extra_keys:
+                extra_collbls[key] = ut.unique_keep_order2(extra_collbls[key] + list(dbinfo_locals[key].keys()))
+
+        extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
+        extra_collbls['yawtext2_nAnnots'] = ['frontleft', 'left', 'frontright', 'right', 'backright', 'back', 'backleft', 'back', None]
+
+        for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
+            for key in extra_keys:
+                extra_rowvalues[key].append(ut.dict_take(dbinfo_locals[key], extra_collbls[key], 0))
+
+        for key in extra_keys:
+            extra_tables[key] = ut.util_latex.make_score_tabular(
+                row_lbls, extra_collbls[key], extra_rowvalues[key], title=extra_titles[key], FORCE_INT=False, precision=2, col_align='r')
+
+    #tabular_str = util_latex.tabular_join(tabular_body_list)
+    if SINGLE_TABLE:
+        col_lbls += stat_col_lbls
+        multicol_lbls += [(stat_title, len(stat_col_lbls))]
+
+    count_tabular_str = ut.util_latex.make_score_tabular(
+        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, FORCE_INT=False, precision=2)
+
+    if SINGLE_TABLE:
+        tabular_str = count_tabular_str
+    else:
+        stat_tabular_str = ut.util_latex.make_score_tabular(
+            stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title, FORCE_INT=False, precision=2, col_align='r')
+
+        # Make a table of statistics
+        tablesep = '\\\\\n%--\n'
+        if EXTRA:
+            tabular_str = tablesep.join([count_tabular_str, stat_tabular_str] + ut.dict_take(extra_tables, extra_keys))
+        else:
+            tabular_str = tablesep.join([count_tabular_str, stat_tabular_str])
+
+    return tabular_str
+
+    #print('[dev stats]')
+    #print(tabular_str)
     # Chip / Name / Image stats
-    dbinfo_locals = get_dbinfo(ibs, with_contrib=False)
-    db_name = ibs.get_dbname()
     # num_images = dbinfo_locals['num_images']
     # num_annots = dbinfo_locals['num_annots']
     #num_names = len(dbinfo_locals['valid_nids'])
@@ -558,7 +682,6 @@ def dbstats(ibs):
     # tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
     #tex_multi_stats = util_latex.latex_get_stats(r'\# Annots per Name (multiton)', multiton_nid2_nannots)
 
-    title = db_name + ' database statistics'
     #tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
     #                                                          (ibs.cfg.feat_cfg.scale_min,
     #                                                           ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
@@ -582,47 +705,6 @@ def dbstats(ibs):
     #    #tex_kpts_stats,
     #    #tex_scale_stats,
     #]
-
-    multicol_lbls = [('# Names', 3), ('# Annots', 3)]
-
-    col_lbls = [
-        '# multiton',
-        '# singleton',
-        '# total',
-        '# multiton',
-        '# singleton',
-        '# total',
-    ]
-
-    row_lbls = ['']
-
-    values = [[
-        dbinfo_locals['num_names_multiton'],
-        dbinfo_locals['num_names_singleton'],
-        dbinfo_locals['num_names'],
-
-        dbinfo_locals['num_multiton_annots'],
-        dbinfo_locals['num_singleton_annots'],
-        dbinfo_locals['num_annots'],
-    ]]
-
-    #tabular_str = util_latex.tabular_join(tabular_body_list)
-
-    tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, values, title=title, multicol_lbls=multicol_lbls)
-
-    #ut.embed()
-    # Make a table of statistics
-    multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
-    col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
-    row_lbls = ['# Annot per Name (multiton)']
-    values = [[multiton_annot_stats[col] for col in col_lbls]]
-
-    tabular_str += '\\\\\n%--\n' + ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, values, title='# Annot per Name (multiton)', FORCE_INT=False, precision=2)
-    #print('[dev stats]')
-    #print(tabular_str)
-    return tabular_str
 
 
 def get_short_infostr(ibs):

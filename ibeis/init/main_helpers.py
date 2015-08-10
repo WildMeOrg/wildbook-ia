@@ -74,6 +74,7 @@ def get_test_qaids(ibs, default_qaids=None):
         python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST --qaid 2
         python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0 --qindex 0:10 --verbmhelp
         python -m ibeis.init.main_helpers --exec-get_test_qaids --controlled --db PZ_Master0 --exec-mode
+        python -m ibeis.init.main_helpers --exec-get_test_qaids --db testdb1 --allgt --qindex 0:256
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -82,7 +83,7 @@ def get_test_qaids(ibs, default_qaids=None):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> default_qaids = None
         >>> available_qaids = get_test_qaids(ibs, default_qaids)
-        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_qaids, with_contrib=False)
+        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_qaids, with_contrib=False, short=True)
         >>> result = 'available_qaids = ' + ut.obj_str(available_qaids, truncate=True, nl=False)
         >>> print('len(available_qaids) = %d' % len(available_qaids))
         >>> print(result)
@@ -196,6 +197,11 @@ def get_test_qaids(ibs, default_qaids=None):
 
     # ---- INDEX SUBSET
 
+    #ut.get_argval('--qshuffle')
+    if ut.get_argval('--qshuffle'):
+        # Determenistic shuffling
+        available_qaids = ut.list_take(available_qaids, ut.random_indexes(len(available_qaids), seed=42))
+
     # Sample a large pool of chosen query qindexes
     if params.args.qindex is not None:
         # FIXME: should use a slice of the list or a sublist
@@ -220,7 +226,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None):
     Args:
         ibs (IBEISController):  ibeis controller object
         default_daids (str): (default = 'all')
-        qaid_list (list): (default = None)
+        qaid_list (list): list of chosen qaids that may affect daids (default = None)
 
     Returns:
         list: available_daids
@@ -243,7 +249,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None):
         >>> default_daids = 'all'
         >>> qaid_list = [1]
         >>> available_daids = get_test_daids(ibs, default_daids, qaid_list)
-        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_daids, with_contrib=False)
+        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_daids, with_contrib=False, short=True)
         >>> result = 'available_daids = ' + ut.obj_str(available_daids, truncate=True, nl=False)
         >>> print('len(available_daids) %d' % len(available_daids))
         >>> print(result)

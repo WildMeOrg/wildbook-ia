@@ -146,7 +146,6 @@ class TestResult(object):
         """
         Labels for published tables
         """
-
         repl_list = [
             ('custom', 'default'),
             ('fg_on', 'FG'),

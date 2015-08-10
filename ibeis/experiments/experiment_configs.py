@@ -15,6 +15,22 @@ def augbase(basedict, updatedict):
 
 exclude_vars = vars().keys()   # this line is before tests
 
+default = [{}]
+
+
+candidacy = [
+    {},
+    {'fg_on': [False]},
+    {'sv_on': [False]},
+    #{'K': [1, 4, 10]},
+    #{'score_method': ['csum']},
+    {'nNameShortlistSVER': [200]},
+    {'rotation_invariance': [True], 'affine_invariance': [False]},
+    #{'rotation_invariance': [False], 'affine_invariance': [False]},
+    {'augment_queryside_hack': [True]},
+    #{'algorithm': ['linear']},
+]
+
 
 elph = [
     {'affine_invariance': False, 'fg_on': [True, False]},
@@ -28,16 +44,6 @@ pyrscale = {
     'affine_invariance': [True, False],
     'rotation_invariance': [False, True],
 }
-
-
-candidacy = [
-    {},
-    {'fg_on': [True]},
-    {'sv_on': [False]},
-    {'rotation_invariance': [True], 'affine_invariance': [False]},
-    {'augment_queryside_hack': [True]},
-]
-
 
 small_best = {
     'pipeline_root':   ['vsmany'],

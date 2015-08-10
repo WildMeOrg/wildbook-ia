@@ -285,7 +285,7 @@ def print_results(ibs, test_result):
     print_colmap()
     #------------
 
-    @ut.argv_flag_dec_true
+    @ut.argv_flag_dec
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)

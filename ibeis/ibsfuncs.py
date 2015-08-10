@@ -1817,10 +1817,10 @@ def _get_exemplar_gids(ibs):
     return gid_list
 
 
-@__injectable
-def print_stats(ibs):
-    from ibeis.other import dbinfo
-    dbinfo.dbstats(ibs)
+#@__injectable
+#def print_stats(ibs):
+    #from ibeis.other import dbinfo
+    #dbinfo.dbstats(ibs)
 
 
 @__injectable

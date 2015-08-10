@@ -815,7 +815,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
 
 
 def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
-    """
+    r"""
     Returns:
         dict or tuple(dict, dict)
 
@@ -849,7 +849,25 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         >>> ut.quit_if_noshow()
         >>> cmSV.show_daids_matches(qreq_, gt_daids)
         >>> ut.show_if_requested()
-        """
+
+    Ignore:
+        #print("NEIGHBOR HASH")
+        #print(ut.hashstr(str(nns_list)))  # nondetermenism check
+        # Find non-determenism
+        python -m ibeis.dev -t custom:checks=100,sv_on=True   --db PZ_MTEST --rank-lt-list=1,5 --qaids=50,53 --nocache-hs --print-rowscore
+        It is not here
+        xn@c0v7bm7kr++jq - 9
+        xn@c0v7bm7kr++jq - 2
+        # somewhere in sver
+        #ut.hashstr27(str([cm.fsv_list for cm in cm_list]))
+        # cemglnqifyonhnnk
+        #ut.hashstr27(str([cm.fsv_list for cm in cm_list_SVER]))
+        # rcchbmgovmndlzuo
+        #kpts1 = kpts1.astype(np.float64)
+        #kpts2 = kpts2.astype(np.float64)
+        #print(sv_tup[0])
+        #print(sv_tup[3])
+    """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
             print('[hs] Step 5) Spatial verification: off')
@@ -948,7 +966,7 @@ def sver_single_chipmatch(qreq_, cm):
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers, match_weights=match_weights,
-                    full_homog_checks=full_homog_checks)
+                    full_homog_checks=full_homog_checks, returnAff=False)
                 # returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: make qparams and qreq_ serializeable
+"""
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import multi_index

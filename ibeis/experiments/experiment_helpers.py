@@ -141,6 +141,13 @@ def get_varied_params_list(test_cfg_name_list):
         >>> varied_params_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)
         >>> print(ut.list_str(varied_params_list))
         >>> print(ut.list_str(varied_param_lbls))
+
+    Example:
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> test_cfg_name_list = ['candidacy']
+        >>> varied_params_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)
+        >>> print(ut.list_str(varied_params_list))
+        >>> print(ut.list_str(varied_param_lbls))
     """
     vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
     dict_comb_list = [utool.all_dict_combinations(dict_)
@@ -148,10 +155,10 @@ def get_varied_params_list(test_cfg_name_list):
     varied_params_list = utool.flatten(dict_comb_list)
     OLD_ = True
     if OLD_:
-        dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_)
+        dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_, allow_lone_singles=True)
                           for dict_ in vary_dicts]
         # Append testname
-        dict_comb_lbls = [[name_lbl + lbl for lbl in comb_lbls]
+        dict_comb_lbls = [[name_lbl + ':' + lbl for lbl in comb_lbls]
                           for name_lbl, comb_lbls in
                           zip(test_cfg_name_list_out, dict_comb_lbls)]
     #else:
@@ -174,7 +181,6 @@ def get_cfg_list_helper(test_cfg_name_list):
         _vsmany_NN(K4+1,last,cks1024)_FILT(logdist_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
         _vsmany_NN(K4+1,last,cks1024)_FILT(normonly_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
         _vsmany_NN(K4+1,last,cks1024)_FILT(lnbnn_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
-
 
      Ignore:
         >>> for cfg in cfg_list:

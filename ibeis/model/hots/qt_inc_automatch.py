@@ -1,6 +1,5 @@
+# -*- coding: utf-8 -*-
 """
-
-
 CommandLine:
     >>> # Profile
     utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --stateful-query
