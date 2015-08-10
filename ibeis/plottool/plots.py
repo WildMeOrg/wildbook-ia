@@ -23,6 +23,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
     CommandLine:
         python -m plottool.plots --test-draw_hist_subbin_maxima --show
 
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
@@ -467,6 +468,10 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
     CommandLine:
         python -m plottool.plots --test-plot_rank_cumhist --show
 
+        python -m plottool.plots --exec-plot_rank_cumhist \
+            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
+            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
@@ -497,14 +502,20 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
     else:
         x_data = np.array(edges[1:])
     max_y = 0
+    min_y = None
+    marker = 'o'
+    if len(x_data) > 256:
+        marker = None
     for ix in range(num_cdfs):
         y_data = cdf_list[ix]
         color = color_list[ix]
         label = lbl_list[ix]
         max_y = max(np.max(y_data), max_y)
-        ax.plot(x_data, y_data, color=color, label=label)
+        min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
+        ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=2, linewidth=1, markeredgewidth=0)
 
-    ax.set_ylim(0, max_y * 1.05)
+    #ax.set_ylim(0, max_y * 1.05)
+    ax.set_ylim(min_y / 1.05, max_y * 1.05)
     ax.set_xlim(x_data.min(), x_data.max()  * 1.05)
 
     if figtitle is not None:
