@@ -1052,10 +1052,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         svtup = None
         return svtup
     # Cast keypoints to float64 to avoid numerical issues
-    #kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
-    #kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
-    kpts1 = kpts1.astype(np.float64)
-    kpts2 = kpts2.astype(np.float64)
+    kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
+    kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
+    #kpts1 = kpts1.astype(np.float64)
+    #kpts2 = kpts2.astype(np.float64)
     assert match_weights is not None, 'provide at least ones please for match_weights'
     fs = match_weights
     # Get diagonal length if not provided
