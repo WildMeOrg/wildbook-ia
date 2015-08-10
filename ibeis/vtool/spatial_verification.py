@@ -42,7 +42,7 @@ try:
     #if ut.WIN32:
     #    raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
-    HAVE_SVER_C_WRAPPER = not ut.get_argflag('--noc')
+    HAVE_SVER_C_WRAPPER = not ut.get_argflag('--no-c')
 except Exception as ex:
     HAVE_SVER_C_WRAPPER = False
     if ut.VERBOSE:
@@ -977,7 +977,7 @@ def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
     return aff_inliers, aff_errors, Aff
 
 
-@profile
+#@profile
 def spatially_verify_kpts(kpts1, kpts2, fm,
                           xy_thresh=.01,
                           scale_thresh=2.0,
@@ -990,6 +990,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     """
     Driver function
     Spatially validates feature matches
+
+    FIXME: there is a non-determenism here
 
     Returned homography maps image1 space into image2 space.
 
@@ -1028,6 +1030,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> assert svtup is not None and len(svtup) == 6, 'sver failed'
         >>> homog_inliers, homog_errors, H = svtup[0:3]
         >>> aff_inliers, aff_errors, Aff = svtup[3:6]
+        >>> #print('aff_errors = %r' % (aff_errors,))
+        >>> print('aff_inliers = %r' % (aff_inliers,))
+        >>> print('homog_inliers = %r' % (homog_inliers,))
+        >>> #print('homog_errors = %r' % (homog_errors,))
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     homog_tup = (homog_inliers, H)
@@ -1046,8 +1052,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         svtup = None
         return svtup
     # Cast keypoints to float64 to avoid numerical issues
-    kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
-    kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
+    #kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
+    #kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
+    kpts1 = kpts1.astype(np.float64)
+    kpts2 = kpts2.astype(np.float64)
     assert match_weights is not None, 'provide at least ones please for match_weights'
     fs = match_weights
     # Get diagonal length if not provided
@@ -1058,6 +1066,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     aff_inliers, aff_errors, Aff = get_best_affine_inliers_(
         kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
+    #print(aff_inliers)
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
         if VERBOSE_SVER:
@@ -1070,6 +1079,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         homog_inliers, homog_errors, H = get_homography_inliers(
             kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh,
             ori_thresh, full_homog_checks)
+        #print(homog_inliers)
     except npl.LinAlgError as ex:
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)

@@ -264,6 +264,67 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     #return out_inliers_c
 
 
+def test_sver_wrapper2():
+    r"""
+    CommandLine:
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper2
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper2 --no-c --quiet
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper2 --rebuild-sver
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.sver_c_wrapper import *  # NOQA
+        >>> result = test_sver_wrapper2()
+        >>> print(result)
+
+    Ignore:
+        C (Serial):
+            unique cases affine inliers: [
+                '[ 4 25 33 36 37 53]',
+            ]
+            unique cases homog inliers: [
+                '[]',
+            ]
+
+        C (Parallel)
+            unique cases affine inliers: [
+                '[ 4 25 33 36 37 53]',
+                '[10 19 25 29 36 39 53]',
+            ]
+            unique cases homog inliers: [
+                '[10 43 53]',
+                '[]',
+            ]
+
+        Python:
+            unique cases affine inliers: [
+                '[10 19 25 29 36 39 53]',
+            ]
+            unique cases homog inliers: [
+                '[10 43 53]',
+            ]
+    """
+    import vtool
+    import vtool.tests.testdata_nondeterm_sver
+    kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2, min_nInliers, match_weights, full_homog_checks = vtool.tests.testdata_nondeterm_sver.testdata_nondeterm_sver()
+    inliers_list = []
+    homog_inliers_list = []
+
+    for x in range(10):
+        sv_tup = vtool.spatially_verify_kpts(
+            kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
+            dlen_sqrd2, min_nInliers, match_weights=match_weights,
+            full_homog_checks=full_homog_checks, returnAff=True)
+        aff_inliers = sv_tup[3]
+        inliers_list.append(str(aff_inliers))
+        homog_inliers_list.append(str(sv_tup[0]))
+
+        #print(sv_tup[0])
+        #print(sv_tup[3])
+    print('unique cases affine inliers: ' + ut.list_str(list(set(inliers_list))))
+    print('unique cases homog inliers: ' + ut.list_str(list(set(homog_inliers_list))))
+
+
 def test_sver_wrapper():
     """
     Test to ensure cpp and python agree and that cpp is faster
