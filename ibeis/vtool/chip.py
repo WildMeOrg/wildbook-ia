@@ -13,7 +13,7 @@ import cv2
 
 
 @profile
-def _get_image_to_chip_transform(bbox, chipsz, theta):
+def get_image_to_chip_transform(bbox, chipsz, theta):
     """
     transforms image space into chipspace
 
@@ -91,7 +91,7 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
         chipsz - size of the chip
         theta  - rotation of the bounding box
     """
-    C    = _get_image_to_chip_transform(bbox, chipsz, theta)
+    C    = get_image_to_chip_transform(bbox, chipsz, theta)
     invC = npl.inv(C)
     return invC
 
@@ -153,7 +153,8 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size):
         >>> pt.imshow(chipBGR)
         >>> pt.show_if_requested()
     """
-    M = _get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
+    M = get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
+    # THE CULPRIT FOR MULTIPROCESSING FREEZES
     chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
     #chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
     return chipBGR
@@ -211,7 +212,7 @@ def get_scaled_sizes_with_area(target_area, size_list):
     return [get_scaled_size_with_area(target_area, w, h) for (w, h) in size_list]
 
 
-@profile
+#@profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
     """ Extracts a chip and applies filters
 
@@ -250,11 +251,11 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
         >>> pt.show_if_requested()
     """
     chipBGR = extract_chip_from_gpath(gfpath, bbox, theta, new_size)
-    chipBGR = _filter_chip(chipBGR, filter_list)
+    chipBGR = apply_filter_funcs(chipBGR, filter_list)
     return chipBGR
 
 
-def _filter_chip(chipBGR, filter_funcs):
+def apply_filter_funcs(chipBGR, filter_funcs):
     """ applies a list of preprocessing filters to a chip """
     chipBGR_ = chipBGR
     for func in filter_funcs:
