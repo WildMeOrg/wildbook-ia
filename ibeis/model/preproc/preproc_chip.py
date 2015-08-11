@@ -18,8 +18,8 @@ import utool as ut  # NOQA
 import vtool.chip as ctool
 import vtool.image as gtool
 import functools
-(print, rrr, profile) = ut.inject2(
-    __name__, '[preproc_chip]', DEBUG=False)
+#ut.noinject('[preproc_chip]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_chip]')
 
 
 # TODO in template version
@@ -258,6 +258,9 @@ def generate_chip_properties(ibs, aid_list, config2_=None):
 def gen_chip(tup):
     r"""
     Parallel worker. Crops chip out of an image, applies filters, etc
+
+    THERE MAY BE AN ERROR IN HERE DUE TO IMWITE BEING INSIDE A PARALLEL FUNCTION
+    BUT IT MAY BE SOMETHING ELSE?
     """
     #print('generating chip')
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
@@ -269,6 +272,20 @@ def gen_chip(tup):
     return cfpath, width, height
 
 
+def gen_chip2(tup):
+    r"""
+    Parallel worker. Crops chip out of an image, applies filters, etc
+    """
+    #print('generating chip')
+    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    #if DEBUG:
+    #print('write chip: %r' % cfpath)
+    height, width = chipBGR.shape[0:2]
+    #gtool.imwrite(cfpath, chipBGR)
+    return chipBGR, cfpath, width, height
+
+
 def compute_and_write_chips(ibs, aid_list, config2_=None):
     r"""Spawns compute compute chip processess.
 
@@ -278,6 +295,13 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_chip --test-compute_and_write_chips
+
+
+    FIXME: THERE IS A FREEZE THAT HAPPENS HERE
+
+        ./reset_dbs.py
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
+
 
     Example:
         >>> # SLOW_DOCTEST
@@ -339,11 +363,18 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
                             newsize_list, filtlist_iter)
     arg_list = list(arg_iter)
     #ut.embed()
-    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True)
+    # We have to force serial here until we can figure out why parallel chip generation causes a freeze
+    # utool has a unstable test that reproduces this reliably (BECAUSE OF CV2.WARP_AFFINE WITH BIG OUTPUT)
+    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True)
+    #chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list, ordered=True)
     #print(ut.util_parallel.__POOL__)
     # Compute and write chips in asychronous process
     if ut.VERBOSE:
         print('Computing %d chips' % (len(cfpath_list)))
+    chip_result_list = []
+    #for chipBGR, cfpath, width, height in chip_result_iter:
+    #    gtool.imwrite(cfpath, chipBGR)
+    #    chip_result_list.append((cfpath, width, height))
     chip_result_list = list(chip_result_iter)
     if not ut.VERBOSE:
         print('Done computing chips')

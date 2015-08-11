@@ -610,6 +610,7 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
+        qreq_.ensure_features(verbose=verbose)
         if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
         if qreq_.qparams.score_normalization is True:
@@ -633,6 +634,23 @@ class QueryRequest(object):
         #    # TODO load vocabulary indexer
 
     # load query data structures
+    @profile
+    def ensure_features(qreq_, verbose=True):
+        """ ensure feature weights are computed """
+        #with ut.EmbedOnException():
+        if verbose:
+            print('[qreq] ensure_features')
+        external_qaids = qreq_.get_external_qaids()
+        external_daids = qreq_.get_external_daids()
+        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+        #if verbose:
+        try:
+            assert len(qkpts) > 0, 'no query keypoint'
+            assert qkpts[0].size > 0, 'Query keypoints are corrupted! qkpts=%r' % (qkpts,)
+        except Exception:
+            print('qkpts = %r' % (qkpts,))
+            raise
 
     @profile
     def ensure_featweights(qreq_, verbose=True):
@@ -646,16 +664,14 @@ class QueryRequest(object):
         #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
-        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
-        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
         qfeatweights = qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
         dfeatweights = qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
         #if verbose:
         try:
-            assert len(qkpts) > 0, 'no query keypoint'
-            assert qkpts[0].size > 0, 'Query keypoints are corrupted! qkpts=%r' % (qkpts,)
+            assert len(qfeatweights) > 0, 'no query featweights'
+            assert qfeatweights[0].size > 0, 'Query featweights are corrupted! qfeatweights=%r' % (qfeatweights,)
         except Exception:
-            print('qkpts = %r' % (qkpts,))
+            print('qfeatweights = %r' % (qfeatweights,))
             raise
         #print('Featweight hash')
         #print(qkpts)

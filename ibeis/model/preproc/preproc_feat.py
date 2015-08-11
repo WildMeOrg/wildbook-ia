@@ -7,6 +7,7 @@ from six.moves import zip, range
 import pyhesaff
 import utool
 import utool as ut
+#ut.noinject('[preproc_feat]')
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_feat]')
 
 

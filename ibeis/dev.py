@@ -866,29 +866,22 @@ def devfunc(ibs, qaid_list):
     return locals_
 
 
-def run_dev(main_locals):
+def run_dev(ibs):
     """
     main developer command
-
-    Args:
-        main_locals (dict): locals returned by ibeis.main
 
     CommandLine:
         python dev.py --db PZ_Master0 --controlled --print-rankhist
     """
     print('[dev] --- RUN DEV ---')
     # Get reference to controller
-    ibs  = main_locals['ibs']
     if ibs is not None:
         # Get aids marked as test cases
-        qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
-        daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
+        ibs, qaid_list, daid_list = main_helpers.testdata_ibeis(ibs=ibs, verbose=(ut.NOT_QUIET and not ut.get_argflag('--nodbinfo')))
+        #qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
+        #daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
         print('[run_def] Test Annotations:')
         #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
-        verbose_info = True
-        if ut.NOT_QUIET and not ut.get_argflag('--nodbinfo'):
-            ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
-        # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
             assert len(daid_list) > 0, 'daid_list!'
@@ -1034,7 +1027,7 @@ def devmain():
     # Development code
     RUN_DEV = True  # RUN_DEV = '__IPYTHON__' in vars()
     if RUN_DEV:
-        dev_locals = run_dev(main_locals)
+        dev_locals = run_dev(main_locals['ibs'])
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
         exec(dev_execstr)
 

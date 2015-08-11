@@ -13,6 +13,17 @@ VERB_TESTDATA = ut.get_argflag('--verbose-testdata')
 VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
+def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', ibs=None, verbose=False):
+    import ibeis
+    if ibs is None:
+        ibs = ibeis.opendb(defaultdb=defaultdb)
+    qaid_list = get_test_qaids(ibs, default_qaids=[1])
+    daid_list = get_test_daids(ibs, default_daids=default_daids, qaid_list=qaid_list)
+    if verbose:
+        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
+    return ibs, qaid_list, daid_list
+
+
 def register_utool_aliases():
     """
     registers commmon class names with utool so they are printed nicely

@@ -214,6 +214,60 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
         experiment_drawing.draw_results(ibs, test_result)
 
 
+def precompute_test_configuration_features(ibs, qaids, daids, test_cfg_name_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (list):  query annotation ids
+        daids (list):  database annotation ids
+        test_cfg_name_list (list):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
+
+        # Repeatidly causes freeze
+        ./reset_dbs.py
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload --allgt
+
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload --species=zebra_plains --serial
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload --expt-indexer --species=zebra_plains --serial
+        python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload --expt-indexer --species=zebra_plains --serial
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> import ibeis.init.main_helpers
+        >>> ibs, qaids, daids = ibeis.init.main_helpers.testdata_ibeis(verbose=False)
+        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
+        >>> result = precompute_test_configuration_features(ibs, qaids, daids, test_cfg_name_list)
+        >>> print(result)
+    """
+    cfg_list, cfgx2_lbl = expt_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+
+    lbl = '[harn] ENSURE_CFG ' + str(test_cfg_name_list)
+    nCfg     = len(cfg_list)   # number of configurations (cols)
+    dbname = ibs.get_dbname()
+
+    cfgiter = ut.ProgressIter(cfg_list, nTotal=nCfg, lbl=lbl,
+                              freq=1, autoadjust=False)
+
+    for cfgx, query_cfg in enumerate(cfgiter):
+        print('')
+        ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
+        verbose = True
+        with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
+            qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg)
+            if ut.get_argflag('--expt-preload'):
+                qreq_.lazy_preload(verbose=verbose)
+            if ut.get_argflag('--expt-indexer'):
+                if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+                    qreq_.load_indexer(verbose=verbose)
+
+
 @profile
 def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     r"""
@@ -255,14 +309,14 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     #orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
 
     # Parse cfgstr list
-    cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
-    for cfgstr in cfgstr_list:
-        cfgstr_terms = cfgstr.split(')_')
-        cfgstr_terms = [x + ')_' for x in cfgstr_terms[1:-1]] + [cfgstr_terms[-1]]  # NOQA
+    #cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
+    #for cfgstr in cfgstr_list:
+    #    cfgstr_terms = cfgstr.split(')_')
+    #    cfgstr_terms = [x + ')_' for x in cfgstr_terms[1:-1]] + [cfgstr_terms[-1]]  # NOQA
 
     #ut.embed()
-    print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
-    print('cfgstr_list = ' + ut.list_str(cfgstr_list))
+    #print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
+    #print('cfgstr_list = ' + ut.list_str(cfgstr_list))
 
     cfgx2_lbl = np.array(cfgx2_lbl)
     if not utool.QUIET:
@@ -271,7 +325,6 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
 
     testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list)
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list)
-
     nCfg     = len(cfg_list)   # number of configurations (cols)
     dbname = ibs.get_dbname()
 
@@ -283,18 +336,19 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=ibs.cfg.query_cfg)
 
     cfgx2_cfgresinfo = []
-    with utool.Timer('experiment_harness'):
-        cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl,
-                                  freq=1, autoadjust=False)
-        # Run each test configuration
-        # Query Config / Col Loop
-        #for cfgx, query_cfg in enumerate(cfg_list):
-        for cfgx, query_cfg in cfgiter:
-            #print('+--- REQUESTING TEST CONFIG ---')
-            #print(query_cfg.get_cfgstr())
-            ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
-            qreq_ = cfgx2_qreq_[cfgx]
+    #with utool.Timer('experiment_harness'):
+    cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl,
+                              freq=1, autoadjust=False)
+    # Run each test configuration
+    # Query Config / Col Loop
+    #for cfgx, query_cfg in enumerate(cfg_list):
+    for cfgx, query_cfg in cfgiter:
+        #print('+--- REQUESTING TEST CONFIG ---')
+        #print(query_cfg.get_cfgstr())
+        ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
+        qreq_ = cfgx2_qreq_[cfgx]
 
+        with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
             if ut.get_argflag('--expt-preload'):
                 qreq_.lazy_load(verbose=True)
 
@@ -303,18 +357,17 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
             # Set data to the current config
             #ibs.set_query_cfg(query_cfg)  # TODO: make this not even matter
             # Run the test / read cache
-            with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-                qx2_qres = ibs.query_chips(qreq_=qreq_)
-                cfgres_info = get_query_result_info(qx2_qres, qreq_)
-                del qx2_qres
-                #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
-            if not NOMEMORY:
-                # Store the results
-                cfgx2_cfgresinfo.append(cfgres_info)
-                cfgx2_qreq_.append(qreq_)
-            else:
-                cfgx2_qreq_[cfgx] = None
-            print('\n +------ \n')
+            qx2_qres = ibs.query_chips(qreq_=qreq_)
+            cfgres_info = get_query_result_info(qx2_qres, qreq_)
+            del qx2_qres
+            #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
+        if not NOMEMORY:
+            # Store the results
+            cfgx2_cfgresinfo.append(cfgres_info)
+            cfgx2_qreq_.append(qreq_)
+        else:
+            cfgx2_qreq_[cfgx] = None
+        print('\n +------ \n')
 
     if not utool.QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
