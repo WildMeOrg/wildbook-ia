@@ -610,7 +610,8 @@ def update_1_1_0(db, ibs=None):
     # Add viewpoint (radians) to annotations
     db.modify_table(const.ANNOTATION_TABLE, (
         # add column to v1.0.2 at index 11
-        (11, ANNOT_VIEWPOINT, 'REAL DEFAULT 0.0', None),
+        #(11, ANNOT_VIEWPOINT, 'REAL DEFAULT 0.0', None),
+        (11, ANNOT_VIEWPOINT, 'REAL', None),
     ))
 
     # Add contributor to configs

@@ -32,10 +32,10 @@ def gen_feat_worker(tup):
     return (cid, len(kpts), kpts, desc)
 
 
-def gen_feat_openmp(cid_list, cfpath_list, hesaff_params):
+def gen_feat_openmp(cid_list, chip_fpath_list, hesaff_params):
     """ Compute features in parallel on the C++ side, return generator here """
     print('Detecting %r features in parallel: ' % len(cid_list))
-    kpts_list, desc_list = pyhesaff.detect_kpts_list(cfpath_list, **hesaff_params)
+    kpts_list, desc_list = pyhesaff.detect_kpts_list(chip_fpath_list, **hesaff_params)
     for cid, kpts, desc in zip(cid_list, kpts_list, desc_list):
         nFeat = len(kpts)
         yield cid, nFeat, kpts, desc
@@ -114,7 +114,8 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
 
     ut.assert_all_not_None(cid_list, 'cid_list')
-    cfpath_list       = ibs.get_chip_fpath(cid_list)
+    chip_fpath_list = ibs.get_chip_fpath(cid_list, check_external_storage=True)
+
     if ut.NOT_QUIET:
         print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
         if ut.VERYVERBOSE:
@@ -123,11 +124,11 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
     if feat_type == 'hesaff+sift':
         if USE_OPENMP:
             # Use Avi's openmp parallelization
-            featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
+            featgen_mp = gen_feat_openmp(cid_list, chip_fpath_list, hesaff_params)
             featgen = ut.ProgressIter(featgen_mp, lbl='openmp feat')
         else:
             # Multiprocessing parallelization
-            featgen = extract_hesaff_sift_feats(cfpath_list, hesaff_params=hesaff_params,
+            featgen = extract_hesaff_sift_feats(chip_fpath_list, hesaff_params=hesaff_params,
                                                 cid_list=cid_list, nInput=nInput, ordered=True)
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
@@ -139,13 +140,13 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         yield (nFeat, kpts, vecs,)
 
 
-def extract_hesaff_sift_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **kwargs):
+def extract_hesaff_sift_feats(chip_fpath_list, hesaff_params={}, cid_list=None, nInput=None, **kwargs):
     # chip-ids are an artifact of the IBEIS Controller. Make dummyones if needbe.
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
     Args:
-        cfpath_list (list):
+        chip_fpath_list (list):
         hesaff_params (dict):
         cid_list (list):
         nInput (None):
@@ -158,18 +159,18 @@ def extract_hesaff_sift_feats(cfpath_list, hesaff_params={}, cid_list=None, nInp
 
     Cyth:
         cdef:
-            list cfpath_list
+            list chip_fpath_list
             long nInput
             object cid_list
             dict hesaff_params
             dict kwargs
     """
     if cid_list is None:
-        cid_list = list(range(len(cfpath_list)))
+        cid_list = list(range(len(chip_fpath_list)))
     if nInput is None:
-        nInput = len(cfpath_list)
+        nInput = len(chip_fpath_list)
     dictargs_iter = (hesaff_params for _ in range(nInput))
-    arg_iter = zip(cid_list, cfpath_list, dictargs_iter)
+    arg_iter = zip(cid_list, chip_fpath_list, dictargs_iter)
     # eager evaluation.
     # TODO: see if we can just pass in the iterator or if there is benefit in
     # doing so

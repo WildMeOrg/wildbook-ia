@@ -25,6 +25,7 @@ CommandLine:
     python -m ibeis.templates.template_generator --key featweight --write
     python -m ibeis.templates.template_generator --key featweight
     python -m ibeis.templates.template_generator --key encounter
+    python -m ibeis.templates.template_generator --key encounter
     python -m ibeis.templates.template_generator --key encounter --onlyfn
     python -m ibeis.templates.template_generator --key encounter --onlyfn --Tcfg with_native=False
     python -m ibeis.templates.template_generator --key egr --Tcfg with_relations=True with_getters=True
@@ -845,7 +846,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             # parse out function name
             func_name = parse_first_func_name(func_code)
 
-            funcname_filter = flagskw['funcname_filter']
+            funcname_filter = ut.extend_regex(flagskw['funcname_filter'])
             if funcname_filter is not None:
                 import re
                 if re.search(funcname_filter, func_name) is None:

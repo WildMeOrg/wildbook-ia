@@ -907,6 +907,23 @@ class FeatureConfig(ConfigBase):
         }
         return dict_args
 
+    #def get(self, key, *d):
+    #    """ get a paramater value by string
+    #    HUGE HACK. Makes it appear like the chip config string is part of the
+    #    dictionary of this item This is a monkey patch
+    #    """
+    #    ERROR_ON_DEFAULT = True
+    #    if ERROR_ON_DEFAULT:
+    #        if key == 'feat_cfgstr':
+    #            return self.get_cfgstr()
+    #        elif key == 'feat_cfg_dict':
+    #            return self.to_dict()
+    #        else:
+    #            #return super(ConfigBase, self).__getitem(key)
+    #            return getattr(self, key)
+    #    else:
+    #        return getattr(self, key, *d)
+
     def get_cfgstr_list(feat_cfg, **kwargs):
         if kwargs.get('use_feat', True):
             import pyhesaff
@@ -965,6 +982,25 @@ class ChipConfig(ConfigBase):
         cc_cfg.maxcontrast     = False
         cc_cfg.chipfmt         = '.png'
         cc_cfg.update(**kwargs)
+
+    #def __getitem__(self, key):
+
+    #def get(self, key, *d):
+    #    """ get a paramater value by string
+    #    HUGE HACK. Makes it appear like the chip config string is part of the
+    #    dictionary of this item This is a monkey patch
+    #    """
+    #    ERROR_ON_DEFAULT = True
+    #    if ERROR_ON_DEFAULT:
+    #        if key == 'chip_cfgstr':
+    #            return self.get_cfgstr()
+    #        elif key == 'chip_cfg_dict':
+    #            return self.to_dict()
+    #        else:
+    #            #return super(ConfigBase, self).__getitem(key)
+    #            return getattr(self, key)
+    #    else:
+    #        return getattr(self, key, *d)
 
     def get_cfgstr_list(cc_cfg, **kwargs):
         if kwargs.get('use_chip', True):

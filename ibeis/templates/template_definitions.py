@@ -60,6 +60,8 @@ Theader_ibeiscontrol = ut.codeblock(
         import ibeis
         ibs = ibeis.opendb(defaultdb=defaultdb)
         config2_ = None  # qreq_.qparams
+        #from ibeis.hots import query_config
+        #config2_ = query_config.QueryParams(cfgdict={})
         return ibs, config2_
 
     # ENDBLOCK
@@ -160,6 +162,7 @@ Tadder_pl_dependant = ut.codeblock(
             # We can use the Tgetter_pl_dependant_rowids_ instead
             get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids_, config2_=config2_)
             # REM proptup_gen = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
+            # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
             proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, dirty_{parent}_rowid_list, config2_=config2_)
             dirty_params_iter = (
                 ({parent}_rowid, config_rowid, {leaf_other_propnames})
@@ -267,6 +270,8 @@ Tcfg_rowid_getter = ut.codeblock(
             {leaf}_cfg_rowid
 
         TemplateInfo:
+
+            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{leaf}_config_rowid\>'
             Tcfg_rowid_getter
             leaf = {leaf}
 
@@ -777,15 +782,19 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @getter
-    def get_{parent}_{leaf}_rowid({self}, {parent}_rowid_list, config2_=None, ensure=True, eager=True, nInput=None):
-        """ {leaf}_rowid_list <- {parent}.{leaf}.rowids[{parent}_rowid_list]
+    def get_{parent}_{leaf}_rowid({self}, {parent}_rowid_list, config2_=None, ensure=True, eager=True, nInput=None, recompute=False):
+        r""" {leaf}_rowid_list <- {parent}.{leaf}.rowids[{parent}_rowid_list]
 
         get {leaf} rowids of {parent} under the current state configuration
         if ensure is True, this function is equivalent to add_{parent}_{leaf}s
 
         Args:
-            {parent}_rowid_list (list):
-            ensure (bool): default false
+            {parent}_rowid_list (list): iterable of rowids
+            ensure (bool): if True, computes nonexisting information (default=False)
+            config2_ (QueryParams): configuration for requested property
+            recompute (bool): if True, recomputed all requested information. (default=False)
+            eager (bool): experimental - if False return a generator (default=True)
+            nInput (int): experimental - size hint for input generator (default=None)
 
         Returns:
             list: {leaf}_rowid_list
@@ -794,6 +803,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             Tgetter_pl_dependant_rowids
             parent = {parent}
             leaf = {leaf}
+            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{parent}_{leaf}_rowid\>'
 
         Timeit:
             >>> from {autogen_modname} import *  # NOQA
@@ -811,7 +821,13 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowid({parent}_rowid_list, config2_, ensure)
             >>> assert len({leaf}_rowid_list) == len({parent}_rowid_list)
         """
-        if ensure:
+        if recompute:
+            # get existing rowids, delete them, recompute the request
+            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_(
+                {self}, {parent}_rowid_list, config2_=config2_, eager=eager, nInput=nInput)
+            delete_{leaf}({self}, {leaf}_rowid_list, config2_=config2_)
+            {leaf}_rowid_list = add_{parent}_{leaf}({self}, {parent}_rowid_list, config2_=config2_)
+        elif ensure:
             {leaf}_rowid_list = add_{parent}_{leaf}({self}, {parent}_rowid_list, config2_=config2_)
         else:
             {leaf}_rowid_list = get_{parent}_{leaf}_rowids_(

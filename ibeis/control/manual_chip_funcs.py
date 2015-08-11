@@ -21,6 +21,11 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_chips]')
 
 
+class ExternalStorageException(Exception):
+    def __init__(self, *args, **kwargs):
+        super(ExternalStorageException, self).__init__(*args, **kwargs)
+
+
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
@@ -216,7 +221,7 @@ def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/fpath/', methods=['GET'])
-def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None):
+def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None, check_external_storage=False):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -229,7 +234,7 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None):
         URL:    /api/annot_chip/fpath/
     """
     cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chip_fpath_list = ibs.get_chip_fpath(cid_list)
+    chip_fpath_list = ibs.get_chip_fpath(cid_list, check_external_storage=check_external_storage)
     return chip_fpath_list
 
 
@@ -506,7 +511,8 @@ def get_valid_cids(ibs, config2_=None):
     """
     # FIXME: configids need reworking
     chip_config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
-    cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
+    #cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))  # big big I belive
+    cid_list = ibs.dbcache.get_all_rowids_where(const.CHIP_TABLE, 'config_rowid=?', (chip_config_rowid,))
     return cid_list
 
 
@@ -528,7 +534,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
     # Delete sql-external (on-disk) information
     preproc_chip.on_delete(ibs, cid_list)
     # Delete sql-dependencies
-    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowids(cid_list, config2_=config2_, ensure=False))
+    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowid(cid_list, config2_=config2_, ensure=False))
     aid_list = ibs.get_chip_aids(cid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list)
@@ -548,6 +554,52 @@ def get_chip_aids(ibs, cid_list):
     RESTful:
         Method: GET
         URL:    /api/chip/aids/
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cid_list (list):
+
+    Returns:
+        int: aid_list -  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_chip_aids
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.model import Config
+        >>> from ibeis.model.hots import query_params
+        >>> #chip_config2_ = Config.ChipConfig(chip_sqrt_area=450)
+        >>> #chip_config3_ = Config.ChipConfig(chip_sqrt_area=200)
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> config2_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=450))
+        >>> config3_ = query_params.QueryParams(cfgdict=dict(chip_sqrt_area=200))
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)
+        >>> cid_list3 = ibs.get_annot_chip_rowids(aid_list, config2_=config3_)
+        >>> aid_list2 = get_chip_aids(ibs, cid_list2)
+        >>> aid_list3 = get_chip_aids(ibs, cid_list3)
+        >>> assert aid_list2 == aid_list3
+        >>> assert cid_list2 != cid_list3
+        >>> result  = ('cid_list2 = %s\n' % (str(cid_list2),))
+        >>> result += ('cid_list3 = %s' % (str(cid_list3),))
+        >>> ibs.get_chip_config_rowid(config2_)
+        >>> ibs.get_chip_config_rowid(config3_)
+        >>> # Extra testing
+        >>> # Delete the fpath
+        >>> cfpath_lcfpath_list2ist2 = ibs.get_chip_fpath(cid_list2)
+        >>> cfpath_list2 = ibs.get_chip_fpath(cid_list2)
+        >>> ut.remove_file_list(cfpath_list2)
+        >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
+        >>> try:
+        >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
+        >>> except ExternalStorageException:
+        >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
+        >>> else:
+        >>>     assert False, 'Should have gotten external storage execpetion'
+        >>> print(result)
     """
     aid_list = ibs.dbcache.get(const.CHIP_TABLE, (ANNOT_ROWID,), cid_list)
     return aid_list
@@ -563,6 +615,11 @@ def get_chip_config_rowid(ibs, config2_=None):
     This method deviates from the rest of the controller methods because it
     always returns a scalar instead of a list. I'm still not sure how to
     make it more ibeisy
+
+    TemplateInfo:
+        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_chip_config_rowid\>'
+        Tcfg_rowid_getter
+        leaf = chip
 
     RESTful:
         Method: GET
@@ -617,9 +674,10 @@ def get_chip_uris(ibs, cid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/chip/fpath/', methods=['GET'])
-def get_chip_fpath(ibs, cid_list):
+def get_chip_fpath(ibs, cid_list, check_external_storage=False):
     r"""
-    Combines the uri with the expected chip directory
+    Combines the uri with the expected chip directory.
+    config2_ is only needed if ensure_external_storage=True
 
     Returns:
         chip_fpath_list (list): a list of chip paths by their aid
@@ -634,6 +692,15 @@ def get_chip_fpath(ibs, cid_list):
         None if chip_uri is None else ut.unixjoin(chipdir, chip_uri)
         for chip_uri in chip_uri_list
     ]
+    if check_external_storage:
+        from os.path import exists
+        notexists_flags = [not exists(cfpath) for cfpath in chip_fpath_list]
+        if any(notexists_flags):
+            print('ERROR: CHIPS HAVE BEEN DELETED')
+            invalid_cids = ut.list_compress(cid_list, notexists_flags)
+            print('ATTEMPING TO FIX %d / %d non-existing chip paths' % (len(invalid_cids), len(cid_list)))
+            ibs.delete_chips(invalid_cids)
+            raise ExternalStorageException('NON-EXISTING EXTRENAL STORAGE ERROR. REQUIRES RECOMPUTE. TRY AGAIN')
     return chip_fpath_list
 
 

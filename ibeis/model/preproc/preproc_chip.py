@@ -210,7 +210,7 @@ def generate_chip_properties(ibs, aid_list, config2_=None):
     Args:
         ibs (IBEISController):
         aid_list (list):
-        config2_ (QueryRequest):
+        config2_ (QueryParams):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_chip --test-generate_chip_properties

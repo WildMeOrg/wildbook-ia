@@ -402,7 +402,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
     """
     chip_rowid_list = ibs.get_annot_chip_rowids(
         aid_list, config2_=config2_, ensure=ensure)
-    feat_rowid_list = ibs.get_chip_feat_rowids(
+    feat_rowid_list = ibs.get_chip_feat_rowid(
         chip_rowid_list, config2_=config2_, ensure=ensure)
     featweight_rowid_list = ibs.get_feat_featweight_rowids(
         feat_rowid_list, config2_=config2_, ensure=ensure)

@@ -9,15 +9,14 @@ from ibeis.model import Config
 
 # This object will behave like a dictionary with ** capability
 class QueryParams(collections.Mapping):
-
-    def __init__(qparams, cfg, cfgdict=None):
+    def __init__(qparams, query_cfg=None, cfgdict=None):
         """
         Structure to store static query pipeline parameters
         parses nested config structure into this flat one
 
         Args:
-            cfg (QueryConfig): query_config
-            cfgdict (dict or None): dictionary to update cfg with
+            query_cfg (QueryConfig): query_config
+            cfgdict (dict or None): dictionary to update query_cfg with
 
         CommandLine:
             python -m ibeis.model.hots.query_params --test-__init__
@@ -27,10 +26,10 @@ class QueryParams(collections.Mapping):
             >>> from ibeis.model.hots import query_params
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> cfg = ibs.cfg.query_cfg
-            >>> #cfg.pipeline_root = 'asmk'
+            >>> query_cfg = ibs.cfg.query_cfg
+            >>> #query_cfg.pipeline_root = 'asmk'
             >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-            >>> qparams = query_params.QueryParams(cfg, cfgdict)
+            >>> qparams = query_params.QueryParams(query_cfg, cfgdict)
             >>> assert qparams.pipeline_root == 'smk'
             >>> assert qparams.fg_on is True
             >>> result = qparams.query_cfgstr
@@ -41,10 +40,10 @@ class QueryParams(collections.Mapping):
             >>> from ibeis.model.hots import query_params
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> cfg = ibs.cfg.query_cfg
-            >>> #cfg.pipeline_root = 'asmk'
+            >>> query_cfg = ibs.cfg.query_cfg
+            >>> #query_cfg.pipeline_root = 'asmk'
             >>> cfgdict = dict(rotation_invariance=True)
-            >>> qparams = query_params.QueryParams(cfg, cfgdict)
+            >>> qparams = query_params.QueryParams(query_cfg, cfgdict)
             >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
 
             _smk_SMK(agg=True,t=0.0,a=3.0,idf)_
@@ -56,11 +55,13 @@ class QueryParams(collections.Mapping):
             CHIP(sz450)
         """
         # if given custom settings update the config and ensure feasibilty
+        if query_cfg is None:
+            query_cfg = Config.QueryConfig()
         if cfgdict is not None:
-            cfg = cfg.deepcopy()
-            cfg.update_query_cfg(**cfgdict)
+            query_cfg = query_cfg.deepcopy()
+            query_cfg.update_query_cfg(**cfgdict)
         # Get flat item list
-        param_list = Config.parse_config_items(cfg)
+        param_list = Config.parse_config_items(query_cfg)
         # Assert that there are no config conflicts
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
         assert len(duplicate_keys) == 0, 'Configs have duplicate names: %r' % duplicate_keys
@@ -68,25 +69,25 @@ class QueryParams(collections.Mapping):
         for key, val in param_list:
             setattr(qparams, key, val)
         # Add params not implicitly represented in Config object
-        pipeline_root              = cfg.pipeline_root
-        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
-        qparams.flann_params       = cfg.flann_cfg.get_flann_params()
-        qparams.hesaff_params      = cfg._featweight_cfg._feat_cfg.get_hesaff_params()
+        pipeline_root              = query_cfg.pipeline_root
+        qparams.chip_cfg_dict      = query_cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
+        qparams.flann_params       = query_cfg.flann_cfg.get_flann_params()
+        qparams.hesaff_params      = query_cfg._featweight_cfg._feat_cfg.get_hesaff_params()
         qparams.pipeline_root      = pipeline_root
         qparams.vsmany             = pipeline_root == 'vsmany'
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         # TODO; Find better way to specify config strings
-        qparams.probchip_cfgstr   = cfg._featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
-        qparams.featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
-        qparams.chip_cfgstr       = cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
-        qparams.feat_cfgstr       = cfg._featweight_cfg._feat_cfg.get_cfgstr()
-        qparams.nn_cfgstr         = cfg.nn_cfg.get_cfgstr()
-        qparams.nnweight_cfgstr   = cfg.nnweight_cfg.get_cfgstr()
-        qparams.sv_cfgstr         = cfg.sv_cfg.get_cfgstr()
-        qparams.flann_cfgstr      = cfg.flann_cfg.get_cfgstr()
-        qparams.query_cfgstr      = cfg.get_cfgstr()
-        qparams.vocabtrain_cfgstr = cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
+        qparams.probchip_cfgstr   = query_cfg._featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
+        qparams.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
+        qparams.chip_cfgstr       = query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
+        qparams.feat_cfgstr       = query_cfg._featweight_cfg._feat_cfg.get_cfgstr()
+        qparams.nn_cfgstr         = query_cfg.nn_cfg.get_cfgstr()
+        qparams.nnweight_cfgstr   = query_cfg.nnweight_cfg.get_cfgstr()
+        qparams.sv_cfgstr         = query_cfg.sv_cfg.get_cfgstr()
+        qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
+        qparams.query_cfgstr      = query_cfg.get_cfgstr()
+        qparams.vocabtrain_cfgstr = query_cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
 
     def get_postsver_filtkey_list(qparams):
         """ HACK: gets columns of fsv post spatial verification.  This will

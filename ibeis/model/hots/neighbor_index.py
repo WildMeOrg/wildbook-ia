@@ -1064,7 +1064,7 @@ class NeighborIndex(object):
             flann_params_clean = flann_defaults.copy()
             ut.updateif_haskey(flann_params_clean, nnindexer.flann_params)
             if noquery:
-                del flann_params_clean['checks']
+                ut.delete_dict_keys(flann_params_clean, ['checks'])
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
             short_params = dict([(shortnames.get(key, key), str(val)[0:7])
                                  for key, val in six.iteritems(flann_params_clean)])

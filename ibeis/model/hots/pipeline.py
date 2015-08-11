@@ -472,6 +472,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     #    #else:
     #    #    return nns_list
     internal_qaids = qreq_.get_internal_qaids()
+    #num_deleted = qreq_.ibs.delete_annot_feats(internal_qaids, config2_=qreq_.get_internal_query_config2())
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()

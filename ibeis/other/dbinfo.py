@@ -528,6 +528,7 @@ def latex_dbstats(ibs_list):
 
     CommandLine:
         python -m ibeis.other.dbinfo --test-latex_dbstats --dblist testdb1
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist testdb1 --show
         python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 testdb1 --show
         python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
 
@@ -648,6 +649,8 @@ def latex_dbstats(ibs_list):
 
     count_tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, FORCE_INT=False, precision=2)
+
+    print(row_lbls)
 
     if SINGLE_TABLE:
         tabular_str = count_tabular_str

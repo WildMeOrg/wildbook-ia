@@ -29,9 +29,19 @@ def testdata_newqreq(defaultdb):
     return ibs, qaid_list, daid_list
 
 
+def testdata_qreq():
+    import ibeis
+    qaid_list = [1, 2]
+    daid_list = [1, 2, 3, 4, 5]
+    ibs = ibeis.opendb(db='testdb1')
+    qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list)
+    return qreq_, ibs
+
+
 @profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
-                            verbose=ut.NOT_QUIET, unique_species=None, use_memcache=True):
+                            verbose=ut.NOT_QUIET, unique_species=None,
+                            use_memcache=True, query_cfg=None):
     """
     ibeis entry point to create a new query request object
 
@@ -99,7 +109,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     """
     if verbose:
         print('[qreq] +--- New IBEIS QRequest --- ')
-    cfg     = ibs.cfg.query_cfg
+    cfg     = ibs.cfg.query_cfg if query_cfg is None else query_cfg
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
@@ -219,7 +229,7 @@ class QueryRequest(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.query_request import *  # NOQA
             >>> import ibeis
-            >>> qreq_, ibs = get_test_qreq()
+            >>> qreq_, ibs = testdata_qreq()
             >>> qreq2_ = qreq_.shallowcopy(qx=0)
             >>> assert qreq_.get_external_daids() is qreq2_.get_external_daids()
             >>> assert len(qreq_.get_external_qaids()) != len(qreq2_.get_external_qaids())
@@ -636,8 +646,22 @@ class QueryRequest(object):
         #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
-        qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())
-        qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())
+        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+        qfeatweights = qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+        dfeatweights = qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+        #if verbose:
+        try:
+            assert len(qkpts) > 0, 'no query keypoint'
+            assert qkpts[0].size > 0, 'Query keypoints are corrupted! qkpts=%r' % (qkpts,)
+        except Exception:
+            print('qkpts = %r' % (qkpts,))
+            raise
+        #print('Featweight hash')
+        #print(qkpts)
+        #print(dkpts)
+        #print(ut.hashstr27(str(qfeatweights)))
+        #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
     def load_indexer(qreq_, verbose=True, force=False):
@@ -739,15 +763,6 @@ class QueryRequest(object):
         qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
         qres.aid2_score = {}
         return qres
-
-
-def get_test_qreq():
-    import ibeis
-    qaid_list = [1, 2]
-    daid_list = [1, 2, 3, 4, 5]
-    ibs = ibeis.opendb(db='testdb1')
-    qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list)
-    return qreq_, ibs
 
 
 def test_cfg_deepcopy():

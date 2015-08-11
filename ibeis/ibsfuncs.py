@@ -437,7 +437,7 @@ def compute_all_features(ibs, **kwargs):
     """
     cid_list = ibs.compute_all_chips(**kwargs)
     print('[ibs] compute_all_features')
-    fid_list = ibs.add_chip_feats(cid_list)
+    fid_list = ibs.add_chip_feat(cid_list)
     return fid_list
 
 
@@ -477,7 +477,7 @@ def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=Fa
     if chips or feats or featweights:
         cid_list = ibs.add_annot_chips(aid_list)
     if feats or featweights:
-        fid_list = ibs.add_chip_feats(cid_list)
+        fid_list = ibs.add_chip_feat(cid_list)
     if featweights:
         featweight_rowid_list = ibs.add_feat_featweights(fid_list)  # NOQA
 

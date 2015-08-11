@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import six
 import sys
 from datetime import timedelta
 from functools import update_wrapper
@@ -42,7 +43,6 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]
 UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
 
-
 GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING and not ut.get_argflag('--no-flask') and HAS_FLASK
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
@@ -56,6 +56,7 @@ def get_flask_app():
     # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
+    global HAS_FLASK
     if not HAS_FLASK:
         print('flask is not installed')
         return None
@@ -76,6 +77,17 @@ def get_flask_app():
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
     return GLOBAL_APP
+
+# try and load flask
+try:
+    get_flask_app()
+except AttributeError:
+    if six.PY3:
+        print('Warning flask is broken in python-3.4.0')
+        GLOBAL_APP_ENABLED = False
+        HAS_FLASK = False
+    else:
+        raise
 
 
 class JSONPythonObjectEncoder(json.JSONEncoder):

@@ -68,7 +68,7 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
     _feat_rowid_list = ibs.get_annot_feat_rowids(
         aid_list, config2_=config2_, ensure=False)
     feat_rowid_list = ut.filter_Nones(_feat_rowid_list)
-    num_deleted = ibs.delete_feats(feat_rowid_list)
+    num_deleted = ibs.delete_feat(feat_rowid_list)
     return num_deleted
 
 
@@ -76,7 +76,7 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
 @getter_1to1
 def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None):
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
-    fid_list = ibs.get_chip_feat_rowids(cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
+    fid_list = ibs.get_chip_feat_rowid(cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
     return fid_list
 
 
@@ -205,7 +205,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
 
 #@register_ibs_method
 #@adder
-#def add_chip_feats(ibs, cid_list, force=False, config2_=None):
+#def add_chip_feat(ibs, cid_list, force=False, config2_=None):
 #    """ Computes the features for every chip without them """
 #    from ibeis.model.preproc import preproc_feat
 #    fid_list = ibs.get_chip_fids(cid_list, ensure=False, config2_=config2_)
@@ -243,16 +243,16 @@ def delete_chip_feats(ibs, chip_rowid_list, config2_=None):
     if ut.VERBOSE:
         print('[ibs] deleting %d chips leaf nodes' % len(chip_rowid_list))
     # Delete any dependants
-    _feat_rowid_list = ibs.get_chip_feat_rowids(
+    _feat_rowid_list = ibs.get_chip_feat_rowid(
         chip_rowid_list, config2_=config2_, ensure=False)
     feat_rowid_list = ut.filter_Nones(_feat_rowid_list)
-    num_deleted = ibs.delete_feats(feat_rowid_list)
+    num_deleted = ibs.delete_feat(feat_rowid_list)
     return num_deleted
 
 
 @register_ibs_method
 @adder
-def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
+def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
     """ chip.feat.add(chip_rowid_list)
 
     CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
@@ -270,14 +270,14 @@ def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, re
         leaf = feat
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-add_chip_feats
+        python -m ibeis.control.manual_feat_funcs --test-add_chip_feat
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[::3]
-        >>> feat_rowid_list = ibs.add_chip_feats(chip_rowid_list, config2_=config2_)
+        >>> feat_rowid_list = ibs.add_chip_feat(chip_rowid_list, config2_=config2_)
         >>> assert len(feat_rowid_list) == len(chip_rowid_list)
         >>> ut.assert_all_not_None(feat_rowid_list)
 
@@ -289,18 +289,18 @@ def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, re
         >>> sub_chip_rowid_list1 = chip_rowid_list[0:6]
         >>> sub_chip_rowid_list2 = chip_rowid_list[5:7]
         >>> sub_chip_rowid_list3 = chip_rowid_list[0:7]
-        >>> sub_feat_rowid_list1 = ibs.get_chip_feat_rowids(sub_chip_rowid_list1, config2_=config2_, ensure=True)
-        >>> ibs.get_chip_feat_rowids(sub_chip_rowid_list1, config2_=config2_, ensure=True)
-        >>> sub_feat_rowid_list1, num_dirty0 = ibs.add_chip_feats(sub_chip_rowid_list1, config2_=config2_, return_num_dirty=True)
+        >>> sub_feat_rowid_list1 = ibs.get_chip_feat_rowid(sub_chip_rowid_list1, config2_=config2_, ensure=True)
+        >>> ibs.get_chip_feat_rowid(sub_chip_rowid_list1, config2_=config2_, ensure=True)
+        >>> sub_feat_rowid_list1, num_dirty0 = ibs.add_chip_feat(sub_chip_rowid_list1, config2_=config2_, return_num_dirty=True)
         >>> assert num_dirty0 == 0
         >>> ut.assert_all_not_None(sub_feat_rowid_list1)
         >>> ibs.delete_chip_feats(sub_chip_rowid_list2)
         >>> #ibs.delete_chip_feat(sub_chip_rowid_list2)?
-        >>> sub_feat_rowid_list3 = ibs.get_chip_feat_rowids(sub_chip_rowid_list3, config2_=config2_, ensure=False)
+        >>> sub_feat_rowid_list3 = ibs.get_chip_feat_rowid(sub_chip_rowid_list3, config2_=config2_, ensure=False)
         >>> # Only the last two should be None
         >>> ut.assert_all_not_None(sub_feat_rowid_list3[0:5], 'sub_feat_rowid_list3[0:5])')
         >>> assert sub_feat_rowid_list3[5:7] == [None, None]
-        >>> sub_feat_rowid_list3_ensured, num_dirty1 = ibs.add_chip_feats(sub_chip_rowid_list3, config2_=config2_,  return_num_dirty=True)
+        >>> sub_feat_rowid_list3_ensured, num_dirty1 = ibs.add_chip_feat(sub_chip_rowid_list3, config2_=config2_,  return_num_dirty=True)
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_feat_rowid_list3_ensured)
     """
@@ -318,12 +318,13 @@ def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, re
     num_total = len(chip_rowid_list)
     if num_dirty > 0:
         if verbose:
-            fmtstr = '[add_chip_feats] adding %d / %d new feat for config_rowid=%r'
+            fmtstr = '[add_chip_feat] adding %d / %d new feat for config_rowid=%r'
             print(fmtstr % (num_dirty, num_total, config_rowid))
         # Dependant columns do not need true from_superkey getters.
         # We can use the Tgetter_pl_dependant_rowids_ instead
         get_rowid_from_superkey = functools.partial(
             ibs.get_chip_feat_rowids_, config2_=config2_)
+        # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         proptup_gen = preproc_feat.generate_feat_properties(
             ibs, dirty_chip_rowid_list, config2_=config2_)
         dirty_params_iter = (
@@ -348,15 +349,19 @@ def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, re
 @register_ibs_method
 @getter_1to1
 #@accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
-def get_chip_feat_rowids(ibs, chip_rowid_list, config2_=None, ensure=False, eager=True, nInput=None):
-    """ feat_rowid_list <- chip.feat.rowids[chip_rowid_list]
+def get_chip_feat_rowid(ibs, chip_rowid_list, config2_=None, ensure=True, eager=True, nInput=None, recompute=False):
+    r""" feat_rowid_list <- chip.feat.rowids[chip_rowid_list]
 
     get feat rowids of chip under the current state configuration
     if ensure is True, this function is equivalent to add_chip_feats
 
     Args:
-        chip_rowid_list (list):
-        ensure (bool): default false
+        chip_rowid_list (list): iterable of rowids
+        ensure (bool): if True, computes nonexisting information (default=False)
+        config2_ (dict): configuration for requested property
+        recompute (bool): if True, recomputed all requested information. (default=False)
+        eager (bool): experimental - if False return a generator (default=True)
+        nInput (int): experimental - size hint for input generator (default=None)
 
     Returns:
         list: feat_rowid_list
@@ -365,25 +370,32 @@ def get_chip_feat_rowids(ibs, chip_rowid_list, config2_=None, ensure=False, eage
         Tgetter_pl_dependant_rowids
         parent = chip
         leaf = feat
+        python -m ibeis.templates.template_generator --key feat --funcname-filter '\<get_chip_feat_rowid\>'
 
     Timeit:
-        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
+        >>> from ibeis.control._autogen_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> # Test to see if there is any overhead to injected vs native functions
-        >>> %timeit get_chip_feat_rowids(ibs, chip_rowid_list)
-        >>> %timeit ibs.get_chip_feat_rowids(chip_rowid_list)
+        >>> %timeit get_chip_feat_rowid(ibs, chip_rowid_list)
+        >>> %timeit ibs.get_chip_feat_rowid(chip_rowid_list)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
+        >>> from ibeis.control._autogen_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()
         >>> ensure = False
-        >>> feat_rowid_list = ibs.get_chip_feat_rowids(chip_rowid_list, config2_, ensure)
+        >>> feat_rowid_list = ibs.get_chip_feat_rowid(chip_rowid_list, config2_, ensure)
         >>> assert len(feat_rowid_list) == len(chip_rowid_list)
     """
-    if ensure:
-        feat_rowid_list = add_chip_feats(ibs, chip_rowid_list, config2_=config2_)
+    if recompute:
+        # get existing rowids, delete them, recompute the request
+        feat_rowid_list = get_chip_feat_rowids_(
+            ibs, chip_rowid_list, config2_=config2_, eager=eager, nInput=nInput)
+        delete_feat(ibs, feat_rowid_list, config2_=config2_)
+        feat_rowid_list = add_chip_feat(ibs, chip_rowid_list, config2_=config2_)
+    elif ensure:
+        feat_rowid_list = add_chip_feat(ibs, chip_rowid_list, config2_=config2_)
     else:
         feat_rowid_list = get_chip_feat_rowids_(
             ibs, chip_rowid_list, config2_=config2_, eager=eager, nInput=nInput)
@@ -397,7 +409,7 @@ def get_chip_feat_rowids_(ibs, chip_rowid_list, config2_=None, eager=True, nInpu
     equivalent to get_chip_feat_rowids_ except ensure is constrained
     to be False.
 
-    Also you save a stack frame because get_chip_feat_rowids just
+    Also you save a stack frame because get_chip_feat_rowid just
     calls this function if ensure is False
 
     TemplateInfo:
@@ -414,7 +426,7 @@ def get_chip_feat_rowids_(ibs, chip_rowid_list, config2_=None, eager=True, nInpu
 
 
 #@register_ibs_method
-#def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, config2_=None):
+#def get_chip_feat_rowid(ibs, cid_list, ensure=True, eager=True, nInput=None, config2_=None):
 #    # alias for get_chip_fids
 #    return get_chip_fids(ibs, cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
 
@@ -424,7 +436,7 @@ def get_chip_feat_rowids_(ibs, chip_rowid_list, config2_=None, eager=True, nInpu
 #@accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
 #def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, config2_=None):
 #    if ensure:
-#        ibs.add_chip_feats(cid_list, config2_=config2_)
+#        ibs.add_chip_feat(cid_list, config2_=config2_)
 #    feat_config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
 #    colnames = ('feature_rowid',)
 #    where_clause = CHIP_ROWID + '=? AND config_rowid=?'
@@ -489,7 +501,7 @@ def delete_features(ibs, feat_rowid_list, config2_=None):
 @register_ibs_method
 @deleter
 @accessor_decors.cache_invalidator(const.FEATURE_TABLE)
-def delete_feats(ibs, feat_rowid_list, config2_=None):
+def delete_feat(ibs, feat_rowid_list, config2_=None):
     """ alias """
     num_deleted = delete_features(ibs, feat_rowid_list, config2_=config2_)
     return num_deleted
