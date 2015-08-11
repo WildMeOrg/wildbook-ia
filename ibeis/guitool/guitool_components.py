@@ -185,7 +185,7 @@ class ProgressHooks(QtCore.QObject):
                 print(' * step_size        = %.2f' % (step_size,))
                 print(' * substep_size     = %.2f' % (substep_size,))
                 print(' * substep_min_list = %r' % (substep_min_list,))
-                print('L____<\NEW SUBSTEPS>____')
+                print(r'L____</NEW SUBSTEPS>____')
                 print('\n')
 
         subhook_list = [ProgressHooks(proghook.progressBarRef(), substep_min, substep_size, proghook.level + 1)
