@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO:
     I've decided that I dont like the plural function names.
@@ -61,7 +62,7 @@ Theader_ibeiscontrol = ut.codeblock(
         ibs = ibeis.opendb(defaultdb=defaultdb)
         config2_ = None  # qreq_.qparams
         #from ibeis.hots import query_config
-        #config2_ = query_config.QueryParams(cfgdict={})
+        #config2_ = query_config.QueryParams(cfgdict=dict())
         return ibs, config2_
 
     # ENDBLOCK
@@ -86,7 +87,7 @@ Tadder_pl_dependant = ut.codeblock(
     # STARTBLOCK
     # REM @adder
     def add_{parent}_{leaf}({self}, {parent}_rowid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
-        """ {parent}.{leaf}.add({parent}_rowid_list)
+        r""" {parent}.{leaf}.add({parent}_rowid_list)
 
         CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
         Adds / ensures / computes a dependant property
@@ -188,7 +189,7 @@ Tadder_native = ut.codeblock(
     # STARTBLOCK
     # REM @adder
     def add_{tbl}({self}, {allcol_sig}):
-        """
+        r"""
         Returns:
             returns {tbl}_rowid_list of added (or already existing {tbl}s)
 
@@ -271,7 +272,7 @@ Tcfg_rowid_getter = ut.codeblock(
 
         TemplateInfo:
 
-            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{leaf}_config_rowid\>'
+            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{leaf}_config_rowid\>' --modfname={autogen_modname}
             Tcfg_rowid_getter
             leaf = {leaf}
 
@@ -803,7 +804,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
             Tgetter_pl_dependant_rowids
             parent = {parent}
             leaf = {leaf}
-            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{parent}_{leaf}_rowid\>'
+            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<get_{parent}_{leaf}_rowid\>' --modfname={autogen_modname}
 
         Timeit:
             >>> from {autogen_modname} import *  # NOQA

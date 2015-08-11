@@ -196,6 +196,12 @@ def get_test_qaids(ibs, default_qaids=None):
     species = ut.get_argval('--species')
 
     if species is not None:
+        if species == 'primary':
+            if VERB_MAIN_HELPERS:
+                print('[get_test_qaids] * Finiding primary species')
+            #species = ibs.get_primary_database_species(available_qaids)
+            species = ibs.get_primary_database_species()
+
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * Filtering to species=%r' % (species,))
         import numpy as np
@@ -333,6 +339,11 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None):
         available_daids = ut.setdiff_ordered(available_daids, daids_exclude)
 
     if species is not None:
+        if species == 'primary':
+            if VERB_MAIN_HELPERS:
+                print('[get_test_qaids] * Finiding primary species')
+            #species = ibs.get_primary_database_species(available_daids)
+            species = ibs.get_primary_database_species()
         if VERB_MAIN_HELPERS:
             print('[get_test_daids] * Filtering to species=%r' % (species,))
         import numpy as np

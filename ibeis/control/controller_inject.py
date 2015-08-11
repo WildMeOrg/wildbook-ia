@@ -654,6 +654,12 @@ def find_unregistered_methods():
     #ut.grep('aaa\rdef', modfpath, include_patterns=['manual_*_funcs.py', '_autogen_*_funcs.py'], reflags=re.MULTILINE)
 
 
+class ExternalStorageException(Exception):
+    """ TODO move to a common place for templated SQL functions """
+    def __init__(self, *args, **kwargs):
+        super(ExternalStorageException, self).__init__(*args, **kwargs)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

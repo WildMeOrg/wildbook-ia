@@ -352,21 +352,21 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
-def nearest_neighbor_cacheid(qreq_, num_neighbors_list):
-    """ cache-id for nearest_neighbors function """
-    internal_daids = qreq_.get_internal_daids()
-    internal_qaids = qreq_.get_internal_qaids()
-    query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
-    data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
-    nn_cfgstr      = qreq_.qparams.nn_cfgstr
-    indexer_cfgstr = qreq_.indexer.get_cfgstr()
-    num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list, hashlen=8, lbl='neighblist')
-    nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
-    nn_mid_cacheid += indexer_cfgstr
-    nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
-    neighbor_cachedir = ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache')
-    ut.ensuredir(neighbor_cachedir)
-    return neighbor_cachedir, nn_mid_cacheid
+#def nearest_neighbor_cacheid_OLD(qreq_, num_neighbors_list):
+#    """ cache-id for nearest_neighbors function """
+#    internal_daids = qreq_.get_internal_daids()
+#    internal_qaids = qreq_.get_internal_qaids()
+#    query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
+#    data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
+#    nn_cfgstr      = qreq_.qparams.nn_cfgstr
+#    indexer_cfgstr = qreq_.indexer.get_cfgstr()
+#    num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list, hashlen=8, lbl='neighblist')
+#    nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
+#    nn_mid_cacheid += indexer_cfgstr
+#    nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
+#    neighbor_cachedir = qreq_.ibs.get_neighbor_cachedir() + '_OLD'
+#    ut.ensuredir(neighbor_cachedir)
+#    return neighbor_cachedir, nn_mid_cacheid
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
 USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid') and USE_HOTSPOTTER_CACHE
@@ -386,7 +386,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     nn_mid_cacheid_list = [str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
                            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
 
-    neighbor_cachedir2 = ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
+    neighbor_cachedir2 = qreq_.ibs.get_neighbor_cachedir()  # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
     ut.ensuredir(neighbor_cachedir2)
     return nn_mid_cacheid_list, neighbor_cachedir2
 
@@ -464,7 +464,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     ##USE_NN_MID_CACHE = ut.is_developer()
-    #    #neighbor_cachedir, nn_mid_cacheid = nearest_neighbor_cacheid(qreq_, num_neighbors_list)
+    #    #neighbor_cachedir, nn_mid_cacheid = nearest_neighbor_cacheid_OLD(qreq_, num_neighbors_list)
     #    #try:
     #    #    nns_list = ut.load_cache(neighbor_cachedir, 'neighbs', nn_mid_cacheid)
     #    #except IOError:

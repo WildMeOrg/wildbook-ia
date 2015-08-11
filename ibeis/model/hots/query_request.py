@@ -146,6 +146,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qreq_.unique_species = unique_species_  # HACK
     if verbose:
         print('[qreq] * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+        print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
         print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
         print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
         print('[qreq] * data_hashid   = %s' % (qreq_.get_data_hashid(),))
@@ -635,15 +636,72 @@ class QueryRequest(object):
 
     # load query data structures
     @profile
+    def ensure_chips(qreq_, verbose=True, extra_tries=1):
+        r""" ensure chips are computed (used in expt, not used in pipeline)
+
+        Args:
+            verbose (bool):  verbosity flag(default = True)
+            extra_tries (int): (default = 0)
+
+        CommandLine:
+            python -m ibeis.model.hots.query_request --test-ensure_chips
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> daids = ibs.get_valid_aids()[0:3]
+            >>> qaids = ibs.get_valid_aids()[0:6]
+            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> verbose = True
+            >>> extra_tries = 1
+            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(qaids, config2_=qreq_.get_external_query_config2()))
+            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(daids, config2_=qreq_.get_external_data_config2()))
+            >>> result = qreq_.ensure_chips(verbose, extra_tries)
+            >>> print(result)
+        """
+        if verbose:
+            print('[qreq] ensure_chips')
+        external_qaids = qreq_.get_external_qaids()
+        external_daids = qreq_.get_external_daids()
+        #np.union1d(external_qaids, external_daids)  # TODO check if configs are the same
+        externgetkw = dict(ensure=True, check_external_storage=True, extra_tries=extra_tries)
+        q_chip_fpath = qreq_.ibs.get_annot_chip_fpath(external_qaids, config2_=qreq_.get_external_query_config2(), **externgetkw)  # NOQA
+        d_chip_fpath = qreq_.ibs.get_annot_chip_fpath(external_daids, config2_=qreq_.get_external_data_config2(), **externgetkw)  # NOQA
+
+    @profile
     def ensure_features(qreq_, verbose=True):
-        """ ensure feature weights are computed """
+        r""" ensure features are computed
+        Args:
+            verbose (bool):  verbosity flag(default = True)
+
+        CommandLine:
+            python -m ibeis.model.hots.query_request --test-ensure_features
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> daids = ibs.get_valid_aids()[0:3]
+            >>> qaids = ibs.get_valid_aids()[0:6]
+            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> ibs.delete_annot_feats(qaids,  config2_=qreq_.get_external_query_config2())  # Remove the chips
+            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(qaids, config2_=qreq_.get_external_query_config2()))
+            >>> verbose = True
+            >>> result = qreq_.ensure_features(verbose)
+            >>> print(result)
+        """
         #with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_features')
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
-        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
-        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+        qfids = qreq_.ibs.get_annot_feat_rowids(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+        dfids = qreq_.ibs.get_annot_feat_rowids(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=False, config2_=qreq_.get_external_query_config2())  # NOQA
+        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=False, config2_=qreq_.get_external_data_config2())  # NOQA
         #if verbose:
         try:
             assert len(qkpts) > 0, 'no query keypoint'

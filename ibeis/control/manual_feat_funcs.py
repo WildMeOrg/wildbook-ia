@@ -12,11 +12,11 @@ from ibeis.control import accessor_decors
 from ibeis.control.accessor_decors import (adder, ider, default_decorator,
                                            getter_1to1, getter_1toM, deleter)
 import utool as ut
-from ibeis.control.controller_inject import make_ibs_register_decorator
+from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__, '[manual_feats]')
 
 
-CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
 ANNOT_ROWID   = 'annot_rowid'
@@ -74,9 +74,22 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None):
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
-    fid_list = ibs.get_chip_feat_rowid(cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
+def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, extra_tries=1):
+    for try_num in range(extra_tries + 1):
+        try:
+            cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
+            fid_list = ibs.get_chip_feat_rowid(cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
+        except controller_inject.ExternalStorageException as ex:
+            # Need this here, because the exists check will only be run on the re-computed features inside get_chip_feat_rowid
+            # but the error needs to be caught here because recomputing the chip ids requires having the aids and the config.
+            try_again = try_num < extra_tries
+            msg = ('WILL TRY AT MOST %d MORE TIME(S)'  % (extra_tries - try_num,) if try_again else
+                   'EXCEDED MAXIMUM NUMBER OF TRIES extra_tries=%d. RAISING ERROR' % (extra_tries,))
+            ut.printex(ex, msg, iswarning=try_again)
+            if not try_again:
+                raise
+        else:
+            break
     return fid_list
 
 
@@ -370,10 +383,10 @@ def get_chip_feat_rowid(ibs, chip_rowid_list, config2_=None, ensure=True, eager=
         Tgetter_pl_dependant_rowids
         parent = chip
         leaf = feat
-        python -m ibeis.templates.template_generator --key feat --funcname-filter '\<get_chip_feat_rowid\>'
+        python -m ibeis.templates.template_generator --key feat --funcname-filter '\<get_chip_feat_rowid\>' --modfname=ibeis.control.manual_feat_funcs
 
     Timeit:
-        >>> from ibeis.control._autogen_feat_funcs import *  # NOQA
+        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> # Test to see if there is any overhead to injected vs native functions
         >>> %timeit get_chip_feat_rowid(ibs, chip_rowid_list)
@@ -381,7 +394,7 @@ def get_chip_feat_rowid(ibs, chip_rowid_list, config2_=None, ensure=True, eager=
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_feat_funcs import *  # NOQA
+        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()
         >>> ensure = False

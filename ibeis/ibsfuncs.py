@@ -1268,6 +1268,15 @@ def delete_qres_cache(ibs):
 
 
 @__injectable
+def delete_neighbor_cache(ibs):
+    print('[ibs] delete neighbor_cache')
+    neighbor_cachedir = ibs.get_neighbor_cachedir()
+    ut.delete(neighbor_cachedir)
+    ut.ensuredir(neighbor_cachedir)
+    print('[ibs] finished delete neighbor_cache')
+
+
+@__injectable
 def delete_all_features(ibs):
     print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
@@ -2923,6 +2932,38 @@ def get_database_species(ibs, aid_list=None):
     species_list = ibs.get_annot_species_texts(aid_list)
     unique_species = sorted(list(set(species_list)))
     return unique_species
+
+
+@__injectable
+def get_primary_database_species(ibs, aid_list=None):
+    r"""
+    Args:
+        aid_list (list):  list of annotation ids (default = None)
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_primary_database_species
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = None
+        >>> primary_species = get_primary_database_species(ibs, aid_list)
+        >>> result = primary_species
+        >>> print('primary_species = %r' % (primary_species,))
+        >>> print(result)
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    species_hist = ut.dict_hist(species_list)
+    if len(species_hist) == 0:
+        primary_species = const.Species.UNKNOWN
+    else:
+        frequent_species = sorted(species_hist.items(), key=lambda item: item[1], reverse=True)
+        primary_species = frequent_species[0][0]
+    return primary_species
 
 
 @__injectable

@@ -61,7 +61,7 @@ def get_dbinfo(ibs, verbose=True,
         dict:
 
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0
         python -m ibeis.other.dbinfo --test-get_dbinfo:1
         python -m ibeis.other.dbinfo --test-get_dbinfo:1  --db NNP_Master3
 
@@ -94,27 +94,8 @@ def get_dbinfo(ibs, verbose=True,
         # Annots (unknown)           = 4
         # Annots (singleton)         = 5
         # Annots (multiton)          = 4
-        # Annots per Viewpoint = {
-            None : 13,
-        }
-        # Annots per Quality = {
-            'UNKNOWN' : 13,
-        }
         ----------
         # Img                        = 13
-        # Img reviewed               = 0
-        # Img with gps               = 12
-        Img Time Stats               = {
-            'max'     : '1969/12/31 21:30:13',
-            'mean'    : '1969/12/31 20:10:15',
-            'min'     : '1969/12/31 19:01:41',
-            'nMax'    : 1,
-            'nMin'    : 1,
-            'num_nan' : 0,
-            'range'   : '2:28:32',
-            'shape'   : (13,),
-            'std'     : '1:13:57',
-        }
         L============================
 
     Example1:

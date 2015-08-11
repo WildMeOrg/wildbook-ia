@@ -17,13 +17,9 @@ from ibeis import constants as const
 #from ibeis.control import accessor_decors
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
+from os.path import exists
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_chips]')
-
-
-class ExternalStorageException(Exception):
-    def __init__(self, *args, **kwargs):
-        super(ExternalStorageException, self).__init__(*args, **kwargs)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -145,7 +141,7 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
 
 @register_ibs_method
 @register_api('/api/annot_chip/rowids/', methods=['GET'])
-def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True, nInput=None):
+def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True, nInput=None, extra_tries=1, check_external_storage=False):
     r"""
     chip_rowid_list <- annot.chip.rowids[aid_list]
 
@@ -185,7 +181,22 @@ def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True,
         >>> assert len(chip_rowid_list) == len(aid_list)
     """
     if ensure:
-        chip_rowid_list = add_annot_chips(ibs, aid_list, config2_=config2_)
+        for try_num in range(extra_tries + 1):
+            try:
+                chip_rowid_list = add_annot_chips(ibs, aid_list, config2_=config2_)
+                if check_external_storage:
+                    # Chips store data externally on disk. Ensure that they are there.
+                    # If this fails it will try to add again.
+                    check_chip_external_storage(ibs, chip_rowid_list)
+            except controller_inject.ExternalStorageException as ex:
+                try_again = try_num < extra_tries
+                msg = ('WILL TRY AT MOST %d MORE TIME(S)'  % (extra_tries - try_num,) if try_again else
+                       'EXCEDED MAXIMUM NUMBER OF TRIES extra_tries=%d. RAISING ERROR' % (extra_tries,))
+                ut.printex(ex, msg, iswarning=try_again)
+                if not try_again:
+                    raise
+            else:
+                break
     else:
         chip_rowid_list = get_annot_chip_rowids_(
             ibs, aid_list, config2_=config2_, eager=eager, nInput=nInput)
@@ -221,7 +232,7 @@ def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/fpath/', methods=['GET'])
-def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None, check_external_storage=False):
+def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None, check_external_storage=False, extra_tries=0):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -229,11 +240,14 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None, check_extern
     Returns:
         chip_fpath_list (list): cfpaths defined by ANNOTATIONs
 
+    TODO:
+        template this as an external storage getter
+
     RESTful:
         Method: GET
         URL:    /api/annot_chip/fpath/
     """
-    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
+    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_, check_external_storage=check_external_storage, extra_tries=extra_tries)
     chip_fpath_list = ibs.get_chip_fpath(cid_list, check_external_storage=check_external_storage)
     return chip_fpath_list
 
@@ -595,7 +609,7 @@ def get_chip_aids(ibs, cid_list):
         >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
         >>> try:
         >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
-        >>> except ExternalStorageException:
+        >>> except controller_inject.ExternalStorageException:
         >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
         >>> else:
         >>>     assert False, 'Should have gotten external storage execpetion'
@@ -686,21 +700,29 @@ def get_chip_fpath(ibs, cid_list, check_external_storage=False):
         Method: GET
         URL:    /api/chip/fpath/
     """
-    chip_uri_list = ibs.get_chip_uris(cid_list)
-    chipdir = ibs.get_chipdir()
-    chip_fpath_list = [
-        None if chip_uri is None else ut.unixjoin(chipdir, chip_uri)
-        for chip_uri in chip_uri_list
-    ]
     if check_external_storage:
-        from os.path import exists
-        notexists_flags = [not exists(cfpath) for cfpath in chip_fpath_list]
-        if any(notexists_flags):
-            print('ERROR: CHIPS HAVE BEEN DELETED')
-            invalid_cids = ut.list_compress(cid_list, notexists_flags)
-            print('ATTEMPING TO FIX %d / %d non-existing chip paths' % (len(invalid_cids), len(cid_list)))
-            ibs.delete_chips(invalid_cids)
-            raise ExternalStorageException('NON-EXISTING EXTRENAL STORAGE ERROR. REQUIRES RECOMPUTE. TRY AGAIN')
+        chip_fpath_list = check_chip_external_storage(ibs, cid_list)
+    else:
+        chip_uri_list = ibs.get_chip_uris(cid_list)
+        chipdir = ibs.get_chipdir()
+        chip_fpath_list = [
+            None if chip_uri is None else ut.unixjoin(chipdir, chip_uri)
+            for chip_uri in chip_uri_list
+        ]
+    return chip_fpath_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def check_chip_external_storage(ibs, cid_list):
+    chip_fpath_list = get_chip_fpath(ibs, cid_list, check_external_storage=False)
+    notexists_flags = [not exists(cfpath) for cfpath in chip_fpath_list]
+    if any(notexists_flags):
+        invalid_cids = ut.list_compress(cid_list, notexists_flags)
+        print('ERROR: %d CHIPS DO NOT EXIST' % (len(invalid_cids)))
+        print('ATTEMPING TO FIX %d / %d non-existing chip paths' % (len(invalid_cids), len(cid_list)))
+        ibs.delete_chips(invalid_cids)
+        raise controller_inject.ExternalStorageException('NON-EXISTING EXTRENAL STORAGE ERROR. REQUIRES RECOMPUTE. TRY AGAIN')
     return chip_fpath_list
 
 

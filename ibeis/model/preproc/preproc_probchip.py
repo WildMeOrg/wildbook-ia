@@ -392,7 +392,8 @@ def compute_extramargin_detectchip(ibs, aid_list, config2_=None, species=None, F
     #from vtool import chip as ctool
     #from vtool import image as gtool
     arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, config2_=config2_, species=species, FACTOR=FACTOR)
-    detectchip_extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True))
+    # Again, it seems we cannot use warpAffine in parallel loops
+    detectchip_extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True, force_serial=True))
     probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in detectchip_extramargin_fpath_list]
     return detectchip_extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
     #probchip_extramargin_fpath_list = []

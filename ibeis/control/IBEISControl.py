@@ -746,6 +746,10 @@ class IBEISController(object):
             qresdir (str): database directory where query results are stored """
         return ibs.qresdir
 
+    def get_neighbor_cachedir(ibs):
+        neighbor_cachedir = ut.unixjoin(ibs.get_cachedir(), 'neighborcache2')
+        return neighbor_cachedir
+
     def get_big_cachedir(ibs):
         """
         Returns:
