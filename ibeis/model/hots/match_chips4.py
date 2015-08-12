@@ -150,11 +150,12 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             try:
                 qaid2_qres = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
             except IOError:
-                if verbose or ut.NOT_QUIET:
-                    print('... qaid2_qres bigcache miss: %r' % (bc_fname,))
+                pass
+                #if verbose or ut.NOT_QUIET:
+                #    print('... qaid2_qres bigcache miss: %r' % (bc_fname,))
             else:
-                if verbose or ut.NOT_QUIET:
-                    print('... qaid2_qres bigcache hit: %r' % (bc_fname,))
+                #if verbose or ut.NOT_QUIET:
+                #    print('... qaid2_qres bigcache hit: %r' % (bc_fname,))
                 if return_request:
                     return qaid2_qres, qreq_
                 else:

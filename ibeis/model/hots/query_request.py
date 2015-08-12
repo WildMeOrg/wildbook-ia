@@ -222,34 +222,37 @@ class QueryRequest(object):
     #def write_query_request(qreq_, fpath):
     #    ut.save_cPickle(fpath, qreq_)
 
-    #def __getstate__(qreq_):
-    #    """
-    #    Make QueryRequest pickleable
+    def __getstate__(qreq_):
+        """
+        Make QueryRequest pickleable
 
-    #    Example:
-    #        >>> # ENABLE_DOCTEST
-    #        >>> from ibeis.model.hots.query_request import *  # NOQA
-    #        >>> from six.moves import cPickle as pickle
-    #        >>> qreq_, ibs = testdata_qreq()
-    #        >>> qreq_dump = pickle.dumps(qreq_)
-    #        >>> qreq2_ = pickle.loads(qreq_dump)
-    #    """
-    #    state_dict = qreq_.__dict__.copy()
-    #    state_dict['dbdir'] = qreq_.ibs.get_dbdir()
-    #    state_dict['ibs'] = None
-    #    state_dict['prog_hook'] = None
-    #    state_dict['indexer'] = None
-    #    state_dict['normalizer'] = None
-    #    state_dict['dstcnvs_normer'] = None
-    #    state_dict['hasloaded'] = False
-    #    return state_dict
+        CommandLine:
+            python -m ibeis.dev -t candidacy --db testdb1
 
-    #def __setstate__(qreq_, state_dict):
-    #    import ibeis
-    #    dbdir = state_dict['dbdir']
-    #    del state_dict['dbdir']
-    #    state_dict['ibs'] = ibeis.opendb(dbdir=dbdir)
-    #    qreq_.__dict__.update(state_dict)
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> from six.moves import cPickle as pickle
+            >>> qreq_, ibs = testdata_qreq()
+            >>> qreq_dump = pickle.dumps(qreq_)
+            >>> qreq2_ = pickle.loads(qreq_dump)
+        """
+        state_dict = qreq_.__dict__.copy()
+        state_dict['dbdir'] = qreq_.ibs.get_dbdir()
+        state_dict['ibs'] = None
+        state_dict['prog_hook'] = None
+        state_dict['indexer'] = None
+        state_dict['normalizer'] = None
+        state_dict['dstcnvs_normer'] = None
+        state_dict['hasloaded'] = False
+        return state_dict
+
+    def __setstate__(qreq_, state_dict):
+        import ibeis
+        dbdir = state_dict['dbdir']
+        del state_dict['dbdir']
+        state_dict['ibs'] = ibeis.opendb(dbdir=dbdir)
+        qreq_.__dict__.update(state_dict)
 
     @profile
     def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
@@ -607,11 +610,13 @@ class QueryRequest(object):
         return query_cfgstr
 
     @profile
-    def get_cfgstr(qreq_):
+    def get_cfgstr(qreq_, with_query=False):
         """ main cfgstring used to identify the 'querytype'
         FIXME: name
         params + data
         """
+        if with_query:
+            return qreq_.get_full_cfgstr()
         data_hashid = qreq_.get_data_hashid()
         query_cfgstr = qreq_.get_query_cfgstr()
         cfgstr = data_hashid + query_cfgstr

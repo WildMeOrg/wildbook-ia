@@ -411,7 +411,22 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     DRY_RUN =  ut.get_argflag('--dryrun')  # dont actually query. Just print labels and stuff
 
     print('Constructing query requests')
-    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg) for query_cfg in cfg_list]
+    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=query_cfg) for query_cfg in cfg_list]
+
+    #USE_BIG_TEST_CACHE = ut.get_argflag('--use-testcache')
+    USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test'))
+    if USE_BIG_TEST_CACHE:
+        bigtest_cachestr = ut.hashstr_arr27([qreq_.get_cfgstr(with_query=True) for qreq_ in cfgx2_qreq_], ibs.get_dbname() + '_cfgs')
+        bigtest_cachedir = './BIG_TEST_CACHE'
+        bigtest_cachename = 'BIGTESTCACHE'
+        ut.ensuredir(bigtest_cachedir)
+        try:
+            test_result = ut.load_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr)
+        except IOError:
+            pass
+        else:
+            ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
+            return test_result
 
     #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=ibs.cfg.query_cfg)
 
@@ -460,6 +475,8 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
     test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
+    if USE_BIG_TEST_CACHE:
+        ut.save_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr, test_result)
     return test_result
 
 if __name__ == '__main__':
