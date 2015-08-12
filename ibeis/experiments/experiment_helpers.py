@@ -155,7 +155,7 @@ def get_varied_params_list(test_cfg_name_list):
     varied_params_list = utool.flatten(dict_comb_list)
     OLD_ = True
     if OLD_:
-        dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_, allow_lone_singles=True)
+        dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
                           for dict_ in vary_dicts]
         # Append testname
         dict_comb_lbls = [[name_lbl + ':' + lbl for lbl in comb_lbls]

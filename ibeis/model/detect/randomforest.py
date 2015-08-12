@@ -335,15 +335,16 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
     else:
         # If the models do not exist, return None
         fpath_list = None
-    if not (fpath_list is not None and len(fpath_list) > 0):
+    if fpath_list is None or len(fpath_list) == 0:
         msg = ut.codeblock(
             '''
             [_get_models] Error loading trees, either directory or fpath_list not found
               * trees_path = %r
+              * fpath_list = %r
               * species = %r
               * model_dir = %r
               * cfg_override = %r
             '''
-        ) % (trees_path, species, modeldir, cfg_override)
+        ) % (trees_path, fpath_list, species, modeldir, cfg_override)
         raise AssertionError(msg)
     return fpath_list

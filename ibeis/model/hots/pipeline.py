@@ -947,8 +947,12 @@ def sver_single_chipmatch(qreq_, cm):
     config2_ = qreq_.get_external_query_config2()
 
     if qreq_.qparams.weight_inliers:
+        # Weights for inlier scoring
         qweights = scoring.get_annot_kpts_baseline_weights(
             qreq_.ibs, [qaid], config2_=config2_, config=config2_)[0].astype(np.float64)
+        #if False:
+        #    #num_query_feats = qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.get_external_query_config2())
+        #    #assert all([fm.max(axis=0)[0] < num_query_feats for fm in cm.fm_list])
         match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
     else:
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]

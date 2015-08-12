@@ -96,6 +96,19 @@ def ensure_models(modeldir='default', verbose=True):
 
 
 def redownload_models(modeldir='default', verbose=True):
+    r"""
+    Args:
+        modeldir (str): (default = 'default')
+        verbose (bool):  verbosity flag(default = True)
+
+    CommandLine:
+        python -m ibeis.model.detect.grabmodels --test-redownload_models
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.model.detect.grabmodels import *  # NOQA
+        >>> result = redownload_models()
+    """
     print('[grabmodels] redownload_detection_models')
     modeldir = _expand_modeldir(modeldir)
     ut.delete(modeldir)

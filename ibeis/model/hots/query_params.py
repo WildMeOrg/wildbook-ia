@@ -7,6 +7,13 @@ from ibeis.model import Config
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
 
 
+def testdata_queryparams():
+    from ibeis.model.hots import query_params
+    cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
+    qparams = query_params.QueryParams(cfgdict=cfgdict)
+    return qparams
+
+
 # This object will behave like a dictionary with ** capability
 class QueryParams(collections.Mapping):
     def __init__(qparams, query_cfg=None, cfgdict=None):
@@ -117,6 +124,24 @@ class QueryParams(collections.Mapping):
 
     def __len__(qparams):
         return len(qparams.__dict__)
+
+    def __getstate__(qparams):
+        """
+        Make QueryRequest pickleable
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_params import *  # NOQA
+            >>> from six.moves import cPickle as pickle
+            >>> qparams = testdata_queryparams()
+            >>> qparams_dump = pickle.dumps(qparams)
+            >>> qparams2 = pickle.loads(qparams_dump)
+        """
+        state_dict = qparams.__dict__.copy()
+        return state_dict
+
+    def __setstate__(qparams, state_dict):
+        qparams.__dict__.update(state_dict)
 
 
 if __name__ == '__main__':

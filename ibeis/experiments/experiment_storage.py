@@ -16,6 +16,9 @@ print, print_, printDBG, rrr, profile = utool.inject(
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
     def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids):
+        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
+        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
+        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
         test_result.qaids = qaids
         test_result.daids = daids
         test_result.cfg_list         = cfg_list
@@ -159,6 +162,7 @@ class TestResult(object):
         cfg_lbls = test_result.cfgx2_lbl[:]
         for ser, rep in repl_list:
             cfg_lbls = [re.sub(ser, rep, lbl) for lbl in cfg_lbls]
+            cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in [lbl.split(':') for lbl in cfg_lbls]]
         return cfg_lbls
 
 

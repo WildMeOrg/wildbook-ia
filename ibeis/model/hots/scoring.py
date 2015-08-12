@@ -231,6 +231,8 @@ def get_kpts_distinctiveness(ibs, aid_list, config2_=None, config={}):
 
 def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     r"""
+    Returns weights based on distinctiveness and/or features score / or ones.  Customized based on config.
+
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
         aid_list (int):  list of annotation ids
@@ -245,14 +247,19 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> qreq_, cm = plh.testdata_scoring()
+        >>> qreq_, cm = plh.testdata_scoring('testdb1')
         >>> aid_list = cm.daid_list
         >>> config = qreq_.qparams
         >>> # execute function
-        >>> config2_ = qreq.qparams
-        >>> weights_list = get_annot_kpts_baseline_weights(ibs, aid_list, config2_, config)
+        >>> config2_ = qreq_.qparams
+        >>> kpts_list = qreq_.ibs.get_annot_kpts(aid_list, config2_=config2_)
+        >>> weights_list = get_annot_kpts_baseline_weights(qreq_.ibs, aid_list, config2_, config)
         >>> # verify results
-        >>> result = str(weights_list)
+        >>> depth1 = ut.get_list_column(ut.depth_profile(kpts_list), 0)
+        >>> depth2 = ut.depth_profile(weights_list)
+        >>> assert depth1 == depth2
+        >>> print(depth1)
+        >>> result = str(depth2)
         >>> print(result)
     """
     # TODO: clip the fgweights? (dilation?)
@@ -267,7 +274,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
     if len(weight_lists) == 0:
-        baseline_weights_list = [np.ones(num, np.float64) for num in ibs.get_annot_num_feats(aid_list)]
+        baseline_weights_list = [np.ones(num, np.float64) for num in ibs.get_annot_num_feats(aid_list, config2_=config2_)]
         #baseline_weights_list = [None] * len(aid_list)
     else:
         # geometric mean of the selected weights

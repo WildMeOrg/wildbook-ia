@@ -217,7 +217,7 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
 def get_candidacy_dbnames():
     return [
         'PZ_MTEST',
-        'NNP_MasterGIRM_core',
+        #'NNP_MasterGIRM_core',
         'PZ_Master0',
         'NNP_Master3',
         'GZ_ALL',
@@ -251,7 +251,7 @@ def precfg_dbs(db_list):
         python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
         python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
         python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feeatweight
+        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
         python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
         python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
 
@@ -335,7 +335,7 @@ def precfg(ibs, qaids, daids, test_cfg_name_list):
             if ut.get_argflag('--preload-feat'):
                 qreq_.ensure_features(verbose=verbose)
                 flag = True
-            if ut.get_argflag('--preload-feeatweight'):
+            if ut.get_argflag('--preload-featweight'):
                 qreq_.ensure_featweights(verbose=verbose)
                 flag = True
             if ut.get_argflag('--preindex'):
@@ -360,17 +360,19 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
 
     CommandLine:
         python -m ibeis.experiments.experiment_harness --test-run_test_configurations
+        python -m ibeis.experiments.experiment_harness --test-run_test_configurations
         python -m ibeis.experiments.experiment_harness --test-run_test_configurations --serial
+
+        python -m ibeis.dev -t candidacy --db testdb1
+
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> qaids = ibs.get_valid_aids(species=species)
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> test_cfg_name_list = ['custom', 'custom:fg_on=False']
+        >>> import ibeis.init.main_helpers
+        >>> ibs, qaids, daids = ibeis.init.main_helpers.testdata_ibeis(verbose=False)
+        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
         >>> print(result)
     """
@@ -411,7 +413,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     print('Constructing query requests')
     cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg) for query_cfg in cfg_list]
 
-    qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=ibs.cfg.query_cfg)
+    #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=ibs.cfg.query_cfg)
 
     cfgx2_cfgresinfo = []
     #with utool.Timer('experiment_harness'):
@@ -439,7 +441,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         if not NOMEMORY:
             # Store the results
             cfgx2_cfgresinfo.append(cfgres_info)
-            cfgx2_qreq_.append(qreq_)
+            #cfgx2_qreq_.append(qreq_)
         else:
             cfgx2_qreq_[cfgx] = None
         print('\n +------ \n')

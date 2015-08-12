@@ -364,6 +364,10 @@ def draw_results(ibs, test_result):
     def draw_rank_cdf():
         cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
         lbl_list = test_result.get_short_cfglbls()
+        # Order cdf list by rank0
+        lbl_list = ut.sortedby(lbl_list, cdf_list.T[0], reverse=True)
+        cdf_list = np.array(ut.sortedby(cdf_list.tolist(), cdf_list.T[0], reverse=True))
+        #
         figtitle = 'Cumulative Histogram of GT-Ranks for db=' + (ibs.get_dbname())
         #cdf_list = config_cdfs
         maxrank = ut.get_argval('--maxrank', type_=int, default=None)
@@ -371,7 +375,7 @@ def draw_results(ibs, test_result):
             cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
             edges = edges[0:min(len(edges), maxrank + 1)]
         fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
-        ut.show_if_requested()
+        #ut.show_if_requested()
         #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)
         #print(rank_cdf_fpath)
         #rank_cdf_fpath  # NOQA
