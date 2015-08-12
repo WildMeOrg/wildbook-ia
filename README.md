@@ -298,6 +298,12 @@ python -m ibeis.dev <optional-arguments> [--help]
 # --cmd          # shows ipython prompt with useful variables populated
 # -w, --wait     # waits (useful for showing plots)
 # --gui          # starts the gui as well (dev.py does not show gui by default, main does)
+# --web          # runs the program as a web server
+# --quiet        # turns off most prints
+# --verbose      # turns on verbosity
+# --very-verbose # turns on extra verbosity
+# --debug2       # runs extra checks
+# --debug-print  # shows where print statments occur
 # -t [test]
 
 

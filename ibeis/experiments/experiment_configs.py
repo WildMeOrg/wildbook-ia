@@ -18,6 +18,24 @@ exclude_vars = vars().keys()   # this line is before tests
 default = [{}]
 
 
+def get_candidacy_dbnames():
+    return [
+        'PZ_MTEST',
+        #'NNP_MasterGIRM_core',
+        'PZ_Master0',
+        'NNP_Master3',
+        'GZ_ALL',
+        'PZ_FlankHack',
+        #'JAG_Kelly',
+        #'JAG_Kieryn',
+        #'LF_Bajo_bonito',
+        #'LF_OPTIMIZADAS_NI_V_E',
+        #'LF_WEST_POINT_OPTIMIZADAS',
+        #'GZ_Master0',
+        #'GIR_Tanya',
+    ]
+
+
 candidacy1 = [
     {'K': [1, 4, 10]},
 ]

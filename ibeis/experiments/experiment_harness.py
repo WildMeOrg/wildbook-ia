@@ -9,6 +9,7 @@ import numpy as np
 import utool
 import utool as ut
 from ibeis.experiments import experiment_helpers as expt_helpers
+from ibeis.experiments import experiment_configs
 from ibeis.experiments import experiment_printres
 from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
@@ -214,24 +215,6 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
         experiment_drawing.draw_results(ibs, test_result)
 
 
-def get_candidacy_dbnames():
-    return [
-        'PZ_MTEST',
-        #'NNP_MasterGIRM_core',
-        'PZ_Master0',
-        'NNP_Master3',
-        'GZ_ALL',
-        'PZ_FlankHack',
-        #'JAG_Kelly',
-        #'JAG_Kieryn',
-        #'LF_Bajo_bonito',
-        #'LF_OPTIMIZADAS_NI_V_E',
-        #'LF_WEST_POINT_OPTIMIZADAS',
-        #'GZ_Master0',
-        #'GIR_Tanya',
-    ]
-
-
 def precfg_dbs(db_list):
     r"""
     Runs precfg on multiple databases
@@ -265,7 +248,7 @@ def precfg_dbs(db_list):
     import ibeis.init.main_helpers
     import ibeis
     if db_list == ['candidacy']:
-        db_list = get_candidacy_dbnames()  # HACK
+        db_list = experiment_configs.get_candidacy_dbnames()  # HACK
     print('db_list = %s' % (ut.list_str(db_list),))
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
     for db in db_list:
