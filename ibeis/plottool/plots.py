@@ -512,7 +512,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
         label = lbl_list[ix]
         max_y = max(np.max(y_data), max_y)
         min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
-        ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=2, linewidth=1, markeredgewidth=0)
+        ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=4, linewidth=2, markeredgewidth=0)
 
     #ax.set_ylim(0, max_y * 1.05)
     ax.set_ylim(min_y / 1.05, max_y * 1.05)

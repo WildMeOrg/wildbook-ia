@@ -186,8 +186,8 @@ def show_was_requested():
 
 
 def show_if_requested(N=1):
-    if VERBOSE:
-        print('[pt] show_if_requested()')
+    if ut.NOT_QUIET:
+        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
 
     # Process figures adjustments from command line before a show or a save
 
@@ -196,15 +196,18 @@ def show_if_requested(N=1):
         # --adjust=[.02,.02,.05]
         keys = ['left', 'bottom', 'wspace', 'right', 'top', 'hspace']
         if len(adjust_list) == 1:
+            # [all]
             vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
         elif len(adjust_list) == 3:
+            # [left, bottom, wspace]
             vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
         elif len(adjust_list) == 4:
+            # [left, bottom, wspace, hspace]
             vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[3]]
         elif len(adjust_list) == 6:
             vals = adjust_list
         else:
-            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r' % (len(adjust_list), adjust_list))
+            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r. Expectts keys=%r' % (len(adjust_list), adjust_list, keys))
         adjust_kw = dict(zip(keys, vals))
         adjust_subplots(**adjust_kw)
 
@@ -212,6 +215,7 @@ def show_if_requested(N=1):
     if figsize is not None:
         # Enforce inches and DPI
         fig = gcf()
+        figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
         figw, figh = figsize[0], figsize[1]
         #print('get_size_inches = %r' % (fig.get_size_inches(),))
         #print('fig w,h (inches) = %r, %r' % (figw, figh))
