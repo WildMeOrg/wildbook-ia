@@ -442,7 +442,7 @@ def get_flann_params(algorithm='kdtree', **kwargs):
             'multi_probe_level_': 2,
         })
 
-    flann_params = ut.update_existing(flann_params, kwargs, allow_new=False)
+    flann_params = ut.update_existing(flann_params, kwargs, assert_exists=True)
     return flann_params
 
 

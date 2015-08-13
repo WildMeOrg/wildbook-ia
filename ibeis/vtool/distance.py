@@ -49,6 +49,33 @@ def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
     return fx, mindist
 
 
+def signed_ori_distance(ori1, ori2):
+    r"""
+    Args:
+        ori1 (?):
+        ori2 (?):
+
+    Returns:
+        ?: ori_dist
+
+    CommandLine:
+        python -m vtool.distance --exec-signed_ori_distance
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> ori1 = np.array([0,  0, 3, 4, 0, 0])
+        >>> ori2 = np.array([3,  4, 0, 0, np.pi, np.pi - .1])
+        >>> ori_dist = signed_ori_distance(ori1, ori2)
+        >>> result = ('ori_dist = %s' % (ut.numpy_str(ori_dist, precision=3),))
+        >>> print(result)
+        ori_dist = np.array([ 3.   , -2.283, -3.   ,  2.283, -3.142,  3.042], dtype=np.float64)
+    """
+    ori_dist = ori2 - ori1
+    ori_dist = (ori_dist + np.pi) % TAU - np.pi
+    return ori_dist
+
+
 @profile
 def ori_distance(ori1, ori2, out=None):
     r"""
@@ -123,19 +150,36 @@ def ori_distance(ori1, ori2, out=None):
         >>> print(result)
         np.array([ 0.22,  1.72,  0.  ,  0.08], dtype=np.float64)
 
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> ori1 = .3
+        >>> ori2 = 6.8
+        >>> dist_ = ori_distance(ori1, ori2)
+        >>> result = ut.numpy_str(dist_, precision=2)
+        >>> print(result)
+        np.float64(0.21681469282041377)
+
     Ignore:
         # This also works
         ori_dist = np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
         %timeit np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
     """
     # TODO: Cython
-    if out is None:
-        out = np.empty(ori1.shape, dtype=np.float64)
-    ori_diff  = np.subtract(ori1, ori2, out=out)
-    abs_diff  = np.abs(ori_diff, out=out)
-    mod_diff1 = np.mod(abs_diff, TAU, out=out)
+    #if out is None:
+    #    out = np.empty(ori1.shape, dtype=np.float64)
+    #ori_diff  = np.subtract(ori1, ori2, out=out)
+    #abs_diff  = np.abs(ori_diff, out=out)
+    #mod_diff1 = np.mod(abs_diff, TAU, out=out)
+    #mod_diff2 = np.subtract(TAU, mod_diff1)
+    #ori_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
+    ori_diff  = np.subtract(ori1, ori2)
+    abs_diff  = np.abs(ori_diff)
+    mod_diff1 = np.mod(abs_diff, TAU)
     mod_diff2 = np.subtract(TAU, mod_diff1)
-    ori_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
+    ori_dist  = np.minimum(mod_diff1, mod_diff2)
+    if out is not None:
+        out[:] = ori_dist
     return ori_dist
 
 
