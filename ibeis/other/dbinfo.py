@@ -255,7 +255,7 @@ def get_dbinfo(ibs, verbose=True,
     if verbose:
         print('Building Stats String')
 
-    multiton_stats  = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
+    multiton_stats = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
 
     # Time stats
     unixtime_list = ibs.get_image_unixtime(valid_gids)

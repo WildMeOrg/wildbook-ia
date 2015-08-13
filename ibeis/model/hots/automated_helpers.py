@@ -374,7 +374,6 @@ def setup_incremental_test(ibs_gt, clear_names=True, aid_order='shuffle'):
             return ut.filter_Nones(ut.iflatten(zip_longest(*list_)))
         aid_multiton_group = list(filter(lambda aids: len(aids) > 1, aid_groups))
         aid_list1 = stagger_group(aid_multiton_group)
-        #aid_list1 = ibs_gt.get_annot_rowid_sample(per_name=10, aid_list=aid_list1_, stagger_names=True)
         pass
     elif aid_order == 'same':
         aid_list1 = aid_list1_

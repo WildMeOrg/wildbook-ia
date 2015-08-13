@@ -165,6 +165,32 @@ class TestResult(object):
             cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in [lbl.split(':') for lbl in cfg_lbls]]
         return cfg_lbls
 
+    @property
+    def nConfig(test_result):
+        return len(test_result.cfg_list)
+
+    @property
+    def nQuery(test_result):
+        return len(test_result.qaids)
+
+    @property
+    def rank_mat(test_result):
+        return test_result.get_rank_mat()
+
+    def get_X_LIST(test_result):
+        X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
+        return X_LIST
+
+    def get_nLessX_dict(test_result):
+        # Build a (histogram) dictionary mapping X (as in #ranks < X) to a list of cfg scores
+        X_LIST = test_result.get_X_LIST()
+        nLessX_dict = {int(X): np.zeros(test_result.nConfig) for X in X_LIST}
+        for X in X_LIST:
+            rank_mat = test_result.rank_mat
+            lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
+            nLessX_dict[int(X)] = lessX_.sum(axis=0)
+        return nLessX_dict
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ResultMetadata(object):

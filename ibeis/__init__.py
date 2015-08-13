@@ -56,6 +56,9 @@ from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_
 
 from ibeis import model
 
+
+from ibeis import experiments
+
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler

@@ -2434,6 +2434,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     to try it as a query against.
 
     get_upsize_data
+    DEPRICATE
 
     Args:
         ibs (IBEISController):
@@ -2509,60 +2510,12 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 
 @__injectable
-def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
-                           stagger_names=False, distinguish_unknowns=False):
-    r"""
-    Gets a sampling of annotations
-
-    Args:
-        per_name (int): number of annotations per name
-        min_ngt (int): any name with less than this number of annotation is filtered out
-        seed (int): random seed
-        aid_list (list): base aid_list to start with. If None
-        get_valid_aids(nojunk=True) is used stagger_names (bool): if True
-        staggers the order of the returned sample
-
-    Returns:
-        list: sample_aids
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> per_name = 3
-        >>> min_ngt = 2
-        >>> seed = 0
-        >>> # execute function
-        >>> sample_aid_list = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
-        >>> result = ut.hashstr_arr(sample_aid_list)
-        arr((66)crj9l5jde@@hdmlp)
-    """
-    #qaids = ibs.get_easy_annot_rowids()
-    if aid_list is None:
-        aid_list = np.array(ibs.get_valid_aids(nojunk=True))
-    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
-    grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
-    sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
-    if stagger_names:
-        from six.moves import zip_longest
-        sample_aid_list = ut.filter_Nones(ut.iflatten(zip_longest(*sample_aids_list)))
-    else:
-        sample_aid_list = ut.flatten(sample_aids_list)
-
-    return sample_aid_list
-
-
-@__injectable
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     """
     get_annot_groundfalse_sample
 
     FIXME
+    DEPRICATE
 
     Args:
         ibs (IBEISController):
@@ -2626,6 +2579,8 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     r"""
     get_annot_groundtruth_sample
 
+    DEPRICATE
+
     Args:
         ibs (IBEISController):
         aid_list (list):
@@ -2667,6 +2622,9 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
 @__injectable
 def get_one_annot_per_name(ibs, col='rand'):
     r"""
+
+    DEPRICATE
+
     Args:
         ibs (IBEISController):  ibeis controller object
 
@@ -2709,29 +2667,144 @@ def get_one_annot_per_name(ibs, col='rand'):
     return aid_list
 
 
-def get_dominant_species(ibs, aid_list):
+@__injectable
+def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
+                           method='random', seed=0,
+                           offset=0, stagger_names=False, distinguish_unknowns=True, grouped_aids=None):
     r"""
+    Gets a sampling of annotations
+
+    DEPRICATE
+
     Args:
-        aid_list (int):  list of annotation ids
+        per_name (int): number of annotations per name
+        min_ngt (int): filters any name with less than this number of annotations
+        seed (int): random seed
+        aid_list (list): base aid_list to start with. If None
+        get_valid_aids(nojunk=True) is used stagger_names (bool): if True
+        staggers the order of the returned sample
+
+    Returns:
+        list: sample_aids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-get_dominant_species
+        python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
+        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> result = get_dominant_species(ibs, aid_list)
-        >>> print(result)
-        zebra_plains
+        >>> per_name = 3
+        >>> min_gt = 1
+        >>> seed = 0
+        >>> # execute function
+        >>> sample_aid_list = ibs.get_annot_rowid_sample(None, per_name, min_gt, seed)
+        >>> result = ut.hashstr_arr(sample_aid_list)
+        arr((66)crj9l5jde@@hdmlp)
     """
-    hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
-    keys = hist_.keys()
-    vals = hist_.values()
-    species_text = keys[ut.list_argmax(vals)]
-    return species_text
+    #qaids = ibs.get_easy_annot_rowids()
+    if grouped_aids is None:
+        if aid_list is None:
+            aid_list = np.array(ibs.get_valid_aids(nojunk=True))
+        grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
+        if min_gt is None:
+            grouped_aids = grouped_aids_
+        else:
+            grouped_aids = list(filter(lambda x: len(x) >= min_gt, grouped_aids_))
+    else:
+        # grouped aids was precomputed
+        pass
+    if method == 'random2':
+        # always returns per_name when available
+        sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
+    elif method == 'random':
+        # Random that allows for offset.
+        # may return less than per_name when available if offset > 0
+        rng = np.random.RandomState(seed)
+        for aids in grouped_aids:
+            rng.shuffle(aids)
+        sample_aids_list = ut.get_list_column_slice(grouped_aids, offset, offset + per_name)
+    elif method == 'simple':
+        sample_aids_list = ut.get_list_column_slice(grouped_aids, offset, offset + per_name)
+    else:
+        raise NotImplementedError('method = %r' % (method,))
+    if stagger_names:
+        from six.moves import zip_longest
+        sample_aid_list = ut.filter_Nones(ut.iflatten(zip_longest(*sample_aids_list)))
+    else:
+        sample_aid_list = ut.flatten(sample_aids_list)
+
+    return sample_aid_list
+
+
+def get_primary_species_viewpoint(species):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        species (?):
+
+    Returns:
+        str: primary_viewpoint
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_primary_species_viewpoint
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> aid_subset = get_primary_species_viewpoint(species)
+        >>> result = ('aid_subset = %s' % (str(aid_subset),))
+        >>> print(result)
+    """
+    if species == const.Species.ZEB_PLAIN:
+        primary_viewpoint = 'left'
+    elif species == const.Species.ZEB_GREVY:
+        primary_viewpoint = 'right'
+    else:
+        primary_viewpoint = 'left'
+    return primary_viewpoint
+
+
+def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None):
+    """
+    Given a viewpoint returns the acceptable viewpoints around it
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> yaw_text_list = ['left', 'right', 'back', 'front']
+        >>> towards = 'front'
+        >>> num1 = 1
+        >>> num2 = 0
+        >>> extended_yaws_list = [get_extended_viewpoints(base_yaw_text, towards, num1, num2)
+        >>>                       for base_yaw_text in yaw_text_list]
+        >>> result = ('extended_yaws_list = %s' % (ut.list_str(extended_yaws_list),))
+        >>> print(result)
+    """
+    import vtool as vt
+    ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
+    ori2 = const.VIEWTEXT_TO_YAW_RADIANS[towards]
+    # Find which direction to go to get closer to `towards`
+    yawdist = vt.signed_ori_distance(ori1, ori2)
+    if yawdist == 0:
+        # break ties
+        print('warning extending viewpoint yaws from the same position as towards')
+        yawdist += 1E-3
+    if num2 is None:
+        num2 = num1
+    assert num1 >= 0, 'must specify positive num'
+    assert num2 >= 0, 'must specify positive num'
+    yawtext_list = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
+    index = yawtext_list.index(base_yaw_text)
+    other_index_list1 = [int((index + (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num1 + 1)]
+    other_index_list2 = [int((index - (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num2 + 1)]
+    extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
+    extended_yaws = ut.list_take(yawtext_list, extended_index_list)
+    return extended_yaws
 
 
 def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
@@ -2742,6 +2815,14 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
 
     Build data for experiment that tries to rule out
     as much bad data as possible
+
+
+    Returns a controlled set of annotations that conforms to
+      * number of annots per name
+      * uniform species
+      * viewpoint restrictions
+      * quality restrictions
+      * time delta restrictions
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
@@ -2761,13 +2842,13 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         >>> result = str(aid_subset)
         >>> print(result)
     """
-    species = get_dominant_species(ibs, ibs.get_valid_aids())
+    species = get_primary_database_species(ibs, ibs.get_valid_aids())
     #aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN, is_known=True)
     aid_list = ibs.get_valid_aids(species=species, is_known=True)
     # FILTER OUT UNUSABLE ANNOTATIONS
     # Get annots with timestamps
     aid_list = filter_aids_without_timestamps(ibs, aid_list)
-    minqual = const.QUALITY_TEXT_TO_INT['poor']
+    minqual = 'ok'
     #valid_yaws = {'left', 'frontleft', 'backleft'}
     if species == ibs.const.Species.ZEB_PLAIN:
         valid_yawtexts = {'left', 'frontleft'}
@@ -2816,6 +2897,32 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     # process singletons
     #[aids for aids in zip(aids, hour_dists_list]
     return aid_subset
+
+
+@__injectable
+def get_num_annots_per_name(ibs, aid_list):
+    """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_num_annots_per_name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> num_annots_per_name, unique_nids = get_num_annots_per_name(ibs, aid_list)
+        >>> result = ('num_annots_per_name = %r' % (num_annots_per_name,))
+        >>> print(result)
+        num_annots_per_name = [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1]
+    """
+    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    num_annots_per_name = list(map(len, aids_list))
+    return num_annots_per_name, unique_nids
 
 
 @__injectable
@@ -2953,6 +3060,7 @@ def get_primary_database_species(ibs, aid_list=None):
         >>> result = primary_species
         >>> print('primary_species = %r' % (primary_species,))
         >>> print(result)
+        zebra_plains
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -2964,6 +3072,31 @@ def get_primary_database_species(ibs, aid_list=None):
         frequent_species = sorted(species_hist.items(), key=lambda item: item[1], reverse=True)
         primary_species = frequent_species[0][0]
     return primary_species
+
+
+#def get_dominant_species(ibs, aid_list):
+#    r"""
+#    Args:
+#        aid_list (int):  list of annotation ids
+
+#    CommandLine:
+#        python -m ibeis.ibsfuncs --test-get_dominant_species
+
+#    Example:
+#        >>> # ENABLE_DOCTEST
+#        >>> from ibeis.ibsfuncs import *  # NOQA
+#        >>> import ibeis
+#        >>> ibs = ibeis.opendb('testdb1')
+#        >>> aid_list = ibs.get_valid_aids()
+#        >>> result = get_dominant_species(ibs, aid_list)
+#        >>> print(result)
+#        zebra_plains
+#    """
+#    hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
+#    keys = hist_.keys()
+#    vals = hist_.values()
+#    species_text = keys[ut.list_argmax(vals)]
+#    return species_text
 
 
 @__injectable
@@ -3905,11 +4038,93 @@ def is_special_encounter(ibs, eid_list):
 
 
 @__injectable
-def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
-    qual_list = ibs.get_annot_qualities(aid_list)
+def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        minqual (str): qualtext
+        unknown_ok (bool): (default = False)
+
+    Returns:
+        iter: qual_flags
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_quality_filterflags
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:20]
+        >>> minqual = 'junk'
+        >>> unknown_ok = False
+        >>> qual_flags = list(get_quality_filterflags(ibs, aid_list, minqual, unknown_ok))
+        >>> result = ('qual_flags = %s' % (str(qual_flags),))
+        >>> print(result)
+    """
+    minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
+    qual_int_list = ibs.get_annot_qualities(aid_list)
+    #print('qual_int_list = %r' % (qual_int_list,))
+    if unknown_ok:
+        qual_flags = (
+            (qual_int is None or qual_int == -1) or qual_int >= minqual_int
+            for qual_int in qual_int_list
+        )
+    else:
+        qual_flags = (
+            (qual_int is not None) and qual_int >= minqual_int
+            for qual_int in qual_int_list
+        )
+    return qual_flags
+
+
+@__injectable
+def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        valid_yaws (?):
+        unknown_ok (bool): (default = True)
+
+    Returns:
+        int: aid_list -  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_viewpoint_filterflags
+        python -m ibeis.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:20]
+        >>> valid_yaws = None
+        >>> unknown_ok = False
+        >>> yaw_flags = list(get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok))
+        >>> result = ('yaw_flags = %s' % (str(yaw_flags),))
+        >>> print(result)
+    """
+    assert isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
     yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    qual_flags = (qual is None or qual > minqual for qual in qual_list)
-    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
+    if unknown_ok:
+        yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
+    else:
+        yaw_flags  = (yaw is not None and yaw in valid_yaws for yaw in yaw_list)
+    return yaw_flags
+
+
+@__injectable
+def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
+    qual_flags = get_quality_filterflags(aid_list, minqual)
+    yaw_flags = get_viewpoint_filterflags(aid_list, valid_yaws)
+    #qual_list = ibs.get_annot_qualities(aid_list)
+    #yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    #qual_flags = (qual is None or qual > minqual for qual in qual_list)
+    #yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
     flags_list = list(ut.and_iters(qual_flags, yaw_flags))
     return flags_list
 
@@ -3918,7 +4133,8 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 def get_annot_custom_filterflags(ibs, aid_list):
     if not ibs.cfg.other_cfg.enable_custom_filter:
         return [True] * len(aid_list)
-    minqual = const.QUALITY_TEXT_TO_INT['poor']
+    #minqual = const.QUALITY_TEXT_TO_INT['poor']
+    minqual = 'ok'
     #valid_yaws = {'left', 'frontleft', 'backleft'}
     valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
@@ -4831,6 +5047,21 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
     return timedelta_list
 
 
+@__injectable
+def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
+    qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
+    aid_list_ = ut.list_compress(aid_list, qual_flags)
+    return aid_list_
+
+
+@__injectable
+def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
+    yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
+    aid_list_ = ut.list_compress(aid_list, yaw_flags)
+    return aid_list_
+
+
+@__injectable
 def filter_aids_without_timestamps(ibs, aid_list):
     """
     aid_list = ibs.get_valid_aids()
@@ -4841,6 +5072,37 @@ def filter_aids_without_timestamps(ibs, aid_list):
     return aid_list_
 
 
+@__injectable
+def filter_aids_to_species(ibs, aid_list, species):
+    """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        species (?):
+
+    Returns:
+        list: aid_list_
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-filter_aids_to_species
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> species = ibeis.const.Species.ZEB_GREVY
+        >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
+        >>> print(aid_list_)
+        [9, 10]
+    """
+    flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
+    aid_list_ = ut.list_compress(aid_list, flag_list)
+    return aid_list_
+
+
+@__injectable
 def partition_annots_into_singleton_multiton(ibs, aid_list):
     """
     aid_list = aid_list_
@@ -4849,6 +5111,48 @@ def partition_annots_into_singleton_multiton(ibs, aid_list):
     singletons = [aids for aids in aids_list if len(aids) == 1]
     multitons = [aids for aids in aids_list if len(aids) > 1]
     return singletons, multitons
+
+
+@__injectable
+def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
+    """
+    Returns 4 lists of lists. In the first two each list is a list of aids
+    grouped by names and the names correspond with each other. In the last two
+    are the annots that did not correspond with anything in the other list.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list1 (int):  list of annotation ids
+        aid_list2 (int):  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-partition_annots_into_corresponding_groups
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aid_list1 = [1, 2, 8, 9, 60]
+        >>> aid_list2 = [3, 7, 20]
+        >>> result = partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2)
+        >>> print(result)
+        ([[1, 2], [8]], [[3], [7]], [9, 60], [20])
+
+    """
+    grouped_aids1 = ibs.group_annots_by_name(aid_list1)[0]
+    grouped_aids1 = [aids.tolist() for aids in grouped_aids1]
+    # Get the group of available aids that a reference aid could match
+    gropued_aids2 = ibs.get_annot_groundtruth(ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2)
+
+    flag_list = [x > 0 for x in map(len, gropued_aids2)]
+
+    gt_grouped_aids1 = ut.list_compress(grouped_aids1, flag_list)
+    gt_grouped_aids2 = ut.list_compress(gropued_aids2, flag_list)
+
+    gf_grouped_aids1 = ut.flatten(ut.list_compress(grouped_aids1, ut.not_list(flag_list)))
+    gf_gropued_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
+    return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_gropued_aids2
 
 
 def make_temporally_distinct_blind_test(ibs, challenge_num=None):
@@ -5191,6 +5495,136 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
             print('cp "%s" ~/Desktop/chips/' % (neg_chip, ))
 
     return positive_list, negative_list
+
+
+@__injectable
+def get_annotconfig_stats(ibs, qaids, daids):
+    import numpy as np
+    import vtool as vt
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+
+        def _stat_str(dict_):
+            import utool as ut
+            dict_ = dict_.copy()
+            if dict_.get('num_nan', None) == 0:
+                del dict_['num_nan']
+            exclude_keys = []  # ['std', 'nMin', 'nMax']
+            return ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+
+        def replace_none_with_nan(x):
+            import utool as ut
+            return np.array(ut.replace_nones(x, np.nan))
+
+        # Compares properties of query vs database annotations
+        def compare_correct_match_properties(qaids, daids, getter_func, cmp_func):
+            query_prop = replace_none_with_nan(getter_func(qaids))
+            match_props = ibs.unflat_map(getter_func, groundtruth_daids)
+            match_props = ibs.unflat_map(replace_none_with_nan, match_props)
+            # Compare the query yaws to the yaws of its correct matches in the database
+            gt_propdist_list = [cmp_func(np.array(gt_props), qprop) for qprop, gt_props in zip(query_prop, match_props)]
+            return gt_propdist_list
+
+        # Indepdentent query / database stats
+        def get_annot_stats_dict(aids, prefix):
+            """ stats for a set of annots """
+            aid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)
+            aid_stats_dict = ut.odict([
+                ('num_' + prefix + 'aids', len(aids)),
+                (prefix + 'aid_per_name_stats', _stat_str(aid_per_name_stats)),
+            ])
+            return aid_stats_dict
+
+        groundtruth_daids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
+        nonquery_daids = np.setdiff1d(daids, qaids)
+        # Intersection on a per name basis
+        nonquery_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
+        gt_daid_per_name_stats       = ut.get_stats(ibs.get_num_annots_per_name(ut.flatten(groundtruth_daids))[0], use_nan=True)
+
+        # Compare the query yaws to the yaws of its correct matches in the database
+        #query_yaws = replace_none_with_nan(ibs.get_annot_yaws(qaids))
+        #data_yaws = ibs.unflat_map(ibs.get_annot_yaws, groundtruth_daids)
+        #data_yaws = ibs.unflat_map(replace_none_with_nan, data_yaws)
+        #gt_yawdists_list = [vt.ori_distance(np.array(gt_yaws), qyaw) for qyaw, gt_yaws in zip(query_yaws, data_yaws)]
+        gt_yawdists_list = compare_correct_match_properties(qaids, daids,
+                                                            ibs.get_annot_yaws,
+                                                            vt.ori_distance)
+
+        # Compare the query qualities to the qualities of its correct matches in the database
+        #query_quals = replace_none_with_nan(ibs.get_annot_qualities(qaids))
+        #data_quals = ibs.unflat_map(ibs.get_annot_qualities, groundtruth_daids)
+        #data_quals = ibs.unflat_map(replace_none_with_nan, data_quals)
+        #gt_qualdists_list = [np.abs(gt_quals - qqual) for qqual, gt_quals in zip(query_quals, data_quals)]
+        gt_qualdists_list = compare_correct_match_properties(qaids, daids,
+                                                             ibs.get_annot_qualities,
+                                                             ut.absdiff)
+
+        # Compare timedelta differences
+        #def hourdiff(a, b):
+        #    return np.abs(np.subtract(a, b))
+        gt_hourdelta_list = compare_correct_match_properties(qaids, daids,
+                                                             ibs.get_annot_image_unixtimes_asfloat,
+                                                             ut.unixtime_hourdiff)
+
+        gt_yawdist_stats             = ut.get_stats(ut.flatten(gt_yawdists_list), use_nan=True)
+        gt_qualdist_stats            = ut.get_stats(ut.flatten(gt_qualdists_list), use_nan=True)
+        gt_hourdelta_stats           = ut.get_stats(ut.flatten(gt_hourdelta_list), use_nan=True)
+
+        #num_daid_per_dnid, unique_dnids = ibs.get_num_annots_per_name(daids)
+        #daid_per_dnid_stats = ut.get_stats(num_daid_per_dnid, use_nan=True)
+        #num_qaid_per_qnid, unique_qnids = ibs.get_num_annots_per_name(qaids)
+        #qaid_per_qnid_stats = ut.get_stats(num_qaid_per_qnid, use_nan=True)
+
+        #annotconfig_stats = {
+        #    'yawdist': gt_yawdist_stats,
+        #    'qualdist': gt_qualdist_stats,
+        #    'nonquery_daid_per_name_stats': nonquery_daid_per_name_stats,
+        #    'gt_daid_per_name_stats': gt_daid_per_name_stats,
+        #    'num_intersect': len(common_aids)
+        #}
+
+        qaid_stats_dict = get_annot_stats_dict(qaids, 'q')
+        daid_stats_dict = get_annot_stats_dict(daids, 'd')
+
+        # Intersections between qaids and daids
+        common_aids = np.intersect1d(daids, qaids)
+
+        qnids = ibs.get_annot_name_rowids(qaids)
+        dnids = ibs.get_annot_name_rowids(daids)
+        common_nids = np.intersect1d(qnids, dnids)
+
+        annotconfig_stats_strs1 = ut.odict([
+            ('dbname', ibs.get_dbname()),
+            ('num_qaids', (len(qaids))),
+            ('num_daids', (len(daids))),
+            ('num_annot_intersect', (len(common_aids))),
+            ('qaid_stats', qaid_stats_dict),
+            ('daid_stats', daid_stats_dict),
+            ('num_qnids', (len(qnids))),
+            ('num_dnids', (len(dnids))),
+            ('num_name_intersect', (len(common_nids))),
+        ])
+        annotconfig_stats_strs2 = ut.odict([
+            # Number of aids in each name that should match to a query
+            # (not quite sure how to phrase what this is)
+            ('aids_per_correct_name', _stat_str(gt_daid_per_name_stats)),
+            # Number of aids in each name that should not match to any query
+            # (not quite sure how to phrase what this is)
+            ('aids_per_imposter_name', _stat_str(nonquery_daid_per_name_stats)),
+            # Distances between a query and its groundtruth
+            ('yawdist', _stat_str(gt_yawdist_stats)),
+            ('qualdist', _stat_str(gt_qualdist_stats)),
+            ('hourdist', _stat_str(gt_hourdelta_stats)),
+        ])
+        annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() + annotconfig_stats_strs2.items())
+        stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True, newlines=False, explicit=True, nobraces=True)
+        stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True, newlines=True, explicit=True, nobraces=True)
+        #stats_str = ut.align(stats_str, ':')
+        stats_str2 = ut.dict_str(annotconfig_stats_strs, strvals=True, newlines=True, explicit=False, nobraces=False)
+        print(stats_str2)
+
+        return annotconfig_stats_strs, locals()
 
 
 if __name__ == '__main__':

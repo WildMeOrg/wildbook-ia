@@ -554,7 +554,7 @@ def run_devprecmds():
 
 
 #@utool.indent_func('[dev]')
-def run_devcmds(ibs, qaid_list, daid_list):
+def run_devcmds(ibs, qaid_list, daid_list, annot_info=None):
     """
     This function runs tests passed in with the -t flag
     """
@@ -649,7 +649,7 @@ def run_devcmds(ibs, qaid_list, daid_list):
     if len(test_cfg_name_list):
         fnum = pt.next_fnum()
         # Run Experiments
-        experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
+        experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list, annot_info)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -877,7 +877,7 @@ def run_dev(ibs):
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
-        ibs, qaid_list, daid_list = main_helpers.testdata_ibeis(ibs=ibs, verbose=(ut.NOT_QUIET and not ut.get_argflag('--nodbinfo')))
+        ibs, qaid_list, daid_list, annot_info = main_helpers.testdata_ibeis(ibs=ibs, return_annot_info=True)
         #qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
         #daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
         print('[run_def] Test Annotations:')
@@ -892,7 +892,7 @@ def run_dev(ibs):
 
         if len(qaid_list) > 0 or True:
             # Run the dev experiments
-            expt_locals = run_devcmds(ibs, qaid_list, daid_list)
+            expt_locals = run_devcmds(ibs, qaid_list, daid_list, annot_info)
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
@@ -935,10 +935,20 @@ python dev.py --allgt -t vsone
 python dev.py --allgt -t vsmany
 python dev.py --allgt -t nsum
 
+# Newstyle experiments
+# commmand             # annot settings            # test settings
+python -m ibeis.dev    -a default:qaids=allgt      -t best
+
+
 ### COMPARE TWO CONFIGS ###
 python dev.py --allgt -t nsum vsmany vsone
 python dev.py --allgt -t nsum vsmany
 python dev.py --allgt -t nsum vsmany vsone smk
+
+### VARY DATABASE SIZE
+python -m ibeis.dev -a default:qaids=allgt,dsize=100,qper_name=1,qmin_per_name=1 -t default --db PZ_MTEST
+python -m ibeis.dev -a candidacy:qsize=10,dsize=100 -t default --db PZ_MTEST --verbtd
+
 
 ### VIZ A SET OF MATCHES ###
 python dev.py --db PZ_MTEST -t query --qaid 72 110 -w

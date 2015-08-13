@@ -91,6 +91,8 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
                    is_known=None, nojunk=False, hasgt=None):
     r"""
+    High level function for getting all annotation ids according a set of filters.
+
     Note: The yaw value cannot be None as a default because None is used as a
           filtering value
 
@@ -1777,6 +1779,15 @@ def get_annot_image_unixtimes(ibs, aid_list):
     """
     gid_list = ibs.get_annot_gids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)
+    return unixtime_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/image_unixtimes/', methods=['GET'])
+def get_annot_image_unixtimes_asfloat(ibs, aid_list):
+    unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
+    unixtime_list[unixtime_list == -1] = np.nan
     return unixtime_list
 
 

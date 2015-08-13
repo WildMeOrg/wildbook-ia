@@ -253,6 +253,69 @@ class IndividualResultsCopyTaskQueue(object):
         del self.cp_task_list[:]
 
 
+def draw_rank_cdf(ibs, test_result):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (?):
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy --db PZ_MTEST --controlled --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy --db PZ_Master0 --controlled --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_Master0 --controlled --show
+
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_MTEST --controlled --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
+        >>> ibs, test_result = experiment_harness.get_cmdline_test_result()
+        >>> result = draw_rank_cdf(ibs, test_result)
+        >>> ut.show_if_requested()
+        >>> print(result)
+    """
+    import plottool as pt
+    cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
+    lbl_list = test_result.get_short_cfglbls()
+    # Order cdf list by rank0
+    lbl_list = ut.sortedby(lbl_list, cdf_list.T[0], reverse=True)
+    cdf_list = np.array(ut.sortedby(cdf_list.tolist(), cdf_list.T[0], reverse=True))
+    #
+    figtitle = (
+        'Cumulative Histogram of GT-Ranks for db=' + (ibs.get_dbname()))
+    figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
+    if test_result.annot_info is not None:
+        if test_result.annot_info['daids']['controlled']:
+            figtitle += ' Controlled. '
+            #figtitle += (
+            #    ' num_qaids=%r' % (len(test_result.qaids)) +
+            #    ' num_daids=%r' % (len(test_result.daids))
+            #)
+
+    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.daids)
+    small_info = ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_intersect'])
+    small_info_str = '\n' + ut.dict_str(small_info, strvals=True, newlines=False, explicit=True, nobraces=True).replace('\'', '')
+    small_info_str += ' mean(yawdiff)=' + ut.scalar_str(locals_['gt_yawdist_stats']['mean'], precision=2)
+    small_info_str += ' mean(qualdiff)=' + ut.scalar_str(locals_['gt_qualdist_stats']['mean'], precision=2)
+
+    figtitle += small_info_str
+
+    #cdf_list = config_cdfs
+    maxrank = ut.get_argval('--maxrank', type_=int, default=None)
+    if maxrank is not None:
+        cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
+        edges = edges[0:min(len(edges), maxrank + 1)]
+    fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
+    #ut.show_if_requested()
+    #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)
+    #print(rank_cdf_fpath)
+    #rank_cdf_fpath  # NOQA
+    #if SHOW:
+    #    pt.plt.show()
+
+
 @profile
 def draw_results(ibs, test_result):
     r"""

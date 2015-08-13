@@ -23,6 +23,14 @@ NOCACHE_TESTRES =  utool.get_argflag('--nocache-testres', False)
 TEST_INFO = True
 
 
+def get_cmdline_test_result():
+    import ibeis.init.main_helpers
+    ibs, qaids, daids, annot_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_annot_info=True)
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
+    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list, annot_info=annot_info)
+    return ibs, test_result
+
+
 @profile
 def get_qres_name_result_info(ibs, qres):
     """
@@ -96,7 +104,7 @@ def get_qres_name_result_info(ibs, qres):
 
 
 @profile
-def get_query_result_info(qx2_qres, qreq_):
+def get_query_result_info(qreq_):
     """
     Helper function.
 
@@ -122,8 +130,7 @@ def get_query_result_info(qx2_qres, qreq_):
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
         >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={}, query_cfg=ibs.cfg.query_cfg)
-        >>> qx2_qres = ibs.query_chips(qreq_=qreq_)
-        >>> cfgres_info = get_query_result_info(qx2_qres, qreq_)
+        >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
     Example:
@@ -136,8 +143,7 @@ def get_query_result_info(qx2_qres, qreq_):
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
         >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={}, query_cfg=ibs.cfg.query_cfg)
-        >>> qx2_qres = ibs.query_chips(qreq_=qreq_)
-        >>> cfgres_info = get_query_result_info(qx2_qres, qreq_)
+        >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
@@ -156,6 +162,7 @@ def get_query_result_info(qx2_qres, qreq_):
     #qaid2_qres, qreq_ = ibs._query_chips4(qaids, daids, return_request=True)
     #qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
+    qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
     qaids = qreq_.get_external_qaids()
     daids = qreq_.get_external_daids()
     ibs = qreq_.ibs
@@ -183,7 +190,7 @@ def get_query_result_info(qx2_qres, qreq_):
 #-----------
 #@utool.indent_func('[harn]')
 @profile
-def test_configurations(ibs, qaids, daids, test_cfg_name_list):
+def test_configurations(ibs, qaids, daids, test_cfg_name_list, annot_info=None):
     r"""
     Test harness driver function
 
@@ -207,7 +214,7 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
     if len(daids) == 0:
         print('[harness] No query annotations specified')
         return None
-    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list, annot_info=annot_info)
     if test_result is None:
         return
     else:
@@ -330,7 +337,7 @@ def precfg(ibs, qaids, daids, test_cfg_name_list):
 
 
 @profile
-def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
+def run_test_configurations(ibs, qaids, daids, test_cfg_name_list, annot_info=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -339,7 +346,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         test_cfg_name_list (list):
 
     Returns:
-        ?:
+        TestResult: results over multiple configurations
 
     CommandLine:
         python -m ibeis.experiments.experiment_harness --test-run_test_configurations
@@ -352,11 +359,10 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_harness import *  # NOQA
-        >>> import ibeis
         >>> import ibeis.init.main_helpers
         >>> ibs, qaids, daids = ibeis.init.main_helpers.testdata_ibeis(verbose=False)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-        >>> result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+        >>> test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
         >>> print(result)
     """
     # Grab list of algorithm configurations to test
@@ -409,6 +415,8 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
             pass
         else:
             ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
+            test_result.annot_info = annot_info
+            test_result.test_cfg_name_list = test_cfg_name_list
             return test_result
 
     #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=ibs.cfg.query_cfg)
@@ -432,9 +440,19 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
             # Set data to the current config
             #ibs.set_query_cfg(query_cfg)  # TODO: make this not even matter
             # Run the test / read cache
-            qx2_qres = ibs.query_chips(qreq_=qreq_)
-            cfgres_info = get_query_result_info(qx2_qres, qreq_)
-            del qx2_qres
+            if USE_BIG_TEST_CACHE:
+                # smaller cache for individual configuration runs
+                smalltest_cfgstr = qreq_.get_cfgstr(with_query=True)
+                smalltest_cachedir = ut.unixjoin(bigtest_cachedir, 'small_tests')
+                smalltest_cachename = 'smalltest'
+                ut.ensuredir(smalltest_cachedir)
+                try:
+                    cfgres_info = ut.load_cache(smalltest_cachedir, smalltest_cachename, smalltest_cfgstr)
+                except IOError:
+                    cfgres_info = get_query_result_info(qreq_)
+                    ut.save_cache(smalltest_cachedir, smalltest_cachename, smalltest_cfgstr, cfgres_info)
+            else:
+                cfgres_info = get_query_result_info(qreq_)
             #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
         if not NOMEMORY:
             # Store the results
@@ -458,6 +476,8 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
     test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
+    test_result.annot_info = annot_info
+    test_result.test_cfg_name_list = test_cfg_name_list
     if USE_BIG_TEST_CACHE:
         ut.save_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr, test_result)
     return test_result

@@ -41,6 +41,67 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     return diff_matstr
 
 
+def print_latexsum(ibs, test_result, verbose=True, annot_request_info=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (?):
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_printres --exec-print_latexsum
+        python -m ibeis.scripts.gen_cand_expts --exec-gen_script
+
+        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 --controlled --rank-lt-list=1,5,10,100
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
+        >>> import ibeis.init.main_helpers
+        >>> ibs, qaids, daids, annot_request_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_extra_info=True)
+        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
+        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+        >>> tabular_str2 = print_latexsum(ibs, test_result, annot_request_info=annot_request_info)
+    """
+    print('==========================')
+    print('[harn] LaTeX: %s' % test_result.testnameid)
+    print('==========================')
+    # Create configuration latex table
+    X_LIST = test_result.get_X_LIST()
+    criteria_lbls = [r'#ranks $\leq$ %d' % X for X in X_LIST]
+    dbname = ibs.get_dbname()
+    cfg_score_title = dbname + ' rank scores'
+    nLessX_dict = test_result.get_nLessX_dict()
+    cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
+
+    # For mat row labels
+    row_lbls = test_result.get_short_cfglbls()
+    # Order cdf list by rank0
+    row_lbls = ut.sortedby(row_lbls, cfgscores.T[0], reverse=True)
+    cfgscores = np.array(ut.sortedby(cfgscores.tolist(), cfgscores.T[0], reverse=True))
+
+    tabular_kwargs = dict(
+        title=cfg_score_title,
+        out_of=test_result.nQuery,
+        bold_best=True,
+        flip=False,
+        SHORTEN_ROW_LBLS=False
+    )
+    col_lbls = criteria_lbls
+    tabular_str = ut.util_latex.make_score_tabular(
+        row_lbls, col_lbls, cfgscores, **tabular_kwargs)
+    cmdaug = ''
+    if annot_request_info is not None:
+        if annot_request_info['daids']['controlled']:
+            assert annot_request_info['qaids']['controlled']
+            cmdaug = 'Controlled'
+    #latex_formater.render(tabular_str)
+    cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + cmdaug + 'Table')
+    tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
+    print(tabular_str2)
+    return tabular_str2
+
+
 @profile
 def print_results(ibs, test_result):
     """
@@ -114,7 +175,7 @@ def print_results(ibs, test_result):
     print(' --- PRINT RESULTS ---')
     print(' use --rank-lt-list=1,5 to specify X_LIST')
     # Num of ranks less than to score
-    X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
+    X_LIST = test_result.get_X_LIST()
     #X_LIST = [1, 5]
 
     nConfig = len(cfg_list)
@@ -170,11 +231,7 @@ def print_results(ibs, test_result):
 
     #------------
     # Build Colscore
-    # Build a (histogram) dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nConfig) for X in X_LIST}
-    for X in X_LIST:
-        lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
-        nLessX_dict[int(X)] = lessX_.sum(axis=0)
+    nLessX_dict = test_result.get_nLessX_dict()
 
     @ut.argv_flag_dec
     def print_rowlbl():
@@ -197,7 +254,7 @@ def print_results(ibs, test_result):
 
     #------------
 
-    @ut.argv_flag_dec_true
+    @ut.argv_flag_dec
     def print_cfgstr():
         print('=====================')
         print('[harn] Config Strings: %s' % testnameid)
@@ -259,7 +316,7 @@ def print_results(ibs, test_result):
 
     #------------
 
-    @ut.argv_flag_dec_true
+    @ut.argv_flag_dec
     def echo_hardcase():
         print('--- hardcase commandline: %s' % testnameid)
         # Show index for current query where hardids reside
@@ -268,7 +325,8 @@ def print_results(ibs, test_result):
         #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_hard_qaids))
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_hard_qaids))
         print(hardaids_str)
-    echo_hardcase(default=not ut.get_argflag('--allhard'))
+    #echo_hardcase(default=not ut.get_argflag('--allhard'))
+    echo_hardcase()
 
     #------------
 
@@ -307,35 +365,7 @@ def print_results(ibs, test_result):
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_latexsum():
-        print('==========================')
-        print('[harn] LaTeX: %s' % testnameid)
-        print('==========================')
-        # Create configuration latex table
-        criteria_lbls = [r'#ranks $\leq$ %d' % X for X in X_LIST]
-        dbname = ibs.get_dbname()
-        cfg_score_title = dbname + ' rank scores'
-        cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
-
-        # For mat row labels
-        row_lbls = test_result.get_short_cfglbls()
-
-        tabular_kwargs = dict(
-            title=cfg_score_title,
-            out_of=nQuery,
-            bold_best=True,
-            flip=False,
-            SHORTEN_ROW_LBLS=False
-        )
-        col_lbls = criteria_lbls
-        tabular_str = ut.util_latex.make_score_tabular(
-            row_lbls, col_lbls, cfgscores, **tabular_kwargs)
-        #latex_formater.render(tabular_str)
-        cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + 'Table')
-        tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
-        print(tabular_str2)
-    print_latexsum()
+    ut.argv_flag_dec(print_latexsum)(ibs, test_result)
 
     #------------
     best_rankscore_summary = []

@@ -1,11 +1,12 @@
-# TODO: Need test harness to do a gridsearch of these guys
+# -*- coding: utf-8 -*-
+# TODO: Need test harness to do (something smarter than) gridsearch of these guys
 """
 In this file dicts specify all possible combinations of the varied parameters
 and lists specify the union of parameters
 """
 from __future__ import absolute_import, division, print_function
-import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
+import utool as ut
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[cfgbank]')
 
 
 def augbase(basedict, updatedict):
@@ -36,6 +37,19 @@ def get_candidacy_dbnames():
     ]
 
 
+def candidacy_annot_selections():
+    """
+    --aidcfg
+    controlled
+    controlled
+    # See manual helpers for now
+    """
+    candidacy_aidcfg = {
+        'controlled': False
+    }
+    pass
+
+
 candidacy1 = [
     {'K': [1, 4, 10]},
 ]
@@ -51,6 +65,23 @@ candidacy = [
     {'rotation_invariance': [True]},
     {'affine_invariance': [False]},
     {'augment_queryside_hack': [True]},
+]
+
+candidacy_invariance = {
+    'rotation_invariance': [True, False],
+    'affine_invariance': [False, True],
+    'augment_queryside_hack': [False, True],
+}
+
+candidacy_namescore = [
+    {
+        'score_method':      ['nsum'],
+        'prescore_method':   ['nsum'],
+    },
+    {
+        'score_method':      ['csum'],
+        'prescore_method':   ['csum'],
+    }
 ]
 
 candidacy_linear = candidacy + [
