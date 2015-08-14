@@ -3,11 +3,11 @@
 Helper module that helps expand parameters for grid search
 """
 from __future__ import absolute_import, division, print_function
-import utool
 import utool as ut  # NOQA
 import six
 from six.moves import zip, map
 import re
+import itertools
 from ibeis.experiments import experiment_configs
 from ibeis.model import Config
 print, print_, printDBG, rrr, profile = ut.inject(
@@ -44,7 +44,7 @@ def get_vary_dicts(test_cfg_name_list):
         ]
 
     Ignore:
-        print(utool.indent(utool.list_str(vary_dicts), ' ' * 8))
+        print(ut.indent(ut.list_str(vary_dicts), ' ' * 8))
     """
     vary_dicts = []
     test_cfg_name_list_out = []
@@ -72,7 +72,7 @@ def get_vary_dicts(test_cfg_name_list):
 def rankscore_str(thresh, nLess, total, withlbl=True):
     #helper to print rank scores of configs
     percent = 100 * nLess / total
-    fmtsf = '%' + str(utool.num2_sigfig(total)) + 'd'
+    fmtsf = '%' + str(ut.num2_sigfig(total)) + 'd'
     if withlbl:
         fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
         rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
@@ -88,7 +88,7 @@ def wrap_cfgstr(cfgstr):
     cfgstrmarker_list = re.findall(cfg_regex, cfgstr)
     cfgstrconfig_list = re.split(cfg_regex, cfgstr)
     args = [cfgstrconfig_list, cfgstrmarker_list]
-    interleave_iter = utool.interleave(args)
+    interleave_iter = ut.interleave(args)
     new_cfgstr_list = []
     total_len = 0
     prefix_str = ''
@@ -117,9 +117,9 @@ def wrap_cfgstr(cfgstr):
 
 
 def format_cfgstr_list(cfgstr_list):
-    indented_list = utool.indent_list('    ', cfgstr_list)
+    indented_list = ut.indent_list('    ', cfgstr_list)
     wrapped_list = list(map(wrap_cfgstr, indented_list))
-    return utool.joins('\n', wrapped_list)
+    return ut.joins('\n', wrapped_list)
 
 
 #---------------
@@ -150,12 +150,12 @@ def get_varied_params_list(test_cfg_name_list):
         >>> print(ut.list_str(varied_param_lbls))
     """
     vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
-    dict_comb_list = [utool.all_dict_combinations(dict_)
+    dict_comb_list = [ut.all_dict_combinations(dict_)
                       for dict_ in vary_dicts]
-    varied_params_list = utool.flatten(dict_comb_list)
+    varied_params_list = ut.flatten(dict_comb_list)
     OLD_ = True
     if OLD_:
-        dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
+        dict_comb_lbls = [ut.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
                           for dict_ in vary_dicts]
         # Append testname
         dict_comb_lbls = [[name_lbl + ':' + lbl for lbl in comb_lbls]
@@ -164,7 +164,7 @@ def get_varied_params_list(test_cfg_name_list):
     #else:
     #    #varied_params_list =
     #    pass
-    varied_param_lbls = utool.flatten(dict_comb_lbls)
+    varied_param_lbls = ut.flatten(dict_comb_lbls)
     return varied_params_list, varied_param_lbls
 
 
@@ -215,6 +215,103 @@ def get_cfg_list_helper(test_cfg_name_list):
     if not QUIET:
         print('[harn.help] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
     return cfg_list, cfgx2_lbl
+
+
+def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None):
+    """
+    Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
+    """
+    cfg_combo_list = []
+    for cfgstr in cfgstr_list:
+        cfgstr_split = cfgstr.split(':')
+        cfgname = cfgstr_split[0]
+        cfg = named_defaults_dict[cfgname].copy()
+        # Parse dict out of a string
+        if len(cfgstr_split) > 1:
+            cfgstr_options =  ':'.join(cfgstr_split[1:]).split(',')
+            cfg_options = ut.parse_cfgstr_list(cfgstr_options, smartcast=True, oldmode=False)
+        else:
+            cfg_options = {}
+        # Hack for q/d-prefix specific configs
+        if cfgtype is not None:
+            for key in list(cfg_options.keys()):
+                # check if key is nonstandard
+                if not (key in cfg or key in alias_keys):
+                    # does removing prefix make it stanard?
+                    prefix = cfgtype[0]
+                    if key.startswith(prefix):
+                        key_ = key[len(prefix):]
+                        if key_ in cfg or key_ in alias_keys:
+                            # remove prefix
+                            cfg_options[key_] = cfg_options[key]
+                    try:
+                        assert key[1:] in cfg or key[1:] in alias_keys, 'key=%r, key[1:] =%r' % (key, key[1:] )
+                    except AssertionError as ex:
+                        ut.printex(ex, 'error', keys=['key', 'cfg', 'alias_keys'])
+                        raise
+                    del cfg_options[key]
+        # Remap keynames based on aliases
+        if alias_keys is not None:
+            for key in alias_keys.keys():
+                if key in cfg_options:
+                    # use standard new key
+                    cfg_options[alias_keys[key]] = cfg_options[key]
+                    # remove old alised key
+                    del cfg_options[key]
+        # Finalize configuration dict
+        cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=True)
+        cfg['_cfgtype'] = cfgtype
+        cfg['_cfgname'] = cfgname
+        cfg['_cfgstr'] = cfgstr
+
+        cfg_combo = ut.all_dict_combinations(cfg)
+        cfg_combo_list.append(cfg_combo)
+    return cfg_combo_list
+
+
+def get_annotcfg_list(acfgstr_list):
+    r"""
+    For now can only specify one acfg name list
+
+    Args:
+        annot_cfg_name_list (list):
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:1
+
+    Example0:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> acfgstr_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
+        >>> acfg_list = get_annotcfg_list(acfgstr_list)
+        >>> result = ut.list_str(acfg_list, nl=3)
+        >>> print(result)
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> acfgstr_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'varysize', 'candidacy'])
+        >>> acfg_list = get_annotcfg_list(acfgstr_list)
+        >>> result = ut.list_str(acfg_list)
+        >>> print(result)
+    """
+    from ibeis.experiments import annotation_configs
+    named_defaults_dict = ut.dict_take(annotation_configs.__dict__, annotation_configs.TEST_NAMES)
+    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'qcfg')))
+    named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))
+    alias_keys = annotation_configs.alias_keys
+    # need to have the cfgstr_lists be the same for query and database so they can be combined properly for now
+    qcfg_combo_list = parse_cfgstr_list2(acfgstr_list, named_qcfg_defaults, 'qcfg', alias_keys=alias_keys)
+    dcfg_combo_list = parse_cfgstr_list2(acfgstr_list, named_dcfg_defaults, 'dcfg', alias_keys=alias_keys)
+
+    acfg_combo_list = []
+    for qcfg_combo, dcfg_combo in zip(qcfg_combo_list, dcfg_combo_list):
+        acfg_combo = [dict([('qcfg', qcfg), ('dcfg', dcfg)]) for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))]
+        acfg_combo_list.append(acfg_combo)
+    acfg_list = ut.flatten(acfg_combo_list)
+
+    return acfg_list
 
 
 def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):

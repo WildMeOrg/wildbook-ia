@@ -41,7 +41,7 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     return diff_matstr
 
 
-def print_latexsum(ibs, test_result, verbose=True, annot_request_info=None):
+def print_latexsum(ibs, test_result, verbose=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -51,17 +51,20 @@ def print_latexsum(ibs, test_result, verbose=True, annot_request_info=None):
         python -m ibeis.experiments.experiment_printres --exec-print_latexsum
         python -m ibeis.scripts.gen_cand_expts --exec-gen_script
 
-        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 --controlled --rank-lt-list=1,5,10,100
+        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
+        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
         >>> from ibeis.experiments import experiment_harness
         >>> import ibeis.init.main_helpers
-        >>> ibs, qaids, daids, annot_request_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_extra_info=True)
-        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
-        >>> tabular_str2 = print_latexsum(ibs, test_result, annot_request_info=annot_request_info)
+        >>> #ibs, qaids, d aids, annot_request_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_extra_info=True)
+        >>> ibs, test_result_list = experiment_harness.testdata_expts()
+        >>> test_result = test_result_list[0]
+        >>> #test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
+        >>> #test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
+        >>> tabular_str2 = print_latexsum(ibs, test_result)
     """
     print('==========================')
     print('[harn] LaTeX: %s' % test_result.testnameid)
@@ -91,9 +94,9 @@ def print_latexsum(ibs, test_result, verbose=True, annot_request_info=None):
     tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, cfgscores, **tabular_kwargs)
     cmdaug = ''
-    if annot_request_info is not None:
-        if annot_request_info['daids']['controlled']:
-            assert annot_request_info['qaids']['controlled']
+    if test_result.acfg is not None:
+        if test_result.acfg['daids']['controlled']:
+            assert test_result.acfg['qaids']['controlled']
             cmdaug = 'Controlled'
     #latex_formater.render(tabular_str)
     cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + cmdaug + 'Table')
@@ -140,14 +143,14 @@ def print_results(ibs, test_result):
         >>> ibs = ibeis.opendb(defaultdb='testdb3')
         >>> test_cfg_name_list = ['pyrscale']
         >>> qaids = ibs.get_valid_aids(species=species, hasgt=True)
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+        >>> d aids = ibs.get_valid_aids(species=species)
+        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
         >>> # execute function
         >>> result = print_results(ibs, test_result)
         >>> # verify results
         >>> print(result)
     """
-    qaids = test_result.qaids
+
     (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
         test_result.__dict__, ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid', 'cfgx2_lbl', 'cfgx2_qreq_'])
 
@@ -179,7 +182,7 @@ def print_results(ibs, test_result):
     #X_LIST = [1, 5]
 
     nConfig = len(cfg_list)
-    nQuery = len(qaids)
+    nQuery = len(test_result.qaids)
     #--------------------
 
     gt_raw_score_mat = np.vstack(cfgx2_gt_raw_score).T
@@ -199,7 +202,7 @@ def print_results(ibs, test_result):
     #------------
     # Build row lbls
     qx2_lbl = np.array([
-        'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaids[qx], ibs=ibs, notes=True))
+        'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(test_result.qaids[qx], ibs=ibs, notes=True))
         for qx in range(nQuery)])
 
     #------------
@@ -224,7 +227,7 @@ def print_results(ibs, test_result):
         # New list is in aid format instead of cx format
         # because you should be copying and pasting it
         notes = ' ranks = ' + str(rank_mat[qx])
-        qaid = qaids[qx]
+        qaid = test_result.qaids[qx]
         name = ibs.get_annot_names(qaid)
         new_hardtup_list += [(qaid, name + " - " + notes)]
         new_hard_qaids += [qaid]
@@ -416,7 +419,7 @@ def print_results(ibs, test_result):
         print('\n'.join(cfgx2_lbl))
         #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = gt_raw_score_mat.T
-        print(ut.make_csv_table(column_list, row_lbls=qaids,
+        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
                                 column_lbls=column_lbls, header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
@@ -435,7 +438,7 @@ def print_results(ibs, test_result):
         print('\n'.join(cfgx2_lbl))
         #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = rank_mat.T
-        print(ut.make_csv_table(column_list, row_lbls=qaids,
+        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
                                 column_lbls=column_lbls, header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
@@ -456,7 +459,7 @@ def print_results(ibs, test_result):
         print('\n'.join(cfgx2_lbl))
         #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = cfgx2_nextbestranks
-        print(ut.make_csv_table(column_list, row_lbls=qaids,
+        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
                                 column_lbls=column_lbls, header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
@@ -478,7 +481,7 @@ def print_results(ibs, test_result):
         #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = cfgx2_scorediffs
         column_type = [float] * len(column_list)
-        print(ut.make_csv_table(column_list, row_lbls=qaids,
+        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
                                 column_lbls=column_lbls,
                                 column_type=column_type,
                                 header=header,
@@ -604,7 +607,7 @@ def print_results(ibs, test_result):
         # score differences over configs
         print('-------------')
         print('Diffmat: %s' % testnameid)
-        diff_matstr = get_diffmat_str(rank_mat, qaids, nConfig)
+        diff_matstr = get_diffmat_str(rank_mat, test_result.qaids, nConfig)
         print(diff_matstr)
     print_diffmat()
 
@@ -623,9 +626,6 @@ def print_results(ibs, test_result):
             #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
             #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
             # find the qxs that belong to each bin
-            test_result.qaids
-            test_result.qaids
-
             aid_list1 = test_result.qaids
             aid_list2 = qx2_gt_aid
             ibs.assert_valid_aids(aid_list1)

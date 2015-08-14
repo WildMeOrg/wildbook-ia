@@ -13,20 +13,61 @@ print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]')
 
 
+def combine_test_results(ibs, test_result_list):
+    """
+    CommandLine:
+        python -m ibeis.experiments.experiment_storage --exec-combine_test_results
+
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+
+    >>> # DISABLE_DOCTEST
+    >>> from ibeis.experiments.experiment_storage import *  # NOQA
+    >>> from ibeis.experiments import experiment_harness
+    >>> ibs, test_result_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
+    >>> combine_test_results(ibs, test_result_list)
+    """
+    try:
+        assert ut.list_allsame([test_result.qaids for test_result in test_result_list]), ' cannot handle non-same qaids right now'
+    except AssertionError as ex:
+        ut.printex(ex)
+        ut.embed()
+        raise
+
+    from ibeis.experiments import annotation_configs
+    acfg_list = [test_result.acfg for test_result in test_result_list]
+    acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
+
+    qaids = test_result.qaids
+    agg_cfg_list = ut.flatten([test_result.cfg_list for test_result in test_result_list])
+    agg_cfgx2_lbls = ut.flatten([[lbl + acfg_lbl for lbl in test_result.cfgx2_lbl] for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
+    agg_cfgx2_cfgreinfo = ut.flatten([test_result.cfgx2_cfgresinfo for test_result in test_result_list])
+    agg_cfgx2_qreq_ = ut.flatten([test_result.cfgx2_qreq_ for test_result in test_result_list])
+    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2', agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
+    test_result = big_test_result
+    return test_result
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids):
+    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, qaids):
         assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
         assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
-        test_result.qaids = qaids
-        test_result.daids = daids
+        test_result._qaids = qaids
+        #test_result.daids = daids
         test_result.cfg_list         = cfg_list
         test_result.cfgx2_lbl        = cfgx2_lbl
         test_result.lbl              = lbl
         test_result.testnameid       = testnameid
         test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         test_result.cfgx2_qreq_      = cfgx2_qreq_
+
+    @property
+    def qaids(test_result):
+        return test_result._qaids
 
     @ut.memoize
     def get_rank_mat(test_result):
@@ -40,7 +81,8 @@ class TestResult(object):
 
     def get_worst_possible_rank(test_result):
         #worst_possible_rank = max(9001, len(test_result.daids) + 1)
-        worst_possible_rank = len(test_result.daids) + 1
+        worst_possible_rank = max([len(qreq_.get_external_daids()) for qreq_ in test_result.cfgx2_qreq_]) + 1
+        #worst_possible_rank = len(test_result.daids) + 1
         return worst_possible_rank
 
     @ut.memoize
@@ -136,12 +178,12 @@ class TestResult(object):
         return config_rand_bin_qxs
 
     def get_full_cfgstr(test_result, cfgx):
-        """ both qaids and daids included """
+        """ both qannots and dannots included """
         full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
         return full_cfgstr
 
     def get_cfgstr(test_result, cfgx):
-        """ just daids and config_str """
+        """ just dannots and config_str """
         cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
         return cfgstr
 
@@ -163,6 +205,12 @@ class TestResult(object):
         for ser, rep in repl_list:
             cfg_lbls = [re.sub(ser, rep, lbl) for lbl in cfg_lbls]
             cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in [lbl.split(':') for lbl in cfg_lbls]]
+
+        #from ibeis.experiments import annotation_configs
+        #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
+
+        #cfg_lbls = [lbl + ':' + lblaug for lbl in cfg_lbls]
+
         return cfg_lbls
 
     @property

@@ -16,6 +16,122 @@ VERB_TESTDATA = ut.get_argflag(('--verbose-testdata', '--verbtd'))
 VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
+def define_named_aid_cfgs():
+    """
+    Definitions for common aid configurations
+    TODO: potentially move to experiment configs
+    """
+    from ibeis.experiments import annotation_configs
+    named_defaults_dict = ut.dict_take(annotation_configs.__dict__, annotation_configs.TEST_NAMES)
+    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'qcfg')))
+    named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))
+    alias_keys = annotation_configs.alias_keys
+    named_cfg_dict = {
+        'qcfg': named_qcfg_defaults,
+        'dcfg': named_dcfg_defaults,
+    }
+    return named_cfg_dict, alias_keys
+
+
+def get_commandline_aidcfg():
+    """
+    Parse the command line for "THE NEW AND IMPROVED" cannonical annotation
+    configuration dictionaries
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default:shuffle=True,index=0:25 --dcfg default
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default --dcfg default
+
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg controlled --dcfg controlled
+
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled
+
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg varydbsize
+
+        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled:qindex=0:10
+
+
+        --aidcfg=controlled=True,species=primary
+        --aidcfg=controlled=True,species=primary,annot_per_name=2
+        --aidcfg=controlled=True,species=primary,annot_per_name=3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> aidcfg = get_commandline_aidcfg()
+        >>> print('aidcfg = ' + ut.dict_str(aidcfg))
+    """
+
+    def parse_cfgstr_list2(cfgstr_list, named_dcfgs_dict, cfgtype=None, alias_keys=None):
+        """
+        Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
+        """
+        cfg_list = []
+        for cfgstr in cfgstr_list:
+            cfgstr_split = cfgstr.split(':')
+            cfgname = cfgstr_split[0]
+            cfg = named_dcfgs_dict[cfgname].copy()
+            # Parse dict out of a string
+            if len(cfgstr_split) > 1:
+                cfgstr_options =  ':'.join(cfgstr_split[1:]).split(',')
+                cfg_options = ut.parse_cfgstr_list(cfgstr_options, smartcast=True, oldmode=False)
+            else:
+                cfg_options = {}
+            # Hack for q/d specific configs
+            if cfgtype is not None:
+                for key in list(cfg_options.keys()):
+                    # check if key is nonstandard
+                    if not (key in cfg or key in alias_keys):
+                        # does removing prefix make it stanard?
+                        prefix = cfgtype[0]
+                        if key.startswith(prefix):
+                            key_ = key[len(prefix):]
+                            if key_ in cfg or key_ in alias_keys:
+                                # remove prefix
+                                cfg_options[key_] = cfg_options[key]
+                        try:
+                            assert key[1:] in cfg or key[1:] in alias_keys, 'key=%r, key[1:] =%r' % (key, key[1:] )
+                        except AssertionError as ex:
+                            ut.printex(ex, 'error', keys=['key', 'cfg', 'alias_keys'])
+                            raise
+                        del cfg_options[key]
+            # Remap keynames based on aliases
+            if alias_keys is not None:
+                for key in alias_keys.keys():
+                    if key in cfg_options:
+                        # use standard new key
+                        cfg_options[alias_keys[key]] = cfg_options[key]
+                        # remove old alised key
+                        del cfg_options[key]
+            # Finalize configuration dict
+            cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=True)
+            cfg['_cfgtype'] = cfgtype
+            cfg['_cfgname'] = cfgname
+            cfg['_cfgstr'] = cfgstr
+            cfg_list.append((cfgname, cfg))
+            break  # FIXME: do more than one eventually
+        return cfg
+
+    named_cfg_dict, alias_keys = define_named_aid_cfgs()
+
+    # Parse the cfgstr list from the command line
+    qcfgstr_list, has_qcfg = ut.get_argval('--qcfg', type_=list, default=['default'], return_specified=True)
+    dcfgstr_list, has_dcfg = ut.get_argval('--dcfg', type_=list, default=['default'], return_specified=True)
+
+    if not has_qcfg and not has_dcfg:
+        # TODO: Specify both with one flag
+        acfgstr_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'])
+        aidcfg = {}
+        aidcfg['qcfg'] = parse_cfgstr_list2(acfgstr_list, named_cfg_dict['qcfg'], 'qcfg', alias_keys)
+        aidcfg['dcfg'] = parse_cfgstr_list2(acfgstr_list, named_cfg_dict['dcfg'], 'dcfg', alias_keys)
+    else:
+        aidcfg = {}
+        aidcfg['qcfg'] = parse_cfgstr_list2(qcfgstr_list, named_cfg_dict['qcfg'], 'qcfg', alias_keys)
+        aidcfg['dcfg'] = parse_cfgstr_list2(dcfgstr_list, named_cfg_dict['dcfg'], 'dcfg', alias_keys)
+    return aidcfg
+
+
 def ensure_flatiterable(input_):
     if isinstance(input_, six.string_types):
         input_ = ut.fuzzy_int(input_)

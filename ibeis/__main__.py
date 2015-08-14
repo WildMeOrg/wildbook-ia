@@ -59,7 +59,7 @@ def run_ibeis():
         retcode = run_tests.run_tests()
         sys.exit(retcode)
 
-    doctest_modname = ut.get_argval(('--doctest-module', '--tmod'), type_=str, default=None, help_='specify a module to doctest')
+    doctest_modname = ut.get_argval(('--doctest-module', '--tmod', '-tm'), type_=str, default=None, help_='specify a module to doctest')
     if doctest_modname is not None:
         """
         Allow any doctest to be run the main ibeis script
@@ -72,6 +72,10 @@ def run_ibeis():
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
         """
+        mod_alias_list = {
+            'exptdraw': 'ibeis.experiments.experiment_drawing'
+        }
+        doctest_modname = mod_alias_list.get(doctest_modname, doctest_modname)
         module = ut.import_modname(doctest_modname)
         (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module)
         retcode = 1 - (len(failed_list) == 0)

@@ -37,17 +37,17 @@ def get_candidacy_dbnames():
     ]
 
 
-def candidacy_annot_selections():
-    """
-    --aidcfg
-    controlled
-    controlled
-    # See manual helpers for now
-    """
-    candidacy_aidcfg = {
-        'controlled': False
-    }
-    pass
+#def candidacy_annot_selections():
+#    """
+#    --aidcfg
+#    controlled
+#    controlled
+#    # See manual helpers for now
+#    """
+#    candidacy_aidcfg = {
+#        'controlled': False
+#    }
+#    pass
 
 
 candidacy1 = [

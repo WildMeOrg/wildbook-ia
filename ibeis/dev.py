@@ -554,7 +554,7 @@ def run_devprecmds():
 
 
 #@utool.indent_func('[dev]')
-def run_devcmds(ibs, qaid_list, daid_list, annot_info=None):
+def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     """
     This function runs tests passed in with the -t flag
     """
@@ -649,7 +649,10 @@ def run_devcmds(ibs, qaid_list, daid_list, annot_info=None):
     if len(test_cfg_name_list):
         fnum = pt.next_fnum()
         # Run Experiments
-        experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list, annot_info)
+        # backwards compatibility yo
+        acfgstr_name_list = {'OVERRIDE_HACK': (qaid_list, daid_list)}
+        #acfg
+        experiment_harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -877,7 +880,7 @@ def run_dev(ibs):
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
-        ibs, qaid_list, daid_list, annot_info = main_helpers.testdata_ibeis(ibs=ibs, return_annot_info=True)
+        ibs, qaid_list, daid_list = main_helpers.testdata_ibeis(ibs=ibs)
         #qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
         #daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
         print('[run_def] Test Annotations:')
@@ -892,7 +895,7 @@ def run_dev(ibs):
 
         if len(qaid_list) > 0 or True:
             # Run the dev experiments
-            expt_locals = run_devcmds(ibs, qaid_list, daid_list, annot_info)
+            expt_locals = run_devcmds(ibs, qaid_list, daid_list)
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
