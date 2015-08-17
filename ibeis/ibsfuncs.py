@@ -5499,6 +5499,24 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
 
 @__injectable
 def get_annotconfig_stats(ibs, qaids, daids):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaids (list):  query annotation ids
+        daids (list):  database annotation ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, qaids, daids = main_helpers.testdata_ibeis()
+        >>> get_annotconfig_stats(ibs, qaids, daids)
+    """
     import numpy as np
     import vtool as vt
     import warnings

@@ -37,15 +37,25 @@ def combine_test_results(ibs, test_result_list):
         raise
 
     from ibeis.experiments import annotation_configs
+
     acfg_list = [test_result.acfg for test_result in test_result_list]
     acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
+
+    flat_dict_list, nonvaried_acfg, varied_acfg_list = annotation_configs.partition_varied_acfg_list(acfg_list)
 
     qaids = test_result.qaids
     agg_cfg_list = ut.flatten([test_result.cfg_list for test_result in test_result_list])
     agg_cfgx2_lbls = ut.flatten([[lbl + acfg_lbl for lbl in test_result.cfgx2_lbl] for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
     agg_cfgx2_cfgreinfo = ut.flatten([test_result.cfgx2_cfgresinfo for test_result in test_result_list])
     agg_cfgx2_qreq_ = ut.flatten([test_result.cfgx2_qreq_ for test_result in test_result_list])
-    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2', agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
+    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2',
+                                 agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
+
+    # Give the big test result an acfg that is common between everything
+    big_test_result.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
+
+    ut.embed()
+    #big_test_result.acfg
     test_result = big_test_result
     return test_result
 

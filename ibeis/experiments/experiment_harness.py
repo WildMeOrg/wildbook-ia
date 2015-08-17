@@ -34,13 +34,15 @@ def testdata_expts(defaultdb='testdb1',
     acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
     test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
-    return ibs, test_result_list
+    test_result = experiment_storage.combine_test_results(ibs, test_result_list)
+    return ibs, test_result
+    #return ibs, test_result_list
 
 
 def get_cmdline_test_result():
-    ibs, qaids, daids, annot_info = main_helpers.testdata_ibeis(verbose=False, return_annot_info=True)
+    ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list, annot_info=annot_info)
+    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
     return ibs, test_result
 
 
@@ -89,7 +91,8 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
         >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100'])
+        >>> default_acfgstrs = ['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100']
+        >>> acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
     """
@@ -123,7 +126,7 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
         print('warning hack')
         expanded_aids_list = [(qaids, daids)]
     else:
-        expanded_aids_list = [main_helpers.get_config_qaids_and_daids(ibs, acfg) for acfg in acfg_list]
+        expanded_aids_list = [main_helpers.expand_acfgs(ibs, acfg) for acfg in acfg_list]
 
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
 

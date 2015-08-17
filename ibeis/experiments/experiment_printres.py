@@ -60,8 +60,9 @@ def print_latexsum(ibs, test_result, verbose=True):
         >>> from ibeis.experiments import experiment_harness
         >>> import ibeis.init.main_helpers
         >>> #ibs, qaids, d aids, annot_request_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_extra_info=True)
-        >>> ibs, test_result_list = experiment_harness.testdata_expts()
-        >>> test_result = test_result_list[0]
+        >>> #ibs, test_result_list = experiment_harness.testdata_expts()
+        >>> ibs, test_result = experiment_harness.testdata_expts()
+        >>> #test_result = test_result_list[0]
         >>> #test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> #test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
         >>> tabular_str2 = print_latexsum(ibs, test_result)
@@ -94,10 +95,11 @@ def print_latexsum(ibs, test_result, verbose=True):
     tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, cfgscores, **tabular_kwargs)
     cmdaug = ''
+    ut.embed()
     if test_result.acfg is not None:
-        if test_result.acfg['daids']['controlled']:
-            assert test_result.acfg['qaids']['controlled']
-            cmdaug = 'Controlled'
+        cfgname = test_result.acfg['dcfg']['_cfgname']
+        assert cfgname == test_result.acfg['qcfg']['_cfgname']
+        cmdaug = 'Controlled'
     #latex_formater.render(tabular_str)
     cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + cmdaug + 'Table')
     tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)

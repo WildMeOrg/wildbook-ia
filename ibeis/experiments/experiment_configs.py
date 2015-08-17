@@ -68,9 +68,9 @@ candidacy = [
 ]
 
 candidacy_invariance = {
-    'rotation_invariance': [True, False],
-    'affine_invariance': [False, True],
-    'augment_queryside_hack': [False, True],
+    'rotation_invariance'    : [True, False],
+    'affine_invariance'      : [False, True],
+    'augment_queryside_hack' : [False, True],
 }
 
 candidacy_namescore = [

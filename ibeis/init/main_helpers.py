@@ -71,11 +71,12 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
     aidcfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'])
     aidcfg_list = experiment_helpers.get_annotcfg_list(aidcfg_name_list)
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
+    assert len(aidcfg_list) == 1, 'multiple acfgs specified, but this function is built to return only 1'
     aidcfg = aidcfg_list[0]
 
-    qaid_list, daid_list = get_config_qaids_and_daids(ibs, aidcfg)
+    qaid_list, daid_list = expand_acfgs(ibs, aidcfg)
 
-    ibs.get_annotconfig_stats(qaid_list, daid_list)
+    #ibs.get_annotconfig_stats(qaid_list, daid_list)
 
     if ut.VERYVERBOSE:
         ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
@@ -85,7 +86,7 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         return ibs, qaid_list, daid_list
 
 
-def get_config_qaids_and_daids(ibs, aidcfg):
+def expand_acfgs(ibs, aidcfg):
     """
     Expands an annot config dict into qaids and daids
     """
@@ -95,20 +96,20 @@ def get_config_qaids_and_daids(ibs, aidcfg):
     # extract qaid list
     if VERB_MAIN_HELPERS:
         print('\n[expand_aidcfg] + --- GET_TEST_QAIDS ---')
-    qaid_list = get_config_aids(ibs, aidcfg=qcfg)
+    qaid_list = expand_aidcfg_dict(ibs, aidcfg=qcfg)
     if VERB_MAIN_HELPERS:
         print('[expand_aidcfg] L ___ GET_TEST_QAIDS')
 
     # extract daid list
     if VERB_MAIN_HELPERS:
         print('[expand_aidcfg] + --- GET_TEST_DAIDS ---')
-    daid_list = get_config_aids(ibs, aidcfg=dcfg, reference_aids=qaid_list)
+    daid_list = expand_aidcfg_dict(ibs, aidcfg=dcfg, reference_aids=qaid_list)
     if VERB_MAIN_HELPERS:
         print('[expand_aidcfg] L ___ GET_TEST_DAIDS \n')
     return qaid_list, daid_list
 
 
-def get_config_aids(ibs, aidcfg=None, reference_aids=None):
+def expand_aidcfg_dict(ibs, aidcfg=None, reference_aids=None):
     """
     New version of this function based on a configuration dictionary built from
     command line argumetns
@@ -121,8 +122,8 @@ def get_config_aids(ibs, aidcfg=None, reference_aids=None):
         tuple: (available_qaids, qaid_request_info)
 
     CommandLine:
-        python -m ibeis.init.main_helpers --exec-get_config_aids --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-get_config_aids --acfg controlled --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-expand_aidcfg_dict --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-expand_aidcfg_dict --acfg controlled --verbose-testdata
 
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --verbtd --db NNP_Master3 --acfg controlled
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --verbtd --db PZ_Master0 --acfg controlled
@@ -140,7 +141,7 @@ def get_config_aids(ibs, aidcfg=None, reference_aids=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aidcfg = get_commandline_aidcfg()['qcfg']
-        >>> available_qaids = get_config_aids(ibs, aidcfg)
+        >>> available_qaids = expand_aidcfg_dict(ibs, aidcfg)
         >>> result = ('(available_qaids) = %s' % (str((available_qaids)),))
         >>> print(result)
     """
@@ -312,7 +313,7 @@ def get_config_aids(ibs, aidcfg=None, reference_aids=None):
             if sample_per_ref_name is None:
                 sample_per_ref_name = aidcfg['sample_per_name']
             #sample_available_gt_aids = ut.get_list_column_slice(pref_ordered_available_gt_aids, offset, offset + aidcfg['sample_per_name'])
-            sample_available_gt_aids = ut.get_list_column_slice(pref_ordered_available_gt_aids, offset, offset + aidcfg['sample_per_ref_name'])
+            sample_available_gt_aids = ut.get_list_column_slice(pref_ordered_available_gt_aids, offset, offset + sample_per_ref_name)
 
             # set the sample to the maximized ref, with all groundfalse
             print('Before special rule filter len(available_aids)=%r' % (len(available_aids)))
