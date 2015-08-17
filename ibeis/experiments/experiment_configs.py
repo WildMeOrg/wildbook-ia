@@ -50,8 +50,8 @@ def get_candidacy_dbnames():
 #    pass
 
 
-candidacy1 = [
-    {'K': [1, 4, 10]},
+candidacy_k = [
+    {'K': [1, 2, 4, 7]},
 ]
 
 candidacy = [
@@ -67,11 +67,22 @@ candidacy = [
     {'augment_queryside_hack': [True]},
 ]
 
-candidacy_invariance = {
-    'rotation_invariance'    : [True, False],
-    'affine_invariance'      : [False, True],
-    'augment_queryside_hack' : [False, True],
-}
+
+# Test all combinations of invariance
+candidacy_invariance = [
+    {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
+    {'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
+    {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
+    {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
+]
+
+#candidacy_invariance = {
+#    'rotation_invariance'    : [True, False],
+#    'affine_invariance'      : [False, True],
+#    'augment_queryside_hack' : [False, True],
+#}
 
 candidacy_namescore = [
     {

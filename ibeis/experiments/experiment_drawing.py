@@ -26,6 +26,92 @@ DUMP_PROBCHIP = False
 DUMP_REGCHIP = False
 
 
+def draw_rank_surface(ibs, test_result):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (?):
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
+        >>> from ibeis.experiments import experiment_storage
+        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
+        >>> #test_result = experiment_storage.combine_test_results(ibs, test_result_list)
+        >>> #test_result = test_result_list[0]
+        >>> #ibs, test_result = experiment_harness.get_cmdline_test_result()
+        >>> result = draw_rank_surface(ibs, test_result)
+        >>> #result = draw_rank_surface(ibs, test_result_list[1])
+        >>> ut.show_if_requested()
+        >>> print(result)
+    """
+    rank_lt1_list = test_result.get_rank_cumhist(bins='dense')[0].T[0]
+    #test_result.cfgx2_lbl
+    #test_result.get_param_basis('dcfg_sample_per_name')
+    #test_result.get_param_basis('dcfg_sample_size')
+    #K_basis = test_result.get_param_basis('K')
+    #K_cfgx_lists = [test_result.get_cfgx_with_param('K', K) for K in K_basis]
+
+    #param_key_list = test_result.get_all_varied_params()
+    param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
+    #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
+    basis_dict      = {}
+    cfgx_lists_dict = {}
+    for key in param_key_list:
+        _basis = test_result.get_param_basis(key)
+        _cfgx_list = [test_result.get_cfgx_with_param(key, val) for val in _basis]
+        cfgx_lists_dict[key] = _cfgx_list
+        basis_dict[key] = _basis
+    print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
+    print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
+
+    # Hold a key constant
+    import plottool as pt
+    const_key = 'K'
+    #const_key = 'dcfg_sample_per_name'
+    pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
+    for const_idx, const_val in enumerate(basis_dict[const_key]):
+        const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
+        rank_list = ut.list_take(rank_lt1_list, const_basis_cfgx_list)
+        agree_param_vals = dict([
+            (key, [test_result.get_param_val_from_cfgx(cfgx, key) for cfgx in const_basis_cfgx_list])
+            for key in param_key_list if key != const_key])
+        nd_labels = list(agree_param_vals.keys())
+        target_label = 'num rank leq 1'
+        known_nd_data = np.array(list(agree_param_vals.values())).T
+        known_target_points = np.array(rank_list)
+        ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=1, pnum=pnum_())
+        #(const_idx + 1))
+        ax.set_title('# Ranks < 1 when ' + const_key + '=%r' % (const_val,))
+
+    figtitle = (
+        '# Ranks <= 1 for')
+    figtitle += ' ' + test_result.get_title_aug()
+    #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
+    #if test_result.annot_info is not None:
+    #    if test_result.annot_info['d aids']['controlled']:
+    #        figtitle += ' Controlled. '
+    #        #figtitle += (
+    #        #    ' num_qaids=%r' % (len(test_result.qaids)) +
+    #        #    ' num_d aids=%r' % (len(test_result.d aids))
+    #        #)
+    figtitle += ' db=' + (ibs.get_dbname())
+
+    figtitle += ' #qaids=%r' % (len(test_result.qaids),)
+    if test_result.has_constant_daids():
+        figtitle += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+
+    if test_result.has_constant_daids():
+        print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+        annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+    pt.set_figtitle(figtitle)
+
+
 def draw_rank_cdf(ibs, test_result):
     r"""
     Args:
@@ -52,8 +138,8 @@ def draw_rank_cdf(ibs, test_result):
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
         >>> from ibeis.experiments import experiment_harness
         >>> from ibeis.experiments import experiment_storage
-        >>> ibs, test_result_list = experiment_harness.testdata_expts('PZ_MTEST')
-        >>> test_result = experiment_storage.combine_test_results(ibs, test_result_list)
+        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
+        >>> #test_result = experiment_storage.combine_test_results(ibs, test_result_list)
         >>> #test_result = test_result_list[0]
         >>> #ibs, test_result = experiment_harness.get_cmdline_test_result()
         >>> result = draw_rank_cdf(ibs, test_result)
@@ -69,7 +155,8 @@ def draw_rank_cdf(ibs, test_result):
     cdf_list = np.array(ut.sortedby(cdf_list.tolist(), cdf_list.T[0], reverse=True))
     #
     figtitle = (
-        'Cumulative Histogram of GT-Ranks for db=' + (ibs.get_dbname()))
+        'Cumulative Histogram of GT-Ranks for')
+    figtitle += ' ' + test_result.get_title_aug()
     #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
     #if test_result.annot_info is not None:
     #    if test_result.annot_info['d aids']['controlled']:
@@ -78,8 +165,15 @@ def draw_rank_cdf(ibs, test_result):
     #        #    ' num_qaids=%r' % (len(test_result.qaids)) +
     #        #    ' num_d aids=%r' % (len(test_result.d aids))
     #        #)
+    figtitle += ' db=' + (ibs.get_dbname())
 
-    #annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.d aids)
+    figtitle += ' #qaids=%r' % (len(test_result.qaids),)
+    if test_result.has_constant_daids():
+        figtitle += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+
+    if test_result.has_constant_daids():
+        print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+        annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
     #small_info = ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_d aids', 'num_intersect'])
     #small_info_str = '\n' + ut.dict_str(small_info, strvals=True, newlines=False, explicit=True, nobraces=True).replace('\'', '')
     #small_info_str += ' mean(yawdiff)=' + ut.scalar_str(locals_['gt_yawdist_stats']['mean'], precision=2)
@@ -92,7 +186,9 @@ def draw_rank_cdf(ibs, test_result):
     if maxrank is not None:
         cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
         edges = edges[0:min(len(edges), maxrank + 1)]
-    fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
+    percent_cdf_list = cdf_list / len(test_result.qaids)
+    #fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='# queries < rank')  # NOQA
+    fig = pt.plot_rank_cumhist(percent_cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='% queries < rank')  # NOQA
     #ut.show_if_requested()
     #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)
     #print(rank_cdf_fpath)

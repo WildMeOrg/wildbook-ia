@@ -84,6 +84,17 @@ def print_latexsum(ibs, test_result, verbose=True):
     row_lbls = ut.sortedby(row_lbls, cfgscores.T[0], reverse=True)
     cfgscores = np.array(ut.sortedby(cfgscores.tolist(), cfgscores.T[0], reverse=True))
 
+    cmdaug = test_result.get_title_aug()
+    #if test_result.common_acfg is not None:
+    #    cfgname = test_result.common_acfg['common']['_cfgname']
+    #    cmdaug += '_' + cfgname
+    #if hasattr(test_result, 'common_cfgdict'):
+    #    cmdaug += '_' + (test_result.common_cfgdict['_cfgname'])
+    #    cfg_score_title += ' ' + cmdaug
+    #else:
+    #    #ut.embed()
+    #    assert False, 'need common_cfgdict'
+
     tabular_kwargs = dict(
         title=cfg_score_title,
         out_of=test_result.nQuery,
@@ -94,14 +105,8 @@ def print_latexsum(ibs, test_result, verbose=True):
     col_lbls = criteria_lbls
     tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, cfgscores, **tabular_kwargs)
-    cmdaug = ''
-    ut.embed()
-    if test_result.acfg is not None:
-        cfgname = test_result.acfg['dcfg']['_cfgname']
-        assert cfgname == test_result.acfg['qcfg']['_cfgname']
-        cmdaug = 'Controlled'
     #latex_formater.render(tabular_str)
-    cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + cmdaug + 'Table')
+    cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + '_' + cmdaug + 'Table')
     tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
     print(tabular_str2)
     return tabular_str2

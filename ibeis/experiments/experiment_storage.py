@@ -33,7 +33,6 @@ def combine_test_results(ibs, test_result_list):
         assert ut.list_allsame([test_result.qaids for test_result in test_result_list]), ' cannot handle non-same qaids right now'
     except AssertionError as ex:
         ut.printex(ex)
-        ut.embed()
         raise
 
     from ibeis.experiments import annotation_configs
@@ -43,20 +42,50 @@ def combine_test_results(ibs, test_result_list):
 
     flat_dict_list, nonvaried_acfg, varied_acfg_list = annotation_configs.partition_varied_acfg_list(acfg_list)
 
+    test_result.varied_acfg_list = varied_acfg_list
+
     qaids = test_result.qaids
-    agg_cfg_list = ut.flatten([test_result.cfg_list for test_result in test_result_list])
-    agg_cfgx2_lbls = ut.flatten([[lbl + acfg_lbl for lbl in test_result.cfgx2_lbl] for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
-    agg_cfgx2_cfgreinfo = ut.flatten([test_result.cfgx2_cfgresinfo for test_result in test_result_list])
-    agg_cfgx2_qreq_ = ut.flatten([test_result.cfgx2_qreq_ for test_result in test_result_list])
+    agg_cfg_list        = ut.flatten(
+        [test_result.cfg_list
+         for test_result in test_result_list])
+    agg_cfgx2_cfgreinfo = ut.flatten(
+        [test_result.cfgx2_cfgresinfo
+         for test_result in test_result_list])
+    agg_cfgx2_qreq_     = ut.flatten(
+        [test_result.cfgx2_qreq_
+         for test_result in test_result_list])
+    agg_cfgdict_list    = ut.flatten(
+        [test_result.cfgdict_list
+         for test_result in test_result_list])
+    def combine_lbls(lbl, acfg_lbl):
+        if len(lbl) == 0:
+            return acfg_lbl
+        if len(acfg_lbl) == 0:
+            return lbl
+        return lbl + ',' + acfg_lbl
+    agg_varied_acfg_list = ut.flatten([
+        [acfg] * len(test_result.cfg_list)
+        for test_result, acfg in zip(test_result_list, varied_acfg_list)
+    ])
+    agg_cfgx2_lbls      = ut.flatten(
+        [[combine_lbls(lbl, acfg_lbl) for lbl in test_result.cfgx2_lbl]
+         for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
     big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2',
                                  agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
 
     # Give the big test result an acfg that is common between everything
     big_test_result.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
+    big_test_result.cfgdict_list = agg_cfgdict_list
 
-    ut.embed()
+    big_test_result.common_acfg = annotation_configs.compress_aidcfg(big_test_result.acfg)
+    big_test_result.common_cfgdict = reduce(ut.dict_intersection, big_test_result.cfgdict_list)
+    big_test_result.varied_acfg_list = agg_varied_acfg_list
+    big_test_result.varied_cfg_list = [ut.delete_dict_keys(cfgdict.copy(), list(big_test_result.common_cfgdict.keys()))
+                                       for cfgdict in big_test_result.cfgdict_list]
+
     #big_test_result.acfg
     test_result = big_test_result
+    # big_test_result = test_result
     return test_result
 
 
@@ -248,6 +277,70 @@ class TestResult(object):
             lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
             nLessX_dict[int(X)] = lessX_.sum(axis=0)
         return nLessX_dict
+
+    def get_title_aug(test_result):
+        title_aug = ''
+        title_aug += 'a=' + test_result.common_acfg['common']['_cfgname']
+        title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
+        return title_aug
+
+    def has_constant_daids(test_result):
+        return ut.list_allsame(test_result.cfgx2_daids)
+
+    @property
+    def cfgx2_daids(test_result):
+        daids_list = [qreq_.get_external_daids() for qreq_ in test_result.cfgx2_qreq_]
+        return daids_list
+
+    def get_all_varied_params(test_result):
+        # only for big results
+        varied_cfg_params = list(set(ut.flatten([cfgdict.keys() for cfgdict in test_result.varied_cfg_list])))
+        varied_acfg_params = list(set(ut.flatten([acfg.keys() for acfg in test_result.varied_acfg_list])))
+        varied_params = varied_acfg_params + varied_cfg_params
+        return varied_params
+
+    def get_total_num_varied_params(test_result):
+        return len(test_result.get_all_varied_params())
+
+    def get_param_basis(test_result, key):
+        """
+        Returns what a param was varied between over all tests
+        key = 'K'
+        key = 'dcfg_sample_size'
+        """
+        if key == 'len(daids)':
+            basis = sorted(list(set([len(daids) for daids in test_result.cfgx2_daids])))
+        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
+            basis = sorted(list(set([cfgdict[key] for cfgdict in test_result.varied_cfg_list])))
+        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
+            basis = sorted(list(set([acfg[key] for acfg in test_result.varied_acfg_list])))
+        else:
+            assert False
+        return basis
+
+    def get_param_val_from_cfgx(test_result, cfgx, key):
+        if key == 'len(daids)':
+            return len(test_result.cfgx2_daids[cfgx])
+        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
+            return test_result.varied_cfg_list[cfgx][key]
+        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
+            return test_result.varied_acfg_list[cfgx][key]
+        else:
+            assert False
+
+    def get_cfgx_with_param(test_result, key, val):
+        """
+        Gets configs where the given parameter is held constant
+        """
+        if key == 'len(daids)':
+            cfgx_list = [cfgx for cfgx, daids in enumerate(test_result.cfgx2_daids) if len(daids) == val]
+        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
+            cfgx_list = [cfgx for cfgx, cfgdict in enumerate(test_result.varied_cfg_list) if cfgdict[key] == val]
+        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
+            cfgx_list = [cfgx for cfgx, acfg in enumerate(test_result.varied_acfg_list) if acfg[key] == val]
+        else:
+            assert False
+        return cfgx_list
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

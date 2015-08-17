@@ -651,6 +651,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
         # Run Experiments
         # backwards compatibility yo
         acfgstr_name_list = {'OVERRIDE_HACK': (qaid_list, daid_list)}
+        assert False, 'This way of running tests no longer works. It may be fixed in the future'
         #acfg
         experiment_harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
 

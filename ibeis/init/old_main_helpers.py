@@ -508,3 +508,41 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
         return available_daids, daid_request_info
     else:
         return available_daids
+
+
+#def expand_aidcfg_dict(ibs, aidcfg=None, reference_aids=None):
+#    """
+#    DEPRICATE
+#    """
+
+#    # ---- INCLUDING STEP
+#    available_aids = expand_to_default_aids(ibs, aidcfg)
+
+#    # ---- FILTERING STEP
+#    available_aids = filter_independent_properties(ibs, available_aids, aidcfg)
+
+#    # ---- FILTERING WITH RESPECT TO WHAT GROUNDTRUTH IS ABAILABLE (what the daid will contain)
+
+#    available_aids = filter_reference_properties(ibs, available_aids, aidcfg, reference_aids)
+
+#    # ---- SAMPLE SELECTION
+#    available_aids = sample_available_aids(ibs, available_aids, aidcfg, reference_aids)
+
+#    return available_aids
+
+## ------
+#    if OLD:
+#        # extract qaid list
+#        if VERB_MAIN_HELPERS:
+#            print('\n[expand_aidcfg] + --- GET_TEST_QAIDS ---')
+#        qaid_list = expand_aidcfg_dict(ibs, aidcfg=qcfg)
+#        if VERB_MAIN_HELPERS:
+#            print('[expand_aidcfg] L ___ GET_TEST_QAIDS')
+
+#        # extract daid list
+#        if VERB_MAIN_HELPERS:
+#            print('[expand_aidcfg] + --- GET_TEST_DAIDS ---')
+#        daid_list = expand_aidcfg_dict(ibs, aidcfg=dcfg, reference_aids=qaid_list)
+#        if VERB_MAIN_HELPERS:
+#            print('[expand_aidcfg] L ___ GET_TEST_DAIDS \n')
+#    else:

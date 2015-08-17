@@ -2739,7 +2739,7 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
     return sample_aid_list
 
 
-def get_primary_species_viewpoint(species):
+def get_primary_species_viewpoint(species, plus=0):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -2756,9 +2756,10 @@ def get_primary_species_viewpoint(species):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> aid_subset = get_primary_species_viewpoint(species)
+        >>> aid_subset = get_primary_species_viewpoint(species, 0)
         >>> result = ('aid_subset = %s' % (str(aid_subset),))
         >>> print(result)
+        aid_subset = left
     """
     if species == const.Species.ZEB_PLAIN:
         primary_viewpoint = 'left'
@@ -2766,10 +2767,13 @@ def get_primary_species_viewpoint(species):
         primary_viewpoint = 'right'
     else:
         primary_viewpoint = 'left'
+    if plus != 0:
+        # return an augmented primary viewpoint
+        primary_viewpoint = get_extended_viewpoints(primary_viewpoint, num1=1, num2=0, include_base=False)[0]
     return primary_viewpoint
 
 
-def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None):
+def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, include_base=True):
     """
     Given a viewpoint returns the acceptable viewpoints around it
 
@@ -2780,7 +2784,8 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None):
         >>> towards = 'front'
         >>> num1 = 1
         >>> num2 = 0
-        >>> extended_yaws_list = [get_extended_viewpoints(base_yaw_text, towards, num1, num2)
+        >>> include_base = False
+        >>> extended_yaws_list = [get_extended_viewpoints(base_yaw_text, towards, num1, num2, include_base)
         >>>                       for base_yaw_text in yaw_text_list]
         >>> result = ('extended_yaws_list = %s' % (ut.list_str(extended_yaws_list),))
         >>> print(result)
@@ -2802,7 +2807,10 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None):
     index = yawtext_list.index(base_yaw_text)
     other_index_list1 = [int((index + (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num1 + 1)]
     other_index_list2 = [int((index - (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num2 + 1)]
-    extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
+    if include_base:
+        extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
+    else:
+        extended_index_list = sorted(list(set(other_index_list1 + other_index_list2)))
     extended_yaws = ut.list_take(yawtext_list, extended_index_list)
     return extended_yaws
 
@@ -3062,6 +3070,16 @@ def get_primary_database_species(ibs, aid_list=None):
         >>> print(result)
         zebra_plains
     """
+    SPEED_HACK = True
+    if SPEED_HACK:
+        if ibs.get_dbname() == 'PZ_MTEST':
+            return const.Species.ZEB_PLAIN
+        elif ibs.get_dbname() == 'PZ_Master0':
+            return const.Species.ZEB_PLAIN
+        elif ibs.get_dbname() == 'NNP_Master':
+            return const.Species.ZEB_PLAIN
+        elif ibs.get_dbname() == 'GZ_ALL':
+            return const.Species.ZEB_GREVY
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
@@ -4077,6 +4095,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
             (qual_int is not None) and qual_int >= minqual_int
             for qual_int in qual_int_list
         )
+    qual_flags = list(qual_flags)
     return qual_flags
 
 
@@ -4114,6 +4133,7 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
         yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
     else:
         yaw_flags  = (yaw is not None and yaw in valid_yaws for yaw in yaw_list)
+    yaw_flags = list(yaw_flags)
     return yaw_flags
 
 
@@ -5497,8 +5517,58 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
     return positive_list, negative_list
 
 
+def _stat_str(dict_):
+    import utool as ut
+    dict_ = dict_.copy()
+    if dict_.get('num_nan', None) == 0:
+        del dict_['num_nan']
+    exclude_keys = []  # ['std', 'nMin', 'nMax']
+    return ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+
+
+# Quality and Viewpoint Stats
 @__injectable
-def get_annotconfig_stats(ibs, qaids, daids):
+def get_annot_qual_stats(ibs, aid_list):
+    annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
+    qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
+    qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
+    assert set(qual_keys) >= set(qualtext2_aids), 'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys))
+    qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+    # Filter 0's
+    qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
+    return qualtext2_nAnnots
+
+
+@__injectable
+def get_annot_yaw_stats(ibs, aid_list):
+    annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+    yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
+    yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+    assert set(yaw_keys) >= set(annot_yawtext_list), 'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys))
+    yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+    # Filter 0's
+    yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
+    return yawtext2_nAnnots
+
+
+# Indepdentent query / database stats
+@__injectable
+def get_annot_stats_dict(ibs, aids, prefix=''):
+    """ stats for a set of annots """
+    aid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)
+    qual_stats = ibs.get_annot_qual_stats(aids)
+    yaw_stats  = ibs.get_annot_yaw_stats(aids)
+    aid_stats_dict = ut.odict([
+        ('num_' + prefix + 'aids', len(aids)),
+        (prefix + 'aid_per_name', _stat_str(aid_per_name_stats)),
+        (prefix + 'aid_quals', _stat_str(qual_stats)),
+        (prefix + 'aid_viewpoints', _stat_str(yaw_stats)),
+    ])
+    return aid_stats_dict
+
+
+@__injectable
+def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -5522,14 +5592,8 @@ def get_annotconfig_stats(ibs, qaids, daids):
     import warnings
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
-
-        def _stat_str(dict_):
-            import utool as ut
-            dict_ = dict_.copy()
-            if dict_.get('num_nan', None) == 0:
-                del dict_['num_nan']
-            exclude_keys = []  # ['std', 'nMin', 'nMax']
-            return ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+        warnings.filterwarnings('ignore', r'Mean of empty slice')
+        warnings.filterwarnings('ignore', r'Degrees of freedom <= 0 for slice.')
 
         def replace_none_with_nan(x):
             import utool as ut
@@ -5544,66 +5608,32 @@ def get_annotconfig_stats(ibs, qaids, daids):
             gt_propdist_list = [cmp_func(np.array(gt_props), qprop) for qprop, gt_props in zip(query_prop, match_props)]
             return gt_propdist_list
 
-        # Indepdentent query / database stats
-        def get_annot_stats_dict(aids, prefix):
-            """ stats for a set of annots """
-            aid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)
-            aid_stats_dict = ut.odict([
-                ('num_' + prefix + 'aids', len(aids)),
-                (prefix + 'aid_per_name_stats', _stat_str(aid_per_name_stats)),
-            ])
-            return aid_stats_dict
-
         groundtruth_daids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
         nonquery_daids = np.setdiff1d(daids, qaids)
+        nonquery_daids = np.setdiff1d(nonquery_daids, groundtruth_daids)
+
         # Intersection on a per name basis
         nonquery_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
         gt_daid_per_name_stats       = ut.get_stats(ibs.get_num_annots_per_name(ut.flatten(groundtruth_daids))[0], use_nan=True)
 
         # Compare the query yaws to the yaws of its correct matches in the database
-        #query_yaws = replace_none_with_nan(ibs.get_annot_yaws(qaids))
-        #data_yaws = ibs.unflat_map(ibs.get_annot_yaws, groundtruth_daids)
-        #data_yaws = ibs.unflat_map(replace_none_with_nan, data_yaws)
-        #gt_yawdists_list = [vt.ori_distance(np.array(gt_yaws), qyaw) for qyaw, gt_yaws in zip(query_yaws, data_yaws)]
-        gt_yawdists_list = compare_correct_match_properties(qaids, daids,
-                                                            ibs.get_annot_yaws,
-                                                            vt.ori_distance)
+        gt_yawdists_list = compare_correct_match_properties(
+            qaids, daids, ibs.get_annot_yaws, vt.ori_distance)
 
         # Compare the query qualities to the qualities of its correct matches in the database
-        #query_quals = replace_none_with_nan(ibs.get_annot_qualities(qaids))
-        #data_quals = ibs.unflat_map(ibs.get_annot_qualities, groundtruth_daids)
-        #data_quals = ibs.unflat_map(replace_none_with_nan, data_quals)
-        #gt_qualdists_list = [np.abs(gt_quals - qqual) for qqual, gt_quals in zip(query_quals, data_quals)]
-        gt_qualdists_list = compare_correct_match_properties(qaids, daids,
-                                                             ibs.get_annot_qualities,
-                                                             ut.absdiff)
+        gt_qualdists_list = compare_correct_match_properties(
+            qaids, daids, ibs.get_annot_qualities, ut.absdiff)
 
         # Compare timedelta differences
-        #def hourdiff(a, b):
-        #    return np.abs(np.subtract(a, b))
-        gt_hourdelta_list = compare_correct_match_properties(qaids, daids,
-                                                             ibs.get_annot_image_unixtimes_asfloat,
-                                                             ut.unixtime_hourdiff)
+        gt_hourdelta_list = compare_correct_match_properties(
+            qaids, daids, ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
 
-        gt_yawdist_stats             = ut.get_stats(ut.flatten(gt_yawdists_list), use_nan=True)
-        gt_qualdist_stats            = ut.get_stats(ut.flatten(gt_qualdists_list), use_nan=True)
-        gt_hourdelta_stats           = ut.get_stats(ut.flatten(gt_hourdelta_list), use_nan=True)
+        gt_yawdist_stats   = ut.get_stats(ut.flatten(gt_yawdists_list), use_nan=True)
+        gt_qualdist_stats  = ut.get_stats(ut.flatten(gt_qualdists_list), use_nan=True)
+        gt_hourdelta_stats = ut.get_stats(ut.flatten(gt_hourdelta_list), use_nan=True)
 
-        #num_daid_per_dnid, unique_dnids = ibs.get_num_annots_per_name(daids)
-        #daid_per_dnid_stats = ut.get_stats(num_daid_per_dnid, use_nan=True)
-        #num_qaid_per_qnid, unique_qnids = ibs.get_num_annots_per_name(qaids)
-        #qaid_per_qnid_stats = ut.get_stats(num_qaid_per_qnid, use_nan=True)
-
-        #annotconfig_stats = {
-        #    'yawdist': gt_yawdist_stats,
-        #    'qualdist': gt_qualdist_stats,
-        #    'nonquery_daid_per_name_stats': nonquery_daid_per_name_stats,
-        #    'gt_daid_per_name_stats': gt_daid_per_name_stats,
-        #    'num_intersect': len(common_aids)
-        #}
-
-        qaid_stats_dict = get_annot_stats_dict(qaids, 'q')
-        daid_stats_dict = get_annot_stats_dict(daids, 'd')
+        qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q')
+        daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd')
 
         # Intersections between qaids and daids
         common_aids = np.intersect1d(daids, qaids)
@@ -5640,7 +5670,8 @@ def get_annotconfig_stats(ibs, qaids, daids):
         stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True, newlines=True, explicit=True, nobraces=True)
         #stats_str = ut.align(stats_str, ':')
         stats_str2 = ut.dict_str(annotconfig_stats_strs, strvals=True, newlines=True, explicit=False, nobraces=False)
-        print(stats_str2)
+        if verbose:
+            print('annot_config_stats = ' + stats_str2)
 
         return annotconfig_stats_strs, locals()
 

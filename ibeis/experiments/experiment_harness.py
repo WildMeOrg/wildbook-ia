@@ -9,11 +9,11 @@ import numpy as np
 import utool
 import utool as ut
 from ibeis.experiments import experiment_helpers
-from ibeis.experiments import experiment_configs
-from ibeis.experiments import experiment_printres
-from ibeis.experiments import experiment_drawing
+#from ibeis.experiments import experiment_configs
+#from ibeis.experiments import experiment_printres
+#from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
-from ibeis.init import main_helpers
+from ibeis.experiments import annotation_configs
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]')
 
@@ -28,60 +28,26 @@ def testdata_expts(defaultdb='testdb1',
                    default_acfgstr_name_list=['candidacy:qsize=20,dper_name=1,dsize=10',
                                               'candidacy:qsize=20,dper_name=10,dsize=100'],
                    default_test_cfg_name_list=['custom', 'custom:fg_on=False']):
+    """
+    Command line interface to quickly get testdata for test_results
+    """
     import ibeis
     #from ibeis.experiments import experiment_helpers
     ibs = ibeis.opendb(defaultdb=defaultdb)
-    acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-    test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
+    test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
     test_result = experiment_storage.combine_test_results(ibs, test_result_list)
     return ibs, test_result
     #return ibs, test_result_list
 
 
-def get_cmdline_test_result():
-    ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
-    return ibs, test_result
-
-
-#-----------
-#@utool.indent_func('[harn]')
-@profile
-def test_configurations(ibs, acfgstr_name_list, test_cfg_name_list, annot_info=None):
-    r"""
-    Test harness driver function
-
-    CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-test_configurations --verbtd
-        python -m ibeis.experiments.experiment_harness --exec-test_configurations --verbtd --draw-rank-cdf --show
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100'])
-        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-        >>> test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
-        >>> ut.show_if_requested()
+def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     """
+    Loops over annot configs.
 
-    test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list, annot_info)
-
-    for test_result in test_result_list:
-        if test_result is None:
-            return
-        else:
-            experiment_printres.print_results(ibs, test_result)
-            experiment_drawing.draw_results(ibs, test_result)
-    return test_result_list
-
-
-def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
-    """
-    Loops over annot configs
+    Try and use this function as a starting point to clean up this module.
+    The code is getting too untenable.
 
     CommandLine:
         python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2
@@ -92,19 +58,14 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> default_acfgstrs = ['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100']
-        >>> acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
+        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-        >>> test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
+        >>> test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
     """
-    if isinstance(acfgstr_name_list, dict) and 'OVERRIDE_HACK' in acfgstr_name_list:
-        qaids, daids = acfgstr_name_list['OVERRIDE_HACK']
-        acfg_list = None
-    else:
-        acfg_list = experiment_helpers.get_annotcfg_list(acfgstr_name_list)
-
-    # Grab list of algorithm configurations to test
-    # Test Each configuration
-    cfg_list, cfgx2_lbl = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    # Generate list of database annotation configurations
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+    # Generate list of query pipeline param configs
+    cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
 
     if not utool.QUIET:
         ut.colorprint(textwrap.dedent("""
@@ -117,18 +78,25 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
 
     test_result_list = []
 
-    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfgstr_name_list)
-    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfgstr_name_list)
+    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
+    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
 
     nAcfg = len(acfg_list)
 
-    if acfg_list is None:
-        print('warning hack')
-        expanded_aids_list = [(qaids, daids)]
-    else:
-        expanded_aids_list = [main_helpers.expand_acfgs(ibs, acfg) for acfg in acfg_list]
-
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
+
+    if ut.get_argflag('--acfginfo'):
+        # Print info about annots for the test
+        ut.colorprint('Requested AcfgInfo for tests... ', 'red')
+        nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(acfg_list)
+        print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
+        for acfgx, (qaids, daids) in enumerate(expanded_aids_list):
+            ut.colorprint('+-----------', 'white')
+            print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
+            #_ = ibs.get_annotconfig_stats(qaids, daids)
+            ut.colorprint('L___________', 'white')
+        ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
+        sys.exit(1)
 
     for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
         if len(qaids) == 0:
@@ -137,7 +105,7 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
             raise AssertionError('[harness] No query annotations specified')
         acfg = acfg_list[acfgx]
         ut.colorprint('\n---Annot config', 'turquoise')
-        test_result = run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, lbl, testnameid, acfgx, nAcfg)
+        test_result = run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg)
         test_result.acfg = acfg
         test_result.test_cfg_name_list = test_cfg_name_list
         test_result_list.append(test_result)
@@ -145,7 +113,7 @@ def run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list):
 
 
 @profile
-def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, lbl, testnameid, acfgx, nAcfg):
+def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg):
     #orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
 
     # Parse cfgstr list
@@ -154,7 +122,6 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, lbl, testnam
     #    cfgstr_terms = cfgstr.split(')_')
     #    cfgstr_terms = [x + ')_' for x in cfgstr_terms[1:-1]] + [cfgstr_terms[-1]]  # NOQA
 
-    #ut.embed()
     #print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
     #print('cfgstr_list = ' + ut.list_str(cfgstr_list))
 
@@ -175,6 +142,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, lbl, testnam
         ut.ensuredir(bigtest_cachedir)
         try:
             test_result = ut.load_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr)
+            test_result.cfgdict_list = cfgdict_list
         except IOError:
             pass
         else:
@@ -237,6 +205,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, lbl, testnam
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
     test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
+    test_result.cfgdict_list = cfgdict_list
     test_result.aidcfg = None
     if USE_BIG_TEST_CACHE:
         ut.save_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr, test_result)
@@ -398,121 +367,6 @@ def get_query_result_info(qreq_):
     #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
     cfgres_info['qx2_bestranks'] = ut.replace_nones(cfgres_info['qx2_bestranks'] , -1)
     return cfgres_info
-
-
-def precfg_dbs(db_list):
-    r"""
-    Helper to precompute information Runs precfg on multiple databases
-
-    Args:
-        db_list (list):
-
-    CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist testdb1 PZ_MTEST
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache
-
-        #python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy --preload
-
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
-        >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
-        >>> result = precfg_dbs(db_list)
-        >>> print(result)
-    """
-    import ibeis.init.main_helpers
-    import ibeis
-    if db_list == ['candidacy']:
-        db_list = experiment_configs.get_candidacy_dbnames()  # HACK
-    print('db_list = %s' % (ut.list_str(db_list),))
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
-    for db in db_list:
-        ibs = ibeis.opendb(db=db)
-        ibs, qaids, daids = ibeis.init.main_helpers.testdata_ibeis(verbose=False, ibs=ibs)
-        precfg(ibs, qaids, daids, test_cfg_name_list)
-
-
-def precfg(ibs, qaids, daids, test_cfg_name_list):
-    r"""
-    Helper to precompute information
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        qaids (list):  query annotation ids
-        daids (list):  database annotation ids
-        test_cfg_name_list (list):
-
-    Returns:
-        ?:
-
-    CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --expt-preload
-        # Repeatidly causes freezes (IF CHIPS PARALLEL IS ON)
-        ./reset_dbs.py
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload-chips --controlled
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --species=zebra_plains --serial
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --expt-indexer --species=zebra_plains --serial
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --expt-indexer --species=zebra_plains --serial
-
-        python -m ibeis.experiments.experiment_harness --exec-precfg --delete-nn-cache
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
-        >>> ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
-        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
-        >>> result = precfg(ibs, qaids, daids, test_cfg_name_list)
-        >>> print(result)
-    """
-    cfg_list, cfgx2_lbl = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
-
-    lbl = '[harn] ENSURE_CFG ' + str(test_cfg_name_list)
-    nCfg     = len(cfg_list)   # number of configurations (cols)
-    dbname = ibs.get_dbname()
-
-    cfgiter = ut.ProgressIter(cfg_list, nTotal=nCfg, lbl=lbl,
-                              freq=1, autoadjust=False)
-
-    flag = False
-    if ut.get_argflag('--delete-nn-cache'):
-        ibs.delete_neighbor_cache()
-        flag = True
-
-    for cfgx, query_cfg in enumerate(cfgiter):
-        print('')
-        ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
-        verbose = True
-        with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-            qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg)
-            if ut.get_argflag('--preload'):
-                qreq_.lazy_preload(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preload-chip'):
-                qreq_.ensure_chips(verbose=verbose, extra_tries=1)
-                flag = True
-            if ut.get_argflag('--preload-feat'):
-                qreq_.ensure_features(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preload-featweight'):
-                qreq_.ensure_featweights(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preindex'):
-                flag = True
-                if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-                    qreq_.load_indexer(verbose=verbose)
-        assert flag is True, 'no flag specified'
-    assert flag is True, 'no flag specified'
 
 
 if __name__ == '__main__':
