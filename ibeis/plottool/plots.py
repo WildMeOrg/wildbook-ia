@@ -462,8 +462,8 @@ def plot_score_histograms(scores_list,
     #return fig
 
 
-def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figtitle=None):
-    """
+def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figtitle=None, xlabel='', ylabel='cumfreq'):
+    r"""
 
     CommandLine:
         python -m plottool.plots --test-plot_rank_cumhist --show
@@ -521,10 +521,11 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
     if figtitle is not None:
         df2.set_figtitle(figtitle)
     else:
-        df2.set_title('Cumulative Histogram of GT-Ranks')
+        df2.set_title('')
+        #'Cumulative Histogram of GT-Ranks')
 
-    df2.set_xlabel('rank')
-    df2.set_ylabel('# queries < rank')
+    df2.set_xlabel(xlabel)
+    df2.set_ylabel(ylabel)
     #df2.dark_background()
 
     df2.legend(loc='lower right')
@@ -774,6 +775,120 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=Non
     ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=color)
     ax.plot(xdata, ydata_mean, marker=marker, color=color, label=label, linestyle=linestyle)
     return
+
+
+def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=None, pnum=None):
+    r"""
+    Args:
+        known_nd_data (?): should be integral for now
+        known_target_points (?):
+        nd_labels (?):
+        target_label (?):
+        fnum (int):  figure number(default = None)
+
+    Returns:
+        ?: ax
+
+    CommandLine:
+        python -m plottool.plots --exec-plot_search_surface --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> known_nd_data = np.array([x.flatten() for x in np.meshgrid(*[np.linspace(-20, 20, 10).astype(np.int32), np.linspace(-20, 20, 10).astype(np.int32)])]).T
+        >>> # complicated polynomial target
+        >>> known_target_points = -.001 * known_nd_data.T[0] ** 4 + .25 * known_nd_data.T[1] ** 2 - .0005 * known_nd_data.T[1] ** 4 + .001 * known_nd_data.T[1] ** 3
+        >>> nd_labels = ['big-dim', 'small-dim']
+        >>> target_label = ['score']
+        >>> fnum = 1
+        >>> ax = plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    fnum = pt.ensure_fnum(fnum)
+    print('fnum = %r' % (fnum,))
+    #pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None, projection='3d')
+    pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None)
+
+    # Convert our non-uniform grid into a uniform grid using gcd
+    def compute_interpolation_grid(known_nd_data, pad_steps=0):
+        """ use gcd to get the number of steps to take in each dimension """
+        import fractions
+        ug_steps = [reduce(fractions.gcd, np.unique(x_).tolist()) for x_ in known_nd_data.T]
+        ug_min   = known_nd_data.min(axis=0)
+        ug_max   = known_nd_data.max(axis=0)
+        ug_basis = [
+            np.arange(min_ - (step_ * pad_steps), max_ + (step_ * (pad_steps + 1)), step_)
+            for min_, max_, step_ in zip(ug_min, ug_max, ug_steps)
+        ]
+        ug_shape = tuple([basis.size for basis in ug_basis][::-1])
+        # ig = interpolated grid
+        unknown_nd_data = np.vstack([_pts.flatten() for _pts in np.meshgrid(*ug_basis)]).T
+        return unknown_nd_data, ug_shape
+
+    def interpolate_error(known_nd_data, known_target_points, unknown_nd_data):
+        """
+        References:
+            http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html
+        """
+        #method = 'cubic'  # {'linear', 'nearest', 'cubic'}
+        method = 'linear'  # {'linear', 'nearest', 'cubic'}
+        import scipy as sp
+        interpolated_targets = sp.interpolate.griddata(known_nd_data, known_target_points, unknown_nd_data, method=method)
+        #interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.max() * 2
+        interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.min()
+        return interpolated_targets
+
+    # Interpolate uniform grid positions
+    if len(known_nd_data.T) == 1 or ut.list_allsame(known_nd_data.T[1]):
+        xdata = known_nd_data.T[0]
+        ydata = known_target_points
+        pt.plot(xdata, ydata)
+        ax = pt.gca()
+        if len(known_nd_data.T) == 2:
+            ax.set_xlabel(nd_labels[0] + ' (const:' + nd_labels[1] + '=%r)' % (known_nd_data.T[1][0],))
+        else:
+            ax.set_xlabel(nd_labels[0])
+        ax.set_ylabel(target_label)
+    else:
+        unknown_nd_data, ug_shape = compute_interpolation_grid(known_nd_data, 0 * 5)
+        interpolated_error = interpolate_error(known_nd_data, known_target_points, unknown_nd_data)
+
+        ax = pt.plot_surface3d(
+            unknown_nd_data.T[0].reshape(ug_shape),
+            unknown_nd_data.T[1].reshape(ug_shape),
+            interpolated_error.reshape(ug_shape),
+            xlabel=nd_labels[0],
+            ylabel=nd_labels[1],
+            zlabel=target_label,
+            rstride=1, cstride=1,
+            pnum=pnum,
+            cmap=pt.plt.get_cmap('jet'),
+            wire=True,
+            #norm=pt.mpl.colors.Normalize(0, 1),
+            #shade=False,
+            #dark=False,
+        )
+        ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
+    #given_data_dims = [0]
+    #assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
+    #xdim = given_data_dims[0]
+        xdim = 0
+        ydim = (xdim + 1) % (len(known_nd_data.T))
+        known_nd_min = known_nd_data.min(axis=0)
+        known_nd_max = known_nd_data.max(axis=0)
+        xmin, xmax = known_nd_min[xdim], known_nd_max[xdim]
+        ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
+        zmin, zmax = known_target_points.min(), known_target_points.max()
+
+        ax.set_aspect('auto')
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
+        ax.set_zlim(zmin, zmax)
+        import matplotlib.ticker as mtick
+        ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+    return ax
 
 
 if __name__ == '__main__':

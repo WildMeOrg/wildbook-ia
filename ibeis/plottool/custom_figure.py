@@ -73,7 +73,7 @@ def _convert_pnum_int_to_tup(int_pnum):
 
 
 def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
-           doclf=False, **kwargs):
+           doclf=False, projection=None, **kwargs):
     """
     Args:
         fnum (int):  fignum = figure number
@@ -102,7 +102,7 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
-            ax = fig.add_subplot(*pnum)
+            ax = fig.add_subplot(*pnum, projection=projection)
             ax.cla()
         else:
             ax = gca()

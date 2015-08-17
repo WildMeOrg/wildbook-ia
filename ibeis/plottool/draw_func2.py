@@ -2947,13 +2947,18 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
 
 
 def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
-                   wire=False, dark=False, rstride=1, cstride=1, *args, **kwargs):
+                   wire=False, dark=False, rstride=1, cstride=1, pnum=None, *args, **kwargs):
     """
     References:
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
     """
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
-    ax = plt.gca(projection='3d')
+    if pnum is None:
+        ax = plt.gca(projection='3d')
+    else:
+        fig = plt.gcf()
+        #print('pnum = %r' % (pnum,))
+        ax = fig.add_subplot(*pnum, projection='3d')
     title = kwargs.pop('title', None)
     if wire:
         ax.plot_wireframe(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
