@@ -323,7 +323,7 @@ def get_annotcfg_list(ibs, acfg_name_list):
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__, annotation_configs.TEST_NAMES)
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'qcfg')))
     named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))
-    alias_keys = annotation_configs.alias_keys
+    alias_keys = annotation_configs.ALIAS_KEYS
     # need to have the cfgstr_lists be the same for query and database so they can be combined properly for now
     qcfg_combo_list = parse_cfgstr_list2(acfg_name_list, named_qcfg_defaults, 'qcfg', alias_keys=alias_keys)
     dcfg_combo_list = parse_cfgstr_list2(acfg_name_list, named_dcfg_defaults, 'dcfg', alias_keys=alias_keys)

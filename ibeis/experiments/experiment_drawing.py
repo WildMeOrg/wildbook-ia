@@ -35,6 +35,7 @@ def draw_rank_surface(ibs, test_result):
     CommandLine:
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -58,8 +59,8 @@ def draw_rank_surface(ibs, test_result):
     #K_cfgx_lists = [test_result.get_cfgx_with_param('K', K) for K in K_basis]
 
     #param_key_list = test_result.get_all_varied_params()
-    param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
-    #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
+    #param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
+    param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
     basis_dict      = {}
     cfgx_lists_dict = {}
     for key in param_key_list:
@@ -72,8 +73,8 @@ def draw_rank_surface(ibs, test_result):
 
     # Hold a key constant
     import plottool as pt
-    const_key = 'K'
-    #const_key = 'dcfg_sample_per_name'
+    #const_key = 'K'
+    const_key = 'dcfg_sample_per_name'
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
@@ -81,13 +82,19 @@ def draw_rank_surface(ibs, test_result):
         agree_param_vals = dict([
             (key, [test_result.get_param_val_from_cfgx(cfgx, key) for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
+
+        from ibeis.experiments import annotation_configs
         nd_labels = list(agree_param_vals.keys())
-        target_label = 'num rank leq 1'
+        nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
+        target_label = annotation_configs.shorten_to_alias_labels(key)
+
+        #target_label = 'num rank leq 1'
+        target_label = 'score'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
         ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=1, pnum=pnum_())
         #(const_idx + 1))
-        ax.set_title('# Ranks < 1 when ' + const_key + '=%r' % (const_val,))
+        ax.set_title('# Ranks <= 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
 
     figtitle = (
         '# Ranks <= 1 for')
@@ -150,13 +157,15 @@ def draw_rank_cdf(ibs, test_result):
     import plottool as pt
     cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     lbl_list = test_result.get_short_cfglbls()
+    color_list = pt.distinct_colors(len(lbl_list))
     # Order cdf list by rank0
-    lbl_list = ut.sortedby(lbl_list, cdf_list.T[0], reverse=True)
-    cdf_list = np.array(ut.sortedby(cdf_list.tolist(), cdf_list.T[0], reverse=True))
+    sortx = cdf_list.T[0].argsort()[::-1]
+    lbl_list = ut.list_take(lbl_list, sortx)
+    cdf_list = np.array(ut.list_take(cdf_list, sortx))
+    color_list = ut.list_take(color_list, sortx)
     #
     figtitle = (
-        'Cumulative Histogram of GT-Ranks for')
-    figtitle += ' ' + test_result.get_title_aug()
+        'Cumulative Histogram of GT-Ranks for\n')
     #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
     #if test_result.annot_info is not None:
     #    if test_result.annot_info['d aids']['controlled']:
@@ -166,6 +175,7 @@ def draw_rank_cdf(ibs, test_result):
     #        #    ' num_d aids=%r' % (len(test_result.d aids))
     #        #)
     figtitle += ' db=' + (ibs.get_dbname())
+    figtitle += ' ' + test_result.get_title_aug()
 
     figtitle += ' #qaids=%r' % (len(test_result.qaids),)
     if test_result.has_constant_daids():
@@ -182,19 +192,43 @@ def draw_rank_cdf(ibs, test_result):
     #figtitle += small_info_str
 
     #cdf_list = config_cdfs
-    maxrank = ut.get_argval('--maxrank', type_=int, default=None)
+
+    import vtool as vt
+    # Find where the functions no longer change
+    freq_deriv = np.diff(cdf_list.T[:-1].T)
+    reverse_deriv_cumsum = freq_deriv[:, ::-1].cumsum(axis=0)
+    reverse_changing_pos = np.array(vt.find_first_true_indices(reverse_deriv_cumsum > 0))
+    nonzero_poses = (len(cdf_list.T) - 1) - reverse_changing_pos
+    maxrank = max(nonzero_poses)
+
+    maxrank = 10
+
+    maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
+
     if maxrank is not None:
-        cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
-        edges = edges[0:min(len(edges), maxrank + 1)]
-    percent_cdf_list = cdf_list / len(test_result.qaids)
-    #fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='# queries < rank')  # NOQA
-    fig = pt.plot_rank_cumhist(percent_cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='% queries < rank')  # NOQA
-    #ut.show_if_requested()
-    #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)
-    #print(rank_cdf_fpath)
-    #rank_cdf_fpath  # NOQA
-    #if SHOW:
-    #    pt.plt.show()
+        short_cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
+        short_edges = edges[0:min(len(edges), maxrank + 1)]
+        #maxpos = min(len(cdf_list.T), maxrank)
+        #short_cdf_list = cdf_list[:, 0:maxpos]
+        #short_edges = edges[0:maxpos + 1]
+
+    cumhist_kw = dict(xlabel='rank', ylabel='# queries < rank',)
+
+    fnum = pt.ensure_fnum(None)
+
+    pt.plot_rank_cumhist(short_cdf_list, lbl_list, color_list=color_list,
+                         edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=False,
+                         **cumhist_kw)
+    ax1 = pt.gca()
+    pt.plot_rank_cumhist(cdf_list, lbl_list, color_list=color_list,
+                         edges=edges, pnum=(2, 1, 2), fnum=fnum,
+                         **cumhist_kw)
+    ax2 = pt.gca()
+    pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
+
+    pt.set_figtitle(figtitle)
+    #percent_cdf_list = cdf_list / len(test_result.qaids)
+    #fig = pt.plot_rank_cumhist(percent_cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='% queries < rank')  # NOQA
 
 
 def make_metadata_custom_api(metadata):

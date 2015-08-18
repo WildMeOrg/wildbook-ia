@@ -1948,6 +1948,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> print(result)
         """
         dbinfo = back.ibs.get_dbinfo_str()
+        print(dbinfo)
         guitool.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
 
     @slot_()

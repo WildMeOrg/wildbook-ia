@@ -141,6 +141,10 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--inc-query'):
         back.incremental_query()
 
+    if ut.get_argflag(('--dbinfo', '--display_dbinfo')):
+        back.display_dbinfo()
+        pass
+
     if ut.get_argflag('--start-web'):
         back.start_web_server_parallel()
 

@@ -44,6 +44,7 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
 
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 --acfg controlled --verbose-testdata
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_Master0 --acfg controlled --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db GZ_ALL --acfg controlled --verbose-testdata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -69,12 +70,13 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
     # TODO: rectify command line with function arguments
     from ibeis.experiments import experiment_helpers
     aidcfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'])
-    aidcfg_list = experiment_helpers.get_annotcfg_list(aidcfg_name_list)
-    #aidcfg = old_main_helpers.get_commandline_aidcfg()
-    assert len(aidcfg_list) == 1, 'multiple acfgs specified, but this function is built to return only 1'
-    aidcfg = aidcfg_list[0]
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
 
-    qaid_list, daid_list = expand_acfgs(ibs, aidcfg)
+    #aidcfg = old_main_helpers.get_commandline_aidcfg()
+    assert len(acfg_list) == 1, 'multiple acfgs specified, but this function is built to return only 1. len(acfg_list)=%r' % (len(acfg_list),)
+    aidcfg = acfg_list[0]
+
+    qaid_list, daid_list = expanded_aids_list[0]
 
     #ibs.get_annotconfig_stats(qaid_list, daid_list)
 
@@ -114,6 +116,19 @@ def expand_acfgs(ibs, aidcfg):
     from ibeis.experiments import annotation_configs
     qcfg = aidcfg['qcfg']
     dcfg = aidcfg['dcfg']
+
+    USE_ACFG_CACHE = not ut.get_argflag('--nocache')
+    if USE_ACFG_CACHE:
+        # Make loading aids a big faster for experiments
+        acfg_cachedir = './ACFG_CACHE'
+        acfg_cachename = 'ACFG_CACHE'
+        aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
+        try:
+            (qaid_list, daid_list) = ut.load_cache(acfg_cachedir, acfg_cachename, aid_cachestr)
+        except IOError:
+            pass
+        else:
+            return qaid_list, daid_list
 
     VERB_MAIN_HELPERS2 = VERB_MAIN_HELPERS
 
@@ -179,7 +194,9 @@ def expand_acfgs(ibs, aidcfg):
     _ = ibs.get_annotconfig_stats(available_qaids, available_daids)
 
     """
-
+    if USE_ACFG_CACHE:
+        ut.ensuredir(acfg_cachedir)
+        ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr, (qaid_list, daid_list))
     #available_qaids qcfg['ref_has_viewpoint']
     return qaid_list, daid_list
 
@@ -408,9 +425,20 @@ def reference_sample_per_name(ibs, available_aids, aidcfg, reference_aids):
         # Order by increasing timedelta (metric)
         reverse = True
         if reverse:
-            preference_orders = [scores.argsort()[::-1] for scores in preference_scores]
+            # Bigger is better, replace nan with -inf
+            # Then randomize order between all equal values
+            for scores in preference_scores:
+                scores[np.isnan(scores)] = np.inf
+            #preference_orders = [scores.argsort()[::-1] for scores in preference_scores]
+            rng = np.random.RandomState(42)
+            preference_orders = [np.lexsort((scores, rng.rand(len(scores))))[::-1] for scores in preference_scores]
         else:
-            preference_orders = [scores.argsort() for scores in preference_scores]
+            # Smaller is better, replace nan with inf
+            for scores in preference_scores:
+                scores[np.isnan(scores)] = np.inf
+            #preference_orders = [scores.argsort() for scores in preference_scores]
+            rng = np.random.RandomState(42)
+            preference_orders = [np.lexsort((scores, rng.rand(len(scores)))) for scores in preference_scores]
 
         pref_ordered_available_gt_aids = ut.list_ziptake(grouped_available_gt_aids, preference_orders)
         return pref_ordered_available_gt_aids

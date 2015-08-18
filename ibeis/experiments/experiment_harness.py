@@ -56,7 +56,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         >>> # SLOW_DOCTEST
         >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100']
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
@@ -85,14 +85,17 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
 
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
 
-    if ut.get_argflag('--acfginfo'):
+    if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
         # Print info about annots for the test
         ut.colorprint('Requested AcfgInfo for tests... ', 'red')
         nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(acfg_list)
+
         print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
         for acfgx, (qaids, daids) in enumerate(expanded_aids_list):
             ut.colorprint('+-----------', 'white')
             print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
+            annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
+            print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name'])))
             #_ = ibs.get_annotconfig_stats(qaids, daids)
             ut.colorprint('L___________', 'white')
         ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')

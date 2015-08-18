@@ -86,10 +86,12 @@ autogenmodname_list = [
     ('ibeis.control', 'manual_feat_funcs'),
 ]
 
+WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn'))
+
 # HACK, don't include cnn unless its already there due to theano stuff
 pluginmodname_list = []
 import sys
-if 'ibeis_cnn' in sys.modules:
+if 'ibeis_cnn' in sys.modules or WITH_CNN:
     pluginmodname_list = [
         ('ibeis_cnn', '_plugin'),
     ]

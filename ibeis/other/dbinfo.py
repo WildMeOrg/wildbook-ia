@@ -39,8 +39,8 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
 def get_dbinfo(ibs, verbose=True,
                with_imgsize=False,
                with_bytes=False,
-               with_contrib=True,
-               with_agesex=True,
+               with_contrib=False,
+               with_agesex=False,
                with_header=True,
                short=False,
                tag='dbinfo',
@@ -315,8 +315,8 @@ def get_dbinfo(ibs, verbose=True,
     contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
     contrib_tag_to_aids = ut.group_items(valid_aids, annot_contrib_tags)
 
-    contrib_tag_to_qualstats = {key: get_annot_qual_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
-    contrib_tag_to_viewstats = {key: get_annot_yaw_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
+    contrib_tag_to_qualstats = {key: ibs.get_annot_qual_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
+    contrib_tag_to_viewstats = {key: ibs.get_annot_yaw_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
 
     contrib_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contrib_tag_to_gids)}
     contrib_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contrib_tag_to_aids)}
