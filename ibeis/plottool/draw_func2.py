@@ -228,7 +228,7 @@ def show_if_requested(N=1):
 
     if fpath_ is not None:
         print('Figure save was requested')
-        arg_dict = ut.get_arg_dict()
+        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'])
         #import sys
         from os.path import basename, splitext, join
         import plottool as pt
@@ -328,6 +328,10 @@ def show_if_requested(N=1):
         if ut.get_argflag('--diskshow'):
             # show what we wrote
             ut.startfile(absfpath_)
+
+        # Hack write the corresponding logfile next to the output
+        log_fpath = ut.get_current_log_fpath()
+        ut.copy(log_fpath, splitext(fpath_)[0] + '.txt')
     if ut.inIPython():
         import plottool as pt
         pt.iup()
@@ -2947,7 +2951,7 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
 
 
 def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
-                   wire=False, dark=False, rstride=1, cstride=1, pnum=None, *args, **kwargs):
+                   wire=False, mode=None, contour=False, dark=False, rstride=1, cstride=1, pnum=None, *args, **kwargs):
     """
     References:
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
@@ -2960,10 +2964,25 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         #print('pnum = %r' % (pnum,))
         ax = fig.add_subplot(*pnum, projection='3d')
     title = kwargs.pop('title', None)
-    if wire:
+    if mode is None:
+        mode = 'wire' if wire else 'surface'
+
+    if mode == 'wire':
         ax.plot_wireframe(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
+        #ax.contour(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, extend3d=True, *args, **kwargs)
+    elif mode == 'surface' :
+        ax.plot_surface(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, linewidth=.1, *args, **kwargs)
     else:
-        ax.plot_surface(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
+        raise NotImplementedError('mode=%r' % (mode,))
+    if contour:
+        import matplotlib.cm as cm
+        xoffset = xgrid.min() - ((xgrid.max() - xgrid.min()) * .1)
+        yoffset = ygrid.max() + ((ygrid.max() - ygrid.min()) * .1)
+        zoffset = zdata.min() - ((zdata.max() - zdata.min()) * .1)
+        cmap = kwargs.get('cmap', cm.coolwarm)
+        ax.contour(xgrid, ygrid, zdata, zdir='x', offset=xoffset, cmap=cmap)
+        ax.contour(xgrid, ygrid, zdata, zdir='y', offset=yoffset, cmap=cmap)
+        ax.contour(xgrid, ygrid, zdata, zdir='z', offset=zoffset, cmap=cmap)
         #ax.plot_trisurf(xgrid.flatten(), ygrid.flatten(), zdata.flatten(), *args, **kwargs)
     if title is not None:
         ax.set_title(title)

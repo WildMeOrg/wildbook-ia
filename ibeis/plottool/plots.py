@@ -462,7 +462,75 @@ def plot_score_histograms(scores_list,
     #return fig
 
 
-def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figtitle=None, xlabel='', ylabel='cumfreq'):
+def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
+    """
+    ax1 : the main axes
+    ax1 : the zoomed axes
+    (xmin,xmax) : the limits of the colored area in both plot axes.
+
+    connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
+    be marked.  The keywords parameters will be used ti create
+    patches.
+
+    References:
+        http://matplotlib.org/users/annotations_guide.html
+    """
+    from matplotlib.transforms import (
+        Bbox, TransformedBbox, blended_transform_factory)
+
+    from mpl_toolkits.axes_grid1.inset_locator import (
+        BboxPatch, BboxConnector, BboxConnectorPatch)
+
+    def connect_bbox(bbox1, bbox2,
+                     loc1a, loc2a, loc1b, loc2b,
+                     prop_lines, prop_patches=None):
+        if prop_patches is None:
+            prop_patches = prop_lines.copy()
+            prop_patches["alpha"] = prop_patches.get("alpha", 1) * 0.05
+
+        c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
+        c1.set_clip_on(False)
+        c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
+        c2.set_clip_on(False)
+
+        bbox_patch1 = BboxPatch(bbox1, **prop_patches)
+        bbox_patch2 = BboxPatch(bbox2, **prop_patches)
+
+        p = BboxConnectorPatch(bbox1, bbox2,
+                               #loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                               loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
+                               **prop_patches)
+        p.set_clip_on(False)
+
+        return c1, c2, bbox_patch1, bbox_patch2, p
+
+    trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
+    trans2 = blended_transform_factory(ax2.transData, ax2.transAxes)
+
+    bbox = Bbox.from_extents(xmin, 0, xmax, 1)
+
+    mybbox1 = TransformedBbox(bbox, trans1)
+    mybbox2 = TransformedBbox(bbox, trans2)
+
+    prop_patches = kwargs.copy()
+    prop_patches['ec'] = 'none'
+    prop_patches['alpha'] = 0.2
+
+    (c1, c2, bbox_patch1, bbox_patch2, p) = \
+        connect_bbox(mybbox1, mybbox2,
+                     loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                     prop_lines=kwargs, prop_patches=prop_patches)
+
+    ax1.add_patch(bbox_patch1)
+    ax2.add_patch(bbox_patch2)
+    ax2.add_patch(c1)
+    ax2.add_patch(c2)
+    ax2.add_patch(p)
+
+    return c1, c2, bbox_patch1, bbox_patch2, p
+
+
+def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, edges=None, fnum=None, pnum=None, figtitle=None, xlabel='', ylabel='cumfreq', use_legend=True):
     r"""
 
     CommandLine:
@@ -490,12 +558,13 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
     if fnum is None:
         fnum = df2.next_fnum()
 
-    fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    fig = df2.figure(fnum=fnum, pnum=pnum)
 
     ax = df2.gca()
     num_cdfs = len(cdf_list)
     num_data = len(cdf_list[0])
-    color_list = df2.distinct_colors(num_cdfs)
+    if color_list is None:
+        color_list = df2.distinct_colors(num_cdfs)
 
     if edges is None:
         x_data = np.arange(num_data)
@@ -515,20 +584,31 @@ def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figt
         ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=4, linewidth=2, markeredgewidth=0)
 
     #ax.set_ylim(0, max_y * 1.05)
+    xbuf = (x_data.max() - x_data.min()) * .01
+
     ax.set_ylim(min_y / 1.05, max_y * 1.05)
-    ax.set_xlim(x_data.min(), x_data.max()  * 1.05)
+    #ax.set_xlim(x_data.min(), x_data.max()  * 1.01)
+    ax.set_xlim(max(0, x_data.min() - xbuf), x_data.max() + xbuf)
 
     if figtitle is not None:
         df2.set_figtitle(figtitle)
-    else:
-        df2.set_title('')
+        #df2.set_title('')
         #'Cumulative Histogram of GT-Ranks')
 
     df2.set_xlabel(xlabel)
     df2.set_ylabel(ylabel)
+
+    #step_size = int(np.log(x_data.max() + 1))
+    #step_size = int(np.sqrt(x_data.max() + 1))
+    max_pos = (x_data.max() + 1)
+    num_ticks = 10
+    step_size = int(max_pos / num_ticks)
+
+    df2.set_xticks(np.arange(1, max_pos, step_size))
     #df2.dark_background()
 
-    df2.legend(loc='lower right')
+    if use_legend:
+        df2.legend(loc='lower right')
     df2.dark_background()
     return fig
 
@@ -864,13 +944,20 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
             zlabel=target_label,
             rstride=1, cstride=1,
             pnum=pnum,
-            cmap=pt.plt.get_cmap('jet'),
-            wire=True,
+            #cmap=pt.plt.get_cmap('jet'),
+            cmap=pt.plt.get_cmap('coolwarm'),
+            #wire=True,
+            #mode='wire',
+            mode='surface',
+            alpha=.3,
+            contour=True,
+            #mode='contour',
             #norm=pt.mpl.colors.Normalize(0, 1),
             #shade=False,
             #dark=False,
         )
-        ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
+        #ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
+        ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=10, c=pt.YELLOW)
     #given_data_dims = [0]
     #assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
     #xdim = given_data_dims[0]
@@ -883,11 +970,17 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
         zmin, zmax = known_target_points.min(), known_target_points.max()
 
         ax.set_aspect('auto')
-        ax.set_xlim(xmin, xmax)
-        ax.set_ylim(ymin, ymax)
-        ax.set_zlim(zmin, zmax)
+        #ax.set_xlim(xmin, xmax * 1.05)
+        #ax.set_ylim(ymin, ymax * 1.05)
+        #ax.set_zlim(zmin, zmax * 1.05)
+        #ax.set_xlim(0, xmax + 1)
+        #ax.set_ylim(0, ymax + 1)
+        #ax.set_zlim(0, zmax + 1)
         import matplotlib.ticker as mtick
-        ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+        #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+        #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        #ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
     return ax
 
 
