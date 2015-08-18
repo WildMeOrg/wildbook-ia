@@ -108,3 +108,5 @@ screenshot*.jpg
 
 # More dubuious ignores
 _ibeis_setup.py
+
+experiment_*.sh
