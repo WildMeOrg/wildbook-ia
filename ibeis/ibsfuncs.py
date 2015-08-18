@@ -2008,6 +2008,9 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
 
 @__injectable
 def is_aid_unknown(ibs, aid_list):
+    """
+    Returns if an annotation has been given a name (even if that name is temporary)
+    """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
@@ -2910,6 +2913,8 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
 @__injectable
 def get_num_annots_per_name(ibs, aid_list):
     """
+    Returns the number of annots per name (IN THIS LIST)
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid_list (int):  list of annotation ids
@@ -5076,14 +5081,30 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
 
 @__injectable
 def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
+    """
+    Removes aids that do not have a valid yaw
+
+    TODO; rename to valid_viewpoint because this func uses category labels
+    """
     yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
     aid_list_ = ut.list_compress(aid_list, yaw_flags)
     return aid_list_
 
 
 @__injectable
+def filter_aids_without_name(ibs, aid_list):
+    """
+    Remove aids without names
+    """
+    flag_list = ut.not_list(ibs.is_aid_unknown(aid_list))
+    aid_list_ = ut.list_compress(aid_list, flag_list)
+    return aid_list_
+
+
+@__injectable
 def filter_aids_without_timestamps(ibs, aid_list):
     """
+    Removes aids without timestamps
     aid_list = ibs.get_valid_aids()
     """
     unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
@@ -5523,7 +5544,9 @@ def _stat_str(dict_):
     if dict_.get('num_nan', None) == 0:
         del dict_['num_nan']
     exclude_keys = []  # ['std', 'nMin', 'nMax']
-    return ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+    str_ =  ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+    str_ = str_.replace('\'', '')
+    return str_
 
 
 # Quality and Viewpoint Stats
@@ -5567,6 +5590,37 @@ def get_annot_stats_dict(ibs, aids, prefix=''):
     return aid_stats_dict
 
 
+# Compares properties of query vs database annotations
+def compare_correct_match_properties(ibs, grouped_qaids, grouped_groundtruth_list, getter_func, cmp_func):
+    """
+    getter_func = ibs.get_annot_yaws
+    cmp_func = vt.ori_distance
+
+    getter_func = ibs.get_annot_image_unixtimes_asfloat
+    cmp_func = ut.unixtime_hourdiff
+    """
+    def replace_none_with_nan(x):
+        import utool as ut
+        return np.array(ut.replace_nones(x, np.nan))
+
+    query_props = ibs.unflat_map(getter_func, grouped_qaids)
+    query_props = ibs.unflat_map(replace_none_with_nan, query_props)
+
+    match_props = ibs.unflat_map(getter_func, grouped_groundtruth_list)
+    match_props = ibs.unflat_map(replace_none_with_nan, match_props)
+    # Compare the query yaws to the yaws of its correct matches in the database
+    gt_propdists_list = [cmp_func(np.array(qprops), np.array(gt_props)[:, None]) for qprops, gt_props in zip(query_props, match_props)]
+    return gt_propdists_list
+
+
+def viewpoint_diff(ori1, ori2):
+    """ convert distance in radians to distance in viewpoint category """
+    TAU = np.pi * 2
+    ori_diff = vt.ori_distance(ori1, ori2)
+    viewpoint_diff = len(const.VIEWTEXT_TO_YAW_RADIANS) * ori_diff / TAU
+    return viewpoint_diff
+
+
 @__injectable
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
     r"""
@@ -5578,7 +5632,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -5588,49 +5643,48 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
         >>> get_annotconfig_stats(ibs, qaids, daids)
     """
     import numpy as np
-    import vtool as vt
     import warnings
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
         warnings.filterwarnings('ignore', r'Mean of empty slice')
         warnings.filterwarnings('ignore', r'Degrees of freedom <= 0 for slice.')
 
-        def replace_none_with_nan(x):
-            import utool as ut
-            return np.array(ut.replace_nones(x, np.nan))
-
-        # Compares properties of query vs database annotations
-        def compare_correct_match_properties(qaids, daids, getter_func, cmp_func):
-            query_prop = replace_none_with_nan(getter_func(qaids))
-            match_props = ibs.unflat_map(getter_func, groundtruth_daids)
-            match_props = ibs.unflat_map(replace_none_with_nan, match_props)
-            # Compare the query yaws to the yaws of its correct matches in the database
-            gt_propdist_list = [cmp_func(np.array(gt_props), qprop) for qprop, gt_props in zip(query_prop, match_props)]
-            return gt_propdist_list
-
-        groundtruth_daids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
-        nonquery_daids = np.setdiff1d(daids, qaids)
-        nonquery_daids = np.setdiff1d(nonquery_daids, groundtruth_daids)
+        # The aids that should be matched by a query
+        grouped_qaids = ibs.group_annots_by_name(qaids)[0]
+        grouped_groundtruth_list = ibs.get_annot_groundtruth(ut.get_list_column(grouped_qaids, 0), daid_list=daids)
+        groundtruth_daids = ut.unique_unordered(ut.flatten(grouped_groundtruth_list))
+        hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
+        # The aids that should not match any query
+        nonquery_daids = np.setdiff1d(np.setdiff1d(daids, qaids), groundtruth_daids)
+        # The query aids that should not get any match
+        unmatchable_queries = ut.list_compress(qaids, ut.not_list(hasgt_list))
+        # The query aids that should not have a match
+        matchable_queries = ut.list_compress(qaids, hasgt_list)
 
         # Intersection on a per name basis
         nonquery_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
-        gt_daid_per_name_stats       = ut.get_stats(ibs.get_num_annots_per_name(ut.flatten(groundtruth_daids))[0], use_nan=True)
+        gt_daid_per_name_stats       = ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0], use_nan=True)
 
         # Compare the query yaws to the yaws of its correct matches in the database
-        gt_yawdists_list = compare_correct_match_properties(
-            qaids, daids, ibs.get_annot_yaws, vt.ori_distance)
+        # For each name there will be nQaids:nid x nDaids:nid comparisons
+        gt_viewdist_list = compare_correct_match_properties(
+            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_yaws, viewpoint_diff)
 
         # Compare the query qualities to the qualities of its correct matches in the database
         gt_qualdists_list = compare_correct_match_properties(
-            qaids, daids, ibs.get_annot_qualities, ut.absdiff)
+            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_qualities, ut.absdiff)
 
         # Compare timedelta differences
         gt_hourdelta_list = compare_correct_match_properties(
-            qaids, daids, ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
+            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
 
-        gt_yawdist_stats   = ut.get_stats(ut.flatten(gt_yawdists_list), use_nan=True)
-        gt_qualdist_stats  = ut.get_stats(ut.flatten(gt_qualdists_list), use_nan=True)
-        gt_hourdelta_stats = ut.get_stats(ut.flatten(gt_hourdelta_list), use_nan=True)
+        def super_flatten(arr_list):
+            import utool as ut
+            return ut.flatten([arr.ravel() for arr in arr_list])
+
+        gt_viewdist_stats   = ut.get_stats(super_flatten(gt_viewdist_list), use_nan=True)
+        gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
+        gt_hourdelta_stats = ut.get_stats(super_flatten(gt_hourdelta_list), use_nan=True)
 
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q')
         daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd')
@@ -5638,8 +5692,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
         # Intersections between qaids and daids
         common_aids = np.intersect1d(daids, qaids)
 
-        qnids = ibs.get_annot_name_rowids(qaids)
-        dnids = ibs.get_annot_name_rowids(daids)
+        qnids = ut.unique_unordered(ibs.get_annot_name_rowids(qaids))
+        dnids = ut.unique_unordered(ibs.get_annot_name_rowids(daids))
         common_nids = np.intersect1d(qnids, dnids)
 
         annotconfig_stats_strs1 = ut.odict([
@@ -5649,6 +5703,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
             ('num_annot_intersect', (len(common_aids))),
             ('qaid_stats', qaid_stats_dict),
             ('daid_stats', daid_stats_dict),
+            ('num_unmatchable_queries', len(unmatchable_queries)),
+            ('num_matchable_queries', len(matchable_queries)),
             ('num_qnids', (len(qnids))),
             ('num_dnids', (len(dnids))),
             ('num_name_intersect', (len(common_nids))),
@@ -5661,7 +5717,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
             # (not quite sure how to phrase what this is)
             ('aids_per_imposter_name', _stat_str(nonquery_daid_per_name_stats)),
             # Distances between a query and its groundtruth
-            ('yawdist', _stat_str(gt_yawdist_stats)),
+            ('viewdist', _stat_str(gt_viewdist_stats)),
             ('qualdist', _stat_str(gt_qualdist_stats)),
             ('hourdist', _stat_str(gt_hourdelta_stats)),
         ])

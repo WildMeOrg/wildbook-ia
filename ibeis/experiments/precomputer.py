@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function
+import utool as ut
+from ibeis.experiments import experiment_helpers
+
+
 def precfg_dbs(db_list):
     r"""
     Helper to precompute information Runs precfg on multiple databases
@@ -6,24 +12,24 @@ def precfg_dbs(db_list):
         db_list (list):
 
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist testdb1 PZ_MTEST
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache
 
-        #python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy --preload
+        #python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy --preload
 
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
-        python -m ibeis.experiments.experiment_harness --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
+        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.precomputer import *  # NOQA
         >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
         >>> result = precfg_dbs(db_list)
         >>> print(result)
@@ -31,6 +37,7 @@ def precfg_dbs(db_list):
     import ibeis.init.main_helpers
     import ibeis
     if db_list == ['candidacy']:
+        from ibeis.experiments import experiment_configs
         db_list = experiment_configs.get_candidacy_dbnames()  # HACK
     print('db_list = %s' % (ut.list_str(db_list),))
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
@@ -40,7 +47,7 @@ def precfg_dbs(db_list):
         precfg(ibs, qaids, daids, test_cfg_name_list)
 
 
-def precfg(ibs, qaids, daids, test_cfg_name_list):
+def precfg(ibs, acfg_name_list, test_cfg_name_list):
     r"""
     Helper to precompute information
 
@@ -50,64 +57,87 @@ def precfg(ibs, qaids, daids, test_cfg_name_list):
         daids (list):  database annotation ids
         test_cfg_name_list (list):
 
-    Returns:
-        ?:
-
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --expt-preload
-        # Repeatidly causes freezes (IF CHIPS PARALLEL IS ON)
-        ./reset_dbs.py
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload-chips --controlled
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --species=zebra_plains --serial
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --expt-indexer --species=zebra_plains --serial
-        python -m ibeis.experiments.experiment_harness --exec-precfg -t custom --preload --expt-indexer --species=zebra_plains --serial
+        python -m ibeis.experiments.precomputer --exec-precfg -t custom --expt-preload
 
-        python -m ibeis.experiments.experiment_harness --exec-precfg --delete-nn-cache
+        python -m ibeis.experiments.precomputer --exec-precfg -t candidacy -a default:qaids=allgt --preload
+        python -m ibeis.experiments.precomputer --exec-precfg -t candidacy_invariance -a default:qaids=allgt --preload
+
+        python -m ibeis.experiments.precomputer --exec-precfg --delete-nn-cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
-        >>> ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
-        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
-        >>> result = precfg(ibs, qaids, daids, test_cfg_name_list)
+        >>> from ibeis.experiments.precomputer import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> default_acfgstrs = ['default:qaids=allgt']
+        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
+        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom'])
+        >>> result = precfg(ibs, acfg_name_list, test_cfg_name_list)
         >>> print(result)
     """
+    # Generate list of database annotation configurations
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+    # Generate list of query pipeline param configs
     cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
 
-    lbl = '[harn] ENSURE_CFG ' + str(test_cfg_name_list)
-    nCfg     = len(cfg_list)   # number of configurations (cols)
-    dbname = ibs.get_dbname()
+    expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
+    nAcfg = len(acfg_list)
 
-    cfgiter = ut.ProgressIter(cfg_list, nTotal=nCfg, lbl=lbl,
-                              freq=1, autoadjust=False)
+    for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
+        if len(qaids) == 0:
+            print('[harness] WARNING No query annotations specified')
+            continue
+        if len(daids) == 0:
+            print('[harness] WARNING No database annotations specified')
+            continue
+        ut.colorprint('\n---Annot config', 'turquoise')
 
-    flag = False
-    if ut.get_argflag('--delete-nn-cache'):
-        ibs.delete_neighbor_cache()
-        flag = True
+        nCfg     = len(cfg_list)   # number of configurations (cols)
+        dbname = ibs.get_dbname()
 
-    for cfgx, query_cfg in enumerate(cfgiter):
-        print('')
-        ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
-        verbose = True
-        with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-            qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg)
-            if ut.get_argflag('--preload'):
-                qreq_.lazy_preload(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preload-chip'):
-                qreq_.ensure_chips(verbose=verbose, extra_tries=1)
-                flag = True
-            if ut.get_argflag('--preload-feat'):
-                qreq_.ensure_features(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preload-featweight'):
-                qreq_.ensure_featweights(verbose=verbose)
-                flag = True
-            if ut.get_argflag('--preindex'):
-                flag = True
-                if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-                    qreq_.load_indexer(verbose=verbose)
+        cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg)
+
+        flag = False
+        if ut.get_argflag('--delete-nn-cache'):
+            ibs.delete_neighbor_cache()
+            flag = True
+
+        for cfgx, query_cfg in enumerate(cfgiter):
+            print('')
+            ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
+            verbose = True
+            with ut.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
+
+                qreq_ = ibs.new_query_request(qaids, daids, verbose=True, query_cfg=query_cfg)
+                if ut.get_argflag('--preload'):
+                    qreq_.lazy_preload(verbose=verbose)
+                    flag = True
+                if ut.get_argflag('--preload-chip'):
+                    qreq_.ensure_chips(verbose=verbose, extra_tries=1)
+                    flag = True
+                if ut.get_argflag('--preload-feat'):
+                    qreq_.ensure_features(verbose=verbose)
+                    flag = True
+                if ut.get_argflag('--preload-featweight'):
+                    qreq_.ensure_featweights(verbose=verbose)
+                    flag = True
+                if ut.get_argflag('--preindex'):
+                    flag = True
+                    if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+                        qreq_.load_indexer(verbose=verbose)
+            assert flag is True, 'no flag specified'
         assert flag is True, 'no flag specified'
-    assert flag is True, 'no flag specified'
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.experiments.precomputer
+        python -m ibeis.experiments.precomputer --allexamples
+        python -m ibeis.experiments.precomputer --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

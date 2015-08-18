@@ -737,15 +737,16 @@ class QueryRequest(object):
         external_daids = qreq_.get_external_daids()
         qfids = qreq_.ibs.get_annot_feat_rowids(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
         dfids = qreq_.ibs.get_annot_feat_rowids(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
-        qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=False, config2_=qreq_.get_external_query_config2())  # NOQA
-        dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=False, config2_=qreq_.get_external_data_config2())  # NOQA
-        #if verbose:
-        try:
-            assert len(qkpts) > 0, 'no query keypoint'
-            assert qkpts[0].size > 0, 'Query keypoints are corrupted! qkpts=%r' % (qkpts,)
-        except Exception:
-            print('qkpts = %r' % (qkpts,))
-            raise
+        if ut.DEBUG2:
+            qkpts = qreq_.ibs.get_annot_kpts(external_qaids, ensure=False, config2_=qreq_.get_external_query_config2())  # NOQA
+            dkpts = qreq_.ibs.get_annot_kpts(external_daids, ensure=False, config2_=qreq_.get_external_data_config2())  # NOQA
+            #if verbose:
+            try:
+                assert len(qkpts) > 0, 'no query keypoint'
+                assert qkpts[0].size > 0, 'Query keypoints are corrupted! qkpts=%r' % (qkpts,)
+            except Exception:
+                print('qkpts = %r' % (qkpts,))
+                raise
 
     @profile
     def ensure_featweights(qreq_, verbose=True):
@@ -759,20 +760,21 @@ class QueryRequest(object):
         #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
-        qfeatweights = qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
-        dfeatweights = qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
-        #if verbose:
-        try:
-            assert len(qfeatweights) > 0, 'no query featweights'
-            assert qfeatweights[0].size > 0, 'Query featweights are corrupted! qfeatweights=%r' % (qfeatweights,)
-        except Exception:
-            print('qfeatweights = %r' % (qfeatweights,))
-            raise
-        #print('Featweight hash')
-        #print(qkpts)
-        #print(dkpts)
-        #print(ut.hashstr27(str(qfeatweights)))
-        #print(ut.hashstr27(str(dfeatweights)))
+        if ut.DEBUG2:
+            qfeatweights = qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+            dfeatweights = qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
+            #if verbose:
+            try:
+                assert len(qfeatweights) > 0, 'no query featweights'
+                assert qfeatweights[0].size > 0, 'Query featweights are corrupted! qfeatweights=%r' % (qfeatweights,)
+            except Exception:
+                print('qfeatweights = %r' % (qfeatweights,))
+                raise
+            #print('Featweight hash')
+            #print(qkpts)
+            #print(dkpts)
+            #print(ut.hashstr27(str(qfeatweights)))
+            #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
     def load_indexer(qreq_, verbose=True, force=False):

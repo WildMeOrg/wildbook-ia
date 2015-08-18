@@ -181,9 +181,11 @@ def draw_rank_cdf(ibs, test_result):
     if test_result.has_constant_daids():
         figtitle += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
 
-    if test_result.has_constant_daids():
-        print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
-        annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+    #if test_result.has_constant_daids():
+    #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+    #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+    #else:
+    test_result.print_unique_annot_config_stats(ibs)
     #small_info = ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_d aids', 'num_intersect'])
     #small_info_str = '\n' + ut.dict_str(small_info, strvals=True, newlines=False, explicit=True, nobraces=True).replace('\'', '')
     #small_info_str += ' mean(yawdiff)=' + ut.scalar_str(locals_['gt_yawdist_stats']['mean'], precision=2)
@@ -197,9 +199,9 @@ def draw_rank_cdf(ibs, test_result):
     # Find where the functions no longer change
     freq_deriv = np.diff(cdf_list.T[:-1].T)
     reverse_deriv_cumsum = freq_deriv[:, ::-1].cumsum(axis=0)
-    reverse_changing_pos = np.array(vt.find_first_true_indices(reverse_deriv_cumsum > 0))
+    reverse_changing_pos = np.array(ut.replace_nones(vt.find_first_true_indices(reverse_deriv_cumsum > 0), np.nan))
     nonzero_poses = (len(cdf_list.T) - 1) - reverse_changing_pos
-    maxrank = max(nonzero_poses)
+    maxrank = np.nanmax(nonzero_poses)
 
     maxrank = 10
 

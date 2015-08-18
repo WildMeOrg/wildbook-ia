@@ -8,9 +8,12 @@ CommandLine:
 
     # Database information
     python -m ibeis --db PZ_MTEST --dbinfo --postload-exit
+    python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
 
     # Info about configs for a test
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy -a controlled --db PZ_MTEST --acfginfo
+    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy:sample_size=None -a controlled --db PZ_Master0 --acfginfo
+    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy -a controlled --db NNP_Master3 --acfginfo
 """
 from __future__ import absolute_import, division, print_function
 import sys
@@ -42,6 +45,40 @@ def register_testgen(func):
     return func
 
 
+if ut.get_argflag('--full'):
+    ACFG_NAME_CAND_OPTIONS = ['controlled', 'controlled2']
+else:
+    ACFG_NAME_CAND_OPTIONS = ['controlled']
+
+
+#@register_testgen
+def precompute_data():
+    """
+    Generates the experiments we are doing on invariance
+
+    CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
+
+    Example:
+        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> precompute_data()
+    """
+    #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    varydict = ut.odict([
+        ('preload_flags', [
+            #'--preload-chip',
+            #'--preload-feat',
+            #'--preload-feeatweight',
+            '--preload',
+            '--preindex',
+        ]),
+        ('dbname', get_dbnames()),
+        ('acfg_name', ['default:qaids=allgt,species=primary,viewpoint_base=primary,is_known=True']),
+        ('cfg_name', ['default', 'candidacy', 'candidacy_invariance']),
+    ])
+    return make_standard_test_scripts(varydict, 'preload', 'preload')
+
+
 def generate_all():
     r"""
     CommandLine:
@@ -64,6 +101,7 @@ def baseline_experiments():
 
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-baseline_experiments
+        ./experiment_baseline.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
@@ -71,32 +109,13 @@ def baseline_experiments():
     """
     # Invariance Experiments
     varydict = ut.odict([
-        ('acfg_name', ['controlled', 'controlled2']),
         #('acfg_name', ['controlled']),
+        #('acfg_name', ['controlled', 'controlled2']),
+        ('acfg_name', ACFG_NAME_CAND_OPTIONS),
         ('cfg_name', ['candidacy']),
         ('dbname', get_dbnames()),
     ])
     return make_standard_test_scripts(varydict, 'baseline', 'cumhist')
-
-
-@register_testgen
-def namescore_experiments():
-    """
-    Generates the experiments we are doing on invariance
-
-    CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments
-
-    Example:
-        >>> from ibeis.scripts.gen_cand_expts import *
-        >>> namescore_experiments()
-    """
-    varydict = ut.odict([
-        ('acfg_name', ['controlled', 'controlled2']),
-        ('cfg_name', ['candidacy_namescore']),
-        ('dbname', get_dbnames()),
-    ])
-    return make_standard_test_scripts(varydict, 'namescore', 'cumhist')
 
 
 @register_testgen
@@ -114,11 +133,34 @@ def invariance_experiments():
     # Invariance Experiments
     #static_flags += ' --dpi=512 --figsize=11,4 --clipwhite'
     varydict = ut.odict([
-        ('acfg_name', ['controlled', 'controlled2']),
+        #('acfg_name', ['controlled']),
+        #('acfg_name', ['controlled', 'controlled2']),
+        ('acfg_name', ACFG_NAME_CAND_OPTIONS),
         ('cfg_name', ['candidacy_invariance']),
         ('dbname', get_dbnames()),
     ])
     return make_standard_test_scripts(varydict, 'invar', 'cumhist')
+
+
+@register_testgen
+def namescore_experiments():
+    """
+    Generates the experiments we are doing on invariance
+
+    CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments
+
+    Example:
+        >>> from ibeis.scripts.gen_cand_expts import *
+        >>> namescore_experiments()
+    """
+    varydict = ut.odict([
+        #('acfg_name', ['controlled', 'controlled2']),
+        ('acfg_name', ['controlled', 'varypername']),
+        ('cfg_name', ['candidacy_namescore']),
+        ('dbname', get_dbnames()),
+    ])
+    return make_standard_test_scripts(varydict, 'namescore', 'cumhist')
 
 
 @register_testgen
@@ -169,6 +211,8 @@ def get_results_command(expt_name, media_name):
     Displays results using various media
     """
     plot_fname = expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
+    static_flags = ''
+    dynamic_flags_ = ''
     if media_name == 'table':
         margs = 'ibeis.experiments.experiment_printres --exec-print_latexsum'
         static_flags = '--rank-lt-list=1,5,10,100'
@@ -180,10 +224,13 @@ def get_results_command(expt_name, media_name):
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
         static_flags =  ' --save ' + plot_fname + '.png'
         static_flags += ' --dpath=.  --adjust=.15 --dpi=128 --clipwhite'
+    elif media_name == 'preload':
+        margs = 'ibeis.experiments.precomputer --exec-precfg'
+        dynamic_flags_ = '{preload_flags}'
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
     basecmd = 'python -m ' + margs
-    return basecmd, static_flags
+    return basecmd, static_flags, dynamic_flags_
     #shortname = 'Expt' + media_name[0].upper() + media_name[1:]
     #shortscript = shortname + '.sh'
     #ut.write_modscript_alias(shortscript, margs)
@@ -198,8 +245,8 @@ def get_dbnames(exclude_list=[]):
 
 
 def make_standard_test_scripts(varydict, expt_name, media_name):
-    basecmd, static_flags = get_results_command(expt_name, media_name)
-    dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname}'
+    basecmd, static_flags, dynamic_flags_ = get_results_command(expt_name, media_name)
+    dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
     cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags
     return write_formatted_script_lines(cmd_fmtstr, [varydict], 'experiment_' + expt_name + '.sh')
 

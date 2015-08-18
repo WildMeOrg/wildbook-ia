@@ -1073,13 +1073,13 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     """
     # TODO: Optimize
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    if daid_list is not None:
-        # when given a valid pool try to skip the get_name_aids call
-        aids_list_, nid_list_ = ibs.group_annots_by_name(daid_list, distinguish_unknowns=True)
-        nid2_aids = dict(zip(nid_list_, aids_list_))
-        aids_list = ut.dict_take(nid2_aids, nid_list)
-    else:
-        aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
+    #if daid_list is not None:
+    #    # when given a valid pool try to skip the get_name_aids call
+    #    aids_list_, nid_list_ = ibs.group_annots_by_name(daid_list, distinguish_unknowns=True)
+    #    nid2_aids = dict(zip(nid_list_, aids_list_))
+    #    aids_list = ut.dict_take(nid2_aids, nid_list, [])
+    #else:
+    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     if is_exemplar is None:
         groundtruth_list_ = aids_list
     else:
@@ -1095,10 +1095,10 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     else:
         groundtruth_list = groundtruth_list_
 
-    #if daid_list is not None:
-    #    # filter out any groundtruth that isn't allowed
-    #    daid_set = set(daid_list)
-    #    groundtruth_list = [list(daid_set.intersection(set(aids))) for aids in groundtruth_list]
+    if daid_list is not None:
+        # filter out any groundtruth that isn't allowed
+        daid_set = set(daid_list)
+        groundtruth_list = [list(daid_set.intersection(set(aids))) for aids in groundtruth_list]
     return groundtruth_list
 
 

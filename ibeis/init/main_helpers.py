@@ -16,9 +16,12 @@ from ibeis.init import old_main_helpers
 get_test_daids = old_main_helpers.get_test_daids
 get_test_qaids = old_main_helpers.get_test_qaids
 
+VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
+VERYVERB_MAIN_HELPERS = VERYVERB_TESTDATA
+VERB_MAIN_HELPERS = VERB_TESTDATA
 
-VERB_TESTDATA = ut.get_argflag(('--verbose-testdata', '--verbtd'))
-VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
+#VERB_TESTDATA = ut.get_argflag(('--verbose-testdata', '--verbtd')) or VERYVERB_TESTDATA
+#VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
 def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', ibs=None, verbose=False, return_annot_info=False):
@@ -117,7 +120,7 @@ def expand_acfgs(ibs, aidcfg):
     qcfg = aidcfg['qcfg']
     dcfg = aidcfg['dcfg']
 
-    USE_ACFG_CACHE = not ut.get_argflag('--nocache')
+    USE_ACFG_CACHE = not ut.get_argflag(('--nocache-aid', '--nocache'))
     if USE_ACFG_CACHE:
         # Make loading aids a big faster for experiments
         acfg_cachedir = './ACFG_CACHE'
@@ -134,50 +137,31 @@ def expand_acfgs(ibs, aidcfg):
 
     # ---- INCLUDING STEP
     if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('INCLUDING STEP')
-        print(' * PARSING acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
+        print('+=== EXPAND_ACFGS ===')
+        print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
+        print('+---------------------')
 
-    available_qaids = expand_to_default_aids(ibs, qcfg, 'q')
-    available_daids = expand_to_default_aids(ibs, dcfg, 'd')
+    available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
+    available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
 
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('len(available_qaids)=%r' % (len(available_qaids)))
-        print('len(available_daids)=%r' % (len(available_daids)))
+    available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
+    available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
 
-    # ---- INDEPENDENT FILTERING STEP
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('INDEPENDENT FILTERING STEP')
+    available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, reference_aids=available_daids, prefix='q')
+    available_daids = filter_reference_properties(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-    available_qaids = filter_independent_properties(ibs, available_qaids, qcfg)
-    available_daids = filter_independent_properties(ibs, available_daids, dcfg)
+    available_qaids = sample_available_aids(ibs, available_qaids, qcfg, reference_aids=None, prefix='q')  # No reference sampling for query
+    available_daids = sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('len(available_qaids)=%r' % (len(available_qaids)))
-        print('len(available_daids)=%r' % (len(available_daids)))
-
-    # ---- REFERENCE SET FILTERING STEP
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('REFERENCE SET FILTERING STEP')
-
-    available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, available_daids, 'd')
-    available_daids = filter_reference_properties(ibs, available_daids, dcfg, available_qaids, 'q')
-
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('len(available_qaids)=%r' % (len(available_qaids)))
-        print('len(available_daids)=%r' % (len(available_daids)))
-
-    # ---- SAMPLE SELECTION
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('SAMPLE SELECTION')
-    available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
-    available_daids = sample_available_aids(ibs, available_daids, dcfg, available_qaids, prefix='d')
-
-    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
-        print('len(available_qaids)=%r' % (len(available_qaids)))
-        print('len(available_daids)=%r' % (len(available_daids)))
+    available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
+    available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
 
     qaid_list = available_qaids
     daid_list = available_daids
+
+    if VERB_MAIN_HELPERS or VERB_MAIN_HELPERS2:
+        print('L___ EXPAND_ACFGS ___')
+        ibs.get_annotconfig_stats(qaid_list, daid_list, verbose=True)
 
     """
     aidcfg = dcfg
@@ -202,33 +186,59 @@ def expand_acfgs(ibs, aidcfg):
 
 
 @profile
-def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix=''):
-    from ibeis import ibsfuncs
-    import functools
+def expand_to_default_aids(ibs, aidcfg, prefix=''):
+    default_aids = aidcfg['default_aids']
 
-    if aidcfg['ref_has_viewpoint'] is not None:
-        print(' * Filtering such that %saids has refs with viewpoint=%r' % (prefix, aidcfg['ref_has_viewpoint']))
-        species = ibs.get_primary_database_species(available_aids)
-        if aidcfg['ref_has_viewpoint']  == 'primary':
-            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species)]
-        elif aidcfg['ref_has_viewpoint']  == 'primary+1':
-            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1)]
-        ref_multi, avl_multi, ref_single, avl_single = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
-        # Filter to only available aids that have a reference with specified viewpoint
-        is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)
-        multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, ref_multi)))
-        available_aids = ut.flatten(ut.list_compress(avl_multi, multi_flags))
+    if VERB_MAIN_HELPERS:
+        print(' * [INCLUDE %sAIDS]' % (prefix.upper()))
+        #print(' * PARSING %saidcfg = %s' % (prefix, ut.dict_str(aidcfg, align=True),))
+        print(' * default_%saids = %s' % (prefix, ut.obj_str(default_aids, truncate=True, nl=False)))
 
+    if isinstance(default_aids, six.string_types):
+        #if VERB_MAIN_HELPERS:
+        #    print(' * interpreting default %saids.' % (prefix,))
+        # Abstract default aids
+        if default_aids in ['all']:
+            default_aids = ibs.get_valid_aids()
+        elif default_aids in ['allgt', 'gt']:
+            default_aids = ibs.get_valid_aids(hasgt=True)
+        #elif default_aids in ['reference_gt']:
+        #    pass
+        else:
+            raise NotImplementedError('Unknown default string = %r' % (default_aids,))
+    else:
+        if VERB_MAIN_HELPERS:
+            print(' ... default %saids specified.' % (prefix,))
+
+    #if aidcfg['include_aids'] is not None:
+    #    raise NotImplementedError('Implement include_aids')
+
+    available_aids = default_aids
+
+    if len(available_aids) == 0:
+        print(' WARNING no %s annotations available' % (prefix,))
+
+    #if aidcfg['exclude_aids'] is not None:
+    #    if VERB_MAIN_HELPERS:
+    #        print(' * Excluding %d custom aids' % (len(aidcfg['exclude_aids'])))
+    #    available_aids = ut.setdiff_ordered(available_aids, aidcfg['exclude_aids'])
+
+    if VERB_MAIN_HELPERS:
+        print(' * DEFAULT: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
     return available_aids
 
 
 @profile
-def filter_independent_properties(ibs, available_aids, aidcfg):
+def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
     """ Filtering that doesn't have to do with a reference set of aids """
     from ibeis import ibsfuncs
     if VERB_MAIN_HELPERS:
-        print(' * len(available_aids) = %r' % (len(available_aids)))
-        print(' * FILTERING STEP')
+        print(' * [FILTER INDEPENDENT %sAIDS]' % (prefix.upper()))
+
+    if aidcfg['is_known'] is True:
+        if VERB_MAIN_HELPERS:
+            print(' * Removing annots without names')
+        available_aids = ibs.filter_aids_without_name(available_aids)
 
     if aidcfg['require_timestamp'] is True:
         if VERB_MAIN_HELPERS:
@@ -238,8 +248,8 @@ def filter_independent_properties(ibs, available_aids, aidcfg):
     species = None
     if aidcfg['species'] is not None:
         if aidcfg['species'] == 'primary':
-            if VERB_MAIN_HELPERS:
-                print(' * Finiding primary species')
+            #if VERB_MAIN_HELPERS:
+            #    print(' * Finiding primary species')
             species = ibs.get_primary_database_species()
         else:
             species = aidcfg['species']
@@ -281,100 +291,36 @@ def filter_independent_properties(ibs, available_aids, aidcfg):
         grouped_aids_, unique_nids = ibs.group_annots_by_name(available_aids, distinguish_unknowns=True)
         min_gt = aidcfg['gt_min_per_name']
         available_aids = ut.flatten([x for x in grouped_aids_ if len(x) >= min_gt])
+
+    if VERB_MAIN_HELPERS:
+        print(' * I-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
+
     return available_aids
 
 
 @profile
-def sample_available_aids(ibs, available_aids, aidcfg, reference_aids=None, prefix=''):
-    """
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=200
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=10
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=41,dper_name=2
-    """
+def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix=''):
+    from ibeis import ibsfuncs
+    import functools
     if VERB_MAIN_HELPERS:
-        print(' * SAMPLE SELECTION STEP')
-        print(' * len(available_%saids) = %r' % (prefix, len(available_aids)))
+        print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
 
-    if aidcfg['exclude_reference'] is not None:
-        assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
-        if VERB_MAIN_HELPERS:
-            print(' * Excluding %d reference aids' % (len(reference_aids)))
-        available_aids = ut.setdiff_ordered(available_aids, reference_aids)
-
-    if aidcfg['sample_per_name'] is not None:
-        if VERB_MAIN_HELPERS:
-            print(' * Filtering sample_per_name=%r using rule %r' % (aidcfg['sample_per_name'], aidcfg['sample_rule'] ))
-
-        if aidcfg['sample_rule'] == 'ref_max_timedelta':
-            available_aids = reference_sample_per_name(ibs, available_aids, aidcfg, reference_aids)
-        else:
-            # For the query we just choose a single annot per name
-            # For the database we have to do something different
-            available_aids = ibs.get_annot_rowid_sample(
-                available_aids, per_name=aidcfg['sample_per_name'], min_gt=None,
-                method=aidcfg['sample_rule'], offset=aidcfg['sample_offset'], seed=0)
-
-    if aidcfg['sample_size'] is not None:
-        # TODO:
-        # Allow removal of multitons if reference_aids is not given
-        # Randomly sample which annots are removed
-        if reference_aids is not None:
-            # Enesure that the sampleing does not conflict with reference aid properties
-            if VERB_MAIN_HELPERS:
-                print(' * Filtering to sample size %r' % (aidcfg['sample_size'],))
-            assert reference_aids is not None and len(reference_aids) > 0
-            ref_multi, avl_multi, ref_single, avl_single = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
-            #with ut.embed_on_exception_context:
-            assert len(ref_single) == 0, 'should not have uncorresponding refs'
-            #set(ibs.get_annot_name_rowids(available_aids)).intersection( set(ibs.get_annot_name_rowids(ref_single)) )
-            #singletons, multitons = ibs.partition_annots_into_singleton_multiton(available_aids)
-
-            # We must keep all multitons because they corresopnd with the reference set
-            multitons = ut.flatten(avl_multi)
-            # We have the option of keeping singletons
-            singletons = avl_single
-            num_single = len(singletons)
-            num_multi = len(multitons)
-            assert num_single + num_multi == len(available_aids), 'does not sum'
-            num_keep_single = aidcfg['sample_size'] - num_multi
-            num_remove_single = num_single - num_keep_single
-            if num_remove_single < 0:
-                # Too few singletons
-                print('Warning: Cannot meet sample_size=%r. available_%saids will be undersized by at least %d' % (aidcfg['sample_size'], prefix, -num_remove_single,))
-            if num_keep_single < 0:
-                # Too many multitons; Can never remove a multiton
-                print('Warning: Cannot meet sample_size=%r. available_%saids will be oversized by at least %d' % (aidcfg['sample_size'], prefix, -num_keep_single,))
-            singletons = ut.random_sample(singletons, num_keep_single, seed=42)
-            available_aids = multitons + singletons
-        else:
-            # No reference aids. Can remove freely.
-            if aidcfg['sample_size'] > available_aids:
-                print('Warning sample size too large')
-            available_aids = ut.random_sample(available_aids, aidcfg['sample_size'], seed=42)
-
-    # ---- SUBINDEXING STEP
-    if VERB_MAIN_HELPERS:
-        print(' * len(available_%saids) = %r' % (prefix, len(available_aids)))
-        print(' * SUBINDEX STEP')
-
-    #ut.get_argval('--qshuffle')
-
-    if aidcfg['shuffle']:
-        if VERB_MAIN_HELPERS:
-            print(' * Shuffling with seed=42')
-        # Determenistic shuffling
-        available_aids = ut.list_take(available_aids, ut.random_indexes(len(available_aids), seed=42))
-
-    if aidcfg['index'] is not None:
-        if VERB_MAIN_HELPERS:
-            print(' * Indexing')
-        indicies = ensure_flatlistlike(aidcfg['index'])
-        _indexed_aids = [available_aids[ix] for ix in indicies if ix < len(available_aids)]
-        print('[get_test_daids] Chose subset of size %d/%d' % (len(_indexed_aids), len(available_aids)))
-        available_aids = _indexed_aids
+    if aidcfg['ref_has_viewpoint'] is not None:
+        print(' * Filtering such that %saids has refs with viewpoint=%r' % (prefix, aidcfg['ref_has_viewpoint']))
+        species = ibs.get_primary_database_species(available_aids)
+        if aidcfg['ref_has_viewpoint']  == 'primary':
+            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species)]
+        elif aidcfg['ref_has_viewpoint']  == 'primary+1':
+            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1)]
+        ref_multi, avl_multi, ref_single, avl_single = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
+        # Filter to only available aids that have a reference with specified viewpoint
+        is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)
+        multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, ref_multi)))
+        available_aids = ut.flatten(ut.list_compress(avl_multi, multi_flags))
 
     if VERB_MAIN_HELPERS:
-        print(' * len(available_aids) = %r' % (len(available_aids)))
+        print(' * R-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
+
     return available_aids
 
 
@@ -465,42 +411,105 @@ def reference_sample_per_name(ibs, available_aids, aidcfg, reference_aids):
 
 
 @profile
-def expand_to_default_aids(ibs, aidcfg, prefix=''):
-    default_aids = aidcfg['default_aids']
+def sample_available_aids(ibs, available_aids, aidcfg, reference_aids=None, prefix=''):
+    """
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=200
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=10
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,drule=ref_max_timedelta,dsize=41,dper_name=2
+    """
+    if VERB_MAIN_HELPERS:
+        print(' * [SAMPLE %sAIDS]' % (prefix.upper(),))
+
+    if aidcfg['exclude_reference'] is not None:
+        assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
+        if VERB_MAIN_HELPERS:
+            print(' * Excluding %d reference aids' % (len(reference_aids)))
+        available_aids = ut.setdiff_ordered(available_aids, reference_aids)
+
+    if aidcfg['sample_per_name'] is not None:
+        if VERB_MAIN_HELPERS:
+            print(' * Filtering sample_per_name=%r using rule %r' % (aidcfg['sample_per_name'], aidcfg['sample_rule'] ))
+
+        if aidcfg['sample_rule'] == 'ref_max_timedelta':
+            available_aids = reference_sample_per_name(ibs, available_aids, aidcfg, reference_aids)
+        else:
+            # For the query we just choose a single annot per name
+            # For the database we have to do something different
+            available_aids = ibs.get_annot_rowid_sample(
+                available_aids, per_name=aidcfg['sample_per_name'], min_gt=None,
+                method=aidcfg['sample_rule'], offset=aidcfg['sample_offset'], seed=0)
+
+    if aidcfg['sample_size'] is not None:
+        # TODO:
+        # Allow removal of multitons if reference_aids is not given
+        # Randomly sample which annots are removed
+        if reference_aids is not None:
+            # Enesure that the sampleing does not conflict with reference aid properties
+            if VERB_MAIN_HELPERS:
+                print(' * Filtering to sample size %r' % (aidcfg['sample_size'],))
+            assert reference_aids is not None and len(reference_aids) > 0
+            ref_multi, avl_multi, ref_single, avl_single = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
+            #with ut.embed_on_exception_context:
+            assert len(ref_single) == 0, 'should not have uncorresponding refs'
+            #set(ibs.get_annot_name_rowids(available_aids)).intersection( set(ibs.get_annot_name_rowids(ref_single)) )
+            #singletons, multitons = ibs.partition_annots_into_singleton_multiton(available_aids)
+
+            # We must keep all multitons because they corresopnd with the reference set
+            multitons = ut.flatten(avl_multi)
+            # We have the option of keeping singletons
+            singletons = avl_single
+            num_single = len(singletons)
+            num_multi = len(multitons)
+            assert num_single + num_multi == len(available_aids), 'does not sum'
+            num_keep_single = aidcfg['sample_size'] - num_multi
+            num_remove_single = num_single - num_keep_single
+            if num_remove_single < 0:
+                # Too few singletons
+                print('Warning: Cannot meet sample_size=%r. available_%saids will be undersized by at least %d' % (aidcfg['sample_size'], prefix, -num_remove_single,))
+            if num_keep_single < 0:
+                # Too many multitons; Can never remove a multiton
+                print('Warning: Cannot meet sample_size=%r. available_%saids will be oversized by at least %d' % (aidcfg['sample_size'], prefix, -num_keep_single,))
+            singletons = ut.random_sample(singletons, num_keep_single, seed=42)
+            available_aids = multitons + singletons
+        else:
+            # No reference aids. Can remove freely.
+            if aidcfg['sample_size'] > available_aids:
+                print('Warning sample size too large')
+            available_aids = ut.random_sample(available_aids, aidcfg['sample_size'], seed=42)
+
+    if VERYVERB_MAIN_HELPERS:
+        with ut.Indenter('   '):
+            ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix=prefix), dict_name=prefix + 'aid_stats')
+
+    # ---- SUBINDEXING STEP
+    if VERB_MAIN_HELPERS:
+        print(' * SAMPLE: len(available_%saids) = %r\n' % (prefix, len(available_aids)))
+
+    return available_aids
+
+
+@profile
+def subindex_avaiable_aids(ibs, available_aids, aidcfg, reference_aids=None, prefix=''):
+    if VERB_MAIN_HELPERS:
+        print(' * [SUBINDEX %sAIDS]' % (prefix.upper(),))
+    #ut.get_argval('--qshuffle')
+
+    if aidcfg['shuffle']:
+        if VERB_MAIN_HELPERS:
+            print(' * Shuffling with seed=42')
+        # Determenistic shuffling
+        available_aids = ut.list_take(available_aids, ut.random_indexes(len(available_aids), seed=42))
+
+    if aidcfg['index'] is not None:
+        if VERB_MAIN_HELPERS:
+            print(' * Indexing')
+        indicies = ensure_flatlistlike(aidcfg['index'])
+        _indexed_aids = [available_aids[ix] for ix in indicies if ix < len(available_aids)]
+        print(' * Chose subset of size %d/%d' % (len(_indexed_aids), len(available_aids)))
+        available_aids = _indexed_aids
 
     if VERB_MAIN_HELPERS:
-        print(' * INCLUDE STEP')
-        print(' * PARSING %saidcfg = %s' % (prefix, ut.dict_str(aidcfg, align=True),))
-        print(' * default_%saids = %s' % (prefix, ut.obj_str(default_aids, truncate=True, nl=False)))
-
-    if isinstance(default_aids, six.string_types):
-        if VERB_MAIN_HELPERS:
-            print(' ... interpreting default aids.')
-        # Abstract default aids
-        if default_aids in ['all']:
-            default_aids = ibs.get_valid_aids()
-        elif default_aids in ['allgt', 'gt']:
-            default_aids = ibs.get_valid_aids(hasgt=True)
-        #elif default_aids in ['reference_gt']:
-        #    pass
-        else:
-            raise NotImplementedError('Unknown default string = %r' % (default_aids,))
-    else:
-        if VERB_MAIN_HELPERS:
-            print(' ... default %saids specified.' % (prefix,))
-
-    #if aidcfg['include_aids'] is not None:
-    #    raise NotImplementedError('Implement include_aids')
-
-    available_aids = default_aids
-
-    if len(available_aids) == 0:
-        print(' WARNING no %s annotations available' % (prefix,))
-
-    #if aidcfg['exclude_aids'] is not None:
-    #    if VERB_MAIN_HELPERS:
-    #        print(' * Excluding %d custom aids' % (len(aidcfg['exclude_aids'])))
-    #    available_aids = ut.setdiff_ordered(available_aids, aidcfg['exclude_aids'])
+        print(' * SUBINDEX: len(available_%saids) = %r\n' % (prefix, len(available_aids)))
     return available_aids
 
 

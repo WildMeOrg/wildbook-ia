@@ -7,6 +7,58 @@ import utool as ut
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 
 
+# easier to type names to alias some of these options
+ALIAS_KEYS = {
+    'aids'     : 'default_aids',
+    'per_name' : 'sample_per_name',
+    'offset'   : 'sample_offset',
+    'rule'     : 'sample_rule',
+    'size'     : 'sample_size',
+    'min_gt'   : 'gt_min_per_name',
+}
+
+
+# Base common settings, but some default settings will be different
+# for query and database annotations
+__default_aidcfg = {
+    'default_aids'      : 'all',  # initial set to choose from
+    #'include_aids'      : None,   # force inclusion?
+    # Default filtering
+    'species'           : 'primary',  # specify the species
+    'minqual'           : 'poor',
+    'is_known'          : None,
+    'viewpoint_base'    : None,
+    'viewpoint_range'   : 0,
+    'require_quality'   : False,  # if True unknown qualities are removed
+    'require_viewpoint' : False,
+    'require_timestamp' : False,
+    #'exclude_aids'      : None,   # removes specified aids from selection
+    # Filtered selection
+    'exclude_reference' : None,  # excludes any aids specified in a reference set (ie qaids)
+    'ref_has_viewpoint' : None,  # All aids must have a gt with this viewpoint
+    'ref_has_qual'      : None,  # All aids must have a gt with this viewpoint
+    'gt_min_per_name'   : None,  # minimum numer of aids for each name in sample
+    'sample_per_name'   : None,  # Choose num_annots to sample from each name.
+    'sample_per_ref_name': None,  # when sampling daids, choose this many correct matches per query
+    'sample_rule'       : 'random',
+    'sample_offset'     : 0,
+    'sample_size'       : None,  # Tries to get as close to sample size without removing othe properties
+    #'name_choose_rule' : 'timestamp',  # Choose #annots for each name
+    # Final indexing
+    'shuffle'           : False,  # randomize order before indexing
+    'index'             : None,   # choose only a subset
+}
+
+
+__controlled_aidcfg = ut.augdict(__default_aidcfg, {
+    #'require_timestamp': True,
+    'viewpoint_base': 'primary',
+    'viewpoint_range': 0,
+    'minqual': 'ok',
+    'is_known': True,
+})
+
+
 def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
     r"""
     Args:
@@ -100,56 +152,6 @@ def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
     return acfg
 
 
-# easier to type names to alias some of these options
-ALIAS_KEYS = {
-    'aids'     : 'default_aids',
-    'per_name' : 'sample_per_name',
-    'offset'   : 'sample_offset',
-    'rule'     : 'sample_rule',
-    'size'     : 'sample_size',
-}
-
-
-# Base common settings, but some default settings will be different
-# for query and database annotations
-__default_aidcfg = {
-    'default_aids'      : 'all',  # initial set to choose from
-    #'include_aids'      : None,   # force inclusion?
-    # Default filtering
-    'species'           : 'primary',  # specify the species
-    'minqual'           : 'poor',
-    'viewpoint_base'    : 'primary',
-    'viewpoint_range'   : 0,
-    'require_quality'   : False,  # if True unknown qualities are removed
-    'require_viewpoint' : False,
-    'require_timestamp' : False,
-    #'exclude_aids'      : None,   # removes specified aids from selection
-    # Filtered selection
-    'exclude_reference' : None,  # excludes any aids specified in a reference set (ie qaids)
-    'ref_has_viewpoint'  : None,  # All aids must have a gt with this viewpoint
-    'gt_has_qual'  : None,  # All aids must have a gt with this viewpoint
-    'gt_min_per_name'   : None,  # minimum numer of aids for each name in sample
-    'gt_min_per_name'   : None,  # minimum numer of aids for each name in sample
-    'sample_per_name'   : None,  # Choose num_annots to sample from each name.
-    'sample_per_ref_name': None,  # when sampling daids, choose this many correct matches per query
-    'sample_rule'       : 'random',
-    'sample_offset'     : 0,
-    'sample_size'       : None,  # Tries to get as close to sample size without removing othe properties
-    #'name_choose_rule' : 'timestamp',  # Choose #annots for each name
-    # Final indexing
-    'shuffle'           : False,  # randomize order before indexing
-    'index'             : None,   # choose only a subset
-}
-
-
-__controlled_aidcfg = ut.augdict(__default_aidcfg, {
-    #'require_timestamp': True,
-    'viewpoint_base': 'primary',
-    'viewpoint_range': 0,
-    'minqual': 'ok',
-})
-
-
 exclude_vars = list(vars().keys())   # this line is before tests
 exclude_vars.append('exclude_vars')
 
@@ -232,6 +234,26 @@ viewpoint_compare = {
 }
 
 
+# Just vary the samples per name without messing with the number of annots in the database
+varypername = {
+    'qcfg': ut.augdict(
+        __controlled_aidcfg, {
+            'default_aids': 'allgt',
+            'sample_size': 50,
+            'sample_per_name': 1,
+            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+        }),
+
+    'dcfg': ut.augdict(
+        __controlled_aidcfg, {
+            'default_aids': 'all',
+            'sample_per_name': [1, 2, 3],
+            'exclude_reference': True,
+            'gt_min_per_name': 1,
+        }),
+}
+
+
 varysize = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
@@ -244,7 +266,7 @@ varysize = {
     'dcfg': ut.augdict(
         __controlled_aidcfg, {
             'default_aids': 'all',
-            'sample_per_name': [1, 2, 3, 4],
+            'sample_per_name': [1, 2, 3],
             'exclude_reference': True,
             'sample_size': [50, 100, 200, 300, 500],
             'gt_min_per_name': 1,
@@ -254,21 +276,12 @@ varysize = {
 
 varysize2 = {
     'qcfg': ut.augdict(
-        __controlled_aidcfg, {
-            'default_aids': 'allgt',
-            'sample_size': 50,
-            'sample_per_name': 1,
-            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+        varysize['qcfg'], {
         }),
 
     'dcfg': ut.augdict(
-        __controlled_aidcfg, {
-            'default_aids': 'all',
-            'sample_per_name': [1, 2, 3, 4],
-            'exclude_reference': True,
+        varysize['dcfg'], {
             'sample_size': [50, 100, 200, 300, 500, 1000, 2000, 3000],
-            #'sample_size': [300, 500, 1000, 2000, 3000],
-            'gt_min_per_name': 1,
         }),
 }
 

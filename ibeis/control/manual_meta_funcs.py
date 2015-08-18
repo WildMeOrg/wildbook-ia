@@ -984,7 +984,8 @@ def _init_config(ibs):
     except IOError:
         general_config = {}
     current_species = general_config.get('current_species', None)
-    print('[_init_config] general_config.current_species = %r' % (current_species,))
+    if ut.VERBOSE and ut.NOT_QUIET:
+        print('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
     species_list = ibs.get_database_species()
@@ -992,8 +993,9 @@ def _init_config(ibs):
         species_list = ibs.get_database_species()
         current_species = species_list[0] if len(species_list) == 1 else None
     cfgname = 'cfg' if current_species is None else current_species
-    print('[_init_config] Loading database with species_list = %r ' % (species_list,))
-    print('[_init_config] Using cfgname=%r' % (cfgname,))
+    if ut.VERBOSE and ut.NOT_QUIET:
+        print('[_init_config] Loading database with species_list = %r ' % (species_list,))
+        print('[_init_config] Using cfgname=%r' % (cfgname,))
     # try to be intelligent about the default speceis
     ibs._load_named_config(cfgname)
 

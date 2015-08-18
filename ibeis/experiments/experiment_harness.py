@@ -6,7 +6,6 @@ import sys
 import textwrap
 import numpy as np
 #import six
-import utool
 import utool as ut
 from ibeis.experiments import experiment_helpers
 #from ibeis.experiments import experiment_configs
@@ -14,13 +13,13 @@ from ibeis.experiments import experiment_helpers
 #from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
 from ibeis.experiments import annotation_configs
-print, print_, printDBG, rrr, profile = utool.inject(
+print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
 BATCH_MODE = '--nobatch' not in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
-TESTRES_VERBOSITY = 2 - (2 * utool.QUIET)
-NOCACHE_TESTRES =  utool.get_argflag('--nocache-testres', False)
+TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
+NOCACHE_TESTRES =  ut.get_argflag('--nocache-testres', False)
 TEST_INFO = True
 
 
@@ -67,7 +66,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     # Generate list of query pipeline param configs
     cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
 
-    if not utool.QUIET:
+    if not ut.QUIET:
         ut.colorprint(textwrap.dedent("""
 
         [harn]================
@@ -94,8 +93,9 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         for acfgx, (qaids, daids) in enumerate(expanded_aids_list):
             ut.colorprint('+-----------', 'white')
             print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
-            annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
-            print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name'])))
+            annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True)
+            #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
+            #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
             #_ = ibs.get_annotconfig_stats(qaids, daids)
             ut.colorprint('L___________', 'white')
         ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
@@ -105,7 +105,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         if len(qaids) == 0:
             raise AssertionError('[harness] No query annotations specified')
         if len(daids) == 0:
-            raise AssertionError('[harness] No query annotations specified')
+            raise AssertionError('[harness] No database annotations specified')
         acfg = acfg_list[acfgx]
         ut.colorprint('\n---Annot config', 'turquoise')
         test_result = run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg)
@@ -155,7 +155,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     #qreq_ = ibs.new_query_request(qaids, d aids, verbose=True, query_cfg=ibs.cfg.query_cfg)
 
     cfgx2_cfgresinfo = []
-    #with utool.Timer('experiment_harness'):
+    #with ut.Timer('experiment_harness'):
     cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg)
     # Run each test configuration
     # Query Config / Col Loop
@@ -166,7 +166,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
         ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
         qreq_ = cfgx2_qreq_[cfgx]
 
-        with utool.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
+        with ut.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
             if DRY_RUN:
                 continue
             # Set data to the current config
@@ -194,7 +194,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
             cfgx2_qreq_[cfgx] = None
         print('\n +------ \n')
 
-    if not utool.QUIET:
+    if not ut.QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
         #print(msg)
     if DRY_RUN:

@@ -330,7 +330,10 @@ def get_annotcfg_list(ibs, acfg_name_list):
 
     acfg_combo_list = []
     for qcfg_combo, dcfg_combo in zip(qcfg_combo_list, dcfg_combo_list):
-        acfg_combo = [dict([('qcfg', qcfg), ('dcfg', dcfg)]) for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))]
+        acfg_combo = [
+            dict([('qcfg', qcfg), ('dcfg', dcfg)])
+            for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))
+        ]
         acfg_combo_list.append(acfg_combo)
     acfg_list = ut.flatten(acfg_combo_list)
 
@@ -341,16 +344,28 @@ def get_annotcfg_list(ibs, acfg_name_list):
     if FILTER_DUPS:
         acfg_list_ = []
         expanded_aids_list_ = []
-        seen_ = set([])
+        seen_ = ut.ddict(list)
         for acfg, (qaids, daids) in zip(acfg_list, expanded_aids_list):
-            key = (ut.hashstr_arr27(daids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
+            key = (ut.hashstr_arr27(qaids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
             if key in seen_:
+                seen_[key].append(acfg)
                 continue
             else:
-                seen_.add(key)
+                seen_[key].append(acfg)
                 expanded_aids_list_.append((qaids, daids))
                 acfg_list_.append(acfg)
         if not QUIET:
+            duplicate_configs = dict([(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
+            if len(duplicate_configs) > 0:
+                print('The following configs produced duplicate annnotation configs')
+                for key, val in duplicate_configs.items():
+                    nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(val)
+                    print('+--')
+                    print('key = %r' % (key,))
+                    print('varied_compressed_dict_list = %s' % (ut.list_str(varied_compressed_dict_list),))
+                    print('nonvaried_compressed_dict = %s' % (ut.dict_str(nonvaried_compressed_dict),))
+                    print('L__')
+
             print('[harn.help] return %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list)))
         acfg_list = acfg_list_
         expanded_aids_list = expanded_aids_list_

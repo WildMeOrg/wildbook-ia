@@ -1172,7 +1172,7 @@ def update_query_config(cfg, **kwargs):
     cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
-def load_named_config(cfgname, dpath, use_config_cache=False):
+def load_named_config(cfgname, dpath, use_config_cache=False, verbose=ut.VERBOSE and ut.NOT_QUIET):
     """ hack 12-30-2014
 
     Args:
@@ -1211,7 +1211,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         # TODO: find last cfgname
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
-    if not ut.QUIET:
+    if verbose:
         print('[Config] loading named config fpath=%r' % (fpath,))
     # Always a fresh object
     cfg = GenericConfig(cfgname, fpath=fpath)
@@ -1250,7 +1250,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
             #    setattr(parent, key, val)
         #    # TODO: Finishme update the out of data preferences
         #    pass
-        if ut.NOT_QUIET:
+        if verbose:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
         if ut.VERBOSE:
@@ -1258,7 +1258,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
     # Hack in cfgname
-    if ut.NOT_QUIET:
+    if verbose:
         print('[Config] hack in z_cfgname=%r' % (cfgname,))
     cfg.z_cfgname = cfgname
     return cfg
