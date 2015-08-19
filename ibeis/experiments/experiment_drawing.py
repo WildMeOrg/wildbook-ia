@@ -2,7 +2,7 @@
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 from ibeis import params
 import utool as ut
@@ -94,10 +94,10 @@ def draw_rank_surface(ibs, test_result):
         known_target_points = np.array(rank_list)
         ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=1, pnum=pnum_())
         #(const_idx + 1))
-        ax.set_title('# Ranks <= 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        ax.set_title('# Ranks $\leq$ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
 
     figtitle = (
-        '# Ranks <= 1 for')
+        '# Ranks ≤ 1 for\n')
     figtitle += ' ' + test_result.get_title_aug()
     #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
     #if test_result.annot_info is not None:

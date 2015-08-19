@@ -82,6 +82,7 @@ def precompute_data():
 def generate_all():
     r"""
     CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all
         ./overnight_experiments.sh
 
@@ -91,7 +92,10 @@ def generate_all():
     """
     #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
     script_lines = ut.flatten([['\n\n### ' + ut.get_funcname(func)] + func()[2] for func in TEST_GEN_FUNCS])
-    return write_script_lines(script_lines, 'overnight_experiments.sh')
+    fpath, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
+    if ut.get_argflag('--vim'):
+        ut.editfile(fpath)
+    return fpath, script, line_list
 
 
 @register_testgen
@@ -219,11 +223,15 @@ def get_results_command(expt_name, media_name):
     elif media_name == 'cumhist':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_cdf'
         static_flags =  ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=.  --adjust=.15 --dpi=128 --clipwhite'
+        static_flags += ' --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite'
     elif media_name == 'surface':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
         static_flags =  ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=.  --adjust=.15 --dpi=128 --clipwhite'
+        static_flags += ' --dpath=~/code/ibeis/results'
+        static_flags += ' --clipwhite'
+        static_flags += ' --dpi=256'
+        static_flags += ' --figsize=12,4'
+        static_flags += ' --adjust=.02,.02,.4,.02'
     elif media_name == 'preload':
         margs = 'ibeis.experiments.precomputer --exec-precfg'
         dynamic_flags_ = '{preload_flags}'
@@ -265,9 +273,11 @@ def write_script_lines(line_list, fpath):
     regen_cmd = (exename + ' ' + ' '.join(sys.argv)).replace(expanduser('~'), '~')
     script_lines = []
     script_lines.append('#!/bin/sh')
-    script_lines.append('# RegenCommand:')
-    script_lines.append('#    ' + regen_cmd)
-    script_lines.append('# dont forget to tmuxnew')
+    script_lines.append('echo << \'EOF\' > /dev/null')
+    script_lines.append('RegenCommand:')
+    script_lines.append('   ' + regen_cmd)
+    script_lines.append('dont forget to tmuxnew')
+    script_lines.append('EOF')
     script_lines.extend(line_list)
     script = '\n'.join(script_lines)
     print(script)
