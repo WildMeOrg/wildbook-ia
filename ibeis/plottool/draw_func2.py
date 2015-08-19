@@ -455,7 +455,9 @@ def show_if_requested(N=1):
         ut.embed(N=N)
     elif ut.get_argflag('--show'):
         if ut.get_argflag('--present'):
-            present()
+            fig_presenter.present()
+        for fig in fig_presenter.get_all_figures():
+            fig.set_dpi(80)
         plt.show()
 
 

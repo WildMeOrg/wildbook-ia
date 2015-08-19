@@ -721,7 +721,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
     #step_size = int(np.log(x_data.max() + 1))
     #step_size = int(np.sqrt(x_data.max() + 1))
     max_pos = (x_data.max() + 1)
-    num_ticks = 10
+    num_ticks = 5
     step_size = int(max_pos / num_ticks)
 
     df2.set_xticks(np.arange(1, max_pos, step_size))
