@@ -78,7 +78,7 @@ def pretty_hotkey_map(hotkeys):
         #'left':  'left arrow',
     }
     mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
-    hotkey_str = '(' + ut.cond_phrase(mapped_hotkeys, 'or') + ')'
+    hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'
     return hotkey_str
 
 

@@ -16,7 +16,17 @@ LARGE    = 14
 
 
 def FontProp(*args, **kwargs):
-    """ overwrite fontproperties with custom settings """
+    r""" overwrite fontproperties with custom settings
+
+    Kwargs:
+        fname=u'',
+        name=u'',
+        style=u'normal',
+        variant=u'normal',
+        weight=u'normal',
+        stretch=u'normal',
+        size=u'medium'
+    """
     kwargs['family'] = 'monospace'
     font_prop = mpl.font_manager.FontProperties(*args, **kwargs)
     return font_prop

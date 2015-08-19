@@ -114,6 +114,120 @@ TMP_mevent = None
 plotWidget = None
 
 
+def distinctive_markers(num):
+    r"""
+    Args:
+        num (?):
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-distinctive_markers --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> marker_list = distinctive_markers(10)
+        >>> x_data = np.arange(0, 3)
+        >>> for count, (marker) in enumerate(marker_list):
+        >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, markersize=10, linestyle='', label=str(marker))
+        >>> pt.legend()
+        >>> ut.show_if_requested()
+    """
+    distinctive_markers = {
+        u'*': u'star',
+        u'+': u'plus',
+        #u'.': u'point',
+        u'1': u'tri_down',
+        u'2': u'tri_up',
+        u'3': u'tri_left',
+        u'4': u'tri_right',
+        #u'8': u'octagon',
+        u'<': u'triangle_left',
+        u'>': u'triangle_right',
+        u'D': u'diamond',
+        u'H': u'hexagon2',
+        u'^': u'triangle_up',
+        u'_': u'hline',
+        u'd': u'thin_diamond',
+        u'h': u'hexagon1',
+        u'o': u'circle',
+        u'p': u'pentagon',
+        u's': u'square',
+        u'v': u'triangle_down',
+        u'x': u'x',
+    }
+    num_sides = 3
+    style = {'astrisk': 2, 'star': 1, 'polygon': 0, 'circle': 3}['astrisk']
+    return [(num_sides, style, count / num * (360 / num_sides)) for count in range(num)]
+    if num is None:
+        return list(distinctive_markers.keys())
+    return list(distinctive_markers.keys())[:num]
+
+
+def get_all_markers():
+    r"""
+    CommandLine:
+        python -m plottool.draw_func2 --exec-get_all_markers --show
+
+    References:
+        http://matplotlib.org/1.3.1/examples/pylab_examples/line_styles.html
+        http://matplotlib.org/api/markers_api.html#matplotlib.markers.MarkerStyle.markers
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> marker_dict = get_all_markers()
+        >>> x_data = np.arange(0, 3)
+        >>> for count, (marker, name) in enumerate(marker_dict.items()):
+        >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, linestyle='', label=name)
+        >>> pt.legend()
+        >>> ut.show_if_requested()
+    """
+    marker_dict = {
+        0: u'tickleft',
+        1: u'tickright',
+        2: u'tickup',
+        3: u'tickdown',
+        4: u'caretleft',
+        5: u'caretright',
+        6: u'caretup',
+        7: u'caretdown',
+        #None: u'nothing',
+        #u'None': u'nothing',
+        #u' ': u'nothing',
+        #u'': u'nothing',
+        u'*': u'star',
+        u'+': u'plus',
+        u',': u'pixel',
+        u'.': u'point',
+        u'1': u'tri_down',
+        u'2': u'tri_up',
+        u'3': u'tri_left',
+        u'4': u'tri_right',
+        u'8': u'octagon',
+        u'<': u'triangle_left',
+        u'>': u'triangle_right',
+        u'D': u'diamond',
+        u'H': u'hexagon2',
+        u'^': u'triangle_up',
+        u'_': u'hline',
+        u'd': u'thin_diamond',
+        u'h': u'hexagon1',
+        u'o': u'circle',
+        u'p': u'pentagon',
+        u's': u'square',
+        u'v': u'triangle_down',
+        u'x': u'x',
+        u'|': u'vline',
+    }
+    #marker_list = marker_dict.keys()
+    #marker_list = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*',
+    #               'h', 'H', '+', 'x', 'D', 'd', '|', '_', 'TICKLEFT', 'TICKRIGHT', 'TICKUP',
+    #               'TICKDOWN', 'CARETLEFT', 'CARETRIGHT', 'CARETUP', 'CARETDOWN']
+    return marker_dict
+
+
 def get_pnum_func(nRows=1, nCols=1, base=0):
     offst = 0 if base == 1 else 1
     def pnum_(px):
@@ -331,7 +445,7 @@ def show_if_requested(N=1):
 
         # Hack write the corresponding logfile next to the output
         log_fpath = ut.get_current_log_fpath()
-        ut.copy(log_fpath, splitext(fpath_)[0] + '.txt')
+        ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
     if ut.inIPython():
         import plottool as pt
         pt.iup()
@@ -1167,9 +1281,12 @@ LEGEND_LOCATION = {
 }
 
 
-def legend(loc='upper right'):
+#def legend(loc='upper right', fontproperties=None):
+def legend(loc='best', fontproperties=None):
     ax = gca()
-    ax.legend(prop=custom_constants.FONTS.legend, loc=loc)
+    if fontproperties is None:
+        fontproperties = custom_constants.FONTS.legend
+    ax.legend(prop=fontproperties, loc=loc)
 
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):
@@ -2951,11 +3068,23 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
 
 
 def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
-                   wire=False, mode=None, contour=False, dark=False, rstride=1, cstride=1, pnum=None, *args, **kwargs):
+                   wire=False, mode=None, contour=False, dark=False, rstride=1,
+                   cstride=1, pnum=None, labelkw=None, xlabelkw=None,
+                   ylabelkw=None, zlabelkw=None, titlekw=None, *args, **kwargs):
     """
     References:
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
     """
+    if titlekw is None:
+        titlekw = {}
+    if labelkw is None:
+        labelkw = {}
+    if xlabelkw is None:
+        xlabelkw = labelkw.copy()
+    if ylabelkw is None:
+        ylabelkw = labelkw.copy()
+    if zlabelkw is None:
+        zlabelkw = labelkw.copy()
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
     if pnum is None:
         ax = plt.gca(projection='3d')
@@ -2985,13 +3114,13 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         ax.contour(xgrid, ygrid, zdata, zdir='z', offset=zoffset, cmap=cmap)
         #ax.plot_trisurf(xgrid.flatten(), ygrid.flatten(), zdata.flatten(), *args, **kwargs)
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, **titlekw)
     if xlabel is not None:
-        ax.set_xlabel(xlabel)
+        ax.set_xlabel(xlabel, **xlabelkw)
     if ylabel is not None:
-        ax.set_ylabel(ylabel)
+        ax.set_ylabel(ylabel, **ylabelkw)
     if zlabel is not None:
-        ax.set_zlabel(zlabel)
+        ax.set_zlabel(zlabel, **zlabelkw)
     if dark is True:
         dark_background()
     return ax

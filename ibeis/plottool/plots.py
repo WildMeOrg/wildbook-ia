@@ -486,7 +486,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
                      prop_lines, prop_patches=None):
         if prop_patches is None:
             prop_patches = prop_lines.copy()
-            prop_patches["alpha"] = prop_patches.get("alpha", 1) * 0.05
+            prop_patches["alpha"] = prop_patches.get("alpha", 1) * .01  # * 0.05
+        prop_patches["alpha"] = .1
 
         c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
         c1.set_clip_on(False)
@@ -530,7 +531,117 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
-def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, edges=None, fnum=None, pnum=None, figtitle=None, xlabel='', ylabel='cumfreq', use_legend=True):
+def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
+                         target_label, title=None, fnum=None, pnum=None,
+                         use_legend=True, miny=None, maxy=None, color_list=None, marker_list=None):
+    r"""
+
+    CommandLine:
+        python -m plottool.plots --test-plot_multiple_scores --show
+
+        python -m plottool.plots --exec-plot_rank_cumhist \
+            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
+            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> known_nd_data = np.array([[  1,   2,   4,   7,   1,   2,   4,   7,   1,   2,   4,   7,   1,
+        ...                              2,   4,   7,   1,   2,   4,   7],
+        ...                           [ 50,  50,  50,  50, 100, 100, 100, 100, 200, 200, 200, 200, 300,
+        ...                            300, 300, 300, 500, 500, 500, 500]], dtype=np.int64).T
+        >>> known_target_points = np.array([35, 32, 32, 30, 33, 32, 33, 30, 32, 31, 31, 32, 36, 33, 33, 32, 33,
+        ...                                 33, 32, 31], dtype=np.int64)
+        >>> lbl_list = ['custom', 'custom:sv_on=False']
+        >>> nd_labels = [u'K', u'dsize']
+        >>> target_label = 'score'
+        >>> fnum = None
+        >>> pnum = None
+        >>> use_legend = True
+        >>> title = 'test'
+        >>> result = plot_multiple_scores(known_nd_data, known_target_points, nd_labels, target_label, title=title)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
+
+    # Put the data into a dense field grid
+    nd_basis = [np.unique(arr) for arr in known_nd_data.T]
+    inverse_basis = [dict(zip(arr, np.arange(len(arr)))) for arr in nd_basis]
+    data_field = np.full(list(map(len, nd_basis)), np.nan)
+    # Fill in field values
+    for coord, val in zip(known_nd_data, known_target_points):
+        index = [invbase[pt] for invbase, pt in zip(inverse_basis, coord)]
+        data_field.__setitem__(tuple(index), val)
+
+    # Setup the plots
+    num_lines = len(nd_basis[1])
+
+    if color_list is None:
+        color_list = df2.distinct_colors(num_lines)
+
+    if marker_list is None:
+        #marker_list = ['o'] * num_cdfs
+        marker_list = df2.distinctive_markers(num_lines)
+
+    if fnum is None:
+        fnum = df2.next_fnum()
+
+    fig = df2.figure(fnum=fnum, pnum=pnum)
+    ax = df2.gca()
+
+    plotkw = dict(markersize=10)
+
+    xdata = nd_basis[0]
+    # Plot a line for each zdim value
+    for ix in range(num_lines):
+        zval = nd_basis[1][ix]
+        zlabel = nd_labels[1]
+        ydata = data_field.T[ix]
+        color = color_list[ix]
+        marker = marker_list[ix]
+        ymask = np.isfinite(ydata)
+        label = '%s=%r' % (zlabel, zval,)
+        ax.plot(xdata[ymask], ydata[ymask], color=color, marker=marker, label=label, **plotkw)
+
+    import matplotlib as mpl
+
+    label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
+    title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
+    ax.set_xlabel(nd_labels[0], fontproperties=label_fontprop)
+    ax.set_ylabel(target_label, fontproperties=label_fontprop)
+
+    if maxy is None:
+        maxy = np.nanmax(ydata)
+    if miny is None:
+        miny = np.nanmin(ydata)
+
+    ypad_max = 1
+    ypad_min = 1
+    ax.set_ylim(miny - ypad_min, maxy + ypad_max)
+
+    #ax.set_yticks(nd_basis[1])
+    #ax.set_xticks(nd_basis[0])
+    #max_pos = np.nanmax(ydata)
+    #num_ticks = 10
+    #step_size = int(max_pos / num_ticks)
+    #ax.set_yticks(np.arange(1, max_pos, step_size))
+
+    if title is not None:
+        ax.set_title(title, fontproperties=title_fontprop)
+
+    if use_legend:
+        legend_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
+        #df2.legend(loc='upper right', fontproperties=legend_fontprop)
+        df2.legend(loc='best', fontproperties=legend_fontprop)
+        #ut.embed()
+    df2.dark_background()
+    return fig
+
+
+def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edges=None,
+                      fnum=None, pnum=None, figtitle=None, xlabel='',
+                      ylabel='cumfreq', use_legend=True):
     r"""
 
     CommandLine:
@@ -572,16 +683,25 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, edges=None, fnum=None
         x_data = np.array(edges[1:])
     max_y = 0
     min_y = None
-    marker = 'o'
+    if True or marker_list is None:
+        #marker_list = ['o'] * num_cdfs
+        marker_list = df2.distinctive_markers(num_cdfs)
     if len(x_data) > 256:
-        marker = None
+        marker_list = [None] * num_cdfs
+    if len(x_data) <= 10:
+        markersize = 12
+    else:
+        markersize = 7
     for ix in range(num_cdfs):
         y_data = cdf_list[ix]
         color = color_list[ix]
         label = lbl_list[ix]
+        marker = marker_list[ix]
         max_y = max(np.max(y_data), max_y)
         min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
-        ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=4, linewidth=2, markeredgewidth=0)
+        #ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=4, linewidth=2, markeredgewidth=0)
+        #ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=10, linewidth=2, markeredgewidth=0, alpha=1.0)
+        ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markeredgewidth=2, markersize=markersize, linewidth=2)
 
     #ax.set_ylim(0, max_y * 1.05)
     xbuf = (x_data.max() - x_data.min()) * .01
@@ -857,7 +977,7 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=Non
     return
 
 
-def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=None, pnum=None):
+def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=None, pnum=None, title=None):
     r"""
     Args:
         known_nd_data (?): should be integral for now
@@ -934,6 +1054,12 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
     else:
         unknown_nd_data, ug_shape = compute_interpolation_grid(known_nd_data, 0 * 5)
         interpolated_error = interpolate_error(known_nd_data, known_target_points, unknown_nd_data)
+        import matplotlib as mpl
+
+        label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
+        title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
+        labelkw = dict(labelpad=1000, fontproperties=label_fontprop)
+        titlekw = dict(fontproperties=title_fontprop)
 
         ax = pt.plot_surface3d(
             unknown_nd_data.T[0].reshape(ug_shape),
@@ -942,14 +1068,17 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
             xlabel=nd_labels[0],
             ylabel=nd_labels[1],
             zlabel=target_label,
+            labelkw=labelkw,
+            titlekw=titlekw,
             rstride=1, cstride=1,
             pnum=pnum,
             #cmap=pt.plt.get_cmap('jet'),
             cmap=pt.plt.get_cmap('coolwarm'),
             #wire=True,
             #mode='wire',
+            title=title,
             mode='surface',
-            alpha=.3,
+            alpha=.7,
             contour=True,
             #mode='contour',
             #norm=pt.mpl.colors.Normalize(0, 1),
@@ -958,25 +1087,31 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
         )
         #ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
         ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=10, c=pt.YELLOW)
-    #given_data_dims = [0]
-    #assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
-    #xdim = given_data_dims[0]
-        xdim = 0
-        ydim = (xdim + 1) % (len(known_nd_data.T))
-        known_nd_min = known_nd_data.min(axis=0)
-        known_nd_max = known_nd_data.max(axis=0)
-        xmin, xmax = known_nd_min[xdim], known_nd_max[xdim]
-        ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
-        zmin, zmax = known_target_points.min(), known_target_points.max()
-
         ax.set_aspect('auto')
-        #ax.set_xlim(xmin, xmax * 1.05)
-        #ax.set_ylim(ymin, ymax * 1.05)
-        #ax.set_zlim(zmin, zmax * 1.05)
-        #ax.set_xlim(0, xmax + 1)
-        #ax.set_ylim(0, ymax + 1)
-        #ax.set_zlim(0, zmax + 1)
-        import matplotlib.ticker as mtick
+        #given_data_dims = [0]
+        #assert len(given_data_dims) == 1, 'can only plot 1 given data dim'
+        #xdim = given_data_dims[0]
+        #xdim = 0
+        #ydim = (xdim + 1) % (len(known_nd_data.T))
+        #known_nd_min = known_nd_data.min(axis=0)
+        #known_nd_max = known_nd_data.max(axis=0)
+        #xmin, xmax = known_nd_min[xdim], known_nd_max[xdim]
+        #ymin, ymax = known_nd_min[ydim], known_nd_max[ydim]
+        #zmin, zmax = known_target_points.min(), known_target_points.max()
+
+        ##ax.set_xlim(xmin, xmax * 1.05)
+        ##ax.set_ylim(ymin, ymax * 1.05)
+        ##ax.set_zlim(zmin, zmax * 1.05)
+        ##ax.set_xlim(0, xmax + 1)
+        ##ax.set_ylim(0, ymax + 1)
+        ##ax.set_zlim(0, zmax + 1)
+        for label in ax.get_xticklabels():
+            label.set_fontsize(6)
+        for label in ax.get_yticklabels():
+            label.set_fontsize(6)
+        for label in ax.get_zticklabels():
+            label.set_fontsize(6)
+        #import matplotlib.ticker as mtick
         #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
         #ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
         #ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
