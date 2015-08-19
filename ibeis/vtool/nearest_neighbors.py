@@ -590,7 +590,7 @@ def flann_index_time_experiment():
         python -m vtool.nearest_neighbors --test-flann_index_time_experiment
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> result = flann_index_time_experiment()
         >>> print(result)
