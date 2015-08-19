@@ -1203,6 +1203,84 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     return data_pdf
 
 
+def find_first_true_indices(flags_list):
+    """
+    TODO: move to vtool
+
+    returns a list of indexes where the index is the first True position
+    in the corresponding sublist or None if it does not exist
+
+    in other words: for each row finds the smallest True column number or None
+
+    Args:
+        flags_list (list): list of lists of booleans
+
+    CommandLine:
+        python -m utool.util_list --test-find_first_true_indices
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
+        >>> # execute function
+        >>> index_list = find_first_true_indices(flags_list)
+        >>> # verify results
+        >>> result = str(index_list)
+        >>> print(result)
+        [0, None, 1, 2]
+    """
+    def tryget_fisrt_true(flags):
+        index_list = np.where(flags)[0]
+        index = None if len(index_list) == 0 else index_list[0]
+        return index
+    index_list = [tryget_fisrt_true(flags) for flags in flags_list]
+    return index_list
+
+
+def find_next_true_indices(flags_list, offset_list):
+    """
+    TODO: move to vtool
+
+    Uses output of either this function or find_first_true_indices
+    to find the next index of true flags
+
+    Args:
+        flags_list (list): list of lists of booleans
+
+    CommandLine:
+        python -m utool.util_list --test-find_next_true_indices
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
+        >>> offset_list = find_first_true_indices(flags_list)
+        >>> # execute function
+        >>> index_list = find_next_true_indices(flags_list, offset_list)
+        >>> # verify results
+        >>> result = str(index_list)
+        >>> print(result)
+        [2, None, 2, None]
+    """
+    def tryget_next_true(flags, offset_):
+        offset = offset_ + 1
+        relative_flags = flags[offset:]
+        rel_index_list = np.where(relative_flags)[0]
+        index = None if len(rel_index_list) == 0 else rel_index_list[0] + offset
+        return index
+    index_list = [None if offset is None else tryget_next_true(flags, offset)
+                  for flags, offset in zip(flags_list, offset_list)]
+    return index_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

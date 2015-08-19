@@ -244,8 +244,9 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     # Find matches and normalizers that satisfy spatial constraints
     fx2_to_valid_match      = ut.inbounds(fx2_to_xyerr_norm, 0.0, match_xy_thresh, eq=True)
     fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *norm_xy_bounds, eq=True)
-    fx2_to_fx1_match_col = ut.find_first_true_indices(fx2_to_valid_match)
-    fx2_to_fx1_norm_col  = ut.find_next_true_indices(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
+    import vtool as vt
+    fx2_to_fx1_match_col = vt.find_first_true_indices(fx2_to_valid_match)
+    fx2_to_fx1_norm_col  = vt.find_next_true_indices(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
 
     assert fx2_to_fx1_match_col != fx2_to_fx1_norm_col, 'normlizers are matches!'
 
