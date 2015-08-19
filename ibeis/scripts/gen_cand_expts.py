@@ -15,7 +15,7 @@ CommandLine:
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy:sample_size=None -a controlled --db PZ_Master0 --acfginfo
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy -a controlled --db NNP_Master3 --acfginfo
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 from os.path import expanduser
 import utool as ut
@@ -231,7 +231,7 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'
-        static_flags += ' --adjust=.02,.02,.4,.02'
+        static_flags += ' --adjust=.0,.1,.01,.01'
     elif media_name == 'preload':
         margs = 'ibeis.experiments.precomputer --exec-precfg'
         dynamic_flags_ = '{preload_flags}'

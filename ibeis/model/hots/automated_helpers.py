@@ -248,8 +248,8 @@ def interactive_commandline_prompt(msg, decisiontype):
     ans_list_no = ['no', 'n']
     #ans_list_yes = ['yes', 'y']
     prompt_str = prompt_fmtstr.format(
-        no_phrase=ut.cond_phrase(ans_list_no),
-        embed_phrase=ut.cond_phrase(ans_list_embed),
+        no_phrase=ut.conj_phrase(ans_list_no),
+        embed_phrase=ut.conj_phrase(ans_list_embed),
         msg=msg,
         decisiontype=decisiontype,
     )

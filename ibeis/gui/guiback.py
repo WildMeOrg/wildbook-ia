@@ -1014,7 +1014,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 return species_bold_nice
             species_list = list(set(ibs.get_annot_species_texts(aid_list)))
             species_nice_list = list(map(boldspecies, species_list))
-            species_phrase = ut.cond_phrase(species_nice_list, 'and')
+            species_phrase = ut.conj_phrase(species_nice_list, 'and')
             return species_phrase
 
         # Build confirmation message

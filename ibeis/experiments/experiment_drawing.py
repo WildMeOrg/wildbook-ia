@@ -88,26 +88,18 @@ def draw_rank_surface(ibs, test_result):
         nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
         target_label = annotation_configs.shorten_to_alias_labels(key)
 
-        #target_label = 'num rank leq 1'
+        #target_label = 'num rank ≤ 1'
         target_label = 'score'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
-        ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=1, pnum=pnum_())
+        title = ('#Ranks ≤ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=1, pnum=pnum_())
         #(const_idx + 1))
-        ax.set_title('# Ranks $\leq$ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
 
     figtitle = (
-        '# Ranks ≤ 1 for\n')
-    figtitle += ' ' + test_result.get_title_aug()
-    #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
-    #if test_result.annot_info is not None:
-    #    if test_result.annot_info['d aids']['controlled']:
-    #        figtitle += ' Controlled. '
-    #        #figtitle += (
-    #        #    ' num_qaids=%r' % (len(test_result.qaids)) +
-    #        #    ' num_d aids=%r' % (len(test_result.d aids))
-    #        #)
+        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks ≤ 1 for\n')
     figtitle += ' db=' + (ibs.get_dbname())
+    figtitle += ' ' + test_result.get_title_aug()
 
     figtitle += ' #qaids=%r' % (len(test_result.qaids),)
     if test_result.has_constant_daids():
