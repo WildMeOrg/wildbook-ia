@@ -46,9 +46,11 @@ def register_testgen(func):
 
 
 if ut.get_argflag('--full'):
-    ACFG_NAME_CAND_OPTIONS = ['controlled', 'controlled2']
+    ACFG_NAME_CONTROLLED_OPTIONS = ['controlled', 'controlled2']
+    ACFG_NAME_VARYSIZE_OPTIONS = ['varysize', 'varysize2']
 else:
-    ACFG_NAME_CAND_OPTIONS = ['controlled']
+    ACFG_NAME_CONTROLLED_OPTIONS = ['controlled']
+    ACFG_NAME_VARYSIZE_OPTIONS = ['varysize']
 
 
 #@register_testgen
@@ -91,7 +93,10 @@ def generate_all():
         >>> generate_all()
     """
     #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
-    script_lines = ut.flatten([['\n\n### ' + ut.get_funcname(func)] + func()[2] for func in TEST_GEN_FUNCS])
+    script_lines = ut.flatten([
+        ['\n\n### ' + ut.get_funcname(func),
+         '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + func()[2]
+        for func in TEST_GEN_FUNCS])
     fpath, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
     if ut.get_argflag('--vim'):
         ut.editfile(fpath)
@@ -115,7 +120,7 @@ def baseline_experiments():
     varydict = ut.odict([
         #('acfg_name', ['controlled']),
         #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_NAME_CAND_OPTIONS),
+        ('acfg_name', ACFG_NAME_CONTROLLED_OPTIONS),
         ('cfg_name', ['candidacy']),
         ('dbname', get_dbnames()),
     ])
@@ -139,7 +144,7 @@ def invariance_experiments():
     varydict = ut.odict([
         #('acfg_name', ['controlled']),
         #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_NAME_CAND_OPTIONS),
+        ('acfg_name', ACFG_NAME_CONTROLLED_OPTIONS),
         ('cfg_name', ['candidacy_invariance']),
         ('dbname', get_dbnames()),
     ])
@@ -172,17 +177,18 @@ def k_experiments():
     """
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-k_experiments
+        ./experiment_k.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> k_experiments()
     """
     varydict = ut.odict([
-        ('acfg_name', ['varysize']),
+        ('acfg_name', ACFG_NAME_VARYSIZE_OPTIONS),
         ('cfg_name', ['candidacy_k']),
-        ('dbname', get_dbnames()),
+        ('dbname', get_dbnames(exclude_list=['PZ_FlankHack', 'PZ_MTEST'])),
     ])
-    return make_standard_test_scripts(varydict, 'k', 'surface')
+    return make_standard_test_scripts(varydict, 'k', ['surface3d', 'surface2d'])
 
 
 @register_testgen
@@ -216,17 +222,26 @@ def get_results_command(expt_name, media_name):
     """
     plot_fname = expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
     static_flags = ''
+    #static_flags = ' --diskshow'
     dynamic_flags_ = ''
     if media_name == 'table':
         margs = 'ibeis.experiments.experiment_printres --exec-print_latexsum'
-        static_flags = '--rank-lt-list=1,5,10,100'
+        static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_cdf'
-        static_flags =  ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite'
-    elif media_name == 'surface':
+        static_flags +=  ' --save ' + plot_fname + '.png'
+        static_flags += ' --dpath=~/code/ibeis/results --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
+    elif media_name == 'surface2d':
+        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf'
+        static_flags += ' --save ' + plot_fname + '.png'
+        static_flags += ' --dpath=~/code/ibeis/results'
+        static_flags += ' --clipwhite'
+        static_flags += ' --dpi=256'
+        static_flags += ' --figsize=12,4'
+        static_flags += ' --adjust=.0,.25,.2,.2'
+    elif media_name == 'surface3d':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
-        static_flags =  ' --save ' + plot_fname + '.png'
+        static_flags += ' --save ' + plot_fname + '.png'
         static_flags += ' --dpath=~/code/ibeis/results'
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
@@ -253,18 +268,29 @@ def get_dbnames(exclude_list=[]):
 
 
 def make_standard_test_scripts(varydict, expt_name, media_name):
-    basecmd, static_flags, dynamic_flags_ = get_results_command(expt_name, media_name)
-    dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
-    cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags
-    return write_formatted_script_lines(cmd_fmtstr, [varydict], 'experiment_' + expt_name + '.sh')
+    media_names = ut.ensure_iterable(media_name)
+    cmd_fmtstr_list = []
+    for media_name in media_names:
+        basecmd, static_flags, dynamic_flags_ = get_results_command(expt_name, media_name)
+        dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
+        cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags
+        cmd_fmtstr_list.append(cmd_fmtstr)
+    return write_formatted_script_lines(cmd_fmtstr_list, [varydict], 'experiment_' + expt_name + '.sh')
 
 
-def write_formatted_script_lines(cmd_fmtstr, varydict_list, fpath):
+def write_formatted_script_lines(cmd_fmtstr_list, varydict_list, fpath):
     cfgdicts_list = list(map(ut.all_dict_combinations, varydict_list))
     line_list = []
-    for cfgdicts in cfgdicts_list:
+    for cmd_fmtstr in cmd_fmtstr_list:
         line_list.append('')
-        line_list.extend([cmd_fmtstr.format(**kw) for kw in cfgdicts])
+        for cfgdicts in cfgdicts_list:
+            line_list.append('')
+            try:
+                line_list.extend([cmd_fmtstr.format(**kw) for kw in cfgdicts])
+            except Exception as ex:
+                print(cmd_fmtstr)
+                ut.printex(ex, keys=['cmd_fmtstr', 'kw'])
+                raise
     return write_script_lines(line_list, fpath)
 
 
@@ -276,6 +302,8 @@ def write_script_lines(line_list, fpath):
     script_lines.append('echo << \'EOF\' > /dev/null')
     script_lines.append('RegenCommand:')
     script_lines.append('   ' + regen_cmd)
+    script_lines.append('CommandLine:')
+    script_lines.append('   sh ' + fpath)
     script_lines.append('dont forget to tmuxnew')
     script_lines.append('EOF')
     script_lines.extend(line_list)

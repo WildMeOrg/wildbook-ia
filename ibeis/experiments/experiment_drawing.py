@@ -37,6 +37,9 @@ def draw_rank_surface(ibs, test_result):
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
 
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize --db PZ_Master0   --save k_surface_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results --clipwhite --dpi=256 --figsize=12,4 --adjust=.0,.1,.01,.01 --diskshow
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize --db PZ_Master0   --save k_surface_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results --clipwhite --dpi=256 --figsize=12,4 --adjust=.0,.25,.2,.2 --diskshow --no3dsurf
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
@@ -76,9 +79,15 @@ def draw_rank_surface(ibs, test_result):
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
+    maxy = rank_lt1_list.max()
+    miny = rank_lt1_list.min()
+    # Use consistent markers and colors.
+    color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
+    marker_list = pt.distinctive_markers(len(basis_dict[param_key_list[-1]]))
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
         rank_list = ut.list_take(rank_lt1_list, const_basis_cfgx_list)
+        # Figure out what the values are for other dimensions
         agree_param_vals = dict([
             (key, [test_result.get_param_val_from_cfgx(cfgx, key) for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
@@ -93,7 +102,21 @@ def draw_rank_surface(ibs, test_result):
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
         title = ('#Ranks ≤ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
-        ax = pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=1, pnum=pnum_())
+        PLOT3D = not ut.get_argflag('--no3dsurf')
+        if PLOT3D:
+            pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=1, pnum=pnum_())
+        else:
+            nonconst_basis_vals = np.unique(known_nd_data.T[1])
+            # Find which colors will not be used
+            nonconst_covers_basis = np.in1d(basis_dict[param_key_list[-1]], nonconst_basis_vals)
+            nonconst_color_list = ut.list_compress(color_list, nonconst_covers_basis)
+            nonconst_marker_list = ut.list_compress(marker_list, nonconst_covers_basis)
+            pt.plot_multiple_scores(known_nd_data, known_target_points,
+                                    nd_labels, target_label, title=title,
+                                    color_list=nonconst_color_list,
+                                    marker_list=nonconst_marker_list,
+                                    fnum=1, pnum=pnum_(), miny=miny, maxy=maxy)
+            #pt.plot2(
         #(const_idx + 1))
 
     figtitle = (
@@ -132,6 +155,9 @@ def draw_rank_cdf(ibs, test_result):
 
         python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy -a controlled --db PZ_MTEST --show
 
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master0   --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
@@ -150,11 +176,13 @@ def draw_rank_cdf(ibs, test_result):
     cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     lbl_list = test_result.get_short_cfglbls()
     color_list = pt.distinct_colors(len(lbl_list))
+    marker_list = pt.distinctive_markers(len(lbl_list))
     # Order cdf list by rank0
     sortx = cdf_list.T[0].argsort()[::-1]
     lbl_list = ut.list_take(lbl_list, sortx)
     cdf_list = np.array(ut.list_take(cdf_list, sortx))
     color_list = ut.list_take(color_list, sortx)
+    marker_list = ut.list_take(marker_list, sortx)
     #
     figtitle = (
         'Cumulative Histogram of GT-Ranks for\n')
@@ -210,12 +238,12 @@ def draw_rank_cdf(ibs, test_result):
 
     fnum = pt.ensure_fnum(None)
 
-    pt.plot_rank_cumhist(short_cdf_list, lbl_list, color_list=color_list,
-                         edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=False,
+    pt.plot_rank_cumhist(short_cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
+                         edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=True,
                          **cumhist_kw)
     ax1 = pt.gca()
-    pt.plot_rank_cumhist(cdf_list, lbl_list, color_list=color_list,
-                         edges=edges, pnum=(2, 1, 2), fnum=fnum,
+    pt.plot_rank_cumhist(cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
+                         edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
                          **cumhist_kw)
     ax2 = pt.gca()
     pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
