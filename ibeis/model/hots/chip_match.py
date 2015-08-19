@@ -361,6 +361,26 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #
         cm._update_daid_index()
 
+    # Override eequality
+
+    def __eq__(cm, other):
+        if isinstance(other, cm.__class__):
+            flag = True
+            flag &= len(cm.fm_list) == len(other.fm_list)
+            def check_arrs_eq(arr1, arr2):
+                if arr1 is None and arr2 is None:
+                    return True
+                return len(arr1) == len(arr2) and all([np.all(x == y) for x, y in zip(arr1, arr2)])
+            flag &= cm.qaid == other.qaid
+            flag &= cm.qnid == other.qnid
+            flag &= check_arrs_eq(cm.fm_list, other.fm_list)
+            flag &= check_arrs_eq(cm.fs_list, other.fs_list)
+            flag &= check_arrs_eq(cm.fk_list, other.fk_list)
+            return flag
+            #return cm.__dict__ == other.__dict__
+        else:
+            return False
+
     #------------------
     # Modification / Evaluation Functions
     #------------------

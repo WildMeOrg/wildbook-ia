@@ -91,6 +91,16 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         return ibs, qaid_list, daid_list
 
 
+def testdata_ibeis2(defaultdb='testdb1', default_aidcfg_name_list=['default']):
+    print('[testdata_ibeis2] Getting test annot configs')
+    from ibeis.experiments import experiment_helpers
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    aidcfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
+    return ibs, expanded_aids_list
+
+
 @profile
 def expand_acfgs(ibs, aidcfg):
     """

@@ -50,9 +50,6 @@ def get_candidacy_dbnames():
 #    pass
 
 
-default = {}
-
-
 candidacy_k = [
     {'K': [1, 2, 4, 7]},
 ]

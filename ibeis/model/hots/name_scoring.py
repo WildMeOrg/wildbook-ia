@@ -190,6 +190,39 @@ def compute_nsum_score2(cm, qreq_=None):
 
 
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
+    """
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> from ibeis.model.hots import name_scoring
+        >>> from ibeis.model.hots import scoring
+        >>> # Test to make sure name score and chips score are equal when per_name=1
+        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dper_name=1,qsize=1,dsize=10'], ['default:K=1'])
+        >>> qreq_, cm_list = qreq_list[0], cms_list[0]
+        >>> cm = cm_list[0]
+        >>> # Ensure there is only one aid per database name
+        >>> stats = ibs.get_annot_per_name_stats(qreq_.get_external_daids())
+        >>> print('per_name_stats = %s' % (ut.dict_str(stats, nl=False),))
+        >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
+        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm.assert_self()
+        >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm)
+        >>> csum_score = scoring.compute_csum_score(cm)
+        >>> assert all(nsum_score == csum_score), 'should be the same when K=1 and per_name=1'
+        >>> # Evaluate parts of the sourcecode
+
+        #>>> func1 = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags
+        #>>> func2 = name_scoring.get_namescore_nonvoting_feature_flags
+        #>>> sourcecode1 = ut.get_func_sourcecode(func1, stripdef=True, stripret=True, strip_docstr=True, remove_linenums=[-1, -2])
+        #>>> locals_ = locals()
+        #>>> globals_ = globals()
+        #>>> six.exec_(sourcecode1, globals_, locals_)
+        #>>> sourcecode2 = ut.get_func_sourcecode(func2, stripdef=True, stripret=True, strip_docstr=True)
+        #>>> six.exec_(sourcecode2, globals_, locals_)
+        #assert locals_['kpts1'] is None
+        #locals_['featflag_list']
+    """
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match
     fs_list = cm.get_fsv_prod_list()

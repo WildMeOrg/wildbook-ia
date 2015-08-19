@@ -286,6 +286,68 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     return ibs, qreq_, cm_list
 
 
+def get_pipeline_testdata2(defaultdb='testdb1', default_aidcfg_name_list=['default'], default_test_cfg_name_list=['default'], preload=False):
+    r"""
+    Gets testdata for pipeline defined by tests / and or command line
+
+    Args:
+        cmdline_ok : if false does not check command line
+
+    Returns:
+        tuple: ibs, qreq_
+
+    CommandLine:
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> import ibeis  # NOQA
+        >>> from ibeis.model.hots import _pipeline_helpers as plh
+        >>> ibs, qreq_list = plh.get_pipeline_testdata2('PZ_MTEST', default_test_cfg_name_list=['candidacy_namescore'])
+
+        daids = array([1, 2, 3, 4, 5])
+        qaids = array([1])
+    """
+    from ibeis.init import main_helpers
+    from ibeis.experiments import experiment_helpers
+    from ibeis.model.hots import query_request
+    ibs, expanded_aids_list = main_helpers.testdata_ibeis2(defaultdb, default_aidcfg_name_list)
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
+
+    # Generate list of query pipeline param configs
+    query_cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+
+    qreq_list = []
+
+    for qaids, daids in expanded_aids_list:
+        for query_cfg in query_cfg_list:
+            qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, query_cfg=query_cfg)
+            qreq_list.append(qreq_)
+
+    if preload:
+        for qreq_ in qreq_list:
+            qreq_.lazy_load()
+    return ibs, qreq_list
+
+
+def testdata_pre_sver2(*args, **kwargs):
+    """
+        >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
+        >>> args = (,)
+        >>> kwargs = {}
+    """
+    #from ibeis.model import Config
+    ibs, qreq_list = get_pipeline_testdata2(*args, **kwargs)
+    locals_list = [testrun_pipeline_upto(qreq_, 'spatial_verification') for qreq_ in qreq_list]
+    cms_list = [locals_['cm_list_FILT'] for locals_ in locals_list]
+    #nnfilts_list   = locals_['nnfilts_list']
+    return ibs, qreq_list, cms_list
+
+
 def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):
     """
         >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA

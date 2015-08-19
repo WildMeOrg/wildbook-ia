@@ -5622,6 +5622,12 @@ def viewpoint_diff(ori1, ori2):
 
 
 @__injectable
+def get_annot_per_name_stats(ibs, aid_list):
+    """  stats about this set of aids """
+    return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], use_nan=True)
+
+
+@__injectable
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
     r"""
     Args:
@@ -5662,8 +5668,12 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
         matchable_queries = ut.list_compress(qaids, hasgt_list)
 
         # Intersection on a per name basis
-        nonquery_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
-        gt_daid_per_name_stats       = ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0], use_nan=True)
+        imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)
+        genuine_daid_per_name_stats  = ibs.get_annot_per_name_stats(groundtruth_daids)
+        all_daid_per_name_stats = ibs.get_annot_per_name_stats(daids)
+        #imposter_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
+        #genuine_daid_per_name_stats  = ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0], use_nan=True)
+        #all_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(daids)[0], use_nan=True)
 
         # Compare the query yaws to the yaws of its correct matches in the database
         # For each name there will be nQaids:nid x nDaids:nid comparisons
@@ -5710,12 +5720,14 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
             ('num_name_intersect', (len(common_nids))),
         ])
         annotconfig_stats_strs2 = ut.odict([
+            # Number of aids per name for everything in the database
+            ('aids_per_database_name', _stat_str(all_daid_per_name_stats)),
             # Number of aids in each name that should match to a query
             # (not quite sure how to phrase what this is)
-            ('aids_per_correct_name', _stat_str(gt_daid_per_name_stats)),
+            ('aids_per_genuine_name', _stat_str(genuine_daid_per_name_stats)),
             # Number of aids in each name that should not match to any query
             # (not quite sure how to phrase what this is)
-            ('aids_per_imposter_name', _stat_str(nonquery_daid_per_name_stats)),
+            ('aids_per_imposter_name', _stat_str(imposter_daid_per_name_stats)),
             # Distances between a query and its groundtruth
             ('viewdist', _stat_str(gt_viewdist_stats)),
             ('qualdist', _stat_str(gt_qualdist_stats)),

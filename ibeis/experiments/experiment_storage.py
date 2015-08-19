@@ -3,7 +3,7 @@
 TODO:
     save and load TestResult classes
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
 #import six
@@ -354,7 +354,13 @@ class TestResult(object):
         title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
         title_aug += ' #qaids=%r' % (len(test_result.qaids),)
         if test_result.has_constant_daids():
+            daids = test_result.cfgx2_daids[0]
             title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+            locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
+            if locals_['all_daid_per_name_stats']['std'] == 0:
+                title_aug += ' dper_name=%r' % (locals_['all_daid_per_name_stats']['mean'],)
+            else:
+                title_aug += ' dper_name=%r±' % (locals_['all_daid_per_name_stats']['mean'], locals_['all_daid_per_name_stats']['std'],)
         return title_aug
 
     def print_unique_annot_config_stats(test_result, ibs):

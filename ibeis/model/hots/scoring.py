@@ -26,9 +26,10 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
     """
     CommandLine:
         python -m ibeis.model.hots.scoring --test-score_chipmatch_list
+        python -m ibeis.model.hots.scoring --test-score_chipmatch_list:2
         python -m ibeis.model.hots.scoring --test-score_chipmatch_list:0 --show
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
@@ -40,7 +41,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
@@ -52,6 +53,33 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
+
+    #Example2:
+    #    >>> # ENABLE_DOCTEST
+    #    >>> from ibeis.model.hots.scoring import *  # NOQA
+    #    >>> from ibeis.model.hots import name_scoring
+    #    >>> from ibeis.model.hots import scoring
+    #    >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['controlled:qsize=1,dsize=10'], ['candidacy_namescore'])
+    #    >>> per_name_stats = [ibs.get_annot_per_name_stats(qreq_.get_external_daids()) for qreq_ in qreq_list]
+    #    >>> print('per_name_stats = %s' % (ut.list_str(per_name_stats),))
+    #    >>> assert all([stats['mean'] == 1 and stats['std'] == 0 for stats in per_name_stats]), 'this test requires one annot per name in the database'
+    #    >>> qreq_ = qreq_list[0]
+    #    >>> cm_list = cms_list[0]
+    #    >>> # Two chip matches from csum and nsum pipelien runs
+    #    >>> qreq1_, qreq2_ = qreq_list[0:2]
+    #    >>> cm1 = cms_list[0][0]
+    #    >>> cm2 = cms_list[1][0]
+    #    >>> assert cm1 is not cm2 and cm1 == cm2
+    #    >>> cm1.evaluate_dnids(qreq1_.ibs)
+    #    >>> cm2.evaluate_dnids(qreq2_.ibs)
+    #    >>> assert cm1 is not cm2 and cm1 == cm2
+    #    >>> cm, other = cm1, cm2
+    #    >>> cm1.assert_self()
+    #    >>> cm2.assert_self()
+    #    >>> qreq_ = qreq1_
+    #    >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm1)
+    #    >>> csum_score = scoring.compute_csum_score(cm1)
+    #    >>> csum_score = scoring.compute_csum_score(cm2)
     """
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':

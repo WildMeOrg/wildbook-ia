@@ -174,7 +174,7 @@ def get_varied_params_list(test_cfg_name_list):
         varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
 
     else:
-        # TODO: use new code here instead of older code
+        # TODO: alias mumbojumbo and whatnot. Rectify duplicate code
         cfg_default_dict = dict(Config.QueryConfig().parse_items())
         valid_keys = list(cfg_default_dict.keys())
         cfgstr_list = test_cfg_name_list
@@ -193,12 +193,11 @@ def get_varied_params_list(test_cfg_name_list):
 
         name_lbl_list = [cfg['_cfgname'] for cfg in varied_params_list]
 
-        for cfg in varied_params_list:
-            ut.delete_keys(cfg, ['_cfgstr', '_cfgname', '_cfgtype'])
+        #for cfg in varied_params_list:
+        #    ut.delete_keys(cfg, ['_cfgstr', '_cfgname', '_cfgtype'])
 
         nonvaried_dict, varied_cfg_list = partition_varied_cfg_list(cfg_list=varied_params_list, cfg_default_dict=cfg_default_dict)
 
-        # TODO: alias mumbojumbo and whatnot. Rectify duplicate code
         _param_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), ['_cfgstr', '_cfgname', '_cfgtype']), explicit=True, nl=False) for _dict in varied_cfg_list]
         param_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  _param_lbl_list]
 
@@ -245,7 +244,7 @@ def get_cfg_list_helper(test_cfg_name_list):
         # configs can be uniquified
         #cfg = Config.QueryConfig(**dict_)
         cfgdict = dict_.copy()
-        cfgdict['_cfgname'] = cfgname
+        #cfgdict['_cfgname'] = cfgname
         cfg = Config.QueryConfig(**dict_)
         if cfg not in cfg_set:
             cfgx2_lbl.append(lbl)
