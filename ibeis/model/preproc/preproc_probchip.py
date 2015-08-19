@@ -408,6 +408,8 @@ def compute_extramargin_detectchip(ibs, aid_list, config2_=None, species=None, F
 
 def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, FACTOR=4):
     r"""
+    Computes a detection chip with a bit of spatial context so the detection algorithm doesn't clip boundaries
+
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show
         python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 27
@@ -418,12 +420,9 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> from ibeis.init import main_helpers
-        >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = main_helpers.get_test_qaids(ibs)
-        >>> # execute function
         >>> arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list)
-        >>> # verify results
         >>> ut.quit_if_noshow()
         >>> testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_cs_list)
     """

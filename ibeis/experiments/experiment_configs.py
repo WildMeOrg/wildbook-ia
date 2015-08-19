@@ -70,10 +70,10 @@ candidacy = [
 
 # Test all combinations of invariance
 candidacy_invariance = [
-    #{'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
-    #{'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
-    #{'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
-    #{'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
+    {'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
+    {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
     {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
     {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
 ]

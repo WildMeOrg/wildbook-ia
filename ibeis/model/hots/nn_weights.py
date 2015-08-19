@@ -111,7 +111,6 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
                 print('diff_mean = ' + str(good_stats_['mean'] - bad_stats_['mean']))
 
     """
-    # Prealloc output
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
     qaid_list = qreq_.get_internal_qaids()
@@ -134,6 +133,9 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
     foreground feature match weighting
 
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --exec-fg_match_weighter
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -142,13 +144,13 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> print(ut.dict_str(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.fg_on == True, 'bug setting custom params fg_on'
         >>> fgvotes_list = fg_match_weighter(nns_list, nnvalid0_list, qreq_)
+        >>> print('fgvotes_list = %r' % (fgvotes_list,))
     """
-    # Prealloc output
     Knorm = qreq_.qparams.Knorm
-    fgvotes_list = []
     qaid_list = qreq_.get_internal_qaids()
     config2_ = qreq_.get_internal_query_config2()
     # Database feature index to chip index
+    fgvotes_list = []
     for qaid, nns in zip(qaid_list, nns_list):
         (qfx2_idx, qfx2_dist) = nns
         # database forground weights

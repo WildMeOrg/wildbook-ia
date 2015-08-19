@@ -215,10 +215,12 @@ def compute_fgweights(ibs, aid_list, config2_=None):
     probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
 
-    if ut.DEBUG2:
-        from PIL import Image
-        probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
-        assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
+    #if ut.DEBUG2:
+    #    from PIL import Image
+    #    probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
+    #    #with ut.embed_on_exception_context:
+    #    # does not need to happen anymore
+    #    assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list, config2_=config2_)
     # Force grayscale reading of chips

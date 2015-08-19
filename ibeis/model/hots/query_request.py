@@ -760,6 +760,8 @@ class QueryRequest(object):
         #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
+        qfw_rowids = qreq_.ibs.get_annot_featweight_rowids(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
+        dfw_rowids = qreq_.ibs.get_annot_featweight_rowids(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
         if ut.DEBUG2:
             qfeatweights = qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())  # NOQA
             dfeatweights = qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())  # NOQA
