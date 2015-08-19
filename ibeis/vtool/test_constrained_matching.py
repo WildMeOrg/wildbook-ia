@@ -114,7 +114,7 @@ def make_custom_interactions(simp_list):
         offset_fnum_[0] += len(simp_list)
 
     custom_actions = [
-        ('toggle', ['t'], 'toggles between ' + ut.cond_phrase(valid_vizmodes, 'and'), toggle_vizmode),
+        ('toggle', ['t'], 'toggles between ' + ut.conj_phrase(valid_vizmodes, 'and'), toggle_vizmode),
         ('offset_fnum', ['offset_fnum', 'o'], 'offset the figure number (keeps old figures)', offset_fnum),
         ('set_param', ['setparam', 's'], 'sets a config param using key=val format.  eg: setparam ratio_thresh=.1', set_param),
     ]
