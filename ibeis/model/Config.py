@@ -503,7 +503,7 @@ class NNWeightConfig(ConfigBase):
                 #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
-                ut.ParamInfoBool('fg_on', True, hideif=False),
+                ut.ParamInfoBool('fg_on', False, hideif=False),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
@@ -819,7 +819,7 @@ class FeatureWeightConfig(ConfigBase):
         # Feature weights depend on the detector, but we only need to mirror
         # some parameters because featweight_cfg should not use the detect_cfg
         # object
-        featweight_cfg.featweight_enabled = True
+        featweight_cfg.featweight_enabled = False
         featweight_cfg.featweight_species  = 'uselabel'
         featweight_cfg.featweight_detector = 'rf'
         featweight_cfg.update(**kwargs)

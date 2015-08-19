@@ -17,19 +17,19 @@ print, print_, printDBG, rrr, profile = ut.inject(
 QUIET = ut.QUIET
 
 
-def get_vary_dicts(test_cfg_name_list):
+def get_testcfg_varydicts(test_cfg_name_list):
     """
     build varydicts from experiment_configs.
     recomputes test_cfg_name_list_out in case there are any nested lists specified in it
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_vary_dicts
+        python -m ibeis.experiments.experiment_helpers --test-get_testcfg_varydicts
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
-        >>> vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
+        >>> vary_dicts, test_cfg_name_list_out = get_testcfg_varydicts(test_cfg_name_list)
         >>> result = ut.list_str(vary_dicts)
         >>> print(result)
         [
@@ -47,6 +47,7 @@ def get_vary_dicts(test_cfg_name_list):
     Ignore:
         print(ut.indent(ut.list_str(vary_dicts), ' ' * 8))
     """
+
     vary_dicts = []
     test_cfg_name_list_out = []
     for cfg_name in test_cfg_name_list:
@@ -134,40 +135,74 @@ def get_varied_params_list(test_cfg_name_list):
 
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_varied_params_list
+        python -m ibeis.experiments.experiment_helpers --test-get_varied_params_list:0
+        python -m ibeis.experiments.experiment_helpers --test-get_varied_params_list:1
 
     Example:
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
-        >>> test_cfg_name_list = ['elph']
+        >>> test_cfg_name_list = ['candidacy_k']
+        >>> test_cfg_name_list = ['candidacy_k', 'candidacy_k:fg_on=True']
         >>> varied_params_list, varied_param_lbls, name_lbl_list = get_varied_params_list(test_cfg_name_list)
         >>> print(ut.list_str(varied_params_list))
         >>> print(ut.list_str(varied_param_lbls))
 
     Example:
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-        >>> test_cfg_name_list = ['candidacy']
+        >>> test_cfg_name_list = ['candidacy_baseline:fg_on=False']
         >>> varied_params_list, varied_param_lbls, name_lbl_list = get_varied_params_list(test_cfg_name_list)
         >>> print(ut.list_str(varied_params_list))
         >>> print(ut.list_str(varied_param_lbls))
     """
-    vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
+    OLD = False
+    if OLD:
+        vary_dicts, test_cfg_name_list_out = get_testcfg_varydicts(test_cfg_name_list)
 
-    dict_comb_list = [ut.all_dict_combinations(dict_)
-                      for dict_ in vary_dicts]
+        dict_comb_list = [ut.all_dict_combinations(dict_)
+                          for dict_ in vary_dicts]
 
-    unflat_param_lbls = [ut.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
-                         for dict_ in vary_dicts]
+        unflat_param_lbls = [ut.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
+                             for dict_ in vary_dicts]
 
-    unflat_name_lbls = [[name_lbl for lbl in comb_lbls]
-                        for name_lbl, comb_lbls in
-                        zip(test_cfg_name_list_out, unflat_param_lbls)]
+        unflat_name_lbls = [[name_lbl for lbl in comb_lbls]
+                            for name_lbl, comb_lbls in
+                            zip(test_cfg_name_list_out, unflat_param_lbls)]
 
-    varied_params_list = ut.flatten(dict_comb_list)
-    param_lbl_list     = ut.flatten(unflat_param_lbls)
-    name_lbl_list      = ut.flatten(unflat_name_lbls)
+        param_lbl_list     = ut.flatten(unflat_param_lbls)
+        name_lbl_list      = ut.flatten(unflat_name_lbls)
 
-    varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
+        varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
+
+    else:
+        # TODO: use new code here instead of older code
+        cfg_default_dict = dict(Config.QueryConfig().parse_items())
+        valid_keys = list(cfg_default_dict.keys())
+        cfgstr_list = test_cfg_name_list
+        named_defaults_dict = ut.dict_subset(experiment_configs.__dict__, experiment_configs.TEST_NAMES)
+        dict_comb_list = parse_cfgstr_list2(cfgstr_list, named_defaults_dict,
+                                            cfgtype=None, alias_keys=None,
+                                            valid_keys=valid_keys)
+
+        def partition_varied_cfg_list(cfg_list, cfg_default_dict):
+            nonvaried_dict = reduce(ut.dict_intersection, [ut.dict_intersection(cfg_default_dict, cfg) for cfg in cfg_list])
+            #nonvaried_dict = reduce(ut.dict_intersection, cfg_list)
+            varied_cfg_list = [ut.delete_dict_keys(_dict.copy(), list(nonvaried_dict.keys())) for _dict in cfg_list]
+            return nonvaried_dict, varied_cfg_list
+
+        varied_params_list = ut.flatten(dict_comb_list)
+
+        name_lbl_list = [cfg['_cfgname'] for cfg in varied_params_list]
+
+        for cfg in varied_params_list:
+            ut.delete_keys(cfg, ['_cfgstr', '_cfgname', '_cfgtype'])
+
+        nonvaried_dict, varied_cfg_list = partition_varied_cfg_list(cfg_list=varied_params_list, cfg_default_dict=cfg_default_dict)
+
+        # TODO: alias mumbojumbo and whatnot. Rectify duplicate code
+        _param_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), ['_cfgstr', '_cfgname', '_cfgtype']), explicit=True, nl=False) for _dict in varied_cfg_list]
+        param_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  _param_lbl_list]
+
+        varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
 
     return varied_params_list, varied_param_lbls, name_lbl_list
 
@@ -222,56 +257,67 @@ def get_cfg_list_helper(test_cfg_name_list):
     return cfg_list, cfgx2_lbl, cfgdict_list
 
 
-def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None):
+def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None, valid_keys=None):
     """
     Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
     """
-    cfg_combo_list = []
+    cfg_combos_list = []
     for cfgstr in cfgstr_list:
         cfgstr_split = cfgstr.split(':')
         cfgname = cfgstr_split[0]
-        cfg = named_defaults_dict[cfgname].copy()
-        # Parse dict out of a string
-        if len(cfgstr_split) > 1:
-            cfgstr_options =  ':'.join(cfgstr_split[1:]).split(',')
-            cfg_options = ut.parse_cfgstr_list(cfgstr_options, smartcast=True, oldmode=False)
-        else:
-            cfg_options = {}
-        # Hack for q/d-prefix specific configs
-        if cfgtype is not None:
-            for key in list(cfg_options.keys()):
-                # check if key is nonstandard
-                if not (key in cfg or key in alias_keys):
-                    # does removing prefix make it stanard?
-                    prefix = cfgtype[0]
-                    if key.startswith(prefix):
-                        key_ = key[len(prefix):]
-                        if key_ in cfg or key_ in alias_keys:
-                            # remove prefix
-                            cfg_options[key_] = cfg_options[key]
-                    try:
-                        assert key[1:] in cfg or key[1:] in alias_keys, 'key=%r, key[1:] =%r' % (key, key[1:] )
-                    except AssertionError as ex:
-                        ut.printex(ex, 'error', keys=['key', 'cfg', 'alias_keys'])
-                        raise
-                    del cfg_options[key]
-        # Remap keynames based on aliases
-        if alias_keys is not None:
-            for key in alias_keys.keys():
-                if key in cfg_options:
-                    # use standard new key
-                    cfg_options[alias_keys[key]] = cfg_options[key]
-                    # remove old alised key
-                    del cfg_options[key]
-        # Finalize configuration dict
-        cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=True)
-        cfg['_cfgtype'] = cfgtype
-        cfg['_cfgname'] = cfgname
-        cfg['_cfgstr'] = cfgstr
-
-        cfg_combo = ut.all_dict_combinations(cfg)
-        cfg_combo_list.append(cfg_combo)
-    return cfg_combo_list
+        defaultcfg_list = named_defaults_dict[cfgname]
+        if not isinstance(defaultcfg_list, list):
+            defaultcfg_list = [defaultcfg_list]
+        cfg_combos = []
+        for cfg in defaultcfg_list:
+            cfg = cfg.copy()
+            # Parse dict out of a string
+            if len(cfgstr_split) > 1:
+                cfgstr_options =  ':'.join(cfgstr_split[1:]).split(',')
+                cfg_options = ut.parse_cfgstr_list(cfgstr_options, smartcast=True, oldmode=False)
+            else:
+                cfg_options = {}
+            # Hack for q/d-prefix specific configs
+            if cfgtype is not None:
+                for key in list(cfg_options.keys()):
+                    # check if key is nonstandard
+                    if not (key in cfg or key in alias_keys):
+                        # does removing prefix make it stanard?
+                        prefix = cfgtype[0]
+                        if key.startswith(prefix):
+                            key_ = key[len(prefix):]
+                            if key_ in cfg or key_ in alias_keys:
+                                # remove prefix
+                                cfg_options[key_] = cfg_options[key]
+                        try:
+                            assert key[1:] in cfg or key[1:] in alias_keys, 'key=%r, key[1:] =%r' % (key, key[1:] )
+                        except AssertionError as ex:
+                            ut.printex(ex, 'error', keys=['key', 'cfg', 'alias_keys'])
+                            raise
+                        del cfg_options[key]
+            # Remap keynames based on aliases
+            if alias_keys is not None:
+                for key in set(alias_keys.keys()):
+                    if key in cfg_options:
+                        # use standard new key
+                        cfg_options[alias_keys[key]] = cfg_options[key]
+                        # remove old alised key
+                        del cfg_options[key]
+            # Ensure that nothing bad is being updated
+            if valid_keys is not None:
+                ut.assert_all_in(cfg_options.keys(), valid_keys, 'keys specified not in valid set')
+            else:
+                ut.assert_all_in(cfg_options.keys(), cfg.keys(), 'keys specified not in default options')
+            # Finalize configuration dict
+            #cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=False)
+            cfg.update(cfg_options)
+            cfg['_cfgtype'] = cfgtype
+            cfg['_cfgname'] = cfgname
+            cfg['_cfgstr'] = cfgstr
+            cfg_combo = ut.all_dict_combinations(cfg)
+            cfg_combos.extend(cfg_combo)
+        cfg_combos_list.append(cfg_combos)
+    return cfg_combos_list
 
 
 def get_annotcfg_list(ibs, acfg_name_list):

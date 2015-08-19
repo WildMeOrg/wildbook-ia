@@ -64,7 +64,7 @@ def combine_test_results(ibs, test_result_list):
             return acfg_lbl
         if len(acfg_lbl) == 0:
             return lbl
-        return lbl + ',' + acfg_lbl
+        return lbl + '+' + acfg_lbl
     agg_varied_acfg_list = ut.flatten([
         [acfg] * len(test_result.cfg_list)
         for test_result, acfg in zip(test_result_list, varied_acfg_list)
@@ -105,6 +105,14 @@ class TestResult(object):
         test_result.testnameid       = testnameid
         test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         test_result.cfgx2_qreq_      = cfgx2_qreq_
+
+    @property
+    def ibs(test_result):
+        ibs_list = [qreq_.ibs for qreq_ in test_result.cfgx2_qreq_]
+        ibs = ibs_list[0]
+        for ibs_ in ibs_list:
+            assert ibs is ibs_, 'not all query requests are using the same controller'
+        return ibs
 
     @property
     def qaids(test_result):
@@ -280,12 +288,6 @@ class TestResult(object):
             nLessX_dict[int(X)] = lessX_.sum(axis=0)
         return nLessX_dict
 
-    def get_title_aug(test_result):
-        title_aug = ''
-        title_aug += 'a=' + test_result.common_acfg['common']['_cfgname']
-        title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
-        return title_aug
-
     def has_constant_daids(test_result):
         return ut.list_allsame(test_result.cfgx2_daids)
 
@@ -344,6 +346,17 @@ class TestResult(object):
             assert False
         return cfgx_list
 
+    def get_title_aug(test_result):
+        ibs = test_result.ibs
+        title_aug = ''
+        title_aug += ' db=' + (ibs.get_dbname())
+        title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
+        title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
+        title_aug += ' #qaids=%r' % (len(test_result.qaids),)
+        if test_result.has_constant_daids():
+            title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+        return title_aug
+
     def print_unique_annot_config_stats(test_result, ibs):
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids) for daids in test_result.cfgx2_daids]
         unique_daids = ut.list_compress(test_result.cfgx2_daids, ut.flag_unique_items(cfx2_dannot_hashid))
@@ -356,3 +369,33 @@ class TestResult(object):
             print('count = %r/%r' % (count, len(unique_daids)))
             annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
             print('L___')
+
+    def print_results(test_result):
+        r"""
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-print_results
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.experiments import experiment_harness
+            >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
+            >>> result = test_result.print_results()
+            >>> print(result)
+        """
+        from ibeis.experiments import experiment_printres
+        ibs = test_result.ibs
+        experiment_printres.print_results(ibs, test_result)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.experiments.experiment_storage
+        python -m ibeis.experiments.experiment_storage --allexamples
+        python -m ibeis.experiments.experiment_storage --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

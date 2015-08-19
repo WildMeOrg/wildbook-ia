@@ -143,15 +143,7 @@ def print_results(ibs, test_result):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
         >>> from ibeis.experiments import experiment_harness
-        >>> import ibeis
-        >>> # build test data
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> ibs = ibeis.opendb(defaultdb='testdb3')
-        >>> test_cfg_name_list = ['pyrscale']
-        >>> qaids = ibs.get_valid_aids(species=species, hasgt=True)
-        >>> d aids = ibs.get_valid_aids(species=species)
-        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
+        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
         >>> # execute function
         >>> result = print_results(ibs, test_result)
         >>> # verify results
@@ -387,7 +379,7 @@ def print_results(ibs, test_result):
         best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
         best_rankscore += eh.rankscore_str(X, max_LessX, nQuery)
         best_rankscore_summary += [best_rankscore]
-        to_intersect_list += [cfgx2_lbl[bestCFG_X]]
+        to_intersect_list.append(ut.list_take(cfgx2_lbl, bestCFG_X))
 
     intersected = to_intersect_list[0] if len(to_intersect_list) > 0 else []
     for ix in range(1, len(to_intersect_list)):

@@ -44,13 +44,8 @@ def draw_rank_surface(ibs, test_result):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
         >>> from ibeis.experiments import experiment_harness
-        >>> from ibeis.experiments import experiment_storage
         >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
-        >>> #test_result = experiment_storage.combine_test_results(ibs, test_result_list)
-        >>> #test_result = test_result_list[0]
-        >>> #ibs, test_result = experiment_harness.get_cmdline_test_result()
         >>> result = draw_rank_surface(ibs, test_result)
-        >>> #result = draw_rank_surface(ibs, test_result_list[1])
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -121,16 +116,13 @@ def draw_rank_surface(ibs, test_result):
 
     figtitle = (
         'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks ≤ 1 for\n')
-    figtitle += ' db=' + (ibs.get_dbname())
     figtitle += ' ' + test_result.get_title_aug()
 
-    figtitle += ' #qaids=%r' % (len(test_result.qaids),)
-    if test_result.has_constant_daids():
-        figtitle += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+    test_result.print_unique_annot_config_stats()
 
-    if test_result.has_constant_daids():
-        print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
-        annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+    #if test_result.has_constant_daids():
+    #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+    #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
     pt.set_figtitle(figtitle)
 
 
@@ -145,15 +137,15 @@ def draw_rank_cdf(ibs, test_result):
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a controlled:qsize=1 controlled:qsize=3
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy --db PZ_MTEST -a controlled --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy --db PZ_Master0 --controlled --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_Master0 --controlled --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_Master0 --controlled --show
 
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_MTEST --controlled --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy --db PZ_MTEST -a controlled --show
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
 
-        python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy -a controlled --db PZ_MTEST --show
+        python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a controlled --db PZ_MTEST --show
 
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master0   --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
 
@@ -186,34 +178,9 @@ def draw_rank_cdf(ibs, test_result):
     #
     figtitle = (
         'Cumulative Histogram of GT-Ranks for\n')
-    #figtitle += ' %r' % (', '.join(test_result.test_cfg_name_list),)
-    #if test_result.annot_info is not None:
-    #    if test_result.annot_info['d aids']['controlled']:
-    #        figtitle += ' Controlled. '
-    #        #figtitle += (
-    #        #    ' num_qaids=%r' % (len(test_result.qaids)) +
-    #        #    ' num_d aids=%r' % (len(test_result.d aids))
-    #        #)
-    figtitle += ' db=' + (ibs.get_dbname())
     figtitle += ' ' + test_result.get_title_aug()
 
-    figtitle += ' #qaids=%r' % (len(test_result.qaids),)
-    if test_result.has_constant_daids():
-        figtitle += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
-
-    #if test_result.has_constant_daids():
-    #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
-    #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
-    #else:
     test_result.print_unique_annot_config_stats(ibs)
-    #small_info = ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_d aids', 'num_intersect'])
-    #small_info_str = '\n' + ut.dict_str(small_info, strvals=True, newlines=False, explicit=True, nobraces=True).replace('\'', '')
-    #small_info_str += ' mean(yawdiff)=' + ut.scalar_str(locals_['gt_yawdist_stats']['mean'], precision=2)
-    #small_info_str += ' mean(qualdiff)=' + ut.scalar_str(locals_['gt_qualdist_stats']['mean'], precision=2)
-
-    #figtitle += small_info_str
-
-    #cdf_list = config_cdfs
 
     import vtool as vt
     # Find where the functions no longer change
@@ -223,7 +190,7 @@ def draw_rank_cdf(ibs, test_result):
     nonzero_poses = (len(cdf_list.T) - 1) - reverse_changing_pos
     maxrank = np.nanmax(nonzero_poses)
 
-    maxrank = 10
+    maxrank = 5
 
     maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
 
@@ -234,23 +201,29 @@ def draw_rank_cdf(ibs, test_result):
         #short_cdf_list = cdf_list[:, 0:maxpos]
         #short_edges = edges[0:maxpos + 1]
 
-    cumhist_kw = dict(xlabel='rank', ylabel='# queries < rank',)
-
     fnum = pt.ensure_fnum(None)
 
-    pt.plot_rank_cumhist(short_cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
-                         edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=True,
-                         **cumhist_kw)
-    ax1 = pt.gca()
-    pt.plot_rank_cumhist(cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
-                         edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
-                         **cumhist_kw)
-    ax2 = pt.gca()
-    pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
+    #cumhist_kw = dict(xlabel='rank', ylabel='# queries < rank',)
+    #pt.plot_rank_cumhist(short_cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
+    #                     edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=True,
+    #                     **cumhist_kw)
+    #ax1 = pt.gca()
+    #pt.plot_rank_cumhist(cdf_list, lbl_list, color_list=color_list, marker_list=marker_list,
+    #                     edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
+    #                     **cumhist_kw)
+    #ax2 = pt.gca()
+    #pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
 
-    pt.set_figtitle(figtitle)
     #percent_cdf_list = cdf_list / len(test_result.qaids)
-    #fig = pt.plot_rank_cumhist(percent_cdf_list, lbl_list, edges=edges, figtitle=figtitle, xlabel='rank', ylabel='% queries < rank')  # NOQA
+
+    percent_cdf_list = 100 * short_cdf_list / len(test_result.qaids)
+    edges = short_edges
+    pt.plot_rank_cumhist(
+        percent_cdf_list, lbl_list, color_list=color_list,
+        marker_list=marker_list, edges=edges, figtitle=figtitle,
+        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum)
+    # NOQA
+    pt.set_figtitle(figtitle)
 
 
 def make_metadata_custom_api(metadata):

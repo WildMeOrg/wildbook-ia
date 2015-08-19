@@ -11,9 +11,9 @@ CommandLine:
     python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
 
     # Info about configs for a test
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy -a controlled --db PZ_MTEST --acfginfo
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy:sample_size=None -a controlled --db PZ_Master0 --acfginfo
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy -a controlled --db NNP_Master3 --acfginfo
+    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db PZ_MTEST --acfginfo
+    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline:sample_size=None -a controlled --db PZ_Master0 --acfginfo
+    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db NNP_Master3 --acfginfo
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
@@ -76,7 +76,7 @@ def precompute_data():
         ]),
         ('dbname', get_dbnames()),
         ('acfg_name', ['default:qaids=allgt,species=primary,viewpoint_base=primary,is_known=True']),
-        ('cfg_name', ['default', 'candidacy', 'candidacy_invariance']),
+        ('cfg_name', ['default', 'candidacy_baseline', 'candidacy_invariance']),
     ])
     return make_standard_test_scripts(varydict, 'preload', 'preload')
 
@@ -121,7 +121,7 @@ def baseline_experiments():
         #('acfg_name', ['controlled']),
         #('acfg_name', ['controlled', 'controlled2']),
         ('acfg_name', ACFG_NAME_CONTROLLED_OPTIONS),
-        ('cfg_name', ['candidacy']),
+        ('cfg_name', ['candidacy_baseline']),
         ('dbname', get_dbnames()),
     ])
     return make_standard_test_scripts(varydict, 'baseline', 'cumhist')
@@ -134,6 +134,7 @@ def invariance_experiments():
 
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-invariance_experiments
+        python -m ibeis.scripts.gen_cand_expts --exec-invariance_experiments --full
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
@@ -334,7 +335,7 @@ def gen_dbranks_tables():
         ''')
 
     #gen_table_line =
-    #sh ExptPrint.sh -t candidacy --allgt --species=primary --db GZ_ALL --rank-lt-list=1,5,10,100
+    #sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db GZ_ALL --rank-lt-list=1,5,10,100
     pass
 
 

@@ -26,7 +26,7 @@ TEST_INFO = True
 def testdata_expts(defaultdb='testdb1',
                    default_acfgstr_name_list=['controlled:qsize=20,dper_name=1,dsize=10',
                                               'controlled:qsize=20,dper_name=10,dsize=100'],
-                   default_test_cfg_name_list=['custom', 'custom:fg_on=False']):
+                   default_test_cfg_name_list=['default', 'default:fg_on=False']):
     """
     Command line interface to quickly get testdata for test_results
     """

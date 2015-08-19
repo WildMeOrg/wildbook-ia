@@ -50,13 +50,16 @@ def get_candidacy_dbnames():
 #    pass
 
 
+default = {}
+
+
 candidacy_k = [
     {'K': [1, 2, 4, 7]},
 ]
 
-candidacy = [
+candidacy_baseline = [
     {},
-    {'fg_on': [False]},
+    {'fg_on': [True]},
     {'sv_on': [False]},
     {'K': [1, 2, 4, 10]},
     #{'score_method': ['csum'], 'prescore_method ': ['csum']},
@@ -95,10 +98,13 @@ candidacy_namescore = [
     }
 ]
 
-candidacy_linear = candidacy + [
+candidacy_linear = candidacy_baseline + [
     {'algorithm': ['linear'], 'K': [1, 2, 4]},
     {'algorithm': ['linear'], 'K': [1], 'augment_queryside_hack': [True]},
 ]
+
+
+#--------------
 
 
 elph = [

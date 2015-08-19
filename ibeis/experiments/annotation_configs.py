@@ -102,25 +102,28 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
 
 def get_varied_labels(acfg_list):
     #print(ut.list_str(varied_acfg_list, nl=2))
+    cfgname_list = []
+    for aid in acfg_list:
+        assert aid['qcfg']['_cfgname'] == aid['dcfg']['_cfgname'], 'should be the same for now'
+        cfgname_list.append(aid['qcfg']['_cfgname'])
+
     flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
 
     shortened_cfg_list = [{shorten_to_alias_labels(key): val for key, val in _dict.items()} for _dict in varied_acfg_list]
-    shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
-    shortened_lbl_list = [multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  shortened_lbl_list]
+    #shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
+    nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', 'q_cfgstr', 'q_cfgname', 'q_cfgtype', 'd_cfgstr', 'd_cfgname', 'd_cfgtype']
+    shortened_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), nonlbl_keys), explicit=True, nl=False) for _dict in shortened_cfg_list]
+
+    shortened_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  shortened_lbl_list]
+    shortened_lbl_list = [cfgname + ':' + lbl for cfgname, lbl in zip(cfgname_list, shortened_lbl_list)]
     #print('\n'.join(shortened_lbl_list))
     return shortened_lbl_list
-
-
-def multi_replace(str_, search_list, repl_list):
-    for search, repl in zip(search_list, repl_list):
-        str_ = str_.replace(search, repl)
-    return str_
 
 
 def shorten_to_alias_labels(key):
     search_list = list(ALIAS_KEYS.values()) + ['qcfg_', 'dcfg_']
     repl_list = list(ALIAS_KEYS.keys()) + ['q', 'd']
-    return multi_replace(key, search_list, repl_list)
+    return ut.multi_replace(key, search_list, repl_list)
 
 
 def partition_varied_acfg_list(acfg_list):
