@@ -235,7 +235,7 @@ def show_if_requested(N=1):
         import vtool as vt
 
         #print(sys.argv)
-        ut.print_dict(arg_dict)
+        #ut.print_dict(arg_dict)
         fpath_ = fpath_.format(**arg_dict)
         dpath = ut.get_argval('--dpath', type_=str, default=None)
         fpath = join(dpath, fpath_)

@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
 import utool as ut
@@ -43,7 +44,8 @@ def _init_mpl_rcparams():
     else:
         toolbar = 'toolbar2'
     mpl.rcParams['toolbar'] = toolbar
-    mpl.rc('text', usetex=False)
+    #mpl.rc('text', usetex=False)
+    #mpl.rc('text', usetex=True)
     mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
