@@ -46,11 +46,15 @@ def register_testgen(func):
 
 
 if ut.get_argflag('--full'):
-    ACFG_NAME_CONTROLLED_OPTIONS = ['controlled', 'controlled2']
-    ACFG_NAME_VARYSIZE_OPTIONS = ['varysize', 'varysize2']
+    ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
+    ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
+    #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2']
+    ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
+    ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
 else:
-    ACFG_NAME_CONTROLLED_OPTIONS = ['controlled']
-    ACFG_NAME_VARYSIZE_OPTIONS = ['varysize']
+    ACFG_OPTION_CONTROLLED = ['controlled']
+    ACFG_OPTION_VARYSIZE = ['varysize']
+    ACFG_OPTION_VARYPERNAME = ['varypername']
 
 
 #@register_testgen
@@ -120,7 +124,7 @@ def baseline_experiments():
     varydict = ut.odict([
         #('acfg_name', ['controlled']),
         #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_NAME_CONTROLLED_OPTIONS),
+        ('acfg_name', ACFG_OPTION_CONTROLLED),
         ('cfg_name', ['candidacy_baseline']),
         ('dbname', get_dbnames()),
     ])
@@ -145,7 +149,7 @@ def invariance_experiments():
     varydict = ut.odict([
         #('acfg_name', ['controlled']),
         #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ACFG_NAME_CONTROLLED_OPTIONS),
+        ('acfg_name', ACFG_OPTION_CONTROLLED),
         ('cfg_name', ['candidacy_invariance']),
         ('dbname', get_dbnames()),
     ])
@@ -166,7 +170,7 @@ def namescore_experiments():
     """
     varydict = ut.odict([
         #('acfg_name', ['controlled', 'controlled2']),
-        ('acfg_name', ['controlled', 'varypername']),
+        ('acfg_name', ACFG_OPTION_CONTROLLED + ACFG_OPTION_VARYPERNAME),
         ('cfg_name', ['candidacy_namescore']),
         ('dbname', get_dbnames()),
     ])
@@ -185,11 +189,12 @@ def k_experiments():
         >>> k_experiments()
     """
     varydict = ut.odict([
-        ('acfg_name', ACFG_NAME_VARYSIZE_OPTIONS),
+        ('acfg_name', ACFG_OPTION_VARYSIZE),
         ('cfg_name', ['candidacy_k']),
         ('dbname', get_dbnames(exclude_list=['PZ_FlankHack', 'PZ_MTEST'])),
     ])
-    return make_standard_test_scripts(varydict, 'k', ['surface3d', 'surface2d'])
+    #return make_standard_test_scripts(varydict, 'k', ['surface3d', 'surface2d'])
+    return make_standard_test_scripts(varydict, 'k', ['surface2d'])
 
 
 @register_testgen
@@ -206,9 +211,9 @@ def viewpoint_experiments():
     """
     #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
-        ('dbname', ['NNP_Master3', 'PZ_Master0']),
         ('acfg_name', ['viewpoint_compare']),
         ('cfg_name', ['default']),
+        ('dbname', ['NNP_Master3', 'PZ_Master0']),
     ])
     return make_standard_test_scripts(varydict, 'view', 'cumhist')
 

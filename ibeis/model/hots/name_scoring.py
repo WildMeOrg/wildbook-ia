@@ -192,6 +192,9 @@ def compute_nsum_score2(cm, qreq_=None):
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     """
 
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA

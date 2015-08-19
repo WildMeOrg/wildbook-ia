@@ -86,6 +86,16 @@ candidacy_invariance = [
 
 candidacy_namescore = [
     {
+        'K': 1,
+        'score_method':      ['nsum'],
+        'prescore_method':   ['nsum'],
+    },
+    {
+        'K': 1,
+        'score_method':      ['csum'],
+        'prescore_method':   ['csum'],
+    },
+    {
         'score_method':      ['nsum'],
         'prescore_method':   ['nsum'],
     },
