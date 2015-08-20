@@ -357,10 +357,11 @@ class TestResult(object):
             daids = test_result.cfgx2_daids[0]
             title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
             locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
-            if locals_['all_daid_per_name_stats']['std'] == 0:
-                title_aug += ' dper_name=%r' % (locals_['all_daid_per_name_stats']['mean'],)
+            all_daid_per_name_stats = locals_['all_daid_per_name_stats']
+            if all_daid_per_name_stats['std'] == 0:
+                title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
             else:
-                title_aug += ' dper_name=%r±' % (locals_['all_daid_per_name_stats']['mean'], locals_['all_daid_per_name_stats']['std'],)
+                title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
         return title_aug
 
     def print_unique_annot_config_stats(test_result, ibs):

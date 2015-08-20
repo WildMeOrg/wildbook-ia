@@ -78,7 +78,7 @@ def draw_rank_surface(ibs, test_result):
     miny = rank_lt1_list.min()
     # Use consistent markers and colors.
     color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
-    marker_list = pt.distinctive_markers(len(basis_dict[param_key_list[-1]]))
+    marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
         rank_list = ut.list_take(rank_lt1_list, const_basis_cfgx_list)
@@ -123,7 +123,7 @@ def draw_rank_surface(ibs, test_result):
     #if test_result.has_constant_daids():
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
     #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
-    pt.set_figtitle(figtitle)
+    pt.set_figtitle(figtitle, size=10)
 
 
 def draw_rank_cdf(ibs, test_result):
@@ -168,7 +168,7 @@ def draw_rank_cdf(ibs, test_result):
     cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     lbl_list = test_result.get_short_cfglbls()
     color_list = pt.distinct_colors(len(lbl_list))
-    marker_list = pt.distinctive_markers(len(lbl_list))
+    marker_list = pt.distinct_markers(len(lbl_list))
     # Order cdf list by rank0
     sortx = cdf_list.T[0].argsort()[::-1]
     lbl_list = ut.list_take(lbl_list, sortx)
@@ -220,10 +220,13 @@ def draw_rank_cdf(ibs, test_result):
     edges = short_edges
     pt.plot_rank_cumhist(
         percent_cdf_list, lbl_list, color_list=color_list,
-        marker_list=marker_list, edges=edges, figtitle=figtitle,
-        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum)
+        marker_list=marker_list, edges=edges,
+        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum, max_xticks=maxrank,
+        legend_loc='lower right',
+        labelsize=10, ticksize=8, legendsize=8,
+    )
     # NOQA
-    pt.set_figtitle(figtitle)
+    pt.set_figtitle(figtitle, size=10)
 
 
 def make_metadata_custom_api(metadata):
