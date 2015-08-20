@@ -114,26 +114,26 @@ TMP_mevent = None
 plotWidget = None
 
 
-def distinctive_markers(num):
+def distinct_markers(num):
     r"""
     Args:
         num (?):
 
     CommandLine:
-        python -m plottool.draw_func2 --exec-distinctive_markers --show
+        python -m plottool.draw_func2 --exec-distinct_markers --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
-        >>> marker_list = distinctive_markers(10)
+        >>> marker_list = distinct_markers(10)
         >>> x_data = np.arange(0, 3)
         >>> for count, (marker) in enumerate(marker_list):
         >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, markersize=10, linestyle='', label=str(marker))
         >>> pt.legend()
         >>> ut.show_if_requested()
     """
-    distinctive_markers = {
+    distinct_markers = {
         u'*': u'star',
         u'+': u'plus',
         #u'.': u'point',
@@ -160,8 +160,8 @@ def distinctive_markers(num):
     style = {'astrisk': 2, 'star': 1, 'polygon': 0, 'circle': 3}['astrisk']
     return [(num_sides, style, count / num * (360 / num_sides)) for count in range(num)]
     if num is None:
-        return list(distinctive_markers.keys())
-    return list(distinctive_markers.keys())[:num]
+        return list(distinct_markers.keys())
+    return list(distinct_markers.keys())[:num]
 
 
 def get_all_markers():
@@ -1284,11 +1284,15 @@ LEGEND_LOCATION = {
 
 
 #def legend(loc='upper right', fontproperties=None):
-def legend(loc='best', fontproperties=None):
+def legend(loc='best', fontproperties=None, size=None):
+    assert loc in LEGEND_LOCATION or loc == 'best', 'invalid loc. try one of %r' % (LEGEND_LOCATION,)
     ax = gca()
     if fontproperties is None:
         fontproperties = custom_constants.FONTS.legend
-    ax.legend(prop=fontproperties, loc=loc)
+    prop = {}
+    if size is not None:
+        prop['size'] = size
+    ax.legend(loc=loc, prop=prop)
 
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):

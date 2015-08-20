@@ -370,8 +370,9 @@ def set_ylabel(lbl):
     ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
-def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 font='figtitle'):
+def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True, size=12, font=None):
+    if font is not None:
+        print('WARNING set_figtitle font kwarg is DEPRICATED')
     if figtitle is None:
         figtitle = ''
     fig = gcf()
@@ -379,8 +380,10 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         if subtitle != '':
             subtitle = '\n' + subtitle
         #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
-        fontprop = getattr(custom_constants.FONTS, font)
-        fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
+        #fontprop = getattr(custom_constants.FONTS, font)
+        #fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
+        fontproperties = mpl.font_manager.FontProperties(weight='light', size=size)
+        fig.suptitle(figtitle + subtitle, fontproperties=fontproperties)
         #fig_relative_text(.5, .96, subtitle, fontproperties=custom_constants.FONTS.subtitle)
     else:
         fig.suptitle('')
