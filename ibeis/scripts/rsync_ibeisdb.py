@@ -40,6 +40,7 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
     print('[rsync] src_uri = %r ' % (src_uri,))
     print('[rsync] dst_uri = %r ' % (dst_uri,))
     print('[rsync] cmdstr = %r' % cmdstr)
+    print(cmdstr)
 
     #if not dryrun:
     ut.cmd(cmdstr, dryrun=dryrun)
@@ -136,6 +137,8 @@ if __name__ == '__main__':
 
         python -m ibeis.scripts.rsync_ibeisdb push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
         python -m ibeis.scripts.rsync_ibeisdb push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
+
+        python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 
     """
     rsync_ibsdb_main()

@@ -64,6 +64,7 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0
         python -m ibeis.other.dbinfo --test-get_dbinfo:1
         python -m ibeis.other.dbinfo --test-get_dbinfo:1  --db NNP_Master3
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:1 --db PZ_ViewPoints
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -73,7 +74,7 @@ def get_dbinfo(ibs, verbose=True,
         >>> short = True
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
-        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
         >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
