@@ -16,7 +16,8 @@ ut.noinject(__name__, '[plots]')
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
                          target_label, title=None, fnum=None, pnum=None,
-                         use_legend=True, miny=None, maxy=None, color_list=None, marker_list=None, **kwargs):
+                         use_legend=True, ymin=None, ymax=None,
+                         color_list=None, marker_list=None, **kwargs):
     r"""
 
     CommandLine:
@@ -93,14 +94,14 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     #ax.set_xlabel(nd_labels[0], fontproperties=label_fontprop)
     #ax.set_ylabel(target_label, fontproperties=label_fontprop)
 
-    #if maxy is None:
-    #    maxy = np.nanmax(ydata)
-    #if miny is None:
-    #    miny = np.nanmin(ydata)
+    #if ymax is None:
+    #    ymax = np.nanmax(ydata)
+    #if ymin is None:
+    #    ymin = np.nanmin(ydata)
 
     #ypad_max = 1
     #ypad_min = 1
-    #ax.set_ylim(miny - ypad_min, maxy + ypad_max)
+    #ax.set_ylim(ymin - ypad_min, ymax + ypad_max)
 
     #ax.set_yticks(nd_basis[1])
     #ax.set_xticks(nd_basis[0])
@@ -123,7 +124,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
 def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edges=None,
                       fnum=None, pnum=None, title=None, xlabel='',
-                      ylabel='cumfreq', use_legend=True, max_xticks=None, **kwargs):
+                      ylabel='cumfreq', use_legend=True, num_xticks=None, **kwargs):
     r"""
 
     CommandLine:
@@ -174,7 +175,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
         label_list=lbl_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
         # ---
-        max_xticks=max_xticks, xlabel=xlabel, ylabel=ylabel, title=title,
+        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel, title=title,
         # ---
         use_legend=use_legend,
         # ---
@@ -210,9 +211,9 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
 
     #step_size = int(np.log(x_data.max() + 1))
     #step_size = int(np.sqrt(x_data.max() + 1))
-    if max_xticks is not None:
+    if num_xticks is not None:
         max_pos = (x_data.max() + 1)
-        step_size = int(max_pos / max_xticks)
+        step_size = int(max_pos / num_xticks)
         df2.set_xticks(np.arange(1, max_pos, step_size))
     #df2.dark_background()
 
@@ -231,6 +232,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ydata_list (list of ndarrays):
 
     Kwargs:
+        fnum, pnum, title, xlabel, ylabel, num_xticks, use_legend, legend_loc,
+        labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize
         can append _list to any of these
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
 
@@ -285,7 +288,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
     title           = kwargs.get('title', None)
     xlabel          = kwargs.get('xlabel', '')
     ylabel          = kwargs.get('ylabel', '')
-    max_xticks      = kwargs.get('max_xticks', None)
     use_legend      = kwargs.get('use_legend', True)
     legend_loc      = kwargs.get('legend_loc', 'best')
 
@@ -320,11 +322,41 @@ def multi_plot(xdata, ydata_list, **kwargs):
         for label in ax.get_yticklabels():
             label.set_fontsize(ticksize)
 
+    # Setup axes limits
+    xmin = kwargs.get('xmin', ax.get_xlim()[0])
+    xmax = kwargs.get('xmax', ax.get_xlim()[1])
+    ymin = kwargs.get('ymin', ax.get_ylim()[0])
+    ymax = kwargs.get('ymax', ax.get_ylim()[1])
+
     # Setup axes ticks
-    if max_xticks is not None:
-        max_pos = (xdata.max() + 1)
-        step_size = int(max_pos / max_xticks)
-        pt.set_xticks(np.arange(1, max_pos, step_size))
+    num_xticks = kwargs.get('num_xticks', None)
+    if num_xticks is not None:
+        xticks = np.linspace(xmin, xmax, num_xticks)
+        ax.set_xticks(xticks)
+        #max_pos = (xdata.max() + 1)
+        #step_size = int(max_pos // num_xticks)
+        #ax.set_xticks(np.arange(1, max_pos, step_size))
+    num_yticks = kwargs.get('num_yticks', None)
+    if num_yticks is not None:
+        yticks = np.linspace(ymin, ymax, num_yticks)
+        #ystep = (ymax - ymin) // (num_yticks - 1)
+        #yticks = np.arange(ymin, ymax + ystep, ystep)
+        ax.set_yticks(yticks)
+
+    xpad = kwargs.get('xpad', None)
+    ypad = kwargs.get('ypad', None)
+    xpad_factor = kwargs.get('xpad_factor', None)
+    ypad_factor = kwargs.get('ypad_factor', None)
+    if xpad is None and xpad_factor is not None:
+        xpad = (xmax - xmin) * xpad_factor
+    if ypad is None and ypad_factor is not None:
+        ypad = (ymax - ymin) * ypad_factor
+    xpad = 0 if xpad is None else xpad
+    ypad = 0 if ypad is None else ypad
+    xmin, xmax = (xmin - xpad), (xmax + xpad)
+    ymin, ymax = (ymin - ypad), (ymax + ypad)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
 
     # Setup title
     if title is not None:
@@ -718,10 +750,10 @@ def plot_sorted_scores(scores_list,
     if use_stems is None:
         use_stems = len(scores_list) == 2
     if use_stems:
-        maxy = sorted_scores.max()
+        ymax = sorted_scores.max()
         absolute_bottom = sorted_scores.min()
         for lblx in range(len(scores_list)):
-            bottom = (absolute_bottom - (maxy * .1)) if lblx % 2 == 1 else maxy
+            bottom = (absolute_bottom - (ymax * .1)) if lblx % 2 == 1 else ymax
             color = score_colors[lblx]
             xdata = np.where(sorted_labelx == lblx)[0]
             ydata = sorted_scores[xdata]
