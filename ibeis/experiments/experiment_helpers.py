@@ -342,15 +342,18 @@ def get_annotcfg_list(ibs, acfg_name_list):
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
         >>> result = ut.list_str(acfg_list, nl=3)
-        >>> for count, (aidcfg, (qaid_list, daid_list)) in enumerate(zip(acfg_list, expanded_aids_list)):
-        >>>     print('------')
-        >>>     print('Printing annot config%d' % (count,))
-        >>>     annotation_configs.print_acfg(aidcfg)
-        >>>     print('Printing annotconfig stats')
-        >>>     #print('qaid_list = %r' % (np.array(qaid_list),))
-        >>>     ibs.get_annotconfig_stats(qaid_list, daid_list)
-        >>>     print('Combined annotconfig stats')
-        >>>     ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
+        >>> print('\n')
+        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
+
+        #>>> for count, (aidcfg, (qaid_list, daid_list)) in enumerate(zip(acfg_list, expanded_aids_list)):
+        #>>>     print('------')
+        #>>>     print('Printing annot config %d/%d' % (count,, len(acfg_list)))
+        #>>>     annotation_configs.print_acfg(aidcfg)
+        #>>>     print('Printing annotconfig stats')
+        #>>>     #print('qaid_list = %r' % (np.array(qaid_list),))
+        #>>>     ibs.get_annotconfig_stats(qaid_list, daid_list)
+        #>>>     print('Combined annotconfig stats')
+        #>>>     ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
 
     #Example1:
     #    >>> # DISABLE_DOCTEST

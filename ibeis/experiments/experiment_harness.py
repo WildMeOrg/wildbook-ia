@@ -23,24 +23,6 @@ NOCACHE_TESTRES =  ut.get_argflag('--nocache-testres', False)
 TEST_INFO = True
 
 
-def testdata_expts(defaultdb='testdb1',
-                   default_acfgstr_name_list=['controlled:qsize=20,dper_name=1,dsize=10',
-                                              'controlled:qsize=20,dper_name=10,dsize=100'],
-                   default_test_cfg_name_list=['default', 'default:fg_on=False']):
-    """
-    Command line interface to quickly get testdata for test_results
-    """
-    import ibeis
-    #from ibeis.experiments import experiment_helpers
-    ibs = ibeis.opendb(defaultdb=defaultdb)
-    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-    test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
-    test_result = experiment_storage.combine_test_results(ibs, test_result_list)
-    return ibs, test_result
-    #return ibs, test_result_list
-
-
 def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     """
     Loops over annot configs.
@@ -87,17 +69,17 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
         # Print info about annots for the test
         ut.colorprint('Requested AcfgInfo for tests... ', 'red')
-        nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(acfg_list)
-
-        print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
-        for acfgx, (qaids, daids) in enumerate(expanded_aids_list):
-            ut.colorprint('+-----------', 'white')
-            print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
-            annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True)
-            #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
-            #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
-            #_ = ibs.get_annotconfig_stats(qaids, daids)
-            ut.colorprint('L___________', 'white')
+        annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
+        #nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(acfg_list)
+        #print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
+        #for acfgx, (qaids, daids) in enumerate(expanded_aids_list):
+        #    ut.colorprint('+-----------', 'white')
+        #    print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
+        #    annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True)
+        #    #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
+        #    #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
+        #    #_ = ibs.get_annotconfig_stats(qaids, daids)
+        #    ut.colorprint('L___________', 'white')
         ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
         sys.exit(1)
 

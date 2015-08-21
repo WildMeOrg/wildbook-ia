@@ -24,6 +24,39 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
+def testdata_ibeis2(defaultdb='testdb1', default_aidcfg_name_list=['default']):
+    """
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+    """
+    print('[testdata_ibeis2] Getting test annot configs')
+    from ibeis.experiments import experiment_helpers
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+    return ibs, expanded_aids_list
+
+
+def testdata_expts(defaultdb='testdb1',
+                   default_acfgstr_name_list=['controlled:qsize=20,dper_name=1,dsize=10',
+                                              'controlled:qsize=20,dper_name=10,dsize=100'],
+                   default_test_cfg_name_list=['default', 'default:fg_on=False']):
+    """
+    Command line interface to quickly get testdata for test_results
+    """
+    import ibeis
+    from ibeis.experiments import experiment_harness
+    from ibeis.experiments import experiment_storage
+    #from ibeis.experiments import experiment_helpers
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
+    test_result_list = experiment_harness.run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
+    test_result = experiment_storage.combine_test_results(ibs, test_result_list)
+    return ibs, test_result
+    #return ibs, test_result_list
+
+
 def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', ibs=None, verbose=False, return_annot_info=False):
     r"""
     Args:
@@ -92,19 +125,6 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         return ibs, qaid_list, daid_list, aidcfg
     else:
         return ibs, qaid_list, daid_list
-
-
-def testdata_ibeis2(defaultdb='testdb1', default_aidcfg_name_list=['default']):
-    """
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-    """
-    print('[testdata_ibeis2] Getting test annot configs')
-    from ibeis.experiments import experiment_helpers
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
-    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
-    return ibs, expanded_aids_list
 
 
 @profile

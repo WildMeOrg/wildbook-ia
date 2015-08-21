@@ -57,14 +57,8 @@ def print_latexsum(ibs, test_result, verbose=True):
     Example:
         >>> # SCRIPT
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
-        >>> from ibeis.experiments import experiment_harness
-        >>> import ibeis.init.main_helpers
-        >>> #ibs, qaids, d aids, annot_request_info = ibeis.init.main_helpers.testdata_ibeis(verbose=False, return_extra_info=True)
-        >>> #ibs, test_result_list = experiment_harness.testdata_expts()
-        >>> ibs, test_result = experiment_harness.testdata_expts()
-        >>> #test_result = test_result_list[0]
-        >>> #test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-        >>> #test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts()
         >>> tabular_str2 = print_latexsum(ibs, test_result)
     """
     print('==========================')

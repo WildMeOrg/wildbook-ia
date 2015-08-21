@@ -43,8 +43,8 @@ def draw_rank_surface(ibs, test_result):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
-        >>> from ibeis.experiments import experiment_harness
-        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_rank_surface(ibs, test_result)
         >>> ut.show_if_requested()
         >>> print(result)
@@ -74,8 +74,8 @@ def draw_rank_surface(ibs, test_result):
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
-    maxy = rank_lt1_list.max()
-    miny = rank_lt1_list.min()
+    ymax = rank_lt1_list.max()
+    ymin = rank_lt1_list.min()
     # Use consistent markers and colors.
     color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
     marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
@@ -110,7 +110,7 @@ def draw_rank_surface(ibs, test_result):
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list,
-                                    fnum=1, pnum=pnum_(), miny=miny, maxy=maxy)
+                                    fnum=1, pnum=pnum_(), ymin=ymin, ymax=ymax)
             #pt.plot2(
         #(const_idx + 1))
 
@@ -153,14 +153,9 @@ def draw_rank_cdf(ibs, test_result):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
-        >>> from ibeis.experiments import experiment_harness
-        >>> from ibeis.experiments import experiment_storage
-        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
-        >>> #test_result = experiment_storage.combine_test_results(ibs, test_result_list)
-        >>> #test_result = test_result_list[0]
-        >>> #ibs, test_result = experiment_harness.get_cmdline_test_result()
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_rank_cdf(ibs, test_result)
-        >>> #result = draw_rank_cdf(ibs, test_result_list[1])
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -220,9 +215,9 @@ def draw_rank_cdf(ibs, test_result):
     pt.plot_rank_cumhist(
         percent_cdf_list, lbl_list, color_list=color_list,
         marker_list=marker_list, edges=edges,
-        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum, max_xticks=maxrank,
+        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum, max_xticks=maxrank, num_yticks=11,
         legend_loc='lower right',
-        labelsize=10, ticksize=8, legendsize=8,
+        labelsize=10, ticksize=8, legendsize=8, ymax=100, ymin=0, ypad=.5, xpad=.05
     )
     # NOQA
     pt.set_figtitle(figtitle, size=10)
@@ -489,17 +484,8 @@ def draw_results(ibs, test_result):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
-        >>> from ibeis.experiments import experiment_harness
-        >>> import ibeis
-        >>> # build test data
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> ibs = ibeis.opendb(defaultdb='testdb3')
-        >>> #test_cfg_name_list = ['pyrscale']
-        >>> test_cfg_name_list = ['custom', 'custom:sv_on=False']
-        >>> qaids = ibs.get_valid_aids(species=species, hasgt=True)
-        >>> d aids = ibs.get_valid_aids(species=species)
-        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, d aids, test_cfg_name_list)
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> # execute function
         >>> result = draw_results(ibs, test_result)
         >>> # verify results
