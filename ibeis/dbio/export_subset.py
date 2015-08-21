@@ -1278,9 +1278,13 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
         >>> from ibeis.init import main_helpers
-        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('PZ_MTEST', default_aidcfg_name_list=['default:viewpoint_counts=#primary>0&#primary1>0'])
-        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('NNP_Master3', default_aidcfg_name_list=['default:viewpoint_counts=#primary>=1&#primary1>=1'])
-        >>> aid_list = ibs.get_valid_aids()
+        >>> #ibs, expanded_aids_list = main_helpers.testdata_ibeis2('PZ_MTEST', default_aidcfg_name_list=['default:aids=all,viewpoint_counts=#primary>0'])
+        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('NNP_Master3', default_aidcfg_name_list=['default:aids=all,is_known=True,viewpoint_counts=#primary>0&#primary1>0,per_name=4,size=200'])
+        >>> aid_list = expanded_aids_list[0][0]
+        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
+        >>> gid_list = ut.unique_keep_order2(ibs.get_annot_gids(aid_list))
+        >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
         >>> new_dbpath = ut.get_argflag('--new-dbpath')
         >>> new_dbpath = export_annots(ibs, aid_list, new_dbpath)
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
