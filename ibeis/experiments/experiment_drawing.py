@@ -176,8 +176,7 @@ def draw_rank_cdf(ibs, test_result):
     color_list = ut.list_take(color_list, sortx)
     marker_list = ut.list_take(marker_list, sortx)
     #
-    figtitle = (
-        'Cumulative Histogram of GT-Ranks for\n')
+    figtitle = ('Cumulative Rank Histogram\n')
     figtitle += ' ' + test_result.get_title_aug()
 
     test_result.print_unique_annot_config_stats(ibs)

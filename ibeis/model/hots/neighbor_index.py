@@ -524,6 +524,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     #if memtrack is not None:
     #    memtrack.report('[PRE SUPPORT]')
     # Get annot descriptors to index
+    print('[nnindex] Loading support data to build diskcached indexer')
     vecs_list, fgws_list = get_support_data(qreq_, daid_list)
     if memtrack is not None:
         memtrack.report('[AFTER GET SUPPORT DATA]')
@@ -739,6 +740,7 @@ def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
     flattens vecs_list and builds a reverse index from the flattened indices
     (idx) to the original aids and fxs
     """
+    print('[nnindex] Preparing data for indexing')
     # Check input
     assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
     assert len(aid_list) > 0, ('len(aid_list) == 0.'

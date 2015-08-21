@@ -53,6 +53,7 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> import ibeis
+        >>> from ibeis.experiments import annotation_configs
         >>> default_qaids = [1]
         >>> default_daids = 'all'
         >>> defaultdb = 'testdb1'
@@ -61,10 +62,12 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         >>> return_annot_info = True
         >>> ibs, qaid_list, daid_list, aidcfg = testdata_ibeis(default_qaids, default_daids, defaultdb, ibs, verbose, return_annot_info)
         >>> print('Printing annot config')
-        >>> print(ut.dict_str(aidcfg))
+        >>> annotation_configs.print_acfg(aidcfg)
         >>> print('Printing annotconfig stats')
         >>> #print('qaid_list = %r' % (np.array(qaid_list),))
         >>> ibs.get_annotconfig_stats(qaid_list, daid_list)
+        >>> print('Combined annotconfig stats')
+        >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
     """
     print('[testdata_ibeis] Getting test annot configs')
     import ibeis
@@ -92,6 +95,9 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
 
 
 def testdata_ibeis2(defaultdb='testdb1', default_aidcfg_name_list=['default']):
+    """
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+    """
     print('[testdata_ibeis2] Getting test annot configs')
     from ibeis.experiments import experiment_helpers
     import ibeis
@@ -244,6 +250,8 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
     from ibeis import ibsfuncs
     if VERB_MAIN_HELPERS:
         print(' * [FILTER INDEPENDENT %sAIDS]' % (prefix.upper()))
+        if VERYVERB_MAIN_HELPERS:
+            ibs.print_annot_stats(available_aids, prefix, yawtext_isect=True)
 
     if aidcfg['is_known'] is True:
         if VERB_MAIN_HELPERS:
@@ -279,11 +287,82 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
         # Filter quality
         available_aids = ibs.filter_aids_to_quality(available_aids, minqual, unknown_ok=not aidcfg['require_quality'])
 
+    if aidcfg['viewpoint_counts'] is not None:
+        # the avaiable aids must be from names with certain viewpoint frequency properties
+        prop2_nid2_aids = ibs.group_annots_by_prop_and_name(available_aids, ibs.get_annot_yaw_texts)
+        countstr = aidcfg['viewpoint_counts']
+        primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)
+
+        import operator
+
+        @six.add_metaclass(ut.ReloadingMetaclass)
+        class CountstrParser(object):
+            numop = '#'
+            compare_op_map = {
+                '<': operator.lt,
+                '<=': operator.le,
+                '>': operator.gt,
+                '>=': operator.ge,
+                '=': operator.eq,
+                '!=': operator.ne,
+            }
+
+            def parse_countstr_binop(self, part):
+                import utool as ut
+                from ibeis import ibsfuncs
+                import re
+                # Parse binary comparison operation
+                left, op, right = re.split(ut.regex_or(('[<>]=?', '=')), part)
+                # Parse length operation. Get prop_left_nids, prop_left_values
+                if left.startswith(self.numop):
+                    varname = left[len(self.numop):]
+                    # Parse varname
+                    match = re.match('primary' + ut.named_field('num', '\d') + '?', varname)
+                    if match is not None:
+                        num1 = match.groupdict()['num']
+                        if num1 is not None:
+                            prop = ibsfuncs.get_extended_viewpoints(primary_viewpoint, num1=int(num1), num2=0, include_base=False)[0]
+                        else:
+                            prop = primary_viewpoint
+                    else:
+                        prop = varname
+                    # Apply length operator to each name with the prop
+                    prop_left_nids = prop2_nid2_aids[prop].keys()
+                    prop_left_values = np.array(list(map(len, prop2_nid2_aids[prop].values())))
+                # Pares number
+                if right:
+                    prop_right_value = int(right)
+                # Execute comparison
+                prop_binary_result = self.compare_op_map[op](prop_left_values, prop_right_value)
+                prop_nid2_result = dict(zip(prop_left_nids, prop_binary_result))
+                return prop_nid2_result
+
+            def parse_countstr_expr(self, countstr):
+                # Split over ands for now
+                and_parts = countstr.split('&')
+                prop_nid2_result_list = []
+                for part in and_parts:
+                    prop_nid2_result = self.parse_countstr_binop(part)
+                    prop_nid2_result_list.append(prop_nid2_result)
+                # change to dict_union when parsing ors
+                import functools
+                expr_nid2_result = reduce(functools.partial(ut.dict_intersection, combine=True, combine_op=operator.and_), prop_nid2_result_list)
+                return expr_nid2_result
+                #reduce(functools.partial(ut.dict_union3, combine_op=operator.or_), prop_nid2_result_list)
+
+        if VERB_MAIN_HELPERS:
+            print(' * [FILTER %sAIDS VIEWPOINT COUNTS WITH countstr= ]' % (prefix.upper()), countstr)
+        self = CountstrParser()
+        nid2_aids = ibs.group_annots_by_name_dict(available_aids)
+        nid2_flag = self.parse_countstr_expr(countstr)
+        valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
+        available_aids = ut.flatten(ut.dict_take(nid2_aids, valid_nids))
+
     if aidcfg['viewpoint_base'] is not None or aidcfg['require_viewpoint']:
         # Resolve base viewpoint
         if aidcfg['viewpoint_base'] == 'primary':
             viewpoint_base = ibsfuncs.get_primary_species_viewpoint(species)
-        elif aidcfg['viewpoint_base'] == 'primary+1':
+        elif aidcfg['viewpoint_base'] == 'primary1':
             viewpoint_base = ibsfuncs.get_primary_species_viewpoint(species, 1)
         else:
             viewpoint_base = aidcfg['viewpoint_base']
@@ -314,14 +393,16 @@ def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, pre
     import functools
     if VERB_MAIN_HELPERS:
         print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
+        if VERYVERB_MAIN_HELPERS:
+            ibs.print_annot_stats(available_aids, prefix, yawtext_isect=True)
 
     if aidcfg['ref_has_viewpoint'] is not None:
         print(' * Filtering such that %saids has refs with viewpoint=%r' % (prefix, aidcfg['ref_has_viewpoint']))
         species = ibs.get_primary_database_species(available_aids)
         if aidcfg['ref_has_viewpoint']  == 'primary':
             valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species)]
-        elif aidcfg['ref_has_viewpoint']  == 'primary+1':
-            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1)]
+        elif aidcfg['ref_has_viewpoint']  == 'primary1':
+            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1, 1)]
         ref_multi, avl_multi, ref_single, avl_single = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
         # Filter to only available aids that have a reference with specified viewpoint
         is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)

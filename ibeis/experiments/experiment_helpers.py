@@ -331,37 +331,48 @@ def get_annotcfg_list(ibs, acfg_name_list):
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:1
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:2
 
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> import ibeis
+        >>> from ibeis.experiments import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
         >>> result = ut.list_str(acfg_list, nl=3)
-        >>> print(result)
+        >>> for count, (aidcfg, (qaid_list, daid_list)) in enumerate(zip(acfg_list, expanded_aids_list)):
+        >>>     print('------')
+        >>>     print('Printing annot config%d' % (count,))
+        >>>     annotation_configs.print_acfg(aidcfg)
+        >>>     print('Printing annotconfig stats')
+        >>>     #print('qaid_list = %r' % (np.array(qaid_list),))
+        >>>     ibs.get_annotconfig_stats(qaid_list, daid_list)
+        >>>     print('Combined annotconfig stats')
+        >>>     ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
 
-    Example1:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'varysize', 'controlled'])
-        >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
-        >>> result = ut.list_str(acfg_list)
-        >>> print(result)
+    #Example1:
+    #    >>> # DISABLE_DOCTEST
+    #    >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+    #    >>> import ibeis
+    #    >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    #    >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'varysize', 'controlled'])
+    #    >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
+    #    >>> result = ut.list_str(acfg_list)
+    #    >>> print(result)
 
-    Example2:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-        >>> from ibeis.experiments import annotation_configs
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'default:qsize=200', 'controlled'])
-        >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
-        >>> from functools import partial
-        >>> result = ut.list_str(list(map(partial(annotation_configs.compress_aidcfg, filter_nones=True), acfg_list)), nl=3)
-        >>> print(result)
+    #Example2:
+    #    >>> # DISABLE_DOCTEST
+    #    >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+    #    >>> from ibeis.experiments import annotation_configs
+    #    >>> import ibeis
+    #    >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    #    >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'default:qsize=200', 'controlled'])
+    #    >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
+    #    >>> from functools import partial
+    #    >>> result = ut.list_str(list(map(partial(annotation_configs.compress_aidcfg, filter_nones=True), acfg_list)), nl=3)
+    #    >>> print(result)
     """
     print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from ibeis.experiments import annotation_configs

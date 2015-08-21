@@ -13,6 +13,7 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function
 import six
 import types
+import functools
 import re
 from six.moves import zip, range, map
 from os.path import split, join, exists
@@ -73,7 +74,7 @@ def postinject_func(ibs):
         >>> print(result)
         [[0.0, 0.0], [0.0, 0.0], [0.0], [0.0], [0.0], [0.0], [0.0]]
     """
-    # List of getters to _unflatten
+    # List of getters to ut.unflatten2
     to_unflatten = [
         ibs.get_annot_uuids,
         ibs.get_image_uuids,
@@ -1485,11 +1486,6 @@ def _overwrite_all_annot_species_to(ibs, species):
     ibs.set_annot_species(aid_list, species_list)
 
 
-# Use new invertible flatten functions
-_invertible_flatten = ut.invertible_flatten2
-_unflatten = ut.unflatten2
-
-
 def unflat_map(method, unflat_rowids, **kwargs):
     """
     Uses an ibeis lookup function with a non-flat rowid list.
@@ -1521,35 +1517,47 @@ def unflat_map(method, unflat_rowids, **kwargs):
     """
     #ut.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
+    flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
-
     if True:
         assert len(flat_vals) == len(flat_rowids), (
             'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d' %
             (len(flat_vals), len(flat_rowids),))
-
-    # Then _unflatten the results to the original input dimensions
-    unflat_vals = _unflatten(flat_vals, reverse_list)
-
+    # Then ut.unflatten2 the results to the original input dimensions
+    unflat_vals = ut.unflatten2(flat_vals, reverse_list)
     if True:
         assert len(unflat_vals) == len(unflat_rowids), (
             'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
             (len(unflat_vals), len(unflat_rowids),))
-
     return unflat_vals
+
+
+def unflat_dict_map(method, dict_rowids, **kwargs):
+    """ maps dictionaries of rowids to a function """
+    key_list = list(dict_rowids.keys())
+    unflat_rowids = list(dict_rowids.values())
+    unflat_vals = unflat_map(method, unflat_rowids, **kwargs)
+    keyval_iter = zip(key_list, unflat_vals)
+    #_dict_cls = type(dict_rowids)
+    #if isinstance(dict_rowids, ut.ddict):
+    #    _dict_cls_args = (dict_rowids.default_factory, keyval_iter)
+    #else:
+    #    _dict_cls_args = (keyval_iter,)
+    #dict_vals = _dict_cls(*_dict_cls_args)
+    dict_vals = dict(keyval_iter)
+    return dict_vals
 
 
 def unflat_multimap(method_list, unflat_rowids, **kwargs):
     """ unflat_map, but allows multiple methods
     """
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
+    flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals_list = [method(flat_rowids, **kwargs) for method in method_list]
-    # Then _unflatten the results to the original input dimensions
-    unflat_vals_list = [_unflatten(flat_vals, reverse_list)
+    # Then ut.unflatten2 the results to the original input dimensions
+    unflat_vals_list = [ut.unflatten2(flat_vals, reverse_list)
                         for flat_vals in flat_vals_list]
     return unflat_vals_list
 
@@ -1568,11 +1576,11 @@ def _make_unflat_getter_func(flat_getter):
     # Create new function
     def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
-        flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
+        flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
         # Then preform the lookup
         flat_vals = func(self, flat_rowids, *args, **kwargs)
-        # Then _unflatten the list
-        unflat_vals = _unflatten(flat_vals, reverse_list)
+        # Then ut.unflatten2 the list
+        unflat_vals = ut.unflatten2(flat_vals, reverse_list)
         return unflat_vals
     set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
@@ -2936,6 +2944,13 @@ def get_num_annots_per_name(ibs, aid_list):
     aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
     num_annots_per_name = list(map(len, aids_list))
     return num_annots_per_name, unique_nids
+
+
+@__injectable
+def get_annots_per_name_stats(ibs, aid_list, **kwargs):
+    stats_kw = dict(use_nan=True)
+    stats_kw.update(kwargs)
+    return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], **stats_kw)
 
 
 @__injectable
@@ -5538,13 +5553,16 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
     return positive_list, negative_list
 
 
-def _stat_str(dict_):
+def _stat_str(dict_, multi=False, precision=2, **kwargs):
     import utool as ut
     dict_ = dict_.copy()
     if dict_.get('num_nan', None) == 0:
         del dict_['num_nan']
     exclude_keys = []  # ['std', 'nMin', 'nMax']
-    str_ =  ut.get_stats_str(stat_dict=dict_, precision=2, exclude_keys=exclude_keys)
+    if multi is True:
+        str_ = ut.dict_str(dict_, precision=precision, nl=2, strvals=True)
+    else:
+        str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision, exclude_keys=exclude_keys, **kwargs)
     str_ = str_.replace('\'', '')
     return str_
 
@@ -5566,6 +5584,7 @@ def get_annot_qual_stats(ibs, aid_list):
 def get_annot_yaw_stats(ibs, aid_list):
     annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
     yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
+    # Order keys
     yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
     assert set(yaw_keys) >= set(annot_yawtext_list), 'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys))
     yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
@@ -5574,20 +5593,134 @@ def get_annot_yaw_stats(ibs, aid_list):
     return yawtext2_nAnnots
 
 
+@__injectable
+def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
+    """
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> aids = available_aids
+    """
+    getter_func = ibs.get_annot_yaw_texts
+    prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
+
+    group_annots_by_view_and_name = functools.partial(ibs.group_annots_by_prop_and_name, getter_func=getter_func)
+    group_annots_by_view = functools.partial(ibs.group_annots_by_prop, getter_func=getter_func)
+
+    prop2_nid2_aids = group_annots_by_view_and_name(aids)
+
+    edge2_nid2_aids = get_annot_prop_edge_stats(prop2_nid2_aids, prop_basis, size=size, wrap=True)
+    # Total number of names that have two viewpoints
+    #yawtext_edge_nid_hist = ut.map_dict_vals(len, edge2_nid2_aids)
+    edge2_grouped_aids = ut.map_dict_vals(lambda dict_: list(dict_.values()), edge2_nid2_aids)
+    edge2_aids = ut.map_dict_vals(ut.flatten, edge2_grouped_aids)
+    # Num annots of each type of viewpoint
+    #yawtext_edge_aidyawtext_hist = ut.map_dict_vals(ut.dict_hist, ut.map_dict_vals(getter_func, yawtext_edge_aid))
+
+    # Regroup by view and name
+    edge2_vp2_pername_stats = {}
+    edge2_vp2_aids = ut.map_dict_vals(group_annots_by_view, edge2_aids)
+    for edge, vp2_aids in edge2_vp2_aids.items():
+        vp2_pernam_stats = ut.map_dict_vals(functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids)
+        edge2_vp2_pername_stats[edge] = vp2_pernam_stats
+
+    #yawtext_edge_numaids_hist = ut.map_dict_vals(len, yawtext_edge_aid)
+    #yawtext_edge_aid_viewpoint_stats_hist = ut.map_dict_vals(ibs.get_annot_yaw_stats, yawtext_edge_aid)
+    return edge2_vp2_pername_stats
+
+
+@__injectable
+def group_annots_by_name_dict(ibs, aids):
+    grouped_aids, nids = ibs.group_annots_by_name(aids)
+    return dict(zip(nids, map(list, grouped_aids)))
+
+
+@__injectable
+def group_annots_by_prop(ibs, aids, getter_func):
+    # Make a dictionary that maps props into a dictionary of names to aids
+    annot_prop_list = getter_func(aids)
+    prop2_aids = ut.group_items(aids, annot_prop_list)
+    return prop2_aids
+
+
+@__injectable
+def group_annots_by_prop_and_name(ibs, aids, getter_func):
+    # Make a dictionary that maps props into a dictionary of names to aids
+    prop2_aids = group_annots_by_prop(ibs, aids, getter_func)
+    prop2_nid2_aids = ut.map_dict_vals(ibs.group_annots_by_name_dict, prop2_aids)
+    return prop2_nid2_aids
+
+
+def get_annot_prop_edge_stats(prop2_nid2_aids, prop_basis, size, wrap):
+    """
+    from ibeis.ibsfuncs import *  # NOQA
+    getter_func = ibs.get_annot_yaw_texts
+    prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
+    size = 2
+    wrap = True
+    """
+    # Get intermediate viewpoints
+    # prop = yawtext
+
+    # Build a list of property edges (TODO: mabye include option for all pairwise combinations)
+    prop_edges = list(ut.iter_window(prop_basis, size=size, step=size - 1, wrap=wrap))
+    edge2_nid2_aids = ut.odict()
+
+    for edge in prop_edges:
+        edge_nid2_aids_list = [prop2_nid2_aids.get(prop, {}) for prop in edge]
+        isect_nid2_aids = reduce(functools.partial(ut.dict_intersection, combine=True), edge_nid2_aids_list)
+        edge2_nid2_aids[edge] = isect_nid2_aids
+        #common_nids = list(isect_nid2_aids.keys())
+        #common_num_prop1 = np.array([len(prop2_nid2_aids[prop1][nid]) for nid in common_nids])
+        #common_num_prop2 = np.array([len(prop2_nid2_aids[prop2][nid]) for nid in common_nids])
+    return edge2_nid2_aids
+
+
 # Indepdentent query / database stats
 @__injectable
-def get_annot_stats_dict(ibs, aids, prefix=''):
-    """ stats for a set of annots """
+def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
+    """ stats for a set of annots
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aids (list):  list of annotation rowids
+        prefix (str): (default = '')
+
+    Returns:
+        dict: aid_stats_dict
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> prefix = ''
+        >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix)
+        >>> result = ('aid_stats_dict = %s' % (str(aid_stats_dict),))
+        >>> print(result)
+    """
     aid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)
     qual_stats = ibs.get_annot_qual_stats(aids)
     yaw_stats  = ibs.get_annot_yaw_stats(aids)
-    aid_stats_dict = ut.odict([
+    keyval_list = [
         ('num_' + prefix + 'aids', len(aids)),
         (prefix + 'aid_per_name', _stat_str(aid_per_name_stats)),
         (prefix + 'aid_quals', _stat_str(qual_stats)),
         (prefix + 'aid_viewpoints', _stat_str(yaw_stats)),
-    ])
+    ]
+    if kwargs.get('yawtext_isect', False):
+        # information about overlapping viewpoints
+        keyval_list += [(prefix + 'viewpoint_isect_stats', _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+    aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict
+
+
+@__injectable
+def print_annot_stats(ibs, aids, prefix='', **kwargs):
+    aid_stats_dict = ibs.get_annot_stats_dict(aids, prefix=prefix, **kwargs)
+    print(ut.dict_str(aid_stats_dict, strvals=True))
 
 
 # Compares properties of query vs database annotations
@@ -5628,7 +5761,7 @@ def get_annot_per_name_stats(ibs, aid_list):
 
 
 @__injectable
-def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
+def get_annotconfig_stats(ibs, qaids, daids, verbose=True, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -5696,8 +5829,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True):
         gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
         gt_hourdelta_stats = ut.get_stats(super_flatten(gt_hourdelta_list), use_nan=True)
 
-        qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q')
-        daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd')
+        qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
+        daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd', **kwargs)
 
         # Intersections between qaids and daids
         common_aids = np.intersect1d(daids, qaids)

@@ -239,21 +239,45 @@ class TestResult(object):
     def get_short_cfglbls(test_result):
         """
         Labels for published tables
+
+        cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
         """
+        cfg_lbls = test_result.cfgx2_lbl[:]
+        import re
         repl_list = [
-            ('custom', 'default'),
+            ('candidacy_', ''),
+            #('custom', 'default'),
             ('fg_on', 'FG'),
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
             ('augment_queryside_hack', 'AQH'),
             ('nNameShortlistSVER', 'nRR'),
+            ('=True', '=On'),
+            ('=False', '=Off'),
         ]
-        import re
-        cfg_lbls = test_result.cfgx2_lbl[:]
         for ser, rep in repl_list:
             cfg_lbls = [re.sub(ser, rep, lbl) for lbl in cfg_lbls]
-            cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in [lbl.split(':') for lbl in cfg_lbls]]
+
+        # split configs up by param and annots
+        pa_tups = [lbl.split('+') for lbl in cfg_lbls]
+        cfg_lbls2 = []
+        for pa in pa_tups:
+            new_parts = []
+            for part in pa:
+                name, settings = part.split(':')
+                if len(settings) == 0:
+                    new_parts.append(name)
+                else:
+                    new_parts.append(part)
+            if len(new_parts) == 2 and new_parts[1] == 'default':
+                newlbl = new_parts[0]
+            else:
+                newlbl = '+'.join(new_parts)
+            cfg_lbls2.append(newlbl)
+        #cfgtups = [lbl.split(':') for lbl in cfg_lbls]
+        #cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
+        cfg_lbls = cfg_lbls2
 
         #from ibeis.experiments import annotation_configs
         #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']

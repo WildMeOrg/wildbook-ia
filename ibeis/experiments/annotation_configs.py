@@ -28,6 +28,7 @@ __default_aidcfg = {
     'minqual'           : 'poor',
     'is_known'          : None,
     'viewpoint_base'    : None,
+    'viewpoint_counts'  : None,
     'viewpoint_range'   : 0,
     'require_quality'   : False,  # if True unknown qualities are removed
     'require_viewpoint' : False,
@@ -38,7 +39,7 @@ __default_aidcfg = {
     'ref_has_viewpoint' : None,  # All aids must have a gt with this viewpoint
     'ref_has_qual'      : None,  # All aids must have a gt with this viewpoint
     'gt_min_per_name'   : None,  # minimum numer of aids for each name in sample
-    'sample_per_name'   : None,  # Choose num_annots to sample from each name.
+    'sample_per_name'   : None,  # Choos num_annots to sample from each name.
     'sample_per_ref_name': None,  # when sampling daids, choose this many correct matches per query
     'sample_rule'       : 'random',
     'sample_offset'     : 0,
@@ -146,6 +147,10 @@ def compress_acfg_list_for_printing(acfg_list):
     return nonvaried_compressed_dict, varied_compressed_dict_list
 
 
+def print_acfg(acfg):
+    print(ut.dict_str(compress_aidcfg(acfg)))
+
+
 def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
     acfg = {prefix: {} for prefix in prefix_list}
     for prefix in prefix_list:
@@ -223,18 +228,31 @@ controlled2 = {
 
 
 # Compare query of frontleft animals when database has only left sides
+"""
+python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 -a viewpoint_compare
+
+"""
 viewpoint_compare = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
-            'viewpoint_base': 'primary+1',
-            'ref_has_viewpoint': 'primary',
+            #'viewpoint_counts': 'len(primary) > 2 and len(primary1) > 2',
+            'viewpoint_counts': '#primary>=1&#primary1>=2',
+            'viewpoint_base': 'primary1',
+            #'gt_min_per_name': 3,
         }),
 
     'dcfg': ut.augdict(
         controlled['dcfg'], {
-            'viewpoint_base': 'primary',
+            'viewpoint_base': ['primary', 'primary1'],
+            'sample_per_name': 1,
+            #'sample_per_name': None, # this seems to produce odd results where the per_ref is still more then 1
+            'sample_per_ref_name': 1,
+            'sample_size': None,
         }),
 }
+
+# THIS IS A GOOD START
+# NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
 
 # Just vary the samples per name without messing with the number of annots in the database
