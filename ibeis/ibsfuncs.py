@@ -5714,7 +5714,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         # information about overlapping viewpoints
         keyval_list += [(prefix + 'viewpoint_isect_stats', _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
     if kwargs.get('per_image', False):
-        (prefix + 'aid_per_image', _stat_str(ut.get_stats(list(map(len, ibs.group_annots_by_prop(aids, getter_func=ibs.get_annot_image_rowids).values())), use_nan=True))),
+        keyval_list += [(prefix + 'aid_per_image', _stat_str(ut.get_stats(list(map(len, ibs.group_annots_by_prop(aids, getter_func=ibs.get_annot_image_rowids).values())), use_nan=True)))]
 
     aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict
