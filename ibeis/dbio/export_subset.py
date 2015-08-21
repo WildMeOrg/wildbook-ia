@@ -1257,6 +1257,34 @@ def export_images(ibs, gid_list, new_dbpath=None):
 def export_annots(ibs, aid_list, new_dbpath=None):
     """
     exports a subset of annotations and other required info
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        new_dbpath (None): (default = None)
+
+    Returns:
+        str: new_dbpath
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset --exec-export_annots
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+
+        python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.init import main_helpers
+        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('PZ_MTEST', default_aidcfg_name_list=['default:viewpoint_counts=#primary>0&#primary1>0'])
+        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('NNP_Master3', default_aidcfg_name_list=['default:viewpoint_counts=#primary>=1&#primary1>=1'])
+        >>> aid_list = ibs.get_valid_aids()
+        >>> new_dbpath = ut.get_argflag('--new-dbpath')
+        >>> new_dbpath = export_annots(ibs, aid_list, new_dbpath)
+        >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
+        >>> print(result)
     """
     import ibeis
     if new_dbpath is None:
@@ -1410,10 +1438,17 @@ def test_merge():
 
 def check_database_overlap(ibs1, ibs2):
     """
+    CommandLine:
+        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+
     Example:
+        >>> # SCRIPT
         >>> import ibeis
         >>> ibs1 = ibeis.opendb(db='PZ_Master0')
         >>> ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+
+        >>> ibs1 = ibeis.opendb(db='PZ_Master0')
+        >>> ibs2 = ibeis.opendb(dbdir='PZ_MTEST')
     """
 
     def print_intersection(uuids1, uuids2, lbl=''):

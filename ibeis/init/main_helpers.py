@@ -102,8 +102,8 @@ def testdata_ibeis2(defaultdb='testdb1', default_aidcfg_name_list=['default']):
     from ibeis.experiments import experiment_helpers
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
-    aidcfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
     return ibs, expanded_aids_list
 
 
@@ -327,8 +327,8 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
                     else:
                         prop = varname
                     # Apply length operator to each name with the prop
-                    prop_left_nids = prop2_nid2_aids[prop].keys()
-                    prop_left_values = np.array(list(map(len, prop2_nid2_aids[prop].values())))
+                    prop_left_nids = prop2_nid2_aids.get(prop, {}).keys()
+                    prop_left_values = np.array(list(map(len, prop2_nid2_aids.get(prop, {}).values())))
                 # Pares number
                 if right:
                     prop_right_value = int(right)
