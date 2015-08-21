@@ -5564,6 +5564,7 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
     else:
         str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision, exclude_keys=exclude_keys, **kwargs)
     str_ = str_.replace('\'', '')
+    str_ = str_.replace('num_nan: 0, ', '')
     return str_
 
 
@@ -5701,29 +5702,41 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         >>> result = ('aid_stats_dict = %s' % (str(aid_stats_dict),))
         >>> print(result)
     """
-    aid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)
-    qual_stats = ibs.get_annot_qual_stats(aids)
-    yaw_stats  = ibs.get_annot_yaw_stats(aids)
+    kwargs = kwargs.copy()
+
+    def get_per_prop_stats(ibs, aids, getter_func):
+        prop2_aids = ibs.group_annots_by_prop(aids, getter_func=getter_func)
+        num_aids_list = list(map(len, prop2_aids.values()))
+        num_aids_stats = ut.get_stats(num_aids_list, use_nan=True)
+        return num_aids_stats
+
     keyval_list = [
         ('num_' + prefix + 'aids', len(aids)),
-        (prefix + 'aid_per_name', _stat_str(aid_per_name_stats)),
-        (prefix + 'aid_quals', _stat_str(qual_stats)),
-        (prefix + 'aid_viewpoints', _stat_str(yaw_stats)),
     ]
-    if kwargs.get('yawtext_isect', False):
-        # information about overlapping viewpoints
-        keyval_list += [(prefix + 'viewpoint_isect_stats', _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
-    if kwargs.get('per_image', False):
-        keyval_list += [(prefix + 'aid_per_image', _stat_str(ut.get_stats(list(map(len, ibs.group_annots_by_prop(aids, getter_func=ibs.get_annot_image_rowids).values())), use_nan=True)))]
+    if kwargs.pop('per_name', True):
+        keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)))]
+
+    if kwargs.pop('per_qual', True):
+        keyval_list += [(prefix + 'per_qual', _stat_str(ibs.get_annot_qual_stats(aids)))]
+
+    if kwargs.pop('per_vp', True):
+        keyval_list += [(prefix + 'per_vp', _stat_str(ibs.get_annot_yaw_stats(aids)))]
+
+    # information about overlapping viewpoints
+    if kwargs.pop('per_name_vpedge', False):
+        keyval_list += [(prefix + 'per_name_vpedge', _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+
+    if kwargs.pop('per_image', False):
+        keyval_list += [(prefix + 'aid_per_image', _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
 
     aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict
 
 
 @__injectable
-def print_annot_stats(ibs, aids, prefix='', **kwargs):
+def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
     aid_stats_dict = ibs.get_annot_stats_dict(aids, prefix=prefix, **kwargs)
-    print(ut.dict_str(aid_stats_dict, strvals=True))
+    print(label + ut.dict_str(aid_stats_dict, strvals=True))
 
 
 # Compares properties of query vs database annotations

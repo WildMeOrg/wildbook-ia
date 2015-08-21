@@ -84,7 +84,8 @@ SVER_LVL    = 'SVER:            '
 
 #PROGKW = dict(freq=50, time_thresh=4.0)
 #PROGKW = dict(freq=10, time_thresh=4.0)
-PROGKW = dict(freq=1, time_thresh=4.0)
+#PROGKW = dict(freq=1, time_thresh=4.0)
+PROGKW = dict(freq=1, time_thresh=30.0)
 
 
 # Query Level 0

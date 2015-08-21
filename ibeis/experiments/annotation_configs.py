@@ -147,7 +147,7 @@ def compress_acfg_list_for_printing(acfg_list):
     return nonvaried_compressed_dict, varied_compressed_dict_list
 
 
-def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, **kwargs):
+def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, combined=False, **kwargs):
     nonvaried_compressed_dict, varied_compressed_dict_list = compress_acfg_list_for_printing(acfg_list)
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
@@ -158,6 +158,8 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, **kwargs):
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
             annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
+            if combined:
+                ibs.print_annot_stats(list(qaids) + list(daids), label='combined = ', **kwargs)
         #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
         #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
         #_ = ibs.get_annotconfig_stats(qaids, daids)
@@ -260,9 +262,10 @@ viewpoint_compare = {
 
     'dcfg': ut.augdict(
         controlled['dcfg'], {
-            'viewpoint_base': ['primary', 'primary1'],
-            'sample_per_name': 1,
-            #'sample_per_name': None, # this seems to produce odd results where the per_ref is still more then 1
+            #'viewpoint_base': ['primary', 'primary1'],
+            'viewpoint_base': ['primary'],
+            #'sample_per_name': 1,
+            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
             'sample_per_ref_name': 1,
             'sample_size': None,
         }),

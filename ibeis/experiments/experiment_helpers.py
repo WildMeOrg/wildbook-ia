@@ -10,7 +10,7 @@ import re
 import itertools
 from ibeis.experiments import experiment_configs
 from ibeis.model import Config
-from ibeis.init import main_helpers
+from ibeis.init import filter_annots
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_helpers]', DEBUG=False)
 
@@ -332,6 +332,7 @@ def get_annotcfg_list(ibs, acfg_name_list):
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:2
 
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -343,39 +344,7 @@ def get_annotcfg_list(ibs, acfg_name_list):
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
         >>> result = ut.list_str(acfg_list, nl=3)
         >>> print('\n')
-        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-
-        #>>> for count, (aidcfg, (qaid_list, daid_list)) in enumerate(zip(acfg_list, expanded_aids_list)):
-        #>>>     print('------')
-        #>>>     print('Printing annot config %d/%d' % (count,, len(acfg_list)))
-        #>>>     annotation_configs.print_acfg(aidcfg)
-        #>>>     print('Printing annotconfig stats')
-        #>>>     #print('qaid_list = %r' % (np.array(qaid_list),))
-        #>>>     ibs.get_annotconfig_stats(qaid_list, daid_list)
-        #>>>     print('Combined annotconfig stats')
-        #>>>     ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
-
-    #Example1:
-    #    >>> # DISABLE_DOCTEST
-    #    >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-    #    >>> import ibeis
-    #    >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-    #    >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'varysize', 'controlled'])
-    #    >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
-    #    >>> result = ut.list_str(acfg_list)
-    #    >>> print(result)
-
-    #Example2:
-    #    >>> # DISABLE_DOCTEST
-    #    >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-    #    >>> from ibeis.experiments import annotation_configs
-    #    >>> import ibeis
-    #    >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-    #    >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10', 'default:qsize=200', 'controlled'])
-    #    >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
-    #    >>> from functools import partial
-    #    >>> result = ut.list_str(list(map(partial(annotation_configs.compress_aidcfg, filter_nones=True), acfg_list)), nl=3)
-    #    >>> print(result)
+        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, combined=True, per_name_vpedge=True)
     """
     print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from ibeis.experiments import annotation_configs
@@ -396,7 +365,7 @@ def get_annotcfg_list(ibs, acfg_name_list):
         acfg_combo_list.append(acfg_combo)
     acfg_list = ut.flatten(acfg_combo_list)
 
-    expanded_aids_list = [main_helpers.expand_acfgs(ibs, acfg) for acfg in acfg_list]
+    expanded_aids_list = [filter_annots.expand_acfgs(ibs, acfg) for acfg in acfg_list]
 
     FILTER_DUPS = True
     #FILTER_DUPS = False
@@ -413,7 +382,7 @@ def get_annotcfg_list(ibs, acfg_name_list):
                 seen_[key].append(acfg)
                 expanded_aids_list_.append((qaids, daids))
                 acfg_list_.append(acfg)
-        if not QUIET:
+        if ut.NOT_QUIET:
             duplicate_configs = dict([(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
             if len(duplicate_configs) > 0:
                 print('The following configs produced duplicate annnotation configs')
