@@ -183,6 +183,7 @@ def k_experiments():
     """
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-k_experiments
+        python -m ibeis.scripts.gen_cand_expts --exec-k_experiments --full
         ./experiment_k.sh
 
     Example:

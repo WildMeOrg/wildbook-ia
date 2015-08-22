@@ -1444,32 +1444,62 @@ def test_merge():
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
+        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+        dev.py -t listdbs
+        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+        --db PZ_MTEST --db2 PZ_MOTHERS
+
+    CommandLine:
         python -m ibeis.dbio.export_subset --exec-check_database_overlap
 
     Example:
         >>> # SCRIPT
         >>> import ibeis
-        >>> ibs1 = ibeis.opendb(db='PZ_Master0')
-        >>> ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
-
-        >>> ibs1 = ibeis.opendb(db='PZ_Master0')
-        >>> ibs2 = ibeis.opendb(dbdir='PZ_MTEST')
+        >>> #ibs1 = ibeis.opendb(db='PZ_Master0')
+        >>> #ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> db1 = ut.get_argval('--db1', str, default='PZ_MTEST')
+        >>> db2 = ut.get_argval('--db2', str, default='testdb1')
+        >>> dbdir1 = ut.get_argval('--dbdir1', str, default=None)
+        >>> dbdir2 = ut.get_argval('--dbdir2', str, default=None)
+        >>> ibs1 = ibeis.opendb(db=db1, dbdir=dbdir1)
+        >>> ibs2 = ibeis.opendb(db=db2, dbdir=dbdir2)
+        >>> check_database_overlap(ibs1, ibs2)
     """
 
     def print_intersection(uuids1, uuids2, lbl=''):
         uuids1_ = set(uuids1)
         uuids2_ = set(uuids2)
         uuids_isect = uuids1_.intersection(uuids2_)
-        print('Intersection {lbl}'.format(lbl=lbl))
+        print('Checking {lbl} intersection'.format(lbl=lbl))
         print('  * Num {lbl} 1: {num}'.format(lbl=lbl, num=len(uuids1_)))
         print('  * Num {lbl} 2: {num}'.format(lbl=lbl, num=len(uuids2_)))
         print('  * Num {lbl} isect: {num}'.format(lbl=lbl, num=len(uuids_isect)))
+        index_list1 = ut.find_list_indexes(uuids1, uuids_isect)
+        index_list2 = ut.find_list_indexes(uuids2, uuids_isect)
+        return index_list1, index_list2
 
     gids1 = ibs1.get_valid_gids()
     gids2 = ibs2.get_valid_gids()
     image_uuids1      = ibs1.get_image_uuids(gids1)
     image_uuids2      = ibs2.get_image_uuids(gids2)
-    print_intersection(image_uuids1, image_uuids2, 'images')
+    index_list1, index_list2 = print_intersection(image_uuids1, image_uuids2, 'images')
+    SHOW_ISECT_GIDS = False
+    if SHOW_ISECT_GIDS:
+        if len(index_list1) > 0:
+            gids_isect1 = ut.list_take(gids1, index_list1)
+            gids_isect2 = ut.list_take(gids1, index_list2)
+            print('gids_isect1 = %r' % (gids_isect1,))
+            print('gids_isect2 = %r' % (gids_isect2,))
+            if False:
+                import ibeis.viz
+                import plottool as pt
+                gid_pairs = list(zip(gids_isect1, gids_isect2))
+                pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
+                for fnum, pairs in enumerate(pairs_iter, start=1):
+                    pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
+                    for gid1, gid2 in gid_pairs:
+                        ibeis.viz.show_image(ibs1, gid1, pnum=pnum_(), fnum=fnum)
+                        ibeis.viz.show_image(ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
     aids1 = ibs1.get_valid_aids()
     aids2 = ibs2.get_valid_aids()
@@ -1502,13 +1532,14 @@ def check_database_overlap(ibs1, ibs2):
         def __init__(self):
             self.iddict_ = {}
 
-        def make_aligned_arrays(id_lists, data_lists):
+        def make_aligned_arrays(self, id_lists, data_lists):
             idx_lists = [vt.compute_unique_data_ids_(id_list, iddict_=self.iddict_) for id_list in id_lists]
             aligned_data = []
             for idx_list, data_array in zip(idx_lists, data_lists):
                 array = np.full(len(self.iddict_), None)
                 array[idx_list] = data_array
                 aligned_data.append(array)
+            return aligned_data
 
     # Try to figure out the conflicts
     # TODO: finishme
@@ -1519,7 +1550,9 @@ def check_database_overlap(ibs1, ibs2):
     aligned_data = self.make_aligned_arrays(id_lists, data_lists)
     nAnnots1_aligned, nAnnots2_aligned = aligned_data
 
-    print('images_with_different_num_annnots = %r' % (len(np.nonzero(nAnnots_per_image1 - nAnnots_per_image2)[0]),))
+    nAnnots_difference = nAnnots1_aligned - nAnnots2_aligned
+    nAnnots_difference = np.nan_to_num(nAnnots_difference)
+    print('images_with_different_num_annnots = %r' % (len(np.nonzero(nAnnots_difference)[0]),))
 
 
 """

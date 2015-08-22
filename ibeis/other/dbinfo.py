@@ -63,7 +63,7 @@ def get_dbinfo(ibs, verbose=True,
     CommandLine:
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0
         python -m ibeis.other.dbinfo --test-get_dbinfo:1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1  --db NNP_Master3
+        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db NNP_Master3
         python -m ibeis.other.dbinfo --exec-get_dbinfo:1 --db PZ_ViewPoints
 
     Example:
