@@ -388,7 +388,9 @@ class TestResult(object):
                 title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
         return title_aug
 
-    def print_unique_annot_config_stats(test_result, ibs):
+    def print_unique_annot_config_stats(test_result, ibs=None):
+        if ibs is None:
+            ibs = test_result.ibs
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids) for daids in test_result.cfgx2_daids]
         unique_daids = ut.list_compress(test_result.cfgx2_daids, ut.flag_unique_items(cfx2_dannot_hashid))
         print('+====')

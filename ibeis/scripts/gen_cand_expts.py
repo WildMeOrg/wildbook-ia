@@ -90,6 +90,7 @@ def generate_all():
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all
+        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
         ./overnight_experiments.sh
 
     Example:
@@ -101,10 +102,10 @@ def generate_all():
         ['\n\n### ' + ut.get_funcname(func),
          '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + func()[2]
         for func in TEST_GEN_FUNCS])
-    fpath, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
+    fname, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
     if ut.get_argflag('--vim'):
-        ut.editfile(fpath)
-    return fpath, script, line_list
+        ut.editfile(fname)
+    return fname, script, line_list
 
 
 @register_testgen
@@ -281,10 +282,11 @@ def make_standard_test_scripts(varydict, expt_name, media_name):
         dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
         cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags
         cmd_fmtstr_list.append(cmd_fmtstr)
-    return write_formatted_script_lines(cmd_fmtstr_list, [varydict], 'experiment_' + expt_name + '.sh')
+    fname = 'experiment_' + expt_name + '.sh'
+    return write_formatted_script_lines(cmd_fmtstr_list, [varydict], fname)
 
 
-def write_formatted_script_lines(cmd_fmtstr_list, varydict_list, fpath):
+def write_formatted_script_lines(cmd_fmtstr_list, varydict_list, fname):
     cfgdicts_list = list(map(ut.all_dict_combinations, varydict_list))
     line_list = []
     for cmd_fmtstr in cmd_fmtstr_list:
@@ -297,10 +299,10 @@ def write_formatted_script_lines(cmd_fmtstr_list, varydict_list, fpath):
                 print(cmd_fmtstr)
                 ut.printex(ex, keys=['cmd_fmtstr', 'kw'])
                 raise
-    return write_script_lines(line_list, fpath)
+    return write_script_lines(line_list, fname)
 
 
-def write_script_lines(line_list, fpath):
+def write_script_lines(line_list, fname):
     exename = 'python'
     regen_cmd = (exename + ' ' + ' '.join(sys.argv)).replace(expanduser('~'), '~')
     script_lines = []
@@ -309,15 +311,19 @@ def write_script_lines(line_list, fpath):
     script_lines.append('RegenCommand:')
     script_lines.append('   ' + regen_cmd)
     script_lines.append('CommandLine:')
-    script_lines.append('   sh ' + fpath)
+    script_lines.append('   sh ' + fname)
     script_lines.append('dont forget to tmuxnew')
     script_lines.append('EOF')
     script_lines.extend(line_list)
     script = '\n'.join(script_lines)
     print(script)
+    import ibeis
+    from os.path import dirname, join
+    dpath = dirname(ut.get_module_dir(ibeis))
+    fpath = join(dpath, fname)
     ut.writeto(fpath, script)
-    ut.chmod_add_executable(fpath)
-    return fpath, script, line_list
+    ut.chmod_add_executable(fname)
+    return fname, script, line_list
 
 
 def gen_dbranks_tables():
