@@ -5189,26 +5189,45 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> aid_list1 = [1, 2, 8, 9, 60]
-        >>> aid_list2 = [3, 7, 20]
-        >>> result = partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2)
+        >>> grouped_aids = list(map(list, ibs.group_annots_by_name(ibs.get_valid_aids())[0]))
+        >>> grouped_aids = [aids for aids in grouped_aids if len(aids) > 3]
+        >>> # Get some overlapping groups
+        >>> import copy
+        >>> aids_group1 = copy.deepcopy((ut.get_list_column_slice(grouped_aids[0:5], slice(0, 2))))
+        >>> aids_group2 = copy.deepcopy((ut.get_list_column_slice(grouped_aids[2:7], slice(2, None))))
+        >>> # Ensure there is a singleton in each
+        >>> ut.delete_items_by_index(aids_group1[0], [0])
+        >>> ut.delete_items_by_index(aids_group2[-1], [0])
+        >>> aid_list1 = ut.flatten(aids_group1)
+        >>> aid_list2 = ut.flatten(aids_group2)
+        >>> #aid_list1 = [1, 2, 8, 9, 60]
+        >>> #aid_list2 = [3, 7, 20]
+        >>> groups = partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2)
+        >>> result = ut.list_str(groups, label_list=['gt_grouped_aids1', 'gt_grouped_aids2', 'gf_grouped_aids1', 'gf_gropued_aids2'])
         >>> print(result)
-        ([[1, 2], [8]], [[3], [7]], [9, 60], [20])
-
+        gt_grouped_aids1 = [[10, 11], [17, 18], [22, 23]]
+        gt_grouped_aids2 = [[12, 13, 14, 15], [19, 20, 21], [24, 25, 26]]
+        gf_grouped_aids1 = [[2], [5, 6]]
+        gf_gropued_aids2 = [[32, 29, 30, 31], [49]]
     """
-    grouped_aids1 = ibs.group_annots_by_name(aid_list1)[0]
-    grouped_aids1 = [aids.tolist() for aids in grouped_aids1]
+    grouped_aids1 = [aids.tolist() for aids in ibs.group_annots_by_name(aid_list1)[0]]
     # Get the group of available aids that a reference aid could match
     gropued_aids2 = ibs.get_annot_groundtruth(ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2)
 
+    # Flag if there is a correspondence
     flag_list = [x > 0 for x in map(len, gropued_aids2)]
 
+    # Corresonding lists of aids groups
     gt_grouped_aids1 = ut.list_compress(grouped_aids1, flag_list)
     gt_grouped_aids2 = ut.list_compress(gropued_aids2, flag_list)
 
-    gf_grouped_aids1 = ut.flatten(ut.list_compress(grouped_aids1, ut.not_list(flag_list)))
-    gf_gropued_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
-    return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_gropued_aids2
+    # Non-corresponding lists of aids groups
+    gf_grouped_aids1 = ut.list_compress(grouped_aids1, ut.not_list(flag_list))
+    #gf_aids1 = ut.flatten(gf_grouped_aids1)
+    gf_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
+    gf_grouped_aids2 = [aids.tolist() for aids in ibs.group_annots_by_name(gf_aids2)[0]]
+
+    return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_grouped_aids2
 
 
 def make_temporally_distinct_blind_test(ibs, challenge_num=None):
@@ -5608,7 +5627,7 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
 
     prop2_nid2_aids = group_annots_by_view_and_name(aids)
 
-    edge2_nid2_aids = get_annot_prop_edge_stats(prop2_nid2_aids, prop_basis, size=size, wrap=True)
+    edge2_nid2_aids = group_prop_edges(prop2_nid2_aids, prop_basis, size=size, wrap=True)
     # Total number of names that have two viewpoints
     #yawtext_edge_nid_hist = ut.map_dict_vals(len, edge2_nid2_aids)
     edge2_grouped_aids = ut.map_dict_vals(lambda dict_: list(dict_.values()), edge2_nid2_aids)
@@ -5650,7 +5669,21 @@ def group_annots_by_prop_and_name(ibs, aids, getter_func):
     return prop2_nid2_aids
 
 
-def get_annot_prop_edge_stats(prop2_nid2_aids, prop_basis, size, wrap):
+@__injectable
+def group_annots_by_multi_prop(ibs, aids, getter_list):
+    """
+        aids = available_aids
+        getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_yaw_texts]
+    """
+    aid_prop_list = [getter(aids) for getter in getter_list]
+    #%timeit multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
+    #%timeit ut.group_items(aids, list(zip(*aid_prop_list)))
+    multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
+    #multiprop2_aids = ut.group_items(aids, list(zip(*aid_prop_list)))
+    return multiprop2_aids
+
+
+def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     """
     from ibeis.ibsfuncs import *  # NOQA
     getter_func = ibs.get_annot_yaw_texts
@@ -5713,6 +5746,9 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     keyval_list = [
         ('num_' + prefix + 'aids', len(aids)),
     ]
+    if kwargs.pop('hashid', True):
+        keyval_list += [(prefix + 'hashid', ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
+
     if kwargs.pop('per_name', True):
         keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)))]
 
@@ -5774,6 +5810,11 @@ def viewpoint_diff(ori1, ori2):
 def get_annot_per_name_stats(ibs, aid_list):
     """  stats about this set of aids """
     return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], use_nan=True)
+
+
+@__injectable
+def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
+    ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
 
 
 @__injectable

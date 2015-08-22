@@ -12,7 +12,8 @@ ALIAS_KEYS = {
     'aids'     : 'default_aids',
     'per_name' : 'sample_per_name',
     'offset'   : 'sample_offset',
-    'rule'     : 'sample_rule',
+    #'ref_rule' : 'sample_rule_ref',
+    #'rule'     : 'sample_rule',
     'size'     : 'sample_size',
     'min_gt'   : 'gt_min_per_name',
 }
@@ -41,6 +42,7 @@ __default_aidcfg = {
     'gt_min_per_name'   : None,  # minimum numer of aids for each name in sample
     'sample_per_name'   : None,  # Choos num_annots to sample from each name.
     'sample_per_ref_name': None,  # when sampling daids, choose this many correct matches per query
+    'sample_rule_ref'   : 'random',
     'sample_rule'       : 'random',
     'sample_offset'     : 0,
     'sample_size'       : None,  # Tries to get as close to sample size without removing othe properties
@@ -58,6 +60,9 @@ __controlled_aidcfg = ut.augdict(__default_aidcfg, {
     'minqual': 'ok',
     'is_known': True,
 })
+
+
+single_default = __default_aidcfg
 
 
 def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
@@ -81,6 +86,8 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
         >>> print(result)
     """
     import copy
+    if 'qcfg' not in acfg or 'dcfg' not in acfg:
+        return acfg
     acfg = copy.deepcopy(acfg)
     common_cfg = ut.dict_intersection(acfg['qcfg'], acfg['dcfg'])
     ut.delete_keys(acfg['qcfg'], common_cfg.keys())
@@ -166,8 +173,10 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, combined=False
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
-def print_acfg(acfg):
-    print(ut.dict_str(compress_aidcfg(acfg)))
+def print_acfg(acfg, expanded_aids=None, ibs=None, **kwargs):
+    print('acfg = ' + ut.dict_str(compress_aidcfg(acfg)))
+    if expanded_aids is not None:
+        ibs.print_annot_stats(expanded_aids, label='expanded_aids = ', **kwargs)
 
 
 def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
@@ -240,39 +249,10 @@ controlled2 = {
 #            'default_aids': 'all',
 #            'sample_per_name': 1,
 #            'exclude_reference': True,
-#            'sample_rule': 'ref_max_timedelta',
+#            'sample_rule_ref': 'max_timedelta',
 #            'gt_min_per_name': 1,
 #        }),
 #}
-
-
-# Compare query of frontleft animals when database has only left sides
-"""
-python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 -a viewpoint_compare
-
-"""
-viewpoint_compare = {
-    'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            #'viewpoint_counts': 'len(primary) > 2 and len(primary1) > 2',
-            'viewpoint_counts': '#primary>=1&#primary1>=2',
-            'viewpoint_base': 'primary1',
-            #'gt_min_per_name': 3,
-        }),
-
-    'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            #'viewpoint_base': ['primary', 'primary1'],
-            'viewpoint_base': ['primary'],
-            #'sample_per_name': 1,
-            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
-            'sample_per_ref_name': 1,
-            'sample_size': None,
-        }),
-}
-
-# THIS IS A GOOD START
-# NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
 
 # Just vary the samples per name without messing with the number of annots in the database
@@ -325,6 +305,37 @@ varysize2 = {
             'sample_size': [50, 100, 200, 300, 500, 1000, 2000, 3000],
         }),
 }
+
+
+# Compare query of frontleft animals when database has only left sides
+"""
+python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 -a viewpoint_compare
+
+"""
+viewpoint_compare = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            #'viewpoint_counts': 'len(primary) > 2 and len(primary1) > 2',
+            'viewpoint_counts': '#primary>=1&#primary1>=2',  # To be a query you must have at least two primary1 views and at least one primary view
+            'viewpoint_base': 'primary1',
+            #'gt_min_per_name': 3,
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            'viewpoint_base': ['primary1', 'primary'],
+            #'viewpoint_base': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
+            #'viewpoint_base': ['primary'],
+            #'sample_per_name': 1,
+            #'sample_rule_ref': 'max_timedelta',
+            'sample_per_ref_name': 1,
+            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
+            'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
+        }),
+}
+
+# THIS IS A GOOD START
+# NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
 include_vars = list(vars().keys())  # this line is after tests
 
