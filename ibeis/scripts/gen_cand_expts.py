@@ -3,7 +3,7 @@
 CommandLine:
 
     # Run many experiments
-    python -m ibeis.scripts.gen_cand_expts --exec-generate_all
+    python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
     ./overnight_experiments.sh
 
     # Database information
