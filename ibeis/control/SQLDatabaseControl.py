@@ -1294,11 +1294,11 @@ class SQLDatabaseController(object):
                 if suffix in specially_handled_table_metakeys:
                     continue
                 key = tablename + '_' + suffix
-                val = db.get_metadata_val(key, eval_=True)
+                val = db.get_metadata_val(key, eval_=True, default=None)
                 if val is not None:
                     #ut.embed()
                     line_list.append(tab2 + '%s=%r,' % (suffix, val))
-            dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
+            dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
             if dependsmap is not None:
                 depends_map_dictstr = ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':')
                 depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')  # hack for formatting
@@ -1387,7 +1387,7 @@ class SQLDatabaseController(object):
         #colnames = ('metadata_value',)
         #data = [(tablename + '_superkeys',)]
         #superkey_colnames_list_repr = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)[0]
-        superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys')
+        superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys', default=None)
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
         #assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
@@ -1595,7 +1595,7 @@ class SQLDatabaseController(object):
         extern_superkey_colname_list  = []
         extern_superkey_colval_list = []
         extern_primarycolnames_list = []
-        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
+        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
         if dependsmap is not None:
             for colname, dependtup in six.iteritems(dependsmap):
                 assert len(dependtup) == 3, 'must be 3 for now'
