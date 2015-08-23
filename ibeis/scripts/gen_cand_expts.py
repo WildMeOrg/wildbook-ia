@@ -272,6 +272,7 @@ def get_dbnames(exclude_list=[]):
     from ibeis.experiments import experiment_configs
     dbnames = experiment_configs.get_candidacy_dbnames()
     dbnames = ut.setdiff_ordered(dbnames, exclude_list)
+    dbnames = ['PZ_Master1']
     return dbnames
 
 

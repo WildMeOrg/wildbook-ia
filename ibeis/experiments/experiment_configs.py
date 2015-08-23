@@ -56,9 +56,9 @@ candidacy_k = [
 
 candidacy_baseline = [
     {},
-    {'fg_on': [True]},
+    #{'fg_on': [True]},
     {'sv_on': [False]},
-    {'K': [1, 2, 4, 10]},
+    {'K': [1, 2, 4, 7]},
     #{'score_method': ['csum'], 'prescore_method ': ['csum']},
     {'nNameShortlistSVER': [200]},
     {'rotation_invariance': [True], 'affine_invariance': [False]},
