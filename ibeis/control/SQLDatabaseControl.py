@@ -719,6 +719,21 @@ class SQLDatabaseController(object):
     # SQLDB METADATA
     #=========
     def get_metadata_items(db):
+        r"""
+        Returns:
+            list: metadata_items
+
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=PZ_Master0
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> db = ibeis.opendb(defaultdb='testdb1').db
+            >>> metadata_items = db.get_metadata_items()
+            >>> result = ('metadata_items = %s' % (str(metadata_items),))
+            >>> print(result)
+        """
         metadata_rowids = db.get_all_rowids(const.METADATA_TABLE)
         metadata_items = db.get(const.METADATA_TABLE, ('metadata_key', 'metadata_value'), metadata_rowids)
         return metadata_items
@@ -1434,6 +1449,7 @@ class SQLDatabaseController(object):
 
         References:
             http://stackoverflow.com/questions/17717829/how-to-get-column-names-from-a-table-in-sqlite-via-pragma-net-c
+            http://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=contributors
@@ -1584,7 +1600,7 @@ class SQLDatabaseController(object):
                             elif len(superkeys) == 1:
                                 superkey_colnames = superkeys[0]
                             else:
-                                raise NotImplementedError('Cannot Handle: len(superkeys) == 0')
+                                raise NotImplementedError('Cannot Handle: len(superkeys) == 0. Probably a degenerate case')
                         except Exception as ex:
                             ut.printex(ex, 'Error Getting superkey colnames',
                                        keys=['tablename_', 'superkeys'])
