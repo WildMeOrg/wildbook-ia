@@ -1542,21 +1542,30 @@ class SQLDatabaseController(object):
                     extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
                 if extern_superkey_colnames is None:
                     def get_standard_superkey_colnames(tablename_):
-                        # FIXME: Rectify duplicate code
-                        superkeys = db.get_table_superkey_colnames(tablename_)
-                        if len(superkeys) > 1:
-                            primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
-                            if primary_superkey is None:
-                                raise AssertionError(
-                                    ('tablename_=%r has multiple superkeys=%r, but no primary superkey.'
-                                     ' A primary superkey is required') % (tablename_, superkeys))
+                        try:
+                            # FIXME: Rectify duplicate code
+                            superkeys = db.get_table_superkey_colnames(tablename_)
+                            if len(superkeys) > 1:
+                                primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
+                                if primary_superkey is None:
+                                    raise AssertionError(
+                                        ('tablename_=%r has multiple superkeys=%r, but no primary superkey.'
+                                         ' A primary superkey is required') % (tablename_, superkeys))
+                                else:
+                                    index = superkeys.index(primary_superkey)
+                                    superkey_colnames = superkeys[index]
+                            elif len(superkeys) == 1:
+                                superkey_colnames = superkeys[0]
                             else:
-                                index = superkeys.index(primary_superkey)
-                                superkey_colnames = superkeys[index]
-                        else:
-                            superkey_colnames = superkeys[0]
+                                raise NotImplementedError('Cannot Handle: len(superkeys) == 0')
+                        except Exception as ex:
+                            ut.printex(ex, keys=['tablename_', 'superkeys'])
+                            raise
                         return superkey_colnames
-                    extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
+                    try:
+                        extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
+                    except Exception as ex:
+                        ut.printex(ex, keys=['tablename_', 'dependtup'])
                     # INFER SUPERKEY COLNAMES
                 colx = ut.listfind(column_names, colname)
                 extern_rowids = column_list[colx]

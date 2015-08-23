@@ -1153,6 +1153,7 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     CommandLine:
         python -m ibeis.dbio.export_subset --test-merge_databases2:0
         python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
+        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 NNP_Master3 --db2 PZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
