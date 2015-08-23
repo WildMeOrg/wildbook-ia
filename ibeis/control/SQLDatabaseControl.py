@@ -1333,6 +1333,8 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_superkey_colnames
+            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --tablename=contributors
+            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
             python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --db PZ_Master0 --tablename=contributors
 
         Example0:
@@ -1392,6 +1394,18 @@ class SQLDatabaseController(object):
 
     @default_decor
     def get_table_docstr(db, tablename):
+        r"""
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-get_table_docstr
+
+        Example0:
+            >>> # ENABLE_DOCTEST
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> tablename = ut.get_argval('--tablename', type_=str, default='contributors')
+            >>> docstr = ibs.db.get_table_docstr(tablename)
+            >>> print(docstr)
+        """
         docstr = db.get_metadata_val(tablename + '_docstr')
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
@@ -1421,9 +1435,20 @@ class SQLDatabaseController(object):
         References:
             http://stackoverflow.com/questions/17717829/how-to-get-column-names-from-a-table-in-sqlite-via-pragma-net-c
 
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=contributors
+            python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=nonexist
+
         Example:
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> db = ibeis.opendb(defaultdb='testdb1').db
+            >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
+            >>> colrichinfo_list = db.get_columns(tablename)
+            >>> print('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
         """
+        # check if the table exists first. Throws an error if it does not exist.
+        db.cur.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
         db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
         colinfo_list = db.cur.fetchall()
         colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
@@ -1871,17 +1896,16 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_csv
+            python -m ibeis.control.SQLDatabaseControl --exec-get_table_csv --tablename=contributors
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
-            >>> # build test data
             >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
             >>> db = ibs.db
-            >>> tablename = ibeis.const.NAME_TABLE
             >>> exclude_columns = []
-            >>> # execute function
             >>> csv_table = db.get_table_csv(tablename, exclude_columns)
             >>> # verify results
             >>> result = str(csv_table)
