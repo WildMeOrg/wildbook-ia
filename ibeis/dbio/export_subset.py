@@ -1152,6 +1152,7 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
 
     CommandLine:
         python -m ibeis.dbio.export_subset --test-merge_databases2:0
+        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1168,6 +1169,8 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         ...     dbdir2 = 'testdb_dst'
         ...     delete_ibsdir = True
         >>> # Open the source and destination database
+        >>> assert db1 is not None or dbdir1 is not None
+        >>> assert db2 is not None or dbdir2 is not None
         >>> ibs_src = ibeis.opendb(db=db1, dbdir=dbdir1)
         >>> ibs_dst = ibeis.opendb(db=db2, dbdir=dbdir2, allow_newdir=True, delete_ibsdir=delete_ibsdir)
         >>> merge_databases2(ibs_src, ibs_dst)
