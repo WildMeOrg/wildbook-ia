@@ -1453,6 +1453,8 @@ def check_database_overlap(ibs1, ibs2):
         python -m ibeis.dbio.export_subset --exec-check_database_overlap
 
         python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0
+        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0
+
 
     Example:
         >>> # SCRIPT
