@@ -1201,7 +1201,13 @@ def __test_db_version_table_constraints():
         superkey = parse_result['superkey']
         assert superkey == 'contributor_tag'
         assert None is ibs.db.get_metadata_val('contributors_superkey')
-        ibs.db.set_metadata_val('contributors_superkey', "[('contributor_tag',)]")
+        ibs.db.set_metadata_val('contributors_superkeys', "[('contributor_tag',)]")
+
+        # Made a mistake
+        print(ibs.db.get_table_csv_header('metadata'))
+        badrowid = ibs.db.get_rowid_from_superkey('metadata', [('contributors_superkey',)], ('metadata_key',))
+        assert len(badrowid) == 1
+        ibs.db.delete('metadata', [badrowid[0]])
 
     TODO: make a script that generates an empty database at version X
 

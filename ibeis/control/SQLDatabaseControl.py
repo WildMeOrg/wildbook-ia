@@ -410,6 +410,8 @@ class SQLDatabaseController(object):
     def get_where(db, tblname, colnames, params_iter, where_clause,
                   unpack_scalars=True, eager=True,
                   **kwargs):
+        """
+        """
         assert isinstance(colnames, tuple), 'colnames must be a tuple'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -1736,7 +1738,7 @@ class SQLDatabaseController(object):
         tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables_]
         # Reorder tablenames based on dependencies.
         # the tables with dependencies are merged after the tables they depend on
-        dependsmap_list = [db.get_metadata_val(tablename + '_dependsmap', eval_=True) for tablename in tablename_list]
+        dependsmap_list = [db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None) for tablename in tablename_list]
         dependency_digraph = {
             tablename: [] if dependsmap is None else ut.get_list_column(dependsmap.values(), 0)
             for dependsmap, tablename in zip(dependsmap_list, tablename_list)
