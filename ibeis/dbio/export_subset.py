@@ -1163,7 +1163,7 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         >>> dbdir2 = ut.get_argval('--dbdir2', str, default=None)
         >>> delete_ibsdir = False
         >>> # Check for test mode instead of script mode
-        >>> if db1 is Nont and db2 is None and dbdir1 is None and dbdir2 is None:
+        >>> if db1 is None and db2 is None and dbdir1 is None and dbdir2 is None:
         ...     db1 = 'testdb1'
         ...     dbdir2 = 'testdb_dst'
         ...     delete_ibsdir = True
