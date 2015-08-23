@@ -1559,13 +1559,16 @@ class SQLDatabaseController(object):
                             else:
                                 raise NotImplementedError('Cannot Handle: len(superkeys) == 0')
                         except Exception as ex:
-                            ut.printex(ex, keys=['tablename_', 'superkeys'])
+                            ut.printex(ex, 'Error Getting superkey colnames',
+                                       keys=['tablename_', 'superkeys'])
                             raise
                         return superkey_colnames
                     try:
                         extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
                     except Exception as ex:
-                        ut.printex(ex, keys=['tablename_', 'dependtup'])
+                        ut.printex(ex, 'Error Building Transferdata',
+                                   keys=['tablename_', 'dependtup'])
+                        raise
                     # INFER SUPERKEY COLNAMES
                 colx = ut.listfind(column_names, colname)
                 extern_rowids = column_list[colx]
