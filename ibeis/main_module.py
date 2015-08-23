@@ -86,7 +86,9 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False, **kwargs):
         ibs = None
         ut.printWARN('[main!] WARNING args.dbdir is None')
     else:
-        ibs = IBEISControl.request_IBEISController(dbdir=dbdir, use_cache=use_cache)
+        request_dbversion = kwargs.get('request_dbversion', None)
+        ibs = IBEISControl.request_IBEISController(
+            dbdir=dbdir, use_cache=use_cache, request_dbversion=request_dbversion)
         if params.args.webapp or web:
             from ibeis.web import app
             port = params.args.webport

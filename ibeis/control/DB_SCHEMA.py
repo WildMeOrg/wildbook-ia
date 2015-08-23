@@ -1184,6 +1184,62 @@ LEGACY_UPDATE_FUNCTIONS = [
 ]
 
 
+def __test_db_version_table_constraints():
+    """
+    test for updating from version x to version y
+
+    There is a problem where the contributor_table superkey is not in
+    PZ_Master0 and I don't know why. Perhaps it was just a fluke, and it will
+    be ensured from now on.
+
+    Here is the hacky fix script:
+        assert 'contributors_superkeys' not in ut.get_list_column(ibs.db.get_metadata_items(), 0)
+        sorted(ibs.db.get_metadata_items())
+        # So weird that the constraint was set, but not the superkeys
+        constraint_str = ibs.db.get_metadata_val('contributors_constraint')
+        parse_result = parse.parse('CONSTRAINT superkey UNIQUE ({superkey})', constraint_str)
+        superkey = parse_result['superkey']
+        assert superkey == 'contributor_tag'
+        assert None is ibs.db.get_metadata_val('contributors_superkey')
+        ibs.db.set_metadata_val('contributors_superkey', "[('contributor_tag',)]")
+
+    TODO: make a script that generates an empty database at version X
+
+    """
+    import ibeis
+    tmpdir = ut.ensuredir('tmpsqltestdir')
+    ut.delete(tmpdir)
+    tmpdir = ut.ensuredir('tmpsqltestdir')
+    tmpdir3 = ut.ensuredir('tmpsqltestdir3')
+    ut.delete(tmpdir3)
+    tmpdir3 = ut.ensuredir('tmpsqltestdir3')
+    # Should not show contributor table
+    ibs1 = ibeis.opendb(dbdir=tmpdir, request_dbversion='1.0.0', use_cache=False)
+    ibs1.db.print_schema()
+    assert 'contributors' not in ibs1.db.get_table_names()
+
+    ibs2 = ibeis.opendb(dbdir=tmpdir, request_dbversion='1.0.3', use_cache=False)
+    ibs2.db.print_schema()
+    assert 'contributors' in ibs2.db.get_table_names()
+    print(ibs2.db.get_schema_current_autogeneration_str('foo'))
+
+    assert 'contributors_superkeys' in ut.get_list_column(ibs2.db.get_metadata_items(), 0)
+
+    ibs3 = ibeis.opendb(dbdir=tmpdir3,  use_cache=False)
+    ibs3.db.print_schema()
+    assert 'contributors' in ibs1.db.get_table_names()
+
+    #ibeis.control.IBEISControl.__ALL_CONTROLLERS__
+
+    ibs1.db.close()
+    ibs2.db.close()
+    ibs1.dbcache.close()
+    ibs2.dbcache.close()
+
+    del ibs1
+    del ibs2
+
+
 def autogen_db_schema():
     """
     autogen_db_schema

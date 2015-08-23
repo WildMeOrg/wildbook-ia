@@ -57,7 +57,10 @@ class SQLAtomicContext(object):
 
 
 def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None):
-    """ hacky function to ensure that only developer sees the development schema """
+    """
+    hacky function to ensure that only developer sees the development schema
+    and only on test databases
+    """
     TESTING_NEW_SQL_VERSION = version_current != version_next
     if TESTING_NEW_SQL_VERSION:
         print('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
@@ -141,7 +144,12 @@ class SQLDatabaseController(object):
         db.connection.close()
 
     def _ensure_metadata_table(db):
-        # We need this to be done every time so that the update code works correctly.
+        """
+        Creates the metadata table if it does not exist
+
+        We need this to be done every time so that the update code works
+        correctly.
+        """
         db.add_table(const.METADATA_TABLE, (
             ('metadata_rowid',               'INTEGER PRIMARY KEY'),
             ('metadata_key',                 'TEXT'),
@@ -733,7 +741,7 @@ class SQLDatabaseController(object):
             >>> import ibeis
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> metadata_items = db.get_metadata_items()
-            >>> result = ('metadata_items = %s' % (ut.list_str(metadata_items),))
+            >>> result = ('metadata_items = %s' % (ut.list_str(sorted(metadata_items)),))
             >>> print(result)
         """
         metadata_rowids = db.get_all_rowids(const.METADATA_TABLE)
@@ -755,7 +763,7 @@ class SQLDatabaseController(object):
         db.executeone(operation, params, verbose=False)
 
     @default_decor
-    def get_metadata_val(db, key, eval_=False):
+    def get_metadata_val(db, key, eval_=False, default=ut.NoParam):
         """
         val is the repr string unless eval_ is true
         """
@@ -765,6 +773,11 @@ class SQLDatabaseController(object):
         vals = db.get_where(const.METADATA_TABLE, colnames, params_iter, where_clause)
         assert len(vals) == 1, 'duplicate keys in metadata table'
         val = vals[0]
+        if val is None:
+            if default == ut.NoParam:
+                assert val is not None, 'metadata_table key=%r does not exist' % (key,)
+            else:
+                val = default
         #if key.endswith('_constraint') or
         if key.endswith('_docstr'):
             # Hack eval off for constriant and docstr
@@ -839,9 +852,11 @@ class SQLDatabaseController(object):
                 #FROM encounter_image_relationship
                 #WHERE image_rowid=? AND encounter_rowid=?
                 constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
-                assert isinstance(superkeys, list), 'must be list got %r, superkeys=%r' % (type(superkeys), superkeys)
+                assert isinstance(superkeys, list), (
+                    'must be list got %r, superkeys=%r' % (type(superkeys), superkeys))
                 for superkey_colnames in superkeys:
-                    assert isinstance(superkey_colnames, tuple), 'must be list of tuples got list of %r' % (type(superkey_colnames,))
+                    assert isinstance(superkey_colnames, tuple), (
+                        'must be list of tuples got list of %r' % (type(superkey_colnames,)))
                     colnames_str = ','.join(superkey_colnames)
                     unique_constraint = constraint_fmtstr.format(colnames_str=colnames_str)
                     constraint_list.append(unique_constraint)
@@ -852,8 +867,10 @@ class SQLDatabaseController(object):
 
         # ASSERT VALID TYPES
         for name, type_ in coldef_list:
-            assert isinstance(name, six.string_types)  and len(name)  > 0, 'cannot have empty name. name=%r, type_=%r' % (name, type_)
-            assert isinstance(type_, six.string_types) and len(type_) > 0, 'cannot have empty type. name=%r, type_=%r' % (name, type_)
+            assert isinstance(name, six.string_types)  and len(name)  > 0, (
+                'cannot have empty name. name=%r, type_=%r' % (name, type_))
+            assert isinstance(type_, six.string_types) and len(type_) > 0, (
+                'cannot have empty type. name=%r, type_=%r' % (name, type_))
 
         body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
 
@@ -1324,7 +1341,7 @@ class SQLDatabaseController(object):
 
     @default_decor
     def get_table_constraints(db, tablename):
-        constraint = db.get_metadata_val(tablename + '_constraint')
+        constraint = db.get_metadata_val(tablename + '_constraint', default=None)
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
         #data = [(tablename + '_constraint',)]
@@ -1870,7 +1887,7 @@ class SQLDatabaseController(object):
                 raise
             if len(superkey_colnames_list) > 1:
                 # FIXME: Rectify duplicate code
-                primary_superkey = db.get_metadata_val(tablename + '_primary_superkey', eval_=True)
+                primary_superkey = db.get_metadata_val(tablename + '_primary_superkey', eval_=True, default=None)
                 if primary_superkey is None:
                     raise AssertionError(
                         ('tablename=%r has multiple superkey_colnames_list=%r, but no primary superkey.'

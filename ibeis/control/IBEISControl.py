@@ -123,7 +123,9 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
 
 
-def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE, use_cache=True):
+def request_IBEISController(
+        dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
+        use_cache=True, request_dbversion=None):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -134,6 +136,7 @@ def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VER
         wbaddr    (None):
         verbose   (bool):
         use_cache (bool): use the global ibeis controller cache. (default=True)
+        request_dbversion (str): developer flag. Do not use.
 
     Returns:
         IBEISController: ibs
@@ -165,7 +168,9 @@ def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VER
         if ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
         else:
-            ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
+            ibs = IBEISController(
+                dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
+                request_dbversion=request_dbversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -211,7 +216,8 @@ class IBEISController(object):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
-    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
+    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
+                 request_dbversion=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
@@ -226,7 +232,7 @@ class IBEISController(object):
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _send_wildbook_request will do nothing if no wildbook address is specified
         ibs._send_wildbook_request(wbaddr)
-        ibs._init_sql()
+        ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
         print('[ibs.__init__] END new IBEISController\n')
 
@@ -369,17 +375,17 @@ class IBEISController(object):
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
     @default_decorator
-    def _init_sql(ibs):
+    def _init_sql(ibs, request_dbversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
-        ibs._init_sqldbcore()
+        ibs._init_sqldbcore(request_dbversion=request_dbversion)
         ibs._init_sqldbcache()
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs._init_rowid_constants()
 
     #@ut.indent_func
-    def _init_sqldbcore(ibs):
+    def _init_sqldbcore(ibs, request_dbversion=None):
         """
         Example:
             >>> # DISABLE_DOCTEST
@@ -415,7 +421,10 @@ class IBEISController(object):
                 raise
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.4.4'
+        if request_dbversion is None:
+            ibs.db_version_expected = '1.4.4'
+        else:
+            ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
