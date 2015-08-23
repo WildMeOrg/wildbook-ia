@@ -1333,12 +1333,14 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_superkey_colnames
+            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --db PZ_Master0 --tablename=contributors
 
         Example0:
             >>> # ENABLE_DOCTEST
             >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> result = ibs.db.get_table_superkey_colnames('lblimage')
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> tablename = ut.get_argval('--tablename', type_=str, default='lblimage')
+            >>> result = ibs.db.get_table_superkey_colnames(tablename)
             >>> print(result)
             [('lbltype_rowid', 'lblimage_value')]
         """
