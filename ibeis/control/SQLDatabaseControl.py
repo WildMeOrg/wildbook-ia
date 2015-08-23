@@ -725,13 +725,15 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=PZ_Master0
+            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=testdb1
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> metadata_items = db.get_metadata_items()
-            >>> result = ('metadata_items = %s' % (str(metadata_items),))
+            >>> result = ('metadata_items = %s' % (ut.list_str(metadata_items),))
             >>> print(result)
         """
         metadata_rowids = db.get_all_rowids(const.METADATA_TABLE)
