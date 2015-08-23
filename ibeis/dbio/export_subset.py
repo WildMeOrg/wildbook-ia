@@ -1157,27 +1157,34 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
-        >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
-        >>> ibs_src = ibeis.opendb(db='testdb1')
-        >>> # OPEN A CLEAN DATABASE
-        >>> #delete_ibsdir = True
-        >>> delete_ibsdir = True
-        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+        >>> db1 = ut.get_argval('--db1', str, default='testdb1')
+        >>> db2 = ut.get_argval('--db2', str, default='testdb_dst')
+        >>> dbdir1 = ut.get_argval('--dbdir1', str, default=None)
+        >>> dbdir2 = ut.get_argval('--dbdir2', str, default=None)
+        >>> delete_ibsdir = False
+        >>> # Check for test mode instead of script mode
+        >>> if db1 is Nont and db2 is None and dbdir1 is None and dbdir2 is None:
+        ...     db1 = 'testdb1'
+        ...     dbdir2 = 'testdb_dst'
+        ...     delete_ibsdir = True
+        >>> # Open the source and destination database
+        >>> ibs_src = ibeis.opendb(db=db1, dbdir=dbdir1)
+        >>> ibs_dst = ibeis.opendb(db=db1, dbdir=dbdir1, allow_newdir=True, delete_ibsdir=delete_ibsdir)
         >>> merge_databases2(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
         >>> ibs_dst.print_dbinfo()
 
-    Example2:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> import ibeis
-        >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
-        >>> ibs_src = ibeis.opendb(db='PZ_MTEST')
-        >>> # OPEN A CLEAN DATABASE
-        >>> delete_ibsdir = True
-        >>> ibs_dst = ibeis.opendb(db='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
-        >>> merge_databases2(ibs_src, ibs_dst)
-        >>> check_merge(ibs_src, ibs_dst)
+    #Example2:
+    #    >>> # DISABLE_DOCTEST
+    #    >>> from ibeis.dbio.export_subset import *  # NOQA
+    #    >>> import ibeis
+    #    >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
+    #    >>> ibs_src = ibeis.opendb(db='PZ_MTEST')
+    #    >>> # OPEN A CLEAN DATABASE
+    #    >>> delete_ibsdir = True
+    #    >>> ibs_dst = ibeis.opendb(db='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+    #    >>> merge_databases2(ibs_src, ibs_dst)
+    #    >>> check_merge(ibs_src, ibs_dst)
     """
     # TODO: ensure images are localized
     # otherwise this wont work
