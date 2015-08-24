@@ -122,9 +122,9 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     return fig
 
 
-def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None, edges=None,
-                      fnum=None, pnum=None, title=None, xlabel='',
-                      ylabel='cumfreq', use_legend=True, num_xticks=None, **kwargs):
+def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
+                      edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
+                      num_xticks=None, **kwargs):
     r"""
 
     CommandLine:
@@ -175,7 +175,7 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None, e
         label_list=label_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
         # ---
-        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel, title=title,
+        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
         # ---
         use_legend=use_legend,
         # ---
