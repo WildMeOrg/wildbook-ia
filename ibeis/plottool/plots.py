@@ -36,7 +36,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         ...                            300, 300, 300, 500, 500, 500, 500]], dtype=np.int64).T
         >>> known_target_points = np.array([35, 32, 32, 30, 33, 32, 33, 30, 32, 31, 31, 32, 36, 33, 33, 32, 33,
         ...                                 33, 32, 31], dtype=np.int64)
-        >>> lbl_list = ['custom', 'custom:sv_on=False']
+        >>> label_list = ['custom', 'custom:sv_on=False']
         >>> nd_labels = [u'K', u'dsize']
         >>> target_label = 'score'
         >>> fnum = None
@@ -122,7 +122,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     return fig
 
 
-def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edges=None,
+def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None, edges=None,
                       fnum=None, pnum=None, title=None, xlabel='',
                       ylabel='cumfreq', use_legend=True, num_xticks=None, **kwargs):
     r"""
@@ -141,10 +141,10 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
         >>>     [[ 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
         >>>      [ 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
         >>> edges = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        >>> lbl_list = ['custom', 'custom:sv_on=False']
+        >>> label_list = ['custom', 'custom:sv_on=False']
         >>> fnum = None
         >>> pnum = None
-        >>> plot_rank_cumhist(cdf_list, lbl_list, edges=edges, fnum=fnum, pnum=pnum)
+        >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
         >>> ut.show_if_requested()
     """
 
@@ -172,7 +172,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
     fig = multi_plot(
         x_data, cdf_list,
         # ---
-        label_list=lbl_list, color_list=color_list, marker_list=marker_list,
+        label_list=label_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
         # ---
         num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel, title=title,
@@ -186,7 +186,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
     #for ix in range(num_cdfs):
     #    y_data = cdf_list[ix]
     #    color = color_list[ix]
-    #    label = lbl_list[ix]
+    #    label = label_list[ix]
     #    marker = marker_list[ix]
     #    max_y = max(np.max(y_data), max_y)
     #    min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
@@ -211,10 +211,10 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
 
     #step_size = int(np.log(x_data.max() + 1))
     #step_size = int(np.sqrt(x_data.max() + 1))
-    if num_xticks is not None:
-        max_pos = (x_data.max() + 1)
-        step_size = int(max_pos / num_xticks)
-        df2.set_xticks(np.arange(1, max_pos, step_size))
+    #if num_xticks is not None:
+    #    max_pos = (x_data.max() + 1)
+    #    step_size = int(max_pos / num_xticks)
+    #    df2.set_xticks(np.arange(1, max_pos, step_size))
     #df2.dark_background()
 
     #if use_legend:
@@ -226,8 +226,7 @@ def plot_rank_cumhist(cdf_list, lbl_list, color_list=None, marker_list=None, edg
 def multi_plot(xdata, ydata_list, **kwargs):
     r"""
     plots multiple lines
-
-    Args:
+   Args:
         xdata (ndarray):
         ydata_list (list of ndarrays):
 
@@ -331,7 +330,10 @@ def multi_plot(xdata, ydata_list, **kwargs):
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
     if num_xticks is not None:
+        # TODO check if xdata is integral
         xticks = np.linspace(xmin, xmax, num_xticks)
+        if ut.is_int(xdata):
+            xticks = np.unique(xticks.astype(np.int32))
         ax.set_xticks(xticks)
         #max_pos = (xdata.max() + 1)
         #step_size = int(max_pos // num_xticks)
@@ -341,6 +343,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         yticks = np.linspace(ymin, ymax, num_yticks)
         #ystep = (ymax - ymin) // (num_yticks - 1)
         #yticks = np.arange(ymin, ymax + ystep, ystep)
+        if ut.is_int(ydata):
+            yticks = np.unique(yticks.astype(np.int32))
         ax.set_yticks(yticks)
 
     xpad = kwargs.get('xpad', None)
