@@ -82,12 +82,12 @@ def parse_args():
         loopfreq = 4200 / 10  # 100
         parser2.add_int('--loop-freq', default=loopfreq,
                         help='Qt main loop ms frequency')
-        parser2.add_flag('--nocache-db',
-                         help='Disables db cache')
-        parser2.add_flag('--nocache-flann',
-                         help='Disables flann cache')
-        parser2.add_flag('--nocache-query',
-                         help='Disables flann cache')
+        #parser2.add_flag('--nocache-db',
+        #                 help='Disables db cache')
+        #parser2.add_flag('--nocache-flann',
+        #                 help='Disables flann cache')
+        #parser2.add_flag('--nocache-query',
+        #                 help='Disables flann cache')
         parser2.add_flag('--auto-dump',
                          help='dumps the SQLITE3 database after every commit')
         #parser2.add_flag('--darken')

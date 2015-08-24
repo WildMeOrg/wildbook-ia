@@ -6,6 +6,7 @@ sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_fu
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
+from six.moves import zip, range
 import functools
 from ibeis import constants as const
 from ibeis.control import accessor_decors
@@ -278,6 +279,7 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         returns feat_rowid_list of added (or already existing feats)
 
     TemplateInfo:
+        python -m ibeis.templates.template_generator --key feat --funcname-filter '\<add_chip_feat\>' --modfname=manual_feat_funcs
         Tadder_pl_dependant
         parent = chip
         leaf = feat
@@ -289,30 +291,33 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
+        >>> ibs.get_annot_chip_rowids(ibs.get_valid_aids())  # Ensure chips are computed
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[::3]
         >>> feat_rowid_list = ibs.add_chip_feat(chip_rowid_list, config2_=config2_)
-        >>> assert len(feat_rowid_list) == len(chip_rowid_list)
+        >>> assert len(feat_rowid_list) == len(chip_rowid_list), 'bad length'
         >>> ut.assert_all_not_None(feat_rowid_list)
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
+        >>> ibs.get_annot_chip_rowids(ibs.get_valid_aids())  # Ensure chips are computed
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[0:10]
+        >>> assert len(chip_rowid_list) == 10, 'chips not computed'
         >>> sub_chip_rowid_list1 = chip_rowid_list[0:6]
         >>> sub_chip_rowid_list2 = chip_rowid_list[5:7]
         >>> sub_chip_rowid_list3 = chip_rowid_list[0:7]
         >>> sub_feat_rowid_list1 = ibs.get_chip_feat_rowid(sub_chip_rowid_list1, config2_=config2_, ensure=True)
         >>> ibs.get_chip_feat_rowid(sub_chip_rowid_list1, config2_=config2_, ensure=True)
         >>> sub_feat_rowid_list1, num_dirty0 = ibs.add_chip_feat(sub_chip_rowid_list1, config2_=config2_, return_num_dirty=True)
-        >>> assert num_dirty0 == 0
+        >>> assert num_dirty0 == 0, 'num_dirty0=%r' % (num_dirty0,)
         >>> ut.assert_all_not_None(sub_feat_rowid_list1)
         >>> ibs.delete_chip_feats(sub_chip_rowid_list2)
         >>> #ibs.delete_chip_feat(sub_chip_rowid_list2)?
         >>> sub_feat_rowid_list3 = ibs.get_chip_feat_rowid(sub_chip_rowid_list3, config2_=config2_, ensure=False)
         >>> # Only the last two should be None
         >>> ut.assert_all_not_None(sub_feat_rowid_list3[0:5], 'sub_feat_rowid_list3[0:5])')
-        >>> assert sub_feat_rowid_list3[5:7] == [None, None]
+        >>> assert sub_feat_rowid_list3[5:7] == [None, None], 'sub_feat_rowid_list3=%r' % (sub_feat_rowid_list3,)
         >>> sub_feat_rowid_list3_ensured, num_dirty1 = ibs.add_chip_feat(sub_chip_rowid_list3, config2_=config2_,  return_num_dirty=True)
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_feat_rowid_list3_ensured)
@@ -349,7 +354,21 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         colnames = ['chip_rowid', 'config_rowid',
                     'feature_num_feats', 'feature_keypoints', 'feature_vecs']
         #feat_rowid_list = ibs.dbcache.add_cleanly(const.FEATURE_TABLE, colnames, dirty_params_iter, get_rowid_from_superkey)
-        ibs.dbcache._add(const.FEATURE_TABLE, colnames, dirty_params_iter)
+        CHUNKED_ADD = True
+        if CHUNKED_ADD:
+            chunksize = 128
+            print('[add_chip_feat] adding to sql in chunks with chunksize=%r' % (chunksize,))
+            for dirty_params_chunk in ut.ichunks(dirty_params_iter, chunksize=chunksize):
+                print('[add_chip_feat] adding feature chunk to sql')
+                nInput = len(dirty_params_chunk)
+                ibs.dbcache._add(
+                    const.FEATURE_TABLE, colnames, dirty_params_chunk, nInput=nInput)
+        else:
+            nInput = num_dirty
+            ibs.dbcache._add(
+                const.FEATURE_TABLE, colnames, dirty_params_iter, nInput=nInput)
+
+        #ibs.dbcache._add(const.FEATURE_TABLE, colnames, dirty_params_iter)
         # Now that the dirty params are added get the correct order of rowids
         feat_rowid_list = get_rowid_from_superkey(chip_rowid_list)
     else:

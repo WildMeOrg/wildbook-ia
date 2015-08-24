@@ -369,7 +369,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #    ut.ensuredir(neighbor_cachedir)
 #    return neighbor_cachedir, nn_mid_cacheid
 
-USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
+USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs') and ut.USE_CACHE
 USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid') and USE_HOTSPOTTER_CACHE
 
 

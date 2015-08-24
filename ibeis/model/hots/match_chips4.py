@@ -14,7 +14,7 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 # TODO: Move to params
 USE_HOTSPOTTER_CACHE = pipeline.USE_HOTSPOTTER_CACHE
 USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))  and USE_HOTSPOTTER_CACHE
-USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
+USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache')) and ut.USE_CACHE
 SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 #MIN_BIGCACHE_BUNDLE = 20
 #MIN_BIGCACHE_BUNDLE = 150
@@ -142,8 +142,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
-        query_cfgstr = ut.hashstr(qreq_.get_query_cfgstr())
-        bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid, query_cfgstr))
+        pipe_hashstr = qreq_.get_pipe_hashstr()
+        bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid, pipe_hashstr))
         bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
         if use_bigcache_:
             # Try and load directly from a big cache

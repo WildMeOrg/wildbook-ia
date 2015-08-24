@@ -53,6 +53,10 @@ ANNOT_IS_SHADOWED        = 'annot_is_shadowed'
 ANNOT_IS_WASHEDOUT       = 'annot_is_washedout'
 
 
+from collections import namedtuple
+SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts', 'theta', 'yaw', 'name', 'species'))
+
+
 # ==========
 # IDERS
 # ==========
@@ -1997,6 +2001,10 @@ def get_annot_visual_uuid_info(ibs, aid_list):
 @register_api('/api/annot/semantic_uuid_info/', methods=['GET'])
 def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     r"""
+    Semenatic uuids are made up of visual and semantic information. Semantic
+    information is name, species, viewpoint.  Visual info is image uuid, verts,
+    and theta
+
     Args:
         aid_list (list):
         _visual_infotup (tuple) : internal use only
@@ -2033,8 +2041,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     yaw_list        = ibs.get_annot_yaws(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
     species_list    = ibs.get_annot_species_texts(aid_list)
-    semantic_infotup = (image_uuid_list, verts_list, theta_list, yaw_list,
-                        name_list, species_list)
+    semantic_infotup = SemanticInfoTup(image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
     return semantic_infotup
 
 

@@ -21,11 +21,26 @@ from os.path import expanduser
 import utool as ut
 
 
+def test_database_intersection():
+    """
+    # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0
+
+    # PZ_MTEST is also a subset of PZ_Master0 with minor changes
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0
+
+    # NNP_Master3 and PZ_Master0 are disjoint
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0
+    """
+    pass
+
+
 def generate_dbinfo_table():
     """
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show
 
     FIXME: Old database should not be converted to left
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
@@ -282,7 +297,7 @@ def make_standard_test_scripts(varydict, expt_name, media_name):
     for media_name in media_names:
         basecmd, static_flags, dynamic_flags_ = get_results_command(expt_name, media_name)
         dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
-        cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags
+        cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags + ' $@'
         cmd_fmtstr_list.append(cmd_fmtstr)
     fname = 'experiment_' + expt_name + '.sh'
     return write_formatted_script_lines(cmd_fmtstr_list, [varydict], fname)
@@ -323,8 +338,9 @@ def write_script_lines(line_list, fname):
     from os.path import dirname, join
     dpath = dirname(ut.get_module_dir(ibeis))
     fpath = join(dpath, fname)
-    ut.writeto(fpath, script)
-    ut.chmod_add_executable(fname)
+    if not ut.get_argflag('--dryrun'):
+        ut.writeto(fpath, script)
+        ut.chmod_add_executable(fname)
     return fname, script, line_list
 
 

@@ -615,7 +615,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
         normalizer = try_download_baseline_ibeis_normalizer(qreq_.ibs, qreq_)
         return normalizer
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
-    query_cfgstr = qreq_.get_query_cfgstr()
+    query_cfgstr = qreq_.get_pipe_cfgstr()
 
     cfgstr = species_text + query_cfgstr
 
@@ -713,7 +713,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     species_text = '_'.join(qreq_.get_unique_species())  # HACK
     #data_hashid = qreq_.get_data_hashid()
     #query_hashid = qreq_.get_query_hashid()
-    query_cfgstr = qreq_.get_query_cfgstr()
+    query_cfgstr = qreq_.get_pipe_cfgstr()
     prefix = species_text
     cfgstr = query_cfgstr
     #ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr

@@ -9,7 +9,7 @@ sh Tgen.sh --key chip
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np  # NOQA
-from six.moves import zip
+from six.moves import zip, range
 import six  # NOQA
 import functools
 from os.path import join

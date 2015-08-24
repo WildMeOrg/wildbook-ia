@@ -1154,7 +1154,7 @@ def parse_table_structure(ibs):
     ignore_table_hacks = ['keys', 'metadata']
 
     def get_tablename_tbl(db, tablename):
-        shortname = db.get_metadata_val(tablename + '_shortname', eval_=True)
+        shortname = db.get_metadata_val(tablename + '_shortname', eval_=True, default=None)
         if shortname is not None:
             tbl = shortname
         else:
@@ -1181,7 +1181,7 @@ def parse_table_structure(ibs):
     # Parse dependencies out of the SQL Schemas
     def get_tbl_depends(db, tbl):
         tablename = tbl2_tablename[tbl]
-        depends = db.get_metadata_val(tablename + '_dependson', eval_=True)
+        depends = db.get_metadata_val(tablename + '_dependson', eval_=True, default=None)
         if depends is None:
             return None
         if isinstance(depends, six.string_types):
@@ -1192,14 +1192,14 @@ def parse_table_structure(ibs):
 
     def get_tbl_relationship(tbl, db):
         tablename = tbl2_tablename[tbl]
-        relates = db.get_metadata_val(tablename + '_relates', eval_=True)
+        relates = db.get_metadata_val(tablename + '_relates', eval_=True, default=None)
         if relates is not None:
             relates = ut.dict_take(tablename2_tbl, relates)
         return relates
 
     def get_tbl_externtbls(tbl, db):
         tablename = tbl2_tablename[tbl]
-        externtbls = db.get_metadata_val(tablename + '_extern_tables', eval_=True)
+        externtbls = db.get_metadata_val(tablename + '_extern_tables', eval_=True, default=None)
         if externtbls is not None:
             externtbls = ut.dict_take(tablename2_tbl, externtbls)
         return externtbls

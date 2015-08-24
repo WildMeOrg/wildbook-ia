@@ -99,6 +99,7 @@ Tadder_pl_dependant = ut.codeblock(
             returns {leaf}_rowid_list of added (or already existing {leaf}s)
 
         TemplateInfo:
+            python -m ibeis.templates.template_generator --key {leaf} --funcname-filter '\<add_{parent}_{leaf}\>' --modfname={autogen_modname}
             Tadder_pl_dependant
             parent = {parent}
             leaf = {leaf}
@@ -165,6 +166,7 @@ Tadder_pl_dependant = ut.codeblock(
             # REM proptup_gen = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
             # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
             proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, dirty_{parent}_rowid_list, config2_=config2_)
+            # REM FIXME: does not work with feat table. leaf_other_propnames is not populated correctly.
             dirty_params_iter = (
                 ({parent}_rowid, config_rowid, {leaf_other_propnames})
                 for {parent}_rowid, ({leaf_other_propnames},) in
@@ -172,7 +174,15 @@ Tadder_pl_dependant = ut.codeblock(
             )
             colnames = {nonprimary_leaf_colnames}
             #{leaf}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, dirty_params_iter, get_rowid_from_superkey)
-            {self}.{dbself}._add({LEAF_TABLE}, colnames, dirty_params_iter)
+            CHUNKED_ADD = False
+            if CHUNKED_ADD:
+                for dirty_params_chunk in ut.ichunks(dirty_params_iter, chunksize=128):
+                    nInput = len(dirty_params_chunk)
+                    {self}.{dbself}._add({LEAF_TABLE}, colnames, dirty_params_chunk, nInput=nInput)
+            else:
+                nInput = num_dirty
+                {self}.{dbself}._add({LEAF_TABLE}, colnames, dirty_params_iter, nInput=nInput)
+                pass
             # Now that the dirty params are added get the correct order of rowids
             {leaf}_rowid_list = get_rowid_from_superkey({parent}_rowid_list)
         else:

@@ -1480,39 +1480,44 @@ def check_database_overlap(ibs1, ibs2):
         >>> ibs2 = ibeis.opendb(db=db2, dbdir=dbdir2)
         >>> check_database_overlap(ibs1, ibs2)
     """
+    import numpy as np
+    import vtool as vt
 
     def print_intersection(uuids1, uuids2, lbl=''):
         uuids1_ = set(uuids1)
         uuids2_ = set(uuids2)
         uuids_isect = uuids1_.intersection(uuids2_)
         print('Checking {lbl} intersection'.format(lbl=lbl))
-        print('  * Num {lbl} 1: {num}'.format(lbl=lbl, num=len(uuids1_)))
-        print('  * Num {lbl} 2: {num}'.format(lbl=lbl, num=len(uuids2_)))
+        fmtkw1 = dict(lbl=lbl, num=len(uuids1_), percent=100 * len(uuids_isect) / len(uuids1_))
+        fmtkw2 = dict(lbl=lbl, num=len(uuids2_), percent=100 * len(uuids_isect) / len(uuids2_))
+        print('  * Num {lbl} 1: {num}, Percentage {percent:.2f}%'.format(**fmtkw1))
+        print('  * Num {lbl} 2: {num}, Percentage {percent:.2f}%'.format(**fmtkw2))
         print('  * Num {lbl} isect: {num}'.format(lbl=lbl, num=len(uuids_isect)))
-        index_list1 = ut.find_list_indexes(uuids1, uuids_isect)
-        index_list2 = ut.find_list_indexes(uuids2, uuids_isect)
-        return index_list1, index_list2
+        x_list1 = ut.find_list_indexes(uuids1, uuids_isect)
+        x_list2 = ut.find_list_indexes(uuids2, uuids_isect)
+        return x_list1, x_list2
 
     gids1 = ibs1.get_valid_gids()
     gids2 = ibs2.get_valid_gids()
     image_uuids1      = ibs1.get_image_uuids(gids1)
     image_uuids2      = ibs2.get_image_uuids(gids2)
-    index_list1, index_list2 = print_intersection(image_uuids1, image_uuids2, 'images')
+    gx_list1, gx_list2 = print_intersection(image_uuids1, image_uuids2, 'images')
+    gids_isect1 = ut.list_take(gids1, gx_list1)
+    gids_isect2 = ut.list_take(gids2, gx_list2)
     SHOW_ISECT_GIDS = False
     if SHOW_ISECT_GIDS:
-        if len(index_list1) > 0:
-            gids_isect1 = ut.list_take(gids1, index_list1)
-            gids_isect2 = ut.list_take(gids1, index_list2)
+        if len(gx_list1) > 0:
             print('gids_isect1 = %r' % (gids_isect1,))
             print('gids_isect2 = %r' % (gids_isect2,))
             if False:
+                # Debug code
                 import ibeis.viz
                 import plottool as pt
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
                 for fnum, pairs in enumerate(pairs_iter, start=1):
                     pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
-                    for gid1, gid2 in gid_pairs:
+                    for gid1, gid2 in pairs:
                         ibeis.viz.show_image(ibs1, gid1, pnum=pnum_(), fnum=fnum)
                         ibeis.viz.show_image(ibs2, gid2, pnum=pnum_(), fnum=fnum)
 
@@ -1523,16 +1528,103 @@ def check_database_overlap(ibs1, ibs2):
         ibs2.update_annot_visual_uuids(aids2)
         ibs1.update_annot_semantic_uuids(aids1)
         ibs2.update_annot_semantic_uuids(aids2)
-    #
+
+    # Check to see which intersecting images have different annotations
+    image_aids_isect1 = ibs1.get_image_aids(gids_isect1)
+    image_aids_isect2 = ibs2.get_image_aids(gids_isect2)
+    image_avuuids_isect1 = np.array(ibs1.unflat_map(ibs1.get_annot_visual_uuids, image_aids_isect1))
+    image_avuuids_isect2 = np.array(ibs2.unflat_map(ibs2.get_annot_visual_uuids, image_aids_isect2))
+    changed_image_xs = np.nonzero(image_avuuids_isect1 != image_avuuids_isect2)[0]
+    if len(changed_image_xs) > 0:
+        print('There are %d images with changes in annotation visual information' % (len(changed_image_xs),))
+        changed_gids1 = ut.list_take(gids_isect1, changed_image_xs)
+        changed_gids2 = ut.list_take(gids_isect2, changed_image_xs)
+
+        SHOW_CHANGED_GIDS = False
+        if SHOW_CHANGED_GIDS:
+            print('gids_isect1 = %r' % (changed_gids2,))
+            print('gids_isect2 = %r' % (changed_gids1,))
+            if False:
+                # Debug code
+                import ibeis.viz
+                import plottool as pt
+                gid_pairs = list(zip(changed_gids1, changed_gids2))
+                pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
+                for fnum, pairs in enumerate(pairs_iter, start=1):
+                    pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
+                    for gid1, gid2 in pairs:
+                        ibeis.viz.show_image(ibs1, gid1, pnum=pnum_(), fnum=fnum)
+                        ibeis.viz.show_image(ibs2, gid2, pnum=pnum_(), fnum=fnum)
+
+    # Check for overlapping annotations (visual info only) in general
     annot_vuuids1 = ibs1.get_annot_visual_uuids(aids1)
     annot_vuuids2 = ibs2.get_annot_visual_uuids(aids2)
-    print_intersection(annot_vuuids1, annot_vuuids2, 'vuuids')
-    #
+    avx_list1, avx_list2 = print_intersection(annot_vuuids1, annot_vuuids2, 'vuuids')
+
+    # Check for overlapping annotations (visual + semantic info) in general
     annot_suuids1 = ibs1.get_annot_semantic_uuids(aids1)
     annot_suuids2 = ibs2.get_annot_semantic_uuids(aids2)
-    print_intersection(annot_suuids1, annot_suuids2, 'suuids')
+    asx_list1, asx_list2 = print_intersection(annot_suuids1, annot_suuids2, 'suuids')
+
+    # Check which images with the same visual uuids have different semantic uuids
+    changed_ax_list1 = ut.setdiff_ordered(avx_list1, asx_list1)
+    changed_ax_list2 = ut.setdiff_ordered(avx_list2, asx_list2)
+    assert len(changed_ax_list1) == len(changed_ax_list2)
+    assert ut.list_take(annot_vuuids1, changed_ax_list1) == ut.list_take(annot_vuuids2, changed_ax_list2)
+
+    changed_aids1 = np.array(ut.list_take(aids1, changed_ax_list1))
+    changed_aids2 = np.array(ut.list_take(aids2, changed_ax_list2))
+
+    changed_sinfo1 = ibs1.get_annot_semantic_uuid_info(changed_aids1)
+    changed_sinfo2 = ibs2.get_annot_semantic_uuid_info(changed_aids2)
+    sinfo1_arr = np.array(changed_sinfo1)
+    sinfo2_arr = np.array(changed_sinfo2)
+    is_semantic_diff = sinfo2_arr != sinfo1_arr
+    # Inspect semantic differences
+    if np.any(is_semantic_diff):
+        colxs, rowxs = np.nonzero(is_semantic_diff)
+        colx2_rowids = ut.group_items(rowxs, colxs)
+        prop2_rowids = ut.map_dict_keys(changed_sinfo1._fields.__getitem__, colx2_rowids)
+        print('changed_value_counts = ' + ut.dict_str(ut.map_dict_vals(len, prop2_rowids)))
+        yawx = changed_sinfo1._fields.index('yaw')
+
+        # Show change in viewpoints
+        if len(colx2_rowids[yawx]) > 0:
+            from ibeis import ibsfuncs  # NOQA
+            vp_category_diff = ibsfuncs.viewpoint_diff(sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(np.float)
+            # Look for category changes
+            #any_diff = np.floor(vp_category_diff) > 0
+            #_xs    = np.nonzero(any_diff)[0]
+            #_aids1 = changed_aids1.take(_xs)
+            #_aids2 = changed_aids2.take(_xs)
+            # Look for significant changes
+            is_significant_diff = np.floor(vp_category_diff) > 1
+            significant_xs    = np.nonzero(is_significant_diff)[0]
+            significant_aids1 = changed_aids1.take(significant_xs)
+            significant_aids2 = changed_aids2.take(significant_xs)
+            print('There are %d significant viewpoint changes' % (len(significant_aids2),))
+            #vt.ori_distance(sinfo1_arr[yawx], sinfo2_arr[yawx])
+            #zip(ibs1.get_annot_yaw_texts(significant_aids1), ibs2.get_annot_yaw_texts(significant_aids2))
+            #print('yawdiff = %r' % )
+            #if False:
+            #    ## Hack: Apply fixes
+            #    #good_yaws = ibs2.get_annot_yaws(significant_aids2)
+            #    #ibs1.set_annot_yaws(significant_aids1, good_yaws)
+            #    pass
+            if False:
+                # Debug code
+                import ibeis.viz
+                import plottool as pt
+                #aid_pairs = list(zip(_aids1, _aids2))
+                aid_pairs = list(zip(significant_aids1, significant_aids2))
+                pairs_iter = ut.ichunks(aid_pairs, chunksize=8)
+                for fnum, pairs in enumerate(pairs_iter, start=1):
+                    pnum_ = pt.make_pnum_nextgen(nRows=len(pairs), nCols=2)
+                    for aid1, aid2 in pairs:
+                        ibeis.viz.show_chip(ibs1, aid1, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+                        ibeis.viz.show_chip(ibs2, aid2, pnum=pnum_(), fnum=fnum, show_yawtext=True, nokpts=True)
+
     #
-    import numpy as np
     nAnnots_per_image1 = np.array(ibs1.get_image_num_annotations(gids1))
     nAnnots_per_image2 = np.array(ibs2.get_image_num_annotations(gids2))
     #
@@ -1542,7 +1634,6 @@ def check_database_overlap(ibs1, ibs2):
     print('images_without_annots2 = %r' % (images_without_annots2,))
 
     nAnnots_per_image1
-    import vtool as vt
     class AlignedIndex(object):
         def __init__(self):
             self.iddict_ = {}

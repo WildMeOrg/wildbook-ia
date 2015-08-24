@@ -16,11 +16,13 @@ from ibeis.experiments import annotation_configs
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
-BATCH_MODE = '--nobatch' not in sys.argv
-NOMEMORY   = '--nomemory' in sys.argv
+NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
 NOCACHE_TESTRES =  ut.get_argflag('--nocache-testres', False)
+USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test')) and ut.USE_CACHE
 TEST_INFO = True
+
+DRY_RUN =  ut.get_argflag('--dryrun')  # dont actually query. Just print labels and stuff
 
 
 def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
@@ -89,11 +91,16 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         if len(daids) == 0:
             raise AssertionError('[harness] No database annotations specified')
         acfg = acfg_list[acfgx]
-        ut.colorprint('\n---Annot config', 'turquoise')
+        ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
         test_result = run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg)
+        if DRY_RUN:
+            continue
         test_result.acfg = acfg
         test_result.test_cfg_name_list = test_cfg_name_list
         test_result_list.append(test_result)
+    if DRY_RUN:
+        print('DRYRUN: Cannot continue past run_test_configurations2')
+        sys.exit(0)
     return test_result_list
 
 
@@ -110,16 +117,17 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     #print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
     #print('cfgstr_list = ' + ut.list_str(cfgstr_list))
 
+    cfgslice = slice(7, None)
+    if cfgslice is not None:
+        cfg_list = cfg_list[cfgslice]
+
     nCfg     = len(cfg_list)   # number of configurations (cols)
     dbname = ibs.get_dbname()
 
-    DRY_RUN =  ut.get_argflag('--dryrun')  # dont actually query. Just print labels and stuff
-
     print('Constructing query requests')
-    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=query_cfg) for query_cfg in cfg_list]
+    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=query_cfg) for query_cfg in ut.ProgressIter(cfg_list, lbl='Building qreq_')]
 
     #USE_BIG_TEST_CACHE = ut.get_argflag('--use-testcache')
-    USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test'))
     if USE_BIG_TEST_CACHE:
         bigtest_cachestr = ut.hashstr_arr27([qreq_.get_cfgstr(with_query=True) for qreq_ in cfgx2_qreq_], ibs.get_dbname() + '_cfgs')
         bigtest_cachedir = './BIG_TEST_CACHE'
@@ -138,21 +146,25 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
 
     cfgx2_cfgresinfo = []
     #with ut.Timer('experiment_harness'):
-    cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg)
+    cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg, separate=True)
     # Run each test configuration
     # Query Config / Col Loop
     #for cfgx, query_cfg in enumerate(cfg_list):
+
+    prev_feat_cfgstr = None
     for cfgx, query_cfg in enumerate(cfgiter):
         #print('+--- REQUESTING TEST CONFIG ---')
         #print(query_cfg.get_cfgstr())
-        ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
         qreq_ = cfgx2_qreq_[cfgx]
+
+        ut.colorprint('testnameid=%r' % (testnameid,), 'green')
+        ut.colorprint('annot_cfgstr = %s' % (qreq_.get_cfgstr(with_query=True, with_pipe=False),), 'yellow')
+        ut.colorprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'turquoise')
+        ut.colorprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashstr(),), 'teal')
 
         with ut.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
             if DRY_RUN:
                 continue
-            # Set data to the current config
-            #ibs.set_query_cfg(query_cfg)  # TODO: make this not even matter
             # Run the test / read cache
             if USE_BIG_TEST_CACHE:
                 # smaller cache for individual configuration runs
@@ -166,7 +178,13 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
                     cfgres_info = get_query_result_info(qreq_)
                     ut.save_cache(smalltest_cachedir, smalltest_cachename, smalltest_cfgstr, cfgres_info)
             else:
+                if prev_feat_cfgstr is not None and prev_feat_cfgstr != qreq_.qparams.feat_cfgstr:
+                    # If the features are different for this query clear the
+                    # ibeis cache to preserve memory
+                    ibs.clear_table_cache()
+                    #qreq_.ibs.print_cachestats_str()
                 cfgres_info = get_query_result_info(qreq_)
+                qreq_.qparams.feat_cfgstr = prev_feat_cfgstr
             #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
         if not NOMEMORY:
             # Store the results
@@ -174,13 +192,12 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
             #cfgx2_qreq_.append(qreq_)
         else:
             cfgx2_qreq_[cfgx] = None
-        print('\n +------ \n')
 
     if not ut.QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
         #print(msg)
     if DRY_RUN:
-        print('ran tests dryrun mode. Cannot Print. exiting')
+        print('ran tests dryrun mode.')
         return
     if NOMEMORY:
         print('ran tests in memory savings mode. Cannot Print. exiting')

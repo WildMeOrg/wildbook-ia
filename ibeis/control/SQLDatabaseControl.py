@@ -164,7 +164,7 @@ class SQLDatabaseController(object):
         db.get_db_version(ensure=True)
 
     def get_db_version(db, ensure=True):
-        version = db.get_metadata_val('database_version')
+        version = db.get_metadata_val('database_version', default=None)
         if version is None and ensure:
             version = const.BASE_DATABASE_VERSION
             colnames = ['metadata_key', 'metadata_value']

@@ -570,7 +570,6 @@ class QueryRequest(object):
 
     # External id-hashes
 
-    @profile
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
         try:
@@ -581,7 +580,6 @@ class QueryRequest(object):
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(daids, prefix='D')
         return data_hashid
 
-    @profile
     def get_query_hashid(qreq_):
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
@@ -601,25 +599,57 @@ class QueryRequest(object):
         else:
             return qreq_.get_query_hashid()
 
-    @profile
-    def get_query_cfgstr(qreq_):
+    def get_pipe_cfgstr(qreq_):
         """
         FIXME: name
         params only """
-        query_cfgstr = qreq_.qparams.query_cfgstr
-        return query_cfgstr
+        #query_cfgstr = qreq_.qparams.query_cfgstr
+        pipe_cfgstr = qreq_.qparams.query_cfgstr
+        return pipe_cfgstr
 
-    @profile
-    def get_cfgstr(qreq_, with_query=False):
-        """ main cfgstring used to identify the 'querytype'
-        FIXME: name
-        params + data
+    def get_pipe_hashstr(qreq_):
+        # this changes invalidates match_chip4 bibcaches generated before august 24 2015
+        #pipe_hashstr = ut.hashstr(qreq_.get_pipe_cfgstr())
+        pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
+        return pipe_hashstr
+
+    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True):
+        r""" main cfgstring used to identify the 'querytype' FIXME: name params + data
+
+        TODO:
+            rename query_cfgstr to pipe_cfgstr or pipeline_cfgstr EVERYWHERE
+
+        Args:
+            with_query (bool): (default = False)
+
+        Returns:
+            ?: cfgstr
+
+        CommandLine:
+            python -m ibeis.model.hots.query_request --exec-get_cfgstr
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> daids = ibs.get_valid_aids(species=species)
+            >>> qaids = ibs.get_valid_aids(species=species)
+            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> with_query = True
+            >>> cfgstr = qreq_.get_cfgstr(with_query)
+            >>> result = ('cfgstr = %s' % (str(cfgstr),))
+            >>> print(result)
         """
+        cfgstr_list = []
         if with_query:
-            return qreq_.get_full_cfgstr()
-        data_hashid = qreq_.get_data_hashid()
-        query_cfgstr = qreq_.get_query_cfgstr()
-        cfgstr = data_hashid + query_cfgstr
+            cfgstr_list.append(qreq_.get_query_hashid())
+        if with_data:
+            cfgstr_list.append(qreq_.get_data_hashid())
+        if with_pipe:
+            cfgstr_list.append(qreq_.get_pipe_cfgstr())
+        cfgstr = ''.join(cfgstr_list)
         return cfgstr
 
     def get_full_cfgstr(qreq_):
@@ -627,10 +657,7 @@ class QueryRequest(object):
         FIXME: name
         params + data + query
         """
-        query_hashid = qreq_.get_query_hashid()
-        data_hashid = qreq_.get_data_hashid()
-        query_cfgstr = qreq_.get_query_cfgstr()
-        full_cfgstr = query_hashid + data_hashid + query_cfgstr
+        full_cfgstr = qreq_.get_cfgstr(with_query=True)
         return full_cfgstr
 
     def get_qresdir(qreq_):

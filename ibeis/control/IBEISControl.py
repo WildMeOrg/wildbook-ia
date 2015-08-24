@@ -258,6 +258,7 @@ class IBEISController(object):
 
     def print_cachestats_str(ibs):
         cachestats_str = ibs.get_cachestats_str()
+        print('IBEIS Controller Cache Stats:')
         print(cachestats_str)
         return cachestats_str
 
