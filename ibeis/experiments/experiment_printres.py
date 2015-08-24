@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 displays results from experiment_harness
 

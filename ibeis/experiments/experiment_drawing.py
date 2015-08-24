@@ -97,7 +97,8 @@ def draw_rank_surface(ibs, test_result):
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
         title = ('#Ranks ≤ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
-        PLOT3D = not ut.get_argflag('--no3dsurf')
+        #PLOT3D = not ut.get_argflag('--no3dsurf')
+        PLOT3D = ut.get_argflag('--no2dsurf')
         if PLOT3D:
             pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=1, pnum=pnum_())
         else:
@@ -193,30 +194,37 @@ def draw_rank_cdf(ibs, test_result):
         short_cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
         short_edges = edges[0:min(len(edges), maxrank + 1)]
 
+    USE_ZOOM = True or ut.get_argflag('--use-zoom')
+    pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
+
     fnum = pt.ensure_fnum(None)
 
-    pt.plot_rank_cumhist(
-        short_cdf_list, label_list=label_list, color_list=color_list,
-        marker_list=marker_list, edges=short_edges,
-        xlabel='rank', ylabel='% queries ≤ rank', fnum=fnum, num_xticks=maxrank, num_yticks=11,
-        legend_loc='lower right',
-        labelsize=10, ticksize=8, legendsize=8, ymax=100, ymin=0, ypad=.5, xpad=.05
-    )
-    # NOQA
-    pt.set_figtitle(figtitle, size=10)
+    cumhist_kw = dict(xlabel='rank', ylabel='% queries ≤ rank',
+                      color_list=color_list, marker_list=marker_list,
+                      fnum=fnum, num_yticks=11,
+                      legend_loc='lower right', labelsize=10, ticksize=8,
+                      legendsize=8, ymax=100, ymin=0, ypad=.5, xpad=.05,)
 
-    #cumhist_kw = dict(xlabel='rank', ylabel='# queries < rank',)
-    #pt.plot_rank_cumhist(short_cdf_list, label_list, color_list=color_list, marker_list=marker_list,
-    #                     edges=short_edges, pnum=(2, 1, 1), fnum=fnum, use_legend=True,
-    #                     **cumhist_kw)
-    #ax1 = pt.gca()
-    #pt.plot_rank_cumhist(cdf_list, label_list, color_list=color_list, marker_list=marker_list,
-    #                     edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
-    #                     **cumhist_kw)
-    #ax2 = pt.gca()
-    #pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
+    pt.plot_rank_cumhist(
+        short_cdf_list, edges=short_edges, label_list=label_list,
+        num_xticks=maxrank, use_legend=True, pnum=pnum_(), **cumhist_kw)
+
+    if USE_ZOOM:
+        ax1 = pt.gca()
+        pt.plot_rank_cumhist(
+            cdf_list, edges=edges, label_list=label_list, num_xticks=maxrank,
+            use_legend=False, pnum=pnum_(), **cumhist_kw)
+        ax2 = pt.gca()
+        pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
+
+        #ax1 = pt.gca()
+        #pt.plot_rank_cumhist(cdf_list, label_list, color_list=color_list, marker_list=marker_list,
+        #                     edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
+        #                     **cumhist_kw)
 
     #percent_cdf_list = cdf_list / len(test_result.qaids)
+    # NOQA
+    pt.set_figtitle(figtitle, size=10)
 
 
 def make_metadata_custom_api(metadata):

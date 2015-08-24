@@ -22,7 +22,7 @@ NOCACHE_TESTRES =  ut.get_argflag('--nocache-testres', False)
 USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test')) and ut.USE_CACHE
 TEST_INFO = True
 
-DRY_RUN =  ut.get_argflag('--dryrun')  # dont actually query. Just print labels and stuff
+DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff
 
 
 def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
@@ -117,7 +117,8 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     #print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
     #print('cfgstr_list = ' + ut.list_str(cfgstr_list))
 
-    cfgslice = slice(7, None)
+    #cfgslice = slice(7, None)
+    cfgslice = None
     if cfgslice is not None:
         cfg_list = cfg_list[cfgslice]
 
@@ -136,13 +137,12 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
         try:
             test_result = ut.load_cache(bigtest_cachedir, bigtest_cachename, bigtest_cachestr)
             test_result.cfgdict_list = cfgdict_list
+            test_result.cfgx2_lbl = cfgx2_lbl  # hack override
         except IOError:
             pass
         else:
             ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
             return test_result
-
-    #qreq_ = ibs.new_query_request(qaids, d aids, verbose=True, query_cfg=ibs.cfg.query_cfg)
 
     cfgx2_cfgresinfo = []
     #with ut.Timer('experiment_harness'):
@@ -154,7 +154,6 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     prev_feat_cfgstr = None
     for cfgx, query_cfg in enumerate(cfgiter):
         #print('+--- REQUESTING TEST CONFIG ---')
-        #print(query_cfg.get_cfgstr())
         qreq_ = cfgx2_qreq_[cfgx]
 
         ut.colorprint('testnameid=%r' % (testnameid,), 'green')
@@ -185,11 +184,9 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
                     #qreq_.ibs.print_cachestats_str()
                 cfgres_info = get_query_result_info(qreq_)
                 qreq_.qparams.feat_cfgstr = prev_feat_cfgstr
-            #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
         if not NOMEMORY:
             # Store the results
             cfgx2_cfgresinfo.append(cfgres_info)
-            #cfgx2_qreq_.append(qreq_)
         else:
             cfgx2_qreq_[cfgx] = None
 

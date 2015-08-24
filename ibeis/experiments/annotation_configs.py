@@ -34,6 +34,7 @@ __default_aidcfg = {
     'require_quality'   : False,  # if True unknown qualities are removed
     'require_viewpoint' : False,
     'require_timestamp' : False,
+    'force_const_size'  : False,  # forces a consistnet sample size across combinations
     #'exclude_aids'      : None,   # removes specified aids from selection
     # Filtered selection
     'exclude_reference' : None,  # excludes any aids specified in a reference set (ie qaids)
@@ -135,6 +136,22 @@ def shorten_to_alias_labels(key):
 
 
 def partition_varied_acfg_list(acfg_list):
+    r"""
+
+    CommandLine:
+        python -m ibeis.experiments.annotation_configs --exec-partition_varied_acfg_list
+
+    Example:
+        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
+        >>> acfg_list = [{'q': qcfg} for qcfg in qcfg_list]
+        >>> flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
+        >>> result = ut.list_str((flat_dict_list, nonvaried_dict, varied_acfg_list), label_list=['flat_dict_list', 'nonvaried_dict', 'varied_acfg_list'])
+        >>> print(result)
+        flat_dict_list = [{'q_b': 1, 'q_f': 1}, {'q_b': 1, 'q_f': 2}, {'q_b': 1, 'q_f': 3, 'q_z': 4}]
+        nonvaried_dict = {'q_b': 1}
+        varied_acfg_list = [{'q_f': 1}, {'q_f': 2}, {'q_f': 3, 'q_z': 4}]
+    """
     flat_dict_list = []
     for acfg in acfg_list:
         #compressed_acfg = annotation_configs.compress_aidcfg(test_result.acfg)
@@ -148,6 +165,13 @@ def partition_varied_acfg_list(acfg_list):
 
 
 def compress_acfg_list_for_printing(acfg_list):
+    """
+    Example:
+        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
+        >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
+        >>> nonvaried_compressed_dict, varied_compressed_dict_list = compress_acfg_list_for_printing(acfg_list)
+    """
     flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
     nonvaried_compressed_dict = compress_aidcfg(unflatten_acfgdict(nonvaried_dict))
     varied_compressed_dict_list = [compress_aidcfg(unflatten_acfgdict(cfg), filter_empty=True) for cfg in varied_acfg_list]
@@ -155,18 +179,29 @@ def compress_acfg_list_for_printing(acfg_list):
 
 
 def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, combined=False, **kwargs):
+    kwargs = kwargs.copy()
     nonvaried_compressed_dict, varied_compressed_dict_list = compress_acfg_list_for_printing(acfg_list)
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
     print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
+    seen_ = ut.ddict(list)
     for acfgx in range(len(acfg_list)):
-        ut.colorprint('+--- acfg %d / %d ---- ' % (acfgx + 1, len(acfg_list)), 'white')
-        print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx]))
+        acfg = acfg_list[acfgx]
+        title = 'q_cfgname=' + acfg['qcfg']['_cfgname'] + ' d_cfgname=' + acfg['dcfg']['_cfgname']
+
+        ut.colorprint('+--- acfg %d / %d -- %s ---- ' % (acfgx + 1, len(acfg_list), title), 'white')
+        print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx], strvals=True))
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
-            annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
-            if combined:
-                ibs.print_annot_stats(list(qaids) + list(daids), label='combined = ', **kwargs)
+            key = (ut.hashstr_arr27(qaids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
+            if key not in seen_:
+                seen_[key].append(acfgx)
+                annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True, combined=combined, **kwargs)
+            else:
+                print('DUPLICATE of index %r' % (seen_[key],))
+                print('DUP OF acfg = ' + ut.dict_str(varied_compressed_dict_list[seen_[key][0]], strvals=True))
+            #if combined:
+            #    ibs.print_annot_stats(list(qaids) + list(daids), label='combined = ', **kwargs)
         #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
         #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
         #_ = ibs.get_annotconfig_stats(qaids, daids)
@@ -289,7 +324,35 @@ varysize = {
             'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
             'exclude_reference': True,
-            'sample_size': [50, 100, 200, 300, 500],
+            'sample_size': [50, 200, 500],
+            'gt_min_per_name': 1,
+        }),
+}
+
+
+#python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
+#python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
+#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
+#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
+#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2]
+#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2] --show -t default
+varysize_master1 = {
+    'qcfg': ut.augdict(
+        __controlled_aidcfg, {
+            'default_aids': 'allgt',
+            'sample_size': 500,
+            'sample_per_name': 1,
+            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+        }),
+
+    'dcfg': ut.augdict(
+        __controlled_aidcfg, {
+            'default_aids': 'all',
+            'sample_per_name': [1, 2, 3],
+            'exclude_reference': True,
+            'sample_size': [500, 1000, 1500, 2000, 2500, 3000],
             'gt_min_per_name': 1,
         }),
 }
@@ -324,6 +387,7 @@ viewpoint_compare = {
     'dcfg': ut.augdict(
         controlled['dcfg'], {
             'viewpoint_base': ['primary1', 'primary'],
+            'force_const_size': True,
             #'viewpoint_base': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
             #'viewpoint_base': ['primary'],
             #'sample_per_name': 1,

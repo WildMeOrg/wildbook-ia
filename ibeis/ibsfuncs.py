@@ -2929,17 +2929,29 @@ def get_num_annots_per_name(ibs, aid_list):
 
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_num_annots_per_name
+        python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids(is_known=True)
         >>> num_annots_per_name, unique_nids = get_num_annots_per_name(ibs, aid_list)
-        >>> result = ('num_annots_per_name = %r' % (num_annots_per_name,))
+        >>> per_name_hist = ut.dict_hist(num_annots_per_name)
+        >>> items = per_name_hist.items()
+        >>> items = sorted(items)[::-1]
+        >>> key_list = ut.get_list_column(items, 0)
+        >>> val_list = ut.get_list_column(items, 1)
+        >>> min_per_name = dict(zip(key_list, np.cumsum(val_list)))
+        >>> result = ('per_name_hist = %s' % (ut.dict_str(per_name_hist),))
         >>> print(result)
-        num_annots_per_name = [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1]
+        >>> print('min_per_name = %s' % (ut.dict_str(min_per_name),))
+        per_name_hist = {
+            1: 9,
+            2: 2,
+        }
+
     """
     aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
     num_annots_per_name = list(map(len, aids_list))
@@ -5818,7 +5830,7 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
 
 
 @__injectable
-def get_annotconfig_stats(ibs, qaids, daids, verbose=True, **kwargs):
+def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -5838,6 +5850,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, **kwargs):
         >>> ibs, qaids, daids = main_helpers.testdata_ibeis()
         >>> get_annotconfig_stats(ibs, qaids, daids)
     """
+    kwargs = kwargs.copy()
     import numpy as np
     import warnings
     with warnings.catch_warnings():
@@ -5886,6 +5899,16 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, **kwargs):
         gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
         gt_hourdelta_stats = ut.get_stats(super_flatten(gt_hourdelta_list), use_nan=True)
 
+        qaids2 = np.array(qaids).copy()
+        daids2 = np.array(daids).copy()
+        qaids2.sort()
+        daids2.sort()
+        if not np.all(qaids2 == qaids):
+            print('WARNING: qaids are not sorted')
+            raise AssertionError('WARNING: qaids are not sorted')
+        if not np.all(daids2 == daids):
+            raise AssertionError('WARNING: qaids are not sorted')
+
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
         daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd', **kwargs)
 
@@ -5896,33 +5919,52 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, **kwargs):
         dnids = ut.unique_unordered(ibs.get_annot_name_rowids(daids))
         common_nids = np.intersect1d(qnids, dnids)
 
-        annotconfig_stats_strs1 = ut.odict([
+        annotconfig_stats_strs_list1 = []
+        annotconfig_stats_strs_list2 = []
+        annotconfig_stats_strs_list1 += [
             ('dbname', ibs.get_dbname()),
             ('num_qaids', (len(qaids))),
             ('num_daids', (len(daids))),
             ('num_annot_intersect', (len(common_aids))),
+        ]
+
+        annotconfig_stats_strs_list1 += [
             ('qaid_stats', qaid_stats_dict),
             ('daid_stats', daid_stats_dict),
+        ]
+        if combined:
+            combined_aids = np.unique((np.hstack((qaids, daids))))
+            combined_aids.sort()
+            annotconfig_stats_strs_list1 += [
+                ('combined_aids', ibs.get_annot_stats_dict(combined_aids, **kwargs)),
+            ]
+
+        annotconfig_stats_strs_list1 += [
             ('num_unmatchable_queries', len(unmatchable_queries)),
             ('num_matchable_queries', len(matchable_queries)),
-            ('num_qnids', (len(qnids))),
-            ('num_dnids', (len(dnids))),
+            #('num_qnids', (len(qnids))),
+            #('num_dnids', (len(dnids))),
             ('num_name_intersect', (len(common_nids))),
-        ])
-        annotconfig_stats_strs2 = ut.odict([
+        ]
+
+        annotconfig_stats_strs_list2 += [
             # Number of aids per name for everything in the database
-            ('aids_per_database_name', _stat_str(all_daid_per_name_stats)),
+            #('per_name_', _stat_str(all_daid_per_name_stats)),
             # Number of aids in each name that should match to a query
             # (not quite sure how to phrase what this is)
-            ('aids_per_genuine_name', _stat_str(genuine_daid_per_name_stats)),
+            ('per_name_genuine', _stat_str(genuine_daid_per_name_stats)),
             # Number of aids in each name that should not match to any query
             # (not quite sure how to phrase what this is)
-            ('aids_per_imposter_name', _stat_str(imposter_daid_per_name_stats)),
+            ('per_name_imposter', _stat_str(imposter_daid_per_name_stats)),
             # Distances between a query and its groundtruth
             ('viewdist', _stat_str(gt_viewdist_stats)),
-            ('qualdist', _stat_str(gt_qualdist_stats)),
+            #('qualdist', _stat_str(gt_qualdist_stats)),
             ('hourdist', _stat_str(gt_hourdelta_stats)),
-        ])
+        ]
+
+        annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
+        annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
+
         annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() + annotconfig_stats_strs2.items())
         stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True, newlines=False, explicit=True, nobraces=True)
         stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True, newlines=True, explicit=True, nobraces=True)

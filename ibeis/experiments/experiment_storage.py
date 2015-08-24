@@ -46,6 +46,13 @@ def combine_test_results(ibs, test_result_list):
 
     test_result.varied_acfg_list = varied_acfg_list
 
+    def combine_lbls(lbl, acfg_lbl):
+        if len(lbl) == 0:
+            return acfg_lbl
+        if len(acfg_lbl) == 0:
+            return lbl
+        return lbl + '+' + acfg_lbl
+
     qaids = test_result.qaids
     agg_cfg_list        = ut.flatten(
         [test_result.cfg_list
@@ -59,12 +66,6 @@ def combine_test_results(ibs, test_result_list):
     agg_cfgdict_list    = ut.flatten(
         [test_result.cfgdict_list
          for test_result in test_result_list])
-    def combine_lbls(lbl, acfg_lbl):
-        if len(lbl) == 0:
-            return acfg_lbl
-        if len(acfg_lbl) == 0:
-            return lbl
-        return lbl + '+' + acfg_lbl
     agg_varied_acfg_list = ut.flatten([
         [acfg] * len(test_result.cfg_list)
         for test_result, acfg in zip(test_result_list, varied_acfg_list)
@@ -72,6 +73,7 @@ def combine_test_results(ibs, test_result_list):
     agg_cfgx2_lbls      = ut.flatten(
         [[combine_lbls(lbl, acfg_lbl) for lbl in test_result.cfgx2_lbl]
          for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
+
     big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2',
                                  agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
 
@@ -94,9 +96,9 @@ def combine_test_results(ibs, test_result_list):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
     def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, qaids):
-        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
-        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
-        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
+        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
+        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
+        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
         test_result._qaids = qaids
         #test_result.daids = daids
         test_result.cfg_list         = cfg_list
@@ -374,8 +376,14 @@ class TestResult(object):
         ibs = test_result.ibs
         title_aug = ''
         title_aug += ' db=' + (ibs.get_dbname())
-        title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
-        title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
+        try:
+            title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
+            title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
+        except Exception as ex:
+            print(ut.dict_str(test_result.common_acfg))
+            print(ut.dict_str(test_result.common_cfgdict))
+            ut.printex(ex)
+            raise
         title_aug += ' #qaids=%r' % (len(test_result.qaids),)
         if test_result.has_constant_daids():
             daids = test_result.cfgx2_daids[0]

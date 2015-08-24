@@ -13,6 +13,8 @@ VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
 SEED1 = 0
 SEED2 = 42
 
+USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid', '--nocache')) and ut.USE_CACHE
+
 
 @profile
 def testdata_single_acfg(ibs, default_options=''):
@@ -61,10 +63,20 @@ def expand_single_acfg(ibs, aidcfg):
 
 
 def expand_acfgs_consistently(ibs, acfg_combo):
+    """
+    python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master0 --verbtd --nofilter-dups  -a varysize
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list -a viewpoint_compare --db PZ_Master1 --verbtd --nofilter-dups
+
+    """
     # Edit configs so the sample sizes are consistent
     # FIXME: requiers that smallest configs are specified first
 
-    def tmp_min(a, b):
+    def tmpmin(a, b):
         if a is None:
             return b
         elif b is None:
@@ -74,16 +86,35 @@ def expand_acfgs_consistently(ibs, acfg_combo):
     expanded_aids_list = []
 
     # Keep track of seen samples
-    dsize = None
-    qsize = None
-    for acfg in acfg_combo:
-        acfg['qcfg']['sample_size'] = tmp_min(acfg['qcfg']['sample_size'] , qsize)
-        acfg['dcfg']['sample_size'] = tmp_min(acfg['dcfg']['sample_size'] , dsize)
+    min_qsize = None
+    min_dsize = None
 
+    for acfg in acfg_combo:
+        qcfg = acfg['qcfg']
+        dcfg = acfg['dcfg']
+
+        # In some cases we may want to clamp these, but others we do not
+        if qcfg['force_const_size']:
+            qcfg['_orig_sample_size'] = qcfg['sample_size']
+            qcfg['sample_size'] = tmpmin(qcfg['sample_size'] , min_qsize)
+        if dcfg['force_const_size']:
+            dcfg['_orig_sample_size'] = dcfg['sample_size']
+            dcfg['sample_size'] = tmpmin(dcfg['sample_size'] , min_dsize)
+
+        # Expand modified acfgdict
         expanded_aids = expand_acfgs(ibs, acfg)
 
-        qsize = tmp_min(len(expanded_aids[0]), qsize)
-        dsize = tmp_min(len(expanded_aids[1]), dsize)
+        qsize = len(expanded_aids[0])
+        dsize = len(expanded_aids[1])
+
+        if qcfg['sample_size'] != qsize:
+            qcfg['_true_sample_size'] = qsize
+        if dcfg['sample_size'] != dsize:
+            dcfg['_true_sample_size'] = dsize
+
+        min_qsize = tmpmin(min_qsize, qsize)
+        min_dsize = tmpmin(min_dsize, dsize)
+
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)
     return list(zip(acfg_combo, expanded_aids_list))
@@ -120,7 +151,6 @@ def expand_acfgs(ibs, aidcfg):
     qcfg = aidcfg['qcfg']
     dcfg = aidcfg['dcfg']
 
-    USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid', '--nocache'))
     if USE_ACFG_CACHE:
         # Make loading aids a big faster for experiments
         acfg_cachedir = './ACFG_CACHE'
@@ -139,20 +169,26 @@ def expand_acfgs(ibs, aidcfg):
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
         print('+---------------------')
 
-    available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
-    available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
+    try:
+        available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
+        available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
 
-    available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
-    available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
+        available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
+        available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
 
-    #available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, reference_aids=available_daids, prefix='q')
-    #available_daids = filter_reference_properties(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
+        #available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, reference_aids=available_daids, prefix='q')
+        #available_daids = filter_reference_properties(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-    available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
-    available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
+        available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
+        available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-    available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
-    available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
+        available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
+        available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
+    except Exception as ex:
+        print('PRINTING ERROR INFO')
+        print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
+        ut.printex(ex, 'Error expanding acfgs')
+        raise
 
     qaid_list = available_qaids
     daid_list = available_daids
@@ -424,6 +460,9 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
                 with ut.Indenter('  '):
                     ibs.print_annotconfig_stats(reference_aids, available_aids)
 
+    #if len(available_aids) == 0:
+    #    return available_aids
+
     sample_per_name     = aidcfg['sample_per_name']
     sample_per_ref_name = aidcfg['sample_per_ref_name']
     exclude_reference   = aidcfg['exclude_reference']
@@ -435,7 +474,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
     if sample_per_ref_name is None:
         sample_per_ref_name = sample_per_name
 
-    assert reference_aids is not None and len(reference_aids) > 0
+    #assert reference_aids is not None and len(reference_aids) > 0
 
     if exclude_reference is not None:
         assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
@@ -450,17 +489,15 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
 
     if not (sample_per_ref_name is not None or sample_size is not None):
         return available_aids
-        # gt_ref_grouped_aids, and gt_avl_grouped_aids are corresponding lists of anotation groups
-        # gf_ref_grouped_aids, and gf_avl_grouped_aids are uncorresonding annotations groups
 
     # This function first partitions aids into a one set that corresonds with
     # the reference set and another that does not correspond with the reference
     # set. The rest of the filters operate on these sets independently
     partitioned_sets = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
+    # gt_ref_grouped_aids, and gt_avl_grouped_aids are corresponding lists of anotation groups
+    # gf_ref_grouped_aids, and gf_avl_grouped_aids are uncorresonding annotations groups
     (gt_ref_grouped_aids, gt_avl_grouped_aids,
      gf_ref_grouped_aids, gf_avl_grouped_aids) = partitioned_sets
-
-    #print(' * 3-HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
 
     if sample_per_ref_name is not None:
         if VERB_TESTDATA:
@@ -470,7 +507,9 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         if sample_rule_ref == 'max_timedelta':
             # Maximize time delta between query and corresponding database annotations
             cmp_func, aggfn, prop_getter = ut.absdiff, np.mean, ibs.get_annot_image_unixtimes_asfloat
-            gt_preference_idx_list = get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids, prop_getter, cmp_func, aggfn, rng)
+            gt_preference_idx_list = get_reference_preference_order(
+                ibs, gt_ref_grouped_aids, gt_avl_grouped_aids, prop_getter,
+                cmp_func, aggfn, rng)
         elif sample_rule_ref == 'random':
             gt_preference_idx_list = [ut.random_indexes(len(aids), rng=rng) for aids in gt_avl_grouped_aids]
         else:
@@ -478,8 +517,6 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         gt_sample_idxs_list = ut.get_list_column_slice(gt_preference_idx_list, offset, offset + sample_per_ref_name)
         gt_sample_aids = ut.list_ziptake(gt_avl_grouped_aids, gt_sample_idxs_list)
         gt_avl_grouped_aids = gt_sample_aids
-
-    #print(' * 2-HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
 
     if sample_per_name is not None:
         if VERB_TESTDATA:
@@ -497,7 +534,6 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
 
     gt_avl_aids = ut.flatten(gt_avl_grouped_aids)
     gf_avl_aids = ut.flatten(gf_avl_grouped_aids)
-    #print(' * 1-HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
 
     if sample_size is not None:
         if VERB_TESTDATA:

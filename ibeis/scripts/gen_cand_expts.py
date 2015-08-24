@@ -21,6 +21,69 @@ from os.path import expanduser
 import utool as ut
 
 
+TEST_GEN_FUNCS = []
+
+
+#def pick_sample_size(popsize, confidence=.99, expected_std=.5, margin_of_error=.05, is_finite=True):
+#    """
+#    Determine a statistically significant sample size
+
+#    References:
+#        https://en.wikipedia.org/wiki/Sample_size_determination
+#        http://www.surveysystem.com/sample-size-formula.htm
+#        http://courses.wcupa.edu/rbove/Berenson/10th%20ed%20CD-ROM%20topics/section8_7.pdf
+#    """
+#    #import scipy.stats as spstats
+#    zscore = {.99: 2.678, .95: 1.96, .9: 1.645}[confidence]
+#    ((zscore ** 2) * (expected_std) * (1 - expected_std)) / (margin_of_error)
+#    #spstats.norm.ppf([.001])
+#    #samplesize =
+
+
+def register_testgen(func):
+    global TEST_GEN_FUNCS
+    TEST_GEN_FUNCS.append(func)
+    return func
+
+
+if ut.get_argflag('--full'):
+    #ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
+    #ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
+    ACFG_OPTION_CONTROLLED = ['controlled2']
+    ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
+    ACFG_OPTION_VARYSIZE = ['varysize:qsize=1000']
+    #, 'varysize2']
+    #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
+    ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
+else:
+    ACFG_OPTION_CONTROLLED = ['controlled']
+    ACFG_OPTION_VARYSIZE = ['varysize']
+    ACFG_OPTION_VARYPERNAME = ['varypername']
+
+
+def generate_all():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
+        python -m ibeis.scripts.gen_cand_expts --exec-generate_all
+        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
+        ./overnight_experiments.sh
+
+    Example:
+        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> generate_all()
+    """
+    #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
+    script_lines = ut.flatten([
+        ['\n\n### ' + ut.get_funcname(func),
+         '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
+        for func in TEST_GEN_FUNCS])
+    fname, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
+    if ut.get_argflag('--vim'):
+        ut.editfile(fname)
+    return fname, script, line_list
+
+
 def test_database_intersection():
     """
     # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
@@ -31,6 +94,8 @@ def test_database_intersection():
 
     # NNP_Master3 and PZ_Master0 are disjoint
     python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0
+
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0
     """
     pass
 
@@ -51,25 +116,27 @@ def generate_dbinfo_table():
     pass
 
 
-TEST_GEN_FUNCS = []
+def inspect_annotation_configs():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs
+        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 
-
-def register_testgen(func):
-    global TEST_GEN_FUNCS
-    TEST_GEN_FUNCS.append(func)
-    return func
-
-
-if ut.get_argflag('--full'):
-    ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
-    ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
-    #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2']
-    ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
-    ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
-else:
-    ACFG_OPTION_CONTROLLED = ['controlled']
-    ACFG_OPTION_VARYSIZE = ['varysize']
-    ACFG_OPTION_VARYPERNAME = ['varypername']
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> make_standard_test_scripts(inspect_annotation_configs())
+    """
+    testdef_list = [func() for func in TEST_GEN_FUNCS]
+    acfg_name_list = ut.flatten([tup[0]['acfg_name'] for tup in testdef_list])
+    acfg_name_list = list(set(acfg_name_list))
+    varydict = ut.odict([
+        #('acfg_name', ['controlled']),
+        #('acfg_name', ['controlled', 'controlled2']),
+        ('acfg_name', [' '.join(acfg_name_list)]),
+        ('dbname', get_dbnames()),
+    ])
+    return varydict, 'inspect_acfg', 'inspect_acfg'
 
 
 #@register_testgen
@@ -82,7 +149,7 @@ def precompute_data():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> precompute_data()
+        >>> make_standard_test_scripts(precompute_data())
     """
     #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
@@ -97,30 +164,10 @@ def precompute_data():
         ('acfg_name', ['default:qaids=allgt,species=primary,viewpoint_base=primary,is_known=True']),
         ('cfg_name', ['default', 'candidacy_baseline', 'candidacy_invariance']),
     ])
-    return make_standard_test_scripts(varydict, 'preload', 'preload')
+    return (varydict, 'preload', 'preload')
 
 
-def generate_all():
-    r"""
-    CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
-        ./overnight_experiments.sh
-
-    Example:
-        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
-        >>> generate_all()
-    """
-    #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
-    script_lines = ut.flatten([
-        ['\n\n### ' + ut.get_funcname(func),
-         '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + func()[2]
-        for func in TEST_GEN_FUNCS])
-    fname, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
-    if ut.get_argflag('--vim'):
-        ut.editfile(fname)
-    return fname, script, line_list
+# --- TEST DEFINITIONS
 
 
 @register_testgen
@@ -134,7 +181,7 @@ def baseline_experiments():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> baseline_experiments()
+        >>> make_standard_test_scripts(baseline_experiments())
     """
     # Invariance Experiments
     varydict = ut.odict([
@@ -144,7 +191,7 @@ def baseline_experiments():
         ('cfg_name', ['candidacy_baseline']),
         ('dbname', get_dbnames()),
     ])
-    return make_standard_test_scripts(varydict, 'baseline', 'cumhist')
+    return (varydict, 'baseline', 'cumhist')
 
 
 @register_testgen
@@ -158,7 +205,7 @@ def invariance_experiments():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> invariance_experiments()
+        >>> make_standard_test_scripts(invariance_experiments())
     """
     # Invariance Experiments
     #static_flags += ' --dpi=512 --figsize=11,4 --clipwhite'
@@ -169,7 +216,7 @@ def invariance_experiments():
         ('cfg_name', ['candidacy_invariance']),
         ('dbname', get_dbnames()),
     ])
-    return make_standard_test_scripts(varydict, 'invar', 'cumhist')
+    return (varydict, 'invar', 'cumhist')
 
 
 @register_testgen
@@ -182,7 +229,7 @@ def namescore_experiments():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> namescore_experiments()
+        >>> make_standard_test_scripts(namescore_experiments())
     """
     varydict = ut.odict([
         #('acfg_name', ['controlled', 'controlled2']),
@@ -190,7 +237,7 @@ def namescore_experiments():
         ('cfg_name', ['candidacy_namescore']),
         ('dbname', get_dbnames()),
     ])
-    return make_standard_test_scripts(varydict, 'namescore', 'cumhist')
+    return (varydict, 'namescore', 'cumhist')
 
 
 @register_testgen
@@ -203,15 +250,15 @@ def k_experiments():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> k_experiments()
+        >>> make_standard_test_scripts(k_experiments())
     """
     varydict = ut.odict([
         ('acfg_name', ACFG_OPTION_VARYSIZE),
         ('cfg_name', ['candidacy_k']),
         ('dbname', get_dbnames(exclude_list=['PZ_FlankHack', 'PZ_MTEST'])),
     ])
-    #return make_standard_test_scripts(varydict, 'k', ['surface3d', 'surface2d'])
-    return make_standard_test_scripts(varydict, 'k', ['surface2d'])
+    #return (varydict, 'k', ['surface3d', 'surface2d'])
+    return (varydict, 'k', ['surface2d'])
 
 
 @register_testgen
@@ -224,7 +271,7 @@ def viewpoint_experiments():
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> viewpoint_experiments()
+        >>> make_standard_test_scripts(viewpoint_experiments())
     """
     #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
@@ -232,7 +279,7 @@ def viewpoint_experiments():
         ('cfg_name', ['default']),
         ('dbname', ['NNP_Master3', 'PZ_Master0']),
     ])
-    return make_standard_test_scripts(varydict, 'view', 'cumhist')
+    return (varydict, 'view', 'cumhist')
 
 
 # -----------------
@@ -243,6 +290,7 @@ def get_results_command(expt_name, media_name):
     """
     Displays results using various media
     """
+    dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} '
     plot_fname = expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
     static_flags = ''
     #static_flags = ' --diskshow'
@@ -273,10 +321,14 @@ def get_results_command(expt_name, media_name):
     elif media_name == 'preload':
         margs = 'ibeis.experiments.precomputer --exec-precfg'
         dynamic_flags_ = '{preload_flags}'
+    elif media_name == 'inspect_acfg':
+        margs = 'ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0'
+        dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
+    dynamic_flags = dynamic_flags + dynamic_flags_
     basecmd = 'python -m ' + margs
-    return basecmd, static_flags, dynamic_flags_
+    return basecmd, static_flags, dynamic_flags
     #shortname = 'Expt' + media_name[0].upper() + media_name[1:]
     #shortscript = shortname + '.sh'
     #ut.write_modscript_alias(shortscript, margs)
@@ -291,12 +343,15 @@ def get_dbnames(exclude_list=[]):
     return dbnames
 
 
-def make_standard_test_scripts(varydict, expt_name, media_name):
+def make_standard_test_scripts(*args):
+    if len(args) == 1:
+        varydict, expt_name, media_name = args[0]
+    else:
+        varydict, expt_name, media_name = args
     media_names = ut.ensure_iterable(media_name)
     cmd_fmtstr_list = []
     for media_name in media_names:
-        basecmd, static_flags, dynamic_flags_ = get_results_command(expt_name, media_name)
-        dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} ' + dynamic_flags_
+        basecmd, static_flags, dynamic_flags = get_results_command(expt_name, media_name)
         cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags + ' $@'
         cmd_fmtstr_list.append(cmd_fmtstr)
     fname = 'experiment_' + expt_name + '.sh'
