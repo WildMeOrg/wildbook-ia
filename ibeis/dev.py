@@ -68,6 +68,9 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 @devprecmd
 def draw_rank_cdf():
+    """
+    ./dev.py -e draw_rank_cdf -t baseline -a baseline --show --db PZ_Master1
+    """
     from ibeis.experiments.experiment_drawing import draw_rank_cdf
     testsrc = ut.get_doctest_examples(draw_rank_cdf)[0][0]
     exec(testsrc)

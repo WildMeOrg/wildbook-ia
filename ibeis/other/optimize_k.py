@@ -226,6 +226,7 @@ def minimize_compute_K_params(known_nd_data, known_target_points, given_data_dim
     args = known_nd_data, known_target_points, unique_nDaids
 
     if mode == 'simplex':
+        #method = 'Nelder-Mead'
         _out = sp.optimize.fmin(objective_func, initial_model_params, xtol=.01, args=args, disp=True, full_output=True)
         xopt, fopt, nIter, funcalls, warnflag = _out[:5]
         #, allvecs

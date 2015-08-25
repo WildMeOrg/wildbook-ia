@@ -58,14 +58,19 @@ __default_aidcfg = {
 }
 
 
-__controlled_aidcfg = ut.augdict(__default_aidcfg, {
+__baseline_aidcfg = ut.augdict(__default_aidcfg, {
+    'minqual': 'ok',
+    'is_known': True,
+})
+
+
+__controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
     #'require_timestamp': True,
     'viewpoint_base': 'primary',
     'viewpoint_range': 0,
     'minqual': 'ok',
     'is_known': True,
 })
-
 
 single_default = __default_aidcfg
 
@@ -240,6 +245,18 @@ default = {
 
     'dcfg': ut.augdict(
         __default_aidcfg, {
+        }),
+}
+
+
+baseline = {
+    'qcfg': ut.augdict(
+        __baseline_aidcfg, {
+            'default_aids': 'allgt',
+        }),
+
+    'dcfg': ut.augdict(
+        __baseline_aidcfg, {
         }),
 }
 
