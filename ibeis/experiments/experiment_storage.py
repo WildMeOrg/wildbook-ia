@@ -255,6 +255,8 @@ class TestResult(object):
             ('affine_invariance', 'AI'),
             ('augment_queryside_hack', 'AQH'),
             ('nNameShortlistSVER', 'nRR'),
+            ('prescore_method=\'csum\',score_method=\'csum\'', 'csum'),
+            ('prescore_method=\'nsum\',score_method=\'nsum\'', 'nsum'),
             ('=True', '=On'),
             ('=False', '=Off'),
         ]

@@ -120,7 +120,8 @@ def get_varied_labels(acfg_list):
 
     shortened_cfg_list = [{shorten_to_alias_labels(key): val for key, val in _dict.items()} for _dict in varied_acfg_list]
     #shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
-    nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', 'q_cfgstr', 'q_cfgname', 'q_cfgtype', 'd_cfgstr', 'd_cfgname', 'd_cfgtype']
+    nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
+    nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q_', 'd_']]
     shortened_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), nonlbl_keys), explicit=True, nl=False) for _dict in shortened_cfg_list]
 
     shortened_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  shortened_lbl_list]

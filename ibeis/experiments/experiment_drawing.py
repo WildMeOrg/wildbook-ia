@@ -203,7 +203,7 @@ def draw_rank_cdf(ibs, test_result):
                       color_list=color_list, marker_list=marker_list,
                       fnum=fnum, num_yticks=11,
                       legend_loc='lower right', labelsize=10, ticksize=8,
-                      legendsize=8, ymax=100, ymin=0, ypad=.5, xpad=.05,)
+                      legendsize=8, ymax=100, ymin=30, ypad=.5, xpad=.05,)
 
     pt.plot_rank_cumhist(
         short_cdf_list, edges=short_edges, label_list=label_list,
