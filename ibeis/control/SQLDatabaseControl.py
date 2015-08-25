@@ -765,7 +765,8 @@ class SQLDatabaseController(object):
         db.executeone(operation, params, verbose=False)
 
     @default_decor
-    def get_metadata_val(db, key, eval_=False, default=ut.NoParam):
+    #def get_metadata_val(db, key, eval_=False, default=ut.NoParam):
+    def get_metadata_val(db, key, eval_=False, default=None):
         """
         val is the repr string unless eval_ is true
         """
