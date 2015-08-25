@@ -57,7 +57,7 @@ if ut.get_argflag('--full'):
     #ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
     ACFG_OPTION_CONTROLLED = ['controlled2']
     #ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
-    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500']
+    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
     #, 'varysize2']
     #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
     #ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
@@ -232,7 +232,9 @@ def namescore_experiments():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments
+        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
