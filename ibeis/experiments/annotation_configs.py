@@ -305,6 +305,7 @@ varypername = {
         __controlled_aidcfg, {
             'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
+            'sample_per_ref_name': [1, 2, 3],
             'exclude_reference': True,
             'gt_min_per_name': 1,
             'force_const_size': True,

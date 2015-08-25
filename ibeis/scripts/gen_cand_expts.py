@@ -14,6 +14,12 @@ CommandLine:
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db PZ_MTEST --acfginfo
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline:sample_size=None -a controlled --db PZ_Master0 --acfginfo
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db NNP_Master3 --acfginfo
+
+
+    # Print all annotation configs that will be used
+    python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
+    sh experiment_inspect_acfg.sh
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
