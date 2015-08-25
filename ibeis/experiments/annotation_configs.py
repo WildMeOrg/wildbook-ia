@@ -307,6 +307,7 @@ varypername = {
             'sample_per_name': [1, 2, 3],
             'exclude_reference': True,
             'gt_min_per_name': 1,
+            'force_const_size': True,
         }),
 }
 
