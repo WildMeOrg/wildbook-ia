@@ -309,6 +309,13 @@
     }
   </style>
   {% endif %}
+
+  <style>
+    .container
+    {
+      width: 1500px !important;
+    }
+  </style>
 {% endblock %}
 {% block content_custom_javascript %}
 <script src="{{ url_for('static', filename='javascript/turk-detection.js') }}"></script>
@@ -328,7 +335,7 @@
     });
 
     {% if display_instructions %}
-      $('#turk-instructions').modal('show');
+      // $('#turk-instructions').modal('show');
     {% endif %}
 
     {% if display_species_examples %}

@@ -3,6 +3,7 @@
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 app = flask.Flask(__name__)
+TARGET_WIDTH = 700
 
 
 @app.route('/turk')
@@ -27,7 +28,7 @@ def turk(filename=None):
             image_src = ap.embed_image_html(image, filter_width=False)
             # Get annotations
             width, height = app.ibs.get_image_sizes(gid)
-            scale_factor = 700.0 / float(width)
+            scale_factor = float(TARGET_WIDTH) / float(width)
             aid_list = app.ibs.get_image_aids(gid)
             annot_bbox_list = app.ibs.get_annot_bboxes(aid_list)
             annot_thetas_list = app.ibs.get_annot_thetas(aid_list)
@@ -205,7 +206,7 @@ def submit_detection():
     ap.set_review_count_from_gids(app, [gid], [count])
     if count == 1:
         width, height = app.ibs.get_image_sizes(gid)
-        scale_factor = float(width) / 700.0
+        scale_factor = float(width) / float(TARGET_WIDTH)
         # Get aids
         app.ibs.delete_annots(aid_list)
         annotation_list = json.loads(request.form['detection-annotations'])

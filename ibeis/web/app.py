@@ -715,7 +715,7 @@ def turk_detection():
         image_src = ap.embed_image_html(image, filter_width=False)
         # Get annotations
         width, height = ibs.get_image_sizes(gid)
-        scale_factor = 700.0 / float(width)
+        scale_factor = float(ap.TARGET_WIDTH) / float(width)
         aid_list = ibs.get_image_aids(gid)
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
         annot_thetas_list = ibs.get_annot_thetas(aid_list)
@@ -1011,7 +1011,7 @@ def submit_detection():
         current_aid_list = ibs.get_image_aids(gid)
         # Make new annotations
         width, height = ibs.get_image_sizes(gid)
-        scale_factor = float(width) / 700.0
+        scale_factor = float(width) / float(ap.TARGET_WIDTH)
         # Get aids
         annotation_list = json.loads(request.form['detection-annotations'])
         bbox_list = [

@@ -11,6 +11,9 @@ import jinja2
 import utool as ut
 
 
+TARGET_WIDTH = 1200.0
+
+
 class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
@@ -69,10 +72,10 @@ def embed_image_html(image, filter_width=True):
     image_pil = Image.fromarray((255 * image).astype('uint8'))
     width, height = image_pil.size
     if filter_width:
-        _height = 350
+        _height = int(TARGET_WIDTH / 2)
         _width = int((float(_height) / height) * width)
     else:
-        _width = 700
+        _width = int(TARGET_WIDTH)
         _height = int((float(_width) / width) * height)
     image_pil = image_pil.resize((_width, _height))
     string_buf = StringIO.StringIO()
