@@ -238,6 +238,9 @@ def print_results(ibs, test_result):
         qaids_expt = failed_col1_only_aids
         gt_avl_aids1 = ut.flatten(gt_aids1)
         gt_avl_aids2 = list(set(ut.flatten(gt_aids2)).difference(gt_avl_aids1))
+
+        ibs.print_annotconfig_stats(qaids_expt, gt_avl_aids1)
+        ibs.print_annotconfig_stats(qaids_expt, gt_avl_aids2)
         #jsontext = ut.to_json({
         #    'qaids': list(qaids_expt),
         #    'dinclude_aids1': list(gt_aids_expt1),
@@ -250,10 +253,29 @@ def print_results(ibs, test_result):
         import copy
         acfg1 = copy.deepcopy(acfg)
         acfg2 = copy.deepcopy(acfg)
+        acfg1['qcfg']['gt_min_per_name'] = None
+        acfg2['qcfg']['gt_min_per_name'] = None
+        acfg1['dcfg']['gt_min_per_name'] = None
+        acfg2['dcfg']['min_gt_per_name'] = None
+
         acfg1['qcfg']['default_aids'] = qaids_expt
         acfg1['dcfg']['gt_avl_aids'] = gt_avl_aids1
         acfg2['qcfg']['default_aids'] = qaids_expt
         acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
+
+        from ibeis.init import filter_annots
+
+        annots1 = filter_annots.expand_acfgs(ibs, acfg1, verbose=True)
+        annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
+        from ibeis.experiments import experiment_helpers
+        acfg_name_list = dict(
+            acfg_list=[acfg1, acfg2],
+            expanded_aids_list=[annots1, annots2],
+        )
+        test_cfg_name_list = ['candidacy_k']
+        cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+
+        t1, t2 = test_result_list
 
         #aidcfg = dcfg
         #available_aids = available_daids

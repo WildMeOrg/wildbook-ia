@@ -49,9 +49,9 @@ def testdata_single_acfg(ibs, default_options=''):
     return aidcfg, aids
 
 
-def expand_single_acfg(ibs, aidcfg):
+def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
     from ibeis.experiments import annotation_configs
-    if VERB_TESTDATA:
+    if verbose:
         print('+=== EXPAND_SINGLE_ACFG ===')
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
         print('+---------------------')
@@ -60,7 +60,7 @@ def expand_single_acfg(ibs, aidcfg):
     available_aids = sample_available_aids(ibs, available_aids, aidcfg)
     available_aids = subindex_avaiable_aids(ibs, available_aids, aidcfg)
     aids = available_aids
-    if VERB_TESTDATA:
+    if verbose:
         print('L___ EXPAND_SINGLE_ACFG ___')
     return aids
 
@@ -128,7 +128,7 @@ def expand_acfgs_consistently(ibs, acfg_combo):
 
 
 @profile
-def expand_acfgs(ibs, aidcfg):
+def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
     """
     Expands an annot config dict into qaids and daids
     New version of this function based on a configuration dictionary built from
@@ -163,7 +163,7 @@ def expand_acfgs(ibs, aidcfg):
     qcfg = aidcfg['qcfg']
     dcfg = aidcfg['dcfg']
 
-    if USE_ACFG_CACHE:
+    if use_cache:
         # Make loading aids a big faster for experiments
         acfg_cachedir = './ACFG_CACHE'
         acfg_cachename = 'ACFG_CACHE'
@@ -185,7 +185,7 @@ def expand_acfgs(ibs, aidcfg):
             return qaid_list, daid_list
 
     # ---- INCLUDING STEP
-    if VERB_TESTDATA:
+    if verbose:
         print('+=== EXPAND_ACFGS ===')
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
         print('+---------------------')
@@ -193,27 +193,22 @@ def expand_acfgs(ibs, aidcfg):
     try:
         # Can probably move these commands around
         with ut.Indenter('[Q] '):
-            available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
-        with ut.Indenter('[D] '):
-            available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
+            available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q', verbose=verbose)
+            available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q', verbose=verbose)
+            available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q', verbose=verbose)  # No reference sampling for query
 
-        with ut.Indenter('[Q] '):
-            available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
         with ut.Indenter('[D] '):
-            available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
+            available_daids = expand_to_default_aids(ibs, dcfg, prefix='d', verbose=verbose)
+            available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d', verbose=verbose)
+            available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d', verbose=verbose)
 
         #available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, reference_aids=available_daids, prefix='q')
         #available_daids = filter_reference_properties(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
         with ut.Indenter('[Q] '):
-            available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
+            available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q', verbose=verbose)
         with ut.Indenter('[D] '):
-            available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
-
-        with ut.Indenter('[Q] '):
-            available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
-        with ut.Indenter('[D] '):
-            available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
+            available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d', verbose=verbose)
     except Exception as ex:
         print('PRINTING ERROR INFO')
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
@@ -223,7 +218,7 @@ def expand_acfgs(ibs, aidcfg):
     qaid_list = available_qaids
     daid_list = available_daids
 
-    if VERB_TESTDATA:
+    if verbose:
         print('L___ EXPAND_ACFGS ___')
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
@@ -242,7 +237,7 @@ def expand_acfgs(ibs, aidcfg):
     _ = ibs.get_annotconfig_stats(available_qaids, available_daids)
 
     """
-    if USE_ACFG_CACHE:
+    if use_cache:
         ut.ensuredir(acfg_cachedir)
         ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr, (qaid_list, daid_list))
     #available_qaids qcfg['ref_has_viewpoint']
@@ -250,16 +245,16 @@ def expand_acfgs(ibs, aidcfg):
 
 
 @profile
-def expand_to_default_aids(ibs, aidcfg, prefix=''):
+def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
     default_aids = aidcfg['default_aids']
 
-    if VERB_TESTDATA:
+    if verbose:
         print(' * [INCLUDE %sAIDS]' % (prefix.upper()))
         #print(' * PARSING %saidcfg = %s' % (prefix, ut.dict_str(aidcfg, align=True),))
         print(' * default_%saids = %s' % (prefix, ut.obj_str(default_aids, truncate=True, nl=False)))
 
     if isinstance(default_aids, six.string_types):
-        #if VERB_TESTDATA:
+        #if verbose:
         #    print(' * interpreting default %saids.' % (prefix,))
         # Abstract default aids
         if default_aids in ['all']:
@@ -271,7 +266,7 @@ def expand_to_default_aids(ibs, aidcfg, prefix=''):
         else:
             raise NotImplementedError('Unknown default string = %r' % (default_aids,))
     else:
-        if VERB_TESTDATA:
+        if verbose:
             print(' ... default %saids specified.' % (prefix,))
 
     #if aidcfg['include_aids'] is not None:
@@ -283,21 +278,21 @@ def expand_to_default_aids(ibs, aidcfg, prefix=''):
         print(' WARNING no %s annotations available' % (prefix,))
 
     #if aidcfg['exclude_aids'] is not None:
-    #    if VERB_TESTDATA:
+    #    if verbose:
     #        print(' * Excluding %d custom aids' % (len(aidcfg['exclude_aids'])))
     #    available_aids = ut.setdiff_ordered(available_aids, aidcfg['exclude_aids'])
 
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * DEFAULT: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
     return available_aids
 
 
 @profile
-def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
+def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     """ Filtering that doesn't have to do with a reference set of aids """
     from ibeis import ibsfuncs
-    if VERB_TESTDATA:
+    if verbose:
         print(' * [FILTER INDEPENDENT %sAIDS]' % (prefix.upper()))
         if VERYVERB_TESTDATA:
             with ut.Indenter('  '):
@@ -306,24 +301,24 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
     gt_min_per_name = aidcfg['gt_min_per_name']
 
     if aidcfg['is_known'] is True:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Removing annots without names')
         available_aids = ibs.filter_aids_without_name(available_aids)
 
     if aidcfg['require_timestamp'] is True:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Removing annots without timestamp')
         available_aids = ibs.filter_aids_without_timestamps(available_aids)
 
     species = None
     if aidcfg['species'] is not None:
         if aidcfg['species'] == 'primary':
-            #if VERB_TESTDATA:
+            #if verbose:
             #    print(' * Finiding primary species')
             species = ibs.get_primary_database_species()
         else:
             species = aidcfg['species']
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering to species=%r' % (species,))
         available_aids = ibs.filter_aids_to_species(available_aids, species)
 
@@ -333,7 +328,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
             minqual = 'junk'
         else:
             minqual = aidcfg['minqual']
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering quality. minqual=%r, require_quality=%r'
                   % (minqual, aidcfg['require_quality']))
         # Filter quality
@@ -369,7 +364,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
         countstr = aidcfg['viewpoint_counts']
         primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)
 
-        if VERB_TESTDATA:
+        if verbose:
             print(' * [FILTER %sAIDS VIEWPOINT COUNTS WITH countstr=%s]' % (prefix.upper(), countstr))
 
         lhs_dict = {
@@ -391,7 +386,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
         else:
             viewpoint_base = aidcfg['viewpoint_base']
         valid_yaws = ibsfuncs.get_extended_viewpoints(viewpoint_base, num1=aidcfg['viewpoint_range'], num2=0)
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering viewpoint. valid_yaws=%r, require_viewpoint=%r'
                   % (valid_yaws, aidcfg['require_viewpoint']))
         # Filter viewpoint
@@ -399,12 +394,12 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
 
     # Each aid must have at least this number of other groundtruth aids
     if gt_min_per_name is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering gt_min_per_name=%d' % (gt_min_per_name))
         grouped_aids_, unique_nids = ibs.group_annots_by_name(available_aids, distinguish_unknowns=True)
         available_aids = ut.flatten([aids for aids in grouped_aids_ if len(aids) >= gt_min_per_name])
 
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * I-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
 
@@ -412,13 +407,13 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
 
 
 @profile
-def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix=''):
+def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix='', verbose=VERB_TESTDATA):
     """
     DEPRICATE
     """
     from ibeis import ibsfuncs
     import functools
-    if VERB_TESTDATA:
+    if verbose:
         print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
         if VERYVERB_TESTDATA:
             with ut.Indenter('  '):
@@ -437,14 +432,14 @@ def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, pre
         multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, gt_ref_grouped_aids)))
         available_aids = ut.flatten(ut.list_compress(gt_avl_grouped_aids, multi_flags))
 
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * R-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
 
     return available_aids
 
 
-def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids, prop_getter, cmp_func, aggfn, rng):
+def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids, prop_getter, cmp_func, aggfn, rng, verbose=VERB_TESTDATA):
     """
     Orders preference for sampling based on some metric
 
@@ -482,8 +477,8 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids
 
 
 @profile
-def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids, prefix=''):
-    if VERB_TESTDATA:
+def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids, prefix='', verbose=VERB_TESTDATA):
+    if verbose:
         print(' * [SAMPLE %sAIDS (REF)]' % (prefix.upper(),))
         if VERYVERB_TESTDATA:
             if reference_aids is not None:
@@ -509,7 +504,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
 
     if exclude_reference is not None:
         assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Excluding %d reference aids' % (len(reference_aids)))
             if VERYVERB_TESTDATA:
                 with ut.Indenter('  '):
@@ -519,7 +514,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         available_aids = ut.setdiff_ordered(available_aids, reference_aids)
 
     if gt_avl_aids is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Excluding gt_avl_aids custom specified by name')
         # Pick out the annotations that do not belong to the same name as the given gt_avl_aids
         complement = np.setdiff1d(available_aids, gt_avl_aids)
@@ -548,7 +543,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
      gf_ref_grouped_aids, gf_avl_grouped_aids) = partitioned_sets
 
     if sample_per_ref_name is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering gt-ref sample_per_ref_name=%r, sample_rule_ref=%r with reference'
                   % (sample_per_ref_name, sample_rule_ref))
         rng = np.random.RandomState(SEED2)
@@ -567,7 +562,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         gt_avl_grouped_aids = gt_sample_aids
 
     if sample_per_name is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering gf-ref %saids sample_per_name=%r'
                   % (prefix, sample_per_name))
         # sample rule is always random for gf right now
@@ -584,7 +579,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
     gf_avl_aids = ut.flatten(gf_avl_grouped_aids)
 
     if sample_size is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering %saids to sample_size=%r' % (prefix, sample_size,))
         # Keep all correct matches to the reference set
         # We have the option of keeping ground false
@@ -604,7 +599,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
     # random ordering makes for bad hashes
     available_aids = sorted(gt_avl_aids + gf_avl_aids)
     # ---- SUBINDEXING STEP
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * REF-SAMPLE: len(available_%saids) = %r\n' % (prefix, len(available_aids)))
 
@@ -612,7 +607,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
 
 
 @profile
-def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
+def sample_available_aids(ibs, available_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     """
     python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
@@ -636,7 +631,7 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
         >>> result = ('available_aids = %s' % (str(available_aids),))
         >>> print(result)
     """
-    if VERB_TESTDATA:
+    if verbose:
         print(' * [SAMPLE %sAIDS (NOREF)]' % (prefix.upper(),))
         if VERYVERB_TESTDATA:
             with ut.Indenter('   '):
@@ -662,7 +657,7 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
         available_aids = ut.flatten(sample_aids)
 
     if sample_size is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Filtering to sample size %r' % (sample_size,))
         if sample_size > available_aids:
             print('Warning sample size too large')
@@ -674,7 +669,7 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
             ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix=prefix), dict_name=prefix + 'aid_postsample_stats')
 
     # ---- SUBINDEXING STEP
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * SAMPLE: len(available_%saids) = %r\n' % (prefix, len(available_aids)))
 
@@ -682,19 +677,19 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
 
 
 @profile
-def subindex_avaiable_aids(ibs, available_aids, aidcfg, reference_aids=None, prefix=''):
-    if VERB_TESTDATA:
+def subindex_avaiable_aids(ibs, available_aids, aidcfg, reference_aids=None, prefix='', verbose=VERB_TESTDATA):
+    if verbose:
         print(' * [SUBINDEX %sAIDS]' % (prefix.upper(),))
     #ut.get_argval('--qshuffle')
 
     if aidcfg['shuffle']:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Shuffling with seed=%r' % (SEED2))
         # Determenistic shuffling
         available_aids = ut.list_take(available_aids, ut.random_indexes(len(available_aids), seed=SEED2))
 
     if aidcfg['index'] is not None:
-        if VERB_TESTDATA:
+        if verbose:
             print(' * Indexing')
         indicies = ensure_flatlistlike(aidcfg['index'])
         _indexed_aids = [available_aids[ix] for ix in indicies if ix < len(available_aids)]
@@ -704,7 +699,7 @@ def subindex_avaiable_aids(ibs, available_aids, aidcfg, reference_aids=None, pre
     # Always sort aids to preserve hashes? (Maybe sort the vuuids instead)
     available_aids = sorted(available_aids)
 
-    if VERB_TESTDATA:
+    if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * SUBINDEX: len(available_%saids) = %r\n' % (prefix, len(available_aids)))
     return available_aids
