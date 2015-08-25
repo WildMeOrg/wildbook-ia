@@ -37,8 +37,8 @@ def draw_rank_surface(ibs, test_result):
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize --db PZ_Master0   --save k_surface_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results --clipwhite --dpi=256 --figsize=12,4 --adjust=.0,.1,.01,.01 --diskshow
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize --db PZ_Master0   --save k_surface_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results --clipwhite --dpi=256 --figsize=12,4 --adjust=.0,.25,.2,.2 --diskshow --no3dsurf
+        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000] --db PZ_Master1 --show
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -49,7 +49,8 @@ def draw_rank_surface(ibs, test_result):
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    rank_lt1_list = test_result.get_rank_cumhist(bins='dense')[0].T[0]
+    rank_le1_list = test_result.get_rank_cumhist(bins='dense')[0].T[0]
+    percent_le1_list = 100 * rank_le1_list / len(test_result.qaids)
     #test_result.cfgx2_lbl
     #test_result.get_param_basis('dcfg_sample_per_name')
     #test_result.get_param_basis('dcfg_sample_size')
@@ -74,14 +75,14 @@ def draw_rank_surface(ibs, test_result):
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
-    ymax = rank_lt1_list.max()
-    ymin = rank_lt1_list.min()
+    #ymax = percent_le1_list.max()
+    #ymin = percent_le1_list.min()
     # Use consistent markers and colors.
     color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
     marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
-        rank_list = ut.list_take(rank_lt1_list, const_basis_cfgx_list)
+        rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
         agree_param_vals = dict([
             (key, [test_result.get_param_val_from_cfgx(cfgx, key) for cfgx in const_basis_cfgx_list])
@@ -93,10 +94,11 @@ def draw_rank_surface(ibs, test_result):
         target_label = annotation_configs.shorten_to_alias_labels(key)
 
         #target_label = 'num rank ≤ 1'
-        target_label = 'score'
+        #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
+        target_label = '% queries = rank 1'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
-        title = ('#Ranks ≤ 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
         if PLOT3D:
@@ -110,16 +112,20 @@ def draw_rank_surface(ibs, test_result):
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
-                                    marker_list=nonconst_marker_list,
-                                    fnum=1, pnum=pnum_(), ymin=ymin, ymax=ymax)
+                                    marker_list=nonconst_marker_list, fnum=1,
+                                    pnum=pnum_(), ymin=30, ymax=100, ypad=.5,
+                                    xpad=.05, legend_loc='lower right')
             #pt.plot2(
         #(const_idx + 1))
 
     figtitle = (
-        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks ≤ 1 for\n')
+        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
     figtitle += ' ' + test_result.get_title_aug()
 
-    test_result.print_unique_annot_config_stats()
+    #if ut.get_argflag('--save'):
+    # hack
+    if ut.NOT_QUIET:
+        test_result.print_unique_annot_config_stats()
 
     #if test_result.has_constant_daids():
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
@@ -165,6 +171,7 @@ def draw_rank_cdf(ibs, test_result):
     cdf_list = 100 * cdf_list / len(test_result.qaids)  # Convert to percent
 
     label_list = test_result.get_short_cfglbls()
+    label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
     # Order cdf list by rank0

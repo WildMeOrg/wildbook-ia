@@ -5683,9 +5683,38 @@ def group_annots_by_prop_and_name(ibs, aids, getter_func):
 
 @__injectable
 def group_annots_by_multi_prop(ibs, aids, getter_list):
-    """
-        aids = available_aids
-        getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_yaw_texts]
+    r"""
+
+    Performs heirachical grouping of annotations based on properties
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aids (list):  list of annotation rowids
+        getter_list (list):
+
+    Returns:
+        dict: multiprop2_aids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids
+        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids(is_known=True)
+        >>> #getter_list = [ibs.get_annot_name_rowids, ibs.get_annot_yaw_texts]
+        >>> props = ut.get_argval('--props', type_=list, default=['yaw_texts', 'name_rowids'])
+        >>> getter_list = [getattr(ibs, 'get_annot_' + prop) for prop in props]
+        >>> print('getter_list = %r' % (getter_list,))
+        >>> #getter_list = [ibs.get_annot_yaw_texts, ibs.get_annot_name_rowids]
+        >>> multiprop2_aids = group_annots_by_multi_prop(ibs, aids, getter_list)
+        >>> key1 = ut.get_argval('--key1', default='frontleft')
+        >>> result = ('multiprop2_aids = %s' % (ut.dict_str(multiprop2_aids[key1]),))
+        >>> print(result)
+
     """
     aid_prop_list = [getter(aids) for getter in getter_list]
     #%timeit multiprop2_aids = ut.hierarchical_group_items(aids, aid_prop_list)
@@ -5905,9 +5934,10 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         daids2.sort()
         if not np.all(qaids2 == qaids):
             print('WARNING: qaids are not sorted')
-            raise AssertionError('WARNING: qaids are not sorted')
+            #raise AssertionError('WARNING: qaids are not sorted')
         if not np.all(daids2 == daids):
-            raise AssertionError('WARNING: qaids are not sorted')
+            print('WARNING: daids are not sorted')
+            #raise AssertionError('WARNING: qaids are not sorted')
 
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
         daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd', **kwargs)

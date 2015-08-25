@@ -46,6 +46,8 @@ def _ibeis_cache_read(key, **kwargs):
 # Specific cache getters / setters
 
 def set_default_dbdir(dbdir):
+    """
+    """
     printDBG('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
@@ -62,8 +64,12 @@ def get_syncdir():
 
 
 def get_workdir(allow_gui=True):
-    """ Returns the work directory set for this computer.  If allow_gui is true,
-    a dialog will ask a user to specify the workdir if it does not exist. """
+    """
+    Returns the work directory set for this computer.  If allow_gui is true,
+    a dialog will ask a user to specify the workdir if it does not exist.
+
+    python -c "import ibeis; print(ibeis.get_workdir())"
+    """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
     if work_dir is not '.' and exists(work_dir):
         return work_dir
@@ -77,7 +83,25 @@ ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
-    """ Sets the workdirectory for this computer """
+    """ Sets the workdirectory for this computer
+
+    Args:
+        work_dir (None): (default = None)
+        allow_gui (bool): (default = True)
+
+    CommandLine:
+        python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
+        python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
+        python -m ibeis.init.sysres --exec-set_workdir
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> work_dir = None
+        >>> allow_gui = True
+        >>> result = set_workdir(work_dir, allow_gui)
+        >>> print(result)
+    """
     if work_dir is None:
         if allow_gui:
             work_dir = guiselect_workdir()
@@ -113,8 +137,8 @@ def guiselect_workdir():
     import guitool
     guitool.ensure_qtapp()
     # Gui selection
-    work_dir = guitool.select_directory('Work dir not currently set.' +
-                                        'Select a work directory')
+    work_dir = guitool.select_directory('Select a work directory')
+
     # Make sure selection is ok
     if not exists(work_dir):
         try_again = guitool.user_option(

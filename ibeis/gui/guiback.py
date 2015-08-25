@@ -2002,6 +2002,11 @@ class MainWindowBackend(GUIBACK_BASE):
     def force_wildbook_namechange(back):
         back.ibs.wildbook_signal_annot_name_changes()
 
+    @slot_()
+    def set_workdir(back):
+        import ibeis
+        ibeis.sysres.set_workdir(work_dir=None, allow_gui=True)
+
 
 def testdata_guiback(db='testdb2', **kwargs):
     import ibeis

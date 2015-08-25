@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: sort annotations at the end of every step
+"""
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
@@ -107,6 +110,10 @@ def expand_acfgs_consistently(ibs, acfg_combo):
         qsize = len(expanded_aids[0])
         dsize = len(expanded_aids[1])
 
+        if min_qsize is None:
+            qcfg['sample_size'] = qsize
+            dcfg['sample_size'] = dsize
+
         if qcfg['sample_size'] != qsize:
             qcfg['_true_sample_size'] = qsize
         if dcfg['sample_size'] != dsize:
@@ -170,20 +177,28 @@ def expand_acfgs(ibs, aidcfg):
         print('+---------------------')
 
     try:
-        available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
-        available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
+        with ut.Indenter('[Q] '):
+            available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
+        with ut.Indenter('[D] '):
+            available_daids = expand_to_default_aids(ibs, dcfg, prefix='d')
 
-        available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
-        available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
+        with ut.Indenter('[Q] '):
+            available_qaids = filter_independent_properties(ibs, available_qaids, qcfg, prefix='q')
+        with ut.Indenter('[D] '):
+            available_daids = filter_independent_properties(ibs, available_daids, dcfg, prefix='d')
 
         #available_qaids = filter_reference_properties(ibs, available_qaids, qcfg, reference_aids=available_daids, prefix='q')
         #available_daids = filter_reference_properties(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-        available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
-        available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
+        with ut.Indenter('[Q] '):
+            available_qaids = sample_available_aids(ibs, available_qaids, qcfg, prefix='q')  # No reference sampling for query
+        with ut.Indenter('[D] '):
+            available_daids = reference_sample_available_aids(ibs, available_daids, dcfg, reference_aids=available_qaids, prefix='d')
 
-        available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
-        available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
+        with ut.Indenter('[Q] '):
+            available_qaids = subindex_avaiable_aids(ibs, available_qaids, qcfg, prefix='q')
+        with ut.Indenter('[D] '):
+            available_daids = subindex_avaiable_aids(ibs, available_daids, dcfg, prefix='d')
     except Exception as ex:
         print('PRINTING ERROR INFO')
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
@@ -340,7 +355,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix=''):
         primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)
 
         if VERB_TESTDATA:
-            print(' * [FILTER %sAIDS VIEWPOINT COUNTS WITH countstr= ]' % (prefix.upper()), countstr)
+            print(' * [FILTER %sAIDS VIEWPOINT COUNTS WITH countstr=%s]' % (prefix.upper(), countstr))
 
         lhs_dict = {
             'primary': primary_viewpoint,
@@ -537,7 +552,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
 
     if sample_size is not None:
         if VERB_TESTDATA:
-            print(' * Filtering to sample size %r' % (sample_size,))
+            print(' * Filtering %saids to sample_size=%r' % (prefix, sample_size,))
         # Keep all correct matches to the reference set
         # We have the option of keeping ground false
         num_gt = len(gt_avl_aids)
@@ -590,6 +605,9 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
     """
     if VERB_TESTDATA:
         print(' * [SAMPLE %sAIDS (NOREF)]' % (prefix.upper(),))
+        if VERYVERB_TESTDATA:
+            with ut.Indenter('   '):
+                ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix=prefix), dict_name=prefix + 'aid_presample_stats')
 
     sample_rule     = aidcfg['sample_rule']
     sample_per_name = aidcfg['sample_per_name']
@@ -620,7 +638,7 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix=''):
 
     if VERYVERB_TESTDATA:
         with ut.Indenter('   '):
-            ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix=prefix), dict_name=prefix + 'aid_stats')
+            ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix=prefix), dict_name=prefix + 'aid_postsample_stats')
 
     # ---- SUBINDEXING STEP
     if VERB_TESTDATA:

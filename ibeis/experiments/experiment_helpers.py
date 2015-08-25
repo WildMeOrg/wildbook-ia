@@ -441,6 +441,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
     r"""
     For now can only specify one acfg name list
 
+    TODO: move to filter_annots
+
     Args:
         annot_cfg_name_list (list):
 
@@ -461,6 +463,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         >>> filter_dups = not ut.get_argflag('--nofilter-dups')
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list, filter_dups)
+        >>> print('\n PRINTING TEST RESULTS')
         >>> result = ut.list_str(acfg_list, nl=3)
         >>> print('\n')
         >>> printkw = dict(combined=True, per_name_vpedge=None, per_qual=False, per_vp=False)

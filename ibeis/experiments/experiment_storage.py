@@ -255,6 +255,7 @@ class TestResult(object):
             ('affine_invariance', 'AI'),
             ('augment_queryside_hack', 'AQH'),
             ('nNameShortlistSVER', 'nRR'),
+            ('sample_per_ref_name', 'per_ref_name'),
             ('prescore_method=\'csum\',score_method=\'csum\'', 'csum'),
             ('prescore_method=\'nsum\',score_method=\'nsum\'', 'nsum'),
             ('=True', '=On'),
@@ -318,6 +319,9 @@ class TestResult(object):
 
     def has_constant_daids(test_result):
         return ut.list_allsame(test_result.cfgx2_daids)
+
+    def has_constant_length_daids(test_result):
+        return ut.list_allsame(list(map(len, test_result.cfgx2_daids)))
 
     @property
     def cfgx2_daids(test_result):
@@ -396,6 +400,10 @@ class TestResult(object):
                 title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
             else:
                 title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
+        elif test_result.has_constant_length_daids():
+            daids = test_result.cfgx2_daids[0]
+            title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+
         return title_aug
 
     def print_unique_annot_config_stats(test_result, ibs=None):

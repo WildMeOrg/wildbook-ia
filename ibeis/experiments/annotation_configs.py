@@ -121,7 +121,7 @@ def get_varied_labels(acfg_list):
     shortened_cfg_list = [{shorten_to_alias_labels(key): val for key, val in _dict.items()} for _dict in varied_acfg_list]
     #shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
     nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
-    nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q_', 'd_']]
+    nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q', 'd']]
     shortened_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), nonlbl_keys), explicit=True, nl=False) for _dict in shortened_cfg_list]
 
     shortened_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  shortened_lbl_list]
@@ -305,7 +305,8 @@ varypername = {
         __controlled_aidcfg, {
             'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
-            'sample_per_ref_name': [1, 2, 3],
+            #'sample_per_ref_name': [1, 2, 3],
+            'sample_per_ref_name': [1, 3],
             'exclude_reference': True,
             'gt_min_per_name': 1,
             'force_const_size': True,
@@ -375,14 +376,17 @@ varysize2 = {
 
 # Compare query of frontleft animals when database has only left sides
 """
-python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 -a viewpoint_compare
+python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
 
 """
 viewpoint_compare = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
             #'viewpoint_counts': 'len(primary) > 2 and len(primary1) > 2',
-            'viewpoint_counts': '#primary>=1&#primary1>=2',  # To be a query you must have at least two primary1 views and at least one primary view
+            'sample_size': None,
+            'viewpoint_counts': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
             'viewpoint_base': 'primary1',
             #'gt_min_per_name': 3,
         }),

@@ -364,6 +364,9 @@ def setup_developer_menu(mainwin, back):
         text='Developer IPython',
         shortcut='Ctrl+Shift+I',
         slot_fn=back.dev_mode)
+    menu.newAction(
+        text='Set Work Directory',
+        slot_fn=back.set_workdir)
     # TESTS
     mainwin.menuTests = guitool.newMenu(mainwin, menu, 'menuTests', 'Tests')
     mainwin.menuTests.newAction(

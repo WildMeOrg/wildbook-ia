@@ -57,7 +57,8 @@ if ut.get_argflag('--full'):
     #ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
     ACFG_OPTION_CONTROLLED = ['controlled2']
     #ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
-    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
+    #ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
+    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[1500,2000,2500,3000]']
     #, 'varysize2']
     #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
     #ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
@@ -233,6 +234,8 @@ def namescore_experiments():
 
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
+        ./experiment_namescore.sh
+
         python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1
 
@@ -243,7 +246,7 @@ def namescore_experiments():
     varydict = ut.odict([
         #('acfg_name', ['controlled', 'controlled2']),
         ('acfg_name', ACFG_OPTION_CONTROLLED + ACFG_OPTION_VARYPERNAME),
-        ('cfg_name', ['candidacy_namescore']),
+        ('cfg_name', ['candidacy_namescore', 'candidacy_namescore:K=1']),
         ('dbname', get_dbnames()),
     ])
     return (varydict, 'namescore', 'cumhist')
@@ -276,7 +279,8 @@ def viewpoint_experiments():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-viewpoint_experiments
+        python -m ibeis.scripts.gen_cand_expts --exec-viewpoint_experiments --full
+        ./experiment_view.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
@@ -286,7 +290,8 @@ def viewpoint_experiments():
     varydict = ut.odict([
         ('acfg_name', ['viewpoint_compare']),
         ('cfg_name', ['default']),
-        ('dbname', ['NNP_Master3', 'PZ_Master0']),
+        #('dbname', ['NNP_Master3', 'PZ_Master0']),
+        ('dbname', ['PZ_Master1']),
     ])
     return (varydict, 'view', 'cumhist')
 
@@ -312,21 +317,21 @@ def get_results_command(expt_name, media_name):
         static_flags +=  ' --save ' + plot_fname + '.png'
         static_flags += ' --dpath=~/code/ibeis/results --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
-        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf'
-        static_flags += ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=~/code/ibeis/results'
-        static_flags += ' --clipwhite'
-        static_flags += ' --dpi=256'
-        static_flags += ' --figsize=12,4'
-        static_flags += ' --adjust=.0,.25,.2,.2'
-    elif media_name == 'surface3d':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
         static_flags += ' --save ' + plot_fname + '.png'
         static_flags += ' --dpath=~/code/ibeis/results'
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'
-        static_flags += ' --adjust=.0,.1,.01,.01'
+        static_flags += ' --adjust=.1,.25,.2,.2'
+    elif media_name == 'surface3d':
+        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no2dsurf'
+        static_flags += ' --save ' + plot_fname + '.png'
+        static_flags += ' --dpath=~/code/ibeis/results'
+        static_flags += ' --clipwhite'
+        static_flags += ' --dpi=256'
+        static_flags += ' --figsize=12,4'
+        static_flags += ' --adjust=.1,.1,.01,.01'
     elif media_name == 'preload':
         margs = 'ibeis.experiments.precomputer --exec-precfg'
         dynamic_flags_ = '{preload_flags}'
