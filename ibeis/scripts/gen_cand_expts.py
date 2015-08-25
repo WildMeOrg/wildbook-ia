@@ -4,7 +4,7 @@ CommandLine:
 
     # Run many experiments
     python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
-    ./overnight_experiments.sh
+    ./experiments_overnight.sh
 
     # Database information
     python -m ibeis --db PZ_MTEST --dbinfo --postload-exit
@@ -52,21 +52,22 @@ def register_testgen(func):
     return func
 
 
-if ut.get_argflag('--full'):
-    #ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
-    #ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
-    ACFG_OPTION_CONTROLLED = ['controlled2']
-    #ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
-    #ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
-    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[1500,2000,2500,3000]']
-    #, 'varysize2']
-    #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
-    #ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
-    ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
-else:
-    ACFG_OPTION_CONTROLLED = ['controlled']
-    ACFG_OPTION_VARYSIZE = ['varysize']
-    ACFG_OPTION_VARYPERNAME = ['varypername']
+#if ut.get_argflag('--full'):
+#ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
+#ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
+ACFG_OPTION_CONTROLLED = ['controlled2']
+#ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
+#ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
+#ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[1500,2000,2500,3000]']
+ACFG_OPTION_VARYSIZE = ['varysize_pzm']
+#, 'varysize2']
+#ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
+#ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
+ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
+#else:
+#    ACFG_OPTION_CONTROLLED = ['controlled']
+#    ACFG_OPTION_VARYSIZE = ['varysize']
+#    ACFG_OPTION_VARYPERNAME = ['varypername']
 
 
 def generate_all():
@@ -75,7 +76,7 @@ def generate_all():
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all
         python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
-        ./overnight_experiments.sh
+        ./experiments_overnight.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
@@ -86,7 +87,7 @@ def generate_all():
         ['\n\n### ' + ut.get_funcname(func),
          '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
         for func in TEST_GEN_FUNCS])
-    fname, script, line_list = write_script_lines(script_lines, 'overnight_experiments.sh')
+    fname, script, line_list = write_script_lines(script_lines, 'experiments_overnight.sh')
     if ut.get_argflag('--vim'):
         ut.editfile(fname)
     return fname, script, line_list
@@ -179,17 +180,17 @@ def precompute_data():
 
 
 @register_testgen
-def baseline_experiments():
+def experiments_baseline():
     """
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-baseline_experiments
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline
         ./experiment_baseline.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> make_standard_test_scripts(baseline_experiments())
+        >>> make_standard_test_scripts(experiments_baseline())
     """
     # Invariance Experiments
     varydict = ut.odict([
@@ -203,17 +204,17 @@ def baseline_experiments():
 
 
 @register_testgen
-def invariance_experiments():
+def experiments_invariance():
     """
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-invariance_experiments
-        python -m ibeis.scripts.gen_cand_expts --exec-invariance_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> make_standard_test_scripts(invariance_experiments())
+        >>> make_standard_test_scripts(experiments_invariance())
     """
     # Invariance Experiments
     #static_flags += ' --dpi=512 --figsize=11,4 --clipwhite'
@@ -228,20 +229,20 @@ def invariance_experiments():
 
 
 @register_testgen
-def namescore_experiments():
+def experiments_namescore():
     """
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
         ./experiment_namescore.sh
 
-        python -m ibeis.scripts.gen_cand_expts --exec-namescore_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> make_standard_test_scripts(namescore_experiments())
+        >>> make_standard_test_scripts(experiments_namescore())
     """
     varydict = ut.odict([
         #('acfg_name', ['controlled', 'controlled2']),
@@ -253,16 +254,16 @@ def namescore_experiments():
 
 
 @register_testgen
-def k_experiments():
+def experiments_k():
     """
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-k_experiments
-        python -m ibeis.scripts.gen_cand_expts --exec-k_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full
         ./experiment_k.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> make_standard_test_scripts(k_experiments())
+        >>> make_standard_test_scripts(experiments_k())
     """
     varydict = ut.odict([
         ('acfg_name', ACFG_OPTION_VARYSIZE),
@@ -274,17 +275,17 @@ def k_experiments():
 
 
 @register_testgen
-def viewpoint_experiments():
+def experiments_viewpoint():
     """
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-viewpoint_experiments --full
+        python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full
         ./experiment_view.sh
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
-        >>> make_standard_test_scripts(viewpoint_experiments())
+        >>> make_standard_test_scripts(experiments_viewpoint())
     """
     #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
@@ -304,8 +305,9 @@ def get_results_command(expt_name, media_name):
     """
     Displays results using various media
     """
-    dynamic_flags = '-t {cfg_name} -a {acfg_name} --db {dbname} '
-    plot_fname = expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
+    dynamic_flags = ' -t {cfg_name} -a {acfg_name} --db {dbname}'
+    plot_fname = 'figures/' + expt_name + '_' + media_name + '_{{db}}_a_{{a}}_t_{{t}}'
+    output_flags = ''
     static_flags = ''
     #static_flags = ' --diskshow'
     dynamic_flags_ = ''
@@ -314,35 +316,38 @@ def get_results_command(expt_name, media_name):
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_cdf'
-        static_flags +=  ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=~/code/ibeis/results --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
+        output_flags +=  ' --save ' + plot_fname + '.png'
+        output_flags += ' --dpath=~/code/ibeis'
+        static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
-        static_flags += ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=~/code/ibeis/results'
+        output_flags += ' --save ' + plot_fname + '.png'
+        output_flags += ' --dpath=~/code/ibeis'
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.25,.2,.2'
     elif media_name == 'surface3d':
         margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no2dsurf'
-        static_flags += ' --save ' + plot_fname + '.png'
-        static_flags += ' --dpath=~/code/ibeis/results'
+        output_flags += ' --save ' + plot_fname + '.png'
+        output_flags += ' --dpath=~/code/ibeis'
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.1,.01,.01'
     elif media_name == 'preload':
         margs = 'ibeis.experiments.precomputer --exec-precfg'
-        dynamic_flags_ = '{preload_flags}'
+        dynamic_flags_ = ' {preload_flags}'
     elif media_name == 'inspect_acfg':
         margs = 'ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0'
         dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
+    static_flags += ' $@'
     dynamic_flags = dynamic_flags + dynamic_flags_
     basecmd = 'python -m ' + margs
-    return basecmd, static_flags, dynamic_flags
+    cmd_flaglist = [basecmd, dynamic_flags, output_flags, static_flags]
+    return cmd_flaglist
     #shortname = 'Expt' + media_name[0].upper() + media_name[1:]
     #shortscript = shortname + '.sh'
     #ut.write_modscript_alias(shortscript, margs)
@@ -365,8 +370,9 @@ def make_standard_test_scripts(*args):
     media_names = ut.ensure_iterable(media_name)
     cmd_fmtstr_list = []
     for media_name in media_names:
-        basecmd, static_flags, dynamic_flags = get_results_command(expt_name, media_name)
-        cmd_fmtstr = basecmd +  ' ' + dynamic_flags + ' ' + static_flags + ' $@'
+        cmd_flaglist = get_results_command(expt_name, media_name)
+        cmd_fmtstr = ''.join(cmd_flaglist)
+        cmd_fmtstr = ' \\\n   '.join(cmd_flaglist)
         cmd_fmtstr_list.append(cmd_fmtstr)
     fname = 'experiment_' + expt_name + '.sh'
     return write_formatted_script_lines(cmd_fmtstr_list, [varydict], fname)

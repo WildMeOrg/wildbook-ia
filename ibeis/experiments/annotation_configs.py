@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Definitions for common aid configurations
+
+Rename to annot_cfgdef
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
+from ibeis.experiments import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 
 
@@ -24,6 +27,7 @@ ALIAS_KEYS = {
 __default_aidcfg = {
     'default_aids'      : 'all',  # initial set to choose from
     #'include_aids'      : None,   # force inclusion?
+    'gt_avl_aids'       : None,   # The only aids available as reference groundtruth
     # Default filtering
     'species'           : 'primary',  # specify the species
     'minqual'           : 'poor',
@@ -120,7 +124,7 @@ def get_varied_labels(acfg_list):
 
     shortened_cfg_list = [{shorten_to_alias_labels(key): val for key, val in _dict.items()} for _dict in varied_acfg_list]
     #shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
-    nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
+    nonlbl_keys = cfghelpers.INTERNAL_CFGKEYS
     nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q', 'd']]
     shortened_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), nonlbl_keys), explicit=True, nl=False) for _dict in shortened_cfg_list]
 
@@ -314,6 +318,29 @@ varypername = {
 }
 
 
+"""
+python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
+python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
+python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2]
+python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2] --show -t default
+python -m ibeis.experiments.experiment_printres --exec-print_results --db PZ_Master1 -a varysize_pzm -t candidacy_k
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --acfginfo
+./dev.py -e draw_rank_surface  --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
+./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
+./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --show
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
+
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=1,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=2,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+"""
 varysize = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
@@ -334,42 +361,15 @@ varysize = {
 }
 
 
-#python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
-#python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
-#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
-#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
-#python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2]
-#python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2] --show -t default
-varysize_master1 = {
-    'qcfg': ut.augdict(
-        __controlled_aidcfg, {
-            'default_aids': 'allgt',
-            'sample_size': 500,
-            'sample_per_name': 1,
-            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
-        }),
-
-    'dcfg': ut.augdict(
-        __controlled_aidcfg, {
-            'default_aids': 'all',
-            'sample_per_name': [1, 2, 3],
-            'exclude_reference': True,
-            'sample_size': [500, 1000, 1500, 2000, 2500, 3000],
-            'gt_min_per_name': 1,
-        }),
-}
-
-
-varysize2 = {
+varysize_pzm = {
     'qcfg': ut.augdict(
         varysize['qcfg'], {
+            'sample_size': 500,
         }),
 
     'dcfg': ut.augdict(
         varysize['dcfg'], {
-            'sample_size': [50, 100, 200, 300, 500, 1000, 2000, 3000],
+            'sample_size': [1500, 2000, 2500, 3000],
         }),
 }
 
@@ -379,6 +379,9 @@ varysize2 = {
 python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
 python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
 python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
+# Check composition of names per viewpoint
+python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
+python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
 
 """
 viewpoint_compare = {

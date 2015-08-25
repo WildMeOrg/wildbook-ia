@@ -153,8 +153,13 @@ def expand_acfgs(ibs, aidcfg):
         utprof.py -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy_k -a controlled  --db PZ_Master0 --acfginfo
 
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
     """
     from ibeis.experiments import annotation_configs
+    from ibeis.experiments import cfghelpers
     qcfg = aidcfg['qcfg']
     dcfg = aidcfg['dcfg']
 
@@ -162,7 +167,16 @@ def expand_acfgs(ibs, aidcfg):
         # Make loading aids a big faster for experiments
         acfg_cachedir = './ACFG_CACHE'
         acfg_cachename = 'ACFG_CACHE'
-        aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
+
+        RESPECT_INTERNAL_CFGS = False
+        if RESPECT_INTERNAL_CFGS:
+            aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
+        else:
+            import copy
+            relevant_aidcfg = copy.deepcopy(aidcfg)
+            ut.delete_dict_keys(relevant_aidcfg['qcfg'], cfghelpers.INTERNAL_CFGKEYS)
+            ut.delete_dict_keys(relevant_aidcfg['dcfg'], cfghelpers.INTERNAL_CFGKEYS)
+            aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(relevant_aidcfg))
         try:
             (qaid_list, daid_list) = ut.load_cache(acfg_cachedir, acfg_cachename, aid_cachestr)
         except IOError:
@@ -177,6 +191,7 @@ def expand_acfgs(ibs, aidcfg):
         print('+---------------------')
 
     try:
+        # Can probably move these commands around
         with ut.Indenter('[Q] '):
             available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q')
         with ut.Indenter('[D] '):
@@ -485,6 +500,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
     offset              = aidcfg['sample_offset']
     sample_rule_ref     = aidcfg['sample_rule_ref']
     sample_rule         = aidcfg['sample_rule']
+    gt_avl_aids         = aidcfg['gt_avl_aids']
 
     if sample_per_ref_name is None:
         sample_per_ref_name = sample_per_name
@@ -501,6 +517,23 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
                 with ut.Indenter('  '):
                     ibs.print_annotconfig_stats(reference_aids, available_aids)
         available_aids = ut.setdiff_ordered(available_aids, reference_aids)
+
+    if gt_avl_aids is not None:
+        if VERB_TESTDATA:
+            print(' * Excluding gt_avl_aids custom specified by name')
+        # Pick out the annotations that do not belong to the same name as the given gt_avl_aids
+        complement = np.setdiff1d(available_aids, gt_avl_aids)
+        partitioned_sets = ibs.partition_annots_into_corresponding_groups(gt_avl_aids, complement)
+        assert len(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[1])))).intersection(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[3])))))) == 0
+        gf_avl_aids = (ut.flatten(partitioned_sets[3]))
+        assert len(set(ibs.get_annot_name_rowids(reference_aids)).intersection(set(ibs.get_annot_name_rowids(gf_avl_aids) ))) == 0
+        #ibs.get_annot_groundtruth(reference_aids, daid_list=gf_avl_aids)
+        #ibs.get_annot_groundtruth(reference_aids, daid_list=gt_avl_aids)
+        #ibs.get_annot_groundtruth(reference_aids, daid_list=available_aids)
+        available_aids = np.hstack([gt_avl_aids, gf_avl_aids])
+        available_aids.sort()
+        available_aids = available_aids.tolist()
+        #sorted(gt_avl_aids) == sorted(ut.flatten(partitioned_sets[0]))
 
     if not (sample_per_ref_name is not None or sample_size is not None):
         return available_aids

@@ -5696,7 +5696,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         dict: multiprop2_aids
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids
+        python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
         python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop
 
     Example:
@@ -5711,9 +5711,16 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         >>> print('getter_list = %r' % (getter_list,))
         >>> #getter_list = [ibs.get_annot_yaw_texts, ibs.get_annot_name_rowids]
         >>> multiprop2_aids = group_annots_by_multi_prop(ibs, aids, getter_list)
-        >>> key1 = ut.get_argval('--key1', default='frontleft')
-        >>> result = ('multiprop2_aids = %s' % (ut.dict_str(multiprop2_aids[key1]),))
-        >>> print(result)
+        >>> get_dict_values = lambda x: list(x.values())
+        >>> # a bit convoluted
+        >>> keys1 = ut.get_argval('--keys1', type_=list, default=list(multiprop2_aids.keys()))
+        >>> multiprop2_num_aids = ut.hmap_vals(len, multiprop2_aids)
+        >>> prop2_num_aids = ut.hmap_vals(get_dict_values, multiprop2_num_aids, max_depth=len(props) - 2)
+        >>> #prop2_num_aids_stats = ut.hmap_vals(ut.get_stats, prop2_num_aids)
+        >>> prop2_num_aids_hist = ut.hmap_vals(ut.dict_hist, prop2_num_aids)
+        >>> prop2_num_aids_cumhist = ut.map_dict_vals(ut.dict_hist_cumsum, prop2_num_aids_hist)
+        >>> print('prop2_num_aids_hist[%s] = %s' % (keys1,  ut.dict_str(ut.dict_subset(prop2_num_aids_hist, keys1))))
+        >>> print('prop2_num_aids_cumhist[%s] = %s' % (keys1,  ut.dict_str(ut.dict_subset(prop2_num_aids_cumhist, keys1))))
 
     """
     aid_prop_list = [getter(aids) for getter in getter_list]
@@ -5764,6 +5771,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
 
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_annot_stats_dict
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -5772,8 +5780,11 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> prefix = ''
-        >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix)
-        >>> result = ('aid_stats_dict = %s' % (str(aid_stats_dict),))
+        >>> kwkeys = ut.parse_kwarg_keys(ut.get_func_sourcecode(get_annot_stats_dict, strip_docstr=True, strip_comments=True))
+        >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [None] * len(kwkeys))))
+        >>> print('kwargs = %r' % (kwargs,))
+        >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, **kwargs)
+        >>> result = ('aid_stats_dict = %s' % (ut.dict_str(aid_stats_dict, strvals=True),))
         >>> print(result)
     """
     kwargs = kwargs.copy()

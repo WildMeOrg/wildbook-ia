@@ -137,11 +137,9 @@ def print_results(ibs, test_result):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
-        >>> from ibeis.experiments import experiment_harness
-        >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
-        >>> # execute function
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = print_results(ibs, test_result)
-        >>> # verify results
         >>> print(result)
     """
 
@@ -225,6 +223,52 @@ def print_results(ibs, test_result):
         name = ibs.get_annot_names(qaid)
         new_hardtup_list += [(qaid, name + " - " + notes)]
         new_hard_qaids += [qaid]
+
+    @ut.argv_flag_dec
+    def intersect_hack():
+        failed = test_result.rank_mat > 0
+        colx2_failed = [np.nonzero(failed_col)[0] for failed_col in failed.T]
+        #failed_col2_only = np.setdiff1d(colx2_failed[1], colx2_failed[0])
+        #failed_col2_only_aids = ut.list_take(test_result.qaids, failed_col2_only)
+        failed_col1_only = np.setdiff1d(colx2_failed[0], colx2_failed[1])
+        failed_col1_only_aids = ut.list_take(test_result.qaids, failed_col1_only)
+        gt_aids1 = ibs.get_annot_groundtruth(failed_col1_only_aids, daid_list=test_result.cfgx2_qreq_[0].daids)
+        gt_aids2 = ibs.get_annot_groundtruth(failed_col1_only_aids, daid_list=test_result.cfgx2_qreq_[1].daids)
+
+        qaids_expt = failed_col1_only_aids
+        gt_avl_aids1 = ut.flatten(gt_aids1)
+        gt_avl_aids2 = list(set(ut.flatten(gt_aids2)).difference(gt_avl_aids1))
+        #jsontext = ut.to_json({
+        #    'qaids': list(qaids_expt),
+        #    'dinclude_aids1': list(gt_aids_expt1),
+        #    'dinclude_aids2': list(gt_aids_expt2),
+        #})
+        #annotation_configs.varysize_pzm
+        #from ibeis.experiments import annotation_configs
+
+        acfg = test_result.acfg_list[0]
+        import copy
+        acfg1 = copy.deepcopy(acfg)
+        acfg2 = copy.deepcopy(acfg)
+        acfg1['qcfg']['default_aids'] = qaids_expt
+        acfg1['dcfg']['gt_avl_aids'] = gt_avl_aids1
+        acfg2['qcfg']['default_aids'] = qaids_expt
+        acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
+
+        #aidcfg = dcfg
+        #available_aids = available_daids
+        #reference_aids = qaids_expt
+        #prefix = 'd'
+        #gt_avl_aids = gt_aids_expt1
+        # TODO: figure out how to take the hard cases from one test and throw
+        # them back info another test for futher processing
+
+        # Need to encode in a cfg
+        # a total override to the query annots and
+        # a partial override of the database annots. (gf is still expanded, but gt is locked)
+        pass
+    ut.embed()
+    intersect_hack()
 
     #------------
     # Build Colscore

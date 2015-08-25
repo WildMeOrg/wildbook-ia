@@ -3,6 +3,8 @@
 """
 In this file dicts specify all possible combinations of the varied parameters
 and lists specify the union of parameters
+
+Rename to pipe_cfgdef
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut

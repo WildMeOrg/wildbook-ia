@@ -86,6 +86,7 @@ def combine_test_results(ibs, test_result_list):
     big_test_result.varied_acfg_list = agg_varied_acfg_list
     big_test_result.varied_cfg_list = [ut.delete_dict_keys(cfgdict.copy(), list(big_test_result.common_cfgdict.keys()))
                                        for cfgdict in big_test_result.cfgdict_list]
+    big_test_result.acfg_list = acfg_list
 
     #big_test_result.acfg
     test_result = big_test_result

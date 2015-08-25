@@ -529,6 +529,14 @@ class QueryRequest(object):
 
     # External id-lists
 
+    @property
+    def daids(qreq_):
+        return qreq_.get_external_daids()
+
+    @property
+    def qaids(qreq_):
+        return qreq_.get_external_qaids()
+
     @profile
     def get_external_daids(qreq_):
         """ These are the users daids in vsone mode """

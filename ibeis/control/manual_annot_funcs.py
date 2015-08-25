@@ -93,7 +93,7 @@ def get_num_annotations(ibs, **kwargs):
 @register_api('/api/annot/', methods=['GET'])
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
-                   is_known=None, nojunk=False, hasgt=None):
+                   is_known=None, nojunk=False, hasgt=None, minqual=None):
     r"""
     High level function for getting all annotation ids according a set of filters.
 
@@ -210,6 +210,8 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         quality_list = ibs.get_annot_qualities(aid_list)
         isjunk_list = [quality == const.QUALITY_TEXT_TO_INT['junk'] for quality in quality_list]
         aid_list = ut.filterfalse_items(aid_list, isjunk_list)
+    if minqual is not None:
+        aid_list = ibs.filter_aids_to_quality(aid_list, minqual, unknown_ok=True)
     if hasgt:
         hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
         aid_list = ut.list_compress(aid_list, hasgt_list)

@@ -33,6 +33,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
 import sys
+#from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS, DEVCMD_FUNCTIONS2, devcmd2
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
@@ -63,6 +64,43 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 #------------------
 # This is where you write all of the functions that will become pristine
 # and then go in _devcmds_ibeis.py
+
+
+@devprecmd
+def draw_rank_cdf():
+    from ibeis.experiments.experiment_drawing import draw_rank_cdf
+    testsrc = ut.get_doctest_examples(draw_rank_cdf)[0][0]
+    exec(testsrc)
+
+
+@devprecmd
+def draw_rank_surface():
+    from ibeis.experiments.experiment_drawing import draw_rank_surface
+    testsrc = ut.get_doctest_examples(draw_rank_surface)[0][0]
+    exec(testsrc)
+
+
+@devprecmd
+def inspect_acfg():
+    """"
+    ./dev.py -t inspect_acfg -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
+    python -m ibeis.dev -t inspect_acfg --db PZ_Master1 -a varysize:qsize=500,dsize=[1500,2000,2500,3000]
+    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
+    """
+    import ibeis.experiments.experiment_helpers
+    _ = ut.get_doctest_examples(ibeis.experiments.experiment_helpers.get_annotcfg_list)
+    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
+    testsrc = testsrc_list[0]
+    exec(testsrc)
+
+
+@devprecmd
+def print_test_results():
+    import ibeis.experiments.experiment_printres
+    _ = ut.get_doctest_examples(ibeis.experiments.experiment_printres.print_results)
+    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
+    testsrc = testsrc_list[0]
+    exec(testsrc)
 
 
 @devcmd('scores', 'score', 'namescore_roc')
@@ -527,7 +565,8 @@ def run_devprecmds():
     """
     Looks for pre-tests specified with the -t flag and runs them
     """
-    input_precmd_list = params.args.tests[:]
+    #input_precmd_list = params.args.tests[:]
+    input_precmd_list = ut.get_argval('-e', type_=list, default=[])
     valid_precmd_list = []
     def intest(*args, **kwargs):
         for precmd_name in args:
@@ -547,9 +586,9 @@ def run_devprecmds():
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
         if intest(*func_aliases):
-            with utool.Indenter('[dev.' + get_funcname(func) + ']'):
-                func()
-                print('Exiting after first precommand')
+            #with utool.Indenter('[dev.' + get_funcname(func) + ']'):
+            func()
+            print('Exiting after first precommand')
             sys.exit(1)
 
 
@@ -617,17 +656,20 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
             funcname = get_funcname(func)
-            with utool.Indenter('[dev.' + funcname + ']'):
-                with utool.Timer(funcname):
-                    #print('[dev] qid_list=%r' % (qaid_list,))
-                    # FIXME: , daid_list
+            #with utool.Indenter('[dev.' + funcname + ']'):
+            with utool.Timer(funcname):
+                #print('[dev] qid_list=%r' % (qaid_list,))
+                # FIXME: , daid_list
+                if len(ut.get_func_argspec(func).args) == 0:
+                    ret = func()
+                else:
                     ret = func(ibs, qaid_list, daid_list)
-                    # Add variables returned by the function to the
-                    # "local scope" (the exec scop)
-                    if hasattr(ret, 'items'):
-                        for key, val in ret.items():
-                            if utool.is_valid_varname(key):
-                                locals_[key] = val
+                # Add variables returned by the function to the
+                # "local scope" (the exec scop)
+                if hasattr(ret, 'items'):
+                    for key, val in ret.items():
+                        if utool.is_valid_varname(key):
+                            locals_[key] = val
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
@@ -976,6 +1018,52 @@ python dev.py --hard -t best vsone nsum
 #L______________
 
 
+#def run_devmain2():
+#    input_test_list = ut.get_argval(('--tests', '-t',), type_=list, default=[])[:]
+#    print('input_test_list = %s' % (ut.list_str(input_test_list),))
+#    # fnum = 1
+
+#    valid_test_list = []  # build list for printing in case of failure
+#    valid_test_helpstr_list = []  # for printing
+
+#    def mark_test_handled(testname):
+#        input_test_list.remove(testname)
+
+#    def intest(*args, **kwargs):
+#        helpstr = kwargs.get('help', '')
+#        valid_test_helpstr_list.append('   -t ' + ', '.join(args) + helpstr)
+#        for testname in args:
+#            valid_test_list.append(testname)
+#            ret = testname in input_test_list
+#            ret2 = testname in params.unknown  # Let unparsed args count towards tests
+#            if ret or ret2:
+#                if ret:
+#                    mark_test_handled(testname)
+#                else:
+#                    ret = ret2
+#                print('\n+===================')
+#                print(' [dev2] running testname = %s' % (args,))
+#                print('+-------------------\n')
+#                return ret
+#        return False
+
+#    anynewhit = False
+#    # Implicit (decorated) test functions
+#    print('DEVCMD_FUNCTIONS2 = %r' % (DEVCMD_FUNCTIONS2,))
+#    for (func_aliases, func) in DEVCMD_FUNCTIONS2:
+#        if intest(*func_aliases):
+#            funcname = get_funcname(func)
+#            with utool.Timer(funcname):
+#                if len(ut.get_func_argspec(func).args) == 0:
+#                    func()
+#                    anynewhit = True
+#                else:
+#                    func(ibs, qaid_list, daid_list)
+#                    anynewhit = True
+#    if anynewhit:
+#        sys.exit(1)
+
+
 def devmain():
     """
     The Developer Script
@@ -1073,6 +1161,8 @@ def devmain():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
+    # HACK to run tests without specifing ibs first
+    #run_devmain2()
     devmain()
 
 

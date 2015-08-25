@@ -8,6 +8,32 @@ from utool.util_six import get_funcname
 DEVCMD_FUNCTIONS = []
 DEVPRECMD_FUNCTIONS = []
 
+#DEVCMD_FUNCTIONS2 = []
+
+
+#def devcmd2(*args):
+#    """ Decorator which registers a function as a developer command """
+#    noargs = len(args) == 1 and not isinstance(args[0], str)
+#    if noargs:
+#        # Function is only argument
+#        func = args[0]
+#        func_aliases = []
+#    else:
+#        func_aliases = list(args)
+#    def closure_devcmd2(func):
+#        global DEVCMD_FUNCTIONS2
+#        func_aliases.extend([get_funcname(func)])
+#        DEVCMD_FUNCTIONS2.append((tuple(func_aliases), func))
+#        def func_wrapper(*args_, **kwargs_):
+#            #if utool.VERBOSE:
+#            #if utool.QUIET:
+#            print('[DEVCMD2] ' + utool.func_str(func, args_, kwargs_))
+#            return func(*args_, **kwargs_)
+#        return func_wrapper
+#    if noargs:
+#        return closure_devcmd2(func)
+#    return closure_devcmd2
+
 
 def devcmd(*args):
     """ Decorator which registers a function as a developer command """
