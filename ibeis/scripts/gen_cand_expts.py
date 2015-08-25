@@ -50,11 +50,12 @@ if ut.get_argflag('--full'):
     #ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
     #ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
     ACFG_OPTION_CONTROLLED = ['controlled2']
-    ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
-    ACFG_OPTION_VARYSIZE = ['varysize:qsize=1000']
+    #ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
+    ACFG_OPTION_VARYSIZE = ['varysize:qsize=500']
     #, 'varysize2']
     #ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
-    ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
+    #ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
+    ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
 else:
     ACFG_OPTION_CONTROLLED = ['controlled']
     ACFG_OPTION_VARYSIZE = ['varysize']

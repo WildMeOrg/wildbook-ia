@@ -194,7 +194,7 @@ def draw_rank_cdf(ibs, test_result):
         short_cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
         short_edges = edges[0:min(len(edges), maxrank + 1)]
 
-    USE_ZOOM = True or ut.get_argflag('--use-zoom')
+    USE_ZOOM = ut.get_argflag('--use-zoom')
     pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
