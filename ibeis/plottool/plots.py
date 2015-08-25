@@ -15,8 +15,7 @@ ut.noinject(__name__, '[plots]')
 
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
-                         target_label, title=None, fnum=None, pnum=None,
-                         use_legend=True, ymin=None, ymax=None,
+                         target_label, title=None, use_legend=True,
                          color_list=None, marker_list=None, **kwargs):
     r"""
 
@@ -71,14 +70,14 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
     #plotkw = dict(markersize=10)
 
-    label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
     xdata = nd_basis[0]
     ydata_list = data_field.T
+    label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
+    #label_list = [ut.scalar_str(score, precision=2) + '%' + (' - %s=%r' % (nd_labels[1], val,)) for val, score in zip(nd_basis[1], ydata_list.T[0])]
     fig = multi_plot(
         xdata, ydata_list, label_list=label_list, markersize=10,
         marker_list=marker_list, color_list=color_list, title=title,
-        xlabel=nd_labels[0], ylabel=target_label, fnum=fnum, pnum=pnum,
-        **kwargs)
+        xlabel=nd_labels[0], ylabel=target_label, **kwargs)
 
     # Plot a line for each zdim value
     #for ix in range(num_lines):
