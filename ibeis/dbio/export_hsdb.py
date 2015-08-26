@@ -221,9 +221,9 @@ def get_hots_flat_table(ibs):
         (str,   'notes',  ibs.get_annot_notes(aid_list),),
         (str,   'uuids',  ibs.get_annot_uuids(aid_list),),
     ]
-    column_type   = [tup[0] for tup in column_tups]
+    column_type = [tup[0] for tup in column_tups]
     column_lbls = [tup[1] for tup in column_tups]
-    column_list   = [tup[2] for tup in column_tups]
+    column_list = [tup[2] for tup in column_tups]
     header = '\n'.join([
         '# Roi Flat Table',
         '# aid   - internal annotation index (not gaurenteed unique)',
