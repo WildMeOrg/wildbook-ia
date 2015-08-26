@@ -433,7 +433,7 @@ def show_if_requested(N=1):
         latex_indent = ' ' * (0)
 
         latex_block_ = (ut.indent(latex_block, latex_indent))
-        print(latex_block_)
+        ut.print_code(latex_block_, 'latex')
 
         if 'append' in arg_dict:
             append_fpath = arg_dict['append']

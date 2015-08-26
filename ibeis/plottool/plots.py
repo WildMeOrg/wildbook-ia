@@ -58,66 +58,13 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         index = [invbase[pt] for invbase, pt in zip(inverse_basis, coord)]
         data_field.__setitem__(tuple(index), val)
 
-    # Setup the plots
-    #num_lines = len(nd_basis[1])
-
-    #if color_list is None:
-    #    color_list = df2.distinct_colors(num_lines)
-
-    #if marker_list is None:
-    #    #marker_list = ['o'] * num_cdfs
-    #    marker_list = df2.distinct_markers(num_lines)
-
-    #plotkw = dict(markersize=10)
-
     xdata = nd_basis[0]
     ydata_list = data_field.T
     label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
-    #label_list = [ut.scalar_str(score, precision=2) + '%' + (' - %s=%r' % (nd_labels[1], val,)) for val, score in zip(nd_basis[1], ydata_list.T[0])]
     fig = multi_plot(
         xdata, ydata_list, label_list=label_list, markersize=10,
         marker_list=marker_list, color_list=color_list, title=title,
         xlabel=nd_labels[0], ylabel=target_label, **kwargs)
-
-    # Plot a line for each zdim value
-    #for ix in range(num_lines):
-    #    ydata = data_field.T[ix]
-    #    color = color_list[ix]
-    #    marker = marker_list[ix]
-    #    ymask = np.isfinite(ydata)
-    #    label = label_list[ix]
-    #    ax.plot(xdata[ymask], ydata[ymask], color=color, marker=marker, label=label, **plotkw)
-
-    #label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
-    #title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
-    #ax.set_xlabel(nd_labels[0], fontproperties=label_fontprop)
-    #ax.set_ylabel(target_label, fontproperties=label_fontprop)
-
-    #if ymax is None:
-    #    ymax = np.nanmax(ydata)
-    #if ymin is None:
-    #    ymin = np.nanmin(ydata)
-
-    #ypad_max = 1
-    #ypad_min = 1
-    #ax.set_ylim(ymin - ypad_min, ymax + ypad_max)
-
-    #ax.set_yticks(nd_basis[1])
-    #ax.set_xticks(nd_basis[0])
-    #max_pos = np.nanmax(ydata)
-    #num_ticks = 10
-    #step_size = int(max_pos / num_ticks)
-    #ax.set_yticks(np.arange(1, max_pos, step_size))
-
-    #if title is not None:
-    #    ax.set_title(title, fontproperties=title_fontprop)
-
-    #if use_legend:
-    #    legend_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
-    #    #df2.legend(loc='upper right', fontproperties=legend_fontprop)
-    #    df2.legend(loc='best', fontproperties=legend_fontprop)
-    #    #ut.embed()
-    #df2.dark_background()
     return fig
 
 
@@ -170,55 +117,13 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
 
     fig = multi_plot(
         x_data, cdf_list,
-        # ---
         label_list=label_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
-        # ---
         num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
-        # ---
         use_legend=use_legend,
-        # ---
         **kwargs
     )
 
-    #ax = df2.gca()
-    #for ix in range(num_cdfs):
-    #    y_data = cdf_list[ix]
-    #    color = color_list[ix]
-    #    label = label_list[ix]
-    #    marker = marker_list[ix]
-    #    max_y = max(np.max(y_data), max_y)
-    #    min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
-    #    #ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=4, linewidth=2, markeredgewidth=0)
-    #    #ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markersize=10, linewidth=2, markeredgewidth=0, alpha=1.0)
-    #    ax.plot(x_data, y_data, color=color, label=label, marker=marker, linestyle='-', markeredgewidth=2, markersize=markersize, linewidth=2)
-
-    #ax.set_ylim(0, max_y * 1.05)
-    #xbuf = (x_data.max() - x_data.min()) * .01
-
-    #ax.set_ylim(min_y / 1.05, max_y * 1.05)
-    #ax.set_xlim(x_data.min(), x_data.max()  * 1.01)
-    #ax.set_xlim(max(0, x_data.min() - xbuf), x_data.max() + xbuf)
-
-    #if figtitle is not None:
-    #    df2.set_figtitle(figtitle)
-    #    #df2.set_title('')
-    #    #'Cumulative Histogram of GT-Ranks')
-
-    #df2.set_xlabel(xlabel)
-    #df2.set_ylabel(ylabel)
-
-    #step_size = int(np.log(x_data.max() + 1))
-    #step_size = int(np.sqrt(x_data.max() + 1))
-    #if num_xticks is not None:
-    #    max_pos = (x_data.max() + 1)
-    #    step_size = int(max_pos / num_xticks)
-    #    df2.set_xticks(np.arange(1, max_pos, step_size))
-    #df2.dark_background()
-
-    #if use_legend:
-    #    df2.legend(loc='lower right')
-    #df2.dark_background()
     return fig
 
 
@@ -234,6 +139,15 @@ def multi_plot(xdata, ydata_list, **kwargs):
         labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize
         can append _list to any of these
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
+
+    Args:
+        xdata (?):
+        ydata_list (list):
+
+    Kwargs:
+        fnum, pnum, title, xlabel, ylabel, use_legend, legend_loc, ticksize,
+        xmin, xmax, ymin, ymax, num_xticks, num_yticks, xpad, ypad,
+        xpad_factor, ypad_factor, legendsize
 
     CommandLine:
         python -m plottool.plots --exec-multi_plot
@@ -363,8 +277,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Setup title
     if title is not None:
+        titlesize = kwargs.get('titlesize', 8)
         titlekw = {
-            'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('titlesize', 8))
+            'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
         }
         ax.set_title(title, **titlekw)
 
