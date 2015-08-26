@@ -79,7 +79,8 @@ def precfg(ibs, acfg_name_list, test_cfg_name_list):
     # Generate list of database annotation configurations
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
     # Generate list of query pipeline param configs
-    cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
+    #cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)
 
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
     nAcfg = len(acfg_list)
@@ -93,10 +94,10 @@ def precfg(ibs, acfg_name_list, test_cfg_name_list):
             continue
         ut.colorprint('\n---Annot config', 'turquoise')
 
-        nCfg     = len(cfg_list)   # number of configurations (cols)
+        nCfg     = len(pipecfg_list)   # number of configurations (cols)
         dbname = ibs.get_dbname()
 
-        cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg)
+        cfgiter = ut.ProgressIter(pipecfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg)
 
         flag = False
         if ut.get_argflag('--delete-nn-cache'):

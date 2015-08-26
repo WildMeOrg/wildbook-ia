@@ -13,6 +13,7 @@ from ibeis.experiments import experiment_helpers
 #from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
 from ibeis.experiments import annotation_configs
+#from ibeis.experiments import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
@@ -45,24 +46,26 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
     """
+    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
+    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
+
     # Generate list of database annotation configurations
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
     # Generate list of query pipeline param configs
-    cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
+
+    cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)
 
     if not ut.QUIET:
         ut.colorprint(textwrap.dedent("""
 
         [harn]================
         [harn] experiment_harness.test_configurations2()""").strip(), 'white')
-        ut.colorprint('[harn] Testing %d parameter configurations' % len(cfg_list), 'white')
+        ut.colorprint('[harn] Testing %d parameter configurations' % len(pipecfg_list), 'white')
         ut.colorprint('[harn]    with %d annotations configurations' % len(acfg_list), 'white')
-        ut.colorprint('[harn]    running %d queries' % (len(acfg_list) * len(cfg_list)), 'white')
+        ut.colorprint('[harn]    running %d queries' % (len(acfg_list) * len(pipecfg_list)), 'white')
 
     test_result_list = []
-
-    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
-    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
 
     nAcfg = len(acfg_list)
 
@@ -92,7 +95,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
             raise AssertionError('[harness] No database annotations specified')
         acfg = acfg_list[acfgx]
         ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
-        test_result = run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg)
+        test_result = run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg)
         if DRY_RUN:
             continue
         test_result.acfg = acfg
@@ -105,11 +108,11 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
 
 
 @profile
-def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg):
+def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl, testnameid, acfgx, nAcfg):
     #orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
 
     # Parse cfgstr list
-    #cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
+    #cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in pipecfg_list]
     #for cfgstr in cfgstr_list:
     #    cfgstr_terms = cfgstr.split(')_')
     #    cfgstr_terms = [x + ')_' for x in cfgstr_terms[1:-1]] + [cfgstr_terms[-1]]  # NOQA
@@ -120,13 +123,13 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     #cfgslice = slice(7, None)
     cfgslice = None
     if cfgslice is not None:
-        cfg_list = cfg_list[cfgslice]
+        pipecfg_list = pipecfg_list[cfgslice]
 
-    nCfg     = len(cfg_list)   # number of configurations (cols)
+    nCfg     = len(pipecfg_list)   # number of configurations (cols)
     dbname = ibs.get_dbname()
 
     print('Constructing query requests')
-    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=query_cfg) for query_cfg in ut.ProgressIter(cfg_list, lbl='Building qreq_')]
+    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=query_cfg) for query_cfg in ut.ProgressIter(pipecfg_list, lbl='Building qreq_')]
 
     #USE_BIG_TEST_CACHE = ut.get_argflag('--use-testcache')
     if USE_BIG_TEST_CACHE:
@@ -146,10 +149,10 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
 
     cfgx2_cfgresinfo = []
     #with ut.Timer('experiment_harness'):
-    cfgiter = ut.ProgressIter(cfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg, separate=True)
+    cfgiter = ut.ProgressIter(pipecfg_list, lbl='query config', freq=1, autoadjust=False, parent_index=acfgx, parent_nTotal=nAcfg, separate=True)
     # Run each test configuration
     # Query Config / Col Loop
-    #for cfgx, query_cfg in enumerate(cfg_list):
+    #for cfgx, query_cfg in enumerate(pipecfg_list):
 
     prev_feat_cfgstr = None
     for cfgx, query_cfg in enumerate(cfgiter):
@@ -203,7 +206,7 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
-    test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
+    test_result = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
     test_result.testnameid = testnameid
     test_result.lbl = lbl
     test_result.cfgdict_list = cfgdict_list

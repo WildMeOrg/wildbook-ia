@@ -273,7 +273,7 @@ def print_results(ibs, test_result):
             expanded_aids_list=[annots1, annots2],
         )
         test_cfg_name_list = ['candidacy_k']
-        cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+        cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
         t1, t2 = test_result_list  # NOQA
 
