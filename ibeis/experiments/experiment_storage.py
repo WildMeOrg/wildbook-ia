@@ -38,13 +38,13 @@ def combine_test_results(ibs, test_result_list):
         raise
 
     from ibeis.experiments import annotation_configs
+    from ibeis.experiments import cfghelpers
 
     acfg_list = [test_result.acfg for test_result in test_result_list]
     acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
 
-    flat_dict_list, nonvaried_acfg, varied_acfg_list = annotation_configs.partition_varied_acfg_list(acfg_list)
-
-    test_result.varied_acfg_list = varied_acfg_list
+    flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
+    nonvaried_acfg, varied_acfg_list = cfghelpers.partition_varied_acfg_list(flat_acfg_list)
 
     def combine_lbls(lbl, acfg_lbl):
         if len(lbl) == 0:
@@ -74,7 +74,7 @@ def combine_test_results(ibs, test_result_list):
         [[combine_lbls(lbl, acfg_lbl) for lbl in test_result.cfgx2_lbl]
          for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
 
-    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls, 'foo', 'foo2',
+    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls,
                                  agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
 
     # Give the big test result an acfg that is common between everything
@@ -96,7 +96,7 @@ def combine_test_results(ibs, test_result_list):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, qaids):
+    def __init__(test_result, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids):
         assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
         assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
@@ -104,10 +104,10 @@ class TestResult(object):
         #test_result.daids = daids
         test_result.cfg_list         = cfg_list
         test_result.cfgx2_lbl        = cfgx2_lbl
-        test_result.lbl              = lbl
-        test_result.testnameid       = testnameid
         test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         test_result.cfgx2_qreq_      = cfgx2_qreq_
+        test_result.lbl              = None
+        test_result.testnameid       = None
 
     @property
     def ibs(test_result):

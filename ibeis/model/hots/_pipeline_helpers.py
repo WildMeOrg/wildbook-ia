@@ -319,12 +319,12 @@ def get_pipeline_testdata2(defaultdb='testdb1', default_aidcfg_name_list=['defau
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
 
     # Generate list of query pipeline param configs
-    query_cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
     qreq_list = []
 
     for qaids, daids in expanded_aids_list:
-        for query_cfg in query_cfg_list:
+        for query_cfg in pipecfg_list:
             qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, query_cfg=query_cfg)
             qreq_list.append(qreq_)
 
