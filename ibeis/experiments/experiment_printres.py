@@ -9,7 +9,6 @@ import numpy as np
 import six
 import utool as ut
 from ibeis import ibsfuncs
-from ibeis.experiments import experiment_helpers as eh
 #from ibeis.experiments import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt
@@ -264,18 +263,19 @@ def print_results(ibs, test_result):
         acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
 
         from ibeis.init import filter_annots
+        from ibeis.experiments import experiment_helpers
 
         annots1 = filter_annots.expand_acfgs(ibs, acfg1, verbose=True)
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
-        from ibeis.experiments import experiment_helpers
-        acfg_name_list = dict(
+
+        acfg_name_list = dict(  # NOQA
             acfg_list=[acfg1, acfg2],
             expanded_aids_list=[annots1, annots2],
         )
         test_cfg_name_list = ['candidacy_k']
         cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
 
-        t1, t2 = test_result_list
+        t1, t2 = test_result_list  # NOQA
 
         #aidcfg = dcfg
         #available_aids = available_daids
@@ -415,14 +415,14 @@ def print_results(ibs, test_result):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
         #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
-        #        print('        ' + eh.rankscore_str(X, nLessX_, nQuery))
+        #        print('        ' + rankscore_str(X, nLessX_, nQuery))
         print('\n[harn] ... sorted scores')
         for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
-                rankstr = eh.rankscore_str(X, nLessX_, nQuery, withlbl=False)
+                rankstr = rankscore_str(X, nLessX_, nQuery, withlbl=False)
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
     print_colscore()
 
@@ -438,7 +438,7 @@ def print_results(ibs, test_result):
         max_LessX = cfgx2_nLessX.max()
         bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
         best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
-        best_rankscore += eh.rankscore_str(X, max_LessX, nQuery)
+        best_rankscore += rankscore_str(X, max_LessX, nQuery)
         best_rankscore_summary += [best_rankscore]
         to_intersect_list.append(ut.list_take(cfgx2_lbl, bestCFG_X))
 
@@ -456,15 +456,15 @@ def print_results(ibs, test_result):
             max_LessX = cfgx2_nLessX.max()
             bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
-            best_rankscore += eh.rankscore_str(X, max_LessX, nQuery)
+            best_rankscore += rankscore_str(X, max_LessX, nQuery)
             cfglbl_list = cfgx2_lbl[bestCFG_X]
 
-            best_rankcfg = eh.format_cfgstr_list(cfglbl_list)
+            best_rankcfg = format_cfgstr_list(cfglbl_list)
             #indent('\n'.join(cfgstr_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
         print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nConfig))
-        print(eh.format_cfgstr_list(intersected))
+        print(format_cfgstr_list(intersected))
     print_bestcfg()
 
     #------------
@@ -733,6 +733,60 @@ def print_results(ibs, test_result):
     ut.colorprint(summary_str, 'blue')
 
     print('To enable all printouts add --print-all to the commandline')
+
+
+def rankscore_str(thresh, nLess, total, withlbl=True):
+    #helper to print rank scores of configs
+    percent = 100 * nLess / total
+    fmtsf = '%' + str(ut.num2_sigfig(total)) + 'd'
+    if withlbl:
+        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
+    else:
+        fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        rankscore_str = fmtstr % (nLess, total, percent, (total - nLess))
+    return rankscore_str
+
+
+def wrap_cfgstr(cfgstr):
+    # REGEX to locate _XXXX(
+    import re
+    cfg_regex = r'_[A-Z][A-Z]*\('
+    cfgstrmarker_list = re.findall(cfg_regex, cfgstr)
+    cfgstrconfig_list = re.split(cfg_regex, cfgstr)
+    args = [cfgstrconfig_list, cfgstrmarker_list]
+    interleave_iter = ut.interleave(args)
+    new_cfgstr_list = []
+    total_len = 0
+    prefix_str = ''
+    # If unbalanced there is a prefix before a marker
+    if len(cfgstrmarker_list) < len(cfgstrconfig_list):
+        frag = interleave_iter.next()
+        new_cfgstr_list += [frag]
+        total_len = len(frag)
+        prefix_str = ' ' * len(frag)
+    # Iterate through markers and config strings
+    while True:
+        try:
+            marker_str = interleave_iter.next()
+            config_str = interleave_iter.next()
+            frag = marker_str + config_str
+        except StopIteration:
+            break
+        total_len += len(frag)
+        new_cfgstr_list += [frag]
+        # Go to newline if past 80 chars
+        if total_len > 80:
+            total_len = 0
+            new_cfgstr_list += ['\n' + prefix_str]
+    wrapped_cfgstr = ''.join(new_cfgstr_list)
+    return wrapped_cfgstr
+
+
+def format_cfgstr_list(cfgstr_list):
+    indented_list = ut.indent_list('    ', cfgstr_list)
+    wrapped_list = list(map(wrap_cfgstr, indented_list))
+    return ut.joins('\n', wrapped_list)
 
 
 if __name__ == '__main__':

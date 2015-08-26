@@ -203,7 +203,9 @@ def run_test_configurations(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgdict_list
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
-    test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
+    test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
+    test_result.testnameid = testnameid
+    test_result.lbl = lbl
     test_result.cfgdict_list = cfgdict_list
     test_result.aidcfg = None
     if USE_BIG_TEST_CACHE:

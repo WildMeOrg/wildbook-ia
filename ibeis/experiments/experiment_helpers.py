@@ -6,8 +6,6 @@ TODO: move into custom pipe_cfg and annot_cfg modules
 from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
 import six
-from six.moves import zip, map
-import re
 import itertools
 from ibeis.experiments import experiment_configs
 from ibeis.experiments import cfghelpers
@@ -17,114 +15,6 @@ print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_helpers]', DEBUG=False)
 
 QUIET = ut.QUIET
-
-
-def get_testcfg_varydicts(test_cfg_name_list):
-    """
-    build varydicts from experiment_configs.
-    recomputes test_cfg_name_list_out in case there are any nested lists specified in it
-
-    CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_testcfg_varydicts
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-        >>> test_cfg_name_list = ['lnbnn2']
-        >>> vary_dicts, test_cfg_name_list_out = get_testcfg_varydicts(test_cfg_name_list)
-        >>> result = ut.list_str(vary_dicts)
-        >>> print(result)
-        [
-            {'lnbnn_weight': [0.0], 'loglnbnn_weight': [0.0, 1.0], 'normonly_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
-            {'lnbnn_weight': [0.0], 'loglnbnn_weight': [0.0], 'normonly_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
-            {'lnbnn_weight': [0.0, 1.0], 'loglnbnn_weight': [0.0], 'normonly_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
-        ]
-
-        [
-            {'sv_on': [True], 'logdist_weight': [0.0, 1.0], 'lnbnn_weight': [0.0], 'pipeline_root': ['vsmany'], 'normonly_weight': [0.0]},
-            {'sv_on': [True], 'logdist_weight': [0.0], 'lnbnn_weight': [0.0], 'pipeline_root': ['vsmany'], 'normonly_weight': [0.0, 1.0]},
-            {'sv_on': [True], 'logdist_weight': [0.0], 'lnbnn_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'normonly_weight': [0.0]},
-        ]
-
-    Ignore:
-        print(ut.indent(ut.list_str(vary_dicts), ' ' * 8))
-    """
-
-    vary_dicts = []
-    test_cfg_name_list_out = []
-    for cfg_name in test_cfg_name_list:
-        # Find if the name exists in the experiment configs
-        test_cfg = experiment_configs.__dict__[cfg_name]
-        # does that name correspond with a dict or list of dicts?
-        if isinstance(test_cfg, dict):
-            vary_dicts.append(test_cfg)
-            test_cfg_name_list_out.append(cfg_name)
-        elif isinstance(test_cfg, list):
-            vary_dicts.extend(test_cfg)
-            # make sure len(test_cfg_names) still corespond with len(vary_dicts)
-            #test_cfg_name_list_out.extend([cfg_name + '_%d' % (count,) for count in range(len(test_cfg))])
-            test_cfg_name_list_out.extend([cfg_name for count in range(len(test_cfg))])
-    if len(vary_dicts) == 0:
-        valid_cfg_names = experiment_configs.TEST_NAMES
-        raise Exception('Choose a valid testcfg:\n' + valid_cfg_names)
-    for dict_ in vary_dicts:
-        for key, val in six.iteritems(dict_):
-            assert not isinstance(val, six.string_types), 'val should be list not string: not %r' % (type(val),)
-            #assert not isinstance(val, (list, tuple)), 'val should be list or tuple: not %r' % (type(val),)
-    return vary_dicts, test_cfg_name_list_out
-
-
-def rankscore_str(thresh, nLess, total, withlbl=True):
-    #helper to print rank scores of configs
-    percent = 100 * nLess / total
-    fmtsf = '%' + str(ut.num2_sigfig(total)) + 'd'
-    if withlbl:
-        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
-        rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
-    else:
-        fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
-        rankscore_str = fmtstr % (nLess, total, percent, (total - nLess))
-    return rankscore_str
-
-
-def wrap_cfgstr(cfgstr):
-    # REGEX to locate _XXXX(
-    cfg_regex = r'_[A-Z][A-Z]*\('
-    cfgstrmarker_list = re.findall(cfg_regex, cfgstr)
-    cfgstrconfig_list = re.split(cfg_regex, cfgstr)
-    args = [cfgstrconfig_list, cfgstrmarker_list]
-    interleave_iter = ut.interleave(args)
-    new_cfgstr_list = []
-    total_len = 0
-    prefix_str = ''
-    # If unbalanced there is a prefix before a marker
-    if len(cfgstrmarker_list) < len(cfgstrconfig_list):
-        frag = interleave_iter.next()
-        new_cfgstr_list += [frag]
-        total_len = len(frag)
-        prefix_str = ' ' * len(frag)
-    # Iterate through markers and config strings
-    while True:
-        try:
-            marker_str = interleave_iter.next()
-            config_str = interleave_iter.next()
-            frag = marker_str + config_str
-        except StopIteration:
-            break
-        total_len += len(frag)
-        new_cfgstr_list += [frag]
-        # Go to newline if past 80 chars
-        if total_len > 80:
-            total_len = 0
-            new_cfgstr_list += ['\n' + prefix_str]
-    wrapped_cfgstr = ''.join(new_cfgstr_list)
-    return wrapped_cfgstr
-
-
-def format_cfgstr_list(cfgstr_list):
-    indented_list = ut.indent_list('    ', cfgstr_list)
-    wrapped_list = list(map(wrap_cfgstr, indented_list))
-    return ut.joins('\n', wrapped_list)
 
 
 #---------------
@@ -145,68 +35,32 @@ def get_varied_params_list(test_cfg_name_list):
         >>> test_cfg_name_list = ['lnbnn2']
         >>> test_cfg_name_list = ['candidacy_k']
         >>> test_cfg_name_list = ['candidacy_k', 'candidacy_k:fg_on=True']
-        >>> varied_params_list, varied_param_lbls, name_lbl_list = get_varied_params_list(test_cfg_name_list)
-        >>> print(ut.list_str(varied_params_list))
+        >>> cfgdict_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)
+        >>> print(ut.list_str(cfgdict_list))
         >>> print(ut.list_str(varied_param_lbls))
 
     Example:
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['candidacy_baseline:fg_on=False']
-        >>> varied_params_list, varied_param_lbls, name_lbl_list = get_varied_params_list(test_cfg_name_list)
-        >>> print(ut.list_str(varied_params_list))
-        >>> print(ut.list_str(varied_param_lbls))
+        >>> cfgdict_list, cfg_lbl_list = get_varied_params_list(test_cfg_name_list)
+        >>> print(ut.list_str(cfgdict_list))
+        >>> print(ut.list_str(cfg_lbl_list))
     """
-    OLD = False
-    if OLD:
-        pass
-        #vary_dicts, test_cfg_name_list_out = get_testcfg_varydicts(test_cfg_name_list)
+    # TODO: alias mumbojumbo and whatnot. Rectify duplicate code
+    cfg_default_dict = dict(Config.QueryConfig().parse_items())
+    valid_keys = list(cfg_default_dict.keys())
+    cfgstr_list = test_cfg_name_list
+    named_defaults_dict = ut.dict_subset(
+        experiment_configs.__dict__, experiment_configs.TEST_NAMES)
+    dict_comb_list = cfghelpers.parse_cfgstr_list2(
+        cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None,
+        valid_keys=valid_keys)
 
-        #dict_comb_list = [ut.all_dict_combinations(dict_)
-        #                  for dict_ in vary_dicts]
+    cfgdict_list = ut.flatten(dict_comb_list)
 
-        #unflat_param_lbls = [ut.all_dict_combinations_lbls(dict_, allow_lone_singles=True, remove_singles=False)
-        #                     for dict_ in vary_dicts]
+    cfglbl_list = cfghelpers.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
 
-        #unflat_name_lbls = [[name_lbl for lbl in comb_lbls]
-        #                    for name_lbl, comb_lbls in
-        #                    zip(test_cfg_name_list_out, unflat_param_lbls)]
-
-        #param_lbl_list     = ut.flatten(unflat_param_lbls)
-        #name_lbl_list      = ut.flatten(unflat_name_lbls)
-
-        #varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
-    else:
-        # TODO: alias mumbojumbo and whatnot. Rectify duplicate code
-        cfg_default_dict = dict(Config.QueryConfig().parse_items())
-        valid_keys = list(cfg_default_dict.keys())
-        cfgstr_list = test_cfg_name_list
-        named_defaults_dict = ut.dict_subset(experiment_configs.__dict__, experiment_configs.TEST_NAMES)
-        dict_comb_list = cfghelpers.parse_cfgstr_list2(cfgstr_list, named_defaults_dict,
-                                                       cfgtype=None, alias_keys=None,
-                                                       valid_keys=valid_keys)
-
-        def partition_varied_cfg_list(cfg_list, cfg_default_dict):
-            nonvaried_dict = reduce(ut.dict_intersection, [ut.dict_intersection(cfg_default_dict, cfg) for cfg in cfg_list])
-            #nonvaried_dict = reduce(ut.dict_intersection, cfg_list)
-            varied_cfg_list = [ut.delete_dict_keys(_dict.copy(), list(nonvaried_dict.keys())) for _dict in cfg_list]
-            return nonvaried_dict, varied_cfg_list
-
-        varied_params_list = ut.flatten(dict_comb_list)
-
-        name_lbl_list = [cfg['_cfgname'] for cfg in varied_params_list]
-
-        #for cfg in varied_params_list:
-        #    ut.delete_keys(cfg, ['_cfgstr', '_cfgname', '_cfgtype'])
-
-        nonvaried_dict, varied_cfg_list = partition_varied_cfg_list(cfg_list=varied_params_list, cfg_default_dict=cfg_default_dict)
-
-        exclude_list = cfghelpers.INTERNAL_CFGKEYS
-        _param_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), exclude_list), explicit=True, nl=False) for _dict in varied_cfg_list]
-        param_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  _param_lbl_list]
-
-        varied_param_lbls = [name + ':' + lbl for name, lbl in zip(name_lbl_list, param_lbl_list)]
-
-    return varied_params_list, varied_param_lbls, name_lbl_list
+    return cfgdict_list, cfglbl_list
 
 
 def get_cfg_list_helper(test_cfg_name_list):
@@ -233,7 +87,7 @@ def get_cfg_list_helper(test_cfg_name_list):
 
     """
     # Get varied params (there may be duplicates)
-    varied_params_list, varied_param_lbls, name_lbl_list = get_varied_params_list(test_cfg_name_list)
+    _cfgdict_list, _cfglbl_list = get_varied_params_list(test_cfg_name_list)
     # Enforce rule that removes duplicate configs
     # by using feasiblity from ibeis.model.Config
     cfg_list = []
@@ -241,21 +95,19 @@ def get_cfg_list_helper(test_cfg_name_list):
     cfgdict_list = []
     # Add unique configs to the list
     cfg_set = set([])
-    for dict_, lbl, cfgname in zip(varied_params_list, varied_param_lbls, name_lbl_list):
+    for _cfgdict, lbl in zip(_cfgdict_list, _cfglbl_list):
         # TODO: Move this unique finding code to its own function
         # and then move it up one function level so even the custom
         # configs can be uniquified
         #cfg = Config.QueryConfig(**dict_)
-        cfgdict = dict_.copy()
-        #cfgdict['_cfgname'] = cfgname
-        cfg = Config.QueryConfig(**dict_)
+        cfg = Config.QueryConfig(**_cfgdict)
         if cfg not in cfg_set:
+            cfg_set.add(cfg)
             cfgx2_lbl.append(lbl)
             cfg_list.append(cfg)
-            cfgdict_list.append(cfgdict)
-            cfg_set.add(cfg)
+            cfgdict_list.append(_cfgdict)
     if not QUIET:
-        print('[harn.help] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
+        print('[harn.help] return %d / %d unique configs' % (len(cfgdict_list), len(_cfgdict_list)))
     return cfg_list, cfgx2_lbl, cfgdict_list
 
 

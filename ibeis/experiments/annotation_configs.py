@@ -114,28 +114,27 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
             del acfg['qcfg']
         if len(acfg['dcfg']) == 0:
             del acfg['dcfg']
-
     return acfg
 
 
 def get_varied_labels(acfg_list):
     #print(ut.list_str(varied_acfg_list, nl=2))
-    cfgname_list = []
-    for aid in acfg_list:
-        assert aid['qcfg']['_cfgname'] == aid['dcfg']['_cfgname'], 'should be the same for now'
-        cfgname_list.append(aid['qcfg']['_cfgname'])
+    for acfg in acfg_list:
+        assert acfg['qcfg']['_cfgname'] == acfg['dcfg']['_cfgname'], (
+            'should be the same for now')
+    cfgname_list = [acfg['qcfg']['_cfgname'] for acfg in acfg_list]
 
-    flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
+    flat_acfg_list = flatten_acfg_list(acfg_list)
+    nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
 
-    shortened_cfg_list = [{shorten_to_alias_labels(key): val for key, val in _dict.items()} for _dict in varied_acfg_list]
-    #shortened_lbl_list = [ut.dict_str(_dict, explicit=True, nl=False) for _dict in shortened_cfg_list]
+    shortened_cfg_list = [
+        {shorten_to_alias_labels(key): val for key, val in _dict.items()}
+        for _dict in varied_acfg_list]
     nonlbl_keys = cfghelpers.INTERNAL_CFGKEYS
     nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q', 'd']]
-    shortened_lbl_list = [ut.dict_str(ut.delete_keys(_dict.copy(), nonlbl_keys), explicit=True, nl=False) for _dict in shortened_cfg_list]
-
-    shortened_lbl_list = [ut.multi_replace(lbl, ['dict(', ')', ' '], ['', '', '']).rstrip(',') for lbl in  shortened_lbl_list]
-    shortened_lbl_list = [cfgname + ':' + lbl for cfgname, lbl in zip(cfgname_list, shortened_lbl_list)]
-    #print('\n'.join(shortened_lbl_list))
+    shortened_lbl_list = [
+        cfghelpers.get_cfg_lbl(cfg, name, nonlbl_keys)
+        for cfg, name in zip(shortened_cfg_list, cfgname_list)]
     return shortened_lbl_list
 
 
@@ -145,33 +144,16 @@ def shorten_to_alias_labels(key):
     return ut.multi_replace(key, search_list, repl_list)
 
 
-def partition_varied_acfg_list(acfg_list):
-    r"""
-
-    CommandLine:
-        python -m ibeis.experiments.annotation_configs --exec-partition_varied_acfg_list
-
-    Example:
-        >>> from ibeis.experiments.annotation_configs import *  # NOQA
-        >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
-        >>> acfg_list = [{'q': qcfg} for qcfg in qcfg_list]
-        >>> flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
-        >>> result = ut.list_str((flat_dict_list, nonvaried_dict, varied_acfg_list), label_list=['flat_dict_list', 'nonvaried_dict', 'varied_acfg_list'])
-        >>> print(result)
-        flat_dict_list = [{'q_b': 1, 'q_f': 1}, {'q_b': 1, 'q_f': 2}, {'q_b': 1, 'q_f': 3, 'q_z': 4}]
-        nonvaried_dict = {'q_b': 1}
-        varied_acfg_list = [{'q_f': 1}, {'q_f': 2}, {'q_f': 3, 'q_z': 4}]
-    """
-    flat_dict_list = []
+def flatten_acfg_list(acfg_list):
+    flat_acfg_list = []
     for acfg in acfg_list:
-        #compressed_acfg = annotation_configs.compress_aidcfg(test_result.acfg)
-        flat_dict = {prefix + '_' + key: val for prefix, subdict in acfg.items() for key, val in subdict.items()}
-        #compressed_acfg_list.append(compressed_acfg)
-        flat_dict_list.append(flat_dict)
-        #print(ut.dict_str(compressed_acfg))
-    nonvaried_dict = reduce(ut.dict_intersection, flat_dict_list)
-    varied_acfg_list = [ut.delete_dict_keys(_dict.copy(), list(nonvaried_dict.keys())) for _dict in flat_dict_list]
-    return flat_dict_list, nonvaried_dict, varied_acfg_list
+        flat_dict = {
+            prefix + '_' + key: val
+            for prefix, subdict in acfg.items()
+            for key, val in subdict.items()
+        }
+        flat_acfg_list.append(flat_dict)
+    return flat_acfg_list
 
 
 def compress_acfg_list_for_printing(acfg_list):
@@ -180,11 +162,14 @@ def compress_acfg_list_for_printing(acfg_list):
         >>> from ibeis.experiments.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
-        >>> nonvaried_compressed_dict, varied_compressed_dict_list = compress_acfg_list_for_printing(acfg_list)
+        >>> nonvaried_comp_dict, varied_comp_dict_list = compress_acfg_list_for_printing(acfg_list)
     """
-    flat_dict_list, nonvaried_dict, varied_acfg_list = partition_varied_acfg_list(acfg_list)
+    flat_acfg_list = flatten_acfg_list(acfg_list)
+    nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
     nonvaried_compressed_dict = compress_aidcfg(unflatten_acfgdict(nonvaried_dict))
-    varied_compressed_dict_list = [compress_aidcfg(unflatten_acfgdict(cfg), filter_empty=True) for cfg in varied_acfg_list]
+    varied_compressed_dict_list = [
+        compress_aidcfg(unflatten_acfgdict(cfg), filter_empty=True)
+        for cfg in varied_acfg_list]
     return nonvaried_compressed_dict, varied_compressed_dict_list
 
 
