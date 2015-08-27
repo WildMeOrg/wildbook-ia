@@ -567,19 +567,19 @@ def plot_probabilities(prob_list,
     for tup in zip(prob_list, prob_lbls, prob_colors):
         density, label, color = tup
         ydata = density
-        df2.plot(xdata, ydata, color=color, label=label, alpha=.7)
+        df2.plt.plot(xdata, ydata, color=color, label=label, alpha=.7)
         #ut.embed()
         #help(df2.plot)
 
     if prob_thresh is not None:
-        df2.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
+        df2.plt.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
 
     ax = df2.gca()
-    ax.set_xlim(xdata.min(), xdata.max())
-    df2.set_xlabel('score value')
-    df2.set_ylabel('probability')
+    #ax.set_xlim(xdata.min(), xdata.max())
+    ax.set_xlabel('score value')
+    ax.set_ylabel('probability')
     df2.dark_background()
-    df2.set_title(figtitle)
+    ax.set_title(figtitle)
     df2.legend(loc='upper left')
     #df2.iup()
 
