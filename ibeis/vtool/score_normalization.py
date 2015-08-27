@@ -31,7 +31,7 @@ class ScoreNormalizer(object):
     """
     Conforms to scikit-learn Estimator interface
     """
-    def __init__(encoder, target_tpr=.95, **kwargs):
+    def __init__(encoder, target_tpr=.95, target_fpr=None, **kwargs):
         """
         Args:
             target_tpr (float): target true positive rate
@@ -49,6 +49,7 @@ class ScoreNormalizer(object):
         check_unused_kwargs(kwargs, encoder.learn_kw.keys())
         # Target recall for learned threshold
         encoder.target_tpr = target_tpr
+        encoder.target_fpr = target_fpr
         # Support data
         encoder.support = dict(
             tp_support=None,
@@ -126,30 +127,42 @@ class ScoreNormalizer(object):
         #np.array(([True] * len(tp_scores)) + ([False] * len(tn_scores), dtype=np.bool)
         return scores, labels
 
-    def fit_partitioned(encoder, tp_scores, tn_scores, verbose=True):
-        """ convinience func """
+    def fit_partitioned(encoder, tp_scores, tn_scores, verbose=True, finite_only=False):
+        """ convinience func to fit only scores that have been separated instead of labeled"""
+        if finite_only:
+            tp_scores = tp_scores[np.isfinite(tp_scores)]
+            tn_scores = tn_scores[np.isfinite(tn_scores)]
         X, y = encoder._to_xy(tp_scores, tn_scores)
         return encoder.fit(X, y, verbose=verbose)
 
-    def learn_threshold(encoder, X, y, verbose=True):
+    def learn_threshold(encoder, X=None, y=None, verbose=True):
         """
         Learns threshold that achieves the target true positive rate
         """
         # select a cutoff threshold
         #import sklearn.metrics
         import vtool as vt
+        if X is None and y is None:
+            X, y = encoder._to_xy(encoder.support['tp_support'], encoder.support['tn_support'])
         probs = encoder.normalize_scores(X)
         confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, y, verbose=verbose)
         #fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(y, probs, pos_label=True)
         # Select threshold that gives 95% recall (we should optimize this for a tradeoff)
-        index = np.where(confusions.tpr > encoder.target_tpr)[0][0]
+        if encoder.target_tpr is not None:
+            # FIXME: provide better interface for choosing how to optimize the threshold
+            index = np.where(confusions.tpr > encoder.target_tpr)[0][0]
+        else:
+            index = np.where(confusions.fpr > encoder.target_fpr)[0][0]
         encoder.learned_thresh = confusions.thresholds[index]
         score_thresh = encoder.inverse_normalize(encoder.learned_thresh)
         if verbose:
-            print('[scorenorm] Learning threshold to achieve TPR=%r' % (encoder.target_tpr,))
+            if encoder.target_tpr is not None:
+                print('[scorenorm] Learning threshold to achieve TPR=%r' % (encoder.target_tpr,))
             print('[scorenorm]   * learned_thresh = %r' % (encoder.learned_thresh,))
             print('[scorenorm]   * score_thresh = %r' % (score_thresh,))
-            print('[scorenorm]   * fpr = %r' % (confusions.get_fpr_at_recall(encoder.target_tpr),))
+            if encoder.target_tpr is not None:
+                print('[scorenorm]   * fpr = %r' % (confusions.get_fpr_at_recall(encoder.target_tpr),))
+        return score_thresh
 
     def inverse_normalize(encoder, probs):
         inverse_interp = scipy.interpolate.interp1d(encoder.p_tp_given_score, encoder.score_domain,
