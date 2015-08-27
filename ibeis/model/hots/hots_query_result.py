@@ -5,8 +5,7 @@ SeeAlso:
     ibeis/model/hots/chip_match.py
 """
 from __future__ import absolute_import, division, print_function
-import utool
-import utool as ut  # NOQA
+import utool as ut
 # Python
 import six
 from six.moves import zip, cPickle
@@ -18,14 +17,14 @@ import numpy as np
 from ibeis.model.hots import precision_recall
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import exceptions as hsexcept
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[QRes]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[QRes]', DEBUG=False)
 
 
-#FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
-MAX_FNAME_LEN = 64 if utool.WIN32 else 200
-TRUNCATE_UUIDS = utool.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
-    utool.is_developer() and not utool.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
-VERBOSE = utool.get_argflag(('--verbose-query-result', '--verb-qres')) or ut.VERBOSE
+#FORCE_LONGNAME = ut.get_argflag('--longname') or (not ut.WIN32 and not ut.get_argflag('--nolongname'))
+MAX_FNAME_LEN = 64 if ut.WIN32 else 200
+TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
+    ut.is_developer() and not ut.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
+VERBOSE = ut.get_argflag(('--verbose-query-result', '--verb-qres')) or ut.VERBOSE
 
 #=========================
 # Query Result Class
@@ -52,12 +51,12 @@ def qres_get_matching_keypoints(qres, ibs, aid2_list):  # aid2 is a name. 2 != 2
 def remove_corrupted_queries(qresdir, qres, dryrun=True):
     # This qres must be corrupted!
     cfgstr = qres.cfgstr
-    hash_id = utool.hashstr(cfgstr)
+    hash_id = ut.hashstr(cfgstr)
     qres_dir  = qresdir
     testres_dir = join(qresdir, '..', 'experiment_harness_results')
-    utool.remove_files_in_dir(testres_dir, dryrun=dryrun)
-    utool.remove_files_in_dir(qres_dir, '*' + cfgstr + '*', dryrun=dryrun)
-    utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
+    ut.remove_files_in_dir(testres_dir, dryrun=dryrun)
+    ut.remove_files_in_dir(qres_dir, '*' + cfgstr + '*', dryrun=dryrun)
+    ut.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
 def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
@@ -66,7 +65,7 @@ def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
     return fpath
 
 
-def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
+def query_result_fname(qaid, qauuid, cfgstr, ext='.npz', hack27=False):
     """
     Builds a filename for a queryresult
 
@@ -81,11 +80,11 @@ def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
     quuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
     fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext=ext)
     #fname = fname_fmt.format(**fmt_dict)
-    fname = utool.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN)
+    fname = ut.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'], max_len=MAX_FNAME_LEN, hack27=hack27)
     # condence the filename if it is too long (grumble grumble windows)
     #if (not FORCE_LONGNAME) and len(fname) > 64:
     #if len(fname) > MAX_FNAME_LEN:
-    #    hash_id = utool.hashstr(cfgstr)
+    #    hash_id = ut.hashstr(cfgstr)
     #    fname = fname_fmt.format(
     #        cfgstr=hash_id, qaid=qaid, quuid=quuid_str, ext=ext)
     return fname
@@ -106,7 +105,7 @@ def _qres_dicteq(aid2_xx1, aid2_xx2):
     return True
 
 
-__OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
+__OBJECT_BASE__ = object  # ut.util_dev.get_object_base()
 
 
 def assert_qres(qres):
@@ -269,11 +268,11 @@ class QueryResult(__OBJECT_BASE__):
                     print(msg)
                 raise hsexcept.HotsCacheMissError(msg)
             msg = '[!qr] QueryResult(qaid=%d) is corrupt' % (qres.qaid)
-            utool.printex(ex, msg, iswarning=True)
+            ut.printex(ex, msg, iswarning=True)
             raise hsexcept.HotsNeedsRecomputeError(msg)
         except BadZipFile as ex:
             msg = '[!qr] QueryResult(qaid=%d) has bad zipfile' % (qres.qaid)
-            utool.printex(ex, msg, iswarning=True)
+            ut.printex(ex, msg, iswarning=True)
             if exists(fpath):
                 print('[qr] Removing corrupted file: %r' % fpath)
                 os.remove(fpath)
@@ -281,7 +280,7 @@ class QueryResult(__OBJECT_BASE__):
             else:
                 raise Exception(msg)
         except (ValueError, TypeError) as ex:
-            utool.printex(ex, iswarning=True)
+            ut.printex(ex, iswarning=True)
             exstr = str(ex)
             print(exstr)
             if exstr == 'unsupported pickle protocol: 3':
@@ -295,7 +294,7 @@ class QueryResult(__OBJECT_BASE__):
                 print(msg)
             raise
         except Exception as ex:
-            utool.printex(ex, 'unknown exception while loading query result')
+            ut.printex(ex, 'unknown exception while loading query result')
             raise
         assert qauuid_good == qres.qauuid
         if qres.daids is None:
@@ -308,7 +307,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
-    def save(qres, qresdir, verbose=utool.NOT_QUIET and utool.VERBOSE):
+    def save(qres, qresdir, verbose=ut.NOT_QUIET and ut.VERBOSE):
         """ saves query result to directory """
         fpath = qres.get_fpath(qresdir)
         if verbose:
@@ -346,7 +345,7 @@ class QueryResult(__OBJECT_BASE__):
     def cache_bytes(qres, qresdir):
         """ Size of the cached query result on disk """
         fpath  = qres.get_fpath(qresdir)
-        nBytes = utool.file_bytes(fpath)
+        nBytes = ut.file_bytes(fpath)
         return nBytes
 
     # ----------------------------------------
@@ -438,7 +437,7 @@ class QueryResult(__OBJECT_BASE__):
             num = num_indexed
         return top_aids[0:min(num, num_indexed)]
 
-    @utool.accepts_scalar_input
+    @ut.accepts_scalar_input
     def get_aid_ranks(qres, aid_arr, fillvalue=None):
         """ get ranks of annotation ids """
         if isinstance(aid_arr, (tuple, list)):
@@ -616,9 +615,9 @@ class QueryResult(__OBJECT_BASE__):
         #column_lbls = ['qaids', 'aids', 'scores', 'ranks']
         #qaid_arr      = np.full(aid_arr.shape, qres.qaid, dtype=aid_arr.dtype)
         #tbldata2      = (qaid_arr, aid_arr, score_arr, rank_arr)
-        #print(utool.make_csv_table(tbldata, column_lbls))
-        #print(utool.make_csv_table(tbldata2, column_lbls))
-        #utool.embed()
+        #print(ut.make_csv_table(tbldata, column_lbls))
+        #print(ut.make_csv_table(tbldata2, column_lbls))
+        #ut.embed()
         return tbldata
 
     def print_inspect_str(qreq_, *args, **kwargs):
@@ -661,19 +660,19 @@ class QueryResult(__OBJECT_BASE__):
             inspect_list.append('gt_scores = %r' % gt_scores)
 
         nFeatMatch_list = get_num_feats_in_matches(qres)
-        nFeatMatch_stats_str = utool.get_stats_str(nFeatMatch_list, newlines=True, exclude_keys=('nMin', 'nMax'))
+        nFeatMatch_stats_str = ut.get_stats_str(nFeatMatch_list, newlines=True, exclude_keys=('nMin', 'nMax'))
 
         inspect_list.extend([
             'qaid=%r ' % qres.qaid,
-            utool.hz_str(top_lbl, ' ', top_str),
+            ut.hz_str(top_lbl, ' ', top_str),
             'num feat matches per annotation stats:',
-            #utool.indent(utool.dict_str(nFeatMatch_stats)),
-            utool.indent(nFeatMatch_stats_str),
+            #ut.indent(ut.dict_str(nFeatMatch_stats)),
+            ut.indent(nFeatMatch_stats_str),
         ])
 
         inspect_str = '\n'.join(inspect_list)
 
-        #inspect_str = utool.indent(inspect_str, '[INSPECT] ')
+        #inspect_str = ut.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 
     # ----------------------------------------
@@ -690,7 +689,7 @@ class QueryResult(__OBJECT_BASE__):
 
         def parse_remove(format_, string_):
             import parse
-            # TODO: move to utool
+            # TODO: move to ut
             # Do padding so prefix or suffix could be empty
             pad_format_ = '{prefix}' + format_ + '{suffix}'
             pad_string_ = '_' + string_ + '_'
@@ -719,7 +718,7 @@ class QueryResult(__OBJECT_BASE__):
 
     # ----------------------------------------
 
-    #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
+    #TODO?: @ut.augment_signature(viz_qres.show_qres_top)
     def show_top(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_top')
         from ibeis.viz import viz_qres

@@ -441,8 +441,11 @@ def draw_individual_results(ibs, test_result, metadata=None):
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> metadata = None
-        >>> draw_individual_results(ibs, test_result, metadata)
-        >>> ut.show_if_requested()
+        >>> analysis_fpath_list = draw_individual_results(ibs, test_result, metadata)
+        >>> cmdname = ibs.get_dbname() + 'Results'
+        >>> latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
+        >>> ut.print_code(latex_block, 'latex')
+        >>> #ut.show_if_requested()
     """
     import plottool as pt
     cfgx2_qreq_ = test_result.cfgx2_qreq_
@@ -492,6 +495,14 @@ def draw_individual_results(ibs, test_result, metadata=None):
 
     #_viewkw = dict(view_interesting=True)
     _viewkw = {}
+
+    #=================================
+    # TODO:
+    # Get a better (stratified) sample of the hard cases that incorporates the known failure cases
+    # (Show a photobomb, scenery match, etc...)
+    # This is just one config, because showing everything should also be an
+    # option so we can find these errors
+    #=================================
     sel_rows, sel_cols = get_individual_result_sample(test_result, **_viewkw)
     qaids = test_result.get_common_qaids()
     ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))  # Ensure semantic uuids are in the APP cache.
@@ -514,7 +525,8 @@ def draw_individual_results(ibs, test_result, metadata=None):
                     ut.prinex(ex)
                 pass
 
-    overwrite = False
+    #overwrite = False
+    overwrite = True
 
     cfgx2_shortlbl = test_result.get_short_cfglbls()
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
@@ -530,7 +542,7 @@ def draw_individual_results(ibs, test_result, metadata=None):
             # Get row and column index
             cfgstr = test_result.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
-            qres_cfgstr = qres.get_fname(ext='')
+            qres_cfgstr = qres.get_fname(ext='', hack27=True)
             individ_results_dpath = join(individual_results_figdir, qres_cfgstr)
             ut.ensuredir(individ_results_dpath)
             # Draw Result
@@ -545,11 +557,13 @@ def draw_individual_results(ibs, test_result, metadata=None):
             show_kwargs['show_gf'] = True
             if DRAW_ANALYSIS:
                 analysis_fpath = join(individ_results_dpath, query_lbl) + '.png'
-                if overwrite or not ut.checkpath(analysis_fpath):
+                print('analysis_fpath = %r' % (analysis_fpath,))
+                if SHOW or overwrite or not ut.checkpath(analysis_fpath):
                     if SHOW:
                         qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                     else:
                         qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                    #pt.adjust_subplots(.01, .01, .98, .9, .05, .15)
                     pt.gcf().savefig(analysis_fpath)
                     cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                     #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
@@ -604,6 +618,7 @@ def draw_individual_results(ibs, test_result, metadata=None):
 
     # Copy summary images to query_analysis folder
     cpq.flush_copy_tasks()
+    return analysis_fpath_list
 
 
 def get_individual_result_sample(test_result,
