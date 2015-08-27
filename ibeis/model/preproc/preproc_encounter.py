@@ -73,7 +73,7 @@ def _compute_encounter_datetime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
     #from ibeis import ibsfuncs
     enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
-    enc_datetimes = list(map(utool.unixtime_to_datetime, enc_unixtimes))
+    enc_datetimes = list(map(utool.unixtime_to_datetimestr, enc_unixtimes))
     return enc_datetimes
 
 

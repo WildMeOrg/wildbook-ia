@@ -621,6 +621,7 @@ class QueryRequest(object):
         pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
         return pipe_hashstr
 
+    @profile
     def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True):
         r""" main cfgstring used to identify the 'querytype' FIXME: name params + data
 
@@ -912,6 +913,15 @@ class QueryRequest(object):
         cfgstr = qreq_.get_cfgstr()
         qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
         qres.aid2_score = {}
+        return qres
+
+    def load_cached_qres(qreq_, qaid):
+        """ convinience function for loading a query that has already been cached """
+        shallow_qreq_ = qreq_.shallowcopy()
+        shallow_qreq_.set_external_qaids([qaid])
+        qres = shallow_qreq_.ibs._query_chips4(
+            [qaid], qreq_.get_external_daids(), use_cache=True, use_bigcache=False,
+            qreq_=shallow_qreq_)[qaid]
         return qres
 
 

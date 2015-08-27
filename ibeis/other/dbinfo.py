@@ -66,7 +66,19 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db NNP_Master3
         python -m ibeis.other.dbinfo --exec-get_dbinfo:1 --db PZ_ViewPoints
 
-    Example:
+    Example1:
+        >>> # SCRIPT
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> kwargs = ut.get_kwdefaults(get_dbinfo)
+        >>> kwargs['verbose'] = False
+        >>> kwargs = ut.parse_dict_from_argv(kwargs)
+        >>> output = get_dbinfo(ibs, **kwargs)
+        >>> result = (output['info_str'])
+        >>> print(result)
+
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
@@ -74,7 +86,8 @@ def get_dbinfo(ibs, verbose=True,
         >>> short = True
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> assert ibs.get_dbname() == 'testdb1', 'DO NOT DELETE CONTRIBUTORS OF OTHER DBS'
         >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
         >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
@@ -98,17 +111,6 @@ def get_dbinfo(ibs, verbose=True,
         ----------
         # Img                        = 13
         L============================
-
-    Example1:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.dbinfo import *  # NOQA
-        >>> import ibeis
-        >>> verbose = True
-        >>> ibs = ibeis.opendb(db=ut.get_argval('--db', default='testdb2'))
-        >>> #ibs = ibeis.opendb(db='NNP_Master3')
-        >>> output = get_dbinfo(ibs, verbose=False)
-        >>> result = (output['info_str'])
-        >>> print(result)
     """
     # TODO Database size in bytes
     # TODO: encounters, contributors, etc...
@@ -120,6 +122,14 @@ def get_dbinfo(ibs, verbose=True,
         valid_nids = ibs.get_valid_nids()
         valid_gids = ibs.get_valid_gids()
     else:
+        if isinstance(aid_list, str):
+            # Hack to get experiment stats on aids
+            acfg_name_list = [aid_list]
+            print('Specified custom aids via acfgname %s' % (acfg_name_list,))
+            from ibeis.experiments import experiment_helpers
+            acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+            aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
+            #aid_list =
         if verbose:
             print('Specified %d custom aids' % (len(aid_list,)))
         request_annot_subset = True
@@ -263,6 +273,40 @@ def get_dbinfo(ibs, verbose=True,
     unixtime_list = ut.list_replace(unixtime_list, -1, float('nan'))
     #valid_unixtime_list = [time for time in unixtime_list if time != -1]
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
+    if ut.get_argflag('--hackshow-unixtime'):
+        import vtool as vt
+        import plottool as pt
+        unixtime_list = np.array(unixtime_list)
+        unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
+        unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
+        if False:
+            from matplotlib import dates as mpldates
+            #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
+            n, bins, patches = pt.plt.hist(unixtime_list, 365)
+            #n_ = list(map(ut.unixtime_to_datetimeobj, n))
+            #bins_ = list(map(ut.unixtime_to_datetimeobj, bins))
+            pt.plt.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
+            ax = pt.gca()
+            #ax.xaxis.set_major_locator(mpldates.YearLocator())
+            #hfmt = mpldates.DateFormatter('%y/%m/%d')
+            #ax.xaxis.set_major_formatter(hfmt)
+            mpldates.num2date(unixtime_list)
+            #pt.gcf().autofmt_xdate()
+            #y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())
+            #ax.set_xticks(bins_)
+            #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
+        else:
+            xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+            unixtime_pdf = vt.estimate_pdf(unixtime_list)
+            unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+            pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata)
+            ax = pt.gca()
+            ax.set_xlabel('Date')
+            ax.set_title('Timestamp distribution of %s' % (ibs.get_dbname()))
+            pt.gcf().autofmt_xdate()
+        ut.show_if_requested()
+        #xdata = unixtime_domain
+        pass
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
 
     # GPS stats
@@ -488,10 +532,11 @@ def latex_dbstats(ibs_list):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist testdb1
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist testdb1 --show
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 testdb1 --show
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
+        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1
+        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
+        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
+        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 GZ_ALL NNP_MasterGIRM_core
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -500,7 +545,15 @@ def latex_dbstats(ibs_list):
         >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
         >>> ibs_list = [ibeis.opendb(db=db) for db in db_list]
         >>> tabular_str = latex_dbstats(ibs_list)
-        >>> print(ut.latex_newcommand(ut.latex_sanatize_command_name('DatabaseInfo'), tabular_str))
+        >>> tabular_cmd = ut.latex_newcommand(ut.latex_sanatize_command_name('DatabaseInfo'), tabular_str)
+        >>> ut.copy_text_to_clipboard(tabular_cmd)
+        >>> write_fpath = ut.get_argval('--write', type_=str, default=None)
+        >>> if write_fpath is not None:
+        >>>     fpath = ut.truepath(write_fpath)
+        >>>     text = ut.readfrom(fpath)
+        >>>     new_text = ut.replace_between_tags(text, tabular_cmd, '% <DBINFO>', '% </DBINFO>')
+        >>>     ut.writeto(fpath, new_text)
+        >>> ut.print_code(tabular_cmd, 'latex')
         >>> ut.quit_if_noshow()
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
@@ -560,22 +613,29 @@ def latex_dbstats(ibs_list):
     SINGLE_TABLE = False
     EXTRA = True
 
+    dbname_alias = {'NNP_MasterGIRM_core': 'NNP_GIRM'}
     for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
         row_ = ut.dict_take(dbinfo_locals, col_keys)
-        row_lbls.append(ibs.get_dbname())
+        dbname = ibs.get_dbname()
+        dbname = dbname_alias.get(dbname, dbname)
+        row_lbls.append(dbname)
         multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
         stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
         if SINGLE_TABLE:
             row_.extend(stat_rows)
         else:
-            stat_row_lbls.append(ibs.get_dbname())
+            stat_row_lbls.append(dbname)
             stat_row_values.append(stat_rows)
 
         row_values.append(row_)
 
+    CENTERLINE = False
+    AS_TABLE = True
+    tablekw = dict(astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False, precision=2, col_sep='', multicol_sep='|')
+
     if EXTRA:
         extra_keys = [
-            'species2_nAids',
+            #'species2_nAids',
             'qualtext2_nAnnots',
             'yawtext2_nAnnots',
         ]
@@ -593,15 +653,24 @@ def latex_dbstats(ibs_list):
                 extra_collbls[key] = ut.unique_keep_order2(extra_collbls[key] + list(dbinfo_locals[key].keys()))
 
         extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
-        extra_collbls['yawtext2_nAnnots'] = ['frontleft', 'left', 'frontright', 'right', 'backright', 'back', 'backleft', 'back', None]
+        extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
                 extra_rowvalues[key].append(ut.dict_take(dbinfo_locals[key], extra_collbls[key], 0))
 
+        qualalias = {'UNKNOWN': None}
+
+        yawalias = {'frontleft': 'FL', 'frontright': 'FR', 'backleft': 'BL', 'backright': 'BR',
+                    'front': 'F', 'left': 'L', 'back': 'B', 'right': 'R', }
+
+        extra_collbls['yawtext2_nAnnots'] = [yawalias.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
+        extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
+
         for key in extra_keys:
             extra_tables[key] = ut.util_latex.make_score_tabular(
-                row_lbls, extra_collbls[key], extra_rowvalues[key], title=extra_titles[key], FORCE_INT=False, precision=2, col_align='r')
+                row_lbls, extra_collbls[key], extra_rowvalues[key],
+                title=extra_titles[key], col_align='r', **tablekw)
 
     #tabular_str = util_latex.tabular_join(tabular_body_list)
     if SINGLE_TABLE:
@@ -609,7 +678,7 @@ def latex_dbstats(ibs_list):
         multicol_lbls += [(stat_title, len(stat_col_lbls))]
 
     count_tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, FORCE_INT=False, precision=2)
+        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, **tablekw)
 
     print(row_lbls)
 
@@ -617,10 +686,14 @@ def latex_dbstats(ibs_list):
         tabular_str = count_tabular_str
     else:
         stat_tabular_str = ut.util_latex.make_score_tabular(
-            stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title, FORCE_INT=False, precision=2, col_align='r')
+            stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title,
+            col_align='r', **tablekw)
 
         # Make a table of statistics
-        tablesep = '\\\\\n%--\n'
+        if tablekw['astable']:
+            tablesep = '\n%--\n'
+        else:
+            tablesep = '\\\\\n%--\n'
         if EXTRA:
             tabular_str = tablesep.join([count_tabular_str, stat_tabular_str] + ut.dict_take(extra_tables, extra_keys))
         else:

@@ -7,9 +7,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import numpy as np
 #import six
-import utool
+import vtool as vt
 import utool as ut
-print, print_, printDBG, rrr, profile = utool.inject(
+print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
 from ibeis.experiments.old_storage import ResultMetadata  # NOQA
@@ -31,11 +31,11 @@ def combine_test_results(ibs, test_result_list):
     >>> ibs, test_result_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
     >>> combine_test_results(ibs, test_result_list)
     """
-    try:
-        assert ut.list_allsame([test_result.qaids for test_result in test_result_list]), ' cannot handle non-same qaids right now'
-    except AssertionError as ex:
-        ut.printex(ex)
-        raise
+    #try:
+    #    assert ut.list_allsame([test_result.qaids for test_result in test_result_list]), ' cannot handle non-same qaids right now'
+    #except AssertionError as ex:
+    #    ut.printex(ex)
+    #    raise
 
     from ibeis.experiments import annotation_configs
     from ibeis.experiments import cfghelpers
@@ -44,7 +44,7 @@ def combine_test_results(ibs, test_result_list):
     acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
 
     flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
-    nonvaried_acfg, varied_acfg_list = cfghelpers.partition_varied_acfg_list(flat_acfg_list)
+    nonvaried_acfg, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
 
     def combine_lbls(lbl, acfg_lbl):
         if len(lbl) == 0:
@@ -53,7 +53,7 @@ def combine_test_results(ibs, test_result_list):
             return lbl
         return lbl + '+' + acfg_lbl
 
-    qaids = test_result.qaids
+    #qaids = test_result.qaids
     agg_cfg_list        = ut.flatten(
         [test_result.cfg_list
          for test_result in test_result_list])
@@ -75,7 +75,7 @@ def combine_test_results(ibs, test_result_list):
          for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
 
     big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls,
-                                 agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_, qaids)
+                                 agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
     big_test_result.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
@@ -96,11 +96,11 @@ def combine_test_results(ibs, test_result_list):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids):
+    def __init__(test_result, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_):
         assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
         assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
         assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
-        test_result._qaids = qaids
+        #test_result._qaids = qaids
         #test_result.daids = daids
         test_result.cfg_list         = cfg_list
         test_result.cfgx2_lbl        = cfgx2_lbl
@@ -119,16 +119,74 @@ class TestResult(object):
 
     @property
     def qaids(test_result):
-        return test_result._qaids
+        assert test_result.has_constant_qaids(), 'must have constant qaids to use this property'
+        return test_result.cfgx2_qaids[0]
+        #return test_result._qaids
+
+    @property
+    def nConfig(test_result):
+        return len(test_result.cfg_list)
+
+    @property
+    def nQuery(test_result):
+        return len(test_result.qaids)
+
+    @property
+    def rank_mat(test_result):
+        return test_result.get_rank_mat()
+
+    @property
+    def cfgx2_daids(test_result):
+        daids_list = [qreq_.get_external_daids() for qreq_ in test_result.cfgx2_qreq_]
+        return daids_list
+
+    @property
+    def cfgx2_qaids(test_result):
+        qaids_list = [qreq_.get_external_qaids() for qreq_ in test_result.cfgx2_qreq_]
+        return qaids_list
+
+    def has_constant_daids(test_result):
+        return ut.list_allsame(test_result.cfgx2_daids)
+
+    def has_constant_qaids(test_result):
+        return ut.list_allsame(test_result.cfgx2_qaids)
+
+    def has_constant_length_daids(test_result):
+        return ut.list_allsame(list(map(len, test_result.cfgx2_daids)))
+
+    def get_infoprop_list(test_result, key, qaids=None):
+        _tmp1_cfgx2_infoprop = ut.get_list_column(test_result.cfgx2_cfgresinfo, key)
+        _tmp2_cfgx2_infoprop = list(map(np.array, ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
+        if qaids is not None:
+            flags_list = [np.in1d(aids_, qaids) for aids_ in test_result.cfgx2_qaids]
+            cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
+        else:
+            cfgx2_infoprop = _tmp2_cfgx2_infoprop
+        if key == 'qx2_bestranks':
+            # hack
+            for infoprop in cfgx2_infoprop:
+                infoprop[infoprop == -1] = test_result.get_worst_possible_rank()
+        return cfgx2_infoprop
+
+    def get_infoprop_mat(test_result, key, qaids=None):
+        """
+        key = 'qx2_gf_raw_score'
+        key = 'qx2_gt_raw_score'
+        """
+        cfgx2_infoprop = test_result.get_infoprop_list(key, qaids)
+        infoprop_mat = np.vstack(cfgx2_infoprop).T  # concatenate each query rank across configs
+        return infoprop_mat
 
     @ut.memoize
-    def get_rank_mat(test_result):
+    def get_rank_mat(test_result, qaids=None):
         # Ranks of Best Results
-        cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
-        rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+        #get_infoprop_mat(test_result, 'qx2_bestranks')
+        rank_mat = test_result.get_infoprop_mat('qx2_bestranks', qaids=qaids)
+        #cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
+        #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
         # Set invalid ranks to the worse possible rank
-        worst_possible_rank = test_result.get_worst_possible_rank()
-        rank_mat[rank_mat == -1] =  worst_possible_rank
+        #worst_possible_rank = test_result.get_worst_possible_rank()
+        #rank_mat[rank_mat == -1] =  worst_possible_rank
         return rank_mat
 
     def get_worst_possible_rank(test_result):
@@ -137,20 +195,23 @@ class TestResult(object):
         #worst_possible_rank = len(test_result.daids) + 1
         return worst_possible_rank
 
-    @ut.memoize
-    def get_new_hard_qx_list(test_result):
-        """ Mark any query as hard if it didnt get everything correct """
-        rank_mat = test_result.get_rank_mat()
-        is_new_hard_list = rank_mat.max(axis=1) > 0
-        new_hard_qx_list = np.where(is_new_hard_list)[0]
-        return new_hard_qx_list
-
-    def get_rank_histograms(test_result, bins=None, asdict=True):
-        rank_mat = test_result.get_rank_mat()
+    def get_rank_histograms(test_result, bins=None, asdict=True, jagged=False):
         if bins is None:
             bins = test_result.get_rank_histogram_bins()
         elif bins == 'dense':
             bins = np.arange(test_result.get_worst_possible_rank() + 1)
+        if jagged:
+            assert not asdict
+            cfgx2_bestranks = test_result.get_infoprop_list('qx2_bestranks')
+            cfgx2_bestranks = [ut.list_replace(bestranks, -1, test_result.get_worst_possible_rank()) for bestranks in cfgx2_bestranks]
+            cfgx2_hist = np.zeros((len(cfgx2_bestranks), len(bins) - 1), dtype=np.int32)
+            for cfgx, ranks in enumerate(cfgx2_bestranks):
+                bin_values, bin_edges  = np.histogram(ranks, bins=bins)
+                assert len(ranks) == bin_values.sum(), 'should sum to be equal'
+                cfgx2_hist[cfgx] = bin_values
+            return cfgx2_hist, bin_edges
+
+        rank_mat = test_result.get_rank_mat()
         if not asdict:
             # Use numpy histogram repr
             config_hists = np.zeros((len(rank_mat.T), len(bins) - 1), dtype=np.int32)
@@ -181,6 +242,34 @@ class TestResult(object):
         hist_list, edges = test_result.get_rank_histograms(bins, asdict=False)
         config_cdfs = np.cumsum(hist_list, axis=1)
         return config_cdfs, edges
+
+    def get_rank_percentage_cumhist(test_result, bins='dense'):
+        r"""
+        Args:
+            bins (unicode): (default = u'dense')
+
+        Returns:
+            tuple: (config_cdfs, edges)
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist
+            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist -t baseline -a uncontrolled controlled
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+            >>> bins = u'dense'
+            >>> (config_cdfs, edges) = test_result.get_rank_percentage_cumhist(bins)
+            >>> result = ('(config_cdfs, edges) = %s' % (str((config_cdfs, edges)),))
+            >>> print(result)
+        """
+        #test_result.rrr()
+        cfgx2_hist, edges = test_result.get_rank_histograms(bins, asdict=False, jagged=True)
+        cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
+        cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
+        return cfgx2_cumhist_percent, edges
 
     def get_rank_histogram_bins(test_result):
         """ easy to see histogram bins """
@@ -234,6 +323,7 @@ class TestResult(object):
         full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
         return full_cfgstr
 
+    @ut.memoize
     def get_cfgstr(test_result, cfgx):
         """ just dannots and config_str """
         cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
@@ -259,6 +349,8 @@ class TestResult(object):
             ('sample_per_ref_name', 'per_ref_name'),
             ('prescore_method=\'csum\',score_method=\'csum\'', 'csum'),
             ('prescore_method=\'nsum\',score_method=\'nsum\'', 'nsum'),
+            # Hack
+            ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + '\,?', ''),
             ('=True', '=On'),
             ('=False', '=Off'),
         ]
@@ -292,18 +384,6 @@ class TestResult(object):
 
         return cfg_lbls
 
-    @property
-    def nConfig(test_result):
-        return len(test_result.cfg_list)
-
-    @property
-    def nQuery(test_result):
-        return len(test_result.qaids)
-
-    @property
-    def rank_mat(test_result):
-        return test_result.get_rank_mat()
-
     def get_X_LIST(test_result):
         X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
         return X_LIST
@@ -317,17 +397,6 @@ class TestResult(object):
             lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
             nLessX_dict[int(X)] = lessX_.sum(axis=0)
         return nLessX_dict
-
-    def has_constant_daids(test_result):
-        return ut.list_allsame(test_result.cfgx2_daids)
-
-    def has_constant_length_daids(test_result):
-        return ut.list_allsame(list(map(len, test_result.cfgx2_daids)))
-
-    @property
-    def cfgx2_daids(test_result):
-        daids_list = [qreq_.get_external_daids() for qreq_ in test_result.cfgx2_qreq_]
-        return daids_list
 
     def get_all_varied_params(test_result):
         # only for big results
@@ -384,28 +453,43 @@ class TestResult(object):
         title_aug = ''
         title_aug += ' db=' + (ibs.get_dbname())
         try:
-            title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
+            if '_cfgname' in test_result.common_acfg['common']:
+                title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
+            else:
+                title_aug += ' a=[' + ','.join([cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]) + ']'
             title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
         except Exception as ex:
             print(ut.dict_str(test_result.common_acfg))
             print(ut.dict_str(test_result.common_cfgdict))
             ut.printex(ex)
             raise
-        title_aug += ' #qaids=%r' % (len(test_result.qaids),)
+        if test_result.has_constant_qaids():
+            title_aug += ' #qaids=%r' % (len(test_result.qaids),)
         if test_result.has_constant_daids():
             daids = test_result.cfgx2_daids[0]
             title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
-            locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
-            all_daid_per_name_stats = locals_['all_daid_per_name_stats']
-            if all_daid_per_name_stats['std'] == 0:
-                title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
-            else:
-                title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
+            if test_result.has_constant_qaids():
+                locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
+                all_daid_per_name_stats = locals_['all_daid_per_name_stats']
+                if all_daid_per_name_stats['std'] == 0:
+                    title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
+                else:
+                    title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
         elif test_result.has_constant_length_daids():
             daids = test_result.cfgx2_daids[0]
             title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
 
         return title_aug
+
+    def get_fname_aug(test_result):
+        import re
+        title_aug = test_result.get_title_aug()
+        valid_regex = '-a-zA-Z0-9_.() '
+        valid_extra = '=,'
+        valid_regex += valid_extra
+        title_aug = title_aug.replace(' ', '_')  # spaces suck
+        fname_aug = re.sub('[^' + valid_regex + ']+', '', title_aug)
+        return fname_aug
 
     def print_unique_annot_config_stats(test_result, ibs=None):
         if ibs is None:
@@ -419,7 +503,8 @@ class TestResult(object):
         for count, daids in enumerate(unique_daids):
             print('+---')
             print('count = %r/%r' % (count, len(unique_daids)))
-            annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
+            if test_result.has_constant_qaids():
+                annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
             print('L___')
 
     def print_results(test_result):
@@ -438,6 +523,161 @@ class TestResult(object):
         from ibeis.experiments import experiment_printres
         ibs = test_result.ibs
         experiment_printres.print_results(ibs, test_result)
+
+    @ut.memoize
+    def get_new_hard_qx_list(test_result):
+        """ Mark any query as hard if it didnt get everything correct """
+        rank_mat = test_result.get_rank_mat()
+        is_new_hard_list = rank_mat.max(axis=1) > 0
+        new_hard_qx_list = np.where(is_new_hard_list)[0]
+        return new_hard_qx_list
+
+    def get_common_qaids(test_result):
+        if not test_result.has_constant_qaids():
+            # Get only cases the tests share for now
+            common_qaids = reduce(np.intersect1d, test_result.cfgx2_qaids)
+            return common_qaids
+        else:
+            return test_result.qaids
+
+    def get_case_positions(test_result, mode='failure', disagree_first=True, samplekw=None):
+        """
+        Helps get failure and sucess cases
+
+        Args:
+            pass
+
+        Returns:
+            list: new_hard_qx_list
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-get_case_positions
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
+            >>> mode = 'failure'
+            >>> new_hard_qx_list = test_result.get_case_positions(mode)
+            >>> result = ('new_hard_qx_list = %s' % (str(new_hard_qx_list),))
+            >>> print(result)
+        """
+        common_qaids = test_result.get_common_qaids()
+        # look at scores of the best gt and gf
+        gf_score_mat = test_result.get_infoprop_mat('qx2_gf_raw_score', common_qaids)
+        gt_score_mat = test_result.get_infoprop_mat('qx2_gt_raw_score', common_qaids)
+        #gf_score_mat[np.isnan(gf_score_mat)]
+        #gt_score_mat[np.isnan(gf_score_mat)]
+        # Nan gf scores are easier, Nan gt scores are harder
+        gf_score_mat[np.isnan(gf_score_mat)] = 0
+        gt_score_mat[np.isnan(gt_score_mat)] = -np.inf
+
+        # Make a degree of hardness
+        # TODO: come up with a better measure of hardness
+        hardness_degree_mat = gf_score_mat - gt_score_mat
+
+        if False:
+            for cfgx in range(len(gt_score_mat.T)):
+                encoder = vt.ScoreNormalizer()
+                tp_scores = gt_score_mat.T[cfgx]
+                tn_scores = gf_score_mat.T[cfgx]
+                encoder.fit_partitioned(tp_scores, tn_scores, finite_only=True)
+                encoder.visualize()
+
+        qx_list, cfgx_list = np.unravel_index(hardness_degree_mat.ravel().argsort()[::-1], hardness_degree_mat.shape)
+        case_pos_list = np.vstack((qx_list, cfgx_list)).T
+
+        ONLY_FINITE = True
+        if ONLY_FINITE:
+            flags = np.isfinite(hardness_degree_mat[tuple(case_pos_list.T)])
+            case_pos_list = case_pos_list.compress(flags, axis=0)
+
+        # Get list sorted by the easiest hard cases, so we can fix the
+        # non-pathological cases first
+        if mode == 'failure':
+            flags = hardness_degree_mat[tuple(case_pos_list.T)] > 0
+            case_pos_list = case_pos_list.compress(flags, axis=0)
+        elif mode == 'success':
+            flags = hardness_degree_mat[tuple(case_pos_list.T)] < 0
+            case_pos_list = case_pos_list.compress(flags, axis=0)
+        else:
+            raise NotImplementedError('Unknown mode')
+
+        # Group by configuration
+        #case_hardness = hardness_degree_mat[tuple(case_pos_list.T)]
+        #case_gt_score = gt_score_mat[tuple(case_pos_list.T)]
+        #case_gf_score = gf_score_mat[tuple(case_pos_list.T)]
+
+        #hard_degree_list = hardness_degree_mat[tuple(case_pos_list.T)]
+        #groupids, groupxs = vt.group_indices(case_pos_list.T[0])
+        #groupid2_score = [
+        #case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+
+        #talk about convoluted
+        _qx2_casegroup = ut.group_items(case_pos_list, case_pos_list.T[0], sorted_=False)
+        qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order2(case_pos_list.T[0]))
+        grouppos_list = list(qx2_casegroup.values())
+        grouppos_len_list = list(map(len, grouppos_list))
+        _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
+        if samplekw is not None:
+            #samplekw_default = {
+            #    'per_group': 10,
+            #    #'min_intersecting_cfgs': 1,
+            #}
+            _len2_groupedpos_keys = list(_len2_groupedpos.keys())
+            _len2_groupedpos_values = [
+                groupedpos[::max(1, len(groupedpos) // samplekw['per_group'])]
+                for groupedpos in six.itervalues(_len2_groupedpos)
+            ]
+            _len2_groupedpos = dict(zip(_len2_groupedpos_keys, _len2_groupedpos_values))
+        len2_groupedpos = ut.map_dict_vals(np.vstack, _len2_groupedpos)
+
+        #percentile_stratify
+        #def percentile_stratified_sample(x, num, rng=np.random):
+        #    hardness = hardness_degree_mat[tuple(x.T)]
+        #    percentiles = np.percentile(hardness, [0, 25, 50, 75, 100])
+        #    percentiles[-1] += 1
+        #    groups = [x.compress(np.logical_and(low <= hardness, hardness < high), axis=0) for low, high in ut.iter_window(percentiles)]
+        #    [ut.random_sample(group, num, rng=rng) for group in groups]
+
+        #ut.print_dict(len2_groupedpos, nl=2)
+        if disagree_first:
+            unflat_pos_list = list(len2_groupedpos.values())
+        else:
+            unflat_pos_list = list(len2_groupedpos.values()[::-1])
+        case_pos_list = np.vstack(unflat_pos_list)
+        return case_pos_list
+
+    def get_interesting_ranks(test_results):
+        """ find the rows that vary greatest with the parameter settings """
+        rank_mat = test_results.get_rank_mat()
+        # Find rows which scored differently over the various configs FIXME: duplicated
+        isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
+        #diff_aids    = ut.list_compress(test_results.qaids, isdiff_flags)
+        diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
+        diff_qxs     = np.where(isdiff_flags)[0]
+        if False:
+            rankcategory = np.log(diff_rank + 1)
+        else:
+            rankcategory = diff_rank.copy()
+            rankcategory[diff_rank == 0]  = 0
+            rankcategory[diff_rank > 0]   = 1
+            rankcategory[diff_rank > 2]   = 2
+            rankcategory[diff_rank > 5]   = 3
+            rankcategory[diff_rank > 50]  = 4
+            rankcategory[diff_rank > 100] = 5
+        row_rankcategory_std = np.std(rankcategory, axis=1)
+        row_rankcategory_mean = np.mean(rankcategory, axis=1)
+        import vtool as vt
+        row_sortx = vt.argsort_multiarray([row_rankcategory_std, row_rankcategory_mean], reverse=True)
+        interesting_qx_list = diff_qxs.take(row_sortx).tolist()
+        #print("INTERSETING MEASURE")
+        #print(interesting_qx_list)
+        #print(row_rankcategory_std)
+        #print(ut.list_take(qaids, row_sortx))
+        #print(diff_rank.take(row_sortx, axis=0))
+        return interesting_qx_list
 
 
 if __name__ == '__main__':

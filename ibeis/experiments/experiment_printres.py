@@ -289,8 +289,8 @@ def print_results(ibs, test_result):
         # a total override to the query annots and
         # a partial override of the database annots. (gf is still expanded, but gt is locked)
         pass
-    ut.embed()
-    intersect_hack()
+    #ut.embed()
+    #intersect_hack()
 
     #------------
     # Build Colscore

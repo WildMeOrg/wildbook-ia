@@ -272,6 +272,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@accessor_decors.cache_getter(const.SPECIES_TABLE, SPECIES_TEXT)
 @register_api('/api/species/texts/', methods=['GET'])
 def get_species_texts(ibs, species_rowid_list):
     r"""

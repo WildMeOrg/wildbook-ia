@@ -3996,7 +3996,7 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     name_list      = ibs.get_annot_names(aid_list)
     unixtime_list  = ibs.get_image_unixtime(gid_list)
     datetime_list = [
-        ut.unixtime_to_datetime(unixtime)
+        ut.unixtime_to_datetimestr(unixtime)
         if unixtime is not None else
         'UNKNOWN'
         for unixtime in unixtime_list
@@ -4039,7 +4039,7 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         uri_list       = ibs.get_image_uris(missing_gid_list)
         unixtime_list  = ibs.get_image_unixtime(missing_gid_list)
         datetime_list = [
-            ut.unixtime_to_datetime(unixtime)
+            ut.unixtime_to_datetimestr(unixtime)
             if unixtime is not None else
             'UNKNOWN'
             for unixtime in unixtime_list

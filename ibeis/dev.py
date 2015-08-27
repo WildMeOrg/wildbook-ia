@@ -66,44 +66,80 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 # and then go in _devcmds_ibeis.py
 
 
-@devprecmd
-def draw_rank_cdf():
-    """
-    ./dev.py -e draw_rank_cdf -t baseline -a baseline --show --db PZ_Master1
-    """
-    from ibeis.experiments.experiment_drawing import draw_rank_cdf
-    testsrc = ut.get_doctest_examples(draw_rank_cdf)[0][0]
-    exec(testsrc)
+"""
+./dev.py -e print_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --intersect_hack
+./dev.py -e draw_rank_cdf -t baseline -a baseline --show --db PZ_Master1
+./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline
+./dev.py -e get_dbinfo --db PZ_MTEST
+./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline --hackshow-unixtime --show
+./dev.py -e get_dbinfo --db PZ_Master1 --hackshow-unixtime --show
+"""
+# Quick interface into specific registered doctests
+REGISTERED_DOCTEST_EXPERIMENTS = [
+    ('ibeis.experiments.experiment_drawing', 'draw_individual_results', ['draw_individual_cases']),
+    ('ibeis.experiments.experiment_drawing', 'draw_results'),
+    ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf'),
+    ('ibeis.other.dbinfo', 'get_dbinfo'),
+    ('ibeis.experiments.experiment_drawing', 'draw_rank_surface'),
+    ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list'),
+    ('ibeis.experiments.experiment_printres', 'print_results'),
+    ('ibeis.dbio.export_subset', 'export_annots'),
+]
 
 
-@devprecmd
-def draw_rank_surface():
-    from ibeis.experiments.experiment_drawing import draw_rank_surface
-    testsrc = ut.get_doctest_examples(draw_rank_surface)[0][0]
-    exec(testsrc)
+def _exec_doctest_func(modname, funcname):
+    module = ut.import_modname(modname)
+    func = module.__dict__[funcname]
+    testsrc = ut.get_doctest_examples(func)[0][0]
+    exec(testsrc, globals(), locals())
 
 
-@devprecmd
-def inspect_acfg():
-    """"
-    ./dev.py -t inspect_acfg -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
-    python -m ibeis.dev -t inspect_acfg --db PZ_Master1 -a varysize:qsize=500,dsize=[1500,2000,2500,3000]
-    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
-    """
-    import ibeis.experiments.experiment_helpers
-    _ = ut.get_doctest_examples(ibeis.experiments.experiment_helpers.get_annotcfg_list)
-    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
-    testsrc = testsrc_list[0]
-    exec(testsrc)
+def _register_doctest_precmds():
+    from functools import partial
+    for tup in REGISTERED_DOCTEST_EXPERIMENTS:
+        modname, funcname = tup[:2]
+        aliases = tup[2] if len(tup) == 3 else []
+        aliases += [funcname]
+        _doctest_func = partial(_exec_doctest_func, modname, funcname)
+        devprecmd(*aliases)(_doctest_func)
+
+_register_doctest_precmds()
+
+#@devprecmd
+#def draw_rank_cdf():
+#    from ibeis.experiments.experiment_drawing import draw_rank_cdf
+#    testsrc = ut.get_doctest_examples(draw_rank_cdf)[0][0]
+#    exec(testsrc)
 
 
-@devprecmd
-def print_test_results():
-    import ibeis.experiments.experiment_printres
-    _ = ut.get_doctest_examples(ibeis.experiments.experiment_printres.print_results)
-    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
-    testsrc = testsrc_list[0]
-    exec(testsrc)
+#@devprecmd
+#def draw_rank_surface():
+#    from ibeis.experiments.experiment_drawing import draw_rank_surface
+#    testsrc = ut.get_doctest_examples(draw_rank_surface)[0][0]
+#    exec(testsrc)
+
+
+#@devprecmd
+#def inspect_acfg():
+#    """"
+#    ./dev.py -t inspect_acfg -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
+#    python -m ibeis.dev -t inspect_acfg --db PZ_Master1 -a varysize:qsize=500,dsize=[1500,2000,2500,3000]
+#    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
+#    """
+#    import ibeis.experiments.experiment_helpers
+#    _ = ut.get_doctest_examples(ibeis.experiments.experiment_helpers.get_annotcfg_list)
+#    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
+#    testsrc = testsrc_list[0]
+#    exec(testsrc)
+
+
+#@devprecmd
+#def print_test_results():
+#    import ibeis.experiments.experiment_printres
+#    _ = ut.get_doctest_examples(ibeis.experiments.experiment_printres.print_results)
+#    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
+#    testsrc = testsrc_list[0]
+#    exec(testsrc)
 
 
 @devcmd('scores', 'score', 'namescore_roc')

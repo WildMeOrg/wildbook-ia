@@ -1251,9 +1251,10 @@ def get_annot_uuids(ibs, aid_list):
     return annot_uuid_list
 
 
+# It is a good idea to have the cache on for the annot uuids, they are quite slow to load
 @register_ibs_method
 @accessor_decors.getter_1to1
-#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
 @register_api('/api/annot/semantic_uuids/', methods=['GET'])
 def get_annot_semantic_uuids(ibs, aid_list):
     r"""
@@ -2065,7 +2066,7 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_VISUAL_UUID], rowidx=0)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
 @register_api('/api/annot/visual_uuids/', methods=['PUT'])
 def update_annot_visual_uuids(ibs, aid_list):
     r"""

@@ -22,7 +22,7 @@ QUIET = ut.QUIET
 #-----------
 
 
-def get_varied_pipcfg_lbls(cfgdict_list):
+def get_varied_pipecfg_lbls(cfgdict_list):
     from ibeis.model import Config
     cfg_default_dict = dict(Config.QueryConfig().parse_items())
     cfgx2_lbl = cfghelpers.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
@@ -242,6 +242,13 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
             print('[harn.help] return %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list)))
         acfg_list = acfg_list_
         expanded_aids_list = expanded_aids_list_
+
+    if ut.get_argflag('--acfginfo'):
+        import sys
+        annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
+        print('[experiment_helpers] exiting due to info request')
+        sys.exit(1)
+
     return acfg_list, expanded_aids_list
 
 

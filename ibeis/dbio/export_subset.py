@@ -1284,13 +1284,17 @@ def export_annots(ibs, aid_list, new_dbpath=None):
 
         python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
 
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
+
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.init import main_helpers
-        >>> #ibs, expanded_aids_list = main_helpers.testdata_ibeis2('PZ_MTEST', default_aidcfg_name_list=['default:aids=all,viewpoint_counts=#primary>0'])
-        >>> ibs, expanded_aids_list = main_helpers.testdata_ibeis2('NNP_Master3', default_aidcfg_name_list=['default:aids=all,is_known=True,viewpoint_counts=#primary>0&#primary1>0,per_name=4,size=200'])
+        >>> from ibeis.experiments import experiment_helpers
+        >>> ibs = ibeis.opendb(defaultdb='NNP_Master3')
+        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=[''])
+        >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
         >>> aid_list = expanded_aids_list[0][0]
         >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
         >>> # Expand to get all annots in each chosen image

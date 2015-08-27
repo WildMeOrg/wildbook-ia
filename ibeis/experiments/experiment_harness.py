@@ -54,7 +54,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
-    cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)
+    cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
 
     if not ut.QUIET:
         ut.colorprint(textwrap.dedent("""
@@ -206,7 +206,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     #ibs.set_query_cfg(orig_query_cfg)
-    test_result = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_, qaids)
+    test_result = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
     test_result.testnameid = testnameid
     test_result.lbl = lbl
     test_result.cfgdict_list = cfgdict_list

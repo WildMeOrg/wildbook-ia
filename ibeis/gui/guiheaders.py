@@ -347,8 +347,8 @@ def make_ibeis_headers_dict(ibs):
         'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
         'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
         #
-        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_start_time_posix),
-        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_end_time_posix),
+        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_encounter_start_time_posix),
+        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetimestr, ibs.get_encounter_end_time_posix),
         #
         'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
         'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,

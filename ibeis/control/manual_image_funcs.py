@@ -995,7 +995,7 @@ def get_image_unixtime(ibs, gid_list):
 @accessor_decors.getter_1to1
 def get_image_datetime(ibs, gid_list):
     unixtime_list = ibs.get_image_unixtime(gid_list)
-    datetime_list = list(map(ut.unixtime_to_datetime, unixtime_list))
+    datetime_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
     return datetime_list
 
 
