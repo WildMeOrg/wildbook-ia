@@ -24,7 +24,7 @@ def testdata_single_acfg(ibs, default_options=''):
     r"""
     CommandLine:
         python -m ibeis.init.filter_annots --exec-testdata_single_acfg --verbtd --db PZ_ViewPoints
-        python -m ibeis.init.filter_annots --exec-testdata_single_acfg --verbtd --db NNP_Master3 -a is_known=True,viewpoint_counts='#primary>0&#primary1>=1'
+        python -m ibeis.init.filter_annots --exec-testdata_single_acfg --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -298,8 +298,6 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
             with ut.Indenter('  '):
                 ibs.print_annot_stats(available_aids, prefix, per_name_vpedge=None)
 
-    gt_min_per_name = aidcfg['gt_min_per_name']
-
     if aidcfg['is_known'] is True:
         if verbose:
             print(' * Removing annots without names')
@@ -358,10 +356,10 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
     #    subset2_nid2_vp2_aids = ut.dict_subset(subset1_nid2_vp2_aids, subset2_nids)
     #    available_aids = list(ut.iflatten_dict_values(subset2_nid2_vp2_aids))
 
-    if aidcfg['viewpoint_counts'] is not None:
+    if aidcfg['view_pername'] is not None:
         # the avaiable aids must be from names with certain viewpoint frequency properties
         prop2_nid2_aids = ibs.group_annots_by_prop_and_name(available_aids, ibs.get_annot_yaw_texts)
-        countstr = aidcfg['viewpoint_counts']
+        countstr = aidcfg['view_pername']
         primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)
 
         if verbose:
@@ -377,15 +375,17 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
         valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
         available_aids = ut.flatten(ut.dict_take(nid2_aids, valid_nids))
 
-    if aidcfg['viewpoint_base'] is not None or aidcfg['require_viewpoint']:
+    if aidcfg['view'] is not None or aidcfg['require_viewpoint']:
         # Resolve base viewpoint
-        if aidcfg['viewpoint_base'] == 'primary':
-            viewpoint_base = ibsfuncs.get_primary_species_viewpoint(species)
-        elif aidcfg['viewpoint_base'] == 'primary1':
-            viewpoint_base = ibsfuncs.get_primary_species_viewpoint(species, 1)
+        if aidcfg['view'] == 'primary':
+            view = ibsfuncs.get_primary_species_viewpoint(species)
+        elif aidcfg['view'] == 'primary1':
+            view = ibsfuncs.get_primary_species_viewpoint(species, 1)
         else:
-            viewpoint_base = aidcfg['viewpoint_base']
-        valid_yaws = ibsfuncs.get_extended_viewpoints(viewpoint_base, num1=aidcfg['viewpoint_range'], num2=0)
+            view = aidcfg['view']
+        view_ext1 = aidcfg['view_ext'] if aidcfg['view_ext1'] is None else aidcfg['view_ext1']
+        view_ext2 = aidcfg['view_ext'] if aidcfg['view_ext2'] is None else aidcfg['view_ext2']
+        valid_yaws = ibsfuncs.get_extended_viewpoints(view, num1=view_ext1, num2=view_ext2)
         if verbose:
             print(' * Filtering viewpoint. valid_yaws=%r, require_viewpoint=%r'
                   % (valid_yaws, aidcfg['require_viewpoint']))
@@ -393,6 +393,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
         available_aids = ibs.filter_aids_to_viewpoint(available_aids, valid_yaws, unknown_ok=not aidcfg['require_viewpoint'])
 
     # Each aid must have at least this number of other groundtruth aids
+    gt_min_per_name = aidcfg['gt_min_per_name']
     if gt_min_per_name is not None:
         if verbose:
             print(' * Filtering gt_min_per_name=%d' % (gt_min_per_name))

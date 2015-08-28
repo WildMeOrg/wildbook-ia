@@ -42,11 +42,41 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
 
     KWARGS:
         aid_list - show matches against aid_list (default top 3)
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qres (QueryResult):  object of feature correspondences and scores
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    Kwargs:
+        N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.viz.viz_qres --exec-show_qres_analysis --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import ibeis
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> aid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5, 6, 7, 8, 9], cfgdict=dict(), return_request=True)
+        >>> qres = aid2_qres[1]
+        >>> kwargs = dict(show_query=False, viz_name_score=True, show_timedelta=True, N=3, show_gf=True)
+        >>> result = show_qres_analysis(ibs, qres, qreq_, **kwargs)
+        >>> print(result)
+        >>> ut.show_if_requested()
     """
     print('[show_qres] qres.show_analysis()')
     # Parse arguments
     N = kwargs.get('N', DEFAULT_NTOP)
     show_gt  = kwargs.pop('show_gt', True)
+    show_gf  = kwargs.pop('show_gf', False)
     show_query = kwargs.pop('show_query', True)
     aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
@@ -77,7 +107,6 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     # Get any groundtruth if you are showing it
     showgt_aids = []
     if show_gt:
-        #ut.embed()
         # Get the missed groundtruth annotations
         # qres.daids comes from qreq_.get_external_daids()
         matchable_aids = qres.daids
@@ -87,7 +116,9 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
 
         if viz_name_score:
             # Only look at the groundtruth if a name isnt in the top list
-            _valids = ~np.in1d(ibs.get_annot_name_rowids(_gtaids), ibs.get_annot_name_rowids(top_aids))
+            _gtnids = ibs.get_annot_name_rowids(_gtaids)
+            top_nids = ibs.get_annot_name_rowids(top_aids)
+            _valids = ~np.in1d(_gtnids, top_nids)
             _gtaids = ut.list_compress(_gtaids, _valids)
 
         # No need to display highly ranked groundtruth. It will already show up
@@ -104,6 +135,32 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
                 #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
                 _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
+
+    if show_gf:
+        # Show only one top-scoring groundfalse example
+        top_nids = ibs.get_annot_name_rowids(top_aids)
+        is_groundfalse = top_nids != ibs.get_annot_name_rowids(qres.qaid)
+        gf_idxs = np.nonzero(is_groundfalse)[0]
+        if len(gf_idxs) > 0:
+            best_gf_idx = gf_idxs[0]
+            isvalid = ~is_groundfalse
+            isvalid[best_gf_idx] = True
+            # Filter so there is only one groundfalse
+            top_aids = top_aids.compress(isvalid)
+        else:
+            # seems like there were no results. Must be bad feature detections
+            # maybe too much spatial verification
+            top_aids = []
+
+        if len(showgt_aids) != 0:
+            # Hack to just include gtaids in normal list
+            top_aids = np.append(top_aids, showgt_aids)
+            showgt_aids = []
+
+    if viz_name_score:
+        # Make sure that there is only one of each name in the list
+        top_nids = ibs.get_annot_name_rowids(top_aids)
+        top_aids = ut.list_compress(top_aids, ut.flag_unique_items(top_nids))
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
                      figtitle=figtitle, show_query=show_query, qreq_=qreq_, **kwargs)

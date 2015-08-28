@@ -162,7 +162,7 @@ def view():
     nid_list = ibs.get_annot_name_rowids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)
     datetime_list = [
-        ut.unixtime_to_datetime(unixtime)
+        ut.unixtime_to_datetimestr(unixtime)
         if unixtime is not None else
         'UNKNOWN'
         for unixtime in unixtime_list
@@ -419,7 +419,7 @@ def view_encounters():
         filtered = False
     start_time_posix_list = ibs.get_encounter_start_time_posix(eid_list)
     datetime_list = [
-        ut.unixtime_to_datetime(start_time_posix)
+        ut.unixtime_to_datetimestr(start_time_posix)
         if start_time_posix is not None else
         'Unknown'
         for start_time_posix in start_time_posix_list
@@ -483,7 +483,7 @@ def view_images():
     print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
     image_unixtime_list = ibs.get_image_unixtime(gid_list)
     datetime_list = [
-        ut.unixtime_to_datetime(image_unixtime)
+        ut.unixtime_to_datetimestr(image_unixtime)
         if image_unixtime is not None
         else
         'Unknown'

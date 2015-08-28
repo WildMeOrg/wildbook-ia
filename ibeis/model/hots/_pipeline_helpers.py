@@ -312,19 +312,23 @@ def get_pipeline_testdata2(defaultdb='testdb1', default_aidcfg_name_list=['defau
         daids = array([1, 2, 3, 4, 5])
         qaids = array([1])
     """
-    from ibeis.init import main_helpers
+    #from ibeis.init import main_helpers
     from ibeis.experiments import experiment_helpers
     from ibeis.model.hots import query_request
-    ibs, expanded_aids_list = main_helpers.testdata_ibeis2(defaultdb, default_aidcfg_name_list)
+    #from ibeis.experiments import experiment_helpers
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
 
     # Generate list of query pipeline param configs
-    query_cfg_list, cfgx2_lbl, cfgdict_list = experiment_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
     qreq_list = []
 
     for qaids, daids in expanded_aids_list:
-        for query_cfg in query_cfg_list:
+        for query_cfg in pipecfg_list:
             qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, query_cfg=query_cfg)
             qreq_list.append(qreq_)
 

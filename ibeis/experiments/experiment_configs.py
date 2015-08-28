@@ -19,6 +19,7 @@ def augbase(basedict, updatedict):
 exclude_vars = vars().keys()   # this line is before tests
 
 default = [{}]
+baseline = [{}]
 
 
 def get_candidacy_dbnames():

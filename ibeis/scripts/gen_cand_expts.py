@@ -170,7 +170,7 @@ def precompute_data():
             '--preindex',
         ]),
         ('dbname', get_dbnames()),
-        ('acfg_name', ['default:qaids=allgt,species=primary,viewpoint_base=primary,is_known=True']),
+        ('acfg_name', ['default:qaids=allgt,species=primary,view=primary,is_known=True']),
         ('cfg_name', ['default', 'candidacy_baseline', 'candidacy_invariance']),
     ])
     return (varydict, 'preload', 'preload')

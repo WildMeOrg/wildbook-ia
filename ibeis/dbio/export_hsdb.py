@@ -191,7 +191,26 @@ def dump_hots_tables(ibs):
 
 
 def get_hots_flat_table(ibs):
-    """ Dumps hotspotter flat tables """
+    """ Dumps hotspotter flat tables
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        str: flat_table_str
+
+    CommandLine:
+        python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dbio.export_hsdb import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> flat_table_str = get_hots_flat_table(ibs)
+        >>> result = ('flat_table_str = %s' % (str(flat_table_str),))
+        >>> print(result)
+    """
     aid_list = ibs.get_valid_aids()
     column_tups = [
         (int,   'aids',   aid_list,),
@@ -202,9 +221,9 @@ def get_hots_flat_table(ibs):
         (str,   'notes',  ibs.get_annot_notes(aid_list),),
         (str,   'uuids',  ibs.get_annot_uuids(aid_list),),
     ]
-    column_type   = [tup[0] for tup in column_tups]
+    column_type = [tup[0] for tup in column_tups]
     column_lbls = [tup[1] for tup in column_tups]
-    column_list   = [tup[2] for tup in column_tups]
+    column_list = [tup[2] for tup in column_tups]
     header = '\n'.join([
         '# Roi Flat Table',
         '# aid   - internal annotation index (not gaurenteed unique)',

@@ -12,13 +12,11 @@ from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from six.moves import map, range, input  # NOQA
-import vtool as vt
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_drawres]')
 SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
 
-QUALITY              = ut.get_argflag('--quality')
 SHOW                 = ut.get_argflag('--show')
 
 # only triggered if dump_extra is on
@@ -113,7 +111,7 @@ def draw_rank_surface(ibs, test_result):
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list, fnum=1,
-                                    pnum=pnum_(), ymin=30, ymax=100, ypad=.5,
+                                    pnum=pnum_(), num_yticks=8, ymin=30, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right')
             #pt.plot2(
         #(const_idx + 1))
@@ -167,17 +165,18 @@ def draw_rank_cdf(ibs, test_result):
         >>> print(result)
     """
     import plottool as pt
-    cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
-    cdf_list = 100 * cdf_list / len(test_result.qaids)  # Convert to percent
+    #cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
+    cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
 
     label_list = test_result.get_short_cfglbls()
-    label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
+    label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label
+                  for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
     # Order cdf list by rank0
-    sortx = cdf_list.T[0].argsort()[::-1]
+    sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
     label_list = ut.list_take(label_list, sortx)
-    cdf_list = np.array(ut.list_take(cdf_list, sortx))
+    cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent, sortx))
     color_list = ut.list_take(color_list, sortx)
     marker_list = ut.list_take(marker_list, sortx)
     #
@@ -188,50 +187,44 @@ def draw_rank_cdf(ibs, test_result):
 
     import vtool as vt
     # Find where the functions no longer change
-    freq_deriv = np.diff(cdf_list.T[:-1].T)
+    freq_deriv = np.diff(cfgx2_cumhist_percent.T[:-1].T)
     reverse_deriv_cumsum = freq_deriv[:, ::-1].cumsum(axis=0)
     reverse_changing_pos = np.array(ut.replace_nones(vt.find_first_true_indices(reverse_deriv_cumsum > 0), np.nan))
-    nonzero_poses = (len(cdf_list.T) - 1) - reverse_changing_pos
+    nonzero_poses = (len(cfgx2_cumhist_percent.T) - 1) - reverse_changing_pos
     maxrank = np.nanmax(nonzero_poses)
 
     maxrank = 5
     #maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
 
     if maxrank is not None:
-        short_cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
-        short_edges = edges[0:min(len(edges), maxrank + 1)]
+        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:min(len(cfgx2_cumhist_percent.T), maxrank)]
+        edges_short = edges[0:min(len(edges), maxrank + 1)]
 
     USE_ZOOM = ut.get_argflag('--use-zoom')
     pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
 
-    cumhist_kw = dict(xlabel='rank', ylabel='% queries ≤ rank',
-                      color_list=color_list, marker_list=marker_list,
-                      fnum=fnum, num_yticks=11,
-                      legend_loc='lower right', labelsize=10, ticksize=8,
-                      legendsize=8, ymax=100, ymin=30, ypad=.5, xpad=.05,)
+    #fontkw = dict(legendsize=8, labelsize=10, ticksize=8, titlesize=8)
+    fontkw = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
+
+    cumhistkw = dict(xlabel='rank', ylabel='% queries ≤ rank',
+                     color_list=color_list, marker_list=marker_list, fnum=fnum, legend_loc='lower right',
+                     num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **fontkw)
 
     pt.plot_rank_cumhist(
-        short_cdf_list, edges=short_edges, label_list=label_list,
-        num_xticks=maxrank, use_legend=True, pnum=pnum_(), **cumhist_kw)
+        cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
+        num_xticks=maxrank, use_legend=True, pnum=pnum_(), **cumhistkw)
 
     if USE_ZOOM:
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
-            cdf_list, edges=edges, label_list=label_list, num_xticks=maxrank,
-            use_legend=False, pnum=pnum_(), **cumhist_kw)
+            cfgx2_cumhist_percent, edges=edges, label_list=label_list, num_xticks=maxrank,
+            use_legend=False, pnum=pnum_(), **cumhistkw)
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
-
-        #ax1 = pt.gca()
-        #pt.plot_rank_cumhist(cdf_list, label_list, color_list=color_list, marker_list=marker_list,
-        #                     edges=edges, pnum=(2, 1, 2), fnum=fnum, use_legend=False,
-        #                     **cumhist_kw)
-
-    #percent_cdf_list = cdf_list / len(test_result.qaids)
-    # NOQA
-    pt.set_figtitle(figtitle, size=10)
+    pt.set_figtitle(figtitle, size=14)
+    #pt.set_figtitle(figtitle, size=10)
 
 
 def make_metadata_custom_api(metadata):
@@ -369,43 +362,6 @@ def make_test_result_custom_api(ibs, test_result):
     return wgt
 
 
-def get_diffranks(rank_mat, qaids):
-    """ Find rows which scored differently over the various configs
-    FIXME: duplicated
-    """
-    isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-    diff_aids    = ut.list_compress(qaids, isdiff_flags)
-    diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
-    diff_qxs     = np.where(isdiff_flags)[0]
-    return diff_aids, diff_rank, diff_qxs
-
-
-def get_interesting_ranks(rank_mat, qaids):
-    # find the rows that vary greatest with the parameter settings
-    diff_aids, diff_rank, diff_qxs = get_diffranks(rank_mat, qaids)
-    if False:
-        rankcategory = np.log(diff_rank + 1)
-    else:
-        rankcategory = diff_rank.copy()
-        rankcategory[diff_rank == 0]  = 0
-        rankcategory[diff_rank > 0]   = 1
-        rankcategory[diff_rank > 2]   = 2
-        rankcategory[diff_rank > 5]   = 3
-        rankcategory[diff_rank > 50]  = 4
-        rankcategory[diff_rank > 100] = 5
-    row_rankcategory_std = np.std(rankcategory, axis=1)
-    row_rankcategory_mean = np.mean(rankcategory, axis=1)
-    row_sortx = vt.argsort_multiarray([row_rankcategory_std, row_rankcategory_mean], reverse=True)
-
-    interesting_qx_list = diff_qxs.take(row_sortx).tolist()
-    #print("INTERSETING MEASURE")
-    #print(interesting_qx_list)
-    #print(row_rankcategory_std)
-    #print(ut.list_take(qaids, row_sortx))
-    #print(diff_rank.take(row_sortx, axis=0))
-    return interesting_qx_list
-
-
 def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
     print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
     from ibeis import viz
@@ -462,6 +418,284 @@ class IndividualResultsCopyTaskQueue(object):
 
 
 @profile
+def draw_individual_results(ibs, test_result, metadata=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (?):
+        metadata (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_results --figdir=individual_results
+        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2
+        python -m ibeis.dev -e draw_individual_results --db PZ_MTEST -a varysize_pzm:dper_name=[1,2] -t candidacy_k:K=1 --figdir=figures --vf --vh --show
+        python -m ibeis.dev -e draw_individual_results --db PZ_MTEST --vf --vh --show -a uncontrolled -t default:K=[1,2]
+        python -m ibeis.dev -e draw_individual_results -t baseline -a controlled --db PZ_Master1 \
+
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> metadata = None
+        >>> analysis_fpath_list = draw_individual_results(ibs, test_result, metadata)
+        >>> cmdname = ibs.get_dbname() + 'Results'
+        >>> latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
+        >>> ut.print_code(latex_block, 'latex')
+        >>> #ut.show_if_requested()
+    """
+    import plottool as pt
+    cfgx2_qreq_ = test_result.cfgx2_qreq_
+
+    # Get selected rows and columns for individual rank investigation
+    #qaids = test_result.qaids
+
+    show_kwargs = {
+        'N': 3,
+        'ori': True,
+        'ell_alpha': .9,
+    }
+
+    #dumpkw = {
+    #    'overwrite' : True,
+    #    'verbose'   : 0,
+    #}
+
+    cpq = IndividualResultsCopyTaskQueue()
+
+    figdir = ibs.get_fig_dir()
+    figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
+    figdir = join(figdir, test_result.get_fname_aug())
+    ut.ensuredir(figdir)
+
+    if ut.is_developer() or ut.get_argflag(('--view-fig-directory', '--vf')):
+        ut.view_directory(figdir)
+
+    DRAW_ANALYSIS = True
+    DRAW_BLIND = False and not SHOW
+    #DUMP_EXTRA = ut.get_argflag('--dump-extra')
+    #DRAW_QUERY_CHIP = DUMP_EXTRA
+    #DRAW_QUERY_GROUNDTRUTH = DUMP_EXTRA
+    #DRAW_QUERY_RESULT_CONTEXT  = DUMP_EXTRA
+
+    # Common directory
+    individual_results_figdir = join(figdir, 'individual_results')
+    ut.ensuredir(individual_results_figdir)
+
+    if DRAW_ANALYSIS:
+        top_rank_analysis_dir = join(figdir, 'top_rank_analysis')
+        ut.ensuredir(top_rank_analysis_dir)
+
+    if DRAW_BLIND:
+        blind_results_figdir  = join(figdir, 'blind_results')
+        ut.ensuredir(blind_results_figdir)
+
+    #_viewkw = dict(view_interesting=True)
+    _viewkw = {}
+
+    #=================================
+    # TODO:
+    # Get a better (stratified) sample of the hard cases that incorporates the known failure cases
+    # (Show a photobomb, scenery match, etc...)
+    # This is just one config, because showing everything should also be an
+    # option so we can find these errors
+    #=================================
+    sel_rows, sel_cols = get_individual_result_sample(test_result, **_viewkw)
+    qaids = test_result.get_common_qaids()
+    ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))  # Ensure semantic uuids are in the APP cache.
+    #samplekw = dict(per_group=5)
+    #case_pos_list = test_result.get_case_positions('failure', samplekw=samplekw)
+    #failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+    #sel_rows = (np.array(failure_qx_list).tolist())
+    #sel_cols = (list(range(test_result.nConfig)))
+
+    custom_actions = [('present', ['s'], 'present', pt.present)]
+
+    analysis_fpath_list = []
+
+    def reset():
+        if not SHOW:
+            try:
+                pt.fig_presenter.reset()
+            except Exception as ex:
+                if ut.VERBOSE:
+                    ut.prinex(ex)
+                pass
+
+    #overwrite = False
+    overwrite = True
+
+    cfgx2_shortlbl = test_result.get_short_cfglbls()
+    for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
+        qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
+        #qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
+        # TODO: try to get away with not reloading query results or loading
+        # them in batch if possible
+        # It actually doesnt take that long. the drawing is what hurts
+        qres_list = [qreq_.load_cached_qres(qaids[r]) for qreq_ in qreq_list]
+
+        for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
+            fnum = cfgx if SHOW else 1
+            # Get row and column index
+            cfgstr = test_result.get_cfgstr(cfgx)
+            query_lbl = cfgx2_shortlbl[cfgx]
+            qres_cfgstr = qres.get_fname(ext='', hack27=True)
+            individ_results_dpath = join(individual_results_figdir, qres_cfgstr)
+            ut.ensuredir(individ_results_dpath)
+            # Draw Result
+            # try to shorten query labels a bit
+            query_lbl = query_lbl.replace(' ', '').replace('\'', '')
+            #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
+
+            # SHOW ANALYSIS
+            show_kwargs['show_query'] = False
+            show_kwargs['viz_name_score'] = True
+            show_kwargs['show_timedelta'] = True
+            show_kwargs['show_gf'] = True
+            if DRAW_ANALYSIS:
+                analysis_fpath = join(individ_results_dpath, query_lbl) + '.png'
+                print('analysis_fpath = %r' % (analysis_fpath,))
+                if SHOW or overwrite or not ut.checkpath(analysis_fpath):
+                    if SHOW:
+                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                    else:
+                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                    #pt.adjust_subplots(.01, .01, .98, .9, .05, .15)
+                    pt.gcf().savefig(analysis_fpath)
+                    cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
+                    #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
+                    #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
+                    #reset()
+                analysis_fpath_list.append(analysis_fpath)
+                if metadata is not None:
+                    metadata.set_global_data(cfgstr, qres.qaid, 'analysis_fpath', analysis_fpath)
+
+            # BLIND CASES - draws results without labels to see if we can determine what happened using doubleblind methods
+            if DRAW_BLIND:
+                pt.clf()
+                best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
+                qres.show_name_matches(ibs, best_gt_aid,
+                                       show_matches=False,
+                                       show_name_score=False,
+                                       show_name_rank=False,
+                                       show_annot_score=False, fnum=fnum,
+                                       qreq_=qreq_, **show_kwargs)
+                blind_figtitle = 'BLIND ' + query_lbl
+                pt.set_figtitle(blind_figtitle)
+                blind_fpath = join(individ_results_dpath, blind_figtitle) + '.png'
+                pt.gcf().savefig(blind_fpath)
+                #blind_fpath = pt.custom_figure.save_figure(fpath=blind_fpath, **dumpkw)
+                cpq.append_copy_task(blind_fpath, blind_results_figdir)
+                if metadata is not None:
+                    metadata.set_global_data(cfgstr, qres.qaid, 'blind_fpath', blind_fpath)
+                #reset()
+
+            # REMOVE DUMP_FIG
+            #extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
+            #if DRAW_QUERY_CHIP:
+            #    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
+            #    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_CXT_', in_image=True, **extra_kw)
+
+            #if DRAW_QUERY_GROUNDTRUTH:
+            #    gtaids = ibs.get_annot_groundtruth(qres.qaid)
+            #    for aid in gtaids:
+            #        rank = qres.get_aid_ranks(aid)
+            #        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_', rank=rank, in_image=True, **extra_kw)
+
+            #if DRAW_QUERY_RESULT_CONTEXT:
+            #    topids = qres.get_top_aids(num=3)
+            #    for aid in topids:
+            #        rank = qres.get_aid_ranks(aid)
+            #        _show_chip(ibs, aid, individual_results_figdir, 'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
+
+        # if some condition of of batch sizes
+        flush_freq = 4
+        if count % flush_freq == (flush_freq - 1):
+            cpq.flush_copy_tasks()
+
+    # Copy summary images to query_analysis folder
+    cpq.flush_copy_tasks()
+    return analysis_fpath_list
+
+
+def get_individual_result_sample(test_result,
+                                 view_all=ut.get_argflag(('--view-all', '--va')),
+                                 view_hard=ut.get_argflag(('--view-hard', '--vh')),
+                                 view_hard2=ut.get_argflag(('--view-hard2', '--vh2')),
+                                 view_easy=ut.get_argflag(('--view-easy', '--vz')),
+                                 view_interesting=ut.get_argflag(('--view-interesting', '--vn')),
+                                 **kwargs):
+    """
+    The selected rows are the query annotation you are interested in viewing
+    The selected cols are the parameter configuration you are interested in viewing
+    """
+    cfg_list = test_result.cfg_list
+    #qaids = test_result.qaids
+    qaids = test_result.get_common_qaids()
+
+    sel_cols = params.args.sel_cols  # FIXME
+    sel_rows = params.args.sel_rows  # FIXME
+    sel_cols = [] if sel_cols is None else sel_cols
+    sel_rows = [] if sel_rows is None else sel_rows
+    #sel_rows = []
+    #sel_cols = []
+    if ut.NOT_QUIET:
+        print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
+        print('other options:')
+        print('   --vf - view figure dir')
+        print('   --va - view all')
+        print('   --vh - view hard')
+        print('   --ve - view easy')
+        print('   --vn - view iNteresting')
+        print('   --hs - hist sample')
+        print('   --gv, --guiview - gui result inspection')
+    if len(sel_rows) > 0 and len(sel_cols) == 0:
+        sel_cols = list(range(len(cfg_list)))
+    if len(sel_cols) > 0 and len(sel_rows) == 0:
+        sel_rows = list(range(len(qaids)))
+    if view_all:
+        sel_rows = list(range(len(qaids)))
+        sel_cols = list(range(len(cfg_list)))
+    if view_hard:
+        new_hard_qx_list = test_result.get_new_hard_qx_list()
+        sel_rows.extend(np.array(new_hard_qx_list).tolist())
+        sel_cols.extend(list(range(len(cfg_list))))
+    if view_hard2:
+        # TODO handle returning case_pos_list
+        samplekw = ut.argparse_dict(dict(per_group=5))
+        case_pos_list = test_result.get_case_positions(mode='failure', samplekw=samplekw)
+        failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+        sel_rows.extend(np.array(failure_qx_list).tolist())
+        sel_cols.extend(list(range(len(cfg_list))))
+    if view_easy:
+        new_hard_qx_list = test_result.get_new_hard_qx_list()
+        new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
+        sel_rows.extend(new_easy_qx_list)
+        sel_cols.extend(list(range(len(cfg_list))))
+    if view_interesting:
+        interesting_qx_list = test_result.get_interesting_ranks()
+        sel_rows.extend(interesting_qx_list)
+        # TODO: grab the best scoring and most interesting configs
+        if len(sel_cols) == 0:
+            sel_cols.extend(list(range(len(cfg_list))))
+    if kwargs.get('hist_sample', ut.get_argflag(('--hs', '--hist-sample'))):
+        # Careful if there is more than one config
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_sample(size=10)
+        sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
+        # TODO: grab the best scoring and most interesting configs
+        if len(sel_cols) == 0:
+            sel_cols.extend(list(range(len(cfg_list))))
+    sel_rows = ut.unique_keep_order2(sel_rows)
+    sel_cols = ut.unique_keep_order2(sel_cols)
+    sel_cols = list(sel_cols)
+    sel_rows = list(sel_rows)
+    return sel_rows, sel_cols
+
+
+@profile
 def draw_results(ibs, test_result):
     r"""
     Draws results from an experiment harness run.
@@ -494,7 +728,7 @@ def draw_results(ibs, test_result):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> # execute function
@@ -503,21 +737,12 @@ def draw_results(ibs, test_result):
         >>> print(result)
     """
     print(' --- DRAW RESULTS ---')
-    import plottool as pt
 
     # It is very inefficient to turn off caching when view_all is true
     if not mc4.USE_CACHE:
         print('WARNING: view_all specified with USE_CACHE == False')
         print('WARNING: we will try to turn cache on when reloading results')
         #mc4.USE_CACHE = True
-
-    qaids = test_result.qaids
-    #d aids = test_result.da ids
-    rank_mat = test_result.get_rank_mat()
-    interesting_qx_list = get_interesting_ranks(rank_mat, qaids)
-
-    (cfg_list, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
-        test_result.__dict__, ['cfg_list', 'cfgx2_lbl', 'cfgx2_qreq_'])
 
     figdir = ibs.get_fig_dir()
     ut.ensuredir(figdir)
@@ -529,15 +754,6 @@ def draw_results(ibs, test_result):
     if figdir_suffix is not None:
         figdir = join(figdir, figdir_suffix)
         ut.ensuredir(figdir)
-
-    individual_results_figdir = join(figdir, 'individual_results')
-    aggregate_results_figdir  = join(figdir, 'aggregate_results')
-    blind_results_figdir  = join(figdir, 'blind_results')
-    top_rank_analysis_dir = join(figdir, 'top_rank_analysis')
-    ut.ensuredir(individual_results_figdir)
-    ut.ensuredir(aggregate_results_figdir)
-    ut.ensuredir(top_rank_analysis_dir)
-    ut.ensuredir(blind_results_figdir)
     #gx2_gt_timedelta
     #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
 
@@ -553,119 +769,11 @@ def draw_results(ibs, test_result):
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
     #import guitool
 
-    dumpkw = {
-        'quality'   : QUALITY,
-        'overwrite' : True,
-        'verbose'   : 0,
-    }
-
     ut.argv_flag_dec(draw_rank_cdf)(ibs, test_result)
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
-        #_viewkw = dict(view_interesting=True)
-        _viewkw = {}
-        # Get selected rows and columns for individual rank investigation
-        new_hard_qx_list = test_result.get_new_hard_qx_list()
-        sel_rows, sel_cols = get_sel_rows_and_cols(
-            qaids, cfg_list, new_hard_qx_list, interesting_qx_list, test_result, **_viewkw)
-
-        show_kwargs = {
-            'N': 3,
-            'ori': True,
-            'ell_alpha': .9,
-        }
-
-        cpq = IndividualResultsCopyTaskQueue()
-
-        def load_qres(ibs, qaid, qreq_):
-            """ Load / Execute the query w/ correct config """
-            # TODO: try to get away with not reloading query results or loading
-            # them in batch if possible
-            qreq_.set_external_qaids([qaid])
-            qres = ibs._query_chips4(
-                [qaid], qreq_.get_external_daids(), use_cache=True, use_bigcache=False,
-                qreq_=qreq_)[qaid]
-            return qres
-
-        for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW)):
-            qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
-            qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
-
-            for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
-                fnum = cfgx if SHOW else 1
-                # Get row and column index
-                cfgstr = test_result.get_cfgstr(cfgx)
-                query_lbl = cfgx2_lbl[cfgx]
-                qres_cfg = qres.get_fname(ext='')
-                subdir = qres_cfg
-                # Draw Result
-                # try to shorten query labels a bit
-                query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-                #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
-
-                # SHOW ANALYSIS
-                DRAW_ANALYSIS = True
-                if DRAW_ANALYSIS:
-                    if SHOW:
-                        #show_kwargs['show_query'] = False
-                        show_kwargs['viz_name_score'] = True
-                        show_kwargs['show_timedelta'] = True
-                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                    else:
-                        show_kwargs['show_query'] = False
-                        #show_kwargs['viz_name_score'] = False
-                        show_kwargs['viz_name_score'] = True
-                        show_kwargs['show_timedelta'] = True
-                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                    analysis_fpath = ph.dump_figure(individual_results_figdir, reset=not SHOW, subdir=subdir, **dumpkw)
-                    metadata.set_global_data(cfgstr, qres.qaid, 'analysis_fpath', analysis_fpath)
-                    cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
-
-                # BLIND CASES - draws results without labels to see if we can determine what happened using doubleblind methods
-                DRAW_BLIND = not SHOW
-                if DRAW_BLIND:
-                    pt.clf()
-                    best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
-                    qres.show_name_matches(ibs, best_gt_aid,
-                                           show_matches=False,
-                                           show_name_score=False,
-                                           show_name_rank=False,
-                                           show_annot_score=False, fnum=fnum,
-                                           qreq_=qreq_, **show_kwargs)
-                    pt.set_figtitle('BLIND ' + query_lbl)
-                    blind_fpath = ph.dump_figure(individual_results_figdir, reset=not SHOW, subdir=subdir, **dumpkw)
-                    cpq.append_copy_task(blind_fpath, blind_results_figdir)
-                    metadata.set_global_data(cfgstr, qres.qaid, 'blind_fpath', blind_fpath)
-
-                DUMP_EXTRA = ut.get_argflag('--dump-extra')
-                DRAW_QUERY_CHIP = DUMP_EXTRA
-                extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
-                if DRAW_QUERY_CHIP:
-                    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
-                    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_CXT_', in_image=True, **extra_kw)
-
-                DRAW_QUERY_GROUNDTRUTH = DUMP_EXTRA
-                if DRAW_QUERY_GROUNDTRUTH:
-                    gtaids = ibs.get_annot_groundtruth(qres.qaid)
-                    for aid in gtaids:
-                        rank = qres.get_aid_ranks(aid)
-                        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_', rank=rank, in_image=True, **extra_kw)
-
-                DRAW_QUERY_RESULT_CONTEXT  = DUMP_EXTRA
-                if DRAW_QUERY_RESULT_CONTEXT:
-                    topids = qres.get_top_aids(num=3)
-                    for aid in topids:
-                        rank = qres.get_aid_ranks(aid)
-                        _show_chip(ibs, aid, individual_results_figdir, 'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
-
-            # if some condition of of batch sizes
-            flush_freq = 4
-            if count % flush_freq == (flush_freq - 1):
-                cpq.flush_copy_tasks()
-
-        # Copy summary images to query_analysis folder
-        cpq.flush_copy_tasks()
+        draw_individual_results(ibs, test_result, metadata=metadata)
 
     metadata.write()
     #ut.embed()
@@ -683,65 +791,6 @@ def draw_results(ibs, test_result):
 
     if ut.NOT_QUIET:
         print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
-
-
-def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list, test_result,
-                          view_all=ut.get_argflag(('--view-all', '--va')),
-                          view_hard=ut.get_argflag(('--view-hard', '--vh')),
-                          view_easy=ut.get_argflag(('--view-easy', '--vz')),
-                          view_interesting=ut.get_argflag(('--view-interesting', '--vn')),
-                          **kwargs):
-    """
-    The selected rows are the query annotation you are interested in viewing
-    The selected cols are the parameter configuration you are interested in viewing
-    """
-    sel_cols = params.args.sel_cols  # FIXME
-    sel_rows = params.args.sel_rows  # FIXME
-    sel_cols = [] if sel_cols is None else sel_cols
-    sel_rows = [] if sel_rows is None else sel_rows
-    #sel_rows = []
-    #sel_cols = []
-    if ut.NOT_QUIET:
-        print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
-        print('other options:')
-        print('   --vf - view figure dir')
-        print('   --va - view all')
-        print('   --vh - view hard')
-        print('   --ve - view easy')
-        print('   --vn - view iNteresting')
-        print('   --hs - hist sample')
-        print('   --gv, --guiview - gui result inspection')
-    if len(sel_rows) > 0 and len(sel_cols) == 0:
-        sel_cols = list(range(len(cfg_list)))
-    if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = list(range(len(qaids)))
-    if view_all:
-        sel_rows = list(range(len(qaids)))
-        sel_cols = list(range(len(cfg_list)))
-    if view_hard:
-        sel_rows.extend(np.array(new_hard_qx_list).tolist())
-        sel_cols.extend(list(range(len(cfg_list))))
-    if view_easy:
-        new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
-        sel_rows.extend(new_easy_qx_list)
-        sel_cols.extend(list(range(len(cfg_list))))
-    if view_interesting:
-        sel_rows.extend(interesting_qx_list)
-        # TODO: grab the best scoring and most interesting configs
-        if len(sel_cols) == 0:
-            sel_cols.extend(list(range(len(cfg_list))))
-    if kwargs.get('hist_sample', ut.get_argflag(('--hs', '--hist-sample'))):
-        # Careful if there is more than one config
-        config_rand_bin_qxs = test_result.get_rank_histogram_qx_sample(size=10)
-        sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
-        # TODO: grab the best scoring and most interesting configs
-        if len(sel_cols) == 0:
-            sel_cols.extend(list(range(len(cfg_list))))
-    sel_rows = ut.unique_keep_order2(sel_rows)
-    sel_cols = ut.unique_keep_order2(sel_cols)
-    sel_cols = list(sel_cols)
-    sel_rows = list(sel_rows)
-    return sel_rows, sel_cols
 
 
 if __name__ == '__main__':

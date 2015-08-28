@@ -117,9 +117,12 @@ def is_unknown(ibs, nid_list):
 
 def get_truth_text(ibs, truth):
     truth_texts = [
-        'FALSE',
-        'TRUE',
-        '???'
+        #'FALSE',
+        #'TRUE',
+        #'???'
+        'Imposter',
+        'Genuine',
+        'Unknown',
     ]
     return truth_texts[truth]
 

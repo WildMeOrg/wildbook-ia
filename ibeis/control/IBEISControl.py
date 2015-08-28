@@ -86,7 +86,7 @@ autogenmodname_list = [
     ('ibeis.control', 'manual_feat_funcs'),
 ]
 
-WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn'))
+WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
 
 # HACK, don't include cnn unless its already there due to theano stuff
 pluginmodname_list = []
