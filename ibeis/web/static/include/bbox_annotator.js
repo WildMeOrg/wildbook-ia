@@ -119,7 +119,7 @@
       if (options.input_method !== 'fixed') {
         this.label_input.val('');
       }
-      
+
       return data;
     };
 
@@ -180,7 +180,7 @@
         options.width || (options.width = image_element.width);
         options.height || (options.height = image_element.height);
         annotator.annotator_element.css({
-          "width": '700px',
+          "width": '1200px',
           "height": (options.height + annotator.border_width * 2 - 1) + 'px',
           "margin-left": 'auto',
           "margin-right": 'auto',
@@ -219,7 +219,7 @@
           $(".annotated_bounding_box").trigger('mouseenter');
         }
       });
-      // this.annotator_element.on('contextmenu', function(e) { 
+      // this.annotator_element.on('contextmenu', function(e) {
       //   e.preventDefault();
       //   return false;
       // })
@@ -343,7 +343,7 @@
           annotator.adding = false;
           annotator.editing = false;
         }
-        
+
         switch (status) {
           case 'hold':
             if (e.which === 27 || e.which === 75) {
@@ -356,12 +356,12 @@
             var active_box, index;
             active_box = $('.annotated_bounding_box_active');
             if(active_box.length > 0)
-            {   
-              index = active_box.prevAll(".annotated_bounding_box").length; 
-              move = 1     
+            {
+              index = active_box.prevAll(".annotated_bounding_box").length;
+              move = 1
               if(e.shiftKey) {
                 move *= 10;
-              }   
+              }
               img_width = parseInt(annotator.image_frame.css('width'));
               img_height = parseInt(annotator.image_frame.css('height'));
               if(e.which === 27 || e.which === 75)
@@ -400,7 +400,7 @@
                 active_box.css('top', proposed + "px");
                 entry = annotator.entries[index];
                 entry.top = proposed;
-                annotator.onchange(annotator.entries);           
+                annotator.onchange(annotator.entries);
           			e.preventDefault();
                 return false;
               }
@@ -411,8 +411,8 @@
                 proposed = Math.min(img_width - parseInt(active_box.css('width')) - 1, proposed);
                 active_box.css('left', proposed + "px");
                 entry = annotator.entries[index];
-                entry.left = proposed;   
-                annotator.onchange(annotator.entries);  
+                entry.left = proposed;
+                annotator.onchange(annotator.entries);
               }
               else if(e.which === 40)
               {
@@ -421,7 +421,7 @@
                 proposed = Math.min(img_height - parseInt(active_box.css('height')) - 1, proposed);
                 active_box.css('top', proposed + "px");
                 entry = annotator.entries[index];
-                entry.top  = proposed;                
+                entry.top  = proposed;
                 annotator.onchange(annotator.entries);
           			e.preventDefault();
                 return false;
@@ -465,7 +465,7 @@
 
     BBoxAnnotator.prototype.add_entry = function(entry) {
       var annotator, box_element, close_button, rotate_button, text_box;
-      
+
       function update_style(hover, annotator, e)
       {
         if(hover)
@@ -496,7 +496,7 @@
           close_button.hide();
         }
       }
-      
+
       function update_dimensions()
       {
         entry['left']   = parseInt(box_element.css('left'));
@@ -505,14 +505,14 @@
         entry['height'] = parseInt(box_element.css('height'));
         annotator.refresh();
       }
-      
+
       function update_angle(angle)
       {
         function mod(x, n) {
           // Javascript % is not modulus, it is remainder (wtf?)
           return ((x % n) + n) % n;
         }
-        
+
         entry['angle'] = mod(angle, 2.0 * Math.PI);
         annotator.refresh();
       }
@@ -618,10 +618,10 @@
       if (this.show_label) {
         if(entry.id !== null)
         {
-            text_box.text(entry.label + ', id:' + entry.id);   
+            text_box.text(entry.label + ', id:' + entry.id);
         }
         else
-        {   
+        {
             text_box.text(entry.label);
         }
       }
@@ -633,7 +633,7 @@
         {
           if( ! annotator.editing)
           {
-            update_style(true, annotator, e); 
+            update_style(true, annotator, e);
           }
         }
         else
@@ -644,7 +644,7 @@
         console.log('Hover OUT: ' + e.pageX + ' ' + e.pageY + ' ' + status + ' ' + annotator.editing_mouse_inside);
         annotator.editing_mouse_inside = false;
         if( ! annotator.editing)
-        { 
+        {
           update_style(false, annotator, e);
         }
       }));
