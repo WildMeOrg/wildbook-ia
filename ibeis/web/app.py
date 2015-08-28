@@ -1246,6 +1246,10 @@ def image_src(gid=None):
     ibs = current_app.ibs
     # gpath = ibs.get_image_paths(gid)
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+    fresh = 'fresh' in request.args or 'fresh' in request.form
+    if fresh:
+        ut.remove_dirs(gpath)
+        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     return ap.return_src(gpath)
 
 
@@ -1259,6 +1263,19 @@ def image_src_api(gid=None):
         URL:    /api/image/<gid>/
     """
     return image_src(gid)
+
+
+@register_route('/api/image/view/<gid>/', methods=['GET'])
+def image_view_api(gid=None):
+    r"""
+    Returns the base64 encoded image of image <gid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/view/<gid>/
+    """
+    encoded = image_src(gid)
+    return ap.template(None, 'single', encoded=encoded)
 
 
 @register_api('/api/image/zip', methods=['POST'])
