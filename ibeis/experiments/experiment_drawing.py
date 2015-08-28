@@ -433,6 +433,11 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
 
         python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
         python -m ibeis.dev -e draw_case_timedeltas -t baseline -a controlled uncontrolled --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled --db PZ_Master1 --show --aidcfginfo
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -449,14 +454,16 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     X_data_list = []
     X_label_list = []
     for cfgx, lbl in enumerate(test_result.get_short_cfglbls()):
-        gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]
-        gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]
+        gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
+        gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gt_s_td = truth2_prop['gt']['timedelta'].T[cfgx][is_success.T[cfgx]]
         gf_s_td = truth2_prop['gf']['timedelta'].T[cfgx][is_success.T[cfgx]]
         #X_data_list  += [np.append(gt_f_td, gt_s_td), np.append(gf_f_td, gf_s_td)]
         #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
-        X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
-        X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
+        #X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
+        #X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
+        X_data_list  += [gt_s_td,  gf_s_td]
+        X_label_list += ['TP ' + lbl, 'FP ' + lbl]
 
     # TODO WRAP IN VTOOL
     # LEARN MULTI PDF
