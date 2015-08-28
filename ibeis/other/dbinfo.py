@@ -296,9 +296,9 @@ def get_dbinfo(ibs, verbose=True,
             #ax.set_xticks(bins_)
             #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
         else:
-            xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
             unixtime_pdf = vt.estimate_pdf(unixtime_list)
             unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+            xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
             pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata)
             ax = pt.gca()
             ax.set_xlabel('Date')

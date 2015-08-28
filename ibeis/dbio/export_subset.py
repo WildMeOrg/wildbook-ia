@@ -1269,6 +1269,9 @@ def export_annots(ibs, aid_list, new_dbpath=None):
     """
     exports a subset of annotations and other required info
 
+    TODO:
+        PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid_list (list):  list of annotation rowids

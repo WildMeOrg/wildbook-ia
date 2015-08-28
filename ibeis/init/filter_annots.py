@@ -119,8 +119,9 @@ def expand_acfgs_consistently(ibs, acfg_combo):
         if dcfg['sample_size'] != dsize:
             dcfg['_true_sample_size'] = dsize
 
-        min_qsize = tmpmin(min_qsize, qsize)
-        min_dsize = tmpmin(min_dsize, dsize)
+        if qcfg['force_const_size']:
+            min_qsize = tmpmin(min_qsize, qsize)
+            min_dsize = tmpmin(min_dsize, dsize)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)

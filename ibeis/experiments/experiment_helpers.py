@@ -138,6 +138,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> import ibeis
         >>> from ibeis.experiments import annotation_configs
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
+        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default;uncontrolled'])
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_list = ut.flatten(acfg_combo_list)
         >>> printkw = dict()
@@ -205,6 +206,10 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
     combo_slice = ut.get_argval('--combo_slice', type_=slice, default=slice(None))
     acfg_combo_list = [acfg_combo_[combo_slice] for acfg_combo_ in acfg_combo_list]
+
+    if ut.get_argflag('--consistent'):
+        # Expand everything as one consistent annot list
+        acfg_combo_list = [ut.flatten(acfg_combo_list)]
 
     #expanded_aids_list = [filter_annots.expand_acfgs(ibs, acfg) for acfg in acfg_list]
     expanded_aids_combo_list = [

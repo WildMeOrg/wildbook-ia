@@ -71,7 +71,7 @@ __default_aidcfg = {
 #        pass
 
 
-def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
+def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommon=[]):
     r"""
     Args:
         acfg (dict):
@@ -96,6 +96,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False):
         return acfg
     acfg = copy.deepcopy(acfg)
     common_cfg = ut.dict_intersection(acfg['qcfg'], acfg['dcfg'])
+    ut.delete_keys(common_cfg, force_noncommon)
     ut.delete_keys(acfg['qcfg'], common_cfg.keys())
     ut.delete_keys(acfg['dcfg'], common_cfg.keys())
     acfg['common'] = common_cfg
@@ -129,6 +130,14 @@ def get_varied_labels(acfg_list):
 
     flat_acfg_list = flatten_acfg_list(_acfg_list)
     nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+
+    SUPER_HACK = True
+    if SUPER_HACK:
+        # SUPER HACK, recompress remake the varied list after knownig what is varied
+        _varied_keys = list(set(ut.flatten([list(ut.flatten([list(x.keys()) for x in unflatten_acfgdict(cfg).values()])) for cfg in varied_acfg_list])))
+        _acfg_list = [compress_aidcfg(acfg, force_noncommon=_varied_keys) for acfg in acfg_list]
+        flat_acfg_list = flatten_acfg_list(_acfg_list)
+        nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
 
     shortened_cfg_list = [
         #{shorten_to_alias_labels(key): val for key, val in _dict.items()}
@@ -339,7 +348,8 @@ varypername = {
     'dcfg': ut.augdict(
         __controlled_aidcfg, {
             'default_aids': 'all',
-            'sample_per_name': [1, 2, 3],
+            #'sample_per_name': [1, 2, 3],
+            'sample_per_name': [1, 3],
             #'sample_per_ref_name': [1, 2, 3],
             'sample_per_ref_name': [1, 3],
             'exclude_reference': True,
@@ -401,7 +411,8 @@ varysize_pzm = {
 
     'dcfg': ut.augdict(
         varysize['dcfg'], {
-            'sample_size': [1500, 2000, 2500, 3000],
+            #'sample_size': [1500, 2000, 2500, 3000],
+            'sample_size': [1500, 2000, 2500, 3000, 4000],
         }),
 }
 

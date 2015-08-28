@@ -76,7 +76,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('ibeis.experiments.experiment_drawing', 'draw_individual_results', ['draw_individual_cases']),
+    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas'),
+    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_individual_results']),
     ('ibeis.experiments.experiment_drawing', 'draw_results'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf'),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
@@ -629,6 +630,8 @@ def run_devprecmds():
             func()
             print('Exiting after first precommand')
             sys.exit(1)
+    if len(input_precmd_list) > 0:
+        raise AssertionError('Unhandled tests: ' + repr(input_precmd_list))
 
 
 #@utool.indent_func('[dev]')

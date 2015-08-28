@@ -10,7 +10,7 @@ from ibeis.experiments import experiment_storage
 from ibeis.model.hots import match_chips4 as mc4
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
+#from plottool import plot_helpers as ph
 from six.moves import map, range, input  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_drawres]')
 SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
@@ -22,6 +22,10 @@ SHOW                 = ut.get_argflag('--show')
 # only triggered if dump_extra is on
 DUMP_PROBCHIP = False
 DUMP_REGCHIP = False
+
+
+#fontkw = dict(legendsize=8, labelsize=10, ticksize=8, titlesize=8)
+FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
 def draw_rank_surface(ibs, test_result):
@@ -56,8 +60,8 @@ def draw_rank_surface(ibs, test_result):
     #K_cfgx_lists = [test_result.get_cfgx_with_param('K', K) for K in K_basis]
 
     #param_key_list = test_result.get_all_varied_params()
-    #param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
-    param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
+    param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
+    #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
     basis_dict      = {}
     cfgx_lists_dict = {}
     for key in param_key_list:
@@ -72,6 +76,7 @@ def draw_rank_surface(ibs, test_result):
     import plottool as pt
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
+    #pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key]), max_cols=1))
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
     #ymax = percent_le1_list.max()
     #ymin = percent_le1_list.min()
@@ -96,7 +101,8 @@ def draw_rank_surface(ibs, test_result):
         target_label = '% queries = rank 1'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
-        title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        title = ('Accuracy when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
         if PLOT3D:
@@ -112,12 +118,13 @@ def draw_rank_surface(ibs, test_result):
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list, fnum=1,
                                     pnum=pnum_(), num_yticks=8, ymin=30, ymax=100, ypad=.5,
-                                    xpad=.05, legend_loc='lower right')
+                                    xpad=.05, legend_loc='lower right', **FONTKW)
             #pt.plot2(
         #(const_idx + 1))
 
     figtitle = (
-        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
+        #'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
+        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy for\n')
     figtitle += ' ' + test_result.get_title_aug()
 
     #if ut.get_argflag('--save'):
@@ -128,7 +135,7 @@ def draw_rank_surface(ibs, test_result):
     #if test_result.has_constant_daids():
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
     #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
-    pt.set_figtitle(figtitle, size=10)
+    pt.set_figtitle(figtitle, size=14)
 
 
 def draw_rank_cdf(ibs, test_result):
@@ -205,12 +212,9 @@ def draw_rank_cdf(ibs, test_result):
 
     fnum = pt.ensure_fnum(None)
 
-    #fontkw = dict(legendsize=8, labelsize=10, ticksize=8, titlesize=8)
-    fontkw = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
-
     cumhistkw = dict(xlabel='rank', ylabel='% queries ≤ rank',
                      color_list=color_list, marker_list=marker_list, fnum=fnum, legend_loc='lower right',
-                     num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **fontkw)
+                     num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **FONTKW)
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
@@ -364,6 +368,7 @@ def make_test_result_custom_api(ibs, test_result):
 
 def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
     print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
+    import plottool as pt
     from ibeis import viz
     # only dump a chip that hasn't been dumped yet
     if aid in seen:
@@ -381,13 +386,15 @@ def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None, in_image=
     viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
     if rank is not None:
         prefix += 'rank%d_' % rank
-    df2.set_figtitle(prefix + ibs.annotstr(aid))
+    fname = prefix + ibs.annotstr(aid)
+    df2.set_figtitle(fname)
     seen.add(aid)
     if ut.VERBOSE:
         print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)
-
-    fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
-    return fpath_clean
+    #fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
+    fpath_ = join(individual_results_figdir, fname)
+    pt.gcf().savefig(fpath_)
+    return fpath_
 
 
 class IndividualResultsCopyTaskQueue(object):
@@ -418,7 +425,101 @@ class IndividualResultsCopyTaskQueue(object):
 
 
 @profile
-def draw_individual_results(ibs, test_result, metadata=None):
+def draw_case_timedeltas(ibs, test_result, metadata=None):
+    r"""
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_case_timedeltas
+
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a controlled uncontrolled --db PZ_Master1 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> metadata = None
+        >>> draw_case_timedeltas(ibs, test_result, metadata)
+        >>> ut.show_if_requested()
+    """
+    #category_poses = test_result.partition_case_types()
+    # TODO: Split up into cfgxs
+    truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
+    X_data_list = []
+    X_label_list = []
+    for cfgx, lbl in enumerate(test_result.get_short_cfglbls()):
+        gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]
+        gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]
+        gt_s_td = truth2_prop['gt']['timedelta'].T[cfgx][is_success.T[cfgx]]
+        gf_s_td = truth2_prop['gf']['timedelta'].T[cfgx][is_success.T[cfgx]]
+        #X_data_list  += [np.append(gt_f_td, gt_s_td), np.append(gf_f_td, gf_s_td)]
+        #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
+        X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
+        X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
+
+    # TODO WRAP IN VTOOL
+    # LEARN MULTI PDF
+    #gridsize = 1024
+    #adjust = 64
+    xdata_list = [X[~np.isnan(X)] for X in X_data_list]
+    #import vtool as vt
+    #xdata_pdf_list = [vt.estimate_pdf(xdata, gridsize=gridsize, adjust=adjust) for xdata in xdata_list]  # NOQA
+    #min_score = min([xdata.min() for xdata in xdata_list])
+    max_score = max([xdata.max() for xdata in xdata_list])
+    #xdata_domain = np.linspace(min_score, max_score, gridsize)  # NOQA
+    #pxdata_list = [pdf.evaluate(xdata_domain) for pdf in xdata_pdf_list]
+
+    ## VISUALIZE MULTI PDF
+
+    #import vtool as vt
+    #encoder = vt.ScoreNormalizerUnsupervised(gt_f_td)
+    #encoder.visualize()
+
+    #import plottool as pt
+    ##is_timedata = False
+    #is_timedelta = True
+    #pt.plot_probabilities(pxdata_list, X_label_list, xdata=xdata_domain)
+    #ax = pt.gca()
+
+    import datetime
+
+    bins = [
+        datetime.timedelta(seconds=0).total_seconds(),
+        datetime.timedelta(minutes=1).total_seconds(),
+        datetime.timedelta(hours=1).total_seconds(),
+        datetime.timedelta(days=1).total_seconds(),
+        datetime.timedelta(weeks=1).total_seconds(),
+        datetime.timedelta(days=356).total_seconds(),
+        max(datetime.timedelta(days=356 * 10).total_seconds(), max_score + 1),
+    ]
+
+    # HISTOGRAM
+    #if False:
+    freq_list = [np.histogram(xdata, bins)[0] for xdata in xdata_list]
+
+    xints = np.arange(len(bins) - 1)
+
+    import plottool as pt
+
+    pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1)
+    ax = pt.gca()
+    ax.set_xticklabels(['foo'] * 8)
+
+    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True) for b in bins]
+
+    bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
+    xtick_labels = [''] + bin_labels + ['']
+
+    ax.set_xticklabels(xtick_labels)
+    ax.set_xlabel('Time Delta')
+    ax.set_ylabel('Frequency')
+    ax.set_title('Timedelta Histogram')
+    pt.gcf().autofmt_xdate()
+
+
+@profile
+def draw_individual_cases(ibs, test_result, metadata=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -426,13 +527,13 @@ def draw_individual_results(ibs, test_result, metadata=None):
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_results --figdir=individual_results
-        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_individual_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2
-        python -m ibeis.dev -e draw_individual_results --db PZ_MTEST -a varysize_pzm:dper_name=[1,2] -t candidacy_k:K=1 --figdir=figures --vf --vh --show
-        python -m ibeis.dev -e draw_individual_results --db PZ_MTEST --vf --vh --show -a uncontrolled -t default:K=[1,2]
-        python -m ibeis.dev -e draw_individual_results -t baseline -a controlled --db PZ_Master1 \
+        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_cases --figdir=individual_results
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2
+        python -m ibeis.dev -e draw_individual_cases --db PZ_MTEST -a varysize_pzm:dper_name=[1,2] -t candidacy_k:K=1 --figdir=figures --vf --vh --show
+        python -m ibeis.dev -e draw_individual_cases --db PZ_MTEST --vf --vh --show -a uncontrolled -t default:K=[1,2]
+        python -m ibeis.dev -e draw_individual_cases -t baseline -a controlled --db PZ_Master1 \
 
 
     Example:
@@ -441,7 +542,7 @@ def draw_individual_results(ibs, test_result, metadata=None):
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> metadata = None
-        >>> analysis_fpath_list = draw_individual_results(ibs, test_result, metadata)
+        >>> analysis_fpath_list = draw_individual_cases(ibs, test_result, metadata)
         >>> cmdname = ibs.get_dbname() + 'Results'
         >>> latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
         >>> ut.print_code(latex_block, 'latex')
@@ -458,11 +559,6 @@ def draw_individual_results(ibs, test_result, metadata=None):
         'ori': True,
         'ell_alpha': .9,
     }
-
-    #dumpkw = {
-    #    'overwrite' : True,
-    #    'verbose'   : 0,
-    #}
 
     cpq = IndividualResultsCopyTaskQueue()
 
@@ -502,8 +598,14 @@ def draw_individual_results(ibs, test_result, metadata=None):
     # (Show a photobomb, scenery match, etc...)
     # This is just one config, because showing everything should also be an
     # option so we can find these errors
+    #-------------
+    # TODO;
+    # Time statistics on incorrect results
     #=================================
-    sel_rows, sel_cols = get_individual_result_sample(test_result, **_viewkw)
+    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, **_viewkw)
+    if flat_case_labels is None:
+        flat_case_labels = [None] * len(sel_rows)
+
     qaids = test_result.get_common_qaids()
     ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))  # Ensure semantic uuids are in the APP cache.
     #samplekw = dict(per_group=5)
@@ -530,6 +632,8 @@ def draw_individual_results(ibs, test_result, metadata=None):
 
     cfgx2_shortlbl = test_result.get_short_cfglbls()
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
+        case_labels = flat_case_labels[count]
+        print('case_labels = %r' % (case_labels,))
         qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
         #qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
         # TODO: try to get away with not reloading query results or loading
@@ -557,7 +661,7 @@ def draw_individual_results(ibs, test_result, metadata=None):
             show_kwargs['show_gf'] = True
             if DRAW_ANALYSIS:
                 analysis_fpath = join(individ_results_dpath, query_lbl) + '.png'
-                print('analysis_fpath = %r' % (analysis_fpath,))
+                #print('analysis_fpath = %r' % (analysis_fpath,))
                 if SHOW or overwrite or not ut.checkpath(analysis_fpath):
                     if SHOW:
                         qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
@@ -642,6 +746,7 @@ def get_individual_result_sample(test_result,
     sel_rows = [] if sel_rows is None else sel_rows
     #sel_rows = []
     #sel_cols = []
+    flat_case_labels = None
     if ut.NOT_QUIET:
         print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
         print('other options:')
@@ -663,9 +768,21 @@ def get_individual_result_sample(test_result,
         new_hard_qx_list = test_result.get_new_hard_qx_list()
         sel_rows.extend(np.array(new_hard_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
+    # sample-cases
+    view_cases = True
+    if view_cases:
+        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
+        # Convert to all cfgx format
+        qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+        ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
+        grouped_labels = ut.dict_take(ut.group_items(case_labels_list, case_pos_list.T[0]), qx_list)
+        flat_case_labels = list(map(ut.unique_keep_order2, map(ut.flatten, grouped_labels)))
+        sel_rows.extend(np.array(qx_list).tolist())
+        sel_cols.extend(list(range(len(cfg_list))))
     if view_hard2:
         # TODO handle returning case_pos_list
-        samplekw = ut.argparse_dict(dict(per_group=5))
+        #samplekw = ut.argparse_dict(dict(per_group=5))
+        samplekw = ut.argparse_dict(dict(per_group=None))
         case_pos_list = test_result.get_case_positions(mode='failure', samplekw=samplekw)
         failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
         sel_rows.extend(np.array(failure_qx_list).tolist())
@@ -692,7 +809,7 @@ def get_individual_result_sample(test_result,
     sel_cols = ut.unique_keep_order2(sel_cols)
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
-    return sel_rows, sel_cols
+    return sel_rows, sel_cols, flat_case_labels
 
 
 @profile
@@ -773,7 +890,7 @@ def draw_results(ibs, test_result):
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
-        draw_individual_results(ibs, test_result, metadata=metadata)
+        draw_individual_cases(ibs, test_result, metadata=metadata)
 
     metadata.write()
     #ut.embed()
