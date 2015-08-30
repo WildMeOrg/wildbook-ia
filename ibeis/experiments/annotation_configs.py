@@ -411,8 +411,8 @@ varysize_pzm = {
 
     'dcfg': ut.augdict(
         varysize['dcfg'], {
-            #'sample_size': [1500, 2000, 2500, 3000],
-            'sample_size': [1500, 2000, 2500, 3000, 4000],
+            'sample_size': [1500, 2000, 2500, 3000],
+            #'sample_size': [1500, 2000, 2500, 3000, 4000],
         }),
 }
 

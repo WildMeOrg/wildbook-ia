@@ -312,15 +312,15 @@ def get_results_command(expt_name, media_name):
     #static_flags = ' --diskshow'
     dynamic_flags_ = ''
     if media_name == 'table':
-        margs = 'ibeis.experiments.experiment_printres --exec-print_latexsum'
+        margs = 'ibeis.dev -e print_latexsum'
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
-        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_cdf'
+        margs = 'ibeis.dev -e draw_rank_cdf'
         output_flags +=  ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=~/code/ibeis'
         static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
-        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface'
+        margs = 'ibeis.dev -e draw_rank_surface'
         output_flags += ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=~/code/ibeis'
         static_flags += ' --clipwhite'
@@ -328,7 +328,7 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.25,.2,.2'
     elif media_name == 'surface3d':
-        margs = 'ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no2dsurf'
+        margs = 'ibeis.dev --e draw_rank_surface --no2dsurf'
         output_flags += ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=~/code/ibeis'
         static_flags += ' --clipwhite'

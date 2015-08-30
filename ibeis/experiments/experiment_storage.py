@@ -9,6 +9,7 @@ import numpy as np
 #import six
 import vtool as vt
 import utool as ut
+from ibeis.experiments import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
@@ -38,7 +39,6 @@ def combine_test_results(ibs, test_result_list):
     #    raise
 
     from ibeis.experiments import annotation_configs
-    from ibeis.experiments import cfghelpers
 
     acfg_list = [test_result.acfg for test_result in test_result_list]
     acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
@@ -372,7 +372,7 @@ class TestResult(object):
         for pa in pa_tups:
             new_parts = []
             for part in pa:
-                name, settings = part.split(':')
+                name, settings = part.split(cfghelpers.NAMEVARSEP)
                 if len(settings) == 0:
                     new_parts.append(name)
                 else:
@@ -382,14 +382,14 @@ class TestResult(object):
             else:
                 newlbl = '+'.join(new_parts)
             cfg_lbls2.append(newlbl)
-        #cfgtups = [lbl.split(':') for lbl in cfg_lbls]
-        #cfg_lbls = [':'.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
+        #cfgtups = [lbl.split(cfghelpers.NAMEVARSEP) for lbl in cfg_lbls]
+        #cfg_lbls = [cfghelpers.NAMEVARSEP.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
         cfg_lbls = cfg_lbls2
 
         #from ibeis.experiments import annotation_configs
         #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
 
-        #cfg_lbls = [lbl + ':' + lblaug for lbl in cfg_lbls]
+        #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
 
         return cfg_lbls
 

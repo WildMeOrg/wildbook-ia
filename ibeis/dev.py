@@ -84,6 +84,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_rank_surface'),
     ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list'),
     ('ibeis.experiments.experiment_printres', 'print_results'),
+    ('ibeis.experiments.experiment_printres', 'print_latexsum'),
     ('ibeis.dbio.export_subset', 'export_annots'),
 ]
 
