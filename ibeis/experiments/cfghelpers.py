@@ -11,6 +11,9 @@ print, rrr, profile = ut.inject2(__name__, '[cfghelpers]')
 
 INTERNAL_CFGKEYS = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
 
+#NAMEVARSEP = ':'
+NAMEVARSEP = '^'
+
 
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
     if cfgtype is not None and cfgtype in ['qcfg', 'dcfg']:
@@ -128,7 +131,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
     _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True)
     _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
-    cfg_lbl = name + ':' + _lbl
+    cfg_lbl = name + NAMEVARSEP + _lbl
     return cfg_lbl
 
 
@@ -171,7 +174,7 @@ def customize_base_cfg(cfgname, cfgstr_options, base_cfg, cfgtype,
         cfg_['_cfgindex'] = combox
     for cfg_ in cfg_combo:
         if len(cfgstr_options) > 0:
-            cfg_['_cfgstr'] = cfg_['_cfgname'] + ':' + cfgstr_options
+            cfg_['_cfgstr'] = cfg_['_cfgname'] + NAMEVARSEP + cfgstr_options
         else:
             cfg_['_cfgstr'] = cfg_['_cfgname']
     return cfg_combo
@@ -181,19 +184,18 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_key
     """
     Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
     """
-    #OLD = True
-    OLD = False
+    NEW = True
     cfg_combos_list = []
     for cfgstr in cfgstr_list:
-        cfgstr_split = cfgstr.split(':')
+        cfgstr_split = cfgstr.split(NAMEVARSEP)
         cfgname = cfgstr_split[0]
         base_cfg_list = named_defaults_dict[cfgname]
         if not isinstance(base_cfg_list, list):
             base_cfg_list = [base_cfg_list]
         cfg_combos = []
         for base_cfg in base_cfg_list:
-            if not OLD:
-                cfgstr_options =  ':'.join(cfgstr_split[1:])
+            if NEW:
+                cfgstr_options =  NAMEVARSEP.join(cfgstr_split[1:])
                 try:
                     cfg_combo = customize_base_cfg(cfgname, cfgstr_options, base_cfg, cfgtype, alias_keys=alias_keys, valid_keys=valid_keys)
                 except Exception as ex:
@@ -204,7 +206,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_key
                 #cfg = base_cfg.copy()
                 ## Parse dict out of a string
                 #if len(cfgstr_split) > 1:
-                #    cfgstr_options =  ':'.join(cfgstr_split[1:]).split(',')
+                #    cfgstr_options =  NAMEVARSEP.join(cfgstr_split[1:]).split(',')
                 #    cfg_options = ut.parse_cfgstr_list(cfgstr_options, smartcast=True, oldmode=False)
                 #else:
                 #    cfgstr_options = ''

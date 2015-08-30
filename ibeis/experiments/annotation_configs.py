@@ -367,21 +367,21 @@ python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_
 python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
 python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
 python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2]
-python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1:dsize=1000,dper_name=[1,2] --show -t default
+python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2]
+python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2] --show -t default
 python -m ibeis.experiments.experiment_printres --exec-print_results --db PZ_Master1 -a varysize_pzm -t candidacy_k
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --acfginfo
-./dev.py -e draw_rank_surface  --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
-./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
-./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --show
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k --acfginfo
+./dev.py -e draw_rank_surface  --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k --show
+./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k --show
+./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --show
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k:K=1
 ./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
 ./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
 
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=1,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=2,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=1,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
+./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm.dper_name=2,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
 """
 varysize = {
     'qcfg': ut.augdict(

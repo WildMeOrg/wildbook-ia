@@ -23,11 +23,13 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
         -r : copies data recursively (but dont preserve timestamps and permission while transferring data
         -a : archive mode, allows recursive copying and preserves symlinks, permissions, user and group ownerships, and timestamps
         -z : compress file data
+        -i, --itemize-changes       output a change-summary for all updates
+        -s, --protect-args :        no space-splitting; only wildcard special-chars
         -h : human-readable, output numbers in a human-readable format
         -P                          same as --partial --progress
     """
     rsync_exe = 'rsync'
-    rsync_options = '-vazhP'
+    rsync_options = '-avhzP'
     #rsync_options += ' --port=%d' % (port,)
     rsync_options += ' -e "ssh -p %d"' % (port,)
     if len(exclude_dirs) > 0:

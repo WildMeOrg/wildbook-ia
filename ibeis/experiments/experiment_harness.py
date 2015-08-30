@@ -41,7 +41,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
         >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> default_acfgstrs = ['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100']
+        >>> default_acfgstrs = ['candidacy.qsize=20,dper_name=1,dsize=10', 'candidacy^qsize=20,dper_name=10,dsize=100']
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
