@@ -357,6 +357,16 @@ varypername = {
             'force_const_size': True,
         }),
 }
+varypername_pzm = {
+    'qcfg': ut.augdict(
+        varypername['qcfg'], {
+            'sample_size': 500,
+        }),
+
+    'dcfg': ut.augdict(
+        varypername['dcfg'], {
+        }),
+}
 
 
 """
