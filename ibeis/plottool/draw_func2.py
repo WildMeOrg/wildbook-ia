@@ -114,6 +114,174 @@ TMP_mevent = None
 plotWidget = None
 
 
+def show_was_requested():
+    """
+    returns True if --show is specified on the commandline or you are in
+    IPython (and presumably want some sort of interaction
+    """
+    return not ut.get_argflag(('--noshow')) and (ut.get_argflag(('--show', '--save')) or ut.inIPython())
+    #return ut.show_was_requested()
+
+
+def show_if_requested(N=1):
+    if ut.NOT_QUIET:
+        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
+
+    # Process figures adjustments from command line before a show or a save
+
+    adjust_list = ut.get_argval('--adjust', type_=list, default=None)
+    if adjust_list is not None:
+        # --adjust=[.02,.02,.05]
+        keys = ['left', 'bottom', 'wspace', 'right', 'top', 'hspace']
+        if len(adjust_list) == 1:
+            # [all]
+            vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
+        elif len(adjust_list) == 3:
+            # [left, bottom, wspace]
+            vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
+        elif len(adjust_list) == 4:
+            # [left, bottom, wspace, hspace]
+            vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[3]]
+        elif len(adjust_list) == 6:
+            vals = adjust_list
+        else:
+            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r. Expectts keys=%r' % (len(adjust_list), adjust_list, keys))
+        adjust_kw = dict(zip(keys, vals))
+        adjust_subplots(**adjust_kw)
+
+    figsize = ut.get_argval('--figsize', type_=list, default=None)
+    if figsize is not None:
+        # Enforce inches and DPI
+        fig = gcf()
+        figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
+        figw, figh = figsize[0], figsize[1]
+        #print('get_size_inches = %r' % (fig.get_size_inches(),))
+        #print('fig w,h (inches) = %r, %r' % (figw, figh))
+        fig.set_size_inches(figw, figh)
+        #print('get_size_inches = %r' % (fig.get_size_inches(),))
+
+    dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
+
+    fpath_ = ut.get_argval('--save', type_=str, default=None)
+
+    if fpath_ is not None:
+        print('Figure save was requested')
+        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'], type_hints={'t': list, 'a': list})
+        #import sys
+        from os.path import basename, splitext, join
+        import plottool as pt
+        import vtool as vt
+
+        #print(sys.argv)
+        #ut.print_dict(arg_dict)
+        # HACK
+        arg_dict = {key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']') if isinstance(val, list) else val for key, val in arg_dict.items()}
+        fpath_ = fpath_.format(**arg_dict)
+        fpath_ = ut.remove_chars(fpath_, ' \'"')
+        dpath = ut.get_argval('--dpath', type_=str, default=None)
+        fpath = join(dpath, fpath_)
+
+        fig = pt.gcf()
+
+        dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
+
+        absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath), figsize=False, dpi=dpi)
+
+        CLIP_WHITE = ut.get_argflag('--clipwhite')
+        if CLIP_WHITE:
+            # remove white borders
+            vt.clipwhite_ondisk(absfpath_, absfpath_)
+            #img = vt.imread(absfpath_)
+            #thresh = 128
+            #fillval = [255, 255, 255]
+            #cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+            #print('img.shape = %r' % (img.shape,))
+            #print('cropped_img.shape = %r' % (cropped_img.shape,))
+            #vt.imwrite(absfpath_, cropped_img)
+
+        default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
+        caption_list = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        if isinstance(caption_list, six.string_types):
+            caption_str = caption_list
+        else:
+            caption_str = ' '.join(caption_list)
+        #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        label_str   = ut.get_argval('--label', type_=str, default=default_label)
+        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
+        height_str  = ut.get_argval('--height', type_=str, default=None)
+        #if dpath is not None:
+        #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
+        #else:
+        #    fpath_ = fpath
+        fpath_list = [fpath_]
+        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
+                                                         label_str=label_str,
+                                                         caption_str=caption_str,
+                                                         width_str=width_str,
+                                                         height_str=height_str)
+        #import sys
+        #print(sys.argv)
+        latex_block = figure_str
+        latex_block = ut.latex_newcommand(label_str, latex_block)
+        #latex_block = ut.codeblock(
+        #    r'''
+        #    \newcommand{\%s}{
+        #    %s
+        #    }
+        #    '''
+        #) % (label_str, latex_block,)
+        try:
+            import os
+            import psutil
+            import pipes
+            #import shlex
+            # TODO: separate into get_process_cmdline_str
+            # TODO: replace home with ~
+            proc = psutil.Process(pid=os.getpid())
+            home = os.path.expanduser('~')
+            cmdline_str = ' '.join([pipes.quote(_).replace(home, '~') for _ in proc.cmdline()])
+            latex_block = ut.codeblock(
+                r'''
+                \begin{comment}
+                %s
+                \end{comment}
+                '''
+            ) % (cmdline_str,) + '\n' + latex_block
+        except OSError:
+            pass
+
+        #latex_indent = ' ' * (4 * 2)
+        latex_indent = ' ' * (0)
+
+        latex_block_ = (ut.indent(latex_block, latex_indent))
+        ut.print_code(latex_block_, 'latex')
+
+        if 'append' in arg_dict:
+            append_fpath = arg_dict['append']
+            ut.write_to(append_fpath, '\n\n' + latex_block_, mode='a')
+
+        if ut.get_argflag('--diskshow'):
+            # show what we wrote
+            ut.startfile(absfpath_)
+
+        # Hack write the corresponding logfile next to the output
+        log_fpath = ut.get_current_log_fpath()
+        ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
+    if ut.inIPython():
+        import plottool as pt
+        pt.iup()
+    elif ut.get_argflag('--cmd'):
+        import plottool as pt
+        pt.draw()
+        ut.embed(N=N)
+    elif ut.get_argflag('--show'):
+        if ut.get_argflag('--present'):
+            fig_presenter.present()
+        for fig in fig_presenter.get_all_figures():
+            fig.set_dpi(80)
+        plt.show()
+
+
 def distinct_markers(num, style='astrisk', total=None, offset=0):
     r"""
     Args:
@@ -145,9 +313,9 @@ def distinct_markers(num, style='astrisk', total=None, offset=0):
     }[style]
     if total is None:
         total = num
-    total_degrees = total * (360 / num_sides)
+    total_degrees = 360 / num_sides
     marker_list = [
-        (num_sides, style_num, (count + offset) / total_degrees)
+        (num_sides, style_num,  total_degrees * (count + offset) / total)
         for count in range(num)
     ]
     return marker_list
@@ -277,177 +445,6 @@ def ensure_fnum(fnum):
 def execstr_global():
     execstr = ['global' + key for key in globals().keys()]
     return execstr
-
-
-def show_was_requested():
-    """
-    returns True if --show is specified on the commandline or you are in
-    IPython (and presumably want some sort of interaction
-    """
-    return not ut.get_argflag(('--noshow')) and (ut.get_argflag(('--show', '--save')) or ut.inIPython())
-    #return ut.show_was_requested()
-
-
-def show_if_requested(N=1):
-    if ut.NOT_QUIET:
-        print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
-
-    # Process figures adjustments from command line before a show or a save
-
-    adjust_list = ut.get_argval('--adjust', type_=list, default=None)
-    if adjust_list is not None:
-        # --adjust=[.02,.02,.05]
-        keys = ['left', 'bottom', 'wspace', 'right', 'top', 'hspace']
-        if len(adjust_list) == 1:
-            # [all]
-            vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
-        elif len(adjust_list) == 3:
-            # [left, bottom, wspace]
-            vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
-        elif len(adjust_list) == 4:
-            # [left, bottom, wspace, hspace]
-            vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[3]]
-        elif len(adjust_list) == 6:
-            vals = adjust_list
-        else:
-            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r. Expectts keys=%r' % (len(adjust_list), adjust_list, keys))
-        adjust_kw = dict(zip(keys, vals))
-        adjust_subplots(**adjust_kw)
-
-    figsize = ut.get_argval('--figsize', type_=list, default=None)
-    if figsize is not None:
-        # Enforce inches and DPI
-        fig = gcf()
-        figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
-        figw, figh = figsize[0], figsize[1]
-        #print('get_size_inches = %r' % (fig.get_size_inches(),))
-        #print('fig w,h (inches) = %r, %r' % (figw, figh))
-        fig.set_size_inches(figw, figh)
-        #print('get_size_inches = %r' % (fig.get_size_inches(),))
-
-    dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
-
-    fpath_ = ut.get_argval('--save', type_=str, default=None)
-
-    if fpath_ is not None:
-        print('Figure save was requested')
-        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'])
-        #import sys
-        from os.path import basename, splitext, join
-        import plottool as pt
-        import vtool as vt
-
-        #print(sys.argv)
-        #ut.print_dict(arg_dict)
-        fpath_ = fpath_.format(**arg_dict)
-        dpath = ut.get_argval('--dpath', type_=str, default=None)
-        fpath = join(dpath, fpath_)
-
-        fig = pt.gcf()
-
-        # make command line adjustments
-        if adjust_list is None:
-            # Only if adjust list was done
-            adjust_kw = ut.get_dict_vals_from_commandline(
-                dict(left=.04, right=.96, bottom=.05, top=.95, wspace=.1, hspace=.1))
-            adjust_subplots(**adjust_kw)
-
-        dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
-
-        absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath), figsize=False, dpi=dpi)
-
-        CLIP_WHITE = ut.get_argflag('--clipwhite')
-        if CLIP_WHITE:
-            # remove white borders
-            img = vt.imread(absfpath_)
-            thresh = 128
-            fillval = [255, 255, 255]
-            cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
-            print('img.shape = %r' % (img.shape,))
-            print('cropped_img.shape = %r' % (cropped_img.shape,))
-            vt.imwrite(absfpath_, cropped_img)
-
-        default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
-        caption_list = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
-        if isinstance(caption_list, six.string_types):
-            caption_str = caption_list
-        else:
-            caption_str = ' '.join(caption_list)
-        #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
-        label_str   = ut.get_argval('--label', type_=str, default=default_label)
-        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
-        height_str  = ut.get_argval('--height', type_=str, default=None)
-        #if dpath is not None:
-        #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
-        #else:
-        #    fpath_ = fpath
-        fpath_list = [fpath_]
-        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
-                                                         label_str=label_str,
-                                                         caption_str=caption_str,
-                                                         width_str=width_str,
-                                                         height_str=height_str)
-        #import sys
-        #print(sys.argv)
-        latex_block = figure_str
-        latex_block = ut.latex_newcommand(label_str, latex_block)
-        #latex_block = ut.codeblock(
-        #    r'''
-        #    \newcommand{\%s}{
-        #    %s
-        #    }
-        #    '''
-        #) % (label_str, latex_block,)
-        try:
-            import os
-            import psutil
-            import pipes
-            #import shlex
-            # TODO: separate into get_process_cmdline_str
-            # TODO: replace home with ~
-            proc = psutil.Process(pid=os.getpid())
-            home = os.path.expanduser('~')
-            cmdline_str = ' '.join([pipes.quote(_).replace(home, '~') for _ in proc.cmdline()])
-            latex_block = ut.codeblock(
-                r'''
-                \begin{comment}
-                %s
-                \end{comment}
-                '''
-            ) % (cmdline_str,) + '\n' + latex_block
-        except OSError:
-            pass
-
-        #latex_indent = ' ' * (4 * 2)
-        latex_indent = ' ' * (0)
-
-        latex_block_ = (ut.indent(latex_block, latex_indent))
-        ut.print_code(latex_block_, 'latex')
-
-        if 'append' in arg_dict:
-            append_fpath = arg_dict['append']
-            ut.write_to(append_fpath, '\n\n' + latex_block_, mode='a')
-
-        if ut.get_argflag('--diskshow'):
-            # show what we wrote
-            ut.startfile(absfpath_)
-
-        # Hack write the corresponding logfile next to the output
-        log_fpath = ut.get_current_log_fpath()
-        ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
-    if ut.inIPython():
-        import plottool as pt
-        pt.iup()
-    elif ut.get_argflag('--cmd'):
-        import plottool as pt
-        pt.draw()
-        ut.embed(N=N)
-    elif ut.get_argflag('--show'):
-        if ut.get_argflag('--present'):
-            fig_presenter.present()
-        for fig in fig_presenter.get_all_figures():
-            fig.set_dpi(80)
-        plt.show()
 
 
 def label_to_colors(labels_):
@@ -746,8 +743,8 @@ def adjust_subplots_safe(**kwargs):
 
 
 def adjust_subplots(left=0.02,  bottom=0.02,
-                    right=0.98,     top=0.90,
-                    wspace=0.1,   hspace=0.15):
+                    right=None,   top=None,
+                    wspace=0.1,   hspace=None):
     """
     left  = 0.125  # the left side of the subplots of the figure
     right = 0.9    # the right side of the subplots of the figure
@@ -756,8 +753,25 @@ def adjust_subplots(left=0.02,  bottom=0.02,
     wspace = 0.2   # the amount of width reserved for blank space between subplots
     hspace = 0.2
     """
+    if right is None:
+        right = 1 - left
+    if top is None:
+        top = 1 - bottom
+    if hspace is None:
+        hspace = wspace
     #print('[df2] adjust_subplots(%r)' % locals())
     plt.subplots_adjust(left, bottom, right, top, wspace, hspace)
+
+
+def adjust_subplots2(**kwargs):
+    subplotpars = gcf().subplotpars
+    adjust_dict = {}
+    valid_kw = ['left', 'right', 'top', 'bottom', 'wspace', 'hspace']
+    for key in valid_kw:
+        adjust_dict[key] = kwargs.get(key, subplotpars.__dict__[key])
+    if kwargs.get('use_argv', False):
+        adjust_dict = ut.parse_dict_from_argv(adjust_dict)
+    plt.subplots_adjust(**adjust_dict)
 
 
 #=======================

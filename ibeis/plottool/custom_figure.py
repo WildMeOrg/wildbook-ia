@@ -304,7 +304,6 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
         #ut.embed()
 
     #fname_clean = split(fpath_clean)[1]
-    #adjust_subplots()
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):

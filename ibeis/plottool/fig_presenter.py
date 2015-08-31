@@ -110,7 +110,6 @@ def all_figures_tight_layout():
     if '--noshow' not in sys.argv:
         for fig in iter(get_all_figures()):
             fig.tight_layout()
-            #adjust_subplots()
             time.sleep(SLEEP_TIME)
 
 

@@ -22,7 +22,12 @@ def get_blended_chip(chip1, chip2, M):
 #@ut.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
             mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1, **kwargs):
-    """ Visualizes spatial verification """
+    """ Visualizes spatial verification
+
+    CommandLine:
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+
+    """
     #import plottool as pt
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
@@ -132,7 +137,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         px = _draw_chip(px, 'Homog Blend', chip2_blendH, hom_inliers, kpts1_m, kpts2_m, H1=H)
     #
     # Adjust subplots
-    df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
+    #df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
 
 
 def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, **kwargs):
