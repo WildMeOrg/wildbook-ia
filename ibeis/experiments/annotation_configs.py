@@ -494,6 +494,19 @@ varysize_pzm = {
 }
 
 
+varysize_gz = {
+    'qcfg': ut.augdict(
+        varysize['qcfg'], {
+            'sample_size': 60,
+        }),
+
+    'dcfg': ut.augdict(
+        varysize['dcfg'], {
+            'sample_size': [200, 300, 400, 500],
+        }),
+}
+
+
 varysize_girm = {
     'qcfg': ut.augdict(
         varysize['qcfg'], {
