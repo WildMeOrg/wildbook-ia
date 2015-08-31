@@ -450,10 +450,17 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     """
     #category_poses = test_result.partition_case_types()
     # TODO: Split up into cfgxs
+    plotkw = FONTKW.copy()
+    plotkw['markersize'] = 12
+    plotkw['marker_list'] = []
+    #plotkw['linestyle'] = '--'
+    import plottool as pt
+
     truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
     X_data_list = []
     X_label_list = []
-    for cfgx, lbl in enumerate(test_result.get_short_cfglbls()):
+    cfgx2_shortlbl = test_result.get_short_cfglbls()
+    for cfgx, lbl in enumerate(cfgx2_shortlbl):
         gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gt_s_td = truth2_prop['gt']['timedelta'].T[cfgx][is_success.T[cfgx]]
@@ -462,8 +469,16 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
         #X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
         #X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
-        X_data_list  += [gt_s_td,  gf_s_td]
-        X_label_list += ['TP ' + lbl, 'FP ' + lbl]
+        X_data_list  += [
+            gt_s_td,
+            #gf_s_td
+        ]
+        X_label_list += [
+            'TP ' + lbl,
+            #'FP ' + lbl
+        ]
+        plotkw['marker_list'] += pt.distinct_markers(1, style='polygon', offset=cfgx, total=len(cfgx2_shortlbl))
+        #plotkw['marker_list'] += pt.distinct_markers(1, style='astrisk', offset=cfgx, total=len(cfgx2_shortlbl))
 
     # TODO WRAP IN VTOOL
     # LEARN MULTI PDF
@@ -507,9 +522,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
 
     xints = np.arange(len(bins) - 1)
 
-    import plottool as pt
-
-    pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1)
+    pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
     ax = pt.gca()
     ax.set_xticklabels(['foo'] * 8)
 
@@ -521,7 +534,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     ax.set_xticklabels(xtick_labels)
     ax.set_xlabel('Time Delta')
     ax.set_ylabel('Frequency')
-    ax.set_title('Timedelta Histogram')
+    ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug())
     pt.gcf().autofmt_xdate()
 
 

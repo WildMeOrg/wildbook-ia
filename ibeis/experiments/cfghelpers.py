@@ -11,8 +11,8 @@ print, rrr, profile = ut.inject2(__name__, '[cfghelpers]')
 
 INTERNAL_CFGKEYS = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
 
-#NAMEVARSEP = ':'
-NAMEVARSEP = '^'
+#NAMEVARSEP = '^'
+NAMEVARSEP = ':'
 
 
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
