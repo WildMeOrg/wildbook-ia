@@ -114,54 +114,43 @@ TMP_mevent = None
 plotWidget = None
 
 
-def distinct_markers(num):
+def distinct_markers(num, style='astrisk', total=None, offset=0):
     r"""
     Args:
         num (?):
 
     CommandLine:
         python -m plottool.draw_func2 --exec-distinct_markers --show
+        python -m plottool.draw_func2 --exec-distinct_markers --style=star --show
+        python -m plottool.draw_func2 --exec-distinct_markers --style=polygon --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
-        >>> marker_list = distinct_markers(10)
+        >>> style = ut.get_argval('--style', type_=str, default='astrisk')
+        >>> marker_list = distinct_markers(10, style)
         >>> x_data = np.arange(0, 3)
         >>> for count, (marker) in enumerate(marker_list):
         >>>     pt.plot(x_data, [count] * len(x_data), marker=marker, markersize=10, linestyle='', label=str(marker))
         >>> pt.legend()
         >>> ut.show_if_requested()
     """
-    distinct_markers = {
-        u'*': u'star',
-        u'+': u'plus',
-        #u'.': u'point',
-        u'1': u'tri_down',
-        u'2': u'tri_up',
-        u'3': u'tri_left',
-        u'4': u'tri_right',
-        #u'8': u'octagon',
-        u'<': u'triangle_left',
-        u'>': u'triangle_right',
-        u'D': u'diamond',
-        u'H': u'hexagon2',
-        u'^': u'triangle_up',
-        u'_': u'hline',
-        u'd': u'thin_diamond',
-        u'h': u'hexagon1',
-        u'o': u'circle',
-        u'p': u'pentagon',
-        u's': u'square',
-        u'v': u'triangle_down',
-        u'x': u'x',
-    }
     num_sides = 3
-    style = {'astrisk': 2, 'star': 1, 'polygon': 0, 'circle': 3}['astrisk']
-    return [(num_sides, style, count / num * (360 / num_sides)) for count in range(num)]
-    if num is None:
-        return list(distinct_markers.keys())
-    return list(distinct_markers.keys())[:num]
+    style_num = {
+        'astrisk': 2,
+        'star': 1,
+        'polygon': 0,
+        'circle': 3
+    }[style]
+    if total is None:
+        total = num
+    total_degrees = total * (360 / num_sides)
+    marker_list = [
+        (num_sides, style_num, (count + offset) / total_degrees)
+        for count in range(num)
+    ]
+    return marker_list
 
 
 def get_all_markers():
