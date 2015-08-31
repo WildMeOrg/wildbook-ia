@@ -92,7 +92,7 @@ def expand_acfgs_consistently(ibs, acfg_combo):
     min_qsize = None
     min_dsize = None
 
-    for acfg in acfg_combo:
+    for combox, acfg in enumerate(acfg_combo):
         qcfg = acfg['qcfg']
         dcfg = acfg['dcfg']
 
@@ -393,6 +393,29 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
         # Filter viewpoint
         available_aids = ibs.filter_aids_to_viewpoint(available_aids, valid_yaws, unknown_ok=not aidcfg['require_viewpoint'])
 
+    if aidcfg['min_timedelta'] is not None:
+        min_timeelta = aidcfg['min_timedelta']
+        if verbose:
+            print(' * Removing annots without timedelta less than %r' % (min_timeelta,))
+        #min_timeelta = 60 * 60 * 24
+        #min_timeelta = 60 * 10
+        grouped_aids = ibs.group_annots_by_name(available_aids)[0]
+        unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, grouped_aids)
+        chosen_idxs_list = []
+        # Find the maximum size subset such that all timedeltas are less than a given value
+        for unixtimes in unixtimes_list:
+            prev_subset_idx = []
+            for K in range(2, len(unixtimes)):
+                value, subset_idx, subset = ut.maximum_distance_subset(unixtimes, K=K)
+                timedeltas = ut.safe_pdist(subset[:, None])
+                if np.any(timedeltas < min_timeelta):
+                    break
+                prev_subset_idx = subset_idx
+            chosen_idxs_list.append(prev_subset_idx)
+        import vtool as vt
+        available_aids = ut.flatten(vt.ziptake(grouped_aids, chosen_idxs_list))
+        #timedelta_list = [ut.safe_pdist(np.array(unixtime_arr)[:,None]) for unixtime_arr in unixtimes_list]
+
     # Each aid must have at least this number of other groundtruth aids
     gt_min_per_name = aidcfg['gt_min_per_name']
     if gt_min_per_name is not None:
@@ -464,18 +487,70 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids
                          for ref_prop, avl_prop in zip(grouped_reference_props, grouped_available_gt_props)]
 
     # Order by increasing timedelta (metric)
-    reverse = True
-    # replace nan with -inf, or inf randomize order between equal values
-    if reverse:
-        for scores in preference_scores:
-            scores[np.isnan(scores)] = -np.inf
-        gt_preference_idx_list = [np.lexsort((scores, rng.rand(len(scores))))[::-1] for scores in preference_scores]
-    else:
-        # Smaller is better, replace nan with inf
-        for scores in preference_scores:
-            scores[np.isnan(scores)] = np.inf
-        gt_preference_idx_list = [np.lexsort((scores, rng.rand(len(scores)))) for scores in preference_scores]
+    gt_preference_idx_list = argsort_groups(preference_scores, reverse=True, rng=rng)
     return gt_preference_idx_list
+
+
+def argsort_groups(scores_list, reverse=True, rng=np.random):
+    """
+    Sorts each group normally, but randomizes order of level values.
+
+    TODO: move to vtool
+
+    Args:
+        scores_list (list):
+        reverse (bool): (default = True)
+        rng (module):  random number generator(default = numpy.random)
+
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-argsort_groups
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> scores_list = [
+        >>>     np.array([np.nan, np.nan], dtype=np.float32),
+        >>>     np.array([np.nan, 2], dtype=np.float2),
+        >>>     np.array([4, 1, 1], dtype=np.float2),
+        >>>     np.array([7, 3, 3, 0, 9, 7, 5, 8], dtype=np.float2),
+        >>>     np.array([2, 4], dtype=np.float2),
+        >>>     np.array([np.nan, 4, np.nan, 8, np.nan, 9], dtype=np.float2),
+        >>> ]
+        >>> reverse = True
+        >>> rng = np.random.RandomState(0)
+        >>> idxs_list = argsort_groups(scores_list, reverse, rng)
+        >>> #import vtool as vt
+        >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
+        >>> #result = 'sorted_scores = %s' % (ut.list_str(sorted_scores),)
+        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list),)
+        >>> print(result)
+        idxs_list = [
+            np.array([1, 0], dtype=np.int64),
+            np.array([1, 0], dtype=np.int64),
+            np.array([2, 1, 0, 3, 5, 4], dtype=np.int64),
+            np.array([2, 3, 0, 1], dtype=np.int64),
+            np.array([1, 0], dtype=np.int64),
+            np.array([2, 0, 1], dtype=np.int64),
+            np.array([0, 5, 6, 2, 7, 1, 4, 3], dtype=np.int64),
+            np.array([5, 3, 4, 1, 2, 0, 6], dtype=np.int64),
+            np.array([0, 1], dtype=np.int64),
+            np.array([5, 3, 1, 2, 0, 4], dtype=np.int64),
+        ]
+    """
+    scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
+    breakers_list = [rng.rand(len(scores)) for scores in scores_list_]
+    # replace nan with -inf, or inf randomize order between equal values
+    replval = -np.inf if reverse else np.inf
+    # Ensure that nans are ordered last
+    for scores in scores_list_:
+        scores[np.isnan(scores)] = replval
+    # The last column is sorted by first with lexsort
+    scorebreaker_list = [np.array((breakers, scores)) for scores, breakers in zip(scores_list_, breakers_list)]
+    if reverse:
+        idxs_list = [np.lexsort(scorebreaker)[::-1] for scorebreaker in  scorebreaker_list]
+    else:
+        idxs_list = [np.lexsort(scorebreaker) for scorebreaker in  scorebreaker_list]
+    return idxs_list
 
 
 @profile
@@ -549,7 +624,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
             print(' * Filtering gt-ref sample_per_ref_name=%r, sample_rule_ref=%r with reference'
                   % (sample_per_ref_name, sample_rule_ref))
         rng = np.random.RandomState(SEED2)
-        if sample_rule_ref == 'max_timedelta':
+        if sample_rule_ref == 'maxtimedelta':
             # Maximize time delta between query and corresponding database annotations
             cmp_func, aggfn, prop_getter = ut.absdiff, np.mean, ibs.get_annot_image_unixtimes_asfloat
             gt_preference_idx_list = get_reference_preference_order(
@@ -613,9 +688,9 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix='', verbose=VERB_T
     """
     python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=max_timedelta,dsize=200
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=max_timedelta,dsize=10
-    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=max_timedelta,dsize=41,dper_name=2
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=maxtimedelta,dsize=200
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=maxtimedelta,dsize=10
+    python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --a controlled:qoffset=2,dsample_rule_ref=maxtimedelta,dsize=41,dper_name=2
 
     CommandLine:
         python -m ibeis.init.filter_annots --exec-sample_available_aids
@@ -652,6 +727,12 @@ def sample_available_aids(ibs, available_aids, aidcfg, prefix='', verbose=VERB_T
         rng = np.random.RandomState(SEED1)
         if sample_rule == 'random':
             preference_idxs_list = [ut.random_indexes(len(aids), rng=rng) for aids in grouped_aids]
+        elif sample_rule == 'mintime':
+            unixtime_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+            preference_idxs_list = argsort_groups(unixtime_list, reverse=False, rng=rng)
+        elif sample_rule == 'maxtime':
+            unixtime_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+            preference_idxs_list = argsort_groups(unixtime_list, reverse=True, rng=rng)
         else:
             raise ValueError('Unknown sample_rule=%r' % (sample_rule,))
         sample_idxs_list = ut.get_list_column_slice(preference_idxs_list, offset, offset + sample_per_name)

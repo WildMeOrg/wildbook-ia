@@ -52,22 +52,9 @@ def register_testgen(func):
     return func
 
 
-#if ut.get_argflag('--full'):
-#ACFG_OPTION_UNCONTROLLED = ['default:qaids=allgt']
-#ACFG_OPTION_CONTROLLED = ['controlled', 'controlled2'] + ACFG_OPTION_UNCONTROLLED
-ACFG_OPTION_CONTROLLED = ['controlled2']
-#ACFG_OPTION_VARYSIZE = ['varysize:qsize=200']
-#ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000]']
-#ACFG_OPTION_VARYSIZE = ['varysize:qsize=500,dsize=[1500,2000,2500,3000]']
+ACFG_OPTION_CONTROLLED = ['controlled']
 ACFG_OPTION_VARYSIZE = ['varysize_pzm']
-#, 'varysize2']
-#ACFG_OPTION_VARYSIZE = ['varysize', 'varysize2', 'varysize:qsize=200', 'varysize2:qsize=200']
-#ACFG_OPTION_VARYPERNAME = ['varypername', 'varypername:qsize=200']
 ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
-#else:
-#    ACFG_OPTION_CONTROLLED = ['controlled']
-#    ACFG_OPTION_VARYSIZE = ['varysize']
-#    ACFG_OPTION_VARYPERNAME = ['varypername']
 
 
 def generate_all():
@@ -151,8 +138,7 @@ def inspect_annotation_configs():
 #@register_testgen
 def precompute_data():
     """
-    Generates the experiments we are doing on invariance
-
+    Ensure features and such are computed
     CommandLine:
         python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
 
@@ -311,18 +297,19 @@ def get_results_command(expt_name, media_name):
     static_flags = ''
     #static_flags = ' --diskshow'
     dynamic_flags_ = ''
+    dpath = '~/latex/crall-candidacy-2015/'
     if media_name == 'table':
         margs = 'ibeis.dev -e print_latexsum'
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
         margs = 'ibeis.dev -e draw_rank_cdf'
         output_flags +=  ' --save ' + plot_fname + '.png'
-        output_flags += ' --dpath=~/code/ibeis'
+        output_flags += ' --dpath=' + dpath
         static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
     elif media_name == 'surface2d':
         margs = 'ibeis.dev -e draw_rank_surface'
         output_flags += ' --save ' + plot_fname + '.png'
-        output_flags += ' --dpath=~/code/ibeis'
+        output_flags += ' --dpath=' + dpath
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'
@@ -330,7 +317,7 @@ def get_results_command(expt_name, media_name):
     elif media_name == 'surface3d':
         margs = 'ibeis.dev --e draw_rank_surface --no2dsurf'
         output_flags += ' --save ' + plot_fname + '.png'
-        output_flags += ' --dpath=~/code/ibeis'
+        output_flags += ' --dpath=' + dpath
         static_flags += ' --clipwhite'
         static_flags += ' --dpi=256'
         static_flags += ' --figsize=12,4'

@@ -318,81 +318,6 @@ class TestResult(object):
             config_rand_bin_qxs.append(rand_bin_qxs)
         return config_rand_bin_qxs
 
-    def get_full_cfgstr(test_result, cfgx):
-        """ both qannots and dannots included """
-        full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-        return full_cfgstr
-
-    @ut.memoize
-    def get_cfgstr(test_result, cfgx):
-        """ just dannots and config_str """
-        cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
-        return cfgstr
-
-    def get_short_cfglbls(test_result):
-        """
-        Labels for published tables
-
-        cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
-        """
-        cfg_lbls = test_result.cfgx2_lbl[:]
-        import re
-        repl_list = [
-            ('candidacy_', ''),
-            #('custom', 'default'),
-            ('fg_on', 'FG'),
-            ('sv_on', 'SV'),
-            ('rotation_invariance', 'RI'),
-            ('affine_invariance', 'AI'),
-            ('augment_queryside_hack', 'AQH'),
-            ('nNameShortlistSVER', 'nRR'),
-            #
-            #('sample_per_ref_name', 'per_ref_name'),
-            ('sample_per_ref_name', 'per_gt_name'),
-            #???
-            #('sample_per_ref_name', 'per_gt_name'),
-            #('per_name', 'per_gf_name'),   # Try to make labels clearer for paper
-            #----
-            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'csum'),
-            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'nsum'),
-            ('force_const_size=[^,]+,?', ''),
-            (r'[dq]_true_size=\d+,?', ''),
-            (r'_orig_size=[^,]+,?', ''),
-            # Hack
-            ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + '\,?', ''),
-            ('=True', '=On'),
-            ('=False', '=Off'),
-        ]
-        for ser, rep in repl_list:
-            cfg_lbls = [re.sub(ser, rep, lbl) for lbl in cfg_lbls]
-
-        # split configs up by param and annots
-        pa_tups = [lbl.split('+') for lbl in cfg_lbls]
-        cfg_lbls2 = []
-        for pa in pa_tups:
-            new_parts = []
-            for part in pa:
-                name, settings = part.split(cfghelpers.NAMEVARSEP)
-                if len(settings) == 0:
-                    new_parts.append(name)
-                else:
-                    new_parts.append(part)
-            if len(new_parts) == 2 and new_parts[1] == 'default':
-                newlbl = new_parts[0]
-            else:
-                newlbl = '+'.join(new_parts)
-            cfg_lbls2.append(newlbl)
-        #cfgtups = [lbl.split(cfghelpers.NAMEVARSEP) for lbl in cfg_lbls]
-        #cfg_lbls = [cfghelpers.NAMEVARSEP.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
-        cfg_lbls = cfg_lbls2
-
-        #from ibeis.experiments import annotation_configs
-        #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
-
-        #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
-
-        return cfg_lbls
-
     def get_X_LIST(test_result):
         X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
         return X_LIST
@@ -457,42 +382,133 @@ class TestResult(object):
             assert False
         return cfgx_list
 
-    def get_title_aug(test_result):
+    def get_full_cfgstr(test_result, cfgx):
+        """ both qannots and dannots included """
+        full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+        return full_cfgstr
+
+    @ut.memoize
+    def get_cfgstr(test_result, cfgx):
+        """ just dannots and config_str """
+        cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
+        return cfgstr
+
+    def _shorten_lbls(test_result, lbl):
+        import re
+        repl_list = [
+            ('candidacy_', ''),
+            ('viewpoint_compare', 'viewpoint'),
+            #('custom', 'default'),
+            ('fg_on', 'FG'),
+            ('sv_on', 'SV'),
+            ('rotation_invariance', 'RI'),
+            ('affine_invariance', 'AI'),
+            ('augment_queryside_hack', 'AQH'),
+            ('nNameShortlistSVER', 'nRR'),
+            #
+            #('sample_per_ref_name', 'per_ref_name'),
+            ('sample_per_ref_name', 'per_gt_name'),
+            ('require_timestamp=True', 'require_timestamp'),
+            ('require_timestamp=False,?', ''),
+            ('dpername=None,?', ''),
+            #???
+            #('sample_per_ref_name', 'per_gt_name'),
+            #('per_name', 'per_gf_name'),   # Try to make labels clearer for paper
+            #----
+            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'csum'),
+            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'nsum'),
+            ('force_const_size=[^,]+,?', ''),
+            (r'[dq]_true_size=\d+,?', ''),
+            (r'_orig_size=[^,]+,?', ''),
+            # Hack
+            ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + '\,?', ''),
+            ('=True', '=On'),
+            ('=False', '=Off'),
+        ]
+        for ser, rep in repl_list:
+            lbl = re.sub(ser, rep, lbl)
+        return lbl
+
+    def get_short_cfglbls(test_result):
+        """
+        Labels for published tables
+
+        cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
+        """
+        cfg_lbls = test_result.cfgx2_lbl[:]
+
+        cfg_lbls = [test_result._shorten_lbls(lbl) for lbl in cfg_lbls]
+
+        # split configs up by param and annots
+        pa_tups = [lbl.split('+') for lbl in cfg_lbls]
+        cfg_lbls2 = []
+        for pa in pa_tups:
+            new_parts = []
+            for part in pa:
+                name, settings = part.split(cfghelpers.NAMEVARSEP)
+                if len(settings) == 0:
+                    new_parts.append(name)
+                else:
+                    new_parts.append(part)
+            if len(new_parts) == 2 and new_parts[1] == 'default':
+                newlbl = new_parts[0]
+            else:
+                newlbl = '+'.join(new_parts)
+            cfg_lbls2.append(newlbl)
+        #cfgtups = [lbl.split(cfghelpers.NAMEVARSEP) for lbl in cfg_lbls]
+        #cfg_lbls = [cfghelpers.NAMEVARSEP.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
+        cfg_lbls = cfg_lbls2
+
+        #from ibeis.experiments import annotation_configs
+        #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
+
+        #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
+
+        return cfg_lbls
+
+    def get_title_aug(test_result, withinfo=True):
         ibs = test_result.ibs
         title_aug = ''
         title_aug += ' db=' + (ibs.get_dbname())
         try:
             if '_cfgname' in test_result.common_acfg['common']:
-                title_aug += ' a=' + test_result.common_acfg['common']['_cfgname']
+                annot_cfgname = test_result.common_acfg['common']['_cfgname']
             else:
-                title_aug += ' a=[' + ','.join([cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]) + ']'
-            title_aug += ' t=' + test_result.common_cfgdict['_cfgname']
+                annot_cfgname = '[' + ','.join([cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]) + ']'
+            pipeline_cfgname = test_result.common_cfgdict['_cfgname']
+            annot_cfgname = test_result._shorten_lbls(annot_cfgname)
+            pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
+            title_aug += ' a=' + annot_cfgname
+            title_aug += ' t=' + pipeline_cfgname
         except Exception as ex:
             print(ut.dict_str(test_result.common_acfg))
             print(ut.dict_str(test_result.common_cfgdict))
             ut.printex(ex)
             raise
-        if test_result.has_constant_qaids():
-            title_aug += ' #qaids=%r' % (len(test_result.qaids),)
-        if test_result.has_constant_daids():
-            daids = test_result.cfgx2_daids[0]
-            title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+        if withinfo:
             if test_result.has_constant_qaids():
-                locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
-                all_daid_per_name_stats = locals_['all_daid_per_name_stats']
-                if all_daid_per_name_stats['std'] == 0:
-                    title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
-                else:
-                    title_aug += ' dper_name=%s±%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2), ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
-        elif test_result.has_constant_length_daids():
-            daids = test_result.cfgx2_daids[0]
-            title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+                title_aug += ' #qaids=%r' % (len(test_result.qaids),)
+            if test_result.has_constant_daids():
+                daids = test_result.cfgx2_daids[0]
+                title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+                if test_result.has_constant_qaids():
+                    locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
+                    all_daid_per_name_stats = locals_['all_daid_per_name_stats']
+                    if all_daid_per_name_stats['std'] == 0:
+                        title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
+                    else:
+                        title_aug += ' dper_name=%s±%s' % (
+                            ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),
+                            ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
+            elif test_result.has_constant_length_daids():
+                daids = test_result.cfgx2_daids[0]
+                title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
 
         return title_aug
 
-    def get_fname_aug(test_result):
+    def get_fname_aug(test_result, **kwargs):
         import re
-        title_aug = test_result.get_title_aug()
+        title_aug = test_result.get_title_aug(**kwargs)
         valid_regex = '-a-zA-Z0-9_.() '
         valid_extra = '=,'
         valid_regex += valid_extra
@@ -506,16 +522,19 @@ class TestResult(object):
             ibs = test_result.ibs
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids) for daids in test_result.cfgx2_daids]
         unique_daids = ut.list_compress(test_result.cfgx2_daids, ut.flag_unique_items(cfx2_dannot_hashid))
-        print('+====')
-        print('Printing %d unique annotconfig stats' % (len(unique_daids)))
-        print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
-        print('param_basis(len(daids)) = %r' % (test_result.get_param_basis('len(daids)'),))
-        for count, daids in enumerate(unique_daids):
-            print('+---')
-            print('count = %r/%r' % (count, len(unique_daids)))
-            if test_result.has_constant_qaids():
-                annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
-            print('L___')
+        with ut.Indenter('[acfgstats]'):
+            print('+====')
+            print('Printing %d unique annotconfig stats' % (len(unique_daids)))
+            print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+            print('param_basis(len(daids)) = %r' % (test_result.get_param_basis('len(daids)'),))
+            for count, daids in enumerate(unique_daids):
+                print('+---')
+                print('acfgx = %r/%r' % (count, len(unique_daids)))
+                if test_result.has_constant_qaids():
+                    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
+                else:
+                    ibs.print_annot_stats(daids, prefix='d')
+                print('L___')
 
     def print_results(test_result):
         r"""
@@ -550,12 +569,13 @@ class TestResult(object):
         else:
             return test_result.qaids
 
-    def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True):
-        category_poses = test_result.partition_case_types()
+    def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True, min_success_diff=0):
+        category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
         # STRATIFIED SAMPLE OF CASES FROM GROUPS
         #mode = 'failure'
         rng = np.random.RandomState(0)
         ignore_keys = ['total_failure', 'total_success']
+        #ignore_keys = []
         #sample_keys = []
         #sample_vals = []
         flat_sample_dict = ut.ddict(list)
@@ -655,7 +675,7 @@ class TestResult(object):
             truth2_prop[truth]['timedelta'] = timedelta_mat
         return truth2_prop, is_success, is_failure
 
-    def partition_case_types(test_result):
+    def partition_case_types(test_result, min_success_diff=0):
         # TODO: Make this function divide the failure cases into several types
         # * scenery failure, photobomb failure, matching failure.
         # TODO: Make this function divide success cases into several types
@@ -664,6 +684,16 @@ class TestResult(object):
 
         # Matching labels from annotmatch rowid
         truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
+
+        # Which queries differ in success
+        min_success_ratio = min_success_diff / (test_result.nConfig)
+        #qx2_cfgdiffratio = np.array([np.sum(flags) / len(flags) for flags in is_success])
+        #qx2_isvalid = np.logical_and((1 - qx2_cfgdiffratio) >= min_success_ratio, min_success_ratio <= min_success_ratio)
+        qx2_cfgdiffratio = np.array([min(np.sum(flags), len(flags) - np.sum(flags)) / len(flags) for flags in is_success])
+        qx2_isvalid = qx2_cfgdiffratio >= min_success_ratio
+        #qx2_configs_differed = np.array([len(np.unique(flags)) > min_success_diff for flags in is_success])
+        #qx2_isvalid = qx2_configs_differed
+
         ibs = test_result.ibs
         type_getters = [
             ibs.get_annotmatch_is_photobomb,
@@ -676,14 +706,17 @@ class TestResult(object):
         for truth in ['gt', 'gf']:
             annotmatch_rowid_mat = truth2_prop[truth]['annotmatch_rowid']
             # Check which annotmatch rowids are None, they have not been labeled with matching type
-            is_typeless = np.isnan(annotmatch_rowid_mat.astype(np.float))
-            truth2_is_type[truth]['typeless'] = is_typeless
+            is_unreviewed = np.isnan(annotmatch_rowid_mat.astype(np.float))
+            truth2_is_type[truth]['unreviewed'] = is_unreviewed
             for getter_method in type_getters:
                 funcname = ut.get_funcname(getter_method)
                 key = funcname.replace('get_annotmatch_is_', '')
                 if not (truth == 'gt' and key in ignore_gt_flags):
                     is_type = ut.accepts_numpy(getter_method.im_func)(ibs, annotmatch_rowid_mat).astype(np.bool)
                     truth2_is_type[truth][key] = is_type
+
+        truth2_is_type['gt']['cfgxdiffers'] = np.tile((qx2_cfgdiffratio > 0), (test_result.nConfig, 1)).T
+        truth2_is_type['gt']['cfgxsame']    = ~truth2_is_type['gt']['cfgxdiffers']
 
         # Make other category information
         gt_rank_ranges = [(5, 50), (50, None), (None, 5)]
@@ -712,8 +745,12 @@ class TestResult(object):
             success_poses = ut.odict()
             failure_poses = ut.odict()
             for key, is_type_ in truth2_is_type[truth].items():
-                is_success_pos = np.vstack(np.nonzero(np.logical_and(is_type_, is_success))).T
-                is_failure_pos = np.vstack(np.nonzero(np.logical_and(is_type_, is_failure))).T
+                success_pos_flags = np.logical_and(is_type_, is_success)
+                failure_pos_flags = np.logical_and(is_type_, is_failure)
+                success_pos_flags = np.logical_and(success_pos_flags, qx2_isvalid[:, None])
+                failure_pos_flags = np.logical_and(failure_pos_flags, qx2_isvalid[:, None])
+                is_success_pos = np.vstack(np.nonzero(success_pos_flags)).T
+                is_failure_pos = np.vstack(np.nonzero(failure_pos_flags)).T
                 success_poses[key] = is_success_pos
                 failure_poses[key] = is_failure_pos
             # Record totals
@@ -730,36 +767,38 @@ class TestResult(object):
             del (category_poses['success_gt'][rank_range_key])
 
         # Convert to histogram
-        category_hists = ut.odict()
-        for key, pos_dict in category_poses.items():
-            category_hists[key] = ut.map_dict_vals(len, pos_dict)
-        ut.print_dict(category_hists)
+        #category_hists = ut.odict()
+        #for key, pos_dict in category_poses.items():
+            #category_hists[key] = ut.map_dict_vals(len, pos_dict)
+        #ut.print_dict(category_hists)
 
         # Split up between different configurations
-        cfgx2_category_poses = ut.odict()
-        for cfgx in range(test_result.nConfig):
-            cfg_category_poses = ut.odict()
-            for key, pos_dict in category_poses.items():
-                cfg_pos_dict = ut.odict()
-                for type_, pos_list in pos_dict.items():
-                    #if False:
-                    #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
-                    #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order2(pos_list.T[0]))
-                    #    grouppos_list = list(qx2_casegroup.values())
-                    #    grouppos_len_list = list(map(len, grouppos_list))
-                    #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
-                    cfg_pos_list = pos_list[pos_list.T[1] == cfgx]
-                    cfg_pos_dict[type_] = cfg_pos_list
-                cfg_category_poses[key] = cfg_pos_dict
-            cfgx2_category_poses[cfgx] = cfg_category_poses
+        if False:
+            cfgx2_category_poses = ut.odict()
+            for cfgx in range(test_result.nConfig):
+                cfg_category_poses = ut.odict()
+                for key, pos_dict in category_poses.items():
+                    cfg_pos_dict = ut.odict()
+                    for type_, pos_list in pos_dict.items():
+                        #if False:
+                        #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
+                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order2(pos_list.T[0]))
+                        #    grouppos_list = list(qx2_casegroup.values())
+                        #    grouppos_len_list = list(map(len, grouppos_list))
+                        #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
+                        cfg_pos_list = pos_list[pos_list.T[1] == cfgx]
+                        cfg_pos_dict[type_] = cfg_pos_list
+                    cfg_category_poses[key] = cfg_pos_dict
+                cfgx2_category_poses[cfgx] = cfg_category_poses
+            cfgx2_category_hist = ut.hmap_vals(len, cfgx2_category_poses)
+            ut.print_dict(cfgx2_category_hist)
 
-        # Convert to histogram
+        # Print histogram
         # Split up between different configurations
         category_hists = ut.hmap_vals(len, category_poses)
-        ut.print_dict(category_hists)
+        if ut.NOT_QUIET:
+            ut.print_dict(category_hists)
 
-        cfgx2_category_hist = ut.hmap_vals(len, cfgx2_category_poses)
-        ut.print_dict(cfgx2_category_hist)
         return category_poses
         #return cfgx2_category_poses
         #% pylab qt4
@@ -805,7 +844,6 @@ class TestResult(object):
             >>> result = ('new_hard_qx_list = %s' % (str(new_hard_qx_list),))
             >>> print(result)
         """
-        #test_result.partition_case_types()
         common_qaids = test_result.get_common_qaids()
         # look at scores of the best gt and gf
         gf_score_mat = test_result.get_infoprop_mat('qx2_gf_raw_score', common_qaids)

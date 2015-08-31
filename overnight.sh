@@ -1,34 +1,15 @@
-#!/bin/sh
-python -m ibeis.scripts.gen_cand_expts --exec-generate_all
+python -m ibeis.dev -e draw_rank_surface -t candidacy_k -a varysize_pzm --db PZ_Master1 --hargv=expt
+
+python -m ibeis.dev -e draw_rank_surface -t candidacy_k -a varysize_gz --db GZ_ALL --hargv=expt --aidcfginfo
+
+python -m ibeis.dev -e draw_rank_surface -t candidacy_k -a varysize_girm --db NNP_MasterGIRM_core --hargv=expt 
 
 
-# Make sure test are running try them again if they fail
-rm marker*.txt
-./overnight_experiments.sh
+python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore -a varypername_pzm --db PZ_Master1 --hargv=expt
 
-echo 'marker1' >> marker1.txt
-./experiment_preload.sh
 
-echo 'marker2' >> marker2.txt
-./overnight_experiments.sh
+python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore -a varypername_pzm --db GZ_ALL --hargv=expt
 
-python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
 
-echo 'marker3' >> marker3.txt
-./overnight_experiments.sh
+python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore -a varypername_pzm --db NNP_MasterGIRM_core --hargv=expt
 
-echo 'marker4' >> marker4.txt
-./overnight_experiments.sh
-
-# Do lengthier experiments if time permits
-
-#python -m ibeis.scripts.gen_cand_expts --exec-baseline_experiments --full
-#python -m ibeis.scripts.gen_cand_expts --exec-invariance_experiments --full
-
-#echo 'marker3' >> marker3.txt
-#./experiment_baseline.sh
-
-#echo 'marker4' >> marker4.txt
-#./experiment_invar.sh
-
-echo 'markerFINISH' >> markerFINISH.txt

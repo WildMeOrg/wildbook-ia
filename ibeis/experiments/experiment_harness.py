@@ -50,6 +50,9 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
 
     # Generate list of database annotation configurations
+    if len(acfg_name_list) == 0:
+        raise ValueError('must give acfg name list')
+
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
@@ -70,6 +73,15 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list):
     nAcfg = len(acfg_list)
 
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
+
+    if ut.get_argflag(('--pcfginfo', '--pipecfginfo')):
+        ut.colorprint('Requested PcfgInfo for tests... ', 'red')
+        for pcfgx, pipecfg in enumerate(pipecfg_list):
+            print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
+            print(pipecfg.get_cfgstr())
+            print('L___')
+        ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
+        sys.exit(1)
 
     if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
         # Print info about annots for the test

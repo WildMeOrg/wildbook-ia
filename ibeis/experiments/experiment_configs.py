@@ -40,6 +40,13 @@ def get_candidacy_dbnames():
     ]
 
 
+ALIAS_KEYS = {
+    'RI': 'rotation_invariance',
+    'AI': 'affine_invariance',
+    'AQH': 'augment_queryside_hack',
+}
+
+
 #def candidacy_annot_selections():
 #    """
 #    --aidcfg
@@ -72,7 +79,7 @@ candidacy_baseline = [
 
 
 # Test all combinations of invariance
-candidacy_invariance = [
+candinvar = candidacy_invariance = [
     {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
     {'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
     {'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},

@@ -4,7 +4,7 @@
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-from ibeis import params
+#from ibeis import params
 import utool as ut
 from ibeis.experiments import experiment_storage
 from ibeis.model.hots import match_chips4 as mc4
@@ -35,11 +35,11 @@ def draw_rank_surface(ibs, test_result):
         test_result (?):
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
+        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
+        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
+        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface -t candidacy_k -a varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000] --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_rank_surface -t candidacy_k -a varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000] --db PZ_Master1 --show
 
 
     Example:
@@ -145,21 +145,22 @@ def draw_rank_cdf(ibs, test_result):
         test_result (?):
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a controlled:qsize=1 controlled:qsize=3
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_Master0 --controlled --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_Master0 --controlled --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_namescore --db PZ_MTEST --controlled --show
+        python -m ibeis.dev -e draw_rank_cdf
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a controlled:qsize=1 controlled:qsize=3
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_Master0 --controlled --show
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore --db PZ_Master0 --controlled --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore --db PZ_MTEST --controlled --show
+
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
 
         python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a controlled --db PZ_MTEST --show
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master0   --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master0   --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
 
 
     Example:
@@ -174,12 +175,19 @@ def draw_rank_cdf(ibs, test_result):
     import plottool as pt
     #cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
-
     label_list = test_result.get_short_cfglbls()
     label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label
                   for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
+    test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset', default=None)
+    if test_cfgx_slice is not None:
+        print('test_cfgx_slice = %r' % (test_cfgx_slice,))
+        cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent,
+                                                      test_cfgx_slice))
+        label_list = ut.list_take(label_list, test_cfgx_slice)
+        color_list = ut.list_take(color_list, test_cfgx_slice)
+        marker_list = ut.list_take(marker_list, test_cfgx_slice)
     # Order cdf list by rank0
     sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
     label_list = ut.list_take(label_list, sortx)
@@ -196,7 +204,8 @@ def draw_rank_cdf(ibs, test_result):
     # Find where the functions no longer change
     freq_deriv = np.diff(cfgx2_cumhist_percent.T[:-1].T)
     reverse_deriv_cumsum = freq_deriv[:, ::-1].cumsum(axis=0)
-    reverse_changing_pos = np.array(ut.replace_nones(vt.find_first_true_indices(reverse_deriv_cumsum > 0), np.nan))
+    reverse_changing_pos = np.array(ut.replace_nones(
+        vt.find_first_true_indices(reverse_deriv_cumsum > 0), np.nan))
     nonzero_poses = (len(cfgx2_cumhist_percent.T) - 1) - reverse_changing_pos
     maxrank = np.nanmax(nonzero_poses)
 
@@ -204,7 +213,8 @@ def draw_rank_cdf(ibs, test_result):
     #maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
 
     if maxrank is not None:
-        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:min(len(cfgx2_cumhist_percent.T), maxrank)]
+        maxpos = min(len(cfgx2_cumhist_percent.T), maxrank)
+        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
         edges_short = edges[0:min(len(edges), maxrank + 1)]
 
     USE_ZOOM = ut.get_argflag('--use-zoom')
@@ -212,9 +222,10 @@ def draw_rank_cdf(ibs, test_result):
 
     fnum = pt.ensure_fnum(None)
 
-    cumhistkw = dict(xlabel='rank', ylabel='% queries ≤ rank',
-                     color_list=color_list, marker_list=marker_list, fnum=fnum, legend_loc='lower right',
-                     num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **FONTKW)
+    cumhistkw = dict(
+        xlabel='rank', ylabel='% queries ≤ rank', color_list=color_list,
+        marker_list=marker_list, fnum=fnum, legend_loc='lower right',
+        num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **FONTKW)
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
@@ -223,11 +234,13 @@ def draw_rank_cdf(ibs, test_result):
     if USE_ZOOM:
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
-            cfgx2_cumhist_percent, edges=edges, label_list=label_list, num_xticks=maxrank,
-            use_legend=False, pnum=pnum_(), **cumhistkw)
+            cfgx2_cumhist_percent, edges=edges, label_list=label_list,
+            num_xticks=maxrank, use_legend=False, pnum=pnum_(), **cumhistkw)
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
     pt.set_figtitle(figtitle, size=14)
+    if ut.get_argflag('--contextadjust'):
+        pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
     #pt.set_figtitle(figtitle, size=10)
 
 
@@ -282,7 +295,9 @@ def make_metadata_custom_api(metadata):
     col_name_list, column_list = metadata.get_square_data()
 
     # Priority of column names
-    colname_priority = ['qaids', 'qx2_gt_rank', 'qx2_gt_timedelta', 'qx2_gf_timedelta',  'analysis_fpath', 'qx2_gt_raw_score', 'qx2_gf_raw_score']
+    colname_priority = ['qaids', 'qx2_gt_rank', 'qx2_gt_timedelta',
+                        'qx2_gf_timedelta',  'analysis_fpath',
+                        'qx2_gt_raw_score', 'qx2_gf_raw_score']
     colname_priority += sorted(ut.setdiff_ordered(col_name_list, colname_priority))
     sortx = ut.priority_argsort(col_name_list, colname_priority)
     col_name_list = ut.list_take(col_name_list, sortx)
@@ -429,14 +444,10 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     r"""
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_case_timedeltas
+        python -m ibeis.dev -e draw_case_timedeltas
 
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a controlled uncontrolled --db PZ_Master1 --show
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
-        python -m ibeis.dev -e draw_case_timedeltas -t baseline -a uncontrolled controlled --db PZ_Master1 --show --aidcfginfo
+        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
+        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
 
 
     Example:
@@ -456,34 +467,48 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     #plotkw['linestyle'] = '--'
     import plottool as pt
 
+    test_result.print_unique_annot_config_stats(ibs)
+
     truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
     X_data_list = []
     X_label_list = []
     cfgx2_shortlbl = test_result.get_short_cfglbls()
+    TRUEPOS = ut.get_argflag('--falsepos')
     for cfgx, lbl in enumerate(cfgx2_shortlbl):
         gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gt_s_td = truth2_prop['gt']['timedelta'].T[cfgx][is_success.T[cfgx]]
-        gf_s_td = truth2_prop['gf']['timedelta'].T[cfgx][is_success.T[cfgx]]
+        gf_s_td = truth2_prop['gf']['timedelta'].T[cfgx][is_success.T[cfgx]]  # NOQA
         #X_data_list  += [np.append(gt_f_td, gt_s_td), np.append(gf_f_td, gf_s_td)]
         #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
         #X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
         #X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
-        X_data_list  += [
-            gt_s_td,
-            #gf_s_td
-        ]
-        X_label_list += [
-            'TP ' + lbl,
-            #'FP ' + lbl
-        ]
-        plotkw['marker_list'] += pt.distinct_markers(1, style='polygon', offset=cfgx, total=len(cfgx2_shortlbl))
+        if TRUEPOS:
+            X_data_list  += [
+                gf_s_td
+            ]
+            X_label_list += [
+                'FP ' + lbl
+            ]
+        else:
+            X_data_list  += [
+                gt_s_td,
+                #gf_s_td
+            ]
+            X_label_list += [
+                'TP ' + lbl,
+                #'FP ' + lbl
+            ]
+        plotkw['marker_list'] += pt.distinct_markers(1, style='polygon',
+                                                     offset=cfgx,
+                                                     total=len(cfgx2_shortlbl))
         #plotkw['marker_list'] += pt.distinct_markers(1, style='astrisk', offset=cfgx, total=len(cfgx2_shortlbl))
 
     # TODO WRAP IN VTOOL
     # LEARN MULTI PDF
     #gridsize = 1024
     #adjust = 64
+    numnan_list = [(~np.isfinite(X)).sum() for X in X_data_list]
     xdata_list = [X[~np.isnan(X)] for X in X_data_list]
     #import vtool as vt
     #xdata_pdf_list = [vt.estimate_pdf(xdata, gridsize=gridsize, adjust=adjust) for xdata in xdata_list]  # NOQA
@@ -513,29 +538,57 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         datetime.timedelta(days=1).total_seconds(),
         datetime.timedelta(weeks=1).total_seconds(),
         datetime.timedelta(days=356).total_seconds(),
+        #np.inf,
         max(datetime.timedelta(days=356 * 10).total_seconds(), max_score + 1),
     ]
 
     # HISTOGRAM
     #if False:
     freq_list = [np.histogram(xdata, bins)[0] for xdata in xdata_list]
-
-    xints = np.arange(len(bins) - 1)
-
-    pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
-    ax = pt.gca()
-    ax.set_xticklabels(['foo'] * 8)
-
     timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True) for b in bins]
-
     bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
-    xtick_labels = [''] + bin_labels + ['']
+    bin_labels[-1] = '> 1 year'
+    bin_labels[0] = '< 1 minute'
+    WITH_NAN = True
+    if WITH_NAN:
+        freq_list = [np.append(freq, [numnan]) for freq, numnan in zip(freq_list , numnan_list)]
+        bin_labels += ['nan']
 
-    ax.set_xticklabels(xtick_labels)
-    ax.set_xlabel('Time Delta')
-    ax.set_ylabel('Frequency')
-    ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug())
-    pt.gcf().autofmt_xdate()
+    # Convert to percent
+    freq_list = [100 * freq / len(is_success) for freq in freq_list]
+
+    xints = np.arange(len(bin_labels))
+
+    PIE = True
+
+    if PIE:
+        fnum = 1
+        pt.figure(fnum=fnum)
+        pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
+        bin_labels[0]
+
+        for count, freq in enumerate(freq_list):
+            pt.figure(fnum=fnum, pnum=pnum_())
+            pt.plt.pie(freq, explode=[0] * len(freq), autopct='%1.1f%%', labels=bin_labels)
+            ax = pt.gca()
+            ax.set_xlabel(X_label_list[count])
+        if ut.get_argflag('--contextadjust'):
+            pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+    else:
+        pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
+        ax = pt.gca()
+
+        xtick_labels = [''] + bin_labels + ['']
+
+        ax.set_xticklabels(xtick_labels)
+        ax.set_xlabel('timedelta')
+        #ax.set_ylabel('Frequency')
+        ax.set_ylabel('% true positives')
+        ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug())
+        pt.gcf().autofmt_xdate()
+
+        if ut.get_argflag('--contextadjust'):
+            pt.adjust_subplots(left=.2, bottom=.2, wspace=.0, hspace=.15)
 
 
 @profile
@@ -547,7 +600,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_cases --figdir=individual_results
+        python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2 --show
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --figdir=figures --vf --vh2
@@ -584,7 +637,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
 
     figdir = ibs.get_fig_dir()
     figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
-    figdir = join(figdir, test_result.get_fname_aug())
+    figdir = join(figdir, 'cases_' + test_result.get_fname_aug(withinfo=False))
     ut.ensuredir(figdir)
 
     if ut.is_developer() or ut.get_argflag(('--view-fig-directory', '--vf')):
@@ -666,12 +719,16 @@ def draw_individual_cases(ibs, test_result, metadata=None):
             # Get row and column index
             cfgstr = test_result.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
-            qres_cfgstr = qres.get_fname(ext='', hack27=True)
-            individ_results_dpath = join(individual_results_figdir, qres_cfgstr)
+            if False:
+                qres_dpath = qres.get_fname(ext='', hack27=True)
+            else:
+                qres_dpath = 'qaid={qaid}'.format(qaid=qres.qaid)
+            individ_results_dpath = join(individual_results_figdir, qres_dpath)
             ut.ensuredir(individ_results_dpath)
             # Draw Result
             # try to shorten query labels a bit
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
+            qres_fname = query_lbl + '.png'
             #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
 
             # SHOW ANALYSIS
@@ -680,15 +737,28 @@ def draw_individual_cases(ibs, test_result, metadata=None):
             show_kwargs['show_timedelta'] = True
             show_kwargs['show_gf'] = True
             if DRAW_ANALYSIS:
-                analysis_fpath = join(individ_results_dpath, query_lbl) + '.png'
+                analysis_fpath = join(individ_results_dpath, qres_fname)
                 #print('analysis_fpath = %r' % (analysis_fpath,))
                 if SHOW or overwrite or not ut.checkpath(analysis_fpath):
                     if SHOW:
                         qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                     else:
                         qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+
+                    # So hacky
+                    if ut.get_argflag('--tight'):
+                        #pt.plt.tight_layout()
+                        #pt.plt.tight_layout()
+                        #pt.plt.tight_layout()
+                        #pt.plt.tight_layout()
+                        #pt.plt.tight_layout()
+                        pass
+                    #pt.adjust_subplots2(top=.9)
+                    #pt.adjust_subplots2(use_argv=True, hspace=0)
                     #pt.adjust_subplots(.01, .01, .98, .9, .05, .15)
                     pt.gcf().savefig(analysis_fpath)
+                    import vtool as vt
+                    vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
                     cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                     #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
                     #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
@@ -760,12 +830,12 @@ def get_individual_result_sample(test_result,
     #qaids = test_result.qaids
     qaids = test_result.get_common_qaids()
 
-    sel_cols = params.args.sel_cols  # FIXME
-    sel_rows = params.args.sel_rows  # FIXME
-    sel_cols = [] if sel_cols is None else sel_cols
-    sel_rows = [] if sel_rows is None else sel_rows
-    #sel_rows = []
-    #sel_cols = []
+    #sel_cols = params.args.sel_cols  # FIXME
+    #sel_rows = params.args.sel_rows  # FIXME
+    #sel_cols = [] if sel_cols is None else sel_cols
+    #sel_rows = [] if sel_rows is None else sel_rows
+    sel_rows = []
+    sel_cols = []
     flat_case_labels = None
     if ut.NOT_QUIET:
         print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
@@ -789,16 +859,32 @@ def get_individual_result_sample(test_result,
         sel_rows.extend(np.array(new_hard_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
     # sample-cases
-    view_cases = True
-    if view_cases:
-        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
+
+    def convert_case_pos_to_cfgx(case_pos_list, case_labels_list):
         # Convert to all cfgx format
-        qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+        qx_list = ut.unique_keep_order2(np.array(case_pos_list).T[0])
         ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
         grouped_labels = ut.dict_take(ut.group_items(case_labels_list, case_pos_list.T[0]), qx_list)
         flat_case_labels = list(map(ut.unique_keep_order2, map(ut.flatten, grouped_labels)))
-        sel_rows.extend(np.array(qx_list).tolist())
-        sel_cols.extend(list(range(len(cfg_list))))
+        new_rows = np.array(qx_list).tolist()
+        new_cols = list(range(len(cfg_list)))
+        return new_rows, new_cols, flat_case_labels
+
+    view_differ_cases = ut.get_argflag(('--diff-cases', '--dc'))
+    if view_differ_cases:
+        # Cases that passed on config but failed another
+        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=True, min_success_diff=1)
+        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, case_labels_list)
+        sel_rows.extend(new_rows)
+        sel_cols.extend(new_cols)
+
+    view_cases = ut.get_argflag(('--view-cases', '--vc'))
+    if view_cases:
+        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
+        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, case_labels_list)
+        sel_rows.extend(new_rows)
+        sel_cols.extend(new_cols)
+
     if view_hard2:
         # TODO handle returning case_pos_list
         #samplekw = ut.argparse_dict(dict(per_group=5))
@@ -825,10 +911,32 @@ def get_individual_result_sample(test_result,
         # TODO: grab the best scoring and most interesting configs
         if len(sel_cols) == 0:
             sel_cols.extend(list(range(len(cfg_list))))
+
     sel_rows = ut.unique_keep_order2(sel_rows)
     sel_cols = ut.unique_keep_order2(sel_cols)
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
+
+    print('len(sel_rows) = %r' % (len(sel_rows),))
+    print('len(sel_cols) = %r' % (len(sel_cols),))
+
+    sel_rowxs = ut.get_argval('-r', type_=list, default=None)
+    sel_colxs = ut.get_argval('-c', type_=list, default=None)
+    print('sel_rowxs = %r' % (sel_rowxs,))
+    print('sel_colxs = %r' % (sel_colxs,))
+
+    if sel_rowxs is not None:
+        sel_rows = ut.list_take(sel_rows, sel_rowxs)
+        print('sel_rows = %r' % (sel_rows,))
+
+    if sel_colxs is not None:
+        sel_cols = ut.list_take(sel_cols, sel_colxs)
+        print('sel_cols = %r' % (sel_cols,))
+
+    print('Filtered')
+    print('len(sel_rows) = %r' % (len(sel_rows),))
+    print('len(sel_cols) = %r' % (len(sel_cols),))
+
     return sel_rows, sel_cols, flat_case_labels
 
 

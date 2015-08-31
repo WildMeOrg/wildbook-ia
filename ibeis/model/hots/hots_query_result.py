@@ -836,8 +836,6 @@ class QueryResult(__OBJECT_BASE__):
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, fnum=fnum, **kwargs)
         if not kwargs.get('notitle', False):
             pt.set_figtitle(qres.make_smaller_title())
-        # Adjust
-        #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
         # Setting fig=fig might make the dpi and figsize code not work
         img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)

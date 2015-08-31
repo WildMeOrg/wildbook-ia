@@ -400,7 +400,8 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         return nnindexer
     else:
-        print('[aug] Cannot augment, fallback to memcache')
+        #if ut.VERBOSE:
+        print('[aug] Nothing to augment, fallback to memcache')
         # Fallback
         nnindexer = request_memcached_ibeis_nnindexer(
             qreq_, daid_list, verbose=verbose, use_memcache=use_memcache, force_rebuild=force_rebuild, memtrack=memtrack

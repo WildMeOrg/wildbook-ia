@@ -13,12 +13,12 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 # easier to type names to alias some of these options
 ALIAS_KEYS = {
     'aids'     : 'default_aids',
-    'per_name' : 'sample_per_name',
+    'pername'  : 'sample_per_name',
     'offset'   : 'sample_offset',
-    #'ref_rule' : 'sample_rule_ref',
-    #'rule'     : 'sample_rule',
+    'refrule'  : 'sample_rule_ref',
+    'rule'     : 'sample_rule',
     'size'     : 'sample_size',
-    'min_gt'   : 'gt_min_per_name',
+    'mingt'    : 'gt_min_per_name',
 }
 
 
@@ -57,6 +57,7 @@ __default_aidcfg = {
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
     'index'               : None,   # choose only a subset
+    'min_timedelta'       : None,
 }
 
 
@@ -303,6 +304,48 @@ controlled = {
 }
 
 
+#cont_uncon_compare = {
+#    'qcfg': [
+#        ut.augdict(
+#            controlled['qcfg'], {
+#                'force_const_size': True,
+#            }),
+#        ut.augdict(
+#            uncontrolled['qcfg'], {
+#                'force_const_size': True,
+#            }),
+#    ],
+
+#    'dcfg': [
+#        ut.augdict(
+#            controlled['dcfg'], {
+#                'force_const_size': True,
+#            }),
+#        ut.augdict(
+#            uncontrolled['dcfg'], {
+#                'force_const_size': True,
+#            }),
+#    ]
+#}
+
+largetimedelta = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            'sample_rule': 'mintime',
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 24,
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            'sample_rule_ref': 'maxtimedelta',
+            'sample_per_name': None,
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 24,
+        }),
+}
+
+
 controlled2 = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
@@ -329,7 +372,7 @@ controlled2 = {
 #            'default_aids': 'all',
 #            'sample_per_name': 1,
 #            'exclude_reference': True,
-#            'sample_rule_ref': 'max_timedelta',
+#            'sample_rule_ref': 'maxtimedelta',
 #            'gt_min_per_name': 1,
 #        }),
 #}
@@ -357,10 +400,33 @@ varypername = {
             'force_const_size': True,
         }),
 }
+
 varypername_pzm = {
     'qcfg': ut.augdict(
         varypername['qcfg'], {
             'sample_size': 500,
+        }),
+
+    'dcfg': ut.augdict(
+        varypername['dcfg'], {
+        }),
+}
+
+varypername_gz = {
+    'qcfg': ut.augdict(
+        varypername['qcfg'], {
+            'sample_size': 200,
+        }),
+
+    'dcfg': ut.augdict(
+        varypername['dcfg'], {
+        }),
+}
+
+varypername_girm = {
+    'qcfg': ut.augdict(
+        varypername['qcfg'], {
+            'sample_size': 50,
         }),
 
     'dcfg': ut.augdict(
@@ -421,8 +487,22 @@ varysize_pzm = {
 
     'dcfg': ut.augdict(
         varysize['dcfg'], {
-            'sample_size': [1500, 2000, 2500, 3000],
+            #'sample_size': [1500, 2000, 2500, 3000],
             #'sample_size': [1500, 2000, 2500, 3000, 4000],
+            'sample_size': [1500, 17500, 2000, 2250, 2500, 2750, 3000, 3500, 4000, 4500],
+        }),
+}
+
+
+varysize_girm = {
+    'qcfg': ut.augdict(
+        varysize['qcfg'], {
+            'sample_size': 35,
+        }),
+
+    'dcfg': ut.augdict(
+        varysize['dcfg'], {
+            'sample_size': [70, 105, 140, 175, 200],
         }),
 }
 
@@ -443,6 +523,7 @@ viewpoint_compare = {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
             'sample_size': None,
             'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
+            'force_const_size': True,
             'view': 'primary1',
             #'gt_min_per_name': 3,
         }),
@@ -454,7 +535,7 @@ viewpoint_compare = {
             #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
             #'view': ['primary'],
             #'sample_per_name': 1,
-            #'sample_rule_ref': 'max_timedelta',
+            #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
             'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
             'sample_size': None,  # TODO: need to make this consistent accross both experiment modes

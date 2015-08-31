@@ -99,8 +99,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         cfgstr_list = test_cfg_name_list
         named_defaults_dict = ut.dict_subset(
             experiment_configs.__dict__, experiment_configs.TEST_NAMES)
+        alias_keys = experiment_configs.ALIAS_KEYS
         dict_comb_list = cfghelpers.parse_cfgstr_list2(
-            cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None,
+            cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=alias_keys,
             valid_keys=valid_keys)
         # Get varied params (there may be duplicates)
         _cfgdict_list = ut.flatten(dict_comb_list)
@@ -150,11 +151,12 @@ def parse_acfg_combo_list(acfg_name_list):
     named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))
     alias_keys = annotation_configs.ALIAS_KEYS
     # need to have the cfgstr_lists be the same for query and database so they can be combined properly for now
-    qcfg_combo_list = cfghelpers.parse_cfgstr_list2(cfgstr_list=acfg_name_list,
-                                                    named_defaults_dict=named_qcfg_defaults,
-                                                    cfgtype='qcfg', alias_keys=alias_keys)
-    dcfg_combo_list = cfghelpers.parse_cfgstr_list2(acfg_name_list, named_dcfg_defaults,
-                                                    'dcfg', alias_keys=alias_keys)
+    qcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+        cfgstr_list=acfg_name_list, named_defaults_dict=named_qcfg_defaults,
+        cfgtype='qcfg', alias_keys=alias_keys, expand_nested=False)
+    dcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+        acfg_name_list, named_dcfg_defaults, 'dcfg', alias_keys=alias_keys,
+        expand_nested=False)
 
     acfg_combo_list = []
     for qcfg_combo, dcfg_combo in zip(qcfg_combo_list, dcfg_combo_list):
@@ -204,8 +206,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
-    combo_slice = ut.get_argval('--combo_slice', type_=slice, default=slice(None))
-    acfg_combo_list = [acfg_combo_[combo_slice] for acfg_combo_ in acfg_combo_list]
+    # Sliceing happens before expansion (dependenceis get)
+    combo_slice = ut.get_argval('--combo_slice', type_='fuzzy_subset', default=slice(None))
+    acfg_combo_list = [ut.list_take(acfg_combo_, combo_slice) for acfg_combo_ in acfg_combo_list]
 
     if ut.get_argflag('--consistent'):
         # Expand everything as one consistent annot list
@@ -218,6 +221,12 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
     acfg_list = ut.get_list_column(expanded_aids_combo_flag_list, 0)
     expanded_aids_list = ut.get_list_column(expanded_aids_combo_flag_list, 1)
+
+    # Sliceing happens after expansion (but the labels get screwed up)
+    acfg_slice = ut.get_argval('--acfg_slice', type_='fuzzy_subset', default=None)
+    if acfg_slice is not None:
+        acfg_list = ut.list_take(acfg_list, acfg_slice)
+        expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
 
     if filter_dups:
         acfg_list_ = []
@@ -244,14 +253,17 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
                     print('nonvaried_compressed_dict = %s' % (ut.dict_str(nonvaried_compressed_dict),))
                     print('L__')
 
-            print('[harn.help] return %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list)))
+            print('[harn.help] parsed %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list)))
         acfg_list = acfg_list_
         expanded_aids_list = expanded_aids_list_
 
-    if ut.get_argflag('--acfginfo'):
+    if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo')):
         import sys
+        ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
+        print('combo_slice = %r' % (combo_slice,))
+        print('acfg_slice = %r' % (acfg_slice,))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-        print('[experiment_helpers] exiting due to info request')
+        ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
         sys.exit(1)
 
     return acfg_list, expanded_aids_list

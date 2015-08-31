@@ -31,8 +31,43 @@ CommandLine:
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import multiprocessing
-# Dev
 import sys
+
+
+def hack_argv():
+    # HACK COMMON ARGV SYMBOLS
+    for arg in sys.argv[:]:
+        if arg.startswith('--hargv='):
+            hack_argv_key = '='.join(arg.split('=')[1:])
+            if hack_argv_key in ['candexpt', 'expt']:
+                sys.argv.extend([
+                    '--save',
+                    'figures/expt_{db}_a_{a}_t_{t}.png',
+                    '--dpath=~/latex/crall-candidacy-2015/',
+                    '--dpi=256',
+                    '--clipwhite',
+                    '--diskshow',
+                    '--contextadjust',
+                ])
+            if hack_argv_key in ['match']:
+                sys.argv.extend([
+                    '--dpath=~/latex/crall-candidacy-2015/figures',
+                    #'--tight',
+                    '--vf',
+                ])
+            if hack_argv_key in ['time', 'time_false']:
+                sys.argv.extend([
+                    '--save',
+                    'figures/{e}_{db}_a_{a}_t_{t}.png' if hack_argv_key == 'time' else 'figures/{e}_{db}_a_{a}_t_{t}_FP.png',
+                    '--dpath=~/latex/crall-candidacy-2015/',
+                    '--dpi=256',
+                    '--clipwhite',
+                    '--diskshow',
+                    '--contextadjust',
+                ])
+                pass
+hack_argv()
+
 #from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS, DEVCMD_FUNCTIONS2, devcmd2
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
@@ -76,8 +111,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas'),
-    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_individual_results']),
+    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist']),
+    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases']),
     ('ibeis.experiments.experiment_drawing', 'draw_results'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf'),
     ('ibeis.other.dbinfo', 'get_dbinfo'),

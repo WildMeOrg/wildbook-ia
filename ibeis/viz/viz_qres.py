@@ -435,7 +435,6 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
     df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
 
     # Result Interaction
-    #df2.adjust_subplots_safe()
     printDBG('[show_qres()] Finished')
     return fig
 
