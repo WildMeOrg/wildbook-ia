@@ -371,14 +371,18 @@ def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0, borderType=cv2.B
     return out_fpath_
 
 
-def clipwhite_ondisk(fpath_in, fpath_out=None):
+def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     import vtool as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
-    img = vt.imread(fpath_in)
     thresh = 128
     fillval = [255, 255, 255]
+    img = vt.imread(fpath_in)
+    if verbose:
+        print('[clipwhite] img.shape = %r' % (img.shape,))
     cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    if verbose:
+        print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
     vt.imwrite(fpath_out, cropped_img)
     return fpath_out
 
