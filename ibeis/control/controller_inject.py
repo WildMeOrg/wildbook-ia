@@ -16,6 +16,7 @@ import numpy as np
 import hmac
 import string
 import random
+import requests
 # <flask>
 # TODO: allow optional flask import
 try:
@@ -42,7 +43,6 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]
 #INJECTED_MODULES = []
 UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
-
 GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING and not ut.get_argflag('--no-flask') and HAS_FLASK
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
@@ -50,6 +50,11 @@ GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 GLOBAL_APP = None
 GLOBAL_CORS = None
 JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
+JSON_PYTHON_EMPTY_LIST_TAG = '__PYTHON_EMPTY_LIST__'
+
+REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
+# REMOTE_PROXY_URL = None
+REMOTE_PROXY_PORT = 5001
 
 
 def get_flask_app():
@@ -141,11 +146,14 @@ class WebException(Exception):
         return repr('%r: %r' % (self.code, self.message, ))
 
 
-def _as_python_object(value, **kwargs):
-    print('PYTHONIZE: %r' % (value, ))
+def _as_python_object(value, verbose=False, **kwargs):
+    if verbose:
+        print('PYTHONIZE: %r' % (value, ))
     if JSON_PYTHON_OBJECT_TAG in value:
         pickled_obj = str(value[JSON_PYTHON_OBJECT_TAG])
         return pickle.loads(pickled_obj)
+    if JSON_PYTHON_EMPTY_LIST_TAG in value:
+        return []
     return value
 
 
@@ -371,6 +379,22 @@ def crossdomain(origin=None, methods=None, headers=None,
     return decorator
 
 
+def remote_api_wrapper(func):
+    def remote_api_call(ibs, *args, **kwargs):
+        if REMOTE_PROXY_URL is None:
+            return func(ibs, *args, **kwargs)
+        else:
+            co_varnames = func.func_code.co_varnames
+            if co_varnames[0] == 'ibs':
+                co_varnames = tuple(co_varnames[1:])
+            kwargs_ = dict(zip(co_varnames, args))
+            kwargs.update(kwargs_)
+            kwargs.pop('ibs', None)
+            return api_remote_ibeis(REMOTE_PROXY_URL, func, REMOTE_PROXY_PORT, **kwargs)
+    remote_api_call = ut.preserve_sig(remote_api_call, func)
+    return remote_api_call
+
+
 def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
     if __name__ == '__main__':
         return ut.dummy_args_decor
@@ -419,7 +443,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
                     return flask.make_response(webreturn, code)
                 # return the original unmodified function
-                return func
+                if REMOTE_PROXY_URL is None:
+                    return func
+                else:
+                    return remote_api_wrapper(func)
             return regsiter_closure
         return register_api
     else:
@@ -458,6 +485,58 @@ def get_ibeis_flask_route(__name__):
         return register_route
     else:
         return ut.dummy_args_decor
+
+
+def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, **kwargs):
+    if GLOBAL_APP_ENABLED and GLOBAL_APP is None:
+        raise ValueError('Flask has not been initialized')
+    api_name = remote_api_func.__name__
+    route_list = list(GLOBAL_APP.url_map.iter_rules(api_name))
+    assert len(route_list) == 1, 'More than one route resolved'
+    route = route_list[0]
+    api_route = route.rule
+    assert api_route.startswith('/api/'), 'Must be an API route'
+    method_list = sorted(list(route.methods - set(['HEAD', 'OPTIONS'])))
+    remote_api_method = method_list[0].upper()
+
+    assert api_route is not None, 'Route could not be found'
+
+    args = (remote_ibeis_url, remote_ibeis_port, api_route)
+    remote_api_url = 'http://%s:%s%s' % args
+    headers = {
+        'Authorization': get_url_authorization(remote_api_url)
+    }
+
+    for key in kwargs.keys():
+        if kwargs[key] == []:
+            kwargs[key] = { JSON_PYTHON_EMPTY_LIST_TAG : None }
+
+    print('[REMOTE] %s' % ('-' * 80, ))
+    print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
+    print('[REMOTE] \tMethod:  %r' % (remote_api_method, ))
+    print('[REMOTE] \tHeaders: %s' % (ut.dict_str(headers), ))
+    print('[REMOTE] \tKWArgs:  %s' % (ut.dict_str(kwargs), ))
+
+    # Make request to server
+    try:
+        if remote_api_method == 'GET':
+            req = requests.get(remote_api_url, headers=headers, data=kwargs, verify=False)
+        elif remote_api_method == 'POST':
+            req = requests.post(remote_api_url, headers=headers, data=kwargs, verify=False)
+        elif remote_api_method == 'PUT':
+            req = requests.put(remote_api_url, headers=headers, data=kwargs, verify=False)
+        elif remote_api_method == 'DELETE':
+            req = requests.delete(remote_api_url, headers=headers, data=kwargs, verify=False)
+        else:
+            message = '_api_result got unsupported method=%r' % (remote_api_method, )
+            raise KeyError(message)
+    except requests.exceptions.ConnectionError as ex:
+        message = '_api_result could not connect to server %s' % (ex, )
+        raise IOError(message)
+    response = req.text
+    converted = json.loads(response, object_hook=_as_python_object)
+    response = converted.get('response', None)
+    return response
 
 
 ##########################################################################################

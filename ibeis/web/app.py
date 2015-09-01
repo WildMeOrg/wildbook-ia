@@ -1331,7 +1331,7 @@ def image_upload_zip(**kwargs):
 
 
 @register_api('/api/image/', methods=['POST'])
-def image_upload(**kwargs):
+def image_upload(cleanup=True, **kwargs):
     r"""
     Returns the gid for an uploaded image.
 
@@ -1350,25 +1350,25 @@ def image_upload(**kwargs):
         URL:    /api/image/
     """
     ibs = current_app.ibs
-    # Get image archive
     print(request.files)
 
     filestore = request.files.get('image', None)
     if filestore is None:
         raise IOError('Image not given')
 
-    # If the directory already exists, delete it
     uploadsdir = ibs.get_uploadsdir()
     current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-    upload_path = join(uploadsdir, current_time)
-    print(upload_path)
-    ut.ensuredir(upload_path)
-    upload_filepath = join(upload_path, 'temp.png')
+    upload_filename = 'temp_%s.png' % (current_time, )
+    upload_filepath = join(uploadsdir, upload_filename)
 
     filestore.save(upload_filepath)
 
     gid_list = ibs.add_images([upload_filepath], **kwargs)
     gid = gid_list[0]
+
+    if cleanup:
+        ut.remove_dirs(upload_filepath)
+
     return gid
 
 
