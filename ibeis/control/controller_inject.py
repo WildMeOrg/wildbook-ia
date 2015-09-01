@@ -50,10 +50,9 @@ GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 GLOBAL_APP = None
 GLOBAL_CORS = None
 JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
-JSON_PYTHON_EMPTY_LIST_TAG = '__PYTHON_EMPTY_LIST__'
 
-REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
-# REMOTE_PROXY_URL = None
+# REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
+REMOTE_PROXY_URL = None
 REMOTE_PROXY_PORT = 5001
 
 
@@ -146,14 +145,12 @@ class WebException(Exception):
         return repr('%r: %r' % (self.code, self.message, ))
 
 
-def _as_python_object(value, verbose=True, **kwargs):
+def _as_python_object(value, verbose=False, **kwargs):
     if verbose:
         print('PYTHONIZE: %r' % (value, ))
     if JSON_PYTHON_OBJECT_TAG in value:
         pickled_obj = str(value[JSON_PYTHON_OBJECT_TAG])
         return pickle.loads(pickled_obj)
-    if JSON_PYTHON_EMPTY_LIST_TAG in value:
-        return []
     return value
 
 
@@ -508,9 +505,10 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
     }
 
     for key in kwargs.keys():
-        if kwargs[key] == []:
-            pickled_obj = pickle.dumps(None)
-            kwargs[key] = {JSON_PYTHON_EMPTY_LIST_TAG: pickled_obj}
+        value = kwargs[key]
+        if isinstance(value, (tuple, list, set)):
+            value = str(list(value))
+        kwargs[key] = value
 
     print('[REMOTE] %s' % ('-' * 80, ))
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
@@ -537,6 +535,7 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
     response = req.text
     converted = json.loads(response, object_hook=_as_python_object)
     response = converted.get('response', None)
+    print(response)
     return response
 
 
