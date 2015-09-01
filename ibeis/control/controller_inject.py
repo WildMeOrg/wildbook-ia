@@ -146,7 +146,7 @@ class WebException(Exception):
         return repr('%r: %r' % (self.code, self.message, ))
 
 
-def _as_python_object(value, verbose=False, **kwargs):
+def _as_python_object(value, verbose=True, **kwargs):
     if verbose:
         print('PYTHONIZE: %r' % (value, ))
     if JSON_PYTHON_OBJECT_TAG in value:
@@ -509,7 +509,7 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
 
     for key in kwargs.keys():
         if kwargs[key] == []:
-            kwargs[key] = { JSON_PYTHON_EMPTY_LIST_TAG : None }
+            kwargs[key] = JSON_PYTHON_EMPTY_LIST_TAG
 
     print('[REMOTE] %s' % ('-' * 80, ))
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
