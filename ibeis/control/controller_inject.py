@@ -509,7 +509,8 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
 
     for key in kwargs.keys():
         if kwargs[key] == []:
-            kwargs[key] = JSON_PYTHON_EMPTY_LIST_TAG
+            pickled_obj = pickle.dumps(None)
+            kwargs[key] = {JSON_PYTHON_EMPTY_LIST_TAG: pickled_obj}
 
     print('[REMOTE] %s' % ('-' * 80, ))
     print('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url, ))
