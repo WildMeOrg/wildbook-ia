@@ -1242,11 +1242,11 @@ def set_cookie():
 
 
 @register_route('/ajax/image/src/<gid>')
-def image_src(gid=None):
+def image_src(gid=None, fresh=False, **kwargs):
     ibs = current_app.ibs
     # gpath = ibs.get_image_paths(gid)
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
-    fresh = 'fresh' in request.args or 'fresh' in request.form
+    fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
     if fresh:
         ut.remove_dirs(gpath)
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
@@ -1254,7 +1254,7 @@ def image_src(gid=None):
 
 
 @register_api('/api/image/<gid>/', methods=['GET'])
-def image_src_api(gid=None):
+def image_src_api(gid=None, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
@@ -1262,11 +1262,11 @@ def image_src_api(gid=None):
         Method: GET
         URL:    /api/image/<gid>/
     """
-    return image_src(gid)
+    return image_src(gid, fresh=fresh, **kwargs)
 
 
 @register_route('/api/image/view/<gid>/', methods=['GET'])
-def image_view_api(gid=None):
+def image_view_api(gid=None, fresh=False, **kwargs):
     r"""
     Returns the base64 encoded image of image <gid>
 
@@ -1274,7 +1274,7 @@ def image_view_api(gid=None):
         Method: GET
         URL:    /api/image/view/<gid>/
     """
-    encoded = image_src(gid)
+    encoded = image_src(gid, fresh=fresh, **kwargs)
     return ap.template(None, 'single', encoded=encoded)
 
 
