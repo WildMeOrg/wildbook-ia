@@ -36,11 +36,11 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> scores_list = [
         >>>     np.array([np.nan, np.nan], dtype=np.float32),
-        >>>     np.array([np.nan, 2], dtype=np.float2),
-        >>>     np.array([4, 1, 1], dtype=np.float2),
-        >>>     np.array([7, 3, 3, 0, 9, 7, 5, 8], dtype=np.float2),
-        >>>     np.array([2, 4], dtype=np.float2),
-        >>>     np.array([np.nan, 4, np.nan, 8, np.nan, 9], dtype=np.float2),
+        >>>     np.array([np.nan, 2], dtype=np.float32),
+        >>>     np.array([4, 1, 1], dtype=np.float32),
+        >>>     np.array([7, 3, 3, 0, 9, 7, 5, 8], dtype=np.float32),
+        >>>     np.array([2, 4], dtype=np.float32),
+        >>>     np.array([np.nan, 4, np.nan, 8, np.nan, 9], dtype=np.float32),
         >>> ]
         >>> reverse = True
         >>> rng = np.random.RandomState(0)
@@ -53,15 +53,12 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         idxs_list = [
             np.array([1, 0], dtype=np.int64),
             np.array([1, 0], dtype=np.int64),
-            np.array([2, 1, 0, 3, 5, 4], dtype=np.int64),
-            np.array([2, 3, 0, 1], dtype=np.int64),
+            np.array([0, 1, 2], dtype=np.int64),
+            np.array([4, 7, 0, 5, 6, 1, 2, 3], dtype=np.int64),
             np.array([1, 0], dtype=np.int64),
-            np.array([2, 0, 1], dtype=np.int64),
-            np.array([0, 5, 6, 2, 7, 1, 4, 3], dtype=np.int64),
-            np.array([5, 3, 4, 1, 2, 0, 6], dtype=np.int64),
-            np.array([0, 1], dtype=np.int64),
             np.array([5, 3, 1, 2, 0, 4], dtype=np.int64),
         ]
+
     """
     scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
     breakers_list = [rng.rand(len(scores)) for scores in scores_list_]
