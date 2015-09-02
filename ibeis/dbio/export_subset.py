@@ -1258,9 +1258,10 @@ def export_names(ibs, nid_list, new_dbpath=None):
 
 
 def export_images(ibs, gid_list, new_dbpath=None):
-    print('Exporting image gid_list=%r' % (gid_list,))
+    print('Exporting image len(gid_list)=%r, gid_list=%r' % (len(gid_list), gid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'gid', gid_list)
+    ibs.assert_valid_gids(gid_list)
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     export_annots(ibs, aid_list, new_dbpath=new_dbpath)
 

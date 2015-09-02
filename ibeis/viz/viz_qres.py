@@ -432,7 +432,10 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         _plot_matches_aids(top_aids, shift_topN, (nRows, nTopNCols))
         #figtitle += ' q%s name=%s' % (ibsfuncs.aidstr(qres.qaid), ibs.aid2_name(qres.qaid))
         figtitle += aug
-    df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
+
+    WITH_FIGTITLE = False
+    if WITH_FIGTITLE:
+        df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
 
     # Result Interaction
     printDBG('[show_qres()] Finished')

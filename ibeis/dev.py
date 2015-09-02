@@ -48,6 +48,9 @@ def hack_argv():
                     '--clipwhite',
                     '--diskshow',
                     '--contextadjust',
+                    '--figsize=15,5',
+                    '--top=.9',
+                    '--bottom=.1',
                 ])
             if hack_argv_key in ['match']:
                 sys.argv.extend([
@@ -55,10 +58,16 @@ def hack_argv():
                     #'--tight',
                     '--vf',
                 ])
-            if hack_argv_key in ['time', 'time_false']:
+            if hack_argv_key in ['time']:
+                fname_fmt = 'figures/{e}_{db}_a_{a}_t_{t}'
+                if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):
+                    fname_fmt += '_TP'
+                if ('--falsepos' in sys.argv):
+                    fname_fmt += '_FP'
+
                 sys.argv.extend([
                     '--save',
-                    'figures/{e}_{db}_a_{a}_t_{t}.png' if hack_argv_key == 'time' else 'figures/{e}_{db}_a_{a}_t_{t}_FP.png',
+                    fname_fmt + '.png',
                     '--dpath=~/latex/crall-candidacy-2015/',
                     '--dpi=256',
                     '--clipwhite',

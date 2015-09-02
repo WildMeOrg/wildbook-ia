@@ -122,7 +122,9 @@ def draw_rank_surface(ibs, test_result):
             #pt.plot2(
         #(const_idx + 1))
 
+    figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
     figtitle = (
+        figtitle_prefix +
         #'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
         'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy for\n')
     figtitle += ' ' + test_result.get_title_aug()
@@ -136,6 +138,9 @@ def draw_rank_surface(ibs, test_result):
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
     #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
     pt.set_figtitle(figtitle, size=14)
+    if ut.get_argflag('--contextadjust'):
+        pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+        pt.adjust_subplots2(use_argv=True)
 
 
 def draw_rank_cdf(ibs, test_result):
@@ -195,7 +200,8 @@ def draw_rank_cdf(ibs, test_result):
     color_list = ut.list_take(color_list, sortx)
     marker_list = ut.list_take(marker_list, sortx)
     #
-    figtitle = ('Cumulative Rank Histogram\n')
+    figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
+    figtitle = (figtitle_prefix + 'Cumulative Rank Histogram\n')
     figtitle += ' ' + test_result.get_title_aug()
 
     test_result.print_unique_annot_config_stats(ibs)
@@ -241,6 +247,7 @@ def draw_rank_cdf(ibs, test_result):
     pt.set_figtitle(figtitle, size=14)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
+        pt.adjust_subplots2(use_argv=True)
     #pt.set_figtitle(figtitle, size=10)
 
 
@@ -473,7 +480,9 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     X_data_list = []
     X_label_list = []
     cfgx2_shortlbl = test_result.get_short_cfglbls()
-    TRUEPOS = ut.get_argflag('--falsepos')
+    FALSEPOS = ut.get_argflag('--falsepos')
+    TRUEPOS  = ut.get_argflag('--truepos')
+    #ut.embed()
     for cfgx, lbl in enumerate(cfgx2_shortlbl):
         gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
@@ -483,14 +492,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
         #X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
         #X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
-        if TRUEPOS:
-            X_data_list  += [
-                gf_s_td
-            ]
-            X_label_list += [
-                'FP ' + lbl
-            ]
-        else:
+        if not FALSEPOS or TRUEPOS:
             X_data_list  += [
                 gt_s_td,
                 #gf_s_td
@@ -498,6 +500,13 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
             X_label_list += [
                 'TP ' + lbl,
                 #'FP ' + lbl
+            ]
+        if FALSEPOS:
+            X_data_list  += [
+                gf_s_td
+            ]
+            X_label_list += [
+                'FP ' + lbl
             ]
         plotkw['marker_list'] += pt.distinct_markers(1, style='polygon',
                                                      offset=cfgx,
@@ -566,14 +575,25 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         pt.figure(fnum=fnum)
         pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
         bin_labels[0]
+        # python -m ibeis.dev -e timedelta_hist -t baseline -a controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db GZ_ALL  --show
+
+        colors = pt.distinct_colors(len(bin_labels))
+        if WITH_NAN:
+            colors[-1] = pt.GRAY
 
         for count, freq in enumerate(freq_list):
             pt.figure(fnum=fnum, pnum=pnum_())
-            pt.plt.pie(freq, explode=[0] * len(freq), autopct='%1.1f%%', labels=bin_labels)
+            mask = freq > 0
+            masked_freq   = freq.compress(mask, axis=0)
+            masked_lbls   = ut.list_compress(bin_labels, mask)
+            masked_colors = ut.list_compress(colors, mask)
+            explode = [0] * len(masked_freq)
+            pt.plt.pie(masked_freq, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
             ax = pt.gca()
             ax.set_xlabel(X_label_list[count])
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+            pt.adjust_subplots2(use_argv=True)
     else:
         pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
         ax = pt.gca()
@@ -589,6 +609,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.2, bottom=.2, wspace=.0, hspace=.15)
+            pt.adjust_subplots2(use_argv=True)
 
 
 @profile
@@ -701,9 +722,11 @@ def draw_individual_cases(ibs, test_result, metadata=None):
                 pass
 
     #overwrite = False
-    overwrite = True
+    overwrite = False
 
     cfgx2_shortlbl = test_result.get_short_cfglbls()
+
+    fpaths_list = []
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
         case_labels = flat_case_labels[count]
         print('case_labels = %r' % (case_labels,))
@@ -713,6 +736,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
         qres_list = [qreq_.load_cached_qres(qaids[r]) for qreq_ in qreq_list]
+        fpaths_list.append([])
 
         for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
             fnum = cfgx if SHOW else 1
@@ -764,6 +788,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
                     #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
                     #reset()
                 analysis_fpath_list.append(analysis_fpath)
+                fpaths_list[-1].append(analysis_fpath)
                 if metadata is not None:
                     metadata.set_global_data(cfgstr, qres.qaid, 'analysis_fpath', analysis_fpath)
 
@@ -809,6 +834,43 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         flush_freq = 4
         if count % flush_freq == (flush_freq - 1):
             cpq.flush_copy_tasks()
+
+    # HACK MAKE LATEX CONVINENCE STUFF
+    fpaths_list
+    LATEX_HACK = ut.get_argflag('--dump-figdef')
+    if LATEX_HACK:
+        latex_code_blocks = []
+        latex_block_keys = []
+        for fpaths, labels in zip(fpaths_list, flat_case_labels):
+            #print(fpaths)
+            #print(labels)
+            _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels)
+            cmdname = ut.latex_sanatize_command_name(_cmdname)
+            label_str = cmdname
+            caption_str = 'Cases from ' + ibs.get_dbname() + ' casetags; ' + ut.list_str(labels, nl=False, strvals=True)
+            caption_str += '. From left to right, the results are from the configurations: ' + ut.conj_phrase(cfgx2_shortlbl, 'and')
+            caption_str = ut.escape_latex(caption_str)
+            latex_block  = ut.get_latex_figure_str2(fpaths, cmdname, nCols=len(fpaths), label_str=label_str, caption_str=caption_str, colsep='|')
+            latex_block = '\n%----------\n' + latex_block
+            latex_code_blocks.append(latex_block)
+            latex_block_keys.append(cmdname)
+            #ut.print_code(latex_block, 'latex')
+        selected = [
+            'PZMasterICaseFailureGfNondistinct',
+            'PZMasterICaseFailureGtLargeTimedelta',
+            'PZMasterICaseFailureGtRankAboveL',
+            'PZMasterICaseFailureGtRankUnderV',
+            'PZMasterICaseFailureGtRankBetweenVL',
+            'PZMasterICaseFailureGtCfgxsame',
+        ]
+        latex_big_block = '\n'.join(latex_code_blocks)
+        latex_fpath = join(figdir, 'latex_cases.tex')
+        ut.writeto(latex_fpath, latex_big_block)
+
+        latex_big_block2 = '\n'.join(ut.dict_take(dict(zip(latex_block_keys, latex_code_blocks)), selected))
+        latex_big_block2 += '\n\n' + '\n'.join(['\\' + x for x in selected])
+        latex_fpath2 = join(figdir, 'latex_selected_cases.tex')
+        ut.writeto(latex_fpath2, latex_big_block2)
 
     # Copy summary images to query_analysis folder
     cpq.flush_copy_tasks()

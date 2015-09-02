@@ -275,8 +275,6 @@ def get_dbinfo(ibs, verbose=True,
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
         hackshow_times(ibs, unixtime_list)
-        #xdata = unixtime_domain
-        pass
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
 
     # GPS stats
@@ -504,6 +502,7 @@ def hackshow_names(ibs, aids_list):
 
     CommandLine:
         python -m ibeis.other.dbinfo --exec-hackshow_names --show
+        python -m ibeis.other.dbinfo --exec-hackshow_names --show --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -516,9 +515,10 @@ def hackshow_names(ibs, aids_list):
         >>> ut.show_if_requested()
     """
     grouped_aids, nid_list = ibs.group_annots_by_name(aids_list)
+    grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     yaws_list = ibs.unflat_map(ibs.get_annot_yaws, grouped_aids)
-    markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]
+    #markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]
 
     unixtime_list = ut.flatten(unixtimes_list)
     timemax = np.nanmax(unixtime_list)
@@ -532,23 +532,23 @@ def hackshow_names(ibs, aids_list):
     #ydata_list = [np.arange(len(aids)) for aids in grouped_aids]
     import vtool as vt
     sortx_list = vt.argsort_groups(unixtimes_list, reverse=False)
-    markers_list = ut.list_ziptake(markers_list, sortx_list)
+    #markers_list = ut.list_ziptake(markers_list, sortx_list)
     yaws_list = ut.list_ziptake(yaws_list, sortx_list)
     ydatas_list = vt.ziptake(unixtimes_list, sortx_list)
     #ydatas_list = sortx_list
     #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
     ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
     xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
-    markers = ut.flatten(markers_list)
-    yaws = np.array(ut.flatten(yaws_list))
+    #markers = ut.flatten(markers_list)
+    #yaws = np.array(ut.flatten(yaws_list))
     y_data = np.array(ut.flatten(ydatas_list))
     x_data = np.array(ut.flatten(xdatas_list))
     pt.figure(fnum=1)
     ax = pt.gca()
 
-    unique_yaws, groupxs = vt.group_indices(yaws)
+    #unique_yaws, groupxs = vt.group_indices(yaws)
 
-    ax.scatter(x_data, y_data, color=[1, 0, 0])
+    ax.scatter(x_data, y_data, color=[1, 0, 0], s=1, marker='.')
     #pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle='')
     pt.dark_background()
     ax = pt.gca()
