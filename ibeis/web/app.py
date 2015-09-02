@@ -1555,7 +1555,7 @@ def start_tornado(ibs, port=None, browser=BROWSER):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=False):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
     """
     Parse command line options and start the server.
 
