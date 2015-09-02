@@ -1253,17 +1253,43 @@ def export_names(ibs, nid_list, new_dbpath=None):
     print('Exporting name nid_list=%r' % (nid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'nid', nid_list)
+
     aid_list = ut.flatten(ibs.get_name_aids(nid_list))
-    export_annots(ibs, aid_list, new_dbpath=new_dbpath)
+    gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
+
+    return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
+
+
+def export_images_temp(ibs):
+    gid_list = ibs.get_valid_gids()
+    reviewed_list = ibs.get_image_reviewed(gid_list)
+    gid_list_ = [ gid for gid, reviewed in zip(gid_list, reviewed_list) if reviewed == 1 ]
+    export_images(ibs, gid_list_, '/Datasets/PZ_Master1-Sub3')
 
 
 def export_images(ibs, gid_list, new_dbpath=None):
-    print('Exporting image len(gid_list)=%r, gid_list=%r' % (len(gid_list), gid_list,))
+    """
+    exports a subset of images and other required info
+
+    TODO:
+        PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):  list of annotation rowids
+        new_dbpath (None): (default = None)
+
+    Returns:
+        str: new_dbpath
+    """
+    print('Exporting image gid_list=%r' % (gid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'gid', gid_list)
-    ibs.assert_valid_gids(gid_list)
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    export_annots(ibs, aid_list, new_dbpath=new_dbpath)
+
+    aid_list = ut.unique_unordered(ut.flatten(ibs.get_image_aids(gid_list)))
+    nid_list = ut.unique_unordered(ibs.get_annot_nids(aid_list))
+
+    return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
 
 
 def export_annots(ibs, aid_list, new_dbpath=None):
@@ -1310,11 +1336,34 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
         >>> print(result)
     """
-    import ibeis
+    print('Exporting annotations aid_list=%r' % (aid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
+
     gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
     nid_list = ut.unique_unordered(ibs.get_annot_nids(aid_list))
+
+    return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
+
+
+def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
+    """
+    exports a subset of data and other required info
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):  list of image rowids
+        aid_list (list):  list of annotation rowids
+        nid_list (list):  list of name rowids
+        eid_list (list):  list of encounter rowids
+        egrid_list (list):  list of encounter-image pairs rowids
+        new_dbpath (None): (default = None)
+
+    Returns:
+        str: new_dbpath
+    """
+    import ibeis
+
     eid_list = ut.unique_unordered(ut.flatten(ibs.get_image_eids(gid_list)))
     egrid_list = ut.unique_unordered(ut.flatten(ibs.get_image_egrids(gid_list)))
 
@@ -1328,7 +1377,6 @@ def export_annots(ibs, aid_list, new_dbpath=None):
     rowid_subsets = {
         const.ANNOTATION_TABLE: aid_list,
         const.NAME_TABLE: nid_list,
-        #ibs.get_annot_nids(aid_list),
         const.IMAGE_TABLE: gid_list,
         const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
         const.EG_RELATION_TABLE: egrid_list,
