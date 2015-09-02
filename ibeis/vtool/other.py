@@ -9,6 +9,68 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=True):
+    """
+    Sorts each group normally, but randomizes order of level values.
+
+    TODO: move to vtool
+
+    Args:
+        scores_list (list):
+        reverse (bool): (default = True)
+        rng (module):  random number generator(default = numpy.random)
+
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-argsort_groups
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> scores_list = [
+        >>>     np.array([np.nan, np.nan], dtype=np.float32),
+        >>>     np.array([np.nan, 2], dtype=np.float2),
+        >>>     np.array([4, 1, 1], dtype=np.float2),
+        >>>     np.array([7, 3, 3, 0, 9, 7, 5, 8], dtype=np.float2),
+        >>>     np.array([2, 4], dtype=np.float2),
+        >>>     np.array([np.nan, 4, np.nan, 8, np.nan, 9], dtype=np.float2),
+        >>> ]
+        >>> reverse = True
+        >>> rng = np.random.RandomState(0)
+        >>> idxs_list = argsort_groups(scores_list, reverse, rng)
+        >>> #import vtool as vt
+        >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
+        >>> #result = 'sorted_scores = %s' % (ut.list_str(sorted_scores),)
+        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list),)
+        >>> print(result)
+        idxs_list = [
+            np.array([1, 0], dtype=np.int64),
+            np.array([1, 0], dtype=np.int64),
+            np.array([2, 1, 0, 3, 5, 4], dtype=np.int64),
+            np.array([2, 3, 0, 1], dtype=np.int64),
+            np.array([1, 0], dtype=np.int64),
+            np.array([2, 0, 1], dtype=np.int64),
+            np.array([0, 5, 6, 2, 7, 1, 4, 3], dtype=np.int64),
+            np.array([5, 3, 4, 1, 2, 0, 6], dtype=np.int64),
+            np.array([0, 1], dtype=np.int64),
+            np.array([5, 3, 1, 2, 0, 4], dtype=np.int64),
+        ]
+    """
+    scores_list_ = [np.array(scores, copy=True).astype(np.float) for scores in scores_list]
+    breakers_list = [rng.rand(len(scores)) for scores in scores_list_]
+    # replace nan with -inf, or inf randomize order between equal values
+    replval = -np.inf if reverse else np.inf
+    # Ensure that nans are ordered last
+    for scores in scores_list_:
+        scores[np.isnan(scores)] = replval
+    # The last column is sorted by first with lexsort
+    scorebreaker_list = [np.array((breakers, scores)) for scores, breakers in zip(scores_list_, breakers_list)]
+    if reverse:
+        idxs_list = [np.lexsort(scorebreaker)[::-1] for scorebreaker in  scorebreaker_list]
+    else:
+        idxs_list = [np.lexsort(scorebreaker) for scorebreaker in  scorebreaker_list]
+    return idxs_list
+
+
 def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     """
     checks if a SIFT descriptor is valid
