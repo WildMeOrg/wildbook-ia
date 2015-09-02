@@ -568,9 +568,6 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
         verbose (bool):  verbosity flag(default = False)
         veryverbose (bool): (default = False)
 
-    Returns:
-        ?:
-
     CommandLine:
         python -m ibeis.ibsfuncs --test-assert_valid_aids
 

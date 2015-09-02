@@ -407,11 +407,38 @@ def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, aid_lis
         ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),
         ('Mark as &True Match.', lambda: mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
         ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-        ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
     ]
+
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+    if annotmatch_rowid is None:
+        options += [
+            ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
+            ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
+            ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
+            ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
+        ]
+    else:
+        # If the match already exists allow untoggleing
+        key_list = [
+            'SceneryMatch',
+            'Photobomb',
+            'Hard',
+            'NonDistinct',
+        ]
+        # VERY HACKY
+        for key in key_list:
+            getter = getattr(ibs, 'get_annotmatch_is_' + key.lower())
+            setter = getattr(ibs, 'set_annotmatch_is_' + key.lower())
+            flag = getter(annotmatch_rowid)[0]
+            if flag:
+                options += [
+                    ('Remove &' + key + ' Flag', lambda:  setter(annotmatch_rowid, [False])),
+                ]
+            else:
+                options += [
+                    ('Flag &' + key + ' Case', lambda:  setter(annotmatch_rowid, [True])),
+                ]
+
     return options
 
 

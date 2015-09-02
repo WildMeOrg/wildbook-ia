@@ -433,9 +433,8 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         #figtitle += ' q%s name=%s' % (ibsfuncs.aidstr(qres.qaid), ibs.aid2_name(qres.qaid))
         figtitle += aug
 
-    WITH_FIGTITLE = False
-    if WITH_FIGTITLE:
-        df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
+    incanvas = kwargs.get('with_figtitle', not vh.NO_LBL_OVERRIDE)
+    df2.set_figtitle(figtitle, incanvas=incanvas)
 
     # Result Interaction
     printDBG('[show_qres()] Finished')

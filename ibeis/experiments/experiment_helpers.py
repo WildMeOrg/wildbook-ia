@@ -228,6 +228,12 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         acfg_list = ut.list_take(acfg_list, acfg_slice)
         expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
 
+    # Hack: Override qaids
+    _qaids = ut.get_argval('--qaid', type_=list, default=None)
+    if _qaids is not None:
+        # Override qaid_list?
+        expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
+
     if filter_dups:
         acfg_list_ = []
         expanded_aids_list_ = []

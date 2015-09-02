@@ -11,6 +11,16 @@ import utool as ut
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[cfgbank]')
 
 
+ALIAS_KEYS = {
+    'RI': 'rotation_invariance',
+    'AI': 'affine_invariance',
+    'AQH': 'augment_queryside_hack',
+    'SV': 'sv_on',
+    #'SVxy': 'xy_thresh',
+    #'SVxy': 'xy_thresh',
+}
+
+
 def augbase(basedict, updatedict):
     newdict = basedict.copy()
     newdict.update(updatedict)
@@ -38,13 +48,6 @@ def get_candidacy_dbnames():
         #'GZ_Master0',
         #'GIR_Tanya',
     ]
-
-
-ALIAS_KEYS = {
-    'RI': 'rotation_invariance',
-    'AI': 'affine_invariance',
-    'AQH': 'augment_queryside_hack',
-}
 
 
 #def candidacy_annot_selections():
