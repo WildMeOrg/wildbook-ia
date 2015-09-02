@@ -150,7 +150,7 @@ def get_dbinfo(ibs, verbose=True,
         valid_gids = valid_gids_
         valid_nids = valid_nids_
         valid_aids = valid_aids_
-        #associated_nids = ut.filter_items(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
+        #associated_nids = ut.list_compress(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
 
     # Image info
     if verbose:
@@ -178,7 +178,7 @@ def get_dbinfo(ibs, verbose=True,
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
         nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
-    associated_nids = ut.filter_items(valid_nids, map(len, nx2_aids))
+    associated_nids = ut.list_compress(valid_nids, map(len, nx2_aids))
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
@@ -195,7 +195,7 @@ def get_dbinfo(ibs, verbose=True,
     #
     if verbose:
         print('Checking Annot Species')
-    unknown_aids = ut.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
+    unknown_aids = ut.list_compress(valid_aids, ibs.is_aid_unknown(valid_aids))
     species_list = ibs.get_annot_species_texts(valid_aids)
     species2_aids = ut.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
@@ -274,37 +274,7 @@ def get_dbinfo(ibs, verbose=True,
     #valid_unixtime_list = [time for time in unixtime_list if time != -1]
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
-        import vtool as vt
-        import plottool as pt
-        unixtime_list = np.array(unixtime_list)
-        unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
-        unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
-        if False:
-            from matplotlib import dates as mpldates
-            #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
-            n, bins, patches = pt.plt.hist(unixtime_list, 365)
-            #n_ = list(map(ut.unixtime_to_datetimeobj, n))
-            #bins_ = list(map(ut.unixtime_to_datetimeobj, bins))
-            pt.plt.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
-            ax = pt.gca()
-            #ax.xaxis.set_major_locator(mpldates.YearLocator())
-            #hfmt = mpldates.DateFormatter('%y/%m/%d')
-            #ax.xaxis.set_major_formatter(hfmt)
-            mpldates.num2date(unixtime_list)
-            #pt.gcf().autofmt_xdate()
-            #y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())
-            #ax.set_xticks(bins_)
-            #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
-        else:
-            unixtime_pdf = vt.estimate_pdf(unixtime_list)
-            unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
-            xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
-            pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata)
-            ax = pt.gca()
-            ax.set_xlabel('Date')
-            ax.set_title('Timestamp distribution of %s' % (ibs.get_dbname()))
-            pt.gcf().autofmt_xdate()
-        ut.show_if_requested()
+        hackshow_times(ibs, unixtime_list)
         #xdata = unixtime_domain
         pass
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
@@ -312,7 +282,7 @@ def get_dbinfo(ibs, verbose=True,
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
-    gps_list  = ut.filter_items(gps_list_, gpsvalid_list)
+    gps_list  = ut.list_compress(gps_list_, gpsvalid_list)
 
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
@@ -524,6 +494,100 @@ def get_dbinfo(ibs, verbose=True,
         print(info_str2)
     locals_ = locals()
     return locals_
+
+
+def hackshow_names(ibs, aids_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aids_list (list):
+
+    CommandLine:
+        python -m ibeis.other.dbinfo --exec-hackshow_names --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids_list = ibs.get_valid_aids()
+        >>> result = hackshow_names(ibs, aids_list)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    grouped_aids, nid_list = ibs.group_annots_by_name(aids_list)
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+    yaws_list = ibs.unflat_map(ibs.get_annot_yaws, grouped_aids)
+    markers_list = [[(1, 2, yaw * 360 / (np.pi * 2)) for yaw in yaws] for yaws in yaws_list]
+
+    unixtime_list = ut.flatten(unixtimes_list)
+    timemax = np.nanmax(unixtime_list)
+    timemin = np.nanmin(unixtime_list)
+    timerange = timemax - timemin
+    unixtimes_list = [((unixtimes[:] - timemin) / timerange) for unixtimes in unixtimes_list]
+    for unixtimes in unixtimes_list:
+        num_nan = sum(np.isnan(unixtimes))
+        unixtimes[np.isnan(unixtimes)] = np.linspace(-1, -.5, num_nan)
+    import plottool as pt
+    #ydata_list = [np.arange(len(aids)) for aids in grouped_aids]
+    import vtool as vt
+    sortx_list = vt.argsort_groups(unixtimes_list, reverse=False)
+    markers_list = ut.list_ziptake(markers_list, sortx_list)
+    yaws_list = ut.list_ziptake(yaws_list, sortx_list)
+    ydatas_list = vt.ziptake(unixtimes_list, sortx_list)
+    #ydatas_list = sortx_list
+    #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
+    ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
+    xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
+    markers = ut.flatten(markers_list)
+    yaws = np.array(ut.flatten(yaws_list))
+    y_data = np.array(ut.flatten(ydatas_list))
+    x_data = np.array(ut.flatten(xdatas_list))
+    pt.figure(fnum=1)
+    ax = pt.gca()
+
+    unique_yaws, groupxs = vt.group_indices(yaws)
+
+    ax.scatter(x_data, y_data, color=[1, 0, 0])
+    #pt.draw_stems(x_data, y_data, marker=markers, setlims=True, linestyle='')
+    pt.dark_background()
+    ax = pt.gca()
+    ax.set_xlim(min(x_data) - .1, max(x_data) + .1)
+    ax.set_ylim(min(y_data) - .1, max(y_data) + .1)
+
+
+def hackshow_times(ibs, unixtime_list):
+    import vtool as vt
+    import plottool as pt
+    unixtime_list = np.array(unixtime_list)
+    unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
+    unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
+    if False:
+        from matplotlib import dates as mpldates
+        #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
+        n, bins, patches = pt.plt.hist(unixtime_list, 365)
+        #n_ = list(map(ut.unixtime_to_datetimeobj, n))
+        #bins_ = list(map(ut.unixtime_to_datetimeobj, bins))
+        pt.plt.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
+        ax = pt.gca()
+        #ax.xaxis.set_major_locator(mpldates.YearLocator())
+        #hfmt = mpldates.DateFormatter('%y/%m/%d')
+        #ax.xaxis.set_major_formatter(hfmt)
+        mpldates.num2date(unixtime_list)
+        #pt.gcf().autofmt_xdate()
+        #y = pt.plt.normpdf( bins, unixtime_list.mean(), unixtime_list.std())
+        #ax.set_xticks(bins_)
+        #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
+    else:
+        unixtime_pdf = vt.estimate_pdf(unixtime_list)
+        unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+        xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+        pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata)
+        ax = pt.gca()
+        ax.set_xlabel('Date')
+        ax.set_title('Timestamp distribution of %s' % (ibs.get_dbname()))
+        pt.gcf().autofmt_xdate()
+    ut.show_if_requested()
 
 
 def latex_dbstats(ibs_list):
