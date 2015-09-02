@@ -9,6 +9,14 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
+    """ stacks a tuple even if it is empty """
+    try:
+        return np.vstack(tup)
+    except ValueError:
+        return np.empty(default_shape, dtype=default_dtype)
+
+
 def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=True):
     """
     Sorts each group normally, but randomizes order of level values.
