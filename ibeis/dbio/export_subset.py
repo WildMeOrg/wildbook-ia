@@ -1206,6 +1206,7 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         gid_list = rowid_subsets[const.IMAGE_TABLE]
     else:
         gid_list = ibs_src.get_valid_gids()
+    print(len(gid_list))
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
     ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
