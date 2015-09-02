@@ -994,7 +994,7 @@ def show_signature(sig, **kwargs):
     fig.show()
 
 
-def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=None, bottom=None):
+def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=None, bottom=None, marker=None, linestyle='-'):
     """
     Draws stem plot
 
@@ -1016,15 +1016,16 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
-        >>> x_data = np.arange(1, 10000)
-        >>> np.random.seed(0)
-        >>> y_data = sorted(np.random.rand(len(x_data)) * 10)
+        >>> x_data = np.append(np.arange(1, 10), np.arange(1, 10))
+        >>> rng = np.random.RandomState(0)
+        >>> y_data = sorted(rng.rand(len(x_data)) * 10)
         >>> # y_data = np.array([ut.get_nth_prime(n) for n in x_data])
         >>> setlims = False
         >>> color = [1.0, 0.0, 0.0, 1.0]
-        >>> markersize = 0
+        >>> markersize = 2
+        >>> marker = 'o'
         >>> bottom = None
-        >>> result = draw_stems(x_data, y_data, setlims, color, markersize, bottom)
+        >>> result = draw_stems(x_data, y_data, setlims, color, markersize, bottom, marker)
         >>> ut.show_if_requested()
     """
     if y_data is not None and x_data is None:
@@ -1039,6 +1040,8 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
     y_data_sortx = y_data_.argsort()[::-1]
     x_data_sort = x_data_[y_data_sortx]
     y_data_sort = y_data_[y_data_sortx]
+    if color is None:
+        color =  [1.0, 0.0, 0.0, 1.0]
 
     OLD = False
     if not OLD:
@@ -1049,8 +1052,11 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
         stemlines = []
         ax = gca()
         x_segments = ut.flatten([[thisx, thisx, None] for thisx in x_data_sort])
-        y_segments = ut.flatten([[bottom, thisy, None] for thisy in y_data_sort])
-        ax.plot(x_segments, y_segments, '-', color=color)
+        if linestyle == '':
+            y_segments = ut.flatten([[thisy, thisy, None] for thisy in y_data_sort])
+        else:
+            y_segments = ut.flatten([[bottom, thisy, None] for thisy in y_data_sort])
+        ax.plot(x_segments, y_segments, linestyle, color=color, marker=marker)
     else:
         with ut.Timer('old stem'):
             markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
