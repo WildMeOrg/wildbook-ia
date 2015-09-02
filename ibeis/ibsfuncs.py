@@ -542,6 +542,24 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 
 @__injectable
+def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
+    r"""
+    """
+    isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
+    try:
+        assert not any(isinvalid_list), 'invalid gids: %r' % (ut.filter_items(gid_list, isinvalid_list),)
+        isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES) for gid in gid_list]
+        assert not any(isinvalid_list), 'invalidly typed gids: %r' % (ut.filter_items(gid_list, isinvalid_list),)
+    except AssertionError as ex:
+        print('dbname = %r' % (ibs.get_dbname()))
+        ut.printex(ex)
+        #ut.embed()
+        raise
+    if veryverbose:
+        print('passed assert_valid_gids')
+
+
+@__injectable
 def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     r"""
     Args:

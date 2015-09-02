@@ -112,6 +112,37 @@ def generate_dbinfo_table():
     pass
 
 
+def parse_latex_comments_for_commmands():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
+        >>> parse_latex_comments_for_commmands()
+    """
+    figdeftext = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefexpt.tex'))
+    lines = figdeftext.split('\n')
+    cmd_list = ['']
+    in_comment = True
+    for line in lines:
+        if line.strip().startswith(r'\begin{comment}'):
+            in_comment = True
+            continue
+        if in_comment:
+            line = line.strip()
+            if line == '' or line.startswith('#') or line.startswith('%'):
+                in_comment = False
+            else:
+                cmd_list[-1] = cmd_list[-1] + line
+                cmd_list.append('')
+                if not line.strip().endswith('\\'):
+                    in_comment = False
+    print('cmd_list = %s' % (ut.list_str(cmd_list),))
+    write_script_lines(cmd_list, 'regen_figdef_expt.sh')
+
+
 def inspect_annotation_configs():
     r"""
     CommandLine:
@@ -402,7 +433,7 @@ def write_script_lines(line_list, fname):
     fpath = join(dpath, fname)
     if not ut.get_argflag('--dryrun'):
         ut.writeto(fpath, script)
-        ut.chmod_add_executable(fname)
+        ut.chmod_add_executable(fpath)
     return fname, script, line_list
 
 

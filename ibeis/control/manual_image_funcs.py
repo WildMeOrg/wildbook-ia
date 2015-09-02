@@ -136,6 +136,32 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_gid(ibs, gid_list, eager=True, nInput=None):
+    """ self verifier
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --exec-get_image_gid
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids() + [None, -1, 10434320432]
+        >>> gid_list_ = ibs.get_image_gid(gid_list)
+        >>> assert [r is None for r in gid_list_[-3:]]
+        >>> assert [r is not None for r in gid_list_[0:-3]]
+        >>> print('gid_list_ = %r' % (gid_list_,))
+    """
+    id_iter = gid_list
+    colnames = (IMAGE_ROWID,)
+    gid_list = ibs.db.get(const.IMAGE_TABLE, colnames,
+                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return gid_list
+
+
+@register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/valid_rowids/', methods=['GET'])
 def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None):

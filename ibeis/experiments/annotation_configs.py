@@ -488,8 +488,8 @@ varysize_pzm = {
     'dcfg': ut.augdict(
         varysize['dcfg'], {
             #'sample_size': [1500, 2000, 2500, 3000],
-            #'sample_size': [1500, 2000, 2500, 3000, 4000],
-            'sample_size': [1500, 17500, 2000, 2250, 2500, 2750, 3000, 3500, 4000, 4500],
+            'sample_size': [1500, 2500, 3500, 4500],
+            #'sample_size': [1500, 17500, 2000, 2250, 2500, 2750, 3000, 3500, 4000, 4500],
         }),
 }
 
@@ -510,12 +510,12 @@ varysize_gz = {
 varysize_girm = {
     'qcfg': ut.augdict(
         varysize['qcfg'], {
-            'sample_size': 35,
+            'sample_size': 30,
         }),
 
     'dcfg': ut.augdict(
         varysize['dcfg'], {
-            'sample_size': [70, 105, 140, 175, 200],
+            'sample_size': [60, 90, 120, 150],
         }),
 }
 
