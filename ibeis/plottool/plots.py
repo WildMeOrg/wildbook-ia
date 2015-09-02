@@ -535,12 +535,43 @@ def plot_probabilities(prob_list,
                        prob_thresh=None,
                        figtitle='plot_probabilities',
                        fnum=None,
-                       pnum=(1, 1, 1)):
+                       pnum=(1, 1, 1),
+                       fill=False):
     """
     Input: a list of scores (either chip or descriptor)
 
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
+
+    Args:
+        prob_list (list):
+        prob_lbls (None): (default = None)
+        prob_colors (None): (default = None)
+        xdata (None): (default = None)
+        prob_thresh (None): (default = None)
+        figtitle (str): (default = 'plot_probabilities')
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = (1, 1, 1))
+        fill (bool): (default = False)
+
+    CommandLine:
+        python -m plottool.plots --exec-plot_probabilities --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> prob_list = [[.01, .02, .03, .04, .03, .06, .03, .04]]
+        >>> prob_lbls = ['prob']
+        >>> prob_colors = None
+        >>> xdata = None
+        >>> prob_thresh = None
+        >>> figtitle = 'plot_probabilities'
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> fill = True
+        >>> result = plot_probabilities(prob_list, prob_lbls, prob_colors, xdata, prob_thresh, figtitle, fnum, pnum, fill)
+        >>> print(result)
+        >>> ut.show_if_requested()
     """
     assert len(prob_list) > 0
     if xdata is None:
@@ -568,6 +599,7 @@ def plot_probabilities(prob_list,
         density, label, color = tup
         ydata = density
         df2.plt.plot(xdata, ydata, color=color, label=label, alpha=.7)
+        df2.plt.fill_between(xdata, ydata, color=color, alpha=.7)
         #ut.embed()
         #help(df2.plot)
 
