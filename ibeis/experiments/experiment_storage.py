@@ -676,6 +676,11 @@ class TestResult(object):
         return truth2_prop, is_success, is_failure
 
     def partition_case_types(test_result, min_success_diff=0):
+        """
+        Category Definitions
+           * Potential nondistinct cases: (probably more a failure to match query keypoints)
+               false negatives with rank < 5 with false positives  that have medium score
+        """
         # TODO: Make this function divide the failure cases into several types
         # * scenery failure, photobomb failure, matching failure.
         # TODO: Make this function divide success cases into several types
@@ -929,7 +934,7 @@ class TestResult(object):
             unflat_pos_list = list(len2_groupedpos.values())
         else:
             unflat_pos_list = list(len2_groupedpos.values()[::-1])
-        case_pos_list = np.vstack(unflat_pos_list)
+        case_pos_list = vt.safe_vstack(unflat_pos_list, (0, 2), np.int)
         return case_pos_list
 
     def get_interesting_ranks(test_results):

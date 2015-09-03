@@ -56,8 +56,9 @@ def hack_argv():
                 sys.argv.extend([
                     '--dpath=~/latex/crall-candidacy-2015/figures',
                     #'--tight',
-                    '--vf',
                 ])
+                if '--show' not in sys.argv:
+                    sys.argv.extend(['--vf'])
             if hack_argv_key in ['time']:
                 fname_fmt = 'figures/{e}_{db}_a_{a}_t_{t}'
                 if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):

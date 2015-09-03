@@ -166,7 +166,13 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
 
     if use_cache:
         # Make loading aids a big faster for experiments
-        acfg_cachedir = './ACFG_CACHE'
+        if ut.is_developer():
+            import ibeis
+            from os.path import dirname, join
+            repodir = dirname(ut.get_module_dir(ibeis))
+            acfg_cachedir = join(repodir, 'ACFG_CACHE')
+        else:
+            acfg_cachedir = './ACFG_CACHE'
         acfg_cachename = 'ACFG_CACHE'
 
         RESPECT_INTERNAL_CFGS = False

@@ -637,9 +637,6 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> metadata = None
         >>> analysis_fpath_list = draw_individual_cases(ibs, test_result, metadata)
-        >>> cmdname = ibs.get_dbname() + 'Results'
-        >>> latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
-        >>> ut.print_code(latex_block, 'latex')
         >>> #ut.show_if_requested()
     """
     import plottool as pt
@@ -661,7 +658,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     figdir = join(figdir, 'cases_' + test_result.get_fname_aug(withinfo=False))
     ut.ensuredir(figdir)
 
-    if ut.is_developer() or ut.get_argflag(('--view-fig-directory', '--vf')):
+    if ut.get_argflag(('--view-fig-directory', '--vf')):
         ut.view_directory(figdir)
 
     DRAW_ANALYSIS = True
@@ -696,6 +693,8 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     # TODO;
     # Time statistics on incorrect results
     #=================================
+    # Sel rows index into qx_list
+    # Sel cols index into cfgx2 maps
     sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, **_viewkw)
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
@@ -728,8 +727,9 @@ def draw_individual_cases(ibs, test_result, metadata=None):
 
     fpaths_list = []
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
-        case_labels = flat_case_labels[count]
-        print('case_labels = %r' % (case_labels,))
+        if SHOW:
+            case_labels = flat_case_labels[count]
+            print('case_labels = %r' % (case_labels,))
         qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
         #qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
         # TODO: try to get away with not reloading query results or loading
@@ -760,6 +760,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
             show_kwargs['viz_name_score'] = True
             show_kwargs['show_timedelta'] = True
             show_kwargs['show_gf'] = True
+            show_kwargs['with_figtitle'] = False
             if DRAW_ANALYSIS:
                 analysis_fpath = join(individ_results_dpath, qres_fname)
                 #print('analysis_fpath = %r' % (analysis_fpath,))
@@ -835,28 +836,78 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         if count % flush_freq == (flush_freq - 1):
             cpq.flush_copy_tasks()
 
+    # Copy summary images to query_analysis folder
+    cpq.flush_copy_tasks()
+
     # HACK MAKE LATEX CONVINENCE STUFF
     fpaths_list
-    LATEX_HACK = ut.get_argflag('--dump-figdef')
-    if LATEX_HACK:
+    LATEX_HACK = ut.get_argflag(('--dump-figdef', '--figdef'))
+    if True or LATEX_HACK:
+        print('LATEX HACK')
+        RENDER = ut.get_argflag('--render')
         latex_code_blocks = []
         latex_block_keys = []
+
+        caption_prefix = ut.get_argval('--cappref', type_=str, default='')
+        caption_suffix = ut.get_argval('--capsuf', type_=str, default='')
+        cmdaug = ut.get_argval('--cmdaug', type_=str, default='custom')
+
         for fpaths, labels in zip(fpaths_list, flat_case_labels):
             #print(fpaths)
             #print(labels)
+            if labels is None:
+                labels = [cmdaug]
+            if len(fpaths) < 4:
+                nCols = len(fpaths)
+            else:
+                nCols = 2
             _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels)
             cmdname = ut.latex_sanatize_command_name(_cmdname)
             label_str = cmdname
-            caption_str = 'Cases from ' + ibs.get_dbname() + ' casetags; ' + ut.list_str(labels, nl=False, strvals=True)
-            caption_str += '. From left to right, the results are from the configurations: ' + ut.conj_phrase(cfgx2_shortlbl, 'and')
-            caption_str = ut.escape_latex(caption_str)
-            latex_block  = ut.get_latex_figure_str2(fpaths, cmdname, nCols=len(fpaths), label_str=label_str, caption_str=caption_str, colsep='|')
+            if len(caption_prefix) == 0:
+                caption_str = ut.escape_latex('Casetags: ' + ut.list_str(labels, nl=False, strvals=True) + ', db=' + ibs.get_dbname() + '. ')
+            else:
+                caption_str = ''
+
+            use_sublbls = len(cfgx2_shortlbl) > 1
+            if use_sublbls:
+                caption_str += ut.escape_latex('Each figure shows a different configuration: ')
+                sublbls = ['(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))]
+            else:
+                caption_str += ut.escape_latex('This figure depicts positive and negative matches from configuration: ')
+                sublbls = [''] * len(cfgx2_shortlbl)
+            def wrap_tt(text):
+                return r'{\tt ' + text + '}'
+            import re
+            _shortlbls = cfgx2_shortlbl
+            _shortlbls = list(map(ut.escape_latex, _shortlbls))
+            # Adjust spacing for breaks
+            #tex_small_space = r''
+            tex_small_space = r'\hspace{0pt}'
+            # Remove query specific config flags in individual results
+            _shortlbls = [re.sub('\\bq[^,]*,?', '', shortlbl) for shortlbl in _shortlbls]
+            # Let config strings be broken over newlines
+            _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
+            _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
+            _shortlbls = list(map(wrap_tt, _shortlbls))
+            cfgx2_texshortlbl = [lbl + shortlbl for lbl, shortlbl in zip(sublbls, _shortlbls)]
+
+            caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '. '
+            caption_str = caption_prefix + caption_str + caption_suffix
+            caption_str = caption_str.strip()
+            figure_str  = ut.get_latex_figure_str(fpaths,
+                                                    nCols=nCols,
+                                                    label_str=label_str,
+                                                    caption_str=caption_str,
+                                                    use_sublbls=None)
+            latex_block = ut.latex_newcommand(cmdname, figure_str)
             latex_block = '\n%----------\n' + latex_block
             latex_code_blocks.append(latex_block)
             latex_block_keys.append(cmdname)
             #ut.print_code(latex_block, 'latex')
+        # TODO: remoev selected hack
         selected = [
-            'PZMasterICaseFailureGfNondistinct',
+            #'PZMasterICaseFailureGfNondistinct',
             'PZMasterICaseFailureGtLargeTimedelta',
             'PZMasterICaseFailureGtRankAboveL',
             'PZMasterICaseFailureGtRankUnderV',
@@ -864,33 +915,83 @@ def draw_individual_cases(ibs, test_result, metadata=None):
             'PZMasterICaseFailureGtCfgxsame',
         ]
         latex_big_block = '\n'.join(latex_code_blocks)
+        if ut.VERBOSE:
+            ut.print_code(latex_big_block, 'latex')
+
         latex_fpath = join(figdir, 'latex_cases.tex')
-        ut.writeto(latex_fpath, latex_big_block)
+        # HACK
+        remove_fpath = ut.truepath('~/latex/crall-candidacy-2015') + '/'
+        if LATEX_HACK:
+            ut.writeto(latex_fpath, latex_big_block.replace(remove_fpath, ''))
 
-        latex_big_block2 = '\n'.join(ut.dict_take(dict(zip(latex_block_keys, latex_code_blocks)), selected))
-        latex_big_block2 += '\n\n' + '\n'.join(['\\' + x for x in selected])
-        latex_fpath2 = join(figdir, 'latex_selected_cases.tex')
-        ut.writeto(latex_fpath2, latex_big_block2)
+        try:
+            latex_big_block2 = '\n'.join(ut.dict_take(dict(zip(latex_block_keys, latex_code_blocks)), selected))
+            latex_big_block2 += '\n\n' + '\n'.join(['\\' + x for x in selected])
+            latex_big_block2_renderable = latex_big_block2
+            latex_big_block2 = latex_big_block2.replace(remove_fpath, '')
 
-    # Copy summary images to query_analysis folder
-    cpq.flush_copy_tasks()
+            latex_fpath2 = join(figdir, 'latex_selected_cases.tex')
+            if LATEX_HACK:
+                ut.writeto(latex_fpath2, latex_big_block2, n=None)
+                ut.editfile(latex_fpath2)
+                print('Wrote selection')
+            if RENDER:
+                ut.render_latex_text(latex_big_block2_renderable)
+                ut.print_code(latex_big_block2, 'latex')
+        except KeyError:
+            latex_big_block3 = latex_big_block + '\n' + '\n'.join(['\\' + x for x in latex_block_keys])
+            # HACK
+            latex_big_block3_renderable = latex_big_block3
+            latex_big_block3 = latex_big_block3.replace(remove_fpath, '')
+            if RENDER:
+                ut.render_latex_text(latex_big_block3_renderable)
+                ut.print_code(latex_big_block3, 'latex')
+            print('Did not do selection')
+    else:
+        print('STANDARD LATEX RESULTS')
+        cmdname = ibs.get_dbname() + 'Results'
+        latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)
+        ut.print_code(latex_block, 'latex')
     return analysis_fpath_list
 
 
-def get_individual_result_sample(test_result,
-                                 view_all=ut.get_argflag(('--view-all', '--va')),
-                                 view_hard=ut.get_argflag(('--view-hard', '--vh')),
-                                 view_hard2=ut.get_argflag(('--view-hard2', '--vh2')),
-                                 view_easy=ut.get_argflag(('--view-easy', '--vz')),
-                                 view_interesting=ut.get_argflag(('--view-interesting', '--vn')),
-                                 **kwargs):
+def get_individual_result_sample(test_result, **kwargs):
     """
     The selected rows are the query annotation you are interested in viewing
     The selected cols are the parameter configuration you are interested in viewing
+
+    Args:
+        test_result (?):
+
+    Kwargs:
+        all, hard, hard2, easy, interesting, hist
+
+    Returns:
+        tuple: (sel_rows, sel_cols, flat_case_labels)
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> test_result = '?'
+        >>> (sel_rows, sel_cols, flat_case_labels) = get_individual_result_sample(test_result)
+        >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
+        >>> print(result)
     """
     cfg_list = test_result.cfg_list
     #qaids = test_result.qaids
     qaids = test_result.get_common_qaids()
+
+    view_all          = kwargs.get('all', ut.get_argflag(('--view-all', '--va')))
+    view_hard         = kwargs.get('hard', ut.get_argflag(('--view-hard', '--vh')))
+    view_hard2        = kwargs.get('hard2', ut.get_argflag(('--view-hard2', '--vh2')))
+    view_easy         = kwargs.get('easy', ut.get_argflag(('--view-easy', '--vz')))
+    view_interesting  = kwargs.get('interesting', ut.get_argflag(('--view-interesting', '--vn')))
+    hist_sample       = kwargs.get('hist', ut.get_argflag(('--hs', '--hist-sample')))
+    view_differ_cases = kwargs.get('differcases', ut.get_argflag(('--diff-cases', '--dc')))
+    view_cases        = kwargs.get('cases', ut.get_argflag(('--view-cases', '--vc')))
 
     #sel_cols = params.args.sel_cols  # FIXME
     #sel_rows = params.args.sel_rows  # FIXME
@@ -932,7 +1033,6 @@ def get_individual_result_sample(test_result,
         new_cols = list(range(len(cfg_list)))
         return new_rows, new_cols, flat_case_labels
 
-    view_differ_cases = ut.get_argflag(('--diff-cases', '--dc'))
     if view_differ_cases:
         # Cases that passed on config but failed another
         case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=True, min_success_diff=1)
@@ -940,7 +1040,6 @@ def get_individual_result_sample(test_result,
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)
 
-    view_cases = ut.get_argflag(('--view-cases', '--vc'))
     if view_cases:
         case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, case_labels_list)
@@ -966,7 +1065,7 @@ def get_individual_result_sample(test_result,
         # TODO: grab the best scoring and most interesting configs
         if len(sel_cols) == 0:
             sel_cols.extend(list(range(len(cfg_list))))
-    if kwargs.get('hist_sample', ut.get_argflag(('--hs', '--hist-sample'))):
+    if hist_sample:
         # Careful if there is more than one config
         config_rand_bin_qxs = test_result.get_rank_histogram_qx_sample(size=10)
         sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
