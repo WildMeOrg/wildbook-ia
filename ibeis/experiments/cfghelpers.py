@@ -220,7 +220,8 @@ def parse_cfgstr_name_options(cfgstr):
 
     """
     import re
-    cfgname_regex = ut.named_field('cfgname', r'[^\[:]+')
+    #cfgname_regex = ut.named_field('cfgname', r'[^\[:]+')  # name is not optional
+    cfgname_regex = ut.named_field('cfgname', r'[^\[:]*')  # name is optional
     subx_regex = r'\[' + ut.named_field('subx', r'[^\]]*') + r'\]'
     cfgopt_regex = re.escape(NAMEVARSEP) + ut.named_field('cfgopt', '.*')
     regex_str = cfgname_regex + ('(%s)?' % (subx_regex,)) + ('(%s)?' % (cfgopt_regex,))
@@ -246,7 +247,7 @@ def parse_cfgstr_name_options(cfgstr):
     return cfgname, cfgopt_strs, subx
 
 
-def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=None, valid_keys=None, expand_nested=True):
+def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None, alias_keys=None, valid_keys=None, expand_nested=True):
     """
     Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
         >>> from ibeis.experiments.cfghelpers import *  # NOQA
@@ -256,7 +257,10 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict, cfgtype=None, alias_key
         cfgname, cfgopt_strs, subx = parse_cfgstr_name_options(cfgstr)
         # --
         # Lookup named default settings
-        base_cfg_list = named_defaults_dict[cfgname]
+        if named_defaults_dict is None:
+            base_cfg_list = [{}]
+        else:
+            base_cfg_list = named_defaults_dict[cfgname]
         if not isinstance(base_cfg_list, list):
             base_cfg_list = [base_cfg_list]
         # --

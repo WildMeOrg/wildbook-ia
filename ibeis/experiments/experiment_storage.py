@@ -569,6 +569,50 @@ class TestResult(object):
         else:
             return test_result.qaids
 
+    def case_sample2(test_result, sample_cfg):
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
+
+        import operator
+        from functools import partial
+
+        rule_list = [
+            ('failures',  prop2_mat['is_failure']),
+            ('gtrank_gt', partial(operator.gt, truth2_prop['gt']['rank'])),
+            ('gtrank_lt', partial(operator.lt, truth2_prop['gt']['rank'])),
+        ]
+
+        verbose = True  # ut.VERBOSE
+        print('Sampling from is_valid.size=%r' % (is_valid.size))
+
+        for key, rule in rule_list:
+            val = sample_cfg.get(key, None)
+            if val is not None and val is not False:
+                if isinstance(rule, np.ndarray):
+                    flags = rule
+                else:
+                    flags = rule(val)
+                is_valid = np.logical_and(is_valid, flags)
+                if verbose:
+                    print('SampleRule: %s = %r' % (key, val))
+                    print('  * flags.sum() = %r' % (flags.sum(),))
+                    print('  * is_valid.sum() = %r' % (is_valid.sum(),))
+
+        ut.embed()
+
+        if False:
+            # Valid props
+            gt_ranks = truth2_prop['gt']['rank'][is_valid]
+            gf_ranks = truth2_prop['gf']['rank'][is_valid]
+            gt_aids = truth2_prop['gt']['aid'][is_valid]
+            qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
+
+            np.vstack((qaids, gt_aids, gt_ranks)).T
+
+        qx_list, cfgx_list = np.nonzero(is_valid)
+        case_pos_list = np.vstack((qx_list, cfgx_list)).T
+        return case_pos_list
+
     def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True, min_success_diff=0):
         category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
         # STRATIFIED SAMPLE OF CASES FROM GROUPS
@@ -673,7 +717,10 @@ class TestResult(object):
             ]).T
             truth2_prop[truth]['annotmatch_rowid']  = annotmatch_rowid_mat
             truth2_prop[truth]['timedelta'] = timedelta_mat
-        return truth2_prop, is_success, is_failure
+        prop2_mat = {}
+        prop2_mat['is_success'] = is_success
+        prop2_mat['is_failure'] = is_failure
+        return truth2_prop, prop2_mat
 
     def partition_case_types(test_result, min_success_diff=0):
         """
@@ -688,7 +735,9 @@ class TestResult(object):
         #ut.embed()
 
         # Matching labels from annotmatch rowid
-        truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        is_success = prop2_mat['is_success']
+        is_failure = prop2_mat['is_failure']
 
         # Which queries differ in success
         min_success_ratio = min_success_diff / (test_result.nConfig)

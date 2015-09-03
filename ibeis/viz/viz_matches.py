@@ -39,8 +39,10 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     kwargs = {}
     draw_fmatches = True
 
+    Called from chip_match.py
+
     CommandLine:
-        python -m ibeis.viz.viz_matches --test-show_name_matches --show --verobse
+        python -m ibeis.viz.viz_matches --test-show_name_matches --show --verbose
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -94,6 +96,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
+    import numpy as np
+    from ibeis import constants as const
     draw_fmatches = kwargs.get('draw_fmatches', True)
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list, qreq_, draw_fmatches)
@@ -107,8 +111,6 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     title = vh.get_query_text(ibs, None, name_daid_list, False, qaid=qaid, **kwargs)
 
     pt.set_title(title, ax)
-    import numpy as np
-    from ibeis import constants as const
     name_equality = ibs.get_annot_nids(qaid) == np.array(ibs.get_annot_nids(name_daid_list))
     truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
     if any(ibs.is_aid_unknown(name_daid_list)) or ibs.is_aid_unknown(qaid):
@@ -118,7 +120,16 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey([qaid] * len(name_daid_list), name_daid_list)
     annotmatch_rowid_list = ut.filter_Nones(annotmatch_rowid_list)
-    xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
+
+    name_rank = kwargs.get('name_rank', None)
+    if name_rank is None:
+        xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
+        #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
+    else:
+        if name_rank == 0:
+            xlabel = {1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
+        else:
+            xlabel = {1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
     xlabel_list = []
     if any(ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)):
         xlabel_list += [' Photobomb']

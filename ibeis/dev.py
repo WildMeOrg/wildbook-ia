@@ -39,7 +39,7 @@ def hack_argv():
     for arg in sys.argv[:]:
         if arg.startswith('--hargv='):
             hack_argv_key = '='.join(arg.split('=')[1:])
-            if hack_argv_key in ['candexpt', 'expt']:
+            if hack_argv_key in ['candexpt', 'expt', 'exptk']:
                 sys.argv.extend([
                     '--save',
                     'figures/expt_{db}_a_{a}_t_{t}.png',
@@ -48,17 +48,21 @@ def hack_argv():
                     '--clipwhite',
                     '--diskshow',
                     '--contextadjust',
-                    '--figsize=15,5',
-                    '--top=.9',
-                    '--bottom=.1',
                 ])
+                if hack_argv_key != 'exptk':
+                    sys.argv.extend([
+                        '--figsize=15,5',
+                        '--top=.9',
+                        '--bottom=.1',
+                    ])
+
             if hack_argv_key in ['match']:
                 sys.argv.extend([
                     '--dpath=~/latex/crall-candidacy-2015/figures',
                     #'--tight',
                 ])
-                if '--show' not in sys.argv:
-                    sys.argv.extend(['--vf'])
+                #if '--show' not in sys.argv:
+                #    sys.argv.extend(['--vf'])
             if hack_argv_key in ['time']:
                 fname_fmt = 'figures/{e}_{db}_a_{a}_t_{t}'
                 if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):

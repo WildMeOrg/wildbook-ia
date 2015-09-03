@@ -13,7 +13,7 @@ from ibeis.experiments import experiment_helpers
 #from ibeis.experiments import experiment_printres
 #from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
-from ibeis.experiments import annotation_configs
+#from ibeis.experiments import annotation_configs
 #from ibeis.experiments import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
@@ -76,21 +76,21 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=
 
     expanded_aids_iter = ut.ProgressIter(expanded_aids_list, lbl='annot config', freq=1, autoadjust=False)
 
-    if ut.get_argflag(('--pcfginfo', '--pipecfginfo')):
-        ut.colorprint('Requested PcfgInfo for tests... ', 'red')
-        for pcfgx, pipecfg in enumerate(pipecfg_list):
-            print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
-            print(pipecfg.get_cfgstr())
-            print('L___')
-        ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
-        sys.exit(1)
+    #if ut.get_argflag(('--pcfginfo', '--pipecfginfo')):
+    #    ut.colorprint('Requested PcfgInfo for tests... ', 'red')
+    #    for pcfgx, pipecfg in enumerate(pipecfg_list):
+    #        print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
+    #        print(pipecfg.get_cfgstr())
+    #        print('L___')
+    #    ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
+    #    sys.exit(1)
 
-    if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
-        # Print info about annots for the test
-        ut.colorprint('Requested AcfgInfo for tests... ', 'red')
-        annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
-        ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
-        sys.exit(1)
+    #if ut.get_argflag(('--acfginfo', '--aidcfginfo')):
+    #    # Print info about annots for the test
+    #    ut.colorprint('Requested AcfgInfo for tests... ', 'red')
+    #    annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
+    #    ut.colorprint('Finished Reporting AcfgInfo. Exiting', 'red')
+    #    sys.exit(1)
 
     for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
         if len(qaids) == 0:

@@ -122,8 +122,9 @@ def parse_latex_comments_for_commmands():
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> parse_latex_comments_for_commmands()
     """
-    figdeftext = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefexpt.tex'))
-    lines = figdeftext.split('\n')
+    text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefexpt.tex'))
+    text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
+    lines = text.split('\n')
     cmd_list = ['']
     in_comment = True
     for line in lines:
@@ -138,9 +139,14 @@ def parse_latex_comments_for_commmands():
                 cmd_list[-1] = cmd_list[-1] + line
                 cmd_list.append('')
                 if not line.strip().endswith('\\'):
+                    cmd_list[-1] = cmd_list[-1] + '$@'
+                    cmd_list.append('')
+                    cmd_list.append('#--')
+                    cmd_list.append('')
                     in_comment = False
     print('cmd_list = %s' % (ut.list_str(cmd_list),))
-    write_script_lines(cmd_list, 'regen_figdef_expt.sh')
+    fname, script, line_list = write_script_lines(cmd_list, 'regen_figdef_expt.sh')
+    #ut.chmod_add_executable(fname)
 
 
 def inspect_annotation_configs():

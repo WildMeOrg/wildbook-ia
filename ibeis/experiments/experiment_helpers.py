@@ -125,6 +125,18 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     pipecfg_list = ut.list_compress(_pipecfg_list, _flag_list)
     if not QUIET:
         print('[harn.help] return %d / %d unique pipeline configs' % (len(cfgdict_list), len(_pcfgdict_list)))
+
+    if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
+        import sys
+        ut.colorprint('Requested PcfgInfo for tests... ', 'red')
+        pipecfg_lbls = get_varied_pipecfg_lbls(cfgdict_list)
+        for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
+            print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
+            ut.colorprint(lbl, 'white')
+            print(pipecfg.get_cfgstr())
+            print('L___')
+        ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
+        sys.exit(1)
     return (cfgdict_list, pipecfg_list)
 
 
