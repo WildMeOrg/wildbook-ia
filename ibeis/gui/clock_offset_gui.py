@@ -60,6 +60,9 @@ class ClockOffsetWidget(QtGui.QWidget):
     def get_image_datetime(co_wgt):
         # Function that extracts the unixtime from an image and stores it
         utime = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list[co_wgt.current_gindex])
+        if not isinstance(utime, (float, int)) or utime is None:
+            utime = -1
+        utime = float(utime)
         co_wgt.dtime = datetime.fromtimestamp(utime)
 
     def update_ui(co_wgt):
