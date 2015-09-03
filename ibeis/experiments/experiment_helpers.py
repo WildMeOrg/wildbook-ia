@@ -48,65 +48,72 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
 
     CommandLine:
         python -m ibeis.experiments.experiment_helpers --test-get_pipecfg_list
-        python -m ibeis.experiments.experiment_helpers --test-get_pipecfg_list:1
+        python -m ibeis.experiments.experiment_helpers --exec-get_pipecfg_list
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
+        >>> #test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
+        >>> #test_cfg_name_list = ['default', 'default:sv_on=False', 'best']
+        >>> test_cfg_name_list = ['default', 'default:sv_on=False']
         >>> # execute function
-        >>> (cfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
+        >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> # verify results
-        >>> query_cfg0 = pipecfg_list[0]
-        >>> query_cfg1 = pipecfg_list[1]
-        >>> assert query_cfg0.sv_cfg.sv_on is True
-        >>> assert query_cfg1.sv_cfg.sv_on is False
-        >>> print('cfg_list = '+ ut.list_str(cfg_list))
+        >>> assert pipecfg_list[0].sv_cfg.sv_on is True
+        >>> assert pipecfg_list[1].sv_cfg.sv_on is False
+        >>> result = ('pipecfg_lbls = '+ ut.list_str(get_varied_pipecfg_lbls(pcfgdict_list)))
+        >>> print(result)
+        pipecfg_lbls = [
+            'default:',
+            'default:sv_on=False',
+        ]
     """
-    print('[harn.help] building cfg_list using: %s' % test_cfg_name_list)
+    print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' % test_cfg_name_list)
     if isinstance(test_cfg_name_list, six.string_types):
         test_cfg_name_list = [test_cfg_name_list]
-    pipecfg_list = []
-    cfgdict_list = []
-    _test_cfg_name_list = []
-    # Parse out custom configs first
+    _standard_cfg_names = []
+    _pcfgdict_list = []
+    # HACK: Parse out custom configs first
     for test_cfg_name in test_cfg_name_list:
-        if test_cfg_name == 'custom':
-            query_cfg = ibs.cfg.query_cfg.deepcopy()
-            cfgdict = dict(query_cfg.parse_items())
+        if test_cfg_name.startswith('custom:') or test_cfg_name == 'custom':
+            print('[expthelpers] Parsing nonstandard custom config')
+            if test_cfg_name.startswith('custom:'):
+                # parse out modifications to custom
+                cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
+                augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
+            else:
+                augcfgdict = {}
+            # Take the configuration from the ibeis object
+            pipe_cfg = ibs.cfg.query_cfg.deepcopy()
+            # Update with augmented params
+            pipe_cfg.update_query_cfg(**augcfgdict)
+            # Parse out a standard cfgdict
+            cfgdict = dict(pipe_cfg.parse_items())
             cfgdict['_cfgname'] = 'custom'
             cfgdict['_cfgstr'] = test_cfg_name
-            pipecfg_list.append(query_cfg)
-            cfgdict_list.append(cfgdict)
-        elif test_cfg_name.startswith('custom:'):
-            cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
-            # parse out modifications to custom
-            cfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
-            query_cfg = ibs.cfg.query_cfg.deepcopy()
-            query_cfg.update_query_cfg(**cfgdict)
-            cfgdict['_cfgname'] = 'custom'
-            cfgdict['_cfgstr'] = test_cfg_name
-            cfgdict_list.append(cfgdict)
-            pipecfg_list.append(query_cfg)
+            _pcfgdict_list.append(cfgdict)
         else:
-            _test_cfg_name_list.append(test_cfg_name)
-    if len(_test_cfg_name_list) > 0:
-        # Parse normal pipeline cfgstrings
+            _standard_cfg_names.append(test_cfg_name)
+    # Handle stanndard configs next
+    if len(_standard_cfg_names) > 0:
+        # Get parsing information
         cfg_default_dict = dict(Config.QueryConfig().parse_items())
         valid_keys = list(cfg_default_dict.keys())
-        cfgstr_list = test_cfg_name_list
+        cfgstr_list = _standard_cfg_names
         named_defaults_dict = ut.dict_subset(
             experiment_configs.__dict__, experiment_configs.TEST_NAMES)
         alias_keys = experiment_configs.ALIAS_KEYS
+        # Parse standard pipeline cfgstrings
         dict_comb_list = cfghelpers.parse_cfgstr_list2(
             cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=alias_keys,
             valid_keys=valid_keys)
         # Get varied params (there may be duplicates)
-        _cfgdict_list = ut.flatten(dict_comb_list)
-        # Expand pipe_cfgdicts
-        _pipecfg_list = [Config.QueryConfig(**_cfgdict) for _cfgdict in _cfgdict_list]
+        _pcfgdict_list.extend(ut.flatten(dict_comb_list))
+
+    # Expand cfgdicts into PipelineConfig config objects
+    _pipecfg_list = [Config.QueryConfig(**_cfgdict) for _cfgdict in _pcfgdict_list]
 
     # Enforce rule that removes duplicate configs
     # by using feasiblity from ibeis.model.Config
@@ -114,11 +121,10 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     # and then move it up one function level so even the custom
     # configs can be uniquified
     _flag_list = ut.flag_unique_items(_pipecfg_list)
-    cfgdict_list = ut.list_compress(_cfgdict_list, _flag_list)
+    cfgdict_list = ut.list_compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.list_compress(_pipecfg_list, _flag_list)
     if not QUIET:
-        print('[harn.help] return %d / %d unique configs' % (len(cfgdict_list), len(_cfgdict_list)))
-    #cfgdict_list = [dict(cfg.parse_items()) for cfg in cfg_list]
+        print('[harn.help] return %d / %d unique pipeline configs' % (len(cfgdict_list), len(_pcfgdict_list)))
     return (cfgdict_list, pipecfg_list)
 
 
