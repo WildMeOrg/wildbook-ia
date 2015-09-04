@@ -1072,7 +1072,9 @@ class NeighborIndex(object):
             short_params = dict([(shortnames.get(key, key), str(val)[0:7])
                                  for key, val in six.iteritems(flann_params_clean)])
             #  if key == 'algorithm'])  # or val != flann_defaults.get(key, None)])
-            flann_valsig_ = ut.dict_str(short_params, nl=False, explicit=True, strvals=True).lstrip('dict').replace(' ', '')
+            flann_valsig_ = ut.dict_str(
+                short_params, nl=False, explicit=True, strvals=True)
+            flann_valsig_ = flann_valsig_.lstrip('dict').replace(' ', '')
             #flann_valsig_ = str(list(flann_params.values()))
             #flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
             flann_cfgstr_list.append('_FLANN(' + flann_valsig_ + ')')

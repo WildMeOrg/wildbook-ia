@@ -100,6 +100,7 @@ def expand_acfgs_consistently(ibs, acfg_combo):
         if qcfg['force_const_size']:
             qcfg['_orig_sample_size'] = qcfg['sample_size']
             qcfg['sample_size'] = tmpmin(qcfg['sample_size'] , min_qsize)
+
         if dcfg['force_const_size']:
             dcfg['_orig_sample_size'] = dcfg['sample_size']
             dcfg['sample_size'] = tmpmin(dcfg['sample_size'] , min_dsize)
@@ -112,6 +113,7 @@ def expand_acfgs_consistently(ibs, acfg_combo):
 
         if min_qsize is None:
             qcfg['sample_size'] = qsize
+        if min_dsize is None:  # UNSURE
             dcfg['sample_size'] = dsize
 
         if qcfg['sample_size'] != qsize:
@@ -121,10 +123,14 @@ def expand_acfgs_consistently(ibs, acfg_combo):
 
         if qcfg['force_const_size']:
             min_qsize = tmpmin(min_qsize, qsize)
+        if dcfg['force_const_size']:  # UNSURE
             min_dsize = tmpmin(min_dsize, dsize)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)
+
+    # Sample afterwords
+
     return list(zip(acfg_combo, expanded_aids_list))
 
 

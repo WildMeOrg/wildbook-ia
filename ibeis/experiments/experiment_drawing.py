@@ -265,16 +265,6 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
     caption_suffix = ut.get_argval('--capsuf', type_=str, default='')
     cmdaug = ut.get_argval('--cmdaug', type_=str, default='custom')
 
-    # TODO: remoev selected hack
-    selected = [
-        #'PZMasterICaseFailureGfNondistinct',
-        'PZMasterICaseFailureGtLargeTimedelta',
-        'PZMasterICaseFailureGtRankAboveL',
-        'PZMasterICaseFailureGtRankUnderV',
-        'PZMasterICaseFailureGtRankBetweenVL',
-        'PZMasterICaseFailureGtCfgxsame',
-    ]
-
     selected = None
 
     for case_idx, (fpaths, labels) in enumerate(zip(fpaths_list, flat_case_labels)):
@@ -285,7 +275,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
         else:
             nCols = 2
 
-        _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + str(case_idx)
+        _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + '_' + str(case_idx)
         print('_cmdname = %r' % (_cmdname,))
         cmdname = ut.latex_sanatize_command_name(_cmdname)
         label_str = cmdname
@@ -314,11 +304,11 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
         _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
         _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
         _shortlbls = list(map(wrap_tt, _shortlbls))
-        cfgx2_texshortlbl = [lbl + shortlbl for lbl, shortlbl in zip(sublbls, _shortlbls)]
+        cfgx2_texshortlbl = ['\n    ' + lbl + shortlbl for lbl, shortlbl in zip(sublbls, _shortlbls)]
 
-        caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '. '
-        caption_str = caption_prefix + caption_str + caption_suffix
-        caption_str = caption_str.strip()
+        caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '.\n    '
+        caption_str = '\n    ' + caption_prefix + caption_str + caption_suffix
+        caption_str = caption_str.rstrip()
         figure_str  = ut.get_latex_figure_str(fpaths,
                                                 nCols=nCols,
                                                 label_str=label_str,

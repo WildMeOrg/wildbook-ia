@@ -275,7 +275,7 @@ class FlannConfig(ConfigBase):
     """
 
     this flann is only for neareset neighbors in vsone/many
-    TODO: this might not need to be here
+    TODO: this might not need to be here, should be part of neighbor config
 
     References:
         http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf

@@ -75,6 +75,9 @@ DEBUG_PIPELINE = ut.get_argflag(('--debug-pipeline', '--debug-pipe'))
 VERB_PIPELINE =  NOT_QUIET and (ut.VERBOSE or ut.get_argflag(('--verbose-pipeline', '--verb-pipe')))
 VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-pipe'))
 
+USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs') and ut.USE_CACHE
+USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid') and USE_HOTSPOTTER_CACHE
+
 
 NN_LBL      = 'Assign NN:       '
 FILT_LBL    = 'Filter NN:       '
@@ -309,10 +312,14 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         if EXTEND_TO_OTHER_CONTACT_GT:
             # TODO: need a test set that can accomidate testing this case
             # testdb1 might cut it if we spruced it up
-            nonself_contact_aids = [np.setdiff1d(aids, qaid) for aids, qaid in zip(contact_aids_list, internal_qaids)]
-            nonself_contact_nids = qreq_.ibs.unflat_map(qreq_.ibs.get_annot_nids, nonself_contact_aids)
+            nonself_contact_aids = [
+                np.setdiff1d(aids, qaid)
+                for aids, qaid in zip(contact_aids_list, internal_qaids)]
+            nonself_contact_nids = qreq_.ibs.unflat_map(
+                qreq_.ibs.get_annot_nids, nonself_contact_aids)
             contact_aids_gt_list = [
-                internal_daids.compress(vt.get_covered_mask(internal_data_nids, nids))
+                internal_daids.compress(
+                    vt.get_covered_mask(internal_data_nids, nids))
                 for nids in nonself_contact_nids
             ]
             _impossible_daid_lists.append(contact_aids_gt_list)
@@ -320,7 +327,8 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     if not can_match_samename:
         #internal_daids = qreq_.get_internal_daids()
         # slow way of getting gt_aids
-        #gt_aids = qreq_.ibs.get_annot_groundtruth(internal_qaids, daid_list=internal_daids)
+        #gt_aids = qreq_.ibs.get_annot_groundtruth(
+        #    internal_qaids, daid_list=internal_daids)
         #faster way
         internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
         internal_query_nids = qreq_.ibs.get_annot_nids(internal_qaids)
@@ -331,10 +339,9 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         _impossible_daid_lists.append(gt_aids)
     # TODO: add explicit not a match case in here
     _impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
-    impossible_daids_list = [np.unique(impossible_daids) for impossible_daids in _impossible_daids_list]
-    #impossible_daids_list = [
-    #    np.intersect1d(np.unique(impossible_daids), internal_daids, assume_unique=True)
-    #    for impossible_daids in _impossible_daids_list]
+    impossible_daids_list = [
+        np.unique(impossible_daids)
+        for impossible_daids in _impossible_daids_list]
 
     # TODO: we need to pad K for each bad annotation
     if qreq_.qparams.vsone:
@@ -345,7 +352,8 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             Kpad_list = list(map(len, impossible_daids_list))  # NOQA
         else:
             # always at least pad K for self queries
-            Kpad_list =  [1 if qaid in internal_daids else 0 for qaid in internal_qaids]
+            Kpad_list =  [
+                1 if qaid in internal_daids else 0 for qaid in internal_qaids]
     return impossible_daids_list, Kpad_list
 
 #============================
@@ -353,46 +361,65 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
-#def nearest_neighbor_cacheid_OLD(qreq_, num_neighbors_list):
-#    """ cache-id for nearest_neighbors function """
-#    internal_daids = qreq_.get_internal_daids()
-#    internal_qaids = qreq_.get_internal_qaids()
-#    query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
-#    data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
-#    nn_cfgstr      = qreq_.qparams.nn_cfgstr
-#    indexer_cfgstr = qreq_.indexer.get_cfgstr()
-#    num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list, hashlen=8, lbl='neighblist')
-#    nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
-#    nn_mid_cacheid += indexer_cfgstr
-#    nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
-#    neighbor_cachedir = qreq_.ibs.get_neighbor_cachedir() + '_OLD'
-#    ut.ensuredir(neighbor_cachedir)
-#    return neighbor_cachedir, nn_mid_cacheid
-
-USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs') and ut.USE_CACHE
-USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid') and USE_HOTSPOTTER_CACHE
-
-
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
+    r"""
+    Returns a hacky cacheid for neighbor configs
+
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        Kpad_list (list):
+
+    Returns:
+        tuple: (nn_mid_cacheid_list, nn_cachedir)
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --exec-nearest_neighbor_cacheid2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> verbose = True
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1',
+        >>>                                        qaid_list=[1, 2])
+        >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
+        >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
+        >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
+        >>> (nn_cachedir, nn_mid_cacheid_list) = tup
+        >>> result = 'nn_mid_cacheid_list = ' + ut.list_str(nn_mid_cacheid_list)
+        >>> print(result)
+        nn_mid_cacheid_list = [
+            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
+            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
+        ]
+    """
     internal_daids = qreq_.get_internal_daids()
     internal_qaids = qreq_.get_internal_qaids()
-    data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
+    data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
+        internal_daids, prefix='D')
 
     nn_cfgstr      = qreq_.qparams.nn_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
-    nn_mid_cacheid = data_hashid + nn_cfgstr + feat_cfgstr + ('aug_quryside' if qreq_.qparams.augment_queryside_hack else '')
+    flann_cfgstr   = qreq_.qparams.flann_cfgstr
+    nn_mid_cacheid = (
+        data_hashid + nn_cfgstr + feat_cfgstr + flann_cfgstr +
+        ('aug_quryside' if qreq_.qparams.augment_queryside_hack else ''))
 
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
-    nn_mid_cacheid_list = [str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
-                           for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+    nn_mid_cacheid_list = [
+        str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
+        for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
 
-    neighbor_cachedir2 = qreq_.ibs.get_neighbor_cachedir()  # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
-    ut.ensuredir(neighbor_cachedir2)
-    return nn_mid_cacheid_list, neighbor_cachedir2
+    nn_cachedir = qreq_.ibs.get_neighbor_cachedir()
+    # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
+    ut.ensuredir(nn_cachedir)
+    return nn_cachedir, nn_mid_cacheid_list
 
 
 def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
+    """
+    Tries to load nearest neighbors from a cache instead of recomputing them.
+    """
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
     #checks = qreq_.qparams.checks
@@ -403,7 +430,8 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()
-    nn_mid_cacheid_list, neighbor_cachedir2 = nearest_neighbor_cacheid2(qreq_, Kpad_list)
+    nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
+        qreq_, Kpad_list)
 
     def compute_fn(flags_list, qreq_, Kpad_list):
         internal_qaids = qreq_.get_internal_qaids()
@@ -412,17 +440,26 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         Kpad_list = ut.list_compress(Kpad_list, flags_list)
         # do computation
         num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
-        qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
+        qvecs_list = qreq_.ibs.get_annot_vecs(
+            internal_qaids, config2_=qreq_.get_internal_query_config2())
         if verbose:
             if len(internal_qaids) == 1:
-                print('[hs] depth(qvecs_list) = %r' % (ut.depth_profile(qvecs_list),))
+                print('[hs] depth(qvecs_list) = %r' %
+                      (ut.depth_profile(qvecs_list),))
         # Mark progress ane execute nearest indexer nearest neighbor code
-        prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
-        nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+        prog_hook = (None if qreq_.prog_hook is None else
+                     qreq_.prog_hook.next_subhook())
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
+                                    prog_hook=prog_hook, **PROGKW)
+        nns_list = [
+            qreq_.indexer.knn(qfx2_vec, num_neighbors)
+            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
         return nns_list
 
-    nns_list = ut.tryload_cache_list_with_compute(neighbor_cachedir2, 'neighbs', nn_mid_cacheid_list, compute_fn, qreq_, Kpad_list)
+    nns_list = ut.tryload_cache_list_with_compute(nn_cachedir,
+                                                  'neighbs',
+                                                  nn_mid_cacheid_list,
+                                                  compute_fn, qreq_, Kpad_list)
     return nns_list
 
 
@@ -439,7 +476,8 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1', qaid_list=[1, 2, 3])
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1',
+        >>>                                        qaid_list=[1, 2, 3])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> # execute function
@@ -462,23 +500,19 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
-    # For each internal query annotation
-    # Find the nearest neighbors of each descriptor vector
-    ##USE_NN_MID_CACHE = ut.is_developer()
-    #    #neighbor_cachedir, nn_mid_cacheid = nearest_neighbor_cacheid_OLD(qreq_, num_neighbors_list)
-    #    #try:
-    #    #    nns_list = ut.load_cache(neighbor_cachedir, 'neighbs', nn_mid_cacheid)
-    #    #except IOError:
-    #    #    print('neighbs cache miss')
-    #    #else:
-    #    #    return nns_list
     internal_qaids = qreq_.get_internal_qaids()
-    #num_deleted = qreq_.ibs.delete_annot_feats(internal_qaids, config2_=qreq_.get_internal_query_config2())
-    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
+    #num_deleted = qreq_.ibs.delete_annot_feats(
+    #    internal_qaids, config2_=qreq_.get_internal_query_config2())
+    qvecs_list = qreq_.ibs.get_annot_vecs(
+        internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
-    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
-    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    prog_hook = (None if qreq_.prog_hook is None else
+                 qreq_.prog_hook.next_subhook())
+    qvec_iter = ut.ProgressIter(
+        qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
+    nns_list = [
+        qreq_.indexer.knn(qfx2_vec, num_neighbors)
+        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
     # Verbose statistics reporting
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
