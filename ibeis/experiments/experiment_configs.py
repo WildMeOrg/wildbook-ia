@@ -64,7 +64,7 @@ def get_candidacy_dbnames():
 
 
 candidacy_k = [
-    {'K': [1, 2, 4, 7]},
+    {'K': [1, 2, 3, 4, 5, 7, 10]},
 ]
 
 candidacy_baseline = [

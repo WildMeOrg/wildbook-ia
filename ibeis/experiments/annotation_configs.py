@@ -494,6 +494,28 @@ varysize_pzm = {
 }
 
 
+varysize_pzm_td = {
+    'qcfg': ut.augdict(
+        varysize_pzm['qcfg'], {
+            'sample_size': 100,
+            #'sample_rule': 'mintime',
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
+            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+        }),
+
+    'dcfg': ut.augdict(
+        varysize_pzm['dcfg'], {
+            'sample_rule_ref': 'maxtimedelta',
+            #'sample_per_name': None,
+            'require_timestamp': True,
+            'exclude_reference': True,
+            'sample_size': [250, 500, 750, 1000],
+            'min_timedelta': 60 * 60 * 12,
+        }),
+}
+
+
 varysize_gz = {
     'qcfg': ut.augdict(
         varysize['qcfg'], {

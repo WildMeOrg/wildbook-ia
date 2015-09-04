@@ -1,4 +1,4 @@
-# IBEIS
+# IBEIS - Image Analysis
 ## I.B.E.I.S. = Image Based Ecological Information System
 
 =====
@@ -12,10 +12,11 @@ However there are old HotSpotter (the software which IBEIS is based on) binaries
 
 # Program Description
 
-IBEIS is python module and standalone program for the storage and management of
-images and derived data for use in compute vision algorithms. It aims to compute
-who an animal is, what species an animal is, and where an animal is with the
-ultimate goal being to ask important why biological questions. 
+IBEIS program for the storage and management of images and derived data for
+use in computer vision algorithms. It aims to compute who an animal is, what
+species an animal is, and where an animal is with the ultimate goal being to
+ask important why biological questions.  This This repo Image Analysis image
+analyis module of IBEIS. It is both a python module and standalone program. 
 
 Currently the system is build around and SQLite database, a PyQt4 GUI, and
 matplotlib visualizations. Algorithms employed are: random forest species
@@ -36,7 +37,7 @@ We are also experimenting with a new web frontend that bypasses the older GUI co
 In the interest of modular code we are actively developing several different modules. 
 
 
-Erotemic's IBEIS module dependencies 
+Erotemic's IBEIS Image Analysis module dependencies 
 
 * https://github.com/Erotemic/utool
   docs: http://erotemic.github.io/utool
@@ -50,14 +51,14 @@ Erotemic's IBEIS module dependencies
   docs: http://erotemic.github.io/guitool
 
 
-bluemellophone's IBEIS modules
+bluemellophone's IBEIS Image Analysis modules
 
 * https://github.com/bluemellophone/detecttools
 * https://github.com/bluemellophone/pyrf
   docs: http://bluemellophone.github.io/pyrf
 
 
-hjweide's IBEIS modules
+hjweide's IBEIS Image Analysis modules
 
 * https://github.com/hjweide/pygist
 

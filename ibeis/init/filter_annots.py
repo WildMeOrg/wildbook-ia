@@ -198,6 +198,20 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
         print('+---------------------')
 
     try:
+        """
+        FIXME:
+            The database should be created first in most circumstances, then
+            the queries should be filtered to meet the database restrictions?
+            I'm not sure Sometimes you need to set the query aids constant, but
+            sometimes you need to set the data aids constant. Seems to depend.
+
+        Ok New Idea:
+            3 filters:
+                * Common sampling - takes care of things like min time delta, species, quality viewpoint etc.
+                * query sampling
+                * database sampling
+        """
+
         # Can probably move these commands around
         with ut.Indenter('[Q] '):
             available_qaids = expand_to_default_aids(ibs, qcfg, prefix='q', verbose=verbose)
