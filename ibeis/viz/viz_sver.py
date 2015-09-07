@@ -1,11 +1,10 @@
 from __future__ import absolute_import, division, print_function
-import utool
-import utool as ut
+import ut as ut
 import plottool.draw_sv as draw_sv
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sver]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)
 
 
-WRITE_SV_DEBUG = utool.get_argflag('--write-sv-debug')
+WRITE_SV_DEBUG = ut.get_argflag('--write-sv-debug')
 
 
 def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=None):
@@ -42,7 +41,7 @@ def _compute_svvars(ibs, aid1):
     return chipmatch_FILT, aid2_svtup
 
 
-@utool.indent_func
+@ut.indent_func
 def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs):
     """
     Compiles IBEIS information and sends it to plottool
@@ -67,16 +66,16 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
-    #print(utool.func_str(show_sv, kwargs=locals()))
+    #print(ut.func_str(show_sv, kwargs=locals()))
     if chipmatch_FILT is None or aid2_svtup is None:
         chipmatch_FILT, aid2_svtup = _compute_svvars(ibs, aid1)
     sv_vartup = _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=config2_)
     (chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup) = sv_vartup
     if WRITE_SV_DEBUG:
         keys = ('chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')
-        utool.save_testdata(*keys)
+        ut.save_testdata(*keys)
         print('[vizsv] write test info')
-        utool.qflag()
+        ut.qflag()
     draw_sv.show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs)
 
 

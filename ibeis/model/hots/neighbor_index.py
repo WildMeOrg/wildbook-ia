@@ -411,7 +411,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 
 #@profile
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
-                                      verbose=True, veryverbose=False,
+                                      verbose=ut.NOT_QUIET, veryverbose=False,
                                       force_rebuild=False, allow_memfallback=True, memtrack=None):
     """
     FOR INTERNAL USE ONLY
