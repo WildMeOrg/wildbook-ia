@@ -266,7 +266,10 @@ def show_if_requested(N=1):
 
         # Hack write the corresponding logfile next to the output
         log_fpath = ut.get_current_log_fpath()
-        ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
+        if log_fpath is not None:
+            ut.copy(log_fpath, splitext(absfpath_)[0] + '.txt')
+        else:
+            print('Cannot copy log file because none exists')
     if ut.inIPython():
         import plottool as pt
         pt.iup()
