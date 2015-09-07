@@ -353,7 +353,7 @@ def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool as ut
-    from ibeis.init import main_helpers
+    #from ibeis.init import main_helpers
     from ibeis import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return
@@ -375,7 +375,7 @@ def _preload(mpl=True, par=True, logging=True):
     # inject colored exceptions
     ut.util_inject.inject_colored_exceptions()
     # register type aliases for debugging
-    main_helpers.register_utool_aliases()
+    #main_helpers.register_utool_aliases()
     #return params.args
 
 
