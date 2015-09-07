@@ -126,11 +126,11 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist']),
-    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases']),
+    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases', 'cases']),
     ('ibeis.experiments.experiment_drawing', 'draw_results'),
-    ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf'),
+    ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
-    ('ibeis.experiments.experiment_drawing', 'draw_rank_surface'),
+    ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
     ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list'),
     ('ibeis.experiments.experiment_printres', 'print_results'),
     ('ibeis.experiments.experiment_printres', 'print_latexsum'),
@@ -673,6 +673,8 @@ def run_devprecmds():
                 return ret
         return False
 
+    ut.start_logging(appname='ibeis')
+
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
         if intest(*func_aliases):
@@ -1179,7 +1181,8 @@ def devmain():
         ''')
 
     INTRO_TITLE = 'The dev.py Script'
-    INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+    #INTRO_TEXT = ''.join((ut.bubbletext(INTRO_TITLE, font='cybermedium'), helpstr))
+    INTRO_TEXT = ut.bubbletext(INTRO_TITLE, font='cybermedium')
 
     INTRO_STR = ut.msgblock('dev.py Intro',  INTRO_TEXT)
 

@@ -37,10 +37,10 @@ __default_aidcfg = {
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2
     'view_pername'        : None,   # formatted string filtering the viewpoints
-    'require_quality'     : False,  # if True unknown qualities are removed
-    'require_viewpoint'   : False,
-    'require_timestamp'   : False,
-    'force_const_size'    : False,  # forces a consistnet sample size across combinations
+    'require_quality'     : None,  # if True unknown qualities are removed
+    'require_viewpoint'   : None,
+    'require_timestamp'   : None,
+    'force_const_size'    : None,  # forces a consistnet sample size across combinations
     #'exclude_aids'       : None,   # removes specified aids from selection
     # Filtered selection
     'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
@@ -194,6 +194,11 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, combined=False
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
     print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
     seen_ = ut.ddict(list)
+
+    # get default kwkeys for annot info
+    kwkeys = ut.parse_kwarg_keys(ut.get_func_sourcecode(ibs.get_annot_stats_dict, strip_docstr=True, strip_comments=True))
+    kwargs.update(ut.argparse_dict(dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
+
     for acfgx in range(len(acfg_list)):
         acfg = acfg_list[acfgx]
         title = 'q_cfgname=' + acfg['qcfg']['_cfgname'] + ' d_cfgname=' + acfg['dcfg']['_cfgname']
@@ -300,6 +305,19 @@ controlled = {
             'exclude_reference': True,
             #'sample_size': 300,  # keep this small for now until we can run full results
             'gt_min_per_name': 1,  # allows for singletons to be in the database
+        }),
+}
+
+
+timecontrolled = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            'default_aids': 'largetime',
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            'default_aids': 'largetime',
         }),
 }
 

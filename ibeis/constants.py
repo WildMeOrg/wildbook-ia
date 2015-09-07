@@ -42,6 +42,9 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
 #    'backright'  : 'backright',
 #}
 
+YAWALIAS = {'frontleft': 'FL', 'frontright': 'FR', 'backleft': 'BL', 'backright': 'BR',
+            'front': 'F', 'left': 'L', 'back': 'B', 'right': 'R', }
+
 QUAL_EXCELLENT = 'excellent'
 QUAL_GOOD      = 'good'
 QUAL_OK        = 'ok'

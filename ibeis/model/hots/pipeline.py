@@ -88,7 +88,7 @@ SVER_LVL    = 'SVER:            '
 #PROGKW = dict(freq=50, time_thresh=4.0)
 #PROGKW = dict(freq=10, time_thresh=4.0)
 #PROGKW = dict(freq=1, time_thresh=4.0)
-PROGKW = dict(freq=1, time_thresh=30.0)
+PROGKW = dict(freq=1, time_thresh=30.0, adjust=True)
 
 
 # Query Level 0
@@ -361,6 +361,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
+@profile
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     r"""
     Returns a hacky cacheid for neighbor configs
@@ -416,6 +417,32 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     return nn_cachedir, nn_mid_cacheid_list
 
 
+@profile
+def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
+    internal_qaids = qreq_.get_internal_qaids()
+    # Get only the data that needs to be computed
+    internal_qaids = internal_qaids.compress(flags_list)
+    Kpad_list = ut.list_compress(Kpad_list, flags_list)
+    # do computation
+    num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
+    qvecs_list = qreq_.ibs.get_annot_vecs(
+        internal_qaids, config2_=qreq_.get_internal_query_config2())
+    if verbose:
+        if len(internal_qaids) == 1:
+            print('[hs] depth(qvecs_list) = %r' %
+                  (ut.depth_profile(qvecs_list),))
+    # Mark progress ane execute nearest indexer nearest neighbor code
+    prog_hook = (None if qreq_.prog_hook is None else
+                 qreq_.prog_hook.next_subhook())
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
+                                prog_hook=prog_hook, **PROGKW)
+    nns_list = [
+        qreq_.indexer.knn(qfx2_vec, num_neighbors)
+        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    return nns_list
+
+
+@profile
 def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     """
     Tries to load nearest neighbors from a cache instead of recomputing them.
@@ -433,33 +460,12 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
         qreq_, Kpad_list)
 
-    def compute_fn(flags_list, qreq_, Kpad_list):
-        internal_qaids = qreq_.get_internal_qaids()
-        # Get only the data that needs to be computed
-        internal_qaids = internal_qaids.compress(flags_list)
-        Kpad_list = ut.list_compress(Kpad_list, flags_list)
-        # do computation
-        num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
-        qvecs_list = qreq_.ibs.get_annot_vecs(
-            internal_qaids, config2_=qreq_.get_internal_query_config2())
-        if verbose:
-            if len(internal_qaids) == 1:
-                print('[hs] depth(qvecs_list) = %r' %
-                      (ut.depth_profile(qvecs_list),))
-        # Mark progress ane execute nearest indexer nearest neighbor code
-        prog_hook = (None if qreq_.prog_hook is None else
-                     qreq_.prog_hook.next_subhook())
-        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
-                                    prog_hook=prog_hook, **PROGKW)
-        nns_list = [
-            qreq_.indexer.knn(qfx2_vec, num_neighbors)
-            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
-        return nns_list
-
     nns_list = ut.tryload_cache_list_with_compute(nn_cachedir,
-                                                  'neighbs',
+                                                  'neighbs4',
                                                   nn_mid_cacheid_list,
-                                                  compute_fn, qreq_, Kpad_list)
+                                                  cachemiss_nn_compute_fn,
+                                                  qreq_, Kpad_list, K, Knorm,
+                                                  verbose)
     return nns_list
 
 
@@ -471,6 +477,8 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-nearest_neighbors
+        python -m ibeis.model.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
+        utprof.py -m ibeis.model.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
 
     Example:
         >>> # ENABLE_DOCTEST

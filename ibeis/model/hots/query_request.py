@@ -106,6 +106,20 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
         PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
+
+
+    Ignore:
+        # This is supposed to be the begginings of the code to transition the
+        # pipeline configuration into the new minimal dict based structure that
+        # supports different configs for query and database annotations.
+        dcfg = qreq_.get_external_data_config2()
+        qcfg = qreq_.get_external_query_config2()
+        ut.dict_intersection(qcfg.__dict__, dcfg.__dict__)
+
+        from ibeis.experiments import cfghelpers
+        cfg_list = [qcfg.__dict__, dcfg.__dict__]
+        nonvaried_cfg, varied_cfg_list = cfghelpers.partition_varied_cfg_list(cfg_list, recursive=True)
+        qvaried, dvaried = varied_cfg_list
     """
     if verbose:
         print('[qreq] +--- New IBEIS QRequest --- ')
@@ -127,6 +141,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         unique_species_ = unique_species
     # </HACK>
     qparams = query_params.QueryParams(cfg, cfgdict)
+    data_config2_ = qparams
     #
     # <HACK>
     # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
@@ -138,7 +153,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     else:
         query_config2_ = qparams
     # </HACK>
-    data_config2_ = qparams
     _indexer_request_params = dict(use_memcache=use_memcache)
     qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs, _indexer_request_params)
     qreq_.query_config2_ = query_config2_

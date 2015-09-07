@@ -70,21 +70,33 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None):
     return cfglbl_list
 
 
-def partition_varied_cfg_list(cfg_list, default_cfg=None):
+def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     r"""
+    TODO: partition nested configs
 
     CommandLine:
         python -m ibeis.experiments.cfghelpers --exec-partition_varied_cfg_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> from ibeis.experiments.cfghelpers import *  # NOQA
         >>> cfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)
         >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
         >>> print(result)
         nonvaried_cfg = {'b': 1}
         varied_cfg_list = [{'f': 1}, {'f': 2}, {'f': 3, 'z': 4}]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3':1}, 'b2': 1}, 'e1': 1}]
+        >>> print(ut.list_str(cfg_list, nl=True))
+        >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
+        >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
+        >>> print(result)
+        nonvaried_cfg = {'f1': {'a2': {'x3': 1}}, 'q1': 1}
+        varied_cfg_list = [{'f1': {'a2': {'y3': 2}, 'b2': 1}}, {'b1': 1, 'f1': {'a2': {'y3': 1}}}]
     """
     if default_cfg is None:
         nonvaried_cfg = reduce(ut.dict_intersection, cfg_list)
@@ -94,6 +106,17 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None):
     varied_cfg_list = [
         ut.delete_dict_keys(cfg.copy(), nonvaried_keys)
         for cfg in cfg_list]
+    if recursive:
+        # Find which varied keys have dict values
+        varied_keys = list(set([key for cfg in varied_cfg_list for key in cfg]))
+        varied_vals_list = [[cfg[key] for cfg in varied_cfg_list if key in cfg] for key in varied_keys]
+        for key, varied_vals in zip(varied_keys, varied_vals_list):
+            if len(varied_vals) == len(cfg_list):
+                if all([isinstance(val, dict) for val in varied_vals]):
+                    nonvaried_subdict, varied_subdicts = partition_varied_cfg_list(varied_vals, recursive=recursive)
+                    nonvaried_cfg[key] = nonvaried_subdict
+                    for cfg, subdict in zip(varied_cfg_list, varied_subdicts):
+                        cfg[key] = subdict
     return nonvaried_cfg, varied_cfg_list
 
 

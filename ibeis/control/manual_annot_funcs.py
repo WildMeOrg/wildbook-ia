@@ -92,8 +92,14 @@ def get_num_annotations(ibs, **kwargs):
 @accessor_decors.ider
 @register_api('/api/annot/', methods=['GET'])
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
-                   yaw='no-filter', is_exemplar=None, species=None,
-                   is_known=None, nojunk=False, hasgt=None, minqual=None):
+                   yaw='no-filter',
+                   is_exemplar=None,
+                   species=None,
+                   is_known=None,
+                   hasgt=None,
+                   minqual=None,
+                   has_timestamp=None,
+                   min_timedelta=None):
     r"""
     High level function for getting all annotation ids according a set of filters.
 
@@ -108,7 +114,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)
         species (str): (default = None)
         is_known (bool): (default = None)
-        nojunk (bool): (default = False)
+        min_timedelta (int): minimum timedelta between annots of known individuals
         hasgt (bool): (default = None)
 
     Returns:
@@ -185,6 +191,18 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         elif is_exemplar is False:
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
             aid_list  = ut.filterfalse_items(aid_list, flag_list)
+    aid_list = filter_annotation_set(
+        ibs, aid_list, include_only_gid_list=include_only_gid_list, yaw=yaw,
+        is_exemplar=is_exemplar, species=species, is_known=is_known,
+        hasgt=hasgt, minqual=minqual, has_timestamp=has_timestamp,
+        min_timedelta=min_timedelta)
+    return aid_list
+
+
+def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
+                          yaw='no-filter', is_exemplar=None, species=None,
+                          is_known=None, hasgt=None, minqual=None,
+                          has_timestamp=None, min_timedelta=None):
     # -- valid aid filtering --
     if include_only_gid_list is not None:
         gid_list     = ibs.get_annot_gids(aid_list)
@@ -193,28 +211,24 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     if yaw != 'no-filter':
         yaw_list     = ibs.get_annot_yaws(aid_list)
         is_valid_yaw = [yaw == flag for flag in yaw_list]
-        aid_list           = ut.list_compress(aid_list, is_valid_yaw)
+        aid_list     = ut.list_compress(aid_list, is_valid_yaw)
     if species is not None:
         species_rowid      = ibs.get_species_rowids_from_text(species)
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
         is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
         aid_list           = ut.list_compress(aid_list, is_valid_species)
     if is_known is not None:
-        is_unknown_list = ibs.is_aid_unknown(aid_list)
-        if is_known is True:
-            aid_list = ut.filterfalse_items(aid_list, is_unknown_list)
-        elif is_known is False:
-            aid_list = ut.list_compress(aid_list, is_unknown_list)
-    if nojunk is True:
-        # remove junk annotations
-        quality_list = ibs.get_annot_qualities(aid_list)
-        isjunk_list = [quality == const.QUALITY_TEXT_TO_INT['junk'] for quality in quality_list]
-        aid_list = ut.filterfalse_items(aid_list, isjunk_list)
+        aid_list = ibs.filter_aids_without_name(aid_list, invert=not is_known)
     if minqual is not None:
         aid_list = ibs.filter_aids_to_quality(aid_list, minqual, unknown_ok=True)
+    if has_timestamp is not None:
+        aid_list = ibs.filter_aids_without_timestamps(aid_list, invert=not has_timestamp)
+    if min_timedelta is not None:
+        aid_list = ibs.filter_annots_using_minimum_timedelta(aid_list, min_timedelta)
     if hasgt:
         hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
         aid_list = ut.list_compress(aid_list, hasgt_list)
+    aid_list = sorted(aid_list)
     return aid_list
 
 

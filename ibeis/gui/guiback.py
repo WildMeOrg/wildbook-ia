@@ -941,11 +941,11 @@ class MainWindowBackend(GUIBACK_BASE):
         if refresh:
             back.front.update_tables()
 
-    def get_selected_qaids(back, eid=None, nojunk=True, is_known=None):
+    def get_selected_qaids(back, eid=None, minqual='poor', is_known=None):
         species = back.get_selected_species()
         valid_kw = dict(
             eid=eid,
-            nojunk=nojunk,
+            minqual=minqual,
             is_known=is_known,
             species=species,
         )
@@ -966,7 +966,7 @@ class MainWindowBackend(GUIBACK_BASE):
         }
         valid_kw = {
             'species': back.get_selected_species(),
-            'nojunk':  True,
+            'minqual':  'poor',
         }
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',

@@ -148,7 +148,7 @@ def initialize_persistant_query_request(ibs, qaid_chunk):
     assert len(species_text_set) == 1, 'query chunk has more than one species'
     species_text = list(species_text_set)[0]
     # controller based exemplars
-    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text, is_known=True, nojunk=True)
+    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text, is_known=True, minqual='poor')
     num_names = len(set(ibs.get_annot_nids(daid_list)))
     # TODO: choose vsmany K every time
     # need to be able to update qreq_.qparams

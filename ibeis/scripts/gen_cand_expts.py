@@ -123,11 +123,16 @@ def parse_latex_comments_for_commmands():
         >>> parse_latex_comments_for_commmands()
     """
     text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefexpt.tex'))
-    text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
+    #text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
     lines = text.split('\n')
     cmd_list = ['']
     in_comment = True
     for line in lines:
+        if line.startswith('% --- '):
+            # Keep separators
+            cmd_list.append(line.replace('%', '#'))
+            cmd_list.append('')
+
         if line.strip().startswith(r'\begin{comment}'):
             in_comment = True
             continue
@@ -137,13 +142,26 @@ def parse_latex_comments_for_commmands():
                 in_comment = False
             else:
                 cmd_list[-1] = cmd_list[-1] + line
-                cmd_list.append('')
                 if not line.strip().endswith('\\'):
-                    cmd_list[-1] = cmd_list[-1] + '$@'
-                    cmd_list.append('')
-                    cmd_list.append('#--')
+                    cmd_list[-1] = cmd_list[-1] + ' $@'
+                    #cmd_list.append('')
+                    #cmd_list.append('#--')
                     cmd_list.append('')
                     in_comment = False
+                else:
+                    cmd_list[-1] = cmd_list[-1] + '\n'
+
+    cmd_list = [cmd.replace('--render', '').replace('--diskshow', '') for cmd in cmd_list]
+
+    # formatting
+    cmd_list2 = []
+    for cmd in cmd_list:
+        #cmd = cmd.replace(' -t ', ' \\\n    -t ')
+        #cmd = cmd.replace('--db', '\\\n    --db')
+        cmd = cmd.replace('python -m ibeis.dev', './dev.py')
+        cmd_list2.append(cmd)
+    cmd_list = cmd_list2
+
     print('cmd_list = %s' % (ut.list_str(cmd_list),))
     fname, script, line_list = write_script_lines(cmd_list, 'regen_figdef_expt.sh')
     #ut.chmod_add_executable(fname)

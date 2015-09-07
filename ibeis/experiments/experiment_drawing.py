@@ -971,7 +971,9 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
 
     test_result.print_unique_annot_config_stats(ibs)
 
-    truth2_prop, is_success, is_failure = test_result.get_truth2_prop()
+    truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    is_failure = prop2_mat['is_failure']
+    is_success = prop2_mat['is_success']
     X_data_list = []
     X_label_list = []
     cfgx2_shortlbl = test_result.get_short_cfglbls()
@@ -1085,7 +1087,8 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
             explode = [0] * len(masked_freq)
             pt.plt.pie(masked_freq, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
             ax = pt.gca()
-            ax.set_xlabel(X_label_list[count])
+            ax.set_xlabel(X_label_list[count] + '\nsize=%d' % (masked_freq.sum(),))
+
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
             pt.adjust_subplots2(use_argv=True)

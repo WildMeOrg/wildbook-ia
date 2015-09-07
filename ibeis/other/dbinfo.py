@@ -494,11 +494,11 @@ def get_dbinfo(ibs, verbose=True,
     return locals_
 
 
-def hackshow_names(ibs, aids_list):
+def hackshow_names(ibs, aid_list, fnum=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        aids_list (list):
+        aid_list (list):
 
     CommandLine:
         python -m ibeis.other.dbinfo --exec-hackshow_names --show
@@ -509,12 +509,12 @@ def hackshow_names(ibs, aids_list):
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> aids_list = ibs.get_valid_aids()
-        >>> result = hackshow_names(ibs, aids_list)
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = hackshow_names(ibs, aid_list)
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    grouped_aids, nid_list = ibs.group_annots_by_name(aids_list)
+    grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     yaws_list = ibs.unflat_map(ibs.get_annot_yaws, grouped_aids)
@@ -537,13 +537,16 @@ def hackshow_names(ibs, aids_list):
     ydatas_list = vt.ziptake(unixtimes_list, sortx_list)
     #ydatas_list = sortx_list
     #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
-    ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
+
+    # Sort by num members
+    #ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
     xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
     #markers = ut.flatten(markers_list)
     #yaws = np.array(ut.flatten(yaws_list))
     y_data = np.array(ut.flatten(ydatas_list))
     x_data = np.array(ut.flatten(xdatas_list))
-    pt.figure(fnum=1)
+    fnum = pt.ensure_fnum(fnum)
+    pt.figure(fnum=fnum)
     ax = pt.gca()
 
     #unique_yaws, groupxs = vt.group_indices(yaws)
@@ -725,10 +728,7 @@ def latex_dbstats(ibs_list):
 
         qualalias = {'UNKNOWN': None}
 
-        yawalias = {'frontleft': 'FL', 'frontright': 'FR', 'backleft': 'BL', 'backright': 'BR',
-                    'front': 'F', 'left': 'L', 'back': 'B', 'right': 'R', }
-
-        extra_collbls['yawtext2_nAnnots'] = [yawalias.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
+        extra_collbls['yawtext2_nAnnots'] = [const.yawalias.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
         extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
 
         for key in extra_keys:

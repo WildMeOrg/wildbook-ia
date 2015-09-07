@@ -154,6 +154,9 @@ class TestResult(object):
     def has_constant_length_daids(test_result):
         return ut.list_allsame(list(map(len, test_result.cfgx2_daids)))
 
+    def has_constant_length_qaids(test_result):
+        return ut.list_allsame(list(map(len, test_result.cfgx2_qaids)))
+
     def get_infoprop_list(test_result, key, qaids=None):
         _tmp1_cfgx2_infoprop = ut.get_list_column(test_result.cfgx2_cfgresinfo, key)
         _tmp2_cfgx2_infoprop = list(map(np.array, ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
@@ -488,6 +491,8 @@ class TestResult(object):
         if withinfo:
             if test_result.has_constant_qaids():
                 title_aug += ' #qaids=%r' % (len(test_result.qaids),)
+            elif test_result.has_constant_length_qaids():
+                title_aug += ' #qaids=%r*' % (len(test_result.cfgx2_qaids[0]),)
             if test_result.has_constant_daids():
                 daids = test_result.cfgx2_daids[0]
                 title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
@@ -502,7 +507,7 @@ class TestResult(object):
                             ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
             elif test_result.has_constant_length_daids():
                 daids = test_result.cfgx2_daids[0]
-                title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
+                title_aug += ' #daids=%r*' % (len(test_result.cfgx2_daids[0]),)
 
         return title_aug
 
@@ -603,7 +608,7 @@ class TestResult(object):
         if False:
             # Valid props
             gt_ranks = truth2_prop['gt']['rank'][is_valid]
-            gf_ranks = truth2_prop['gf']['rank'][is_valid]
+            gf_ranks = truth2_prop['gf']['rank'][is_valid]  # NOQA
             gt_aids = truth2_prop['gt']['aid'][is_valid]
             qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
 

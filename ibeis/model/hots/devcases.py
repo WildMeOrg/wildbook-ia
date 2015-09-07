@@ -72,7 +72,7 @@ def fix_pz_master():
     ibs = ibeis.opendb('PZ_Master0')
     #ibs._default_config()
     #ibs.cfg.save()
-    daids = ibs.get_valid_aids(nojunk=True)
+    daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
 
     #qaids = qaids[64:128]

@@ -2707,7 +2707,7 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
         min_ngt (int): filters any name with less than this number of annotations
         seed (int): random seed
         aid_list (list): base aid_list to start with. If None
-        get_valid_aids(nojunk=True) is used stagger_names (bool): if True
+        get_valid_aids(minqual='poor') is used stagger_names (bool): if True
         staggers the order of the returned sample
 
     Returns:
@@ -2733,7 +2733,7 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
     #qaids = ibs.get_easy_annot_rowids()
     if grouped_aids is None:
         if aid_list is None:
-            aid_list = np.array(ibs.get_valid_aids(nojunk=True))
+            aid_list = np.array(ibs.get_valid_aids(minqual='poor'))
         grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
         if min_gt is None:
             grouped_aids = grouped_aids_
@@ -3402,7 +3402,7 @@ def detect_false_positives(ibs):
 
     """
     pass
-    #qaid_list = ibs.get_valid_aids(nojunk=True, isknown=True)
+    #qaid_list = ibs.get_valid_aids(minqual='poor', isknown=True)
     #qres_list = ibs.query_annots(qaid_list)
     #for qres in qres_list:
     #    top_aids = qres.get_top_aids(num=2)
@@ -3871,7 +3871,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
 #    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
 #        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
 #    qaids = ut.filter_items(new_aid_list, new_flag_list)
-#    daids = ibs.get_valid_aids(is_exemplar=True, nojunk=True)
+#    daids = ibs.get_valid_aids(is_exemplar=True, minqual='poor')
 #    cfgdict = dict(can_match_samename=False)
 #    #, use_k_padding=True)
 #    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
@@ -3911,8 +3911,8 @@ def detect_join_cases(ibs):
         >>> qres_wgt.raise_()
         >>> guitool.qtapp_loop(qres_wgt)
     """
-    qaids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
-    daids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
+    qaids = ibs.get_valid_aids(is_exemplar=None, minqual='poor')
+    daids = ibs.get_valid_aids(is_exemplar=None, minqual='poor')
     cfgdict = dict(can_match_samename=False, use_k_padding=True)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
     qres_list = ibs.query_chips(qreq_=qreq_)
@@ -4408,6 +4408,26 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
 
 
 @__injectable
+def get_unflat_annots_timedelta_list(ibs, aids_list):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = get_valid_multiton_nids_custom(ibs)
+        >>> aids_list_ = ibs.get_name_aids(nid_list)
+        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+
+    """
+    assert all(list(map(ut.isunique, aids_list)))
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
+    #assert all(list(map(ut.isunique, unixtimes_list)))
+    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
+    timedelta_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for unixtime_arr in unixtime_arrs]
+    return timedelta_list
+
+
+@__injectable
 def get_unflat_annots_speeds_list(ibs, aids_list):
     km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
@@ -4562,7 +4582,7 @@ def find_location_disparate_splits(ibs):
     nid_list_ = ut.list_compress(nid_list, has_multiple_list)
 
     # Other properties
-    unixtime_track_list_ = ibs.unflat_map(ibs.get_annot_image_unixtimes, aid_track_list_)
+    unixtime_track_list_ = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aid_track_list_)
 
     # Move into arrays
     gpsarr_track_list_ = list(map(np.array, gps_track_list_))
@@ -5134,23 +5154,79 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
 
 
 @__injectable
-def filter_aids_without_name(ibs, aid_list):
+def filter_aids_without_name(ibs, aid_list, invert=False):
     """
     Remove aids without names
     """
-    flag_list = ut.not_list(ibs.is_aid_unknown(aid_list))
+    if invert:
+        flag_list = ibs.is_aid_unknown(aid_list)
+    else:
+        flag_list = ut.not_list(ibs.is_aid_unknown(aid_list))
     aid_list_ = ut.list_compress(aid_list, flag_list)
     return aid_list_
 
 
 @__injectable
-def filter_aids_without_timestamps(ibs, aid_list):
+def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (?):
+        min_timedelta (?):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-filter_annots_using_minimum_timedelta
+        python -m ibeis.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.filter_aids_without_timestamps(aid_list)
+        >>> print('Before')
+        >>> ibs.print_annot_stats(aid_list, min_name_hourdist=True)
+        >>> min_timedelta = 60 * 60 * 24
+        >>> filtered_aids = filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta)
+        >>> print('After')
+        >>> ibs.print_annot_stats(filtered_aids, min_name_hourdist=True)
+        >>> ut.quit_if_noshow()
+        >>> ibeis.other.dbinfo.hackshow_names(ibs, aid_list)
+        >>> ibeis.other.dbinfo.hackshow_names(ibs, filtered_aids)
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    #min_timedelta = 60 * 60 * 24
+    #min_timedelta = 60 * 10
+    grouped_aids = ibs.group_annots_by_name(aid_list)[0]
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+    chosen_idxs_list = []
+    # Find the maximum size subset such that all timedeltas are less than a given value
+    for unixtimes in unixtimes_list:
+        chosen_idxs = ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
+        #chsoen_idxs = ut.max_size_max_distance_subset(unixtimes, min_thresh=min_timedelta)
+        chosen_idxs_list.append(chosen_idxs)
+    filtered_groups = vt.ziptake(grouped_aids, chosen_idxs_list)
+    filtered_aids = ut.flatten(filtered_groups)
+    if ut.DEBUG2:
+        timedeltas = ibs.get_unflat_annots_timedelta_list(filtered_groups)
+        min_timedeltas = np.array([np.nan if dists is None else np.nanmin(dists) for dists in timedeltas])
+        min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
+        print('min_name_timedelta_stats = %s' % (ut.dict_str(min_name_timedelta_stats),))
+    return filtered_aids
+
+
+@__injectable
+def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     """
     Removes aids without timestamps
     aid_list = ibs.get_valid_aids()
     """
     unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
     flag_list = [unixtime != -1 for unixtime in unixtime_list]
+    if invert:
+        flag_list = ut.not_list(flag_list)
     aid_list_ = ut.list_compress(aid_list, flag_list)
     return aid_list_
 
@@ -5636,7 +5712,8 @@ def get_annot_yaw_stats(ibs, aid_list):
     assert set(yaw_keys) >= set(annot_yawtext_list), 'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys))
     yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
     # Filter 0's
-    yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
+    yawtext2_nAnnots = {const.YAWALIAS.get(key, key): val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
+    #yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
     return yawtext2_nAnnots
 
 
@@ -5787,6 +5864,10 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_annot_stats_dict
         python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
+        python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -5796,7 +5877,8 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         >>> aids = ibs.get_valid_aids()
         >>> prefix = ''
         >>> kwkeys = ut.parse_kwarg_keys(ut.get_func_sourcecode(get_annot_stats_dict, strip_docstr=True, strip_comments=True))
-        >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [None] * len(kwkeys))))
+        >>> default = True if ut.get_argflag('--all') else None
+        >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [default] * len(kwkeys))))
         >>> print('kwargs = %r' % (kwargs,))
         >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, **kwargs)
         >>> result = ('aid_stats_dict = %s' % (ut.dict_str(aid_stats_dict, strvals=True),))
@@ -5831,6 +5913,19 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
 
     if kwargs.pop('per_image', False):
         keyval_list += [(prefix + 'aid_per_image', _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+
+    if kwargs.pop('min_name_hourdist', False):
+        grouped_aids = ibs.group_annots_by_name(aids)[0]
+        #ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
+        timedeltas = ibs.get_unflat_annots_timedelta_list(grouped_aids)
+        #timedeltas = [dists for dists in timedeltas if dists is not np.nan and dists is not None]
+        #timedeltas = [np.nan if dists is None else dists for dists in timedeltas]
+        #min_timedelta_list = [np.nan if dists is None else dists.min() / (60 * 60 * 24) for dists in timedeltas]
+        # convert to hours
+        min_timedelta_list = [np.nan if dists is None else dists.min() / (60 * 60) for dists in timedeltas]
+        #min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
+        min_name_timedelta_stats = ut.get_stats(min_timedelta_list, use_nan=True)
+        keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats))]
 
     aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict

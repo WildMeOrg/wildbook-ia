@@ -288,6 +288,20 @@ def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
             default_aids = ibs.get_valid_aids()
         elif default_aids in ['allgt', 'gt']:
             default_aids = ibs.get_valid_aids(hasgt=True)
+        elif default_aids in ['largetime']:
+            default_aids = ibs.get_valid_aids(
+                is_known=True,
+                has_timestamp=True,
+                min_timedelta=24 * 60 * 60,
+            )
+        elif default_aids in ['other']:
+            # Hack, should actually become the standard.
+            # Use this function to build the default aids
+            default_aids = ibs.get_valid_aids(
+                is_known=aidcfg['is_known'],
+                min_timedelta=aidcfg['min_timedelta'],
+                has_timestamp=aidcfg['require_timestamp']
+            )
         #elif default_aids in ['reference_gt']:
         #    pass
         else:
@@ -308,6 +322,7 @@ def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
     #    if verbose:
     #        print(' * Excluding %d custom aids' % (len(aidcfg['exclude_aids'])))
     #    available_aids = ut.setdiff_ordered(available_aids, aidcfg['exclude_aids'])
+    available_aids = sorted(available_aids)
 
     if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
@@ -317,23 +332,66 @@ def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
 @profile
 def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
-    """ Filtering that doesn't have to do with a reference set of aids """
+    """ Filtering that doesn't have to do with a reference set of aids
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        available_aids (?):
+        aidcfg (?):
+        prefix (str): (default = '')
+        verbose (bool):  verbosity flag(default = False)
+
+    Returns:
+        ?: available_aids
+
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-filter_independent_properties
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.experiments import annotation_configs
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> available_aids = ibs.get_valid_aids()
+        >>> input_aids = available_aids
+        >>> aidcfg = annotation_configs.default['dcfg']
+        >>> aidcfg['min_timedelta'] = 60 * 60 * 24
+        >>> prefix = ''
+        >>> verbose = True
+        >>> available_aids = filter_independent_properties(ibs, available_aids, aidcfg, prefix, verbose)
+        >>> result = ('available_aids = %s' % (str(available_aids),))
+        >>> print(result)
+    """
     from ibeis import ibsfuncs
     if verbose:
         print(' * [FILTER INDEPENDENT %sAIDS]' % (prefix.upper()))
         if VERYVERB_TESTDATA:
             with ut.Indenter('  '):
-                ibs.print_annot_stats(available_aids, prefix, per_name_vpedge=None)
+                ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix, per_name_vpedge=None), dict_name=prefix + 'aid_prefilter_stats')
 
     if aidcfg['is_known'] is True:
         if verbose:
             print(' * Removing annots without names')
+        num_before = len(available_aids)
         available_aids = ibs.filter_aids_without_name(available_aids)
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     if aidcfg['require_timestamp'] is True:
         if verbose:
             print(' * Removing annots without timestamp')
         available_aids = ibs.filter_aids_without_timestamps(available_aids)
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     species = None
     if aidcfg['species'] is not None:
@@ -345,7 +403,14 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
             species = aidcfg['species']
         if verbose:
             print(' * Filtering to species=%r' % (species,))
+        num_before = len(available_aids)
         available_aids = ibs.filter_aids_to_species(available_aids, species)
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     if aidcfg['minqual'] is not None or aidcfg['require_quality']:
         # Resolve quality
@@ -356,8 +421,15 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
         if verbose:
             print(' * Filtering quality. minqual=%r, require_quality=%r'
                   % (minqual, aidcfg['require_quality']))
+        num_before = len(available_aids)
         # Filter quality
         available_aids = ibs.filter_aids_to_quality(available_aids, minqual, unknown_ok=not aidcfg['require_quality'])
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     #aidcfg['viewpoint_edge_counts'] = None
     #if aidcfg['viewpoint_edge_counts'] is not None:
@@ -365,9 +437,7 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
     #    nid2_vp2_aids = ibs.group_annots_by_multi_prop(available_aids, getter_list)
     #    #assert len(available_aids) == len(list(ut.iflatten_dict_values(nid2_vp2_aids)))
     #    nid2_vp2_aids = ut.hierarchical_map_vals(ut.identity, nid2_vp2_aids)  # remove defaultdict structure
-
     #    nid2_num_vp = ut.hierarchical_map_vals(len, nid2_vp2_aids, max_depth=0)
-
     #    min_num_vp_pername = 2
     #    def has_required_vps(vp2_aids):
     #        min_examples_per_vp = {
@@ -375,7 +445,6 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
     #            'left': 2,
     #        }
     #        return all([key in vp2_aids and vp2_aids[key] for key in min_examples_per_vp])
-
     #    nids_with_multiple_vp = [key for  key, val in nid2_num_vp.items() if val >= min_num_vp_pername]
     #    subset1_nid2_vp2_aids = ut.dict_subset(nid2_vp2_aids, nids_with_multiple_vp)
     #    subset2_flags = ut.hierarchical_map_vals(has_required_vps, nid2_vp2_aids, max_depth=0)
@@ -400,7 +469,14 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
         nid2_flag = self.parse_countstr_expr(countstr)
         nid2_aids = ibs.group_annots_by_name_dict(available_aids)
         valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
+        num_before = len(available_aids)
         available_aids = ut.flatten(ut.dict_take(nid2_aids, valid_nids))
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     if aidcfg['view'] is not None or aidcfg['require_viewpoint']:
         # Resolve base viewpoint
@@ -417,39 +493,49 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
             print(' * Filtering viewpoint. valid_yaws=%r, require_viewpoint=%r'
                   % (valid_yaws, aidcfg['require_viewpoint']))
         # Filter viewpoint
+        num_before = len(available_aids)
         available_aids = ibs.filter_aids_to_viewpoint(available_aids, valid_yaws, unknown_ok=not aidcfg['require_viewpoint'])
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     if aidcfg['min_timedelta'] is not None:
-        min_timeelta = aidcfg['min_timedelta']
+        min_timedelta = aidcfg['min_timedelta']
         if verbose:
-            print(' * Removing annots without timedelta less than %r' % (min_timeelta,))
-        #min_timeelta = 60 * 60 * 24
-        #min_timeelta = 60 * 10
-        grouped_aids = ibs.group_annots_by_name(available_aids)[0]
-        unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, grouped_aids)
-        chosen_idxs_list = []
-        # Find the maximum size subset such that all timedeltas are less than a given value
-        for unixtimes in unixtimes_list:
-            prev_subset_idx = []
-            for K in range(2, len(unixtimes)):
-                value, subset_idx, subset = ut.maximum_distance_subset(unixtimes, K=K)
-                timedeltas = ut.safe_pdist(subset[:, None])
-                if np.any(timedeltas < min_timeelta):
-                    break
-                prev_subset_idx = subset_idx
-            chosen_idxs_list.append(prev_subset_idx)
-        import vtool as vt
-        available_aids = ut.flatten(vt.ziptake(grouped_aids, chosen_idxs_list))
-        #timedelta_list = [ut.safe_pdist(np.array(unixtime_arr)[:,None]) for unixtime_arr in unixtimes_list]
+            print(' * Removing annots without timedelta less than %r' % (min_timedelta,))
+        num_before = len(available_aids)
+        available_aids = ibs.filter_annots_using_minimum_timedelta(available_aids, min_timedelta)
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
     # Each aid must have at least this number of other groundtruth aids
     gt_min_per_name = aidcfg['gt_min_per_name']
     if gt_min_per_name is not None:
         if verbose:
             print(' * Filtering gt_min_per_name=%d' % (gt_min_per_name))
-        grouped_aids_, unique_nids = ibs.group_annots_by_name(available_aids, distinguish_unknowns=True)
+        grouped_aids_ = ibs.group_annots_by_name(available_aids, distinguish_unknowns=True)[0]
+        num_before = len(available_aids)
         available_aids = ut.flatten([aids for aids in grouped_aids_ if len(aids) >= gt_min_per_name])
+        available_aids = sorted(available_aids)
+        if VERYVERB_TESTDATA:
+            num_after = len(available_aids)
+            num_removed = num_before - num_after
+            if num_removed > 0:
+                print(' * removing %d annots' % (num_removed,))
 
+    available_aids = sorted(available_aids)
+
+    if VERYVERB_TESTDATA:
+        with ut.Indenter('  '):
+            ut.print_dict(ibs.get_annot_stats_dict(available_aids, prefix, per_name_vpedge=None),
+                          dict_name=prefix + 'aid_postfilter_stats')
     if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
         print(' * I-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
@@ -464,6 +550,10 @@ def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, pre
     """
     from ibeis import ibsfuncs
     import functools
+
+    available_aids = sorted(available_aids)
+    reference_aids = sorted(reference_aids)
+
     if verbose:
         print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
         if VERYVERB_TESTDATA:
@@ -482,6 +572,7 @@ def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, pre
         is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)
         multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, gt_ref_grouped_aids)))
         available_aids = ut.flatten(ut.list_compress(gt_avl_grouped_aids, multi_flags))
+        available_aids = sorted(available_aids)
 
     if verbose:
         print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
@@ -520,6 +611,10 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids
 
 @profile
 def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids, prefix='', verbose=VERB_TESTDATA):
+
+    available_aids = sorted(available_aids)
+    reference_aids = sorted(reference_aids)
+
     if verbose:
         print(' * [SAMPLE %sAIDS (REF)]' % (prefix.upper(),))
         if VERYVERB_TESTDATA:
@@ -554,6 +649,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
                 with ut.Indenter('  '):
                     ibs.print_annotconfig_stats(reference_aids, available_aids)
         available_aids = ut.setdiff_ordered(available_aids, reference_aids)
+        available_aids = sorted(available_aids)
 
     if gt_avl_aids is not None:
         if verbose:
@@ -570,6 +666,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         available_aids = np.hstack([gt_avl_aids, gf_avl_aids])
         available_aids.sort()
         available_aids = available_aids.tolist()
+        available_aids = sorted(available_aids)
         #sorted(gt_avl_aids) == sorted(ut.flatten(partitioned_sets[0]))
 
     if not (sample_per_ref_name is not None or sample_size is not None):
