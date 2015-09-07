@@ -135,6 +135,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_printres', 'print_results'),
     ('ibeis.experiments.experiment_printres', 'print_latexsum'),
     ('ibeis.dbio.export_subset', 'export_annots'),
+    ('ibeis.dev', 'annotationmatch_scores', ['scores']),
 ]
 
 
@@ -193,8 +194,9 @@ _register_doctest_precmds()
 #    exec(testsrc)
 
 
-@devcmd('scores', 'score', 'namescore_roc')
-def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+#@devcmd('scores', 'score', 'namescore_roc')
+#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+def annotationmatch_scores(ibs, test_result):
     """
     TODO: plot the difference between the top true score and the next best false score
     CommandLine:
@@ -217,53 +219,76 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
         python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
         python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+
+        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
+
+
+    Example:
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
+        >>> annotationmatch_scores(ibs, test_result)
+        >>> ut.show_if_requested()
     """
     import vtool as vt
     print('[dev] annotationmatch_scores')
     #allres = results_all.get_allres(ibs, qaid_list, daid_list)
     #ut.embed()
     #orgres = allres.allorg['rank0_true']
-    qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
-    qres_list = ut.dict_take(qaid2_qres, qaid_list)
+    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
+    #qres_list = ut.dict_take(qaid2_qres, qaid_list)
 
-    def get_labeled_name_scores(ibs, qres_list):
-        """
-        TODO: rectify with score_normalization.get_ibeis_score_training_data
-        This function does not return only the "good values".
-        It is more for testing and validation than training.
-        """
-        tp_nscores = []
-        tn_nscores = []
-        for qx, qres in enumerate(qres_list):
-            qaid = qres.get_qaid()
-            if not qres.is_nsum():
-                raise AssertionError('must be nsum')
-            if not ibs.get_annot_has_groundtruth(qaid):
-                continue
-            qnid = ibs.get_annot_name_rowids(qres.get_qaid())
-            # Get name scores for this query
-            nscoretup = qres.get_nscoretup(ibs)
-            (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-            # TODO: take into account viewpoint / quality difference
-            sorted_nids = np.array(sorted_nids)
-            is_positive  = sorted_nids == qnid
-            is_negative = np.logical_and(~is_positive, sorted_nids > 0)
-            if np.any(is_positive):
-                # Take only the top true name score
-                num_true = min(sum(is_positive), 1)
-                gt_rank = np.nonzero(is_positive)[0][0:num_true]
-                tp_nscores.extend(sorted_nscores[gt_rank])
-            if np.any(is_negative):
-                # Take the top few false name scores
-                num_false = min(sum(is_negative), 3)
-                #num_false = min(sum(is_negative), 100000)
-                gf_rank = np.nonzero(is_negative)[0][0:num_false]
-                tn_nscores.extend(sorted_nscores[gf_rank])
-        tp_nscores = np.array(tp_nscores).astype(np.float64)
-        tn_nscores = np.array(tn_nscores).astype(np.float64)
-        return tp_nscores, tn_nscores
+    #def get_labeled_name_scores(ibs, qres_list):
+    #    """
+    #    TODO: rectify with score_normalization.get_ibeis_score_training_data
+    #    This function does not return only the "good values".
+    #    It is more for testing and validation than training.
+    #    """
+    #    tp_nscores = []
+    #    tn_nscores = []
+    #    for qx, qres in enumerate(qres_list):
+    #        qaid = qres.get_qaid()
+    #        if not qres.is_nsum():
+    #            raise AssertionError('must be nsum')
+    #        if not ibs.get_annot_has_groundtruth(qaid):
+    #            continue
+    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+    #        # Get name scores for this query
+    #        nscoretup = qres.get_nscoretup(ibs)
+    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+    #        # TODO: take into account viewpoint / quality difference
+    #        sorted_nids = np.array(sorted_nids)
+    #        is_positive  = sorted_nids == qnid
+    #        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+    #        if np.any(is_positive):
+    #            # Take only the top true name score
+    #            num_true = min(sum(is_positive), 1)
+    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]
+    #            tp_nscores.extend(sorted_nscores[gt_rank])
+    #        if np.any(is_negative):
+    #            # Take the top few false name scores
+    #            num_false = min(sum(is_negative), 3)
+    #            #num_false = min(sum(is_negative), 100000)
+    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]
+    #            tn_nscores.extend(sorted_nscores[gf_rank])
+    #    tp_nscores = np.array(tp_nscores).astype(np.float64)
+    #    tn_nscores = np.array(tn_nscores).astype(np.float64)
+    #    return tp_nscores, tn_nscores
+    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
 
-    tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
+    qreq_ = test_result.cfgx2_qreq_[0]
+
+    truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    gt_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score')
+    gf_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score')
+    assert gt_rawscore.shape[1] == 1, 'can only specify one config here'
+    ONLY_GOOD_CASES = False
+    if ONLY_GOOD_CASES:
+        tp_nscores = gt_rawscore[prop2_mat['is_success']]
+        tn_nscores = gf_rawscore[prop2_mat['is_success']]
+    else:
+        tp_nscores = gt_rawscore.flatten()
+        tn_nscores = gf_rawscore.flatten()
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     encoder = vt.ScoreNormalizer()
