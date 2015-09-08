@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
@@ -30,6 +31,9 @@ def unregister_interaction(self):
 
 
 class AbstractInteraction(object):
+    """
+    An interaction is meant to take up an entire figure
+    """
     def __init__(self, **kwargs):
         self.fnum = kwargs.get('fnum', None)
         if self.fnum  is None:
@@ -94,7 +98,16 @@ class AbstractInteraction(object):
 
     # def prepare_page(self, pagenum):
 
-    # def show_page(self, *args):
+    def show_page(self, *args):
+        """
+        Hack: this function should probably not be defined, but it is for
+        convinience of a developer.
+        Override this or create static plot function
+        (preferably override)
+        """
+        fig = ih.begin_interaction('HackyInteraction', self.fnum)
+        self.plot(self.fnum, (1, 1, 1))
+        ih.connect_callback(fig, 'button_press_event', self.onclick)
 
     def bring_to_front(self):
         fig_presenter.bring_to_front(self.fig)
@@ -115,3 +128,15 @@ class AbstractInteraction(object):
     def on_close(self, event=None):
         print('[pt] handling close')
         unregister_interaction(self)
+
+    def onclick(self, event):
+        #raise NotImplementedError('implement yourself')
+        if ih.clicked_inside_axis(event):
+            ax = event.inaxes
+            pass
+
+    def onclick_inside(self, event, ax):
+        pass
+
+    def onclick_outside(self, event):
+        pass
