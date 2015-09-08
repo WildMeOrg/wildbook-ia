@@ -91,6 +91,23 @@ class ConfusionMetrics(object):
         #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
         return interp_fpp
 
+    def get_recall_at_fpr(self, target_fpr):
+        indicies = np.where(self.fpr >= target_fpr)[0]
+        assert len(indicies) > 0, 'no false positives at target level'
+        func = scipy.interpolate.interp1d(self.fpr, self.recall)
+        interp_fpp = func(target_fpr)
+        ## interpolate to target recall
+        #right_index  = indicies[0]
+        #right_recall = self.recall[right_index]
+        #left_index   = right_index - 1
+        #left_recall  = self.recall[left_index]
+        #stepsize = right_recall - left_recall
+        #alpha = (target_recall - left_recall) / stepsize
+        #left_fpr   = self.fpr[left_index]
+        #right_fpr  = self.fpr[right_index]
+        #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
+        return interp_fpp
+
     @property
     def precision(self):
         return self.ppv

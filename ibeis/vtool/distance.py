@@ -24,31 +24,6 @@ def testdata_hist():
     return hist1, hist2
 
 
-def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
-    """ finds the nearest point(s) in pts to (x, y)
-    """
-    with ut.embed_on_exception_context:
-        dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
-        fx = dists.argmin()
-        mindist = dists[fx]
-        other_fx = np.where(mindist == dists)[0]
-        if len(other_fx) > 0:
-            if conflict_mode == 'random':
-                np.random.shuffle(other_fx)
-                fx = other_fx[0]
-            elif conflict_mode == 'next':
-                __next_counter[0] += 1
-                idx = __next_counter[0] % len(other_fx)
-                fx = other_fx[idx]
-            elif conflict_mode == 'all':
-                fx = other_fx
-            elif conflict_mode == 'first':
-                fx = fx
-            else:
-                raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
-    return fx, mindist
-
-
 def signed_ori_distance(ori1, ori2):
     r"""
     Args:
@@ -634,6 +609,51 @@ def emd(hist1, hist2):
         ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
         emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
         return emd_dists
+
+
+def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
+    """ finds the nearest point(s) in pts to (x, y)
+
+    TODO: depricate
+    """
+    #with ut.embed_on_exception_context:
+    dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+    fx = dists.argmin()
+    mindist = dists[fx]
+    other_fx = np.where(mindist == dists)[0]
+    if len(other_fx) > 0:
+        if conflict_mode == 'random':
+            np.random.shuffle(other_fx)
+            fx = other_fx[0]
+        elif conflict_mode == 'next':
+            __next_counter[0] += 1
+            idx = __next_counter[0] % len(other_fx)
+            fx = other_fx[idx]
+        elif conflict_mode == 'all':
+            fx = other_fx
+        elif conflict_mode == 'first':
+            fx = fx
+        else:
+            raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
+    return fx, mindist
+
+
+def closest_point(pt, pt_arr, distfunc=L2_sqrd):
+    """ finds the nearest point(s) in pts to (x, y)
+    pt = np.array([1])
+    pt_arr = np.array([1.1, 2, .95, 20])[:, None]
+    distfunc = vt.L2_sqrd
+    """
+    #import vtool as vt
+    assert len(pt_arr) > 0
+    dists = distfunc(pt, pt_arr)
+    xlist = dists.argsort()
+    if len(xlist) > 0:
+        if dists[xlist[0]] == dists[xlist[1]]:
+            print('conflict')
+    index = xlist[0]
+    dist = dists[0]
+    return index, dist
 
 
 if __name__ == '__main__':
