@@ -1248,11 +1248,11 @@ def image_src(gid=None, fresh=False, **kwargs):
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
     if fresh:
-        print('*' * 80)
-        print('\n\n')
-        print('RUNNING WITH FRESH')
-        print('\n\n')
-        print('*' * 80)
+        # print('*' * 80)
+        # print('\n\n')
+        # print('RUNNING WITH FRESH')
+        # print('\n\n')
+        # print('*' * 80)
         # ut.remove_dirs(gpath)
         import os
         os.remove(gpath)
