@@ -38,10 +38,10 @@ def testdata_single_acfg(ibs, default_options=''):
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
     from ibeis.experiments import annotation_configs
-    from ibeis.experiments import experiment_helpers
+    from ibeis.experiments import cfghelpers
     cfgstr_options = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=default_options)
     base_cfg = annotation_configs.single_default
-    aidcfg_combo = experiment_helpers.customize_base_cfg('default', cfgstr_options, base_cfg, 'aids', alias_keys=annotation_configs.ALIAS_KEYS)
+    aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options, base_cfg, 'aids', alias_keys=annotation_configs.ALIAS_KEYS)
     aidcfg = aidcfg_combo[0]
     if len(aidcfg_combo) > 1:
         raise AssertionError('Error: combinations not handled for single cfg setting')

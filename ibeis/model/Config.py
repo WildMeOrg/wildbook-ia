@@ -806,10 +806,13 @@ class FeatureWeightConfig(ConfigBase):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig()
+        >>> featweight_cfg = FeatureWeightConfig(featweight_enabled=True)
         >>> result = featweight_cfg.get_cfgstr()
         >>> print(result)
         _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+
+        _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)
+
     """
 
     def __init__(featweight_cfg, **kwargs):

@@ -185,7 +185,10 @@ def get_probchip_fname_fmt(ibs, config2_=None, species=None):
         >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
         >>> result = probchip_fname_fmt
         >>> print(result)
+        probchip_avuuid={avuuid}_CHIP(sz450)_FEATWEIGHT(OFF).png
+
         probchip_avuuid={avuuid}_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf).png
+
 
     probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
@@ -232,6 +235,8 @@ def get_annot_probchip_fpath_list(ibs, aid_list, config2_=None, species=None):
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = ut.relpath_unix(probchip_fpath_list[1], ibs.get_dbdir())
         >>> print(result)
+        _ibsdb/_ibeis_cache/prob_chips/probchip_avuuid=5a1a53ba-fd44-b113-7f8c-fcf248d7047f_CHIP(sz450)_FEATWEIGHT(OFF).png
+
         _ibsdb/_ibeis_cache/prob_chips/probchip_avuuid=5a1a53ba-fd44-b113-7f8c-fcf248d7047f_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf).png
 
     probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0tau_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png

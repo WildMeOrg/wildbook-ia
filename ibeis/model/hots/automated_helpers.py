@@ -313,7 +313,7 @@ def setup_incremental_test(ibs_gt, clear_names=True, aid_order='shuffle'):
         python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0 4 8 --verbose
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_helpers import *  # NOQA
         >>> import ibeis # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
