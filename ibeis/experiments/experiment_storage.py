@@ -1021,6 +1021,47 @@ class TestResult(object):
         #print(diff_rank.take(row_sortx, axis=0))
         return interesting_qx_list
 
+    def interact_individual_result(test_result, qaid, cfgx=0):
+        #qaids = test_result.get_common_qaids()
+        ibs = test_result.ibs
+        cfgx_list = ut.ensure_iterable(cfgx)
+        qreq_list = ut.list_take(test_result.cfgx2_qreq_, cfgx_list)
+        # Preload any requested configs
+        qres_list = [qreq_.load_cached_qres(qaid) for qreq_ in qreq_list]
+        cfgx2_shortlbl = test_result.get_short_cfglbls()
+        show_kwargs = {
+            'N': 3,
+            'ori': True,
+            'ell_alpha': .9,
+        }
+        # SHOW ANALYSIS
+        show_kwargs['show_query'] = False
+        show_kwargs['viz_name_score'] = True
+        show_kwargs['show_timedelta'] = True
+        show_kwargs['show_gf'] = True
+        show_kwargs['with_figtitle'] = False
+        for cfgx, qres, qreq_ in zip(cfgx_list, qres_list, qreq_list):
+            query_lbl = cfgx2_shortlbl[cfgx]
+            fnum = cfgx
+            qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+
+    def reconstruct_test_flags(test_result):
+        if '_cfgstr' in test_result.common_cfgdict:
+            pipecfg_args = [test_result.common_cfgdict['_cfgstr']]
+        else:
+            pipecfg_args = ut.unique_ordered([cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
+
+        if '_cfgstr' in test_result.common_acfg['common']:
+            annotcfg_args = [test_result.common_acfg['common']['_cfgstr']]
+        else:
+            annotcfg_args = ut.unique_ordered([acfg['common']['_cfgstr'] for acfg in test_result.varied_acfg_list])
+        flagstr =  ' '.join([
+            '-a ' + ' '.join(annotcfg_args),
+            '-t ' + ' ' .join(pipecfg_args),
+            '--db ' + test_result.ibs.get_dbname()
+        ])
+        return flagstr
+
 
 if __name__ == '__main__':
     """

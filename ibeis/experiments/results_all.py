@@ -127,6 +127,60 @@ def get_allres(ibs, qaid_list, daid_list=None, cfgdict=None):
     return allres
 
 
+# OLD Stuff
+#    #allres = results_all.get_allres(ibs, qaid_list, daid_list)
+#    #ut.embed()
+#    #orgres = allres.allorg['rank0_true']
+#    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
+#    #qres_list = ut.dict_take(qaid2_qres, qaid_list)
+
+#    #def get_labeled_name_scores(ibs, qres_list):
+#    #    """
+#    #    TODO: rectify with score_normalization.get_ibeis_score_training_data
+#    #    This function does not return only the "good values".
+#    #    It is more for testing and validation than training.
+#    #    """
+#    #    tp_nscores = []
+#    #    tn_nscores = []
+#    #    for qx, qres in enumerate(qres_list):
+#    #        qaid = qres.get_qaid()
+#    #        if not qres.is_nsum():
+#    #            raise AssertionError('must be nsum')
+#    #        if not ibs.get_annot_has_groundtruth(qaid):
+#    #            continue
+#    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+#    #        # Get name scores for this query
+#    #        nscoretup = qres.get_nscoretup(ibs)
+#    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+#    #        # TODO: take into account viewpoint / quality difference
+#    #        sorted_nids = np.array(sorted_nids)
+#    #        is_positive  = sorted_nids == qnid
+#    #        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+#    #        if np.any(is_positive):
+#    #            # Take only the top true name score
+#    #            num_true = min(sum(is_positive), 1)
+#    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]
+#    #            tp_nscores.extend(sorted_nscores[gt_rank])
+#    #        if np.any(is_negative):
+#    #            # Take the top few false name scores
+#    #            num_false = min(sum(is_negative), 3)
+#    #            #num_false = min(sum(is_negative), 100000)
+#    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]
+#    #            tn_nscores.extend(sorted_nscores[gf_rank])
+#    #    tp_nscores = np.array(tp_nscores).astype(np.float64)
+#    #    tn_nscores = np.array(tn_nscores).astype(np.float64)
+#    #    return tp_nscores, tn_nscores
+#    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
+#from ibeis.model.hots import score_normalization
+#tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+#ut.embed()
+#x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
+#pt.plots.plot_stems(x_data, y_data)
+#pt.present()
+#pt.show()
+#locals_ = viz_allres_annotation_scores(allres)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

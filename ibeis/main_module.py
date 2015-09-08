@@ -73,7 +73,7 @@ def _init_gui():
 
 
 #@profile
-def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False, **kwargs):
+def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     import utool as ut
     from ibeis import params
     from ibeis.control import IBEISControl
@@ -89,7 +89,9 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False, **kwargs):
         request_dbversion = kwargs.get('request_dbversion', None)
         ibs = IBEISControl.request_IBEISController(
             dbdir=dbdir, use_cache=use_cache, request_dbversion=request_dbversion)
-        if params.args.webapp or web:
+        if web is None:
+            web = params.args.webapp
+        if web:
             from ibeis.web import app
             port = params.args.webport
             app.start_from_ibeis(ibs, port=port, **kwargs)
@@ -294,7 +296,7 @@ def opendb_in_background(*args, **kwargs):
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True,
-           web=False, **kwargs):
+           web=None, **kwargs):
     """
     main without the preload (except for option to delete database before opening)
 
@@ -305,6 +307,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         allow_newdir (bool): (default=True) if True errors when opening a nonexisting database
         delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the entire
         verbose (bool): verbosity flag
+        web (bool): starts webserver if True (default=param specification)
         use_cache (bool): if True will try to return a previously loaded controller
 
     Returns:

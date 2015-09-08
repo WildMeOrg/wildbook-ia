@@ -252,15 +252,21 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cache_priority=True):
-    """ Machinery for finding a database directory """
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
+                   cache_priority=False):
+    """ Machinery for finding a database directory
+
+    such a hacky function with bad coding.
+    Needs to just return a database dir and use the following priority
+    dbdir, db, cache, something like that...
+    """
     if not utool.QUIET and utool.VERBOSE:
         print('[sysres] get_args_dbdir: parsing commandline for dbdir')
         print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
 
     if ut.get_argflag('--nodbcache'):
-        return None
+        return dbdir
 
     def _db_arg_priorty(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
@@ -284,6 +290,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cach
         # Get command line args
         dbdir = params.args.dbdir
         db = params.args.db
+        # TODO; use these instead of params
+        #ut.get_argval('--dbdir', return_was_specified=True))
+        #ut.get_argval('--db', return_was_specified=True)
         # Check command line passed args
         dbdir = _db_arg_priorty(dbdir, db)
         if dbdir is not None:
@@ -293,6 +302,60 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cach
         return get_default_dbdir()
     else:
         return db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
+
+
+def resolve_dbdir2(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
+    r"""
+
+    CommandLine:
+        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db PZ_MTEST
+        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db None
+        python -m ibeis.init.sysres --exec-resolve_dbdir2 --dbdir None
+
+    Args:
+        defaultdb (None): (default = None)
+        allow_newdir (bool): (default = False)
+        db (None): (default = None)
+        dbdir (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.init.sysres --exec-resolve_dbdir2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> defaultdb = 'cache'
+        >>> allow_newdir = False
+        >>> dbdir_ = resolve_dbdir2(defaultdb)
+        >>> result = ('dbdir_ = %r' % (dbdir_,))
+        >>> print(result)
+    """
+    invalid = ['', ' ', '.', 'None']
+    if db in invalid:
+        db = None
+    if dbdir in invalid:
+        dbdir = None
+    db, db_specified = ut.get_argval(
+        '--db', type_=str, default=db, return_was_specified=True)
+    dbdir, dbdir_specified = ut.get_argval(
+        '--dbdir', type_=str, default=dbdir, return_was_specified=True)
+
+    dbdir_flag = dbdir_specified or dbdir is not None
+    db_flag = db_specified or db is not None
+
+    if dbdir_flag:
+        # Priority 1
+        dbdir_ = realpath(dbdir)
+    elif db_flag:
+        # Priority 2
+        dbdir_ = db_to_dbdir(db, allow_newdir=allow_newdir)
+    else:
+        # Priority 3
+        if defaultdb == 'cache':
+            dbdir_ = get_default_dbdir()
+        else:
+            dbdir_ = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
+    return dbdir_
 
 
 def is_ibeisdb(path):

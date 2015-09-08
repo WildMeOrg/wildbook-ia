@@ -39,15 +39,19 @@ def hack_argv():
     for arg in sys.argv[:]:
         if arg.startswith('--hargv='):
             hack_argv_key = '='.join(arg.split('=')[1:])
-            if hack_argv_key in ['candexpt', 'expt', 'exptk']:
+            if hack_argv_key in ['candexpt', 'expt', 'exptk', 'scores']:
                 sys.argv.extend([
                     '--save',
-                    'figures/expt_{db}_a_{a}_t_{t}.png',
+                    #'figures/expt_{db}_a_{a}_t_{t}.png',
+                    'figures/expt_{e}_{db}_a_{a}_t_{t}.png',
                     '--dpath=~/latex/crall-candidacy-2015/',
-                    '--dpi=256',
-                    '--clipwhite',
+                    #'--clipwhite',
                     '--diskshow',
                     '--contextadjust',
+                    '--dpi=256',
+                ])
+            if hack_argv_key in ['candexpt', 'expt', 'exptk']:
+                sys.argv.extend([
                 ])
                 if hack_argv_key != 'exptk':
                     sys.argv.extend([
@@ -157,6 +161,107 @@ def _register_doctest_precmds():
 
 _register_doctest_precmds()
 
+
+#@devcmd('scores', 'score', 'namescore_roc')
+#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+def annotationmatch_scores(ibs, test_result):
+    """
+    TODO: plot the difference between the top true score and the next best false score
+    CommandLine:
+        ib
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
+
+        python dev.py -t scores --db PZ_Master0 --allgt --show
+        python dev.py -t scores --db PZ_MTEST --allgt --show
+
+        python dev.py -t scores --db PZ_Master0 --show --controlled
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+
+        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
+        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
+        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show --onlygood
+
+        python -m ibeis.dev -e cases -a timecontrolled -t default --db PZ_Master1 --qaid 1253 --show
+
+    Example:
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
+        >>> annotationmatch_scores(ibs, test_result)
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    print('[dev] annotationmatch_scores')
+
+    assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
+    cfgx = 0
+    qreq_ = test_result.cfgx2_qreq_[cfgx]
+    truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    common_qaids = test_result.get_common_qaids()
+    gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+    gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+    is_success = prop2_mat['is_success'].T[cfgx]
+
+    ONLY_GOOD_CASES = ut.get_argflag('--onlygood')
+    if ONLY_GOOD_CASES:
+        tp_nscores = gt_rawscore[is_success]
+        tn_nscores = gf_rawscore[is_success]
+        tn_qaids = tp_qaids = common_qaids[is_success]
+    else:
+        tp_nscores = gt_rawscore
+        tn_nscores = gf_rawscore
+        tn_qaids = tp_qaids = common_qaids
+
+    #encoder = vt.ScoreNormalizer(target_tpr=.7)
+    print(qreq_.get_cfgstr())
+    part_attrs = {1: {'qaid': tp_qaids},
+                  0: {'qaid': tn_qaids}}
+
+    def attr_callback(qaid):
+        print('callback qaid = %r' % (qaid,))
+        test_result.interact_individual_result(qaid)
+        reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
+        print('Independent reconstruct')
+        print(reconstruct_str)
+
+    encoder = vt.ScoreNormalizer(adjust=8, tpr=.5)
+    tp_scores = tp_nscores
+    tn_scores = tn_nscores
+    name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+    encoder.fit(name_scores, labels, attrs)
+    #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
+
+    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
+
+    if ONLY_GOOD_CASES:
+        figtitle +=   ' onlygood'
+    encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
+
+    if ut.get_argflag('--contextadjust'):
+        pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+        pt.adjust_subplots2(use_argv=True)
+
+    #confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
+
+    #confusions.draw_roc_curve()
+    #ut.embed()
+
+    #scorenorm.test_score_normalization(tp_nscores, tn_nscores)
+    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
+    locals_ = locals()
+    return locals_
+
 #@devprecmd
 #def draw_rank_cdf():
 #    from ibeis.experiments.experiment_drawing import draw_rank_cdf
@@ -192,127 +297,6 @@ _register_doctest_precmds()
 #    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
 #    testsrc = testsrc_list[0]
 #    exec(testsrc)
-
-
-#@devcmd('scores', 'score', 'namescore_roc')
-#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, test_result):
-    """
-    TODO: plot the difference between the top true score and the next best false score
-    CommandLine:
-        ib
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
-
-        python dev.py -t scores --db PZ_Master0 --allgt --show
-        python dev.py -t scores --db PZ_MTEST --allgt --show
-
-        python dev.py -t scores --db PZ_Master0 --show --controlled
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
-
-        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
-
-
-    Example:
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
-        >>> annotationmatch_scores(ibs, test_result)
-        >>> ut.show_if_requested()
-    """
-    import vtool as vt
-    print('[dev] annotationmatch_scores')
-    #allres = results_all.get_allres(ibs, qaid_list, daid_list)
-    #ut.embed()
-    #orgres = allres.allorg['rank0_true']
-    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
-    #qres_list = ut.dict_take(qaid2_qres, qaid_list)
-
-    #def get_labeled_name_scores(ibs, qres_list):
-    #    """
-    #    TODO: rectify with score_normalization.get_ibeis_score_training_data
-    #    This function does not return only the "good values".
-    #    It is more for testing and validation than training.
-    #    """
-    #    tp_nscores = []
-    #    tn_nscores = []
-    #    for qx, qres in enumerate(qres_list):
-    #        qaid = qres.get_qaid()
-    #        if not qres.is_nsum():
-    #            raise AssertionError('must be nsum')
-    #        if not ibs.get_annot_has_groundtruth(qaid):
-    #            continue
-    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
-    #        # Get name scores for this query
-    #        nscoretup = qres.get_nscoretup(ibs)
-    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-    #        # TODO: take into account viewpoint / quality difference
-    #        sorted_nids = np.array(sorted_nids)
-    #        is_positive  = sorted_nids == qnid
-    #        is_negative = np.logical_and(~is_positive, sorted_nids > 0)
-    #        if np.any(is_positive):
-    #            # Take only the top true name score
-    #            num_true = min(sum(is_positive), 1)
-    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]
-    #            tp_nscores.extend(sorted_nscores[gt_rank])
-    #        if np.any(is_negative):
-    #            # Take the top few false name scores
-    #            num_false = min(sum(is_negative), 3)
-    #            #num_false = min(sum(is_negative), 100000)
-    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]
-    #            tn_nscores.extend(sorted_nscores[gf_rank])
-    #    tp_nscores = np.array(tp_nscores).astype(np.float64)
-    #    tn_nscores = np.array(tn_nscores).astype(np.float64)
-    #    return tp_nscores, tn_nscores
-    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
-
-    qreq_ = test_result.cfgx2_qreq_[0]
-
-    truth2_prop, prop2_mat = test_result.get_truth2_prop()
-    gt_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score')
-    gf_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score')
-    assert gt_rawscore.shape[1] == 1, 'can only specify one config here'
-    ONLY_GOOD_CASES = False
-    if ONLY_GOOD_CASES:
-        tp_nscores = gt_rawscore[prop2_mat['is_success']]
-        tn_nscores = gf_rawscore[prop2_mat['is_success']]
-    else:
-        tp_nscores = gt_rawscore.flatten()
-        tn_nscores = gf_rawscore.flatten()
-
-    #encoder = vt.ScoreNormalizer(target_tpr=.7)
-    encoder = vt.ScoreNormalizer()
-    name_scores, labels = encoder._to_xy(tp_nscores, tn_nscores)
-    encoder.fit(name_scores, labels)
-    encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
-    #confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
-    #confusions.draw_roc_curve()
-    #ut.embed()
-
-    #scorenorm.test_score_normalization(tp_nscores, tn_nscores)
-    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
-
-    #from ibeis.model.hots import score_normalization
-    #tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)
-    #ut.embed()
-    #x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
-    #pt.plots.plot_stems(x_data, y_data)
-
-    #pt.present()
-    #pt.show()
-    #locals_ = viz_allres_annotation_scores(allres)
-    locals_ = locals()
-    return locals_
 
 
 @devcmd('dists', 'dist', 'vecs_dist')

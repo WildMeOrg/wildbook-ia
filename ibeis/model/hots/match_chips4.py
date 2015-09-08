@@ -184,7 +184,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         qaid2_qres
 
     CommandLine:
-        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1
+        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1:0
+        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1:1
 
     Example:
         >>> # SLOW_DOCTEST
@@ -236,29 +237,37 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
     return qaid2_qres
 
 
+HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
+
+
 def execute_query2(ibs, qreq_, verbose, save_qcache):
+    """
+    Breaks up query request into several subrequests
+    to process "more efficiently" and safer as well.
+    """
     qreq_.lazy_preload(verbose=verbose)
     all_qaids = qreq_.get_external_qaids()
     qaid2_qres = {}
     # vsone must have a chunksize of 1
-    hots_batch_size = ut.get_argval('--hots-batch-size', type_=int, default=None)
-    if hots_batch_size is None:
+    if HOTS_BATCH_SIZE is None:
         hots_batch_size = ibs.cfg.other_cfg.hots_batch_size
+    else:
+        hots_batch_size = HOTS_BATCH_SIZE
     chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
     # Iterate over vsone queries in chunks. This ensures that we dont lose
     # too much time if a qreq_ crashes after the 2000th nn index.
     nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
     _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
-    qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
-                                lbl='[mc4] query chunk: ', backspace=False,
-                                prog_hook=qreq_.prog_hook)
-    for __qreq in qreq_iter:
+    sub_qreq_iter = ut.ProgressIter(
+        _qreq_iter, nTotal=nTotalChunks, freq=1, lbl='[mc4] query chunk: ',
+        backspace=False, prog_hook=qreq_.prog_hook)
+    for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
-        __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)
+        __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, sub_qreq_, verbose=verbose)
         if save_qcache:
-            pipeline.save_resdict(qreq_, __qaid2_qres, verbose=verbose)
+            pipeline.save_resdict(sub_qreq_, __qaid2_qres, verbose=verbose)
         else:
             if ut.VERBOSE:
                 print('[mc4] not saving vsmany chunk')
