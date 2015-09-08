@@ -1316,9 +1316,10 @@ def image_upload_zip(**kwargs):
         raise IOError('Image archive not given')
 
     # If the directory already exists, delete it
-    uploadsdir = ibs.get_uploadsdir()
+    uploads_path = ibs.get_uploadsdir()
+    ut.ensuredir(uploads_path)
     current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-    upload_path = join(uploadsdir, current_time)
+    upload_path = join(uploads_path, current_time)
     print(upload_path)
     ut.ensuredir(upload_path)
 
@@ -1363,10 +1364,11 @@ def image_upload(cleanup=True, **kwargs):
     if filestore is None:
         raise IOError('Image not given')
 
-    uploadsdir = ibs.get_uploadsdir()
+    uploads_path = ibs.get_uploadsdir()
+    ut.ensuredir(uploads_path)
     current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
     upload_filename = 'temp_%s.png' % (current_time, )
-    upload_filepath = join(uploadsdir, upload_filename)
+    upload_filepath = join(uploads_path, upload_filename)
 
     filestore.save(upload_filepath)
 
