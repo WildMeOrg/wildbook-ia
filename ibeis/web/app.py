@@ -21,7 +21,7 @@ from ibeis.web import appfuncs as ap
 # from scipy.optimize import curve_fit
 from detecttools.directory import Directory
 import random
-from os.path import join
+from os.path import join, exists
 import zipfile
 import time
 import math
@@ -1248,7 +1248,14 @@ def image_src(gid=None, fresh=False, **kwargs):
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
     if fresh:
-        ut.remove_dirs(gpath)
+        # print('*' * 80)
+        # print('\n\n')
+        # print('RUNNING WITH FRESH')
+        # print('\n\n')
+        # print('*' * 80)
+        # ut.remove_dirs(gpath)
+        import os
+        os.remove(gpath)
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     return ap.return_src(gpath)
 
@@ -1309,10 +1316,17 @@ def image_upload_zip(**kwargs):
         raise IOError('Image archive not given')
 
     # If the directory already exists, delete it
-    uploadsdir = ibs.get_uploadsdir()
+    uploads_path = ibs.get_uploadsdir()
+    ut.ensuredir(uploads_path)
     current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-    upload_path = join(uploadsdir, current_time)
-    print(upload_path)
+
+    modifier = 1
+    upload_path = '%s' % (current_time)
+    while exists(upload_path):
+        upload_path = '%s_%04d' % (current_time, modifier)
+        modifier += 1
+
+    upload_path = join(uploads_path, upload_path)
     ut.ensuredir(upload_path)
 
     # Extract the content
@@ -1356,11 +1370,17 @@ def image_upload(cleanup=True, **kwargs):
     if filestore is None:
         raise IOError('Image not given')
 
-    uploadsdir = ibs.get_uploadsdir()
+    uploads_path = ibs.get_uploadsdir()
+    ut.ensuredir(uploads_path)
     current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-    upload_filename = 'temp_%s.png' % (current_time, )
-    upload_filepath = join(uploadsdir, upload_filename)
 
+    modifier = 1
+    upload_filename = 'upload_%s.png' % (current_time)
+    while exists(upload_filename):
+        upload_filename = 'upload_%s_%04d.png' % (current_time, modifier)
+        modifier += 1
+
+    upload_filepath = join(uploads_path, upload_filename)
     filestore.save(upload_filepath)
 
     gid_list = ibs.add_images([upload_filepath], **kwargs)
