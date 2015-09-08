@@ -201,7 +201,7 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
         >>> from ibeis.model.hots import name_scoring
         >>> from ibeis.model.hots import scoring
         >>> # Test to make sure name score and chips score are equal when per_name=1
-        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dper_name=1,qsize=1,dsize=10'], ['default:K=1'])
+        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1'])
         >>> qreq_, cm_list = qreq_list[0], cms_list[0]
         >>> cm = cm_list[0]
         >>> # Ensure there is only one aid per database name

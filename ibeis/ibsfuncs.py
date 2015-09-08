@@ -2717,7 +2717,7 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
         python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -2726,7 +2726,7 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
         >>> min_gt = 1
         >>> seed = 0
         >>> # execute function
-        >>> sample_aid_list = ibs.get_annot_rowid_sample(None, per_name, min_gt, seed)
+        >>> sample_aid_list = ibs.get_annot_rowid_sample(None, per_name=per_name, min_gt=min_gt, seed=seed)
         >>> result = ut.hashstr_arr(sample_aid_list)
         arr((66)crj9l5jde@@hdmlp)
     """
@@ -2947,7 +2947,7 @@ def get_num_annots_per_name(ibs, aid_list):
         python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -2963,7 +2963,7 @@ def get_num_annots_per_name(ibs, aid_list):
         >>> print(result)
         >>> print('min_per_name = %s' % (ut.dict_str(min_per_name),))
         per_name_hist = {
-            1: 9,
+            1: 5,
             2: 2,
         }
 
@@ -5253,7 +5253,7 @@ def filter_aids_to_species(ibs, aid_list, species):
         >>> aid_list = ibs.get_valid_aids()
         >>> species = ibeis.const.Species.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
-        >>> print(aid_list_)
+        >>> result = str(aid_list_)
         [9, 10]
     """
     flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]

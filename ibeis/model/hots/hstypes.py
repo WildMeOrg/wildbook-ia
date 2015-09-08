@@ -113,6 +113,7 @@ class FiltKeys(object):
     FG = 'fg'
     RATIO = 'ratio'
     DIST = 'dist'
+    BARL2 = 'bar_l2'
     LNBNN = 'lnbnn'
     HOMOGERR = 'homogerr'
 

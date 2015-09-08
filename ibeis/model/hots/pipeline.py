@@ -601,7 +601,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors('testdb1', qaid_list=[1, 2, 3])
+        >>> args = plh.testdata_pre_weight_neighbors('testdb1', qaid_list=[1, 2, 3], cfgdict=dict(bar_l2_on=True, fg_on=False))
         >>> ibs, qreq_, nns_list, nnvalid0_list = args
         >>> # execute function
         >>> filtkey_list, filtweights_list, filtvalids_list = weight_neighbors(qreq_, nns_list, nnvalid0_list)
@@ -614,15 +614,17 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), [nFiltKeys] * nInternAids)
         >>> ut.assert_eq(filtvalid_depth, (nInternAids, nFiltKeys))
         >>> ut.assert_eq(filtvalids_list, [[None, None], [None, None], [None, None]])
-        >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.FG])
+        >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.BARL2])
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors('testdb1', codename='vsone')
+        >>> args = plh.testdata_pre_weight_neighbors('testdb1', codename='vsone', cfgdict=dict(lnbnn_on=False, ratio_on=True, fg_on=False, ratio_thresh=.625))
         >>> ibs, qreq_, nns_list, nnvalid0_list = args
         >>> # execute function
         >>> filtkey_list, filtweights_list, filtvalids_list = weight_neighbors(qreq_, nns_list, nnvalid0_list)
+        >>> print('filtkey_list = %r' % (filtkey_list,))
+        >>> print('filtvalids_list = %r' % (filtvalids_list,))
         >>> nFiltKeys = len(filtkey_list)
         >>> nInternAids = len(qreq_.get_internal_qaids())
         >>> filtweight_depth = ut.depth_profile(filtweights_list)
@@ -630,9 +632,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(nInternAids, len(filtweights_list))
         >>> ut.assert_eq(nInternAids, len(filtvalids_list))
         >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), [nFiltKeys] * nInternAids)
+        >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.RATIO])
         >>> assert filtvalids_list[0][0] is not None
-        >>> assert filtvalids_list[0][1] is None
-        >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.RATIO, hstypes.FiltKeys.FG])
     """
     if verbose:
         print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)

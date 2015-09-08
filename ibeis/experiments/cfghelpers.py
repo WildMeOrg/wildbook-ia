@@ -95,8 +95,8 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
         >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
         >>> print(result)
-        nonvaried_cfg = {'f1': {'a2': {'x3': 1}}, 'q1': 1}
-        varied_cfg_list = [{'f1': {'a2': {'y3': 2}, 'b2': 1}}, {'b1': 1, 'f1': {'a2': {'y3': 1}}}]
+        nonvaried_cfg = {'f1': {'a2': {'x3': 1}, 'b2': 1}, 'q1': 1}
+        varied_cfg_list = [{'f1': {'a2': {'y3': 2}}}, {'e1': 1, 'f1': {'a2': {'y3': 1}}}]
     """
     if default_cfg is None:
         nonvaried_cfg = reduce(ut.dict_intersection, cfg_list)
