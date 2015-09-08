@@ -1253,7 +1253,9 @@ def image_src(gid=None, fresh=False, **kwargs):
         print('RUNNING WITH FRESH')
         print('\n\n')
         print('*' * 80)
-        ut.remove_dirs(gpath)
+        # ut.remove_dirs(gpath)
+        import os
+        os.remove(gpath)
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
     return ap.return_src(gpath)
 
