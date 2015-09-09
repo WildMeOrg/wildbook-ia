@@ -502,9 +502,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     if filt_cfg is not None:
         # NEW WAY OF SAMPLING
-        is_valid = test_result.case_sample2(filt_cfg)
-        qx_list, cfgx_list = np.nonzero(is_valid)
-        case_pos_list = np.vstack((qx_list, cfgx_list)).T
+        case_pos_list = test_result.case_sample2(filt_cfg)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, None)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)

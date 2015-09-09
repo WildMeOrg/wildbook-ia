@@ -322,6 +322,21 @@ timecontrolled = {
 }
 
 
+timequalcontrolled = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            'default_aids': 'largetime',
+            'require_quality' : True,  # if True unknown qualities are removed
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            'default_aids': 'largetime',
+            'require_quality' : True,  # if True unknown qualities are removed
+        }),
+}
+
+
 #cont_uncon_compare = {
 #    'qcfg': [
 #        ut.augdict(

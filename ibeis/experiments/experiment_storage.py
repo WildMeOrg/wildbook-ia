@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import numpy as np
 #import six
+from six.moves import zip, range, map  # NOQA
 import vtool as vt
 import utool as ut
 from ibeis.experiments import cfghelpers
@@ -580,27 +581,133 @@ class TestResult(object):
         else:
             return test_result.qaids
 
-    def case_sample2(test_result, filt_cfg):
-        r"""
-        Args:
-            filt_cfg (?):
+    def get_gt_tags(test_result):
+        ibs = test_result.ibs
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
+        gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
+        return gt_tags
 
+    def get_gf_tags(test_result):
+        r"""
         Returns:
             list: case_pos_list
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2
+            python -m ibeis.experiments.experiment_storage --exec-get_gf_tags --db PZ_Master1 --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+            >>> filt_cfg = main_helpers.testdata_filtcfg()
+            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> gf_tags = test_result.get_gf_tags()
+        """
+        ibs = test_result.ibs
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
+        gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
+        return gf_tags
+
+    def get_all_tags(test_result):
+        r"""
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :
+            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
+
+        References:
+            http://bioinfoexpert.com/?p=592
+            sudo pip install git+git://github.com/amueller/word_cloud.git
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+            >>> filt_cfg = main_helpers.testdata_filtcfg()
+            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> all_tags = test_result.get_all_tags()
+            >>> selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
+            >>> print(ut.dict_str(ut.dict_hist(flat_tags)))
+            >>> ut.quit_if_noshow()
+            >>> from wordcloud import WordCloud
+            >>> wordcloud = WordCloud().generate(' '.join(flat_tags))
+            >>> import plottool as pt
+            >>> pt.plt.imshow(wordcloud)
+            >>> pt.plt.axis('off')
+            >>> pt.set_figtitle(cfghelpers.get_cfg_lbl(filt_cfg))
+            >>> ut.show_if_requested()
+        """
+        gt_tags = test_result.get_gf_tags()
+        gf_tags = test_result.get_gt_tags()
+        all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
+        return all_tags
+
+    def case_sample2(test_result, filt_cfg, return_mask=False, verbose=ut.NOT_QUIET):
+        r"""
+        Args:
+            filt_cfg (?):
+
+        Returns:
+            list: case_pos_list (list of (qx, cfgx)) or isvalid mask
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2:0
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2:1 --db PZ_Master1 --filt :min_tags=1
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
+
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2:2 --db PZ_Master1
+
+        Example0:
+            >>> # ENABLE_DOCTEST
+            >>> # The same results is achievable with different filter config settings
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
-            >>> filt_cfg = {'fail': True, 'success': None, 'min_gtrank': 2, 'max_gtrank': 10, 'min_gf_timedelta': '24h'}
+            >>> filt_cfg1 = {'fail': True}
+            >>> case_pos_list1 = test_result.case_sample2(filt_cfg1)
+            >>> filt_cfg2 = {'min_gtrank': 1}
+            >>> case_pos_list2 = test_result.case_sample2(filt_cfg2)
+            >>> filt_cfg3 = {'min_gtrank': 0}
+            >>> case_pos_list3 = test_result.case_sample2(filt_cfg3)
+            >>> filt_cfg4 = {}
+            >>> case_pos_list4 = test_result.case_sample2(filt_cfg4)
+            >>> assert np.all(case_pos_list1 == case_pos_list2), 'should be equiv configs'
+            >>> assert np.any(case_pos_list2 != case_pos_list3), 'should be diff configs'
+            >>> assert np.all(case_pos_list3 == case_pos_list4), 'should be equiv configs'
+
+        Example1:
+            >>> # SCRIPT
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> filt_cfg = main_helpers.testdata_filtcfg()
+            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
+            >>> print(result)
+            >>> # Extra stuff
+            >>> all_tags = test_result.get_all_tags()
+            >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> print('selcted_tags = %r' % (selcted_tags,))
+
+        Example1:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
             >>> print(result)
+            >>> # Extra stuff
+            >>> all_tags = test_result.get_all_tags()
+            >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> print('selcted_tags = %r' % (selcted_tags,))
         """
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
         # Initialize isvalid flags to all true
@@ -609,12 +716,56 @@ class TestResult(object):
         import operator
         from functools import partial
 
+        #common_qaids = test_result.get_common_qaids()
+
+        @ut.memoize
+        def get_num_casetags():
+            ibs = test_result.ibs
+            #gt_aids = truth2_prop['gt']['aid']
+            #gf_aids = truth2_prop['gf']['aid']
+            gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
+            gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
+            num_gt_tags = np.array([list(map(len, _gt_tags)) for _gt_tags in gt_tags])
+            gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
+
+            #gt_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gt_aids) for _gt_aids in gt_aids.T]
+            #gf_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gf_aids) for _gf_aids in gf_aids.T]
+
+            gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
+
+            # get matrix of num tags
+            num_gf_tags = np.array([list(map(len, _gf_tags)) for _gf_tags in gf_tags])
+            return num_gt_tags, num_gf_tags
+
+        def map_num_tags(tags_list):
+            return np.array([list(map(len, _tags)) for _tags in tags_list])
+
+        def compare_num_gf_tags(op, val):
+            num_gf_tags = map_num_tags(test_result.get_gf_tags())
+            return op(num_gf_tags, val)
+
+        def compare_num_gt_tags(op, val):
+            num_gt_tags = map_num_tags(test_result.get_gt_tags())
+            return op(num_gt_tags, val)
+
+        def compare_num_tags(op, val):
+            num_gt_tags = map_num_tags(test_result.get_gt_tags())
+            num_gf_tags = map_num_tags(test_result.get_gf_tags())
+            num_tags = num_gt_tags + num_gf_tags
+            return op(num_tags, val)
+
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
             ('max_gtrank', partial(operator.le, truth2_prop['gt']['rank'])),
             ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
+            ('min_tags', partial(compare_num_tags, operator.ge)),
+            ('max_tags', partial(compare_num_tags, operator.le)),
+            ('min_gf_tags', partial(compare_num_gf_tags, operator.ge)),
+            ('max_gf_tags', partial(compare_num_gf_tags, operator.le)),
+            ('min_gt_tags', partial(compare_num_gt_tags, operator.ge)),
+            ('max_gt_tags', partial(compare_num_gt_tags, operator.le)),
         ]
         filt_cfg = filt_cfg.copy()
 
@@ -624,8 +775,9 @@ class TestResult(object):
                     # hack to convert to seconds
                     filt_cfg['min_gf_timedelta'] = int(filt_cfg['min_gf_timedelta'][0:-1]) * 60 * 60
 
-        verbose = True  # ut.VERBOSE
-        print('Sampling from is_valid.size=%r' % (is_valid.size))
+        if verbose:
+            print('Sampling from is_valid.size=%r with %r' % (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
+            print('  * is_valid.shape = %r' % (is_valid.shape,))
 
         for key, rule in rule_list:
             val = filt_cfg.get(key, None)
@@ -639,6 +791,7 @@ class TestResult(object):
                     prev_num_valid = is_valid.sum()
                 is_valid = np.logical_and(is_valid, flags)
                 if verbose:
+                    print('  * is_valid.shape = %r' % (is_valid.shape,))
                     print('SampleRule: %s = %r' % (key, val))
                     num_passed = flags.sum()
                     num_valid = is_valid.sum()
@@ -646,8 +799,8 @@ class TestResult(object):
                     print('  * prev_num_valid = %r' % (prev_num_valid,))
                     print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                     print('  * num_valid = %r' % (num_valid,))
-        #ut.embed()
-        return is_valid
+        if return_mask:
+            return is_valid
 
         #if False:
         #    # Valid props
@@ -658,9 +811,9 @@ class TestResult(object):
 
         #    np.vstack((qaids, gt_aids, gt_ranks)).T
 
-        #qx_list, cfgx_list = np.nonzero(is_valid)
-        #case_pos_list = np.vstack((qx_list, cfgx_list)).T
-        #return case_pos_list
+        qx_list, cfgx_list = np.nonzero(is_valid)
+        case_pos_list = np.vstack((qx_list, cfgx_list)).T
+        return case_pos_list
 
     def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True, min_success_diff=0):
         category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
@@ -725,6 +878,7 @@ class TestResult(object):
         #vt.unique_row_indexes(case_pos_list).shape
         return case_pos_list, case_labels_list
 
+    @ut.memoize
     def get_truth2_prop(test_result):
         ibs = test_result.ibs
         common_qaids = test_result.get_common_qaids()

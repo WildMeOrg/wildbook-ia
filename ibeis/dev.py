@@ -231,7 +231,7 @@ def annotationmatch_scores(ibs, test_result):
     gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
     # FIXME: may need to specify which cfg is used in the future
-    isvalid = test_result.case_sample2(filt_cfg).T[cfgx]
+    isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
@@ -260,23 +260,12 @@ def annotationmatch_scores(ibs, test_result):
     figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
 
     figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
-    #if ONLY_GOOD_CASES:
-    #    figtitle +=   ' onlygood'
-    #if SMALL_FP_TIME:
-    #    figtitle +=   ' small_fp_timedelta'
     encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
 
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         pt.adjust_subplots2(use_argv=True)
 
-    #confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
-
-    #confusions.draw_roc_curve()
-    #ut.embed()
-
-    #scorenorm.test_score_normalization(tp_nscores, tn_nscores)
-    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
     locals_ = locals()
     return locals_
 

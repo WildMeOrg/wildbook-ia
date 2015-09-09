@@ -147,7 +147,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
         cfg_lbl = test:var1=val1,var2=val2
     """
     if name is None:
-        name = cfg['_cfgname']
+        name = cfg.get('_cfgname', '')
     _search = ['dict(', ')', ' ']
     _repl = [''] * len(_search)
     # remove keys that should not belong to the label
