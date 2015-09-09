@@ -120,6 +120,9 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey([qaid] * len(name_daid_list), name_daid_list)
     annotmatch_rowid_list = ut.filter_Nones(annotmatch_rowid_list)
+    # Case tags
+    tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
+    tag_list = ut.unique_keep_order2(ut.flatten(tags_list))
 
     name_rank = kwargs.get('name_rank', None)
     if name_rank is None:
@@ -130,17 +133,17 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
             xlabel = {1: 'True Positive', 0: 'False Positive', 2: 'Unknown'}[truth]
         else:
             xlabel = {1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
-    xlabel_list = []
-    if any(ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)):
-        xlabel_list += [' Photobomb']
-    if any(ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)):
-        xlabel_list += [' Scenery']
-    if any(ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)):
-        xlabel_list += [' Nondistinct']
-    if any(ibs.get_annotmatch_is_hard(annotmatch_rowid_list)):
-        xlabel_list += [' Hard']
-    if len(xlabel_list) > 0:
-        xlabel += '\n' + ', '.join(xlabel_list)
+    #xlabel_list = []
+    #if any(ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)):
+    #    xlabel_list += [' Photobomb']
+    #if any(ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)):
+    #    xlabel_list += [' Scenery']
+    #if any(ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)):
+    #    xlabel_list += [' Nondistinct']
+    #if any(ibs.get_annotmatch_is_hard(annotmatch_rowid_list)):
+    #    xlabel_list += [' Hard']
+    if len(tag_list) > 0:
+        xlabel += '\n' + ', '.join(tag_list)
 
     ax.set_xlabel(xlabel)
 

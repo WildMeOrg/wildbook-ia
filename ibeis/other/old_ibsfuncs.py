@@ -338,3 +338,182 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 #        ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowids)
 #        ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
 #    ibs.db.vacuum()
+
+
+def find_location_disparate_splits(ibs):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-find_location_disparate_splits
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> # execute function
+        >>> offending_nids = find_location_disparate_splits(ibs)
+        >>> # verify results
+        >>> print('offending_nids = %r' % (offending_nids,))
+
+    """
+    import scipy.spatial.distance as spdist
+    import functools
+    #aid_list_count = ibs.get_valid_aids()
+    aid_list_count = ibs.filter_aids_count()
+    nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
+
+    # Filter to only multitons
+    has_multiple_list = [len(gps_track) > 1 for gps_track in gps_track_list]
+    gps_track_list_ = ut.list_compress(gps_track_list, has_multiple_list)
+    aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
+    nid_list_ = ut.list_compress(nid_list, has_multiple_list)
+
+    # Other properties
+    unixtime_track_list_ = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aid_track_list_)
+
+    # Move into arrays
+    gpsarr_track_list_ = list(map(np.array, gps_track_list_))
+    unixtimearr_track_list_ = [np.array(unixtimes)[:, None] for unixtimes in unixtime_track_list_]
+
+    def unixtime_hourdiff(x, y):
+        return np.abs(np.subtract(x, y)) / (60 ** 2)
+
+    haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
+    unixtime_pdist = functools.partial(spdist.pdist, metric=unixtime_hourdiff)
+    # Get distances
+    gpsdist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
+    hourdist_vector_list = list(map(unixtime_pdist, unixtimearr_track_list_))
+
+    # Get the speed in kilometers per hour for each animal
+    speed_vector_list = [gpsdist / hourdist for gpsdist, hourdist in
+                         zip(gpsdist_vector_list, hourdist_vector_list)]
+
+    #maxhourdist_list = np.array([hourdist_vector.max() for hourdist_vector in hourdist_vector_list])
+    maxgpsdist_list  = np.array([gpsdist_vector.max() for gpsdist_vector in gpsdist_vector_list])
+    maxspeed_list = np.array([speed_vector.max() for speed_vector in speed_vector_list])
+    sortx  = maxspeed_list.argsort()
+    sorted_maxspeed_list = maxspeed_list[sortx]
+    #sorted_nid_list = np.array(ut.list_take(nid_list_, sortx))
+
+    if False:
+        import plottool as pt
+        pt.plot(sorted_maxspeed_list)
+        allgpsdist_list = np.array(ut.flatten(gpsdist_vector_list))
+        alltimedist_list = np.array(ut.flatten(hourdist_vector_list))
+
+        pt.figure(fnum1=1, doclf=True, docla=True)
+        alltime_sortx = alltimedist_list.argsort()
+        pt.plot(allgpsdist_list[alltime_sortx])
+        pt.plot(alltimedist_list[alltime_sortx])
+        pt.iup()
+
+        pt.figure(fnum1=2, doclf=True, docla=True)
+        allgps_sortx = allgpsdist_list.argsort()
+        pt.plot(allgpsdist_list[allgps_sortx])
+        pt.plot(alltimedist_list[allgps_sortx])
+        pt.iup()
+
+        #maxgps_sortx = maxgpsdist_list.argsort()
+        #pt.plot(maxgpsdist_list[maxgps_sortx])
+        pt.iup()
+
+    maxgps_sortx = maxgpsdist_list.argsort()
+    gpsdist_thresh = 15
+    sorted_maxgps_list = maxgpsdist_list[maxgps_sortx]
+    offending_sortx = maxgps_sortx.compress(sorted_maxgps_list > gpsdist_thresh)
+
+    speed_thresh_kph = 6  # kilometers per hour
+    offending_sortx = sortx.compress(sorted_maxspeed_list > speed_thresh_kph)
+    #sorted_isoffending = sorted_maxspeed_list > speed_thresh_kph
+    #offending_nids = sorted_nid_list.compress(sorted_isoffending)
+    offending_nids = ut.list_take(nid_list_, offending_sortx)
+    #offending_speeds = ut.list_take(maxspeed_list, offending_sortx)
+    print('offending_nids = %r' % (offending_nids,))
+
+    for index in offending_sortx:
+        print('\n\n--- Offender index=%d ---' % (index,))
+        # Inspect a specific index
+        aids = aid_track_list_[index]
+        nid = nid_list_[index]
+        assert np.all(np.array(ibs.get_annot_name_rowids(aids)) == nid)
+
+        aid1_list, aid2_list = zip(*list(ut.product(aids, aids)))
+        annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+        annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+        annotmatch_truth_list = ut.replace_nones(annotmatch_truth_list, -1)
+        truth_mat = np.array(annotmatch_truth_list).reshape((len(aids), len(aids)))
+
+        contrib_rowids = ibs.get_image_contributor_rowid(ibs.get_annot_gids(aids))
+        contrib_tags = ibs.get_contributor_tag(contrib_rowids)
+
+        print('nid = %r' % (nid,))
+        print('maxspeed = %.2f km/h' % (maxspeed_list[index],))
+        print('aids = %r' % (aids,))
+        print('gpss = %s' % (ut.list_str(gps_track_list_[index]),))
+        print('contribs = %s' % (ut.list_str(contrib_tags),))
+
+        print('speedist_mat = \n' + ut.numpy_str(spdist.squareform(speed_vector_list[index]), precision=2))
+        truth_mat_str = ut.numpy_str(truth_mat, precision=2)
+        truth_mat_str = truth_mat_str.replace('-1' , ' _')
+
+        print('truth_mat = \n' + truth_mat_str)
+        print('gpsdist_mat  = \n' + ut.numpy_str(spdist.squareform(gpsdist_vector_list[index]), precision=2))
+        print('hourdist_mat = \n' + ut.numpy_str(spdist.squareform(hourdist_vector_list[index]), precision=2))
+
+    return offending_nids
+
+    #gpsdist_matrix_list = list(map(spdist.squareform, gpsdist_vector_list))
+
+@__injectable
+def find_offending_contributors(ibs):
+    lat_min, lon_min = (-1.340726, 36.792234)
+    lat_max, lon_max = (-1.341633, 36.793340)
+    gid_list = ibs.get_valid_gids()
+    gps_list = ibs.get_image_gps(gid_list)
+
+    gid_list_filtered = [
+        gid
+        for gid, (lat, lon) in zip(gid_list, gps_list)
+        if lat_min >= lat and lat >= lat_max  and lon_min <= lon and lon <= lon_max
+    ]
+    contrib_list_filtered = ibs.get_image_contributor_tag(gid_list_filtered)
+
+    contribs = {}
+    for gid, contrib in zip(gid_list_filtered, contrib_list_filtered):
+        if contrib not in contribs:
+            contribs[contrib] = []
+        contribs[contrib].append(gid)
+
+    lengths_list = list(zip(contribs.keys(), [ len(contribs[k]) for k in contribs.keys() ]))
+    print(lengths_list)
+
+
+def get_fastest_names(ibs, nid_list=None):
+    r"""
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_fastest_names
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = None
+        >>> # execute function
+        >>> nid_list_, maxspeed_list_ = get_fastest_names(ibs, nid_list)
+        >>> # verify results
+        >>> result = str(list(zip(nid_list_, maxspeed_list_))[0:10])
+        >>> print(result)
+    """
+    if nid_list is None:
+        nid_list = ibs._get_all_known_nids()
+    maxspeed_list = ibs.get_name_max_speed(nid_list)
+    # filter nans
+    notnan_flags = ~np.isnan(maxspeed_list)
+    maxspeed_list__ = maxspeed_list.compress(notnan_flags)
+    nid_list__      = np.array(nid_list).compress(notnan_flags)
+    # sort by speed
+    sortx = maxspeed_list__.argsort()[::-1]
+    nid_list_      = nid_list__.take(sortx)
+    maxspeed_list_ = maxspeed_list__.take(sortx)
+    return nid_list_, maxspeed_list_

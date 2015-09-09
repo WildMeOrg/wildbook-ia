@@ -403,8 +403,12 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
     CommandLine:
         python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
         python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
+
+        # Other scripts that call this one;w
         python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
         python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show --verbadd --verbaset --verbose
+        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db testdb1 --show --qaid 1
 
     Example:
         >>> # SCRIPT
@@ -449,45 +453,95 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
         print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
 
-    if annotmatch_rowid is None:
-        if ut.VERBOSE:
-            print('[inspect_gui] Explicit annotmatch options')
-        options += [
-            ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
-            ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
-            ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
-            ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        ]
-    else:
-        # If the match already exists allow untoggleing
-        key_list = [
-            'SceneryMatch',
-            'Photobomb',
-            'Hard',
-            'NonDistinct',
-        ]
-        # VERY HACKY
-        if ut.VERBOSE:
-            print('[inspect_gui] Hacking the annotmatch options')
-        for key in key_list:
-            getter = getattr(ibs, 'get_annotmatch_is_' + key.lower())
-            setter = getattr(ibs, 'set_annotmatch_is_' + key.lower())
-            flag = getter([annotmatch_rowid])[0]
+    if False:
+        if annotmatch_rowid is None:
             if ut.VERBOSE:
-                print('[inspect_gui] * getter = %r' % (getter,))
-                print('[inspect_gui] * setter = %r' % (setter,))
-                print('[inspect_gui] * flag = %r' % (flag,))
-            if flag:
-                options += [
-                    ('Remove &' + key + ' Flag', lambda:  setter([annotmatch_rowid], [False])),
-                ]
-            else:
-                options += [
-                    ('Flag &' + key + ' Case', lambda:  setter([annotmatch_rowid], [True])),
-                ]
-        if ut.VERBOSE:
-            print('[inspect_gui] options = %s' % (ut.list_str(options),))
+                print('[inspect_gui] Explicit annotmatch options')
+            options += [
+                ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
+                ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
+                ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
+                ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
+            ]
+        else:
+            # If the match already exists allow untoggleing
+            key_list = [
+                'SceneryMatch',
+                'Photobomb',
+                'Hard',
+                'NonDistinct',
+            ]
+            # VERY HACKY
+            if ut.VERBOSE:
+                print('[inspect_gui] Hacking the annotmatch options')
+            for key in key_list:
+                getter = getattr(ibs, 'get_annotmatch_is_' + key.lower())
+                setter = getattr(ibs, 'set_annotmatch_is_' + key.lower())
+                flag = getter([annotmatch_rowid])[0]
+                if ut.VERBOSE:
+                    print('[inspect_gui] * getter = %r' % (getter,))
+                    print('[inspect_gui] * setter = %r' % (setter,))
+                    print('[inspect_gui] * flag = %r' % (flag,))
+                if flag:
+                    options += [
+                        ('Remove &' + key + ' Flag', lambda:  setter([annotmatch_rowid], [False])),
+                    ]
+                else:
+                    options += [
+                        ('Flag &' + key + ' Case', lambda:  setter([annotmatch_rowid], [True])),
+                    ]
+            if ut.VERBOSE:
+                print('[inspect_gui] options = %s' % (ut.list_str(options),))
+    else:
+        if annotmatch_rowid is None:
+            tags = []
+        else:
+            tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
+        standard, other = ibsfuncs.get_cate_categories()
+        case_list = standard + other
 
+        def find_used_chars(name_list):
+            """ Move to guitool """
+            used_chars = []
+            for name in name_list:
+                index = name.find('&')
+                if index == -1 or index + 1 >= len(name):
+                    continue
+                char = name[index + 1]
+                used_chars.append(char)
+            return used_chars
+
+        def make_word_hotlinks(name_list, used_chars):
+            """ Move to guitool """
+            seen_ = set(used_chars)
+            hotlinked_name_list = []
+            for name in name_list:
+                added = False
+                for count, char in enumerate(name):
+                    char = char.upper()
+                    if char not in seen_:
+                        added = True
+                        seen_.add(char)
+                        linked_name = name[:count] + '&' + name[count:]
+                        hotlinked_name_list.append(linked_name)
+                        break
+                if not added:
+                    # Cannot hotlink this name
+                    hotlinked_name_list.append(name)
+            return hotlinked_name_list
+
+        used_chars = find_used_chars(ut.get_list_column(options, 0))
+        case_hotlink_list = make_word_hotlinks(case_list, used_chars)
+        case_options = []
+        for case, case_hotlink in zip(case_list, case_hotlink_list):
+            toggle_val = case in tags
+            fmtstr = 'Flag %s case' if not toggle_val else 'Unflag %s case'
+            case_options += [
+                (fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
+            ]
+        if ut.VERBOSE:
+            print('Partial tag funcs:' + ut.list_str([ut.func_str(func, func.args, func.keywords) for func in ut.get_list_column(case_options, 1)]))
+        options += case_options
     return options
 
 
