@@ -1,4 +1,9 @@
-# LICENCE
+# -*- coding: utf-8 -*-
+"""
+# LICENCE Apache 2 or whatever
+
+FIXME: monotization functions need more hueristics
+"""
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
@@ -11,7 +16,7 @@ TAU = np.pi * 2  # References: tauday.com
 eps = 1E-9
 
 
-def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint=None, zerohack=False, onehack=False):
+def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint=None, zerohack=False, onehack=False, newmode=True):
     """
 
     Args:
@@ -19,8 +24,15 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         zerohack (bool): default False, if True sets the first element to be zero and linearlly interpolates to the first nonzero item
         onehack (bool):  default False, if True one will not be in the resulting array (replaced with number very close to one)
 
+    References:
+        http://mathoverflow.net/questions/17464/making-a-non-monotone-function-monotone
+        http://stackoverflow.com/questions/28563711/make-a-numpy-array-monotonic-without-a-python-loop
+        https://en.wikipedia.org/wiki/Isotonic_regression
+        http://scikit-learn.org/stable/auto_examples/plot_isotonic_regression.html
+
     CommandLine:
         python -m vtool.math --test-ensure_monotone_strictly_increasing --show
+        python -m vtool.math --test-ensure_monotone_strictly_increasing --show --offset=0
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -28,22 +40,27 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> import numpy as np
         >>> arr_ = np.array([0.4, 0.4, 0.4, 0.5, 0.6, 0.6, 0.6, 0.7, 0.9, 0.9, 0.91, 0.92, 1.0, 1.0])
         >>> arr = ensure_monotone_strictly_increasing(arr_)
-        >>> assert strictly_increasing(arr), 'ensure strict monotonic failed'
+        >>> assert strictly_increasing(arr), 'ensure strict monotonic failed1'
 
     Example2:
         >>> # DISABLE_DOCTEST
         >>> from vtool.math import *  # NOQA
         >>> import vtool as vt
-        >>> left_endpoint = 0.0
-        >>> right_endpoint = 1.0
+        >>> left_endpoint = None
+        >>> rng = np.random.RandomState(0)
+        >>> right_endpoint = None
         >>> domain = np.arange(100)
-        >>> arr_ = np.sin(np.pi * (domain / 100) - 2.3) + (np.random.rand(len(domain)) - .5) * .1 + 1.2
+        >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
+        >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1 + 1.2
         >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> arr = ensure_monotone_strictly_increasing(arr_, left_endpoint, right_endpoint)
         >>> result = str(arr)
         >>> print(result)
-        >>> assert strictly_increasing(arr), 'ensure strict monotonic failed'
+        >>> print('arr = %r' % (arr,))
+        >>> print('arr = %r' % (np.diff(arr),))
+        >>> assert non_decreasing(arr), 'ensure nondecreasing failed2'
+        >>> assert strictly_increasing(arr), 'ensure strict monotonic failed2'
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(3, 1, 1), title='before', equal_aspect=False)
@@ -54,7 +71,7 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         >>> ut.show_if_requested()
     """
     #with ut.EmbedOnException():
-    arr = ensure_monotone_increasing(arr_)
+    arr = ensure_monotone_increasing(arr_, newmode=newmode)
     #assert strictly_increasing(arr), 'ensure strict monotonic failed'
     #import utool as ut
     #print(ut.get_stats(arr))
@@ -64,7 +81,11 @@ def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint
         left_endpoint = 0.0
     if onehack:
         right_endpoint = 1.0
+    #print('arr_in = %r' % (arr,))
+    #print('right_endpoint = %r' % (right_endpoint,))
+    #print('left_endpoint = %r' % (left_endpoint,))
     arr = breakup_equal_streak(arr, left_endpoint, right_endpoint)
+    #print('arr_out = %r' % (arr,))
     return arr
 
 
@@ -87,7 +108,8 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
         >>> from vtool.math import *  # NOQA
         >>> import vtool as vt
         >>> domain = np.arange(100)
-        >>> arr_ = np.sin(np.pi * (domain / 75) + 1.3) + (np.random.rand(len(domain)) - .5) * .05 + 1.0
+        >>> rng = np.random.RandomState(0)
+        >>> arr_ = np.sin(np.pi * (domain / 75) + 1.3) + (rng.rand(len(domain)) - .5) * .05 + 1.0
         >>> #arr_ = vt.tests.dummy.testdata_nonmonotonic()
         >>> #domain = np.arange(len(arr_))
         >>> left_endpoint = 2.5
@@ -115,14 +137,63 @@ def ensure_monotone_strictly_decreasing(arr_, left_endpoint=None, right_endpoint
 def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
     """
     Breaks up streaks of equal values by interpolating between the next lowest and next highest value
-    """
 
-    #memtrack = ut.MemoryTracker(disable=False)
-    #memtrack.report('[BREAKUP_EQUAL_STREAK]')
+    Args:
+        arr_in (?):
+        left_endpoint (None): (default = None)
+        right_endpoint (None): (default = None)
+
+    Returns:
+        ndarray: arr -
+
+    CommandLine:
+        python -m vtool.math --exec-breakup_equal_streak
+        python -m vtool.math --test-ensure_monotone_strictly_increasing --show --offset=0
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> arr_in = np.array([0, 0, 1, 1, 2, 2], dtype=np.float32)
+        >>> arr_in = np.array([ 1.20488135,  1.2529297 ,  1.27306686,  1.29859663,
+        >>>    1.31769871, 1.37102388,  1.38114004,  1.45732054,  1.48119571,  1.48119571,
+        >>>     1.5381895 ,  1.54162741,  1.57492901,  1.61129523,  1.61129523,
+        >>>     1.61270343,  1.63377551,  1.7423034 ,  1.76364247,  1.79908459,
+        >>>     1.83564709,  1.83819742,  1.83819742,  1.86786967,  1.86786967,
+        >>>     1.90720142,  1.90720142,  1.92293973,  1.92293973, ]) / 2
+        >>> left_endpoint = 0
+        >>> right_endpoint = 1.0
+        >>> arr = breakup_equal_streak(arr_in, left_endpoint, right_endpoint)
+        >>> assert strictly_increasing(arr)
+        >>> result = ('arr = %s' % (str(arr),))
+        >>> print(result)
+    """
     #assert non_decreasing(arr), 'ensure monotonic failed'
     arr = arr_in.copy()
+
+    # Find maxish and minish before adjusting
+    if right_endpoint is not None:
+        # Dont be so confident
+        # Set the rightmost value to be almost ``right_endpoint``
+        range_ = np.abs(arr_in[0] - arr_in[-1])
+        if arr_in[0] < right_endpoint:
+            # increasing arr
+            almost_right = right_endpoint - (range_ * .001)
+            # The second highest value in arr, or close enough
+            maxish = min(almost_right, arr[arr < right_endpoint].max())
+            newmax = (right_endpoint * .9 + maxish * .1)
+        else:
+            # decreasing arr
+            almost_right = right_endpoint + (range_ * .001)
+            # The second lowest value in arr, or close enough
+            minish = max(almost_right, arr[arr > right_endpoint].min())
+            #newmin = (right_endpoint + minish) / 2.0
+            newmin = (right_endpoint * .9 + minish * .1)
+
     size = len(arr)
-    index_list = np.nonzero(np.diff(arr) == 0)[0]
+    is_same = np.abs(np.diff(arr)) < 1E-8
+    #is_same = np.diff(arr) == 0
+    #index_list = np.nonzero(np.diff(arr) == 0)[0]
+    index_list = np.nonzero(is_same)[0]
     if len(index_list) == 0:
         # If there are no consecutive numbers then arr must be strictly
         # increasing
@@ -130,31 +201,52 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
 
     consecutive_groups = group_consecutive(index_list)
     index_groups = [np.array(group.tolist() + [group.max() + 1]) for group in consecutive_groups]
+    # Nope this is right
+    # Hack because sometimes things arent't grouped correctly
+    # items in index groups are consectuive and breaking things
+    # arr[ut.flatten(index_groups)]
+    #index_groups2 = []
+    #for group in index_groups:
+    #    if len(index_groups2) == 0:
+    #        index_groups2.append(group)
+    #    elif index_groups2[-1][-1] + 1 == group[0]:
+    #        print('group = %r' % (group,))
+    #        # JOIN CASE
+    #    else:
+    #        index_groups2.append(group)
 
     runlen_list = [len(group) for group in index_groups]
     # Handle ending corner case
 
-    isend_list = [(group[-1] + 1) < size for group in index_groups]
+    #isend_list = [(group[-1] + 1) < size for group in index_groups]
+    # Error? Should this be less?
+    #isend_list = [(group[-1] + 1) < size for group in index_groups]
+    isend_list = [(group[-1] + 1) >= size for group in index_groups]
+    isstart_list = [group[0] == 0 for group in index_groups]
 
-    min_vals = [arr[group[0]]      if isend else (arr[group[0] - 1] + arr[group[0]]) / 2.0
-                for group, isend in zip(index_groups, isend_list)]
+    min_vals = [
+        arr[group[0]]
+        if isstart else
+        (.49 * arr[group[0] - 1] + .51 * arr[group[0]])  # value between previous and this one (bumped to right)
+        for group, isstart in zip(index_groups, isstart_list)
+    ]
 
-    #memtrack.report('[MIN]')
+    max_vals = [
+        arr[group[-1]]  # Max value is the value of the previous group?
+        if isend else
+        (.49 * arr[group[-1] + 1] + .51 * arr[group[-1]])  # value between next and this one (bumped to right)
+        for group, isend in zip(index_groups, isend_list)
+    ]
 
-    max_vals = [arr[group[-1] + 1] if isend else arr[group[-1]]
-                for group, isend in zip(index_groups, isend_list)]
-
-    #memtrack.report('[MAX]')
+    #import vtool as vt
+    #vt.apply_grouping(arr, index_groups)
+    #np.vstack((min_vals, max_vals)).T
 
     fill_list = [np.linspace(min_, max_, len_, endpoint=not isend)
                  for min_, max_, len_, isend in zip(min_vals, max_vals, runlen_list, isend_list)]
 
-    #memtrack.report('[FILL]')
-
     for group, fill in zip(index_groups, fill_list):
         arr[group[0]:group[-1] + 1] = fill
-
-    #memtrack.report('[GROUP]')
 
     if left_endpoint is not None and len(index_groups) > 0:
         # Set the leftmost value to be exactly ``left_endpoint``
@@ -167,22 +259,17 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
     if right_endpoint is not None:
         # Dont be so confident
         # Set the rightmost value to be almost ``right_endpoint``
-        range_ = np.abs(arr_in[0] - arr_in[-1])
         if arr_in[0] < right_endpoint:
             # increasing arr
-            almost_right = right_endpoint - (range_ * .001)
-            # The second highest value in arr, or close enough
-            maxish = min(almost_right, arr[arr < right_endpoint].max())
-            newmax = (right_endpoint + maxish) / 2.0
+            if len(isend_list) > 0 and isend_list[-1]:
+                # adjust for adjustments
+                maxish = min(min_vals[-1], maxish)
             arr[arr >= maxish] = np.linspace(maxish, newmax, sum(arr >= maxish))
         else:
+            if len(isstart_list) > 0 and isstart_list[0]:
+                minish = max(max_vals[0], minish)
             # decreasing arr
-            almost_right = right_endpoint + (range_ * .001)
-            # The second lowest value in arr, or close enough
-            minish = max(almost_right, arr[arr > right_endpoint].min())
-            newmin = (right_endpoint + minish) / 2.0
             arr[arr <= minish] = np.linspace(minish, newmin, sum(arr <= minish))
-    #memtrack.report('[FIXED]')
     return arr
 
 
@@ -192,8 +279,31 @@ def group_consecutive(arr):
 
     References:
         http://stackoverflow.com/questions/7352684/how-to-find-the-groups-of-consecutive-elements-from-an-array-in-numpy
+
+    Args:
+        arr (ndarray): must be integral and unique
+
+    Returns:
+        ndarray: arr -
+
+    CommandLine:
+        python -m vtool.math --exec-group_consecutive
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> arr = np.array([1, 2, 3, 5, 6, 7, 8, 9, 10, 15, 99, 100, 101])
+        >>> groups = group_consecutive(arr)
+        >>> result = ('groups = %s' % (str(groups),))
+        >>> print(result)
+        groups = [array([1, 2, 3]), array([ 5,  6,  7,  8,  9, 10]), array([15]), array([ 99, 100, 101])]
     """
-    return np.array_split(arr, np.where(np.diff(arr) != 1)[0] + 1)
+    #is_nonconsec = np.abs(np.diff(arr)) < 1E-2
+    #split_indicies = np.nonzero(is_nonconsec)[0] + 1
+    split_indicies = np.nonzero(np.diff(arr) != 1)[0] + 1
+    groups = np.array_split(arr, split_indicies)
+    return groups
+    #return np.array_split(arr, np.where(np.diff(arr) != 1)[0] + 1)
 
 
 def strictly_increasing(L):
@@ -228,7 +338,7 @@ def non_decreasing(L):
     return all(x <= y for x, y in zip(L, L[1:]))
 
 
-def ensure_monotone_increasing(arr_, fromright=True, fromleft=True):
+def ensure_monotone_increasing(arr_, fromright=True, fromleft=True, newmode=True):
     r"""
     Args:
         arr_ (ndarray):
@@ -242,10 +352,11 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.math import *  # NOQA
-        >>> np.random.seed(0)
+        >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
-        >>> arr_ = np.sin(np.pi * (domain / 100) - 2.3) + (np.random.rand(len(domain)) - .5) * .1
+        >>> offset = ut.get_argval('--offset', type_=float, default=2.3)
+        >>> arr_ = np.sin(np.pi * (domain / 100) - offset) + (rng.rand(len(domain)) - .5) * .1
         >>> arr = ensure_monotone_increasing(arr_, fromleft=False, fromright=True)
         >>> result = str(arr)
         >>> print(result)
@@ -255,19 +366,24 @@ def ensure_monotone_increasing(arr_, fromright=True, fromleft=True):
         >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
         >>> ut.show_if_requested()
     """
-    arr = arr_.copy()
-    size = len(arr)
-    # Ensure increasing from right
-    if fromright:
-        for lx in range(1, size):
-            rx = (size - lx - 1)
-            if arr[rx] > arr[rx + 1]:
-                arr[rx] = arr[rx + 1]
-    if fromleft:
-        # ensure increasing from left
-        for lx in range(0, size - 1):
-            if arr[lx] > arr[lx + 1]:
-                arr[lx + 1] = arr[lx]
+    if newmode:
+        from sklearn.isotonic import IsotonicRegression
+        ir = IsotonicRegression()
+        arr = ir.fit_transform(np.arange(len(arr_)), arr_)
+    else:
+        arr = arr_.copy()
+        size = len(arr)
+        # Ensure increasing from right
+        if fromright:
+            for lx in range(1, size):
+                rx = (size - lx - 1)
+                if arr[rx] > arr[rx + 1]:
+                    arr[rx] = arr[rx + 1]
+        if fromleft:
+            # ensure increasing from left
+            for lx in range(0, size - 1):
+                if arr[lx] > arr[lx + 1]:
+                    arr[lx + 1] = arr[lx]
     return arr
 
 
@@ -285,10 +401,10 @@ def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.math import *  # NOQA
-        >>> np.random.seed(0)
+        >>> rng = np.random.RandomState(0)
         >>> size_ = 100
         >>> domain = np.arange(size_)
-        >>> arr_ = np.sin(np.pi * (domain / 100) ) + (np.random.rand(len(domain)) - .5) * .1
+        >>> arr_ = np.sin(np.pi * (domain / 100) ) + (rng.rand(len(domain)) - .5) * .1
         >>> arr = ensure_monotone_decreasing(arr_, fromright=True, fromleft=True)
         >>> result = str(arr)
         >>> print(result)

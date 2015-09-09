@@ -146,6 +146,15 @@ class ScoreNormalizer(object):
     CommandLine:
         python -m vtool.score_normalization --test-ScoreNormalizer --show
 
+    Kwargs:
+        tpr (float): target true positive rate (default .90)
+        fpr (float): target false positive rate (default None)
+        gridsize=1024,
+        adjust=8,
+        monotonize=False, if True ensures infered probability curves are monotonic
+        clip_factor=None,
+        reverse (bool): True if lower scores are better, False if higher scores are better (default=None)
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
@@ -160,14 +169,6 @@ class ScoreNormalizer(object):
     """
     def __init__(encoder, **kwargs):
         """
-        Kwargs:
-            tpr (float): target true positive rate (default .95)
-            fpr (float): target false positive rate (default None)
-            gridsize=1024,
-            adjust=8,
-            monotonize=False, if True ensures infered probability curves are monotonic
-            clip_factor=None,
-            reverse (bool): True if lower scores are better, False if higher scores are better (default=None)
 
         """
         encoder.learn_kw = ut.update_existing(
@@ -189,7 +190,7 @@ class ScoreNormalizer(object):
             ), kwargs)
         assert not any(key.startswith('target_') for key in kwargs), 'old interface of target_<metric> used just use <metric>'
         if not any(encoder.thresh_kw.values()):
-            encoder.thresh_kw['tpr'] = .95
+            encoder.thresh_kw['tpr'] = .90
         # Support data
         encoder.oldsupport = dict(
             tp_support=None,
@@ -307,11 +308,9 @@ class ScoreNormalizer(object):
             'Can only specify one desired confusion metric')
         # choosing how to optimize the threshold
         metric, value = _selected_items[0]
-        try:
-            index = np.nonzero(confusions.__dict__[metric] > value)[0][0]
-        except IndexError:
-            index = len(confusions.thresholds) - 1
-        prob_thresh = confusions.thresholds[index]
+        prob_thresh = confusions.get_threshold_at_metric(metric, value)
+        #target_value = confusions.get_metric_at_threshold(metric, prob_thresh)
+        #check_thresh = confusions.get_threshold_at_metric(metric, target_value)
         score_thresh = encoder.inverse_normalize(prob_thresh)
         encoder.learned_thresh = prob_thresh
         if verbose:
@@ -518,8 +517,10 @@ class ScoreNormalizer(object):
             tn_support, tp_support,
             encoder.score_domain, encoder.p_tp_given_score,
             encoder.p_tn_given_score, encoder.p_score_given_tp,
-            encoder.p_score_given_tn, encoder.p_score, prob_thresh=prob_thresh,
+            encoder.p_score_given_tn, encoder.p_score,
+            prob_thresh=prob_thresh,
             score_thresh=score_thresh, part_attrs=part_attrs,
+            thresh_kw=encoder.thresh_kw,
             **inspect_kw)
         pt.adjust_subplots(bottom=.06, left=.06, right=.97, wspace=.25,
                            hspace=.25, top=.9)
@@ -770,244 +771,13 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
     return prob
 
 
-# --------
-# Plotting
-# --------
-
-
-def inspect_pdfs(tn_support, tp_support,
-                 score_domain, p_tp_given_score,
-                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
-                 prob_thresh=None, score_thresh=None, with_scores=False,
-                 with_roc=False, with_precision_recall=False, with_hist=False,
-                 fnum=None, figtitle=None, interactive=None, use_stems=None,
-                 part_attrs=None, attr_callback=None):
-    """
-    Shows plots of learned thresholds
-    """
-    import plottool as pt  # NOQA
-    from plottool.interactions import ExpandableInteraction
-    from plottool.abstract_interaction import AbstractInteraction
-    import vtool as vt
-    import plottool as pt  # NOQA
-
-    if fnum is None:
-        fnum = pt.next_fnum()
-
-    with_normscore = with_scores
-    with_prebayes = True
-    with_postbayes = True
-
-    nSubplots = (with_normscore + with_prebayes + with_postbayes +
-                 with_scores + with_roc + with_precision_recall + with_hist)
-    if True:
-        nRows, nCols = pt.get_square_row_cols(nSubplots)
-    else:
-        nRows = nSubplots
-        nCols = 1
-    _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
-                                     nSubplots=nSubplots)
-
-    print('Always interactive even if: interactive = %r' % (interactive,))
-
-    # Make a plottool interaction
-    inter = ExpandableInteraction(fnum, _pnumiter)
-
-    scores = np.hstack([tn_support, tp_support])
-    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
-
-    #c
-    # probs = encoder.normalize_scores(scores)
-    probs = normalize_scores(score_domain, p_tp_given_score, scores)
-
-    confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-    #print('fpr@.95 recall = %r' % (confusions.get_fpr_at_95_recall(),))
-    print('fpp@95 recall = %05.2f%%' % (
-        confusions.get_fpr_at_95_recall() * 100,))
-
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-
-    support_kw = dict(
-        scores_lbls=('trueneg', 'truepos'),
-        score_colors=(false_color, true_color),
-    )
-    support_sort_kw = dict(
-        logscale=False,
-        score_markers=['^', 'v'],
-        markersizes=[5, 5],
-        use_stems=use_stems,
-        **support_kw
-    )
-
-    class SortedScoreSupportInteraction(AbstractInteraction):
-        def __init__(self, **kwargs):
-            super(SortedScoreSupportInteraction, self).__init__(**kwargs)
-            self.tn_support = tn_support
-            self.tp_support = tp_support
-            self.part_attrs = part_attrs
-            self.attr_callback = attr_callback
-
-        @staticmethod
-        def plot(fnum, pnum):
-            pt.plots.plot_sorted_scores(
-                (tn_support, tp_support),
-                fnum=fnum, pnum=pnum,
-                score_label='score',
-                score_thresh=score_thresh,
-                **support_sort_kw
-            )
-
-        def onclick_inside(self, event, ex):
-            import vtool as vt
-            #ax = event.inaxes
-            #for l in ax.get_lines():
-            #    print(l.get_label())
-            tp_index, tp_dist = vt.closest_point(event.ydata, self.tp_support[:, None])
-            tn_index, tn_dist = vt.closest_point(event.ydata, self.tn_support[:, None])
-            print('closest tp_index = %r, %r' % (tp_index, tp_dist))
-            print('closest tn_index = %r, %r' % (tn_index, tn_dist))
-            SEL_TP = False
-            if SEL_TP:
-                tp_attrs = self.part_attrs[True]
-                if len(tp_attrs) == 0:
-                    print('No positive attrs')
-            else:
-                tn_attrs = self.part_attrs[False]
-                if len(tn_attrs) == 0:
-                    print('No negative attrs')
-                subattrs = ut.get_dict_column(tn_attrs, tn_index)
-                print('subattrs = %r' % (subattrs,))
-                if self.attr_callback is not None:
-                    print('Executing callback')
-                    self.attr_callback(**subattrs)
-            #dists = vt.L1(event.ydata, self.tp_support[:, None])
-            #index = dists.argsort()[0]
-            #event.xdata
-            # Find the nearest label
-            pass
-
-    def _score_support_hist(fnum, pnum):
-        pt.plot_score_histograms(
-            (tn_support, tp_support),
-            score_thresh=score_thresh,
-            score_label='score',
-            fnum=fnum,
-            pnum=pnum,
-            **support_kw)
-
-    def _prob_support_hist(fnum, pnum):
-        tp_probs = probs[labels]
-        tn_probs = probs[np.logical_not(labels)]
-        pt.plot_score_histograms(
-            (tn_probs, tp_probs),
-            score_label='prob',
-            fnum=fnum,
-            pnum=pnum,
-            **support_kw)
-
-    def _prob_support_sorted(fnum, pnum):
-        tp_probs = probs[labels]
-        tn_probs = probs[np.logical_not(labels)]
-        pt.plots.plot_sorted_scores(
-            (tn_probs, tp_probs),
-            fnum=fnum, pnum=pnum,
-            score_label='prob',
-            score_thresh=prob_thresh,
-            **support_sort_kw
-        )
-        #ax = pt.gca()
-        #max_score = max(tn_support.max(), tp_support.max())
-        #ax.set_ylim(-max_score, max_score)
-
-    def _prebayes(fnum, pnum):
-        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp,
-                          p_score, score_thresh=score_thresh, cfgstr='',
-                          fnum=fnum, pnum=pnum)
-
-    def _postbayes(fnum, pnum):
-        plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
-                           #prob_thresh=prob_thresh,
-                           score_thresh=score_thresh,
-                           cfgstr='', fnum=fnum, pnum=pnum)
-    def _roc(fnum, pnum):
-        confusions.draw_roc_curve(fnum=fnum, pnum=pnum)
-
-    def _precision_recall(fnum, pnum):
-        confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
-
-    if with_scores:
-        inter.append_plot(SortedScoreSupportInteraction)
-    if with_hist:
-        inter.append_plot(_score_support_hist)
-    if with_prebayes:
-        inter.append_plot(_prebayes)
-    if with_postbayes:
-        inter.append_plot(_postbayes)
-    if with_normscore:
-        inter.append_plot(_prob_support_sorted)
-        #inter.append_plot(_prob_support_hist)
-    if with_roc:
-        inter.append_plot(_roc)
-    if with_precision_recall:
-        inter.append_plot(_precision_recall)
-
-    inter.show_page()
-
-    if figtitle is not None:
-        pt.set_figtitle(figtitle)
-
-    return inter
-
-
-def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
-                      cfgstr='', fnum=None, pnum=(1, 1, 1), **kwargs):
-    import plottool as pt
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    #unknown_color = pt.UNKNOWN_PURP
-    unknown_color = pt.PURPLE2
-    #unknown_color = pt.GRAY
-
-    pt.plots.plot_probabilities(
-        (p_score_given_tn,  p_score_given_tp, p_score),
-        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
-        prob_colors=(false_color, true_color, unknown_color),
-        #figtitle='pre_bayes pdf score',
-        figtitle='pdf of score given truth',
-        xdata=score_domain,
-        fnum=fnum,
-        pnum=pnum, **kwargs)
-
-
-def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
-                       score_thresh=None, prob_thresh=None, cfgstr='',
-                       fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-
-    pt.plots.plot_probabilities(
-        (p_tn_given_score, p_tp_given_score),
-        ('p(tn | score)', 'p(tp | score)'),
-        prob_colors=(false_color, true_color,),
-        #figtitle='post_bayes pdf score ' + cfgstr,
-        figtitle='pdf of truth given score' + cfgstr,
-        xdata=score_domain, fnum=fnum, pnum=pnum,
-        score_thresh=score_thresh,
-        prob_thresh=prob_thresh)
-
-
 # DEBUGGING FUNCTIONS
 
 
 def test_score_normalization(tp_support, tn_support, with_scores=True,
                              verbose=True, with_roc=True,
-                             with_precision_recall=False, figtitle=None, normkw_varydict=None):
+                             with_precision_recall=False, figtitle=None,
+                             normkw_varydict=None):
     """
     Gives an overview of how well threshold can be learned from raw scores.
 
@@ -1074,6 +844,262 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
 
     locals_ = locals()
     return locals_
+
+
+# --------
+# Plotting
+# --------
+
+
+def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                      cfgstr='', fnum=None, pnum=(1, 1, 1), **kwargs):
+    import plottool as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    #unknown_color = pt.UNKNOWN_PURP
+    unknown_color = pt.PURPLE2
+    #unknown_color = pt.GRAY
+
+    pt.plots.plot_probabilities(
+        (p_score_given_tn,  p_score_given_tp, p_score),
+        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
+        prob_colors=(false_color, true_color, unknown_color),
+        #figtitle='pre_bayes pdf score',
+        figtitle='p(score | truth)',
+        xdata=score_domain,
+        fnum=fnum,
+        pnum=pnum, **kwargs)
+
+
+def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                       score_thresh=None, prob_thresh=None, cfgstr='',
+                       fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+
+    pt.plots.plot_probabilities(
+        (p_tn_given_score, p_tp_given_score),
+        ('p(tn | score)', 'p(tp | score)'),
+        prob_colors=(false_color, true_color,),
+        #figtitle='post_bayes pdf score ' + cfgstr,
+        figtitle='p(truth | score)' + cfgstr,
+        xdata=score_domain, fnum=fnum, pnum=pnum,
+        score_thresh=score_thresh,
+        prob_thresh=prob_thresh)
+
+
+def inspect_pdfs(tn_support, tp_support,
+                 score_domain, p_tp_given_score,
+                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
+                 prob_thresh=None, score_thresh=None, with_scores=False,
+                 with_roc=False, with_precision_recall=False, with_hist=False,
+                 fnum=None, figtitle=None, interactive=None, use_stems=None,
+                 part_attrs=None, thresh_kw=None, attr_callback=None):
+    """
+    Shows plots of learned thresholds
+
+
+    CommandLine:
+        python -m vtool.score_normalization --test-ScoreNormalizer --show
+        python -m vtool.score_normalization --exec-ScoreNormalizer.visualize --show
+
+    """
+    import plottool as pt  # NOQA
+    from plottool.interactions import ExpandableInteraction
+    from plottool.abstract_interaction import AbstractInteraction
+    import vtool as vt
+    import plottool as pt  # NOQA
+
+    if fnum is None:
+        fnum = pt.next_fnum()
+
+    with_normscore = with_scores
+    with_prebayes = True
+    with_postbayes = True
+
+    nSubplots = (with_normscore + with_prebayes + with_postbayes +
+                 with_scores + with_roc + with_precision_recall + with_hist)
+    if True:
+        nRows, nCols = pt.get_square_row_cols(nSubplots)
+    else:
+        nRows = nSubplots
+        nCols = 1
+    _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
+                                     nSubplots=nSubplots)
+
+    print('Always interactive even if: interactive = %r' % (interactive,))
+
+    # Make a plottool interaction
+    inter = ExpandableInteraction(fnum, _pnumiter)
+
+    scores = np.hstack([tn_support, tp_support])
+    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+
+    #c
+    # probs = encoder.normalize_scores(scores)
+    probs = normalize_scores(score_domain, p_tp_given_score, scores)
+
+    confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+
+    support_kw = dict(
+        scores_lbls=('trueneg', 'truepos'),
+        score_colors=(false_color, true_color),
+    )
+    support_sort_kw = dict(
+        logscale=False,
+        score_markers=['^', 'v'],
+        markersizes=[5, 5],
+        use_stems=use_stems,
+        **support_kw
+    )
+
+    class SortedScoreSupportInteraction(AbstractInteraction):
+        def __init__(self, **kwargs):
+            super(SortedScoreSupportInteraction, self).__init__(**kwargs)
+            self.tn_support = tn_support
+            self.tp_support = tp_support
+            self.part_attrs = part_attrs
+            self.attr_callback = attr_callback
+            self.sel_mode = 'tn'
+
+        def toggle_mode(self):
+            if self.sel_mode == 'tn':
+                self.sel_mode = 'tp'
+            else:
+                self.sel_mode = 'tn'
+            print('TOGGLE self.sel_mode = %r' % (self.sel_mode,))
+
+        @staticmethod
+        def static_plot(fnum, pnum):
+            pt.plots.plot_sorted_scores(
+                (tn_support, tp_support),
+                fnum=fnum, pnum=pnum,
+                score_label='score',
+                thresh=score_thresh,
+                **support_sort_kw
+            )
+
+        def plot(self, fnum, pnum):
+            self.static_plot(fnum, pnum)
+
+        def on_key_press(self, event):
+            #print('event = %r' % (event,))
+            #print('event.key = %r' % (event.key,))
+            if event.key == 't':
+                self.toggle_mode()
+
+        def on_click_inside(self, event, ex):
+            import vtool as vt
+            #ax = event.inaxes
+            #for l in ax.get_lines():
+            #    print(l.get_label())
+            tp_index, tp_dist = vt.closest_point(event.ydata, self.tp_support[:, None])
+            tn_index, tn_dist = vt.closest_point(event.ydata, self.tn_support[:, None])
+            print('closest tp_index = %r, %r' % (tp_index, tp_dist))
+            print('closest tn_index = %r, %r' % (tn_index, tn_dist))
+            SEL_TP = self.sel_mode == 'tp'
+            print('self.sel_mode = %r' % (self.sel_mode,))
+            if SEL_TP:
+                tp_attrs = self.part_attrs[True]
+                if len(tp_attrs) == 0:
+                    print('No positive attrs')
+                subattrs = ut.get_dict_column(tp_attrs, tp_index)
+            else:
+                tn_attrs = self.part_attrs[False]
+                if len(tn_attrs) == 0:
+                    print('No negative attrs')
+                subattrs = ut.get_dict_column(tn_attrs, tn_index)
+            print('subattrs = %r' % (subattrs,))
+            if self.attr_callback is not None:
+                print('Executing callback')
+                self.attr_callback(**subattrs)
+            #dists = vt.L1(event.ydata, self.tp_support[:, None])
+            #index = dists.argsort()[0]
+            #event.xdata
+            # Find the nearest label
+            pass
+
+    target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+    print('target_tpr = %r' % (target_tpr,))
+    ROCInteraction = vt.interact_roc_factory(confusions, target_tpr)
+
+    def _score_support_hist(fnum, pnum):
+        pt.plot_score_histograms(
+            (tn_support, tp_support),
+            score_thresh=score_thresh,
+            score_label='score',
+            fnum=fnum,
+            pnum=pnum,
+            **support_kw)
+
+    def _prob_support_hist(fnum, pnum):
+        tp_probs = probs[labels]
+        tn_probs = probs[np.logical_not(labels)]
+        pt.plot_score_histograms(
+            (tn_probs, tp_probs),
+            score_label='prob',
+            fnum=fnum,
+            pnum=pnum,
+            **support_kw)
+
+    def _prob_support_sorted(fnum, pnum):
+        tp_probs = probs[labels]
+        tn_probs = probs[np.logical_not(labels)]
+        pt.plots.plot_sorted_scores(
+            (tn_probs, tp_probs),
+            fnum=fnum, pnum=pnum,
+            score_label='prob',
+            thresh=prob_thresh,
+            **support_sort_kw
+        )
+        #ax = pt.gca()
+        #max_score = max(tn_support.max(), tp_support.max())
+        #ax.set_ylim(-max_score, max_score)
+
+    def _prebayes(fnum, pnum):
+        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp,
+                          p_score, score_thresh=score_thresh, cfgstr='',
+                          fnum=fnum, pnum=pnum)
+
+    def _postbayes(fnum, pnum):
+        plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                           #prob_thresh=prob_thresh,
+                           score_thresh=score_thresh,
+                           cfgstr='', fnum=fnum, pnum=pnum)
+
+    def _precision_recall(fnum, pnum):
+        confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
+
+    if with_scores:
+        inter.append_plot(SortedScoreSupportInteraction)
+    if with_hist:
+        inter.append_plot(_score_support_hist)
+    if with_prebayes:
+        inter.append_plot(_prebayes)
+    if with_postbayes:
+        inter.append_plot(_postbayes)
+    if with_normscore:
+        inter.append_plot(_prob_support_sorted)
+        #inter.append_plot(_prob_support_hist)
+    if with_roc:
+        inter.append_plot(ROCInteraction)
+    if with_precision_recall:
+        inter.append_plot(_precision_recall)
+
+    inter.show_page()
+
+    if figtitle is not None:
+        pt.set_figtitle(figtitle)
+
+    return inter
 
 
 if __name__ == '__main__':
