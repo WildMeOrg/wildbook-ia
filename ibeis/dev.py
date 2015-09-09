@@ -219,33 +219,23 @@ def annotationmatch_scores(ibs, test_result):
     import vtool as vt
     print('[dev] annotationmatch_scores')
     from ibeis.experiments import cfghelpers
+    from ibeis.init import main_helpers
 
-    filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
+    filt_cfg = main_helpers.testdata_filtcfg()
 
     assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
     cfgx = 0
     qreq_ = test_result.cfgx2_qreq_[cfgx]
-    truth2_prop, prop2_mat = test_result.get_truth2_prop()
     common_qaids = test_result.get_common_qaids()
     gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
     gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
-    is_success = prop2_mat['is_success'].T[cfgx]
 
     # FIXME: may need to specify which cfg is used in the future
     isvalid = test_result.case_sample2(filt_cfg).T[cfgx]
 
-    #ONLY_GOOD_CASES = filt_cfg.get('onlygood', False)
-    #SMALL_FP_TIME = filt_cfg.get('smallfptime', False)
-    #isvalid = np.ones(is_success.shape, dtype=np.bool)
-    #if ONLY_GOOD_CASES:
-    #    isvalid = np.logical_and(isvalid, is_success)
-    #if SMALL_FP_TIME:
-    #    has_largedelta = (truth2_prop['gf']['timedelta'].T[cfgx] >= 60 * 60 * 24)
-    #    isvalid = np.logical_and(isvalid, has_largedelta)
-
-    tp_nscores = gt_rawscore[is_valid]
-    tn_nscores = gf_rawscore[is_valid]
-    tn_qaids = tp_qaids = common_qaids[is_valid]
+    tp_nscores = gt_rawscore[isvalid]
+    tn_nscores = gf_rawscore[isvalid]
+    tn_qaids = tp_qaids = common_qaids[isvalid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     print(qreq_.get_cfgstr())

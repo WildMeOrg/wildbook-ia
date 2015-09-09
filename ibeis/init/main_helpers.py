@@ -44,6 +44,12 @@ def testdata_pipecfg():
     return pcfgdict
 
 
+def testdata_filtcfg():
+    from ibeis.experiments import cfghelpers
+    filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'))[0]
+    return filt_cfg
+
+
 def testdata_qres(defaultdb='testdb1'):
     r"""
     Args:

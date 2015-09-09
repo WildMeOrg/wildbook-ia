@@ -73,8 +73,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     # Sel rows index into qx_list
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
-    sample_cfg = {}
-    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, sample_cfg)
+    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg=None)
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
 
@@ -359,14 +358,14 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
     #    ut.print_code(latex_block, 'latex')
 
 
-def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
+def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     """
     The selected rows are the query annotation you are interested in viewing
     The selected cols are the parameter configuration you are interested in viewing
 
     Args:
         test_result (TestResult):  test result object
-        sample_cfg (dict): config dict
+        filt_cfg (dict): config dict
 
     Kwargs:
         all, hard, hard2, easy, interesting, hist
@@ -376,7 +375,7 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
 
     CommandLine:
         python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --sample :failures=True,gtrank_gt=5,gtrank_lt=20
+        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --filt :fail=True,gtrank_gt=5,gtrank_lt=20
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -384,30 +383,20 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = {'fail': True, 'success': True, 'min_gtrank': 5, 'max_gtrank': 40}
-        >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, sample_cfg)
+        >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg)
         >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
         >>> print(result)
     """
-    from ibeis.experiments import cfghelpers
+    #from ibeis.experiments import cfghelpers
     #sample_cfgstr_list = ut.get_argval('--filt', type_=list, default=None)
     #from ibeis.experiments import cfghelpers
 
     #if sample_cfgstr_list is None:
-    if not ut.get_argflag('--filt'):
-        # Hack check if filt is specified
-        #sample_cfg = None
-        filt_cfg = None
-    else:
-        default_filt_cfg = {
-            'fail': True,
-            'success': True,
-            'min_gtrank': None,
-            'max_gtrank': None
-        }
-        valid_keys = ['min_gtrank', 'max_gtrank', 'min_fp_timedelta', 'fail', 'success']
-        filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
-        #sample_cfg_list = cfghelpers.parse_cfgstr_list2(sample_cfgstr_list, valid_keys=valid_keys)
-        #sample_cfg = ut.flatten(sample_cfg_list)[0]
+    if filt_cfg is None:
+        if ut.get_argflag('--filt'):
+            # Hack to check if specified on command line
+            from ibeis.init import main_helpers
+            filt_cfg = main_helpers.testdata_filtcfg()
 
     cfg_list = test_result.cfg_list
     #qaids = test_result.qaids
@@ -437,11 +426,12 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
         print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
         print('other options:')
         print('   --vf - view figure dir')
-        print('   --va - view all')
-        print('   --vh - view hard')
-        print('   --ve - view easy')
+        print('   --va - view all (--filt :)')
+        print('   --vh - view hard (--filt :fail=True)')
+        print('   --ve - view easy (--filt :success=True)')
         print('   --vn - view iNteresting')
         print('   --hs - hist sample')
+        print(' --filt - result filtering config (new way to do this func)')
         print('   --gv, --guiview - gui result inspection')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))

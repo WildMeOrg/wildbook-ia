@@ -596,7 +596,7 @@ class TestResult(object):
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
-            >>> filt_cfg = {'fail': True, 'success': None, 'min_gtrank': 2, 'max_gtrank': 10, 'min_gf_timedelta': 60 * 60 * 24}
+            >>> filt_cfg = {'fail': True, 'success': None, 'min_gtrank': 2, 'max_gtrank': 10, 'min_gf_timedelta': '24h'}
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
@@ -616,6 +616,7 @@ class TestResult(object):
             ('max_gtrank', partial(operator.le, truth2_prop['gt']['rank'])),
             ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
         ]
+        filt_cfg = filt_cfg.copy()
 
         if 'min_gf_timedelta' in filt_cfg:
             if isinstance(filt_cfg['min_gf_timedelta'], str):
@@ -648,18 +649,18 @@ class TestResult(object):
         #ut.embed()
         return is_valid
 
-        if False:
-            # Valid props
-            gt_ranks = truth2_prop['gt']['rank'][is_valid]
-            gf_ranks = truth2_prop['gf']['rank'][is_valid]  # NOQA
-            gt_aids = truth2_prop['gt']['aid'][is_valid]
-            qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
+        #if False:
+        #    # Valid props
+        #    gt_ranks = truth2_prop['gt']['rank'][is_valid]
+        #    gf_ranks = truth2_prop['gf']['rank'][is_valid]  # NOQA
+        #    gt_aids = truth2_prop['gt']['aid'][is_valid]
+        #    qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
 
-            np.vstack((qaids, gt_aids, gt_ranks)).T
+        #    np.vstack((qaids, gt_aids, gt_ranks)).T
 
-        qx_list, cfgx_list = np.nonzero(is_valid)
-        case_pos_list = np.vstack((qx_list, cfgx_list)).T
-        return case_pos_list
+        #qx_list, cfgx_list = np.nonzero(is_valid)
+        #case_pos_list = np.vstack((qx_list, cfgx_list)).T
+        #return case_pos_list
 
     def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True, min_success_diff=0):
         category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
