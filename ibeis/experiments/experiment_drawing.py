@@ -1061,7 +1061,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         bin_labels += ['nan']
 
     # Convert to percent
-    freq_list = [100 * freq / len(is_success) for freq in freq_list]
+    #freq_list = [100 * freq / len(is_success) for freq in freq_list]
 
     xints = np.arange(len(bin_labels))
 
@@ -1085,9 +1085,11 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
             masked_lbls   = ut.list_compress(bin_labels, mask)
             masked_colors = ut.list_compress(colors, mask)
             explode = [0] * len(masked_freq)
-            pt.plt.pie(masked_freq, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
+            size = masked_freq.sum()
+            masked_percent = (masked_freq * 100 / size)
+            pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
             ax = pt.gca()
-            ax.set_xlabel(X_label_list[count] + '\nsize=%d' % (masked_freq.sum(),))
+            ax.set_xlabel(X_label_list[count] + '\nsize=%d' % (size,))
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)

@@ -378,30 +378,60 @@ def get_cate_categories():
     return standard, other
 
 
-def get_annotmatches_of_case(ibs, tags):
+def get_annotmatches_of_case(ibs, tags, mode='any'):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
         flags (?):
 
     Returns:
-        ?: unixtime_statstr
+        list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> tags = ['Photobomb']
+        >>> #tags = ['Photobomb', 'SceneryMatch']
+        >>> tags = ['SceneryMatch', 'Photobomb']
         >>> prop = tags[0]
+        >>> mode = 'any'
+        >>> filtered_rowids = get_annotmatches_of_case(ibs, tags, mode)
+        >>> valid_tags_list = ibs.get_annotmatch_case_tags(filtered_rowids)
+        >>> print('valid_tags_list = %s' % (ut.list_str(valid_tags_list, nl=1),))
+        >>> aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_rowids))
+        >>> aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_rowids))
+        >>> aid_pairs = np.vstack([aid1_list, aid2_list]).T
+        >>> # Dont double count
+        >>> xs = vt.find_best_undirected_edge_indexes(aid_pairs)
+        >>> aid1_list = aid1_list.take(xs)
+        >>> aid2_list = aid2_list.take(xs)
+        >>> # import vtool as vt
+        >>> # nids, groupxs = vt.group_indices(np.array(ibs.get_annot_name_rowids(aid1_list)))
+        >>> # aids1 = vt.apply_grouping(aid1_list, groupxs)
+        >>> # aids2 = vt.apply_grouping(aid2_list, groupxs)
+        >>> timedelta_list = get_annot_pair_timdelta(ibs, aid1_list, aid2_list)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (tags,))
+        >>> ut.show_if_requested()
     """
     pass
-    #annotmatch_rowids = ibs._get_all_annotmatch_rowids()
-    #filtered_rowids = ut.list_take(annotmatch_rowids, ut.list_where(flag_list))
+    tags = set(ut.ensure_iterable(tags))
+    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+    tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowids)
+    tags_list = list(map(set, tags_list))
+    if mode == 'any':
+        flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
+    elif mode == 'all':
+        flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
+    filtered_rowids = ut.list_compress(annotmatch_rowids, flag_list)
+    return filtered_rowids
 
     #case_list = get_cate_categories()
 
