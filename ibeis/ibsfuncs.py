@@ -364,7 +364,20 @@ ANNOTMATCH_PROPS_OTHER = [
     'Viewpoint',
     'Pose',
     'Lighting',
-    'Shadowing',
+    'Shadowing',  # shadow causes failure
+    'Quality',  # quality causes failure
+    'EdgeMatch',  # descriptors on the edge of the naimal produce strong matches
+    'Interesting',   # flag a case as interesting
+    'GoodCoverage',  # matches were spread out correctly (scoring may be off though)
+    'BadCoverage',  # matches were not in good places (missing matches)
+    'ScoringIssue',  # matches should be scored differently
+    'JoinCase',  # case should actually be marked as correct
+    'SplitCase',  # case should actually be marked as correct
+    'TooLargeMatches',  # really big nondistinct matches
+    'TooSmallMatches',  # really big nondistinct matches
+    'orientation',  # orientation caused failure
+    'shouldhavemore',  # orientation caused failure
+    'success',  # A good success case
 ]
 
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])

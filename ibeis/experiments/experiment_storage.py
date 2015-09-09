@@ -580,36 +580,73 @@ class TestResult(object):
         else:
             return test_result.qaids
 
-    def case_sample2(test_result, sample_cfg):
+    def case_sample2(test_result, filt_cfg):
+        r"""
+        Args:
+            filt_cfg (?):
+
+        Returns:
+            list: case_pos_list
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-case_sample2
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> filt_cfg = {'fail': True, 'success': None, 'min_gtrank': 2, 'max_gtrank': 10, 'min_gf_timedelta': 60 * 60 * 24}
+            >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
+            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
+            >>> print(result)
+        """
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        # Initialize isvalid flags to all true
         is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
 
         import operator
         from functools import partial
 
         rule_list = [
-            ('failures',  prop2_mat['is_failure']),
-            ('gtrank_gt', partial(operator.gt, truth2_prop['gt']['rank'])),
-            ('gtrank_lt', partial(operator.lt, truth2_prop['gt']['rank'])),
+            ('fail',     prop2_mat['is_failure']),
+            ('success',  prop2_mat['is_success']),
+            ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
+            ('max_gtrank', partial(operator.le, truth2_prop['gt']['rank'])),
+            ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
         ]
+
+        if 'min_gf_timedelta' in filt_cfg:
+            if isinstance(filt_cfg['min_gf_timedelta'], str):
+                if filt_cfg['min_gf_timedelta'].endswith('h'):
+                    # hack to convert to seconds
+                    filt_cfg['min_gf_timedelta'] = int(filt_cfg['min_gf_timedelta'][0:-1]) * 60 * 60
 
         verbose = True  # ut.VERBOSE
         print('Sampling from is_valid.size=%r' % (is_valid.size))
 
         for key, rule in rule_list:
-            val = sample_cfg.get(key, None)
-            if val is not None and val is not False:
+            val = filt_cfg.get(key, None)
+            if val is not None:
                 if isinstance(rule, np.ndarray):
-                    flags = rule
+                    # When a rule is an ndarray it must have boolean values
+                    flags = rule == val
                 else:
                     flags = rule(val)
+                if verbose:
+                    prev_num_valid = is_valid.sum()
                 is_valid = np.logical_and(is_valid, flags)
                 if verbose:
                     print('SampleRule: %s = %r' % (key, val))
-                    print('  * flags.sum() = %r' % (flags.sum(),))
-                    print('  * is_valid.sum() = %r' % (is_valid.sum(),))
-
-        ut.embed()
+                    num_passed = flags.sum()
+                    num_valid = is_valid.sum()
+                    print('  * num_passed = %r' % (num_passed,))
+                    print('  * prev_num_valid = %r' % (prev_num_valid,))
+                    print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
+                    print('  * num_valid = %r' % (num_valid,))
+        #ut.embed()
+        return is_valid
 
         if False:
             # Valid props

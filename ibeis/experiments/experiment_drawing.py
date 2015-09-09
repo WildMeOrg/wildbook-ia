@@ -150,8 +150,12 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     fpaths_list = []
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
         if SHOW:
-            case_labels = flat_case_labels[count]
-            print('case_labels = %r' % (case_labels,))
+            try:
+                case_labels = flat_case_labels[count]
+                print('case_labels = %r' % (case_labels,))
+            except IndexError:
+                print('flat_case_labels are known to be messed up')
+                pass
         qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
         #qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
         # TODO: try to get away with not reloading query results or loading
@@ -379,19 +383,31 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
-        >>> sample_cfg = {'failures': True, 'gtrank_gt': 5, 'gtrank_lt': 40}
+        >>> filt_cfg = {'fail': True, 'success': True, 'min_gtrank': 5, 'max_gtrank': 40}
         >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, sample_cfg)
         >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
         >>> print(result)
     """
     from ibeis.experiments import cfghelpers
-    sample_cfgstr_list = ut.get_argval('--sample', type_=list, default=None)
-    if sample_cfgstr_list is None:
-        sample_cfg = None
+    #sample_cfgstr_list = ut.get_argval('--filt', type_=list, default=None)
+    #from ibeis.experiments import cfghelpers
+
+    #if sample_cfgstr_list is None:
+    if not ut.get_argflag('--filt'):
+        # Hack check if filt is specified
+        #sample_cfg = None
+        filt_cfg = None
     else:
-        valid_keys = ['failures', 'gtrank_gt', 'gtrank_lt']
-        sample_cfg_list = cfghelpers.parse_cfgstr_list2(sample_cfgstr_list, valid_keys=valid_keys)
-        sample_cfg = ut.flatten(sample_cfg_list)[0]
+        default_filt_cfg = {
+            'fail': True,
+            'success': True,
+            'min_gtrank': None,
+            'max_gtrank': None
+        }
+        valid_keys = ['min_gtrank', 'max_gtrank', 'min_fp_timedelta', 'fail', 'success']
+        filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
+        #sample_cfg_list = cfghelpers.parse_cfgstr_list2(sample_cfgstr_list, valid_keys=valid_keys)
+        #sample_cfg = ut.flatten(sample_cfg_list)[0]
 
     cfg_list = test_result.cfg_list
     #qaids = test_result.qaids
@@ -474,6 +490,7 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
         failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
         sel_rows.extend(np.array(failure_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
+
     if view_easy:
         new_hard_qx_list = test_result.get_new_hard_qx_list()
         new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
@@ -493,9 +510,11 @@ def get_individual_result_sample(test_result, sample_cfg=None, **kwargs):
         if len(sel_cols) == 0:
             sel_cols.extend(list(range(len(cfg_list))))
 
-    if sample_cfg is not None:
+    if filt_cfg is not None:
         # NEW WAY OF SAMPLING
-        case_pos_list = test_result.case_sample2(sample_cfg)
+        is_valid = test_result.case_sample2(filt_cfg)
+        qx_list, cfgx_list = np.nonzero(is_valid)
+        case_pos_list = np.vstack((qx_list, cfgx_list)).T
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, None)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)

@@ -205,6 +205,8 @@ def annotationmatch_scores(ibs, test_result):
         python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
 
         python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
 
 
     Example:
@@ -229,18 +231,21 @@ def annotationmatch_scores(ibs, test_result):
     gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
     is_success = prop2_mat['is_success'].T[cfgx]
 
-    ONLY_GOOD_CASES = filt_cfg.get('onlygood', False)
-    SMALL_FP_TIME = filt_cfg.get('smallfptime', False)
-    isvalid = np.ones(is_success.shape, dtype=np.bool)
-    if ONLY_GOOD_CASES:
-        isvalid = np.logical_and(isvalid, is_success)
-    if SMALL_FP_TIME:
-        has_largedelta = (truth2_prop['gf']['timedelta'].T[cfgx] >= 60 * 60 * 24)
-        isvalid = np.logical_and(isvalid, has_largedelta)
+    # FIXME: may need to specify which cfg is used in the future
+    isvalid = test_result.case_sample2(filt_cfg).T[cfgx]
 
-    tp_nscores = gt_rawscore[isvalid]
-    tn_nscores = gf_rawscore[isvalid]
-    tn_qaids = tp_qaids = common_qaids[isvalid]
+    #ONLY_GOOD_CASES = filt_cfg.get('onlygood', False)
+    #SMALL_FP_TIME = filt_cfg.get('smallfptime', False)
+    #isvalid = np.ones(is_success.shape, dtype=np.bool)
+    #if ONLY_GOOD_CASES:
+    #    isvalid = np.logical_and(isvalid, is_success)
+    #if SMALL_FP_TIME:
+    #    has_largedelta = (truth2_prop['gf']['timedelta'].T[cfgx] >= 60 * 60 * 24)
+    #    isvalid = np.logical_and(isvalid, has_largedelta)
+
+    tp_nscores = gt_rawscore[is_valid]
+    tn_nscores = gf_rawscore[is_valid]
+    tn_qaids = tp_qaids = common_qaids[is_valid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     print(qreq_.get_cfgstr())
@@ -264,10 +269,11 @@ def annotationmatch_scores(ibs, test_result):
 
     figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
 
-    if ONLY_GOOD_CASES:
-        figtitle +=   ' onlygood'
-    if SMALL_FP_TIME:
-        figtitle +=   ' small_fp_timedelta'
+    figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
+    #if ONLY_GOOD_CASES:
+    #    figtitle +=   ' onlygood'
+    #if SMALL_FP_TIME:
+    #    figtitle +=   ' small_fp_timedelta'
     encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
 
     if ut.get_argflag('--contextadjust'):
