@@ -416,9 +416,13 @@ class IBEISController(object):
         # Before load, ensure database has been backed up for the day
         if not ut.get_argflag('--nobackup'):
             try:
-                _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+                _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
+                                                          ibs.sqldb_fname,
+                                                          ibs.backupdir)
             except IOError as ex:
-                ut.printex(ex, 'Failed making daily backup run with --nobackup to disable')
+                ut.printex(ex, (
+                    'Failed making daily backup. '
+                    'Run with --nobackup to disable'))
                 raise
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
@@ -458,7 +462,8 @@ class IBEISController(object):
         # Test a new schema if developer
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_cachedir(),
-            ibs.sqldbcache_fname, ibs.dbcache_version_expected, version_next='1.0.4')
+            ibs.sqldbcache_fname, ibs.dbcache_version_expected,
+            version_next='1.0.4')
         ibs.dbcache_version_expected = new_version
         ibs.sqldbcache_fname = new_fname
         # Create cache sql database
@@ -490,7 +495,8 @@ class IBEISController(object):
     @default_decorator
     def backup_database(ibs):
         from ibeis.control import _sql_helpers
-        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+        _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
+                                     ibs.backupdir)
 
     @default_decorator
     def _send_wildbook_request(ibs, wbaddr, payload=None):
@@ -505,12 +511,14 @@ class IBEISController(object):
         #     print('[ibs._send_wildbook_request] Invalid URL: %r' % wbaddr)
         #     return None
         except requests.ConnectionError:
-            print('[ibs._send_wildbook_request] Could not connect to Wildbook server at %r' % wbaddr)
+            print('[ibs.wb_reqst] Could not connect to Wildbook server at %r' %
+                  wbaddr)
             return None
         return response
 
     @default_decorator
-    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
+                   workdir='~/ibeis_workdir', ensure=True):
         """
         Define ibs directories
         """
@@ -706,7 +714,8 @@ class IBEISController(object):
             scorenorm/zebra_grevys
 
         """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(), const.PATH_NAMES.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(),
+                                  const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensurepath(scorenorm_cachedir)
@@ -716,7 +725,8 @@ class IBEISController(object):
     def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         """
         """
-        scorenorm_cachedir = join(ibs.get_cachedir(), const.PATH_NAMES.scorenormdir)
+        scorenorm_cachedir = join(ibs.get_cachedir(),
+                                  const.PATH_NAMES.scorenormdir)
         species_cachedir = join(scorenorm_cachedir, species_text)
         if ensure:
             ut.ensuredir(scorenorm_cachedir)
@@ -743,13 +753,17 @@ class IBEISController(object):
     def get_detectimg_cachedir(ibs):
         """
         Returns:
-            detectimgdir (str): database directory of image resized for detections """
+            detectimgdir (str): database directory of image resized for
+                detections
+        """
         return join(ibs.cachedir, const.PATH_NAMES.detectimg)
 
     def get_flann_cachedir(ibs):
         """
         Returns:
-            flanndir (str): database directory where the FLANN KD-Tree is stored """
+            flanndir (str): database directory where the FLANN KD-Tree is
+                stored
+        """
         return ibs.flanndir
 
     def get_qres_cachedir(ibs):
@@ -765,7 +779,9 @@ class IBEISController(object):
     def get_big_cachedir(ibs):
         """
         Returns:
-            bigcachedir (str): database directory where aggregate results are stored """
+            bigcachedir (str): database directory where aggregate results are
+                stored
+        """
         return ibs.bigcachedir
 
     def get_smart_patrol_dir(ibs, ensure=True):
@@ -807,15 +823,16 @@ class IBEISController(object):
     @register_api('/api/core/detect_random_forest/', methods=['PUT', 'GET'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """
-        Runs animal detection in each image. Adds annotations to the database as
-        they are found.
+        Runs animal detection in each image. Adds annotations to the database
+        as they are found.
 
         Args:
             gid_list (list): list of image ids to run detection on
             species (str): string text of the species to identify
 
         Returns:
-            aids_list (list): list of lists of annotation ids detected in each image
+            aids_list (list): list of lists of annotation ids detected in each
+                image
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-detect_random_forest --show
@@ -851,7 +868,8 @@ class IBEISController(object):
             gid_list = [gid_list]
         print('TYPE:' + str(type(gid_list)))
         print('GID_LIST:' + ut.truncate_str(str(gid_list)))
-        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
+        detect_gen = randomforest.detect_gid_list_with_species(
+            ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
         print('TYPE:' + str(type(detect_gen)))
@@ -859,12 +877,14 @@ class IBEISController(object):
         for gid, (gpath, result_list) in zip(gid_list, detect_gen):
             aids = []
             for result in result_list:
-                # Ideally, species will come from the detector with confidences that actually mean something
-                bbox = (result['xtl'], result['ytl'], result['width'], result['height'])
-                (aid,) = ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
-                                        species_list=[species],
-                                        quiet_delete_thumbs=True,
-                                        detect_confidence_list=[result['confidence']])
+                # Ideally, species will come from the detector with confidences
+                # that actually mean something
+                bbox = (result['xtl'], result['ytl'],
+                        result['width'], result['height'])
+                (aid,) = ibs.add_annots(
+                    [gid], [bbox], notes_list=['rfdetect'],
+                    species_list=[species], quiet_delete_thumbs=True,
+                    detect_confidence_list=[result['confidence']])
                 aids.append(aid)
             aids_list.append(aids)
         return aids_list
@@ -975,7 +995,8 @@ class IBEISController(object):
             raise e
         if len(gid_list) > 0:
             # Sanity check
-            assert len(encounter_info_list) > 0, 'Trying to added %d images, but the Patrol  XML file has no observations' % (len(gid_list), )
+            assert len(encounter_info_list) > 0, (
+                'Trying to added %d images, but the Patrol  XML file has no observations' % (len(gid_list), ))
         # Display the patrol encounters
         for index, encounter_info in enumerate(encounter_info_list):
             smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
@@ -1047,10 +1068,12 @@ class IBEISController(object):
         # only cluster ungrouped images
         gid_list = ibs.get_ungrouped_gids()
         with ut.Timer('computing encounters'):
-            flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
+            flat_eids, flat_gids = preproc_encounter.ibeis_compute_encounters(
+                ibs, gid_list)
         valid_eids = ibs.get_valid_eids()
         eid_offset = 0 if len(valid_eids) == 0 else max(valid_eids)
-        flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
+        # This way we can make sure that manually separated encounters
+        flat_eids_offset = [eid + eid_offset for eid in flat_eids]
         # remain untouched, and ensure that new encounters are created
         enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
         #print('enctext_list: %r; flat_gids: %r' % (enctext_list, flat_gids))
@@ -1238,7 +1261,8 @@ class IBEISController(object):
 
         qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
 
-        # Wrapped call to the main entrypoint in the API to the hotspotter pipeline
+        # Wrapped call to the main entrypoint in the API to the hotspotter
+        # pipeline
         _res = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
@@ -1256,7 +1280,8 @@ class IBEISController(object):
 
         if return_cm or return_cm_dict or return_cm_simple_dict:
             from ibeis.model.hots import chip_match
-            cm_list = [chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
+            cm_list = [
+                chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
             # Convert to cm_list
             if return_cm_simple_dict:
                 qres_list = [cm.to_simple_dict() for cm in cm_list]
