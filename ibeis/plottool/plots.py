@@ -1277,6 +1277,81 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
     return ax
 
 
+def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label=''):
+    r"""
+    Args:
+        timedeltas (list):
+        bins (None): (default = None)
+
+    CommandLine:
+        python -m plottool.plots --exec-draw_timedelta_pie --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> timedeltas = np.array([    1.,    14.,    17.,    34.,     4.,    36.,    34.,     2.,
+        ...                         3268.,    34., np.nan,    33.,     5.,     2.,    16.,     5.,
+        ...                           35.,    64.,   299.,    35.,     2.,     5.,    34.,    12.,
+        ...                            1.,     8.,     6.,     7.,    11.,     5.,    46.,    47.,
+        ...                           22.,     3.,  np.nan,    11.], dtype=np.float64) ** 2
+        >>> bins = None
+        >>> result = draw_timedelta_pie(timedeltas, bins)
+        >>> ut.show_if_requested()
+    """
+    import datetime
+    xdata = timedeltas[~np.isnan(timedeltas)]
+    numnan = len(timedeltas) - len(xdata)
+    max_time = xdata.max()
+
+    if bins is None:
+        bins = [
+            datetime.timedelta(seconds=0).total_seconds(),
+            datetime.timedelta(minutes=1).total_seconds(),
+            datetime.timedelta(hours=1).total_seconds(),
+            datetime.timedelta(days=1).total_seconds(),
+            datetime.timedelta(weeks=1).total_seconds(),
+            datetime.timedelta(days=356).total_seconds(),
+            #np.inf,
+            max(datetime.timedelta(days=356 * 10).total_seconds(), max_time + 1),
+        ]
+
+    freq = np.histogram(xdata, bins)[0]
+    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True) for b in bins]
+    bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
+    bin_labels[-1] = '> 1 year'
+    bin_labels[0] = '< 1 minute'
+
+    WITH_NAN = True
+    if WITH_NAN:
+        freq = np.append(freq, [numnan])
+        bin_labels += ['nan']
+
+    # Convert to percent
+    fnum = None
+    import plottool as pt
+
+    fnum = pt.ensure_fnum(fnum)
+    pt.figure(fnum=fnum)
+    bin_labels[0]
+
+    colors = pt.distinct_colors(len(bin_labels))
+    if WITH_NAN:
+        colors[-1] = pt.GRAY
+    #xints = np.arange(len(bin_labels))
+
+    pt.figure(fnum=fnum, pnum=pnum)
+    mask = freq > 0
+    masked_freq   = freq.compress(mask, axis=0)
+    size = masked_freq.sum()
+    masked_lbls   = ut.list_compress(bin_labels, mask)
+    masked_colors = ut.list_compress(colors, mask)
+    explode = [0] * len(masked_freq)
+    masked_percent = (masked_freq * 100 / size)
+    pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
+    #ax = pt.gca()
+    pt.set_xlabel(label + '\nsize=%d' % (size,))
+
+
 if __name__ == '__main__':
     """
     CommandLine:
