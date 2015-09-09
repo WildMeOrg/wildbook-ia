@@ -1896,6 +1896,13 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
 
 
 @__injectable
+def print_annotmatch_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv(const.ANNOTMATCH_TABLE))
+
+
+@__injectable
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')

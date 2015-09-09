@@ -31,6 +31,11 @@ exclude_vars = vars().keys()   # this line is before tests
 default = [{}]
 baseline = [{}]
 
+invarbest = [{
+    'augment_queryside_hack': True,
+    'affine_invariance': False,
+}]
+
 
 def get_candidacy_dbnames():
     return [

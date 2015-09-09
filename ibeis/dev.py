@@ -202,6 +202,10 @@ def annotationmatch_scores(ibs, test_result):
         python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
 
         python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
+        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
+
+        python -m ibeis.dev -e scores -t baseline:AQH=True,AI=False -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
+
 
     Example:
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA

@@ -1119,6 +1119,14 @@ def update_1_4_4(db, ibs=None):
 
 
 def update_1_4_5(db, ibs=None):
+    db.modify_table(
+        const.ANNOTMATCH_TABLE, [
+            (None, 'annotmatch_note', 'TEXT', None),
+        ],
+    )
+
+
+def update_1_4_6(db, ibs=None):
     #db.modify_table(
     #    const.ANNOTMATCH_TABLE, [
     #        (None, 'annotmatch_is_interesting',      'INTEGER', None),
@@ -1175,7 +1183,8 @@ VALID_VERSIONS = ut.odict([
     ('1.4.2',    (None,                 update_1_4_2,       None                )),
     ('1.4.3',    (None,                 update_1_4_3,       None                )),
     ('1.4.4',    (None,                 update_1_4_4,       None                )),
-    #('1.4.5',    (None,                 update_1_4_5,       None                )),
+    ('1.4.5',    (None,                 update_1_4_5,       None                )),
+    #('1.4.6',    (None,                 update_1_4_6,       None                )),
 ])
 
 
