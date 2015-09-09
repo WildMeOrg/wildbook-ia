@@ -98,6 +98,8 @@ def import_subs():
 #}
 #)
 
+from ibeis.init.main_helpers import testdata_qres
+
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
 

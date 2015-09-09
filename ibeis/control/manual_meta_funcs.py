@@ -115,6 +115,28 @@ def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
     RESTful:
         Method: POST
         URL:    /api/config/
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cfgsuffix_list (list):
+        contrib_rowid_list (list): (default = None)
+
+    Returns:
+        list: config_rowid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_meta_funcs --exec-add_config
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> cfgsuffix_list = ['_CHIP(sz450)']
+        >>> contrib_rowid_list = None
+        >>> config_rowid_list = add_config(ibs, cfgsuffix_list, contrib_rowid_list)
+        >>> result = ('config_rowid_list = %s' % (str(config_rowid_list),))
+        >>> print(result)
     """
     # FIXME: Configs are still handled poorly. This function is an ensure
     params_iter = ((suffix,) for suffix in cfgsuffix_list)
@@ -124,6 +146,34 @@ def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
     if contrib_rowid_list is not None:
         ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
     return config_rowid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
+    config_rowid_list = ibs.get_config_rowid_from_suffix(cfgsuffix_list)
+    is_dirty_list = ut.flag_None_items(config_rowid_list)
+    if any(is_dirty_list):
+        # Only call adder if needed, adders cause debug output to be large
+        return ibs.add_config(cfgsuffix_list)
+    else:
+        return config_rowid_list
+
+
+#@register_ibs_method
+#@accessor_decors.default_decorator
+#@register_api('/api/query/config_rowid/', methods=['GET'])
+#def get_query_config_rowid(ibs):
+#    r"""
+#    # FIXME: Configs are still handled poorly
+
+#    RESTful:
+#        Method: GET
+#        URL:    /api/query/config_rowid/
+#    """
+#    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
+#    query_cfg_rowid = ibs.add_config(query_cfg_suffix)
+#    return query_cfg_rowid
 
 # SETTERS::METADATA
 
@@ -748,6 +798,28 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
     RESTful:
         Method: GET
         URL:    /api/contributor/config_rowid_from_suffix/
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cfgsuffix_list (list):
+
+    Returns:
+        list: gid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_meta_funcs --exec-get_config_rowid_from_suffix
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs.print_config_table()
+        >>> cfgsuffix_list = '_CHIP(sz450)'
+        >>> config_rowid_list = get_config_rowid_from_suffix(ibs, cfgsuffix_list)
+        >>> result = ('config_rowid_list = %s' % (str(config_rowid_list),))
+        >>> print(result)
+        >>> assert config_rowid_list > 0, 'bad config_rowid_list=%r' % (config_rowid_list,)
     """
     # FIXME: This is causing a crash when converting old hotspotter databses.
     # probably because the superkey changed
@@ -760,15 +832,6 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
     #if config_rowid_list is not None and len(config_rowid_list) == 1:
     #    config_rowid_list = config_rowid_list[0]
     return config_rowid_list
-
-
-@register_ibs_method
-def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
-    r"""
-    Alias for adder
-    """
-    # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
-    return ibs.add_config(cfgsuffix_list)
 
 
 @register_ibs_method
@@ -1056,21 +1119,22 @@ def _default_config(ibs, cfgname=None, new=True):
     ibs.reset_table_cache()
 
 
-@register_ibs_method
-@accessor_decors.default_decorator
-@register_api('/api/query/cfg/', methods=['PUT'])
-def set_query_cfg(ibs, query_cfg):
-    r"""
-    Auto-docstr for 'set_query_cfg'
+#@register_ibs_method
+#@accessor_decors.default_decorator
+#@register_api('/api/query/cfg/', methods=['PUT'])
+#def set_query_cfg(ibs, query_cfg):
+#    r"""
+#    DEPRICATE
+#    Auto-docstr for 'set_query_cfg'
 
-    RESTful:
-        Method: PUT
-        URL:    /api/query/cfg/
-    """
-    Config.set_query_cfg(ibs.cfg, query_cfg)
-    ibs.reset_table_cache()
-    #if ibs.qreq is not None:
-    #    ibs.qreq.set_cfg(query_cfg)
+#    RESTful:
+#        Method: PUT
+#        URL:    /api/query/cfg/
+#    """
+#    Config.set_query_cfg(ibs.cfg, query_cfg)
+#    ibs.reset_table_cache()
+#    #if ibs.qreq is not None:
+#    #    ibs.qreq.set_cfg(query_cfg)
 
 
 @register_ibs_method
@@ -1079,6 +1143,7 @@ def set_query_cfg(ibs, query_cfg):
 def update_query_cfg(ibs, **kwargs):
     r"""
     Updates query config only. Configs needs a restructure very badly
+    DEPRICATE
 
     RESTful:
         Method: PUT
@@ -1101,22 +1166,6 @@ def get_valid_configids(ibs):
     """
     config_rowid_list = ibs.db.get_all_rowids(const.CONFIG_TABLE)
     return config_rowid_list
-
-
-@register_ibs_method
-@accessor_decors.default_decorator
-@register_api('/api/query/config_rowid/', methods=['GET'])
-def get_query_config_rowid(ibs):
-    r"""
-    # FIXME: Configs are still handled poorly
-
-    RESTful:
-        Method: GET
-        URL:    /api/query/config_rowid/
-    """
-    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
-    query_cfg_rowid = ibs.add_config(query_cfg_suffix)
-    return query_cfg_rowid
 
 #@accessor_decors.default_decorator
 #def get_qreq_rowid(ibs):

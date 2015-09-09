@@ -286,7 +286,11 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         if named_defaults_dict is None:
             base_cfg_list = [{}]
         else:
-            base_cfg_list = named_defaults_dict[cfgname]
+            try:
+                base_cfg_list = named_defaults_dict[cfgname]
+            except KeyError as ex:
+                ut.printex(ex, 'Unknown configuration name', keys=['cfgname'])
+                raise
         if not isinstance(base_cfg_list, list):
             base_cfg_list = [base_cfg_list]
         # --

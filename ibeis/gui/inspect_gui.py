@@ -267,7 +267,7 @@ class QueryResultsWidget(APIItemWidget):
             ibs = qres_wgt.ibs
             aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
             ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
-            options = get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=qreq_, update_callback=update_callback, backend_callback=backend_callback)
+            options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=qreq_, update_callback=update_callback, backend_callback=backend_callback)
             option_dict = {key[key.find('&') + 1]: val for key, val in options if key.find('&') > -1}
 
             event_key = event.key()
@@ -294,7 +294,9 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(qres_wgt, qtindex, qpoint):
-        printDBG('[newgui] contextmenu')
+        """
+        popup context menu
+        """
         qwin = qres_wgt
         aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
         ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
@@ -384,8 +386,41 @@ def review_match_at_qtindex(qres_wgt, qtindex):
 # ______
 
 
-def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
-    """ assert that the ampersand cannot have duplicate keys """
+def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
+    """ assert that the ampersand cannot have duplicate keys
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        qres (QueryResult):  object of feature correspondences and scores
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+        aid_list (list):  list of annotation rowids(default = None)
+
+    Returns:
+        list: options
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
+        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
+        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show --verbadd --verbaset --verbose
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs, qreq_, qres = ibeis.testdata_qres()
+        >>> aid1 = qres.qaid
+        >>> aid2 = qres.get_top_aids()[0]
+        >>> aid_list = None
+        >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_, aid_list)
+        >>> result = ('options = %s' % (ut.list_str(options),))
+        >>> print(result)
+
+    """
+    if ut.VERBOSE:
+        print('[inspect_gui] Building AID pair context menu options')
     assert qreq_ is not None, 'must specify qreq_'
     show_chip_match_features_option = ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_))
     if aid_list is not None:
@@ -409,8 +444,14 @@ def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, aid_lis
         ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
     ]
 
-    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+    if ut.VERBOSE:
+        print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+        print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+
     if annotmatch_rowid is None:
+        if ut.VERBOSE:
+            print('[inspect_gui] Explicit annotmatch options')
         options += [
             ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
             ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
@@ -426,18 +467,26 @@ def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, aid_lis
             'NonDistinct',
         ]
         # VERY HACKY
+        if ut.VERBOSE:
+            print('[inspect_gui] Hacking the annotmatch options')
         for key in key_list:
             getter = getattr(ibs, 'get_annotmatch_is_' + key.lower())
             setter = getattr(ibs, 'set_annotmatch_is_' + key.lower())
-            flag = getter(annotmatch_rowid)[0]
+            flag = getter([annotmatch_rowid])[0]
+            if ut.VERBOSE:
+                print('[inspect_gui] * getter = %r' % (getter,))
+                print('[inspect_gui] * setter = %r' % (setter,))
+                print('[inspect_gui] * flag = %r' % (flag,))
             if flag:
                 options += [
-                    ('Remove &' + key + ' Flag', lambda:  setter(annotmatch_rowid, [False])),
+                    ('Remove &' + key + ' Flag', lambda:  setter([annotmatch_rowid], [False])),
                 ]
             else:
                 options += [
-                    ('Flag &' + key + ' Case', lambda:  setter(annotmatch_rowid, [True])),
+                    ('Flag &' + key + ' Case', lambda:  setter([annotmatch_rowid], [True])),
                 ]
+        if ut.VERBOSE:
+            print('[inspect_gui] options = %s' % (ut.list_str(options),))
 
     return options
 
@@ -446,7 +495,7 @@ def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, *
     """
     kwargs are used for callbacks like qres_callback and query_callback
     """
-    options = get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=qreq_, **kwargs)
+    options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=qreq_, **kwargs)
     guitool.popup_menu(qwin, qpoint, options)
 
 

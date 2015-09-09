@@ -7,10 +7,10 @@ from utool._internal.meta_util_six import get_funcname
 #import numpy as np
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[decor]')
 
-DEBUG_ADDERS  = ut.get_argflag('--debug-adders')
-DEBUG_SETTERS = ut.get_argflag('--debug-setters')
-DEBUG_GETTERS = ut.get_argflag('--debug-getters')
-VERB_CONTROL = ut.get_argflag('--verb-control')
+DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
+DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
+DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
+VERB_CONTROL = ut.get_argflag(('--verb-control'))
 
 #
 #-----------------

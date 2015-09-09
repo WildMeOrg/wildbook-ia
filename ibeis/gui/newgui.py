@@ -1457,7 +1457,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> result = ibswgt.filter_annotation_table(
             >>> print(result)
         """
-        model = ibswgt.models[gh.ANNOTATION_TABLE]
+        model = ibswgt.models[gh.ANNOTATION_TABLE]  # NOQA
 
         ibs = ibswgt.back.ibs
         annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()

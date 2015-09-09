@@ -21,6 +21,59 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
+def testdata_pipecfg():
+    r"""
+    Returns:
+        dict: pcfgdict
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_pipecfg
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> pcfgdict = testdata_pipecfg()
+        >>> result = ('pcfgdict = %s' % (str(pcfgdict),))
+        >>> print(result)
+    """
+    from ibeis.experiments import experiment_helpers
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['default'])
+    pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
+    assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
+    pcfgdict = pcfgdict_list[0]
+    return pcfgdict
+
+
+def testdata_qres(defaultdb='testdb1'):
+    r"""
+    Args:
+        defaultdb (str): (default = 'testdb1')
+
+    Returns:
+        tuple: (ibs, test_result)
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_qres
+        python -m ibeis.init.main_helpers --exec-testdata_qres --qaid 1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> defaultdb = 'testdb1'
+        >>> (ibs, qreq_, qres) = testdata_qres(defaultdb)
+        >>> result = ('(ibs, qreq_, qres) = %s' % (str((ibs, qreq_, qres)),))
+        >>> print(result)
+    """
+    ibs, qaids, daids = testdata_ibeis(defaultdb=defaultdb)
+    pcfgdict = testdata_pipecfg()
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
+    print('qaids = %r' % (qaids,))
+    assert len(qaids) == 1, 'only one qaid for this tests'
+    qres = qreq_.load_cached_qres(qaids[0])
+    print('qreq_ = %r' % (qreq_,))
+    return ibs, qreq_, qres
+
+
 def testdata_expts(defaultdb='testdb1',
                    default_acfgstr_name_list=['default'],
                    #default_acfgstr_name_list=['controlled:qsize=20,dper_name=1,dsize=10',

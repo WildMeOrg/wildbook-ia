@@ -92,6 +92,9 @@ def postinject_func(ibs):
 
 @__injectable
 def refresh(ibs):
+    """
+    DEPRICATE
+    """
     from ibeis import ibsfuncs
     from ibeis import all_imports
     ibsfuncs.rrr()
@@ -198,6 +201,198 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
+def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
+    """
+    TODO: ELEVATE THIS FUNCTION
+    Change into make_task_mark_annot_pair_as_positive_match and it returns what
+    needs to be done.
+
+    Need to test several cases:
+        uknown, unknown
+        knownA, knownA
+        knownB, knownA
+        unknown, knownA
+        knownA, unknown
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  query annotation id
+        aid2 (int):  matching annotation id
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(status)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        if not ut.QUIET:
+            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
+            print('... names = %r' % (ibs.get_name_texts(nid_list)))
+        assert len(aid_list) == len(nid_list), 'list must correspond'
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
+        # Return the new annots in this name
+        _aids_list = ibs.get_name_aids(nid_list)
+        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
+        status = _combo_aids_list
+        return status
+    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('...images already matched')
+        status = None
+        ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...match unknown1 to unknown2 into 1 new name')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
+        elif not isunknown1 and not isunknown2:
+            print('...merge known1 into known2')
+            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
+            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
+            if not trivial_merge:
+                if on_nontrivial_merge is None:
+                    raise Exception('no function is set up to handle nontrivial merges!')
+                else:
+                    on_nontrivial_merge(ibs, aid1, aid2)
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
+        elif isunknown2 and not isunknown1:
+            print('...match unknown2 into known1')
+            status =  _set_annot_name_rowids([aid2], [nid1])
+        elif isunknown1 and not isunknown2:
+            print('...match unknown1 into known2')
+            status =  _set_annot_name_rowids([aid1], [nid2])
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+@__injectable
+def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_split=None):
+    """
+    TODO: ELEVATE THIS FUNCTION
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        dryrun (bool):
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> # execute function
+        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(result)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('images are marked as having the same name... we must tread carefully')
+        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
+        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
+            # this is the only safe case for same name split
+            # Change so the names are not the same
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            if on_nontrivial_split is None:
+                raise Exception('no function is set up to handle nontrivial splits!')
+            else:
+                on_nontrivial_split(ibs, aid1, aid2)
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...nonmatch unknown1 and unknown2 into 2 new names')
+            next_nids = ibs.make_next_nids(num=2)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
+        elif not isunknown1 and not isunknown2:
+            print('...nonmatch known1 and known2... nothing to do (yet)')
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            status = None
+        elif isunknown2 and not isunknown1:
+            print('...nonmatch unknown2 -> newname and known1')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid2], next_nids)
+        elif isunknown1 and not isunknown2:
+            print('...nonmatch unknown1 -> newname and known2')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+@__injectable
+def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list1 (int):  list of annotation ids
+        aid_list2 (int):  list of annotation ids
+
+    Returns:
+        list: timedelta_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_pair_timdelta
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> from six.moves import filter
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids(hasgt=True)
+        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
+        >>> aid_list = ut.list_compress(aid_list, np.array(unixtimes) != -1)
+        >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
+        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
+        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
+        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+        >>> result = ut.numpy_str(timedelta_list, precision=2)
+        >>> print(result)
+        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07], dtype=np.float64)
+
+    """
+    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+    unixtime_list1[unixtime_list1 == -1] = np.nan
+    unixtime_list2[unixtime_list2 == -1] = np.nan
+    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+    return timedelta_list
+
+
+@__injectable
 def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
@@ -234,7 +429,6 @@ def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None)
 def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
         aid_list (int):  list of annotation ids
         eager (bool):
         nInput (None):
@@ -324,7 +518,6 @@ def get_annot_pair_truth(ibs, aid1_list, aid2_list):
 def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
     r"""
     Args:
-        ibs (IBEISController):  ibeis controller object
         aid1_list (list):
         aid2_list (list):
 
@@ -965,32 +1158,6 @@ def fix_remove_visual_dupliate_annotations(ibs):
             assert len(ibs_dup_annots) == 0
 
 
-#@__injectable
-#def vacuum_and_clean_databases(ibs):
-#    # Add to duct tape? or DEPRICATE
-#    #ibs.vdd()
-#    print(ibs.db.get_table_names())
-#    # Removes all lblannots and lblannot relations as we are not using them
-#    if False:
-#        print(ibs.db.get_table_csv(const.NAME_TABLE))
-#        print(ibs.db.get_table_csv(const.ANNOTATION_TABLE))
-#        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
-#        print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
-#        print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
-#    if False:
-#        # We deleted these all at one point, but its not a good operation to
-#        # repeat
-#        # Get old table indexes
-#        #lbltype_rowids = ibs.db.get_all_rowids(const.LBLTYPE_TABLE)
-#        lblannot_rowids = ibs.db.get_all_rowids(const.LBLANNOT_TABLE)
-#        alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)
-#        # delete those tables
-#        #ibs.db.delete_rowids(const.LBLTYPE_TABLE, lbltype_rowids)
-#        ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowids)
-#        ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
-#    ibs.db.vacuum()
-
-
 @__injectable
 def fix_and_clean_database(ibs):
     """ Function to run all database cleanup scripts
@@ -1219,6 +1386,7 @@ def fix_unknown_exemplars(ibs):
     #              for nid, flag in
     #              zip(nid_list, flag_list)]
     #ibs.set_annot_exemplar_flags(aid_list, new_annots)
+    pass
 
 
 @__injectable
@@ -1897,9 +2065,27 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
 
 @__injectable
 def print_annotmatch_table(ibs):
-    """ Dumps chip table to stdout """
+    """
+    Dumps annotation match table to stdout
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-print_annotmatch_table
+        python -m ibeis.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> result = print_annotmatch_table(ibs)
+        >>> print(result)
+    """
     print('\n')
-    print(ibs.db.get_table_csv(const.ANNOTMATCH_TABLE))
+    exclude_columns = ['annotmatch_confidence']
+    print(ibs.db.get_table_csv(const.ANNOTMATCH_TABLE, exclude_columns=exclude_columns))
 
 
 @__injectable
@@ -4709,198 +4895,6 @@ def find_offending_contributors(ibs):
     print(lengths_list)
 
 
-def export_nnp_master3_subset(ibs):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-export_nnp_master3_subset
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('NNP_Master3')
-        >>> # execute function
-        >>> result = export_nnp_master3_subset(ibs)
-        >>> # verify results
-        >>> print(result)
-    """
-    # Get the subset of the dataset marked as difficult
-    annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
-    ishard_list         = ibs.get_annotmatch_is_hard(annotmatch_rowid_list)
-    isphotobomb_list    = ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)
-    isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
-    isnondistinct_list  = ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)
-    hards        = np.array(ut.replace_nones(ishard_list, False))
-    photobombs   = np.array(ut.replace_nones(isphotobomb_list, False))
-    scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))
-    nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))
-    flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)
-    annotmatch_rowid_list_ = ut.list_compress(annotmatch_rowid_list, flags)
-
-    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)
-    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)
-    aid_list = sorted(list(set(aid1_list + aid2_list)))
-    from ibeis import dbio
-    gid_list = sorted(list(set(ibs.get_annot_gids(aid_list))))
-    dbio.export_subset.export_images(ibs, gid_list, new_dbpath=join(ibs.get_workdir(), 'testdb3'))
-
-
-@__injectable
-def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
-    """
-    TODO: ELEVATE THIS FUNCTION
-    Change into make_task_mark_annot_pair_as_positive_match and it returns what
-    needs to be done.
-
-    Need to test several cases:
-        uknown, unknown
-        knownA, knownA
-        knownB, knownA
-        unknown, knownA
-        knownA, unknown
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  query annotation id
-        aid2 (int):  matching annotation id
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
-        >>> dryrun = True
-        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
-        >>> print(status)
-    """
-    def _set_annot_name_rowids(aid_list, nid_list):
-        if not ut.QUIET:
-            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
-            print('... names = %r' % (ibs.get_name_texts(nid_list)))
-        assert len(aid_list) == len(nid_list), 'list must correspond'
-        if not dryrun:
-            ibs.set_annot_name_rowids(aid_list, nid_list)
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
-        # Return the new annots in this name
-        _aids_list = ibs.get_name_aids(nid_list)
-        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
-        status = _combo_aids_list
-        return status
-    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
-
-    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
-    if nid1 == nid2:
-        print('...images already matched')
-        status = None
-        ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-    else:
-        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
-        if isunknown1 and isunknown2:
-            print('...match unknown1 to unknown2 into 1 new name')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
-        elif not isunknown1 and not isunknown2:
-            print('...merge known1 into known2')
-            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
-            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
-            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
-            if not trivial_merge:
-                if on_nontrivial_merge is None:
-                    raise Exception('no function is set up to handle nontrivial merges!')
-                else:
-                    on_nontrivial_merge(ibs, aid1, aid2)
-            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
-        elif isunknown2 and not isunknown1:
-            print('...match unknown2 into known1')
-            status =  _set_annot_name_rowids([aid2], [nid1])
-        elif isunknown1 and not isunknown2:
-            print('...match unknown1 into known2')
-            status =  _set_annot_name_rowids([aid1], [nid2])
-        else:
-            raise AssertionError('impossible state')
-    return status
-
-
-@__injectable
-def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_split=None):
-    """
-    TODO: ELEVATE THIS FUNCTION
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  annotation id
-        aid2 (int):  annotation id
-        dryrun (bool):
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
-        >>> dryrun = True
-        >>> # execute function
-        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
-        >>> print(result)
-    """
-    def _set_annot_name_rowids(aid_list, nid_list):
-        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
-        if not dryrun:
-            ibs.set_annot_name_rowids(aid_list, nid_list)
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
-    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
-    if nid1 == nid2:
-        print('images are marked as having the same name... we must tread carefully')
-        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
-        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
-            # this is the only safe case for same name split
-            # Change so the names are not the same
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
-        else:
-            if on_nontrivial_split is None:
-                raise Exception('no function is set up to handle nontrivial splits!')
-            else:
-                on_nontrivial_split(ibs, aid1, aid2)
-    else:
-        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
-        if isunknown1 and isunknown2:
-            print('...nonmatch unknown1 and unknown2 into 2 new names')
-            next_nids = ibs.make_next_nids(num=2)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
-        elif not isunknown1 and not isunknown2:
-            print('...nonmatch known1 and known2... nothing to do (yet)')
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            status = None
-        elif isunknown2 and not isunknown1:
-            print('...nonmatch unknown2 -> newname and known1')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid2], next_nids)
-        elif isunknown1 and not isunknown2:
-            print('...nonmatch unknown1 -> newname and known2')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
-        else:
-            raise AssertionError('impossible state')
-    return status
-
-
 @__injectable
 def make_next_encounter_text(ibs):
     """
@@ -5102,46 +5096,6 @@ def search_list(text_list, pattern, flags=0):
 
 
 @__injectable
-def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list1 (int):  list of annotation ids
-        aid_list2 (int):  list of annotation ids
-
-    Returns:
-        list: timedelta_list
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_annot_pair_timdelta
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> from six.moves import filter
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids(hasgt=True)
-        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
-        >>> aid_list = ut.list_compress(aid_list, np.array(unixtimes) != -1)
-        >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
-        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
-        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
-        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-        >>> result = ut.numpy_str(timedelta_list, precision=2)
-        >>> print(result)
-        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07], dtype=np.float64)
-
-    """
-    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
-    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
-    unixtime_list1[unixtime_list1 == -1] = np.nan
-    unixtime_list2[unixtime_list2 == -1] = np.nan
-    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
-    return timedelta_list
-
-
-@__injectable
 def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
     qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
     aid_list_ = ut.list_compress(aid_list, qual_flags)
@@ -5338,282 +5292,6 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     gf_grouped_aids2 = [aids.tolist() for aids in ibs.group_annots_by_name(gf_aids2)[0]]
 
     return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_grouped_aids2
-
-
-def make_temporally_distinct_blind_test(ibs, challenge_num=None):
-
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=1
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=2
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=3
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=4
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=5
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=6
-        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=7
-
-    Ignore:
-        challenge_pdfs = ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
-        dname = 'localdata/all_challenges'
-        ut.ensuredir(dname)
-        ut.copy(challenge_pdfs, dname)
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('Elephants_drop1')
-        >>> result = make_temporally_distinct_blind_test(ibs)
-        >>> print(result)
-    """
-    # Parameters
-    if challenge_num is None:
-        challenge_num = ut.get_argval('--challenge-num', type_=int, default=1)
-    num_repeats = 2
-    num_singles = 4
-
-    # Filter out ones from previous challenges
-    all_aid_list = ibs.get_valid_aids()
-
-    def get_challenge_aids(aid_list):
-        # Get annots with timestamps
-        aid_list_ = filter_aids_without_timestamps(ibs, aid_list)
-        singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list_)
-        # process multitons
-        hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
-        best_pairx_list = [vt.pdist_argsort(x)[-1] for x in hourdists_list]
-        best_multitons = vt.ziptake(multitons, best_pairx_list)
-        best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
-        assert len(best_hourdists_list) == len(best_multitons)
-        best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]
-        best_pairs = ut.list_take(best_multitons, best_multitons_sortx[0:num_repeats])
-        best_multis = ut.flatten(best_pairs)
-
-        # process singletons
-        best_singles = ut.list_take(singletons, ut.random_indexes(len(singletons), num_singles, seed=0))
-        best_singles = ut.flatten(best_singles)
-
-        chosen_aids_ = best_multis + best_singles
-        assert len(best_multis) == num_repeats * 2, 'len(best_multis)=%r' % (len(best_multis),)
-        assert len(best_singles) == num_singles, 'len(best_singles)=%r' % (len(best_singles),)
-        return chosen_aids_
-        #return best_multis, best_singles
-
-    aid_list = all_aid_list
-    # Define invalid aids recusrively, so challenges are dijsoint
-    invalid_aids = []
-    for _ in range(1, challenge_num + 1):
-        prev_chosen_aids_ = get_challenge_aids(aid_list)
-        invalid_aids += prev_chosen_aids_
-        aid_list = ut.setdiff_ordered(all_aid_list, invalid_aids)
-
-    chosen_aids_ = get_challenge_aids(aid_list)
-    chosen_nids_ = ibs.get_annot_nids(chosen_aids_)
-
-    # Randomize order of chosen aids and nids
-    shufflx = ut.random_indexes(len(chosen_aids_), seed=432)
-    chosen_aids = ut.list_take(chosen_aids_, shufflx)
-    chosen_nids = ut.list_take(chosen_nids_, shufflx)
-    choosex_list = np.arange(len(chosen_aids))
-
-    # ----------------------------------
-    # SAMPLE A SET OF PAIRS TO PRESNET
-    import itertools
-    #nid_pair_list   = list(itertools.combinations(chosen_nids, 2))
-
-    def index2d_take(list_, indexes_list):
-        return [[list_[x] for x in xs] for xs in indexes_list]
-
-    choosex_pair_list = list(itertools.combinations(choosex_list, 2))
-    nid_pair_list = index2d_take(chosen_nids, choosex_pair_list)
-    # Do not choose any correct pairs
-    is_correct = [nid1 == nid2 for nid1, nid2 in nid_pair_list]
-    p = 1. - np.array(is_correct)
-    p /= p.sum()
-    random_pair_sample = 15
-    # Randomly remove nonmatch pairs
-    pairx_list = np.arange(len(choosex_pair_list))
-    num_remove = len(pairx_list) - random_pair_sample
-    randstate = np.random.RandomState(seed=10)
-    remove_xs = randstate.choice(pairx_list, num_remove, replace=False, p=p)
-    keep_mask = np.logical_not(vt.index_to_boolmask(remove_xs, len(pairx_list)))
-    sample_choosex_list = np.array(choosex_pair_list)[keep_mask]
-
-    # One last shuffle of pairs
-    #ut.random_indexes(len(chosen_aids), seed=10)
-    randstate = np.random.RandomState(seed=10)
-    randstate.shuffle(sample_choosex_list)
-
-    # Print out info
-    avuuids_list = ibs.get_annot_visual_uuids(chosen_aids)
-    print('avuuids_list=\n' + ut.list_str(avuuids_list))
-    chosen_avuuids_list = index2d_take(avuuids_list, sample_choosex_list)
-    for count, (avuuid1, avuuid2)  in enumerate(chosen_avuuids_list, start=1):
-        print('pair %3d: %s - vs - %s' % (count, avuuid1, avuuid2))
-    # Print
-    best_times = ibs.get_unflat_annots_hourdists_list(ibs.group_annots_by_name(chosen_aids_)[0])
-    print('best_times = %r' % (best_times,))
-
-    # -------------------------
-    # WRITE CHOSEN AIDS TO DISK
-    import ibeis.viz
-    #fname = 'aidchallenge_' + ibs.get_dbname() + '_' + str(challenge_num)
-    challengename = 'pair_challenge'  '_' + str(challenge_num) + '_dbname=' + ibs.get_dbname()
-    output_dirname = ut.truepath(join('localdata', challengename))
-    ut.ensuredir(output_dirname)
-    #aid = chosen_aids[0]
-    #ibeis.viz.viz_chip.show_many_chips(ibs, chosen_aids)
-
-    def dump_challenge_fig(ibs, aid, output_dirname):
-        import plottool as pt
-        pt.clf()
-        title_suffix = str(ibs.get_annot_visual_uuids(aid))
-        fig, ax = ibeis.viz.show_chip(ibs, aid, annote=False, show_aidstr=False, show_name=False, show_num_gt=False, fnum=1, title_suffix=title_suffix)
-        #fig.show()
-        #pt.iup()
-        fpath = ut.truepath(join(output_dirname, 'avuuid%s.png' % (title_suffix.replace('-', ''),)))
-        pt.save_figure(fpath_strict=fpath, fig=fig, fnum=1, verbose=False)
-        vt.clipwhite_ondisk(fpath, fpath)
-        return fpath
-
-    orig_fpath_list = [dump_challenge_fig(ibs, aid, output_dirname) for aid in chosen_aids]
-    #fpath_pair_list = index2d_take(orig_fpath_list, choosex_pair_list)
-    #fpath_pair_list_ = ut.list_compress(fpath_pair_list, keep_mask)
-    fpath_pair_list_ = index2d_take(orig_fpath_list, sample_choosex_list)
-    ut.vd(output_dirname)
-
-    # ----- DUMP TO LATEX ---
-
-    # Randomize pair ordering
-    #randstate = np.random.RandomState(seed=10)
-    ##ut.random_indexes(len(chosen_aids))
-    #randstate.shuffle(fpath_pair_list_)
-
-    #latex_blocks = [ut.get_latex_figure_str(fpath_pair, width_str='2.4in', nCols=2, dpath=output_dirname) for fpath_pair in fpath_pair_list_]
-    latex_blocks = [ut.get_latex_figure_str(fpath_pair, width_str='.5\\textwidth', nCols=2, dpath=output_dirname, caption_str='pair %d' % (count,))
-                    for count, fpath_pair in enumerate(fpath_pair_list_, start=1)]
-    latex_text = '\n\n'.join(latex_blocks)
-    #print(latex_text)
-    title = challengename.replace('_', ' ')
-    pdf_fpath = ut.compile_latex_text(latex_text, dpath=output_dirname, verbose=True, fname=challengename, silence=True, title=title)
-    output_pdf_fpath = ut.compress_pdf(pdf_fpath)
-    ut.startfile(output_pdf_fpath)
-    """
-    import ibeis
-    ibs = ibeis.opendb('Elephants_drop1')
-
-    Guesses:
-        def verify_guesses(partial_pairs):
-            aids_lists = ibs.unflat_map(ibs.get_annot_rowids_from_partial_vuuids, partial_pairs)
-            aid_pairs = list(map(ut.flatten, aids_lists))
-            aids1 = ut.get_list_column(aid_pairs, 0)
-            aids2 = ut.get_list_column(aid_pairs, 1)
-            truth = ibs.get_aidpair_truths(aids1, aids2)
-            return truth
-
-        # Chuck: 2, 6   --
-        partial_pairs = [('fc4fcc', '47622'), ('981ef476', '73721a95')]
-        print(verify_guesses(partial_pairs))
-        # Mine: 1, 14   --
-        partial_pairs = [('fc4f', 'f0d32'), ('73721', '47622')]
-        print(verify_guesses(partial_pairs))
-        # Hendrik: 3, X --
-        partial_pairs = [('476225', '4c383f'), ('48c1', '981ef')]
-        # Hendrik2: 3, 13 --
-        partial_pairs = [('476225', '4c383f'), ('fc4fcc', '24a50bb')]
-        print(verify_guesses(partial_pairs))
-        # Tanya:
-        partial_pairs = [('476225', 'fc4fcc48'), ('73721a', '981ef476')]
-
-        partial_vuuid_strs = ut.flatten(partial_pairs)
-
-        get_annots_from_partial_vuuids
-
-    """
-    #else:
-    #    def format_challenge_pairs():
-    #        # -------------------------
-    #        # EMBED INTO A PDF
-    #        #from utool.util_latex import *  # NOQA
-    #        import utool as ut
-    #        import vtool as vt
-    #        #verbose = True
-    #        dpath = '/home/joncrall/code/ibeis/aidchallenge'
-    #        # Read images
-    #        orig_fpath_list = ut.list_images(dpath, fullpath=True)
-    #        # Clip white out
-    #        clipped_fpath_list = [vt.clipwhite_ondisk(fpath) for fpath in orig_fpath_list]
-    #        # move into temporary figure dir with hashed names
-    #        fpath_list = []
-    #        figdpath = join(dpath, 'figures')
-    #        ut.ensuredir(figdpath)
-    #        from os.path import splitext, basename, dirname
-    #        for fpath in clipped_fpath_list:
-    #            fname, ext = splitext(basename(fpath))
-    #            fname_ = ut.hashstr(fname, alphabet=ut.ALPHABET_16) + ext
-    #            fpath_ = join(figdpath, fname_)
-    #            ut.move(fpath, fpath_)
-    #            fpath_list.append(fpath_)
-
-    #            figure_str = ut.get_latex_figure_str(fpath_list, width_str='2.4in', nCols=2, dpath=dirname(figdpath))
-    #            input_text = figure_str
-    #            pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=False, quiet=True)  # NOQA
-
-    #        #output_pdf_fpath = ut.compress_pdf(pdf_fpath)
-
-    #        #fpath_list
-    #        ## Weirdness
-    #        #new_rel_fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in new_fpath_list]
-
-    #    #for fpath_pair in fpath_pair_list:
-    #    #    print(fpath_pair)
-
-    #    # -------------------------
-    #    # EMBED INTO A PDF
-    #if False:
-    #    # TODO: quadratic programmming optimization
-    #    # Actually its a quadratically constrained quadratic integer program
-    #    def get_assignment_mat(ibs, aid_list):
-    #        #import scipy.spatial.distance as spdist
-    #        #nid_list = ibs.get_annot_nids(aid_list)
-    #        aid1_list, aid2_list = list(zip(*ut.iprod(aid_list, aid_list)))
-    #        truths = ibs.get_aidpair_truths(aid1_list, aid2_list)
-    #        assignment_mat = truths.reshape(len(aid_list), len(aid_list))
-    #        assignment_mat[np.diag_indices(assignment_mat.shape[0])] = 0
-    #        return assignment_mat
-    #    import scipy.spatial.distance as spdist
-    #    pairwise_times = ibs.get_unflat_annots_hourdists_list([aid_list])[0]
-    #    ptime_utri = np.triu(spdist.squareform(pairwise_times))  # NOQA
-    #    assignment_utri = np.triu(get_assignment_mat(ibs, aid_list))  # NOQA
-    #    nassign_utri = np.triu((1 - assignment_utri) - np.eye(len(assignment_utri)))  # NOQA
-
-    #    r"""
-    #    Let d be number of annots
-    #    Let x \in {0, 1}^d be an assignment vector
-
-    #    let l = num matching pairs = 2
-    #    let m = num nonmatching pairs = 2
-
-    #    # maximize total time delta
-    #    min 1/2 x^T (-ptime_utri) x
-    #    s.t.
-    #    # match constraint
-    #     .5 * x.T @ A @ x - l <= 0
-    #    -.5 * x.T @ A @ x + l <= 0
-    #    # nonmatch constraint
-    #     .5 * x.T @ \bar{A} @ x - l <= 0
-    #    -.5 * x.T @ \bar{A} @ x + l <= 0
-    #    """
-
-    #maxhourdists = np.array(list(map(ut.safe_max, hourdists_list)))
-    #top_multi_indexes = maxhourdists.argsort()[::-1][:num_repeats]
-    #top_multitons = ut.list_take(multitons, top_multi_indexes)
-
-    #
-    #scipy.optimize.linprog
 
 
 @__injectable

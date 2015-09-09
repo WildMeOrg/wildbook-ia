@@ -561,7 +561,7 @@ def get_feat_config_rowid(ibs, config2_=None):
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
     #print(feat_cfg_suffix)
     #print(config2_)
-    feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
+    feat_cfg_rowid = ibs.ensure_config_rowid_from_suffix(feat_cfg_suffix)
     return feat_cfg_rowid
 
 

@@ -647,7 +647,7 @@ def get_chip_config_rowid(ibs, config2_=None):
         assert chip_cfg_suffix is not None
     else:
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
-    chip_cfg_rowid = ibs.add_config(chip_cfg_suffix)
+    chip_cfg_rowid = ibs.ensure_config_rowid_from_suffix(chip_cfg_suffix)
     return chip_cfg_rowid
 
 

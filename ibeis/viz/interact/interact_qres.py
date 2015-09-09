@@ -62,10 +62,8 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         >>> # EN-ABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_qres import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict())
-        >>> qres = ibs.query_chips(qreq_=qreq_)[0]
-        >>> analysis = False
+        >>> ibs, qreq_, qres = ibeis.testdata_qres()
+        >>> analysis = True
         >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False, qreq_=qreq_)
         >>> pt.show_if_requested()
     """
