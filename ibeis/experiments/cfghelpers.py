@@ -159,7 +159,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
 
 
 def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
-                       alias_keys=None, valid_keys=None, offset=0):
+                       alias_keys=None, valid_keys=None, offset=0, strict=True):
     """
     cfgopt_strs = 'dsize=1000,per_name=[1,2]'
     """
@@ -181,10 +181,11 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
                 # remove old alised key
                 del cfg_options[key]
     # Ensure that nothing bad is being updated
-    if valid_keys is not None:
-        ut.assert_all_in(cfg_options.keys(), valid_keys, 'keys specified not in valid set')
-    else:
-        ut.assert_all_in(cfg_options.keys(), cfg.keys(), 'keys specified not in default options')
+    if strict:
+        if valid_keys is not None:
+            ut.assert_all_in(cfg_options.keys(), valid_keys, 'keys specified not in valid set')
+        else:
+            ut.assert_all_in(cfg_options.keys(), cfg.keys(), 'keys specified not in default options')
     # Finalize configuration dict
     #cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=False)
     cfg.update(cfg_options)
@@ -270,7 +271,9 @@ def parse_cfgstr_name_options(cfgstr):
     return cfgname, cfgopt_strs, subx
 
 
-def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None, alias_keys=None, valid_keys=None, expand_nested=True):
+def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
+                       alias_keys=None, valid_keys=None, expand_nested=True,
+                       strict=True):
     """
     Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
         >>> from ibeis.experiments.cfghelpers import *  # NOQA
@@ -292,7 +295,8 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None, alia
             try:
                 cfg_combo = customize_base_cfg(
                     cfgname, cfgopt_strs, base_cfg, cfgtype,
-                    alias_keys=alias_keys, valid_keys=valid_keys, offset=len(cfg_combos))
+                    alias_keys=alias_keys, valid_keys=valid_keys,
+                    offset=len(cfg_combos), strict=strict)
             except Exception as ex:
                 ut.printex(ex, 'Parse Error CfgstrList2',
                            keys=['cfgname', 'cfgopt_strs', 'base_cfg',
@@ -308,6 +312,39 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None, alia
         if expand_nested:
             cfg_combos_list.append(cfg_combos)
     return cfg_combos_list
+
+
+def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=None):
+    """ simple configs
+
+    Args:
+        argname (?):
+        default (list): (default = [])
+        named_defaults_dict (dict): (default = None)
+        valid_keys (None): (default = None)
+
+    Returns:
+        list: cfg_list
+
+    CommandLine:
+        python -m ibeis.experiments.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
+        python -m ibeis.experiments.cfghelpers --exec-parse_argv_cfg
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> argname = '--filt'
+        >>> cfg_list = parse_argv_cfg(argname)
+        >>> result = ('cfg_list = %s' % (str(cfg_list),))
+        >>> print(result)
+    """
+    cfgstr_list = ut.get_argval(argname, type_=list, default=default)
+    cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
+                                         named_defaults_dict=named_defaults_dict,
+                                         valid_keys=valid_keys,
+                                         strict=False)
+    cfg_list = ut.flatten(cfg_combos_list)
+    return cfg_list
 
 
 if __name__ == '__main__':

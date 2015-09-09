@@ -40,12 +40,21 @@ def hack_argv():
         if arg.startswith('--hargv='):
             hack_argv_key = '='.join(arg.split('=')[1:])
             if hack_argv_key in ['candexpt', 'expt', 'exptk', 'scores']:
+                if hack_argv_key in 'scores':
+                    sys.argv.extend([
+                        '--save',
+                        #'figures/expt_{db}_a_{a}_t_{t}.png',
+                        'figures/expt_{e}_{db}_a_{a}_t_{t}_{filt}.png',
+                    ])
+                else:
+                    sys.argv.extend([
+                        '--save',
+                        #'figures/expt_{db}_a_{a}_t_{t}.png',
+                        'figures/expt_{e}_{db}_a_{a}_t_{t}.png',
+                    ])
                 sys.argv.extend([
-                    '--save',
-                    #'figures/expt_{db}_a_{a}_t_{t}.png',
-                    'figures/expt_{e}_{db}_a_{a}_t_{t}.png',
                     '--dpath=~/latex/crall-candidacy-2015/',
-                    #'--clipwhite',
+                    '--clipwhite',
                     '--diskshow',
                     '--contextadjust',
                     '--dpi=256',
@@ -139,7 +148,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_printres', 'print_results'),
     ('ibeis.experiments.experiment_printres', 'print_latexsum'),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.dev', 'annotationmatch_scores', ['scores']),
+    ('ibeis.dev', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -190,9 +199,9 @@ def annotationmatch_scores(ibs, test_result):
 
         python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
         python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
-        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show --onlygood
+        python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
 
-        python -m ibeis.dev -e cases -a timecontrolled -t default --db PZ_Master1 --qaid 1253 --show
+        python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
 
     Example:
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
@@ -203,6 +212,9 @@ def annotationmatch_scores(ibs, test_result):
     """
     import vtool as vt
     print('[dev] annotationmatch_scores')
+    from ibeis.experiments import cfghelpers
+
+    filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
 
     assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
     cfgx = 0
@@ -213,15 +225,18 @@ def annotationmatch_scores(ibs, test_result):
     gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
     is_success = prop2_mat['is_success'].T[cfgx]
 
-    ONLY_GOOD_CASES = ut.get_argflag('--onlygood')
+    ONLY_GOOD_CASES = filt_cfg.get('onlygood', False)
+    SMALL_FP_TIME = filt_cfg.get('smallfptime', False)
+    isvalid = np.ones(is_success.shape, dtype=np.bool)
     if ONLY_GOOD_CASES:
-        tp_nscores = gt_rawscore[is_success]
-        tn_nscores = gf_rawscore[is_success]
-        tn_qaids = tp_qaids = common_qaids[is_success]
-    else:
-        tp_nscores = gt_rawscore
-        tn_nscores = gf_rawscore
-        tn_qaids = tp_qaids = common_qaids
+        isvalid = np.logical_and(isvalid, is_success)
+    if SMALL_FP_TIME:
+        has_largedelta = (truth2_prop['gf']['timedelta'].T[cfgx] >= 60 * 60 * 24)
+        isvalid = np.logical_and(isvalid, has_largedelta)
+
+    tp_nscores = gt_rawscore[isvalid]
+    tn_nscores = gf_rawscore[isvalid]
+    tn_qaids = tp_qaids = common_qaids[isvalid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     print(qreq_.get_cfgstr())
@@ -235,7 +250,8 @@ def annotationmatch_scores(ibs, test_result):
         print('Independent reconstruct')
         print(reconstruct_str)
 
-    encoder = vt.ScoreNormalizer(adjust=8, tpr=.5)
+    #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
+    encoder = vt.ScoreNormalizer(adjust=8, tpr=.85, monotonize=True)
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
@@ -246,6 +262,8 @@ def annotationmatch_scores(ibs, test_result):
 
     if ONLY_GOOD_CASES:
         figtitle +=   ' onlygood'
+    if SMALL_FP_TIME:
+        figtitle +=   ' small_fp_timedelta'
     encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
 
     if ut.get_argflag('--contextadjust'):

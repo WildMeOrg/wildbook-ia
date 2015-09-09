@@ -475,10 +475,16 @@ class TestResult(object):
         title_aug += ' db=' + (ibs.get_dbname())
         try:
             if '_cfgname' in test_result.common_acfg['common']:
-                annot_cfgname = test_result.common_acfg['common']['_cfgname']
+                try:
+                    annot_cfgname = test_result.common_acfg['common']['_cfgstr']
+                except KeyError:
+                    annot_cfgname = test_result.common_acfg['common']['_cfgname']
             else:
                 annot_cfgname = '[' + ','.join([cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]) + ']'
-            pipeline_cfgname = test_result.common_cfgdict['_cfgname']
+            try:
+                pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
+            except KeyError:
+                pipeline_cfgname = test_result.common_cfgdict['_cfgname']
             annot_cfgname = test_result._shorten_lbls(annot_cfgname)
             pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
             title_aug += ' a=' + annot_cfgname
