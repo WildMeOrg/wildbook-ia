@@ -338,12 +338,6 @@ def set_yticks(tick_set):
     ax.set_yticks(tick_set)
 
 
-def set_xlabel(lbl, ax=None):
-    if ax is None:
-        ax = gca()
-    ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
-
-
 def customize_fontprop(font_prop, **fontkw):
     font_keys = ['size', 'weight']
     valid_keys = ut.dict_keysubset(fontkw, font_keys)
@@ -360,13 +354,31 @@ def customize_fontprop(font_prop, **fontkw):
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
-    ax.set_title(title, fontproperties=font_prop)
+    titlesize = fontkw.get('titlesize', 8)
+    titlekw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+    }
+    #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
+    ax.set_title(title, **titlekw)
 
 
-def set_ylabel(lbl):
+def set_xlabel(lbl, ax=None, **kwargs):
+    if ax is None:
+        ax = gca()
+    labelkw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+    }
+    ax.set_xlabel(lbl, **labelkw)
+    #ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
+
+
+def set_ylabel(lbl, **kwargs):
     ax = gca()
-    ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
+    labelkw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+    }
+    ax.set_ylabel(lbl, **labelkw)
+    #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True, size=12, font=None):

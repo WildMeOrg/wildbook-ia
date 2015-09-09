@@ -5,6 +5,22 @@ from plottool import abstract_interaction
 import plottool.interact_helpers as ih
 
 
+def check_if_subinteract(func):
+    try:
+        print('Checking if subinteraction')
+        print('func = %r' % (func,))
+        is_sub = issubclass(
+            func, abstract_interaction.AbstractInteraction)
+    except TypeError:
+        is_sub = False
+    if is_sub:
+        print('... yup')
+    else:
+        print('... nope')
+
+    return is_sub
+
+
 class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     """
     Append a list of functions that draw plots and this interaction will plot
@@ -27,13 +43,10 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
     def show_page(self):
         fig = ih.begin_interaction('expandable', self.fnum)
         for pnum, func in zip(self.pnum_list, self.func_list):
-            try:
-                if issubclass(func, abstract_interaction.AbstractInteraction):
-                    # Hack
-                    func.plot(self.fnum, pnum)
-                else:
-                    raise TypeError('bad class')
-            except TypeError:
+            if check_if_subinteract(func):
+                # Hack
+                func.static_plot(self.fnum, pnum)
+            else:
                 func(self.fnum, pnum)
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
@@ -53,22 +66,9 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 fnum = pt.next_fnum()
                 #pt.figure(fnum=fnum)
                 pnum = (1, 1, 1)
-                #if issubclass(func, abstract_interaction.AbstractInteraction):
-                #    func(fnum, pnum)
-                #else:
-                #func(fnum, pnum)
-                try:
-                    print('Checking if subinteraction')
-                    is_sub = issubclass(
-                        func, abstract_interaction.AbstractInteraction)
-                except TypeError:
-                    is_sub = False
-
-                if not is_sub:
-                    print('...nope')
+                if not check_if_subinteract(func):
                     func(fnum, pnum)
                 else:
-                    print('...yup')
                     inter = func(fnum=fnum)
                     inter.show_page()
                 fig = pt.gcf()

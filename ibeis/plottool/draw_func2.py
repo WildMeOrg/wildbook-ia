@@ -701,14 +701,14 @@ def pad_axes(pad, xlim=None, ylim=None):
     ax.set_ylim(min_y - pad, max_y + pad)
 
 
-def presetup_axes(x_label='x', y_label='y', title_pref='', title=None, equal_aspect=False, ax=None):
+def presetup_axes(x_label='x', y_label='y', title_pref='', title=None, equal_aspect=False, ax=None, **kwargs):
     if ax is None:
         ax = gca()
-    ax.set_xlabel(x_label, fontproperties=custom_constants.FONTS.xlabel)
-    ax.set_ylabel(y_label, fontproperties=custom_constants.FONTS.xlabel)
+    set_xlabel(x_label, **kwargs)
+    set_ylabel(y_label, **kwargs)
     if title is None:
         title = x_label + ' vs ' + y_label
-    set_title(title_pref + ' ' + title, ax=None)
+    set_title(title_pref + ' ' + title, ax=None, **kwargs)
     if equal_aspect:
         ax.set_aspect('equal')
 

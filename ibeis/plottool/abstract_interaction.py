@@ -106,8 +106,13 @@ class AbstractInteraction(object):
         (preferably override)
         """
         fig = ih.begin_interaction('HackyInteraction', self.fnum)
-        self.plot(self.fnum, (1, 1, 1))
-        ih.connect_callback(fig, 'button_press_event', self.onclick)
+        if hasattr(self, 'plot'):
+            self.plot(self.fnum, (1, 1, 1))
+        else:
+            self.static_plot(self.fnum, (1, 1, 1))
+        ih.connect_callback(fig, 'button_press_event', self.on_click)
+        ih.connect_callback(fig, 'key_press_event', self.on_key_press)
+        #ih.connect_callback(fig, 'motion_notify_event', self.on_motion)
 
     def bring_to_front(self):
         fig_presenter.bring_to_front(self.fig)
@@ -129,14 +134,24 @@ class AbstractInteraction(object):
         print('[pt] handling close')
         unregister_interaction(self)
 
-    def onclick(self, event):
+    #def on_motion(self, event):
+    #    print('event = %r' % (event.__dict__,))
+    #    pass
+
+    def on_key_press(self, event):
+        pass
+
+    def on_click(self, event):
         #raise NotImplementedError('implement yourself')
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
-            pass
+            self.on_click_inside(event, ax)
+            #pass
+        else:
+            self.on_click_outside(event)
 
-    def onclick_inside(self, event, ax):
+    def on_click_inside(self, event, ax):
         pass
 
-    def onclick_outside(self, event):
+    def on_click_outside(self, event):
         pass

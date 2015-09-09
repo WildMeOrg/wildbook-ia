@@ -539,7 +539,8 @@ def plot_score_histograms(scores_list,
                           pnum=(1, 1, 1),
                           figtitle=None,
                           score_label='score',
-                          score_thresh=None):
+                          score_thresh=None,
+                          **kwargs):
     """
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
@@ -621,14 +622,22 @@ def plot_score_histograms(scores_list,
         xvalues = [score_thresh] * len(ydomain)
         df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh')
 
+    import matplotlib as mpl
+    labelkw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+    }
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
     ax = df2.gca()
-    ax.set_xlabel(score_label)
-    ax.set_ylabel('frequency')
+    ax.set_xlabel(score_label, **labelkw)
+    ax.set_ylabel('frequency', **labelkw)
     df2.dark_background()
-    ax.set_title(figtitle)
+    titlesize = kwargs.get('titlesize', 8)
+    titlekw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+    }
+    ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best')
+    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
     print('[df2] show_histogram()')
     df2.dark_background()
     #return fig
@@ -643,7 +652,8 @@ def plot_probabilities(prob_list,
                        figtitle='plot_probabilities',
                        fnum=None,
                        pnum=(1, 1, 1),
-                       fill=False):
+                       fill=False,
+                       **kwargs):
     """
     Input: a list of scores (either chip or descriptor)
 
@@ -720,15 +730,23 @@ def plot_probabilities(prob_list,
         ydata_max = max([_ydata.max() for _ydata in prob_list])
         ydomain = np.linspace(ydata_min, ydata_max, 10)
         df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-', label='score thresh')
+    import matplotlib as mpl
+    labelkw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+    }
 
     ax = df2.gca()
     #ax.set_xlim(xdata.min(), xdata.max())
-    ax.set_xlabel('score value')
-    ax.set_ylabel('probability')
+    ax.set_xlabel('score value', **labelkw)
+    ax.set_ylabel('probability', **labelkw)
     df2.dark_background()
-    ax.set_title(figtitle)
+    titlesize = kwargs.get('titlesize', 8)
+    titlekw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+    }
+    ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best')
+    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
     #df2.iup()
 
 
@@ -748,8 +766,9 @@ def plot_sorted_scores(scores_list,
                        logscale=True,
                        figtitle=None,
                        score_label='score',
-                       score_thresh=None,
-                       use_stems=None):
+                       thresh=None,
+                       use_stems=None,
+                       **kwargs):
     """
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
@@ -839,10 +858,10 @@ def plot_sorted_scores(scores_list,
         df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
                  markersize=markersize)
 
-    if score_thresh is not None:
+    if thresh is not None:
         indicies = np.arange(len(sorted_labelx))
         #print('indicies.shape = %r' % (indicies.shape,))
-        df2.plot(indicies, [score_thresh] * len(indicies), 'g-', label='score thresh')
+        df2.plot(indicies, [thresh] * len(indicies), 'g-', label=score_label + ' thresh=%.2f' % (thresh,))
 
     if logscale:
         set_logyscale_from_data(sorted_scores)
@@ -851,12 +870,22 @@ def plot_sorted_scores(scores_list,
     # dont let xlimit go far over the number of labels
     ax.set_xlim(0, len(sorted_labelx) + 1)
 
-    ax.set_xlabel('sorted ' +  score_label + ' indices')
-    ax.set_ylabel(score_label)
+    import matplotlib as mpl
+    labelkw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+    }
+
+    ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
+    ax.set_ylabel(score_label, **labelkw)
     df2.dark_background()
-    ax.set_title(figtitle)
+    titlesize = kwargs.get('titlesize', 8)
+    titlekw = {
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+    }
+    ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best')
+    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
+    #df2.legend(loc='best')
     #df2.iup()
 
 

@@ -144,14 +144,15 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     #dist_list = ['bar_L2_sift', 'cos_sift']
     dist_list = ['L2_sift', 'bar_cos_sift']
     dist_str_list = []
+    import vtool as vt
     if origsift is not None:
-        distmap_orig = ut.compute_distances(sift, origsift, dist_list)
+        distmap_orig = vt.compute_distances(sift, origsift, dist_list)
         dist_str_list.append(
             'query_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
                                         for key, val in six.iteritems(distmap_orig)])
         )
     if prevsift is not None:
-        distmap_prev = ut.compute_distances(sift, prevsift, dist_list)
+        distmap_prev = vt.compute_distances(sift, prevsift, dist_list)
         dist_str_list.append(
             'prev_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
                                        for key, val in six.iteritems(distmap_prev)])
