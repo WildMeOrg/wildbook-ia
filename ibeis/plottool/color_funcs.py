@@ -35,7 +35,7 @@ def brighten_rgb(rgb, amount):
     return adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust)
 
 
-def testshow_colors(rgb_list):
+def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
     import plottool as pt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
@@ -44,7 +44,11 @@ def testshow_colors(rgb_list):
     stacked_block = pt.stack_image_list(block_list, vert=False)
     # convert to bgr
     stacked_block = stacked_block[:, :, ::-1]
-    pt.imshow((255 * stacked_block).astype(np.uint8))
+    uint8_img = (255 * stacked_block).astype(np.uint8)
+    if gray:
+        import cv2
+        uint8_img = cv2.cvtColor(uint8_img, cv2.COLOR_RGB2GRAY)
+    pt.imshow(uint8_img)
     pt.show_if_requested()
 
 
@@ -239,6 +243,9 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
     References:
         http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
 
+    CommandLine:
+        python -m plottool.color_funcs --exec-distinct_colors --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.color_funcs import *  # NOQA
@@ -249,21 +256,28 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
         >>> # execute function
         >>> hue_range = ut.get_argval('--hue-range', list, default=(0.00, 1.0))
         >>> RGB_tuples = distinct_colors(N, brightness, randomize, hue_range)
-        >>> if ut.show_was_requested():
-        >>>     color_list = RGB_tuples
-        >>>     testshow_colors(color_list)
         >>> # verify results
         >>> assert len(RGB_tuples) == N
         >>> result = str(RGB_tuples)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> color_list = RGB_tuples
+        >>> testshow_colors(color_list)
+        >>> ut.show_if_requested()
     """
     # TODO: Add sin wave modulation to the sat and value
-    sat = brightness
-    val = brightness
-    hmin, hmax = hue_range
-    hue_list = np.linspace(hmin, hmax, N, endpoint=False, dtype=np.float)
-    HSV_tuples = [(hue, sat, val) for hue in hue_list]
-    RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
+    #import plottool as pt
+    #cmap = pt.plt.cm.jet
+    cmap = None
+    if cmap is not None:
+        RGB_tuples = list(map(tuple, cmap(np.linspace(0, 1, N))))
+    else:
+        sat = brightness
+        val = brightness
+        hmin, hmax = hue_range
+        hue_list = np.linspace(hmin, hmax, N, endpoint=False, dtype=np.float)
+        HSV_tuples = [(hue, sat, val) for hue in hue_list]
+        RGB_tuples = [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]
     if randomize:
         ut.deterministic_shuffle(RGB_tuples)
     return RGB_tuples

@@ -117,6 +117,7 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
 
     fig = multi_plot(
         x_data, cdf_list,
+        kind='bar',
         label_list=label_list, color_list=color_list, marker_list=marker_list,
         markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
         num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
@@ -140,14 +141,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         can append _list to any of these
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
 
-    Args:
-        xdata (?):
-        ydata_list (list):
-
-    Kwargs:
-        fnum, pnum, title, xlabel, ylabel, use_legend, legend_loc, ticksize,
-        xmin, xmax, ymin, ymax, num_xticks, num_yticks, xpad, ypad,
-        xpad_factor, ypad_factor, legendsize
+    References:
+        http://matplotlib.org/examples/api/barchart_demo.html
 
     CommandLine:
         python -m plottool.plots --exec-multi_plot
@@ -166,10 +161,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     import matplotlib as mpl
     import plottool as pt
 
+    xdata = np.array(xdata).copy()
     num_lines = len(ydata_list)
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
     pnum = kwargs.get('pnum', None)
+    kind = kwargs.get('kind', 'plot')
+    transpose = kwargs.get('transpose', False)
 
     def parsekw_list(key, kwargs):
         """ copies relevant plot commands into plot_list_kw """
@@ -183,44 +181,99 @@ def multi_plot(xdata, ydata_list, **kwargs):
         return val_list
 
     # Parse out arguments to ax.plot
-    plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
+    plot_kw_keys = ['label', 'color', 'marker', 'markersize',
+                    'markeredgewidth', 'linewidth', 'linestyle']
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
-    plot_list_kw = dict([(key, vals) for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None])
+    plot_list_kw = dict([
+        (key, vals)
+        for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None
+    ])
 
     if 'color' not in plot_list_kw:
         plot_list_kw['color'] = pt.distinct_colors(num_lines)
-    if 'marker' not in plot_list_kw:
-        plot_list_kw['marker']  = pt.distinct_markers(num_lines)
 
+    if kind == 'plot':
+        if 'marker' not in plot_list_kw:
+            plot_list_kw['marker'] = pt.distinct_markers(num_lines)
+    if kind == 'bar':
+        # Remove non-bar kwargs
+        ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker', 'markersize', 'linestyle'])
+        width = kwargs.get('width', .9) / num_lines
+        if transpose:
+            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
+            plot_list_kw['height'] = [width] * num_lines
+        else:
+            plot_list_kw['width'] = [width] * num_lines
+        #xdata - (width / 2)
+
+    # nest into a list of dicts for each line in the multiplot
     valid_keys = list(plot_list_kw.keys())
     valid_vals = plot_list_kw.values()
     plot_kw_list = [dict(zip(valid_keys, vals)) for vals in zip(*valid_vals)]
 
     # Parse out axes formating options
     title           = kwargs.get('title', None)
-    xlabel          = kwargs.get('xlabel', '')
-    ylabel          = kwargs.get('ylabel', '')
-    use_legend      = kwargs.get('use_legend', True)
+    use_legend      = kwargs.get('use_legend', 'label' in valid_keys)
     legend_loc      = kwargs.get('legend_loc', 'best')
 
     # Setup figure
     fig = pt.figure(fnum=fnum, pnum=pnum)
 
+    # +---------------
     # Draw plot lines
     ax = pt.gca()
-    xdata = np.array(xdata)
     ydata_list = np.array(ydata_list)
-    for ydata, plot_kw in zip(ydata_list, plot_kw_list):
+
+    if transpose:
+        if kind == 'bar':
+            plot_func = ax.barh
+        elif kind == 'plot':
+            def plot_func(_x, _y, **kw):
+                return ax.plot(_y, _x, **kw)
+    else:
+        plot_func = getattr(ax, kind)  # usually ax.plot
+
+    for count, (ydata, plot_kw) in enumerate(zip(ydata_list, plot_kw_list)):
         ymask = np.isfinite(ydata)
         ydata_ = ydata.compress(ymask)
         xdata_ = xdata.compress(ymask)
-        ax.plot(xdata_, ydata_, **plot_kw)
+        #ax.plot(xdata_, ydata_, **plot_kw)
+        if kind == 'bar':
+
+            baseoffset = (width * num_lines) / 2
+            lineoffset = (width * count)
+
+            offset = baseoffset - lineoffset  # Fixeme for more histogram bars
+            xdata_ = xdata_ - offset
+        plot_func(xdata_, ydata_, **plot_kw)
+    # L________________
 
     #max_y = max(np.max(y_data), max_y)
     #min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
 
+    if transpose:
+        #xdata_list = ydata_list
+        ydata = xdata
+        # Hack / Fix any transpose issues
+        def transpose_key(key):
+            if key.startswith('x'):
+                return 'y' + key[1:]
+            elif key.startswith('y'):
+                return 'x' + key[1:]
+            elif key.startswith('num_x'):
+                # hackier, fixme to use regex or something
+                return 'num_y' + key[5:]
+            elif key.startswith('num_y'):
+                # hackier, fixme to use regex or something
+                return 'num_x' + key[5:]
+            else:
+                return key
+        kwargs = {transpose_key(key): val for key, val in kwargs.items()}
+
     # Setup axes labeling
 
+    xlabel          = kwargs.get('xlabel', '')
+    ylabel          = kwargs.get('ylabel', '')
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
     }
@@ -242,23 +295,49 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
+    num_yticks = kwargs.get('num_yticks', None)
     if num_xticks is not None:
         # TODO check if xdata is integral
-        xticks = np.linspace(xmin, xmax, num_xticks)
         if ut.is_int(xdata):
-            xticks = np.unique(xticks.astype(np.int32))
+            #xticks = np.unique(xticks.astype(np.int32))
+            xticks = np.linspace(np.ceil(xmin), np.floor(xmax), num_xticks).astype(np.int32)
+        else:
+            xticks = np.linspace((xmin), (xmax), num_xticks)
         ax.set_xticks(xticks)
         #max_pos = (xdata.max() + 1)
         #step_size = int(max_pos // num_xticks)
         #ax.set_xticks(np.arange(1, max_pos, step_size))
-    num_yticks = kwargs.get('num_yticks', None)
     if num_yticks is not None:
-        yticks = np.linspace(ymin, ymax, num_yticks)
         #ystep = (ymax - ymin) // (num_yticks - 1)
         #yticks = np.arange(ymin, ymax + ystep, ystep)
         if ut.is_int(ydata):
-            yticks = np.unique(yticks.astype(np.int32))
+            yticks = np.linspace(np.ceil(ymin), np.floor(ymax), num_yticks).astype(np.int32)
+            #yticks = np.unique(yticks.astype(np.int32))
+        else:
+            yticks = np.linspace((ymin), (ymax), num_yticks)
         ax.set_yticks(yticks)
+
+    yticklabels = kwargs.get('yticklabels', None)
+    if yticklabels is not None:
+        # Hack ONLY WORKS WHEN TRANSPOSE = True
+        # Overrides num_yticks
+        ax.set_yticks(ydata)
+        ax.set_yticklabels(yticklabels)
+
+    xticklabels = kwargs.get('xticklabels', None)
+    if xticklabels is not None:
+        # Overrides num_xticks
+        ax.set_xticks(xdata)
+        ax.set_xticklabels(xticklabels)
+
+    xtick_rotation = kwargs.get('xtick_rotation', None)
+    if xtick_rotation is not None:
+        [lbl.set_rotation(xtick_rotation) for lbl in ax.get_xticklabels()]
+    ytick_rotation = kwargs.get('ytick_rotation', None)
+    if ytick_rotation is not None:
+        [lbl.set_rotation(ytick_rotation) for lbl in ax.get_yticklabels()]
+
+    # Axis padding
 
     xpad = kwargs.get('xpad', None)
     ypad = kwargs.get('ypad', None)
@@ -270,8 +349,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ypad = (ymax - ymin) * ypad_factor
     xpad = 0 if xpad is None else xpad
     ypad = 0 if ypad is None else ypad
-    xmin, xmax = (xmin - xpad), (xmax + xpad)
-    ymin, ymax = (ymin - ypad), (ymax + ypad)
+    ypad_high = kwargs.get('ypad_high', ypad)
+    ypad_low  = kwargs.get('ypad_low', ypad)
+    xpad_high = kwargs.get('xpad_high', xpad)
+    xpad_low  = kwargs.get('xpad_low', xpad)
+    xmin, xmax = (xmin - xpad_low), (xmax + xpad_high)
+    ymin, ymax = (ymin - ypad_low), (ymax + ypad_high)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
 
@@ -286,7 +369,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
     if use_legend:
         df2.legend(loc=legend_loc, size=kwargs.get('legendsize', 8))
 
-    pt.dark_background()
+    use_darkbackground = kwargs.get('use_darkbackground', True)
+    if use_darkbackground:
+        pt.dark_background()
     return fig
 
 
@@ -1350,6 +1435,65 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
     #ax = pt.gca()
     pt.set_xlabel(label + '\nsize=%d' % (size,))
+
+
+def word_histogram2(text_list, **kwargs):
+    """
+    Args:
+        text_list (list):
+
+    CommandLine:
+        python -m plottool.plots --exec-word_histogram2 --show
+
+    References:
+        http://stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
+        >>> #text_list = [x.strip() for x in ut.lorium_ipsum().split()]
+        >>> result = word_histogram2(text_list)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    text_hist = ut.dict_hist(text_list)
+    text_vals = list(text_hist.values())
+    sortx = ut.list_argsort(text_vals)[::-1]
+    bin_labels = ut.list_take(list(text_hist.keys()), sortx)
+    freq = ut.list_take(text_vals, sortx)
+    xints = np.arange(len(bin_labels))
+
+    width = .95
+    freq_list = [np.array(freq, dtype=np.int)]
+    num_yticks = max([_freq.max() for _freq in freq_list]) + 1
+    pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
+                  #kind='plot',
+                  kind='bar',
+                  width=width,
+                  #xtick_rotation=90,
+                  num_yticks=num_yticks,
+                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
+                  transpose=True,
+                  ylabel='Freq', xlabel='Word', **kwargs)
+    #ax.autofmt_xdate()
+    #plt.setp(plt.xticks()[1], rotation=30, ha='right')
+    #pt.gcf().autofmt_xdate()
+
+
+def wordcloud(text, fnum=None, pnum=None):
+    """
+    References:
+        http://bioinfoexpert.com/?p=592
+        sudo pip install git+git://github.com/amueller/word_cloud.git
+    """
+    import plottool as pt
+    from wordcloud import WordCloud
+    fnum = pt.ensure_fnum(fnum)
+    pt.figure(fnum=fnum, pnum=pnum)
+    wordcloud = WordCloud().generate(text)
+    pt.plt.imshow(wordcloud)
+    pt.plt.axis('off')
 
 
 if __name__ == '__main__':
