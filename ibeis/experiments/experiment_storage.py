@@ -616,10 +616,7 @@ class TestResult(object):
         CommandLine:
             python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :
             python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
-
-        References:
-            http://bioinfoexpert.com/?p=592
-            sudo pip install git+git://github.com/amueller/word_cloud.git
+            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h,max_gt_rank=5
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -631,18 +628,18 @@ class TestResult(object):
             >>> all_tags = test_result.get_all_tags()
             >>> selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
-            >>> print(ut.dict_str(ut.dict_hist(flat_tags)))
+            >>> print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
             >>> ut.quit_if_noshow()
-            >>> from wordcloud import WordCloud
-            >>> wordcloud = WordCloud().generate(' '.join(flat_tags))
             >>> import plottool as pt
-            >>> pt.plt.imshow(wordcloud)
-            >>> pt.plt.axis('off')
+            >>> pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
+            >>> pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
             >>> pt.set_figtitle(cfghelpers.get_cfg_lbl(filt_cfg))
             >>> ut.show_if_requested()
         """
-        gt_tags = test_result.get_gf_tags()
-        gf_tags = test_result.get_gt_tags()
+        gt_tags = test_result.get_gt_tags()
+        gf_tags = test_result.get_gf_tags()
+        #gt_tags = [[['gt_' + t for t in tag] for tag in tags] for tags in gt_tags]
+        #gf_tags = [[['gf_' + t for t in tag] for tag in tags] for tags in gf_tags]
         all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
         return all_tags
 
@@ -760,6 +757,7 @@ class TestResult(object):
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
             ('max_gtrank', partial(operator.le, truth2_prop['gt']['rank'])),
             ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
+            ('max_gf_timedelta', partial(operator.le, truth2_prop['gf']['timedelta'])),
             ('min_tags', partial(compare_num_tags, operator.ge)),
             ('max_tags', partial(compare_num_tags, operator.le)),
             ('min_gf_tags', partial(compare_num_gf_tags, operator.ge)),
@@ -769,11 +767,18 @@ class TestResult(object):
         ]
         filt_cfg = filt_cfg.copy()
 
-        if 'min_gf_timedelta' in filt_cfg:
-            if isinstance(filt_cfg['min_gf_timedelta'], str):
-                if filt_cfg['min_gf_timedelta'].endswith('h'):
-                    # hack to convert to seconds
-                    filt_cfg['min_gf_timedelta'] = int(filt_cfg['min_gf_timedelta'][0:-1]) * 60 * 60
+        timedelta_keys = [
+            'min_gf_timedelta',
+            'max_gf_timedelta',
+        ]
+
+        for tdkey in timedelta_keys:
+            if tdkey in filt_cfg and isinstance(filt_cfg[tdkey], str):
+                # hack to convert to seconds
+                if filt_cfg[tdkey].endswith('m'):
+                    filt_cfg[tdkey] = int(filt_cfg[tdkey][0:-1]) * 60
+                elif filt_cfg[tdkey].endswith('h'):
+                    filt_cfg[tdkey] = int(filt_cfg[tdkey][0:-1]) * 60 * 60
 
         if verbose:
             print('Sampling from is_valid.size=%r with %r' % (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
@@ -809,9 +814,26 @@ class TestResult(object):
         #    gt_aids = truth2_prop['gt']['aid'][is_valid]
         #    qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
 
-        #    np.vstack((qaids, gt_aids, gt_ranks)).T
-
         qx_list, cfgx_list = np.nonzero(is_valid)
+
+        #    np.vstack((qaids, gt_aids, gt_ranks)).T
+        orderby = filt_cfg.get('orderby', None)
+        reverse = filt_cfg.get('reverse', False)
+        #orderby = filt_cfg.get('orderbydesc', None)
+        if orderby is not None:
+            order_values = truth2_prop['gt']['score']
+            flat_order = order_values[is_valid]
+            # Flat sorting indeices in a matrix
+            if reverse:
+                sortx = flat_order.argsort()[::-1]
+                #sortx_mat = order_values.flatten().argsort()[::-1].reshape(order_values.shape)
+            else:
+                sortx = flat_order.argsort()
+            #sortx = sortx_mat[is_valid]
+            qx_list = qx_list.take(sortx, axis=0)
+            cfgx_list = cfgx_list.take(sortx, axis=0)
+            # order_values[tuple(case_pos_list.T)]  # assert in order
+
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
         return case_pos_list
 
@@ -891,6 +913,9 @@ class TestResult(object):
         truth2_prop['gf']['aid'] = test_result.get_infoprop_mat('qx2_gf_aid', common_qaids)
         truth2_prop['gt']['rank'] = test_result.get_infoprop_mat('qx2_gt_rank', common_qaids)
         truth2_prop['gf']['rank'] = test_result.get_infoprop_mat('qx2_gf_rank', common_qaids)
+
+        truth2_prop['gt']['score'] = np.nan_to_num(test_result.get_infoprop_mat('qx2_gt_raw_score', common_qaids))
+        truth2_prop['gf']['score'] = np.nan_to_num(test_result.get_infoprop_mat('qx2_gf_raw_score', common_qaids))
 
         # Cast nans to ints
         for truth in ['gt', 'gf']:

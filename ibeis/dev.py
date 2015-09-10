@@ -55,7 +55,7 @@ def hack_argv():
                 sys.argv.extend([
                     '--dpath=~/latex/crall-candidacy-2015/',
                     '--clipwhite',
-                    '--diskshow',
+                    #'--diskshow',
                     '--contextadjust',
                     '--dpi=256',
                 ])
@@ -89,7 +89,7 @@ def hack_argv():
                     '--dpath=~/latex/crall-candidacy-2015/',
                     '--dpi=256',
                     '--clipwhite',
-                    '--diskshow',
+                    #'--diskshow',
                     '--contextadjust',
                 ])
                 pass
@@ -140,12 +140,14 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist']),
     ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases', 'cases']),
+    ('ibeis.experiments.experiment_drawing', 'draw_casetag_hist', ['taghist']),
+
     ('ibeis.experiments.experiment_drawing', 'draw_results'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
-    ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list'),
-    ('ibeis.experiments.experiment_printres', 'print_results'),
+    ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
+    ('ibeis.experiments.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.experiments.experiment_printres', 'print_latexsum'),
     ('ibeis.dbio.export_subset', 'export_annots'),
     ('ibeis.dev', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),

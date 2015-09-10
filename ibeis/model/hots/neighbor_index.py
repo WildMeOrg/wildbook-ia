@@ -39,7 +39,8 @@ NOSAVE_FLANN = ut.get_argflag('--nosave-flann')
 NOCACHE_UUIDS = ut.get_argflag('--nocache-uuids') and USE_HOTSPOTTER_CACHE
 
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
-MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=2)
+#MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=2)
+MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=1)
 NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
 # Background process for building indexes
 CURRENT_THREAD = None

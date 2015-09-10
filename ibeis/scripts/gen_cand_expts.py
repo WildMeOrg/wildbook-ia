@@ -15,6 +15,10 @@ CommandLine:
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline:sample_size=None -a controlled --db PZ_Master0 --acfginfo
     python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db NNP_Master3 --acfginfo
 
+    # Regen Figures
+    python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+    ./regen_figdef_expt.sh
+
 
     # Print all annotation configs that will be used
     python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full

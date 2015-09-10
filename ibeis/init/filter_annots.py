@@ -216,6 +216,14 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
                 * Common sampling - takes care of things like min time delta, species, quality viewpoint etc.
                 * query sampling
                 * database sampling
+            Basic idea is
+                * Sample large pool
+                * Partition pool into query and database
+            Requires:
+                * base sampling params
+                * partition1 params
+                * partition2 params
+                * inter partition params?
         """
 
         # Can probably move these commands around
@@ -267,7 +275,6 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
     if use_cache:
         ut.ensuredir(acfg_cachedir)
         ut.save_cache(acfg_cachedir, acfg_cachename, aid_cachestr, (qaid_list, daid_list))
-    #available_qaids qcfg['ref_has_viewpoint']
     return qaid_list, daid_list
 
 
@@ -288,11 +295,19 @@ def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
             default_aids = ibs.get_valid_aids()
         elif default_aids in ['allgt', 'gt']:
             default_aids = ibs.get_valid_aids(hasgt=True)
-        elif default_aids in ['largetime']:
+        elif default_aids in ['largetime24']:
+            # HACK for large timedelta base sample pool
             default_aids = ibs.get_valid_aids(
                 is_known=True,
                 has_timestamp=True,
                 min_timedelta=24 * 60 * 60,
+            )
+        elif default_aids in ['largetime12']:
+            # HACK for large timedelta base sample pool
+            default_aids = ibs.get_valid_aids(
+                is_known=True,
+                has_timestamp=True,
+                min_timedelta=12 * 60 * 60,
             )
         elif default_aids in ['other']:
             # Hack, should actually become the standard.
@@ -543,42 +558,37 @@ def filter_independent_properties(ibs, available_aids, aidcfg, prefix='', verbos
     return available_aids
 
 
-@profile
-def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix='', verbose=VERB_TESTDATA):
-    """
-    DEPRICATE
-    """
-    from ibeis import ibsfuncs
-    import functools
-
-    available_aids = sorted(available_aids)
-    reference_aids = sorted(reference_aids)
-
-    if verbose:
-        print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
-        if VERYVERB_TESTDATA:
-            with ut.Indenter('  '):
-                ibs.print_annot_stats(available_aids, prefix, per_name_vpedge=None)
-
-    if aidcfg['ref_has_viewpoint'] is not None:
-        print(' * Filtering such that %saids has refs with viewpoint=%r' % (prefix, aidcfg['ref_has_viewpoint']))
-        species = ibs.get_primary_database_species(available_aids)
-        if aidcfg['ref_has_viewpoint']  == 'primary':
-            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species)]
-        elif aidcfg['ref_has_viewpoint']  == 'primary1':
-            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1, 1)]
-        gt_ref_grouped_aids, gt_avl_grouped_aids, gf_ref_grouped_aids, gf_avl_grouped_aids = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
-        # Filter to only available aids that have a reference with specified viewpoint
-        is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)
-        multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, gt_ref_grouped_aids)))
-        available_aids = ut.flatten(ut.list_compress(gt_avl_grouped_aids, multi_flags))
-        available_aids = sorted(available_aids)
-
-    if verbose:
-        print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
-        print(' * R-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
-
-    return available_aids
+#@profile
+#def filter_reference_properties(ibs, available_aids, aidcfg, reference_aids, prefix='', verbose=VERB_TESTDATA):
+#    """
+#    DEPRICATE
+#    """
+#    from ibeis import ibsfuncs
+#    import functools
+#    available_aids = sorted(available_aids)
+#    reference_aids = sorted(reference_aids)
+#    if verbose:
+#        print(' * [FILTER REFERENCE %sAIDS]' % (prefix.upper()))
+#        if VERYVERB_TESTDATA:
+#            with ut.Indenter('  '):
+#                ibs.print_annot_stats(available_aids, prefix, per_name_vpedge=None)
+#    if aidcfg['ref_has_viewpoint'] is not None:
+#        print(' * Filtering such that %saids has refs with viewpoint=%r' % (prefix, aidcfg['ref_has_viewpoint']))
+#        species = ibs.get_primary_database_species(available_aids)
+#        if aidcfg['ref_has_viewpoint']  == 'primary':
+#            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species)]
+#        elif aidcfg['ref_has_viewpoint']  == 'primary1':
+#            valid_yaws = [ibsfuncs.get_primary_species_viewpoint(species, 1, 1)]
+#        gt_ref_grouped_aids, gt_avl_grouped_aids, gf_ref_grouped_aids, gf_avl_grouped_aids = ibs.partition_annots_into_corresponding_groups(reference_aids, available_aids)
+#        # Filter to only available aids that have a reference with specified viewpoint
+#        is_valid_yaw = functools.partial(ibs.get_viewpoint_filterflags, valid_yaws=valid_yaws)
+#        multi_flags = list(map(any, ibs.unflat_map(is_valid_yaw, gt_ref_grouped_aids)))
+#        available_aids = ut.flatten(ut.list_compress(gt_avl_grouped_aids, multi_flags))
+#        available_aids = sorted(available_aids)
+#    if verbose:
+#        print(' * HAHID: ' + ibs.get_annot_hashid_semantic_uuid(available_aids, prefix=prefix.upper()))
+#        print(' * R-FILTERED: len(available_%saids)=%r\n' % (prefix, len(available_aids)))
+#    return available_aids
 
 
 def get_reference_preference_order(ibs, gt_ref_grouped_aids, gt_avl_grouped_aids, prop_getter, cmp_func, aggfn, rng, verbose=VERB_TESTDATA):
@@ -632,7 +642,7 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
     offset              = aidcfg['sample_offset']
     sample_rule_ref     = aidcfg['sample_rule_ref']
     sample_rule         = aidcfg['sample_rule']
-    gt_avl_aids         = aidcfg['gt_avl_aids']
+    #gt_avl_aids         = aidcfg['gt_avl_aids']
 
     if sample_per_ref_name is None:
         sample_per_ref_name = sample_per_name
@@ -651,23 +661,19 @@ def reference_sample_available_aids(ibs, available_aids, aidcfg, reference_aids,
         available_aids = ut.setdiff_ordered(available_aids, reference_aids)
         available_aids = sorted(available_aids)
 
-    if gt_avl_aids is not None:
-        if verbose:
-            print(' * Excluding gt_avl_aids custom specified by name')
-        # Pick out the annotations that do not belong to the same name as the given gt_avl_aids
-        complement = np.setdiff1d(available_aids, gt_avl_aids)
-        partitioned_sets = ibs.partition_annots_into_corresponding_groups(gt_avl_aids, complement)
-        assert len(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[1])))).intersection(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[3])))))) == 0
-        gf_avl_aids = (ut.flatten(partitioned_sets[3]))
-        assert len(set(ibs.get_annot_name_rowids(reference_aids)).intersection(set(ibs.get_annot_name_rowids(gf_avl_aids) ))) == 0
-        #ibs.get_annot_groundtruth(reference_aids, daid_list=gf_avl_aids)
-        #ibs.get_annot_groundtruth(reference_aids, daid_list=gt_avl_aids)
-        #ibs.get_annot_groundtruth(reference_aids, daid_list=available_aids)
-        available_aids = np.hstack([gt_avl_aids, gf_avl_aids])
-        available_aids.sort()
-        available_aids = available_aids.tolist()
-        available_aids = sorted(available_aids)
-        #sorted(gt_avl_aids) == sorted(ut.flatten(partitioned_sets[0]))
+    #if gt_avl_aids is not None:
+    #    if verbose:
+    #        print(' * Excluding gt_avl_aids custom specified by name')
+    #    # Pick out the annotations that do not belong to the same name as the given gt_avl_aids
+    #    complement = np.setdiff1d(available_aids, gt_avl_aids)
+    #    partitioned_sets = ibs.partition_annots_into_corresponding_groups(gt_avl_aids, complement)
+    #    assert len(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[1])))).intersection(set(ut.flatten((ibs.unflat_map(ibs.get_annot_name_rowids, partitioned_sets[3])))))) == 0
+    #    gf_avl_aids = (ut.flatten(partitioned_sets[3]))
+    #    assert len(set(ibs.get_annot_name_rowids(reference_aids)).intersection(set(ibs.get_annot_name_rowids(gf_avl_aids) ))) == 0
+    #    available_aids = np.hstack([gt_avl_aids, gf_avl_aids])
+    #    available_aids.sort()
+    #    available_aids = available_aids.tolist()
+    #    available_aids = sorted(available_aids)
 
     if not (sample_per_ref_name is not None or sample_size is not None):
         return available_aids

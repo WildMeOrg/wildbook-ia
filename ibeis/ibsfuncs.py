@@ -85,7 +85,8 @@ def postinject_func(ibs):
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ut.inject_func_as_method(ibs, unflat_getter, allow_override=ibs.allow_override)
+        ut.inject_func_as_method(ibs, unflat_getter,
+                                 allow_override=ibs.allow_override)
     # very hacky, but useful
     ibs.unflat_map = unflat_map
 
@@ -378,6 +379,9 @@ ANNOTMATCH_PROPS_OTHER = [
     'orientation',  # orientation caused failure
     'shouldhavemore',  # orientation caused failure
     'success',  # A good success case
+    'random',  # gf case has random matches, the gt is to blame
+    'BadShoulder',  # gf is a bad shoulder match
+    'BadTail',  # gf is a bad tail match
 ]
 
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])

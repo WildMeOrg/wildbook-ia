@@ -30,6 +30,48 @@ DUMP_REGCHIP = False
 FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
+def draw_casetag_hist(ibs, test_result):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (TestResult):  test result object
+
+    CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist --show
+
+        # Experiments I tagged
+        python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
+
+        python -m ibeis.dev -e taghist -a timequalcontrolled -t invarbest --db PZ_Master1  --show
+        python -m ibeis.dev -e taghist -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1  --show
+        python -m ibeis.dev -e taghist -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
+
+        # Do more tagging
+        python -m ibeis.dev -e cases -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+        python -m ibeis.dev -e print -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+        >>> draw_casetag_hist(ibs, test_result)
+        >>> ut.show_if_requested()
+    """
+    from ibeis.init import main_helpers
+    from ibeis.experiments import cfghelpers
+    filt_cfg = main_helpers.testdata_filtcfg()
+    case_pos_list = test_result.case_sample2(filt_cfg)
+    all_tags = test_result.get_all_tags()
+    selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
+    flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
+    print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
+    import plottool as pt
+    pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
+    pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
+    pt.set_figtitle(cfghelpers.get_cfg_lbl(filt_cfg))
+
+
 @profile
 def draw_individual_cases(ibs, test_result, metadata=None):
     r"""
@@ -41,7 +83,25 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     CommandLine:
         python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --sample :failures=True,gtrank_gt=5,gtrank_lt=20 --render
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
+
+        python -m ibeis.dev -e print --db PZ_Master1 -a timecontrolled -t invarbest
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt : --show
+
+        # Shows the best results
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1 --show
+
+        # Shows failures sorted by gt score
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
+
+
+        # Find the untagged photobomb and scenery cases
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_timedelta=24h,max_gf_tags=0 --show
+
+        # Find untagged failures
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+
+        python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
 
     Example:
@@ -88,6 +148,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
     show_kwargs['with_figtitle'] = False
+    show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
 
@@ -127,7 +188,14 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     #sel_rows = (np.array(failure_qx_list).tolist())
     #sel_cols = (list(range(test_result.nConfig)))
 
-    custom_actions = [('present', ['s'], 'present', pt.present)]
+    def toggle_annot_mode():
+        show_kwargs['annot_mode'] = (show_kwargs['annot_mode'] + 1) % 3
+        print('show_kwargs[annot_mode] = %r' % (show_kwargs['annot_mode'] ,))
+
+    custom_actions = [
+        ('present', ['s'], 'present', pt.present),
+        ('toggle_annot_mode', ['f'], 'toggle_annot_mode', toggle_annot_mode),
+    ]
 
     analysis_fpath_list = []
 
@@ -184,9 +252,9 @@ def draw_individual_cases(ibs, test_result, metadata=None):
                 #print('analysis_fpath = %r' % (analysis_fpath,))
                 if SHOW or overwrite or not ut.checkpath(analysis_fpath):
                     if SHOW:
-                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
                     else:
-                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
 
                     # So hacky
                     if ut.get_argflag('--tight'):
@@ -375,7 +443,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     CommandLine:
         python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --filt :fail=True,gtrank_gt=5,gtrank_lt=20
+        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --filt :fail=True,min_gtrank=5,gtrank_lt=20
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -600,7 +668,7 @@ def draw_rank_surface(ibs, test_result):
 
         #target_label = 'num rank ≤ 1'
         #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
-        target_label = '% queries = rank 1'
+        target_label = '% groundtrue matches = rank 1'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
         #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
@@ -667,7 +735,10 @@ def draw_rank_cdf(ibs, test_result):
 
         python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a controlled --db PZ_MTEST --show
 
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master0  \
+        python -m ibeis.dev -e rank_cdf -t baseline:AQH=True,AI=False baseline:AQH=False,AI=True baseline:AQH=False,AI=False -a largetimedelta --db PZ_Master1 --show
+
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master1 --show
+        \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
 
     Example:
@@ -731,13 +802,17 @@ def draw_rank_cdf(ibs, test_result):
     fnum = pt.ensure_fnum(None)
 
     cumhistkw = dict(
-        xlabel='rank', ylabel='% queries ≤ rank', color_list=color_list,
+        xlabel='rank', ylabel='% groundtrue matches ≤ rank', color_list=color_list,
         marker_list=marker_list, fnum=fnum, legend_loc='lower right',
-        num_yticks=8, ymax=100, ymin=30, ypad=.5, xpad=.05, **FONTKW)
+        num_yticks=8, ymax=100, ymin=30, ypad=.5,
+        xmin=.5, xmax=maxrank + .5,
+        #xpad=.05,
+        **FONTKW)
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-        num_xticks=maxrank, use_legend=True, pnum=pnum_(), **cumhistkw)
+        num_xticks=maxrank,
+        use_legend=True, pnum=pnum_(), **cumhistkw)
 
     if USE_ZOOM:
         ax1 = pt.gca()
@@ -1070,8 +1145,6 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     # Convert to percent
     #freq_list = [100 * freq / len(is_success) for freq in freq_list]
 
-    xints = np.arange(len(bin_labels))
-
     PIE = True
 
     if PIE:
@@ -1102,6 +1175,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
             pt.adjust_subplots2(use_argv=True)
     else:
+        xints = np.arange(len(bin_labels))
         pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
         ax = pt.gca()
 

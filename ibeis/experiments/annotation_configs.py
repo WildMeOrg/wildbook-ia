@@ -26,38 +26,50 @@ ALIAS_KEYS = {
 # for query and database annotations
 __default_aidcfg = {
     'default_aids'        : 'all',  # initial set to choose from
-    #'include_aids'       : None,   # force inclusion?
-    'gt_avl_aids'         : None,   # The only aids available as reference groundtruth
-    # Default filtering
+
+    # Databse size
     'species'             : 'primary',  # specify the species
+    'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
+    'sample_size'         : None,  # Tries to get as close to sample size without removing othe properties
+    'force_const_size'    : None,  # forces a consistnet sample size across combinations
+
+    # Timedelta Params
+    'require_timestamp'   : None,
+    'min_timedelta'       : None,
+
+    # Quality Params
+    'require_quality'     : None,  # if True unknown qualities are removed
     'minqual'             : 'poor',
-    'is_known'            : None,
+
+    # Viewpoint params
+    'require_viewpoint'   : None,
     'view'                : None,
     'view_ext'            : 0,      # num viewpoints to extend in dir1 and dir2
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2
     'view_pername'        : None,   # formatted string filtering the viewpoints
-    'require_quality'     : None,  # if True unknown qualities are removed
-    'require_viewpoint'   : None,
-    'require_timestamp'   : None,
-    'force_const_size'    : None,  # forces a consistnet sample size across combinations
-    #'exclude_aids'       : None,   # removes specified aids from selection
-    # Filtered selection
-    'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
-    'ref_has_viewpoint'   : None,  # All aids must have a gt with this viewpoint
-    'ref_has_qual'        : None,  # All aids must have a gt with this viewpoint
-    'gt_min_per_name'     : None,  # minimum numer of aids for each name in sample
+
+    # Per Name / Exemplar Params
+    'is_known'            : None,
+    'gt_min_per_name'     : None,  # minimum number of aids for each name in sample
+
     'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    'sample_rule'         : 'random',
+    'sample_offset'       : 0,  # UNUSED
+
     'sample_per_ref_name' : None,  # when sampling daids, choose this many correct matches per query
     'sample_rule_ref'     : 'random',
-    'sample_rule'         : 'random',
-    'sample_offset'       : 0,
-    'sample_size'         : None,  # Tries to get as close to sample size without removing othe properties
-    #'name_choose_rule'   : 'timestamp',  # Choose #annots for each name
+
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
     'index'               : None,   # choose only a subset
-    'min_timedelta'       : None,
+
+    #'exclude_aids'       : None,   # removes specified aids from selection
+    #'include_aids'       : None,   # force inclusion?
+    #'gt_avl_aids'         : None,   # The only aids available as reference groundtruth
+    #'ref_has_viewpoint'   : None,  # All aids must have a gt with this viewpoint
+    #'ref_has_qual'        : None,  # All aids must have a gt with this viewpoint
+    #'name_choose_rule'   : 'timestamp',  # Choose #annots for each name
 }
 
 
@@ -272,7 +284,7 @@ default = {
 
 
 """
-python -m ibeis.dev -e get_annotcfg_list --db PZ_Master1 -a baseline
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a uncontrolled
 """
 uncontrolled = {
     'qcfg': ut.augdict(
@@ -287,7 +299,7 @@ uncontrolled = {
 }
 
 """
-python -m ibeis.dev -e get_annotcfg_list --db PZ_Master1 -a controlled
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a controlled
 """
 controlled = {
     'qcfg': ut.augdict(
@@ -309,29 +321,35 @@ controlled = {
 }
 
 
+"""
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a timecontrolled
+"""
 timecontrolled = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
-            'default_aids': 'largetime',
+            'default_aids': 'largetime12',
         }),
 
     'dcfg': ut.augdict(
         controlled['dcfg'], {
-            'default_aids': 'largetime',
+            'default_aids': 'largetime12',
         }),
 }
 
 
+"""
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a timequalcontrolled
+"""
 timequalcontrolled = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
-            'default_aids': 'largetime',
+            'default_aids': 'largetime12',
             'require_quality' : True,  # if True unknown qualities are removed
         }),
 
     'dcfg': ut.augdict(
         controlled['dcfg'], {
-            'default_aids': 'largetime',
+            'default_aids': 'largetime12',
             'require_quality' : True,  # if True unknown qualities are removed
         }),
 }
@@ -361,6 +379,13 @@ timequalcontrolled = {
 #    ]
 #}
 
+"""
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta
+
+# Check if same as timecontrolled
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta timecontrolled
+python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta2 timecontrolled
+"""
 largetimedelta = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
@@ -375,6 +400,23 @@ largetimedelta = {
             'sample_per_name': None,
             'require_timestamp': True,
             'min_timedelta': 60 * 60 * 24,
+        }),
+}
+
+largetimedelta2 = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            #'sample_rule': 'mintime',
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            #'sample_rule_ref': 'maxtimedelta',
+            'sample_per_name': None,
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
         }),
 }
 
