@@ -6,7 +6,7 @@ Runs IBIES gui
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool as ut
-import ibeis
+import ibeis  # NOQA
 import sys
 
 CMD = ut.get_argflag('--cmd')
@@ -58,6 +58,15 @@ def run_ibeis():
         from ibeis.tests import run_tests
         retcode = run_tests.run_tests()
         sys.exit(retcode)
+
+    if ut.get_argflag('-e'):
+        """
+        ibeis -e print -a default -t default
+        """
+        # Run dev script if -e given
+        import ibeis.dev  # NOQA
+        ibeis.dev.devmain()
+        sys.exit(0)
 
     doctest_modname = ut.get_argval(('--doctest-module', '--tmod', '-tm'), type_=str, default=None, help_='specify a module to doctest')
     if doctest_modname is not None:

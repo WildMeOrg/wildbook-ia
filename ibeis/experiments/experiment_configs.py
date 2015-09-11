@@ -68,7 +68,7 @@ def get_candidacy_dbnames():
 #    pass
 
 
-candidacy_k = [
+candk = candidacy_k = [
     {'K': [1, 2, 3, 4, 5, 7, 10]},
 ]
 

@@ -252,9 +252,9 @@ def print_results(ibs, test_result):
         import copy
         acfg1 = copy.deepcopy(acfg)
         acfg2 = copy.deepcopy(acfg)
-        acfg1['qcfg']['gt_min_per_name'] = None
-        acfg2['qcfg']['gt_min_per_name'] = None
-        acfg1['dcfg']['gt_min_per_name'] = None
+        acfg1['qcfg']['min_pername'] = None
+        acfg2['qcfg']['min_pername'] = None
+        acfg1['dcfg']['min_pername'] = None
         acfg2['dcfg']['min_gt_per_name'] = None
 
         acfg1['qcfg']['default_aids'] = qaids_expt

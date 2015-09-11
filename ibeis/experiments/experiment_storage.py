@@ -11,6 +11,7 @@ from six.moves import zip, range, map  # NOQA
 import vtool as vt
 import utool as ut
 from ibeis.experiments import cfghelpers
+from ibeis.experiments import experiment_helpers  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
@@ -42,7 +43,7 @@ def combine_test_results(ibs, test_result_list):
     from ibeis.experiments import annotation_configs
 
     acfg_list = [test_result.acfg for test_result in test_result_list]
-    acfg_lbl_list = annotation_configs.get_varied_labels(acfg_list)
+    acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
 
     flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
     nonvaried_acfg, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
@@ -773,12 +774,8 @@ class TestResult(object):
         ]
 
         for tdkey in timedelta_keys:
-            if tdkey in filt_cfg and isinstance(filt_cfg[tdkey], str):
-                # hack to convert to seconds
-                if filt_cfg[tdkey].endswith('m'):
-                    filt_cfg[tdkey] = int(filt_cfg[tdkey][0:-1]) * 60
-                elif filt_cfg[tdkey].endswith('h'):
-                    filt_cfg[tdkey] = int(filt_cfg[tdkey][0:-1]) * 60 * 60
+            # hack to convert to seconds
+            filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
 
         if verbose:
             print('Sampling from is_valid.size=%r with %r' % (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))

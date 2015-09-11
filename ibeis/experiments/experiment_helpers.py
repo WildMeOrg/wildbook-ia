@@ -17,11 +17,6 @@ print, print_, printDBG, rrr, profile = ut.inject(
 QUIET = ut.QUIET
 
 
-#---------------
-# Big Test Cache
-#-----------
-
-
 def get_varied_pipecfg_lbls(cfgdict_list):
     from ibeis.model import Config
     cfg_default_dict = dict(Config.QueryConfig().parse_items())
@@ -31,14 +26,13 @@ def get_varied_pipecfg_lbls(cfgdict_list):
 
 def get_pipecfg_list(test_cfg_name_list, ibs=None):
     r"""
-    Driver function
-
-    Returns a list of varied query configurations. Only custom configs depend on
-    IBEIS. The order of the output is not gaurenteed to aggree with input order.
+    Builds a list of varied query configurations. Only custom configs depend on
+    an ibs object. The order of the output is not gaurenteed to aggree with
+    input order.
 
     Args:
-        test_cfg_name_list (list):
-        ibs (IBEISController):  ibeis controller object
+        test_cfg_name_list (list): list of strs
+        ibs (IBEISController): ibeis controller object (optional)
 
     Returns:
         tuple: (cfg_list, cfgx2_lbl) -
@@ -63,14 +57,16 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> # verify results
         >>> assert pipecfg_list[0].sv_cfg.sv_on is True
         >>> assert pipecfg_list[1].sv_cfg.sv_on is False
-        >>> result = ('pipecfg_lbls = '+ ut.list_str(get_varied_pipecfg_lbls(pcfgdict_list)))
+        >>> pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)
+        >>> result = ('pipecfg_lbls = '+ ut.list_str(pipecfg_lbls))
         >>> print(result)
         pipecfg_lbls = [
             'default:',
             'default:sv_on=False',
         ]
     """
-    print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' % test_cfg_name_list)
+    print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
+          test_cfg_name_list)
     if isinstance(test_cfg_name_list, six.string_types):
         test_cfg_name_list = [test_cfg_name_list]
     _standard_cfg_names = []
@@ -124,7 +120,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     cfgdict_list = ut.list_compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.list_compress(_pipecfg_list, _flag_list)
     if not QUIET:
-        print('[harn.help] return %d / %d unique pipeline configs' % (len(cfgdict_list), len(_pcfgdict_list)))
+        print('[harn.help] return %d / %d unique pipeline configs' %
+              (len(cfgdict_list), len(_pcfgdict_list)))
 
     if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
         import sys
@@ -140,6 +137,13 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     return (cfgdict_list, pipecfg_list)
 
 
+def testdata_acfg_names(default_acfg_name_list=['default']):
+    flags = ('--aidcfg', '--acfg', '-a')
+    acfg_name_list = ut.get_argval(flags, type_=list,
+                                   default=default_acfg_name_list)
+    return acfg_name_list
+
+
 def parse_acfg_combo_list(acfg_name_list):
     r"""
     Args:
@@ -150,40 +154,139 @@ def parse_acfg_combo_list(acfg_name_list):
 
     CommandLine:
         python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list
+        python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list:1
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.experiments import annotation_configs
-        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
-        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default;uncontrolled'])
+        >>> acfg_name_list = testdata_acfg_names(['default', 'uncontrolled'])
+        >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
+        >>> acfg_list = ut.flatten(acfg_combo_list)
+        >>> printkw = dict()
+        >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.experiments import annotation_configs
+        >>> # double colon :: means expand consistently and force const size
+        >>> acfg_name_list = testdata_acfg_names(['unctrl', 'ctrl::unctrl'])
+        >>> acfg_name_list = testdata_acfg_names(['unctrl', 'varysize', 'ctrl::unctrl'])
+        >>> acfg_name_list = testdata_acfg_names(['unctrl', 'varysize', 'ctrl::varysize', 'ctrl::unctrl'])
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_list = ut.flatten(acfg_combo_list)
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
     """
     from ibeis.experiments import annotation_configs
-    named_defaults_dict = ut.dict_take(annotation_configs.__dict__, annotation_configs.TEST_NAMES)
-    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'qcfg')))
-    named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))
+    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
+                                       annotation_configs.TEST_NAMES)
+    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
+    named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+                                   ut.get_list_column(named_defaults_dict, 'dcfg')))
     alias_keys = annotation_configs.ALIAS_KEYS
-    # need to have the cfgstr_lists be the same for query and database so they can be combined properly for now
-    qcfg_combo_list = cfghelpers.parse_cfgstr_list2(
-        cfgstr_list=acfg_name_list, named_defaults_dict=named_qcfg_defaults,
-        cfgtype='qcfg', alias_keys=alias_keys, expand_nested=False)
-    dcfg_combo_list = cfghelpers.parse_cfgstr_list2(
-        acfg_name_list, named_dcfg_defaults, 'dcfg', alias_keys=alias_keys,
-        expand_nested=False)
+    # need to have the cfgstr_lists be the same for query and database so they
+    # can be combined properly for now
+
+    # Apply this flag to any case joined with ::
+    special_join_dict = {'force_const_size': True}
+
+    # Parse Query Annot Config
+    nested_qcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+        cfgstr_list=acfg_name_list,
+        named_defaults_dict=named_qcfg_defaults,
+        cfgtype='qcfg',
+        alias_keys=alias_keys,
+        expand_nested=False,
+        special_join_dict=special_join_dict,
+        is_nestedcfgtype=True)
+    #print('acfg_name_list = %r' % (acfg_name_list,))
+    #print(len(acfg_name_list))
+    #print(ut.depth_profile(nested_qcfg_combo_list))
+
+    # Parse Data Annot Config
+    nested_dcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+        cfgstr_list=acfg_name_list,
+        named_defaults_dict=named_dcfg_defaults,
+        cfgtype='dcfg',
+        alias_keys=alias_keys,
+        expand_nested=False,
+        special_join_dict=special_join_dict,
+        is_nestedcfgtype=True)
+
+    #print(ut.depth_profile(nested_dcfg_combo_list))
 
     acfg_combo_list = []
-    for qcfg_combo, dcfg_combo in zip(qcfg_combo_list, dcfg_combo_list):
-        acfg_combo = [
-            dict([('qcfg', qcfg), ('dcfg', dcfg)])
-            for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))
-        ]
+    #print('--')
+    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list, nested_dcfg_combo_list):
+        #print('\n\n++++')
+        #print(len(nested_dcfg_combo))
+        #print(len(nested_qcfg_combo))
+        acfg_combo = []
+        # Only the inner nested combos are combinatorial
+        for qcfg_combo, dcfg_combo in zip(nested_qcfg_combo, nested_dcfg_combo):
+            #print('---++++')
+            #print('---- ' + str(len(qcfg_combo)))
+            #print('---- ' + str(len(dcfg_combo)))
+            _combo = [
+                dict([('qcfg', qcfg), ('dcfg', dcfg)])
+                for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))
+            ]
+            #print('----  len(_combo) = %r' % (len(_combo),))
+
+            acfg_combo.extend(_combo)
         acfg_combo_list.append(acfg_combo)
+    #print('LLL--')
+    print(ut.depth_profile(acfg_combo_list))
     return acfg_combo_list
+
+
+def filter_duplicate_acfgs(expanded_aids_list, acfg_list, verbose=ut.NOT_QUIET):
+    """
+    Removes configs with the same expanded aids list
+
+    CommandLine:
+        # The following will trigger this function:
+        ibeis -e print_acfg -a timectrl timectrl:view=left --db PZ_MTEST
+
+    """
+    from ibeis.experiments import annotation_configs
+    acfg_list_ = []
+    expanded_aids_list_ = []
+    seen_ = ut.ddict(list)
+    for acfg, (qaids, daids) in zip(acfg_list, expanded_aids_list):
+        key = (ut.hashstr_arr27(qaids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
+        if key in seen_:
+            seen_[key].append(acfg)
+            continue
+        else:
+            seen_[key].append(acfg)
+            expanded_aids_list_.append((qaids, daids))
+            acfg_list_.append(acfg)
+    if verbose:
+        duplicate_configs = dict(
+            [(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
+        if len(duplicate_configs) > 0:
+            print('The following configs produced duplicate annnotation configs')
+            for key, val in duplicate_configs.items():
+                # Print the semantic difference between the duplicate configs
+                _tup = annotation_configs.compress_acfg_list_for_printing(val)
+                nonvaried_compressed_dict, varied_compressed_dict_list = _tup
+                print('+--')
+                print('key = %r' % (key,))
+                print('duplicate_varied_cfgs = %s' % (
+                    ut.list_str(varied_compressed_dict_list),))
+                print('duplicate_nonvaried_cfgs = %s' % (
+                    ut.dict_str(nonvaried_compressed_dict),))
+                print('L__')
+
+        print('[harn.help] parsed %d / %d unique annot configs' % (
+            len(acfg_list_), len(acfg_list)))
+    return expanded_aids_list_, acfg_list_
 
 
 def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
@@ -200,8 +303,10 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:1
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:2
 
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
+        ibeis -e print_acfg --ainfo
+        ibeis -e print_acfg --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        ibeis -e print_acfg --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
+        ibeis -e print_acfg --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -210,35 +315,40 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         >>> from ibeis.experiments import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> filter_dups = not ut.get_argflag('--nofilter-dups')
-        >>> #acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default:qsize=10'])
-        >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'])
-        >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list, filter_dups)
+        >>> acfg_name_list = testdata_acfg_names()
+        >>> _tup = get_annotcfg_list(ibs, acfg_name_list, filter_dups)
+        >>> acfg_list, expanded_aids_list = _tup
         >>> print('\n PRINTING TEST RESULTS')
         >>> result = ut.list_str(acfg_list, nl=3)
         >>> print('\n')
-        >>> printkw = dict(combined=True, per_name_vpedge=None, per_qual=False, per_vp=False)
-        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, **printkw)
+        >>> printkw = dict(combined=True, per_name_vpedge=None,
+        >>>                per_qual=False, per_vp=False)
+        >>> annotation_configs.print_acfg_list(
+        >>>     acfg_list, expanded_aids_list, ibs, **printkw)
     """
     print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from ibeis.experiments import annotation_configs
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
-    # Sliceing happens before expansion (dependenceis get)
+    # HACK: Sliceing happens before expansion (dependenceis get)
     combo_slice = ut.get_argval('--combo_slice', type_='fuzzy_subset', default=slice(None))
-    acfg_combo_list = [ut.list_take(acfg_combo_, combo_slice) for acfg_combo_ in acfg_combo_list]
+    acfg_combo_list = [ut.list_take(acfg_combo_, combo_slice)
+                       for acfg_combo_ in acfg_combo_list]
 
     if ut.get_argflag('--consistent'):
         # Expand everything as one consistent annot list
         acfg_combo_list = [ut.flatten(acfg_combo_list)]
 
-    #expanded_aids_list = [filter_annots.expand_acfgs(ibs, acfg) for acfg in acfg_list]
+    # + --- Do Parsing ---
     expanded_aids_combo_list = [
-        filter_annots.expand_acfgs_consistently(ibs, acfg_combo_) for acfg_combo_ in acfg_combo_list
+        filter_annots.expand_acfgs_consistently(ibs, acfg_combo_)
+        for acfg_combo_ in acfg_combo_list
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
     acfg_list = ut.get_list_column(expanded_aids_combo_flag_list, 0)
     expanded_aids_list = ut.get_list_column(expanded_aids_combo_flag_list, 1)
+    # L___
 
     # Sliceing happens after expansion (but the labels get screwed up)
     acfg_slice = ut.get_argval('--acfg_slice', type_='fuzzy_subset', default=None)
@@ -246,40 +356,15 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         acfg_list = ut.list_take(acfg_list, acfg_slice)
         expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
 
-    # Hack: Override qaids
+    # + --- Hack: Override qaids ---
     _qaids = ut.get_argval('--qaid', type_=list, default=None)
     if _qaids is not None:
-        # Override qaid_list?
         expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
+    # L___
 
     if filter_dups:
-        acfg_list_ = []
-        expanded_aids_list_ = []
-        seen_ = ut.ddict(list)
-        for acfg, (qaids, daids) in zip(acfg_list, expanded_aids_list):
-            key = (ut.hashstr_arr27(qaids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
-            if key in seen_:
-                seen_[key].append(acfg)
-                continue
-            else:
-                seen_[key].append(acfg)
-                expanded_aids_list_.append((qaids, daids))
-                acfg_list_.append(acfg)
-        if ut.NOT_QUIET:
-            duplicate_configs = dict([(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
-            if len(duplicate_configs) > 0:
-                print('The following configs produced duplicate annnotation configs')
-                for key, val in duplicate_configs.items():
-                    nonvaried_compressed_dict, varied_compressed_dict_list = annotation_configs.compress_acfg_list_for_printing(val)
-                    print('+--')
-                    print('key = %r' % (key,))
-                    print('varied_compressed_dict_list = %s' % (ut.list_str(varied_compressed_dict_list),))
-                    print('nonvaried_compressed_dict = %s' % (ut.dict_str(nonvaried_compressed_dict),))
-                    print('L__')
-
-            print('[harn.help] parsed %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list)))
-        acfg_list = acfg_list_
-        expanded_aids_list = expanded_aids_list_
+        expanded_aids_list, acfg_list = filter_duplicate_acfgs(
+            expanded_aids_list, acfg_list)
 
     if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo')):
         import sys

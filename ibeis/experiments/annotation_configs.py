@@ -12,35 +12,28 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 
 # easier to type names to alias some of these options
 ALIAS_KEYS = {
-    'aids'     : 'default_aids',
+    #'aids'     : 'default_aids',
     'pername'  : 'sample_per_name',
     'offset'   : 'sample_offset',
     'refrule'  : 'sample_rule_ref',
     'rule'     : 'sample_rule',
     'size'     : 'sample_size',
-    'mingt'    : 'gt_min_per_name',
+    'mingt'    : 'min_pername',
 }
 
-
-# Base common settings, but some default settings will be different
-# for query and database annotations
-__default_aidcfg = {
-    'default_aids'        : 'all',  # initial set to choose from
-
-    # Databse size
-    'species'             : 'primary',  # specify the species
-    'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
-    'sample_size'         : None,  # Tries to get as close to sample size without removing othe properties
+OTHER_DEFAULTS = {
     'force_const_size'    : None,  # forces a consistnet sample size across combinations
+}
 
+# Defaults for the independent filter
+INDEPENDENT_DEFAULTS = {
+    'species'             : 'primary',  # specify the species
     # Timedelta Params
     'require_timestamp'   : None,
     'min_timedelta'       : None,
-
     # Quality Params
     'require_quality'     : None,  # if True unknown qualities are removed
     'minqual'             : 'poor',
-
     # Viewpoint params
     'require_viewpoint'   : None,
     'view'                : None,
@@ -48,29 +41,43 @@ __default_aidcfg = {
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2
     'view_pername'        : None,   # formatted string filtering the viewpoints
-
-    # Per Name / Exemplar Params
     'is_known'            : None,
-    'gt_min_per_name'     : None,  # minimum number of aids for each name in sample
+    'min_pername'         : None,  # minimum number of aids for each name in sample
+}
 
-    'sample_per_name'     : None,  # Choos num_annots to sample from each name.
-    'sample_rule'         : 'random',
-    'sample_offset'       : 0,  # UNUSED
-
-    'sample_per_ref_name' : None,  # when sampling daids, choose this many correct matches per query
-    'sample_rule_ref'     : 'random',
-
+SUBINDEX_DEFAULTS = {
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
     'index'               : None,   # choose only a subset
-
-    #'exclude_aids'       : None,   # removes specified aids from selection
-    #'include_aids'       : None,   # force inclusion?
-    #'gt_avl_aids'         : None,   # The only aids available as reference groundtruth
-    #'ref_has_viewpoint'   : None,  # All aids must have a gt with this viewpoint
-    #'ref_has_qual'        : None,  # All aids must have a gt with this viewpoint
-    #'name_choose_rule'   : 'timestamp',  # Choose #annots for each name
 }
+
+SAMPLE_DEFAULTS = {
+    'sample_size'         : None,  # Gets as close to sample size without removing other props
+    # Per Name / Exemplar Params
+    'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    'sample_rule'         : 'random',
+    'sample_offset'       : None,  # UNUSED
+}
+
+SAMPLE_REF_DEFAULTS = {
+    'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
+    'sample_rule_ref'     : 'random',
+    'sample_per_ref_name' : None,  # when sampling daids, choose this many correct matches per query
+}
+
+
+# Base common settings, but some default settings will be different
+# for query and database annotations
+DEFAULT_AIDCFG = ut.merge_dicts(OTHER_DEFAULTS, INDEPENDENT_DEFAULTS, SAMPLE_DEFAULTS, SAMPLE_REF_DEFAULTS, SUBINDEX_DEFAULTS)
+__default_aidcfg = DEFAULT_AIDCFG
+#'default_aids'        : 'all',  # initial set to choose from
+# Databse size
+#'exclude_aids'       : None,   # removes specified aids from selection
+#'include_aids'       : None,   # force inclusion?
+#'gt_avl_aids'         : None,   # The only aids available as reference groundtruth
+#'ref_has_viewpoint'   : None,  # All aids must have a gt with this viewpoint
+#'ref_has_qual'        : None,  # All aids must have a gt with this viewpoint
+#'name_choose_rule'   : 'timestamp',  # Choose #annots for each name
 
 
 # Maps from a top level setting to its depenants
@@ -127,7 +134,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
     return acfg
 
 
-def get_varied_labels(acfg_list):
+def get_varied_acfg_labels(acfg_list):
     """
         >>> from ibeis.experiments.annotation_configs import *  # NOQA
 
@@ -147,10 +154,18 @@ def get_varied_labels(acfg_list):
     SUPER_HACK = True
     if SUPER_HACK:
         # SUPER HACK, recompress remake the varied list after knownig what is varied
-        _varied_keys = list(set(ut.flatten([list(ut.flatten([list(x.keys()) for x in unflatten_acfgdict(cfg).values()])) for cfg in varied_acfg_list])))
-        _acfg_list = [compress_aidcfg(acfg, force_noncommon=_varied_keys) for acfg in acfg_list]
+        _varied_keys = list(set(ut.flatten(
+            [list(ut.flatten(
+                [list(x.keys())
+                 for x in unflatten_acfgdict(cfg).values()]
+            )) for cfg in varied_acfg_list]
+        )))
+        _acfg_list = [
+            compress_aidcfg(acfg, force_noncommon=_varied_keys)
+            for acfg in acfg_list]
         flat_acfg_list = flatten_acfg_list(_acfg_list)
-        nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+        nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(
+            flat_acfg_list)
 
     shortened_cfg_list = [
         #{shorten_to_alias_labels(key): val for key, val in _dict.items()}
@@ -183,54 +198,68 @@ def flatten_acfg_list(acfg_list):
 
 
 def compress_acfg_list_for_printing(acfg_list):
-    """
+    r"""
+    CommandLine:
+        python -m ibeis.experiments.annotation_configs --exec-compress_acfg_list_for_printing
+
     Example:
         >>> from ibeis.experiments.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
-        >>> nonvaried_comp_dict, varied_comp_dict_list = compress_acfg_list_for_printing(acfg_list)
+        >>> nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)
+        >>> result = ('varied_dicts = %s\n' % (ut.list_str(varied_dicts),))
+        >>> result += ('nonvaried_dict = %s' % (ut.dict_str(nonvaried_dict),))
+        >>> print(result)
     """
     flat_acfg_list = flatten_acfg_list(acfg_list)
     nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
-    nonvaried_compressed_dict = compress_aidcfg(unflatten_acfgdict(nonvaried_dict))
+    nonvaried_compressed_dict = compress_aidcfg(unflatten_acfgdict(nonvaried_dict), filter_nones=True)
     varied_compressed_dict_list = [
         compress_aidcfg(unflatten_acfgdict(cfg), filter_empty=True)
         for cfg in varied_acfg_list]
     return nonvaried_compressed_dict, varied_compressed_dict_list
 
 
-def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None, combined=False, **kwargs):
-    kwargs = kwargs.copy()
-    nonvaried_compressed_dict, varied_compressed_dict_list = compress_acfg_list_for_printing(acfg_list)
+def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
+                    combined=False, **kwargs):
+
+    _tup = compress_acfg_list_for_printing(acfg_list)
+    nonvaried_compressed_dict, varied_compressed_dict_list = _tup
+
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
     print('non-varied aidcfg = ' + ut.dict_str(nonvaried_compressed_dict))
     seen_ = ut.ddict(list)
 
     # get default kwkeys for annot info
-    kwkeys = ut.parse_kwarg_keys(ut.get_func_sourcecode(ibs.get_annot_stats_dict, strip_docstr=True, strip_comments=True))
-    kwargs.update(ut.argparse_dict(dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
+    if ibs is not None:
+        annotstats_kw = kwargs.copy()
+        kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
+        annotstats_kw.update(ut.argparse_dict(
+            dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
 
     for acfgx in range(len(acfg_list)):
         acfg = acfg_list[acfgx]
-        title = 'q_cfgname=' + acfg['qcfg']['_cfgname'] + ' d_cfgname=' + acfg['dcfg']['_cfgname']
+        title = ('q_cfgname=' + acfg['qcfg']['_cfgname'] +
+                 ' d_cfgname=' + acfg['dcfg']['_cfgname'])
 
-        ut.colorprint('+--- acfg %d / %d -- %s ---- ' % (acfgx + 1, len(acfg_list), title), 'white')
+        ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
+                      (acfgx + 1, len(acfg_list), title), 'lightgray')
         print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx], strvals=True))
+
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
             key = (ut.hashstr_arr27(qaids, 'qaids'), ut.hashstr_arr27(daids, 'daids'))
             if key not in seen_:
-                seen_[key].append(acfgx)
-                annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=True, combined=combined, **kwargs)
+                if ibs is not None:
+                    seen_[key].append(acfgx)
+                    annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(
+                        qaids, daids, verbose=True, combined=combined, **annotstats_kw)
             else:
-                print('DUPLICATE of index %r' % (seen_[key],))
-                print('DUP OF acfg = ' + ut.dict_str(varied_compressed_dict_list[seen_[key][0]], strvals=True))
-            #if combined:
-            #    ibs.print_annot_stats(list(qaids) + list(daids), label='combined = ', **kwargs)
-        #annotconfig_stats_strs, _ = ibs.get_annotconfig_stats(qaids, daids, verbose=False)
-        #print(ut.dict_str(ut.dict_subset(annotconfig_stats_strs, ['num_qaids', 'num_daids', 'num_annot_intersect', 'aids_per_correct_name', 'aids_per_imposter_name', 'num_unmatchable_queries', 'num_matchable_queries'])))
-        #_ = ibs.get_annotconfig_stats(qaids, daids)
+                dupindex = seen_[key]
+                print('DUPLICATE of index %r' % (dupindex,))
+                dupdict = varied_compressed_dict_list[dupindex[0]]
+                print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
@@ -274,7 +303,7 @@ exclude_vars.append('exclude_vars')
 default = {
     'qcfg': ut.augdict(
         __default_aidcfg, {
-            'default_aids': (1,)
+            #'default_aids': (1,)
         }),
 
     'dcfg': ut.augdict(
@@ -284,13 +313,13 @@ default = {
 
 
 """
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a uncontrolled
+ibeis -e print_acfg --db PZ_Master1 -a uncontrolled
 """
-uncontrolled = {
+unctrl = uncontrolled = {
     'qcfg': ut.augdict(
         __baseline_aidcfg, {
-            'default_aids': 'allgt',
-            'gt_min_per_name': 2,
+            #'default_aids': 'allgt',
+            'min_pername': 2,
         }),
 
     'dcfg': ut.augdict(
@@ -299,62 +328,73 @@ uncontrolled = {
 }
 
 """
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a controlled
+ibeis -e print_acfg --db PZ_Master1 -a controlled
 """
-controlled = {
+ctrl = controlled = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'allgt',
+            #'default_aids': 'allgt',
             'sample_per_name': 1,
-            'gt_min_per_name': 2,
+            'min_pername': 2,
             #'sample_size': 128,  # keep this small for now until we can run full results
         }),
 
     'dcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'all',
+            #'default_aids': 'all',
             'sample_per_name': 1,
             'exclude_reference': True,
             #'sample_size': 300,  # keep this small for now until we can run full results
-            'gt_min_per_name': 1,  # allows for singletons to be in the database
+            'min_pername': 1,  # allows for singletons to be in the database
         }),
 }
 
 
 """
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a timecontrolled
+ibeis -e print_acfg --db PZ_Master1 -a timectrl
 """
-timecontrolled = {
+timectrl = timecontrolled = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
-            'default_aids': 'largetime12',
+            #'default_aids': 'largetime12',
+            'require_timestamp': True,
+            'min_timedelta': '12h',
         }),
 
     'dcfg': ut.augdict(
         controlled['dcfg'], {
-            'default_aids': 'largetime12',
+            #'default_aids': 'largetime12',
+            'require_timestamp': True,
+            'min_timedelta': '12h',
         }),
 }
 
 
 """
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a timequalcontrolled
+ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
 """
-timequalcontrolled = {
+timequalctrl = timequalcontrolled = {
     'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            'default_aids': 'largetime12',
+        timecontrolled['qcfg'], {
+            #'default_aids': 'largetime12',
             'require_quality' : True,  # if True unknown qualities are removed
         }),
 
     'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            'default_aids': 'largetime12',
+        timecontrolled['dcfg'], {
+            #'default_aids': 'largetime12',
             'require_quality' : True,  # if True unknown qualities are removed
         }),
 }
 
 
+"""
+# Test constistancy combos
+ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --nocache-aid
+ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --nocache-aid
+# make :: mean force_const_size
+ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled::uncontrolled --nocache-aid
+"""
 #cont_uncon_compare = {
 #    'qcfg': [
 #        ut.augdict(
@@ -380,11 +420,11 @@ timequalcontrolled = {
 #}
 
 """
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta
+ibeis -e print_acfg --db PZ_Master1 -a largetimedelta
 
 # Check if same as timecontrolled
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta timecontrolled
-python -m ibeis.dev -e print_acfg --db PZ_Master1 -a largetimedelta2 timecontrolled
+ibeis -e print_acfg --db PZ_Master1 -a largetimedelta timecontrolled
+ibeis -e print_acfg --db PZ_Master1 -a largetimedelta2 timecontrolled
 """
 largetimedelta = {
     'qcfg': ut.augdict(
@@ -439,7 +479,7 @@ controlled2 = {
 #        __controlled_aidcfg, {
 #            'default_aids': 'allgt',
 #            'sample_per_name': 1,
-#            'gt_min_per_name': 2,  # ensures each query will have a correct example for the groundtruth
+#            'min_pername': 2,  # ensures each query will have a correct example for the groundtruth
 #        }),
 
 #    'dcfg': ut.augdict(
@@ -448,7 +488,7 @@ controlled2 = {
 #            'sample_per_name': 1,
 #            'exclude_reference': True,
 #            'sample_rule_ref': 'maxtimedelta',
-#            'gt_min_per_name': 1,
+#            'min_pername': 1,
 #        }),
 #}
 
@@ -457,21 +497,21 @@ controlled2 = {
 varypername = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'allgt',
+            #'default_aids': 'allgt',
             'sample_size': 50,
             'sample_per_name': 1,
-            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
         }),
 
     'dcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'all',
+            #'default_aids': 'all',
             #'sample_per_name': [1, 2, 3],
             'sample_per_name': [1, 3],
             #'sample_per_ref_name': [1, 2, 3],
             'sample_per_ref_name': [1, 3],
             'exclude_reference': True,
-            'gt_min_per_name': 1,
+            'min_pername': 1,
             'force_const_size': True,
         }),
 }
@@ -537,19 +577,19 @@ python -m ibeis.experiments.experiment_printres --exec-print_results --db PZ_Mas
 varysize = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'allgt',
+            #'default_aids': 'allgt',
             'sample_size': 50,
             'sample_per_name': 1,
-            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
         }),
 
     'dcfg': ut.augdict(
         __controlled_aidcfg, {
-            'default_aids': 'all',
+            #'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
             'exclude_reference': True,
             'sample_size': [50, 200, 500],
-            'gt_min_per_name': 1,
+            'min_pername': 1,
         }),
 }
 
@@ -576,7 +616,7 @@ varysize_pzm_td = {
             #'sample_rule': 'mintime',
             'require_timestamp': True,
             'min_timedelta': 60 * 60 * 12,
-            'gt_min_per_name': 4,  # ensures each query will have a correct example for the groundtruth
+            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
         }),
 
     'dcfg': ut.augdict(
@@ -635,7 +675,7 @@ viewpoint_compare = {
             'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
             'force_const_size': True,
             'view': 'primary1',
-            #'gt_min_per_name': 3,
+            #'min_pername': 3,
         }),
 
     'dcfg': ut.augdict(

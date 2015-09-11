@@ -148,7 +148,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
     ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
     ('ibeis.experiments.experiment_printres', 'print_results', ['printres', 'print']),
-    ('ibeis.experiments.experiment_printres', 'print_latexsum'),
+    ('ibeis.experiments.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
     ('ibeis.dev', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
 ]

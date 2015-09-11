@@ -213,10 +213,7 @@ def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
         is_valid_yaw = [yaw == flag for flag in yaw_list]
         aid_list     = ut.list_compress(aid_list, is_valid_yaw)
     if species is not None:
-        species_rowid      = ibs.get_species_rowids_from_text(species)
-        species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
-        aid_list           = ut.list_compress(aid_list, is_valid_species)
+        aid_list = ibs.filter_aids_to_species(species)
     if is_known is not None:
         aid_list = ibs.filter_aids_without_name(aid_list, invert=not is_known)
     if minqual is not None:

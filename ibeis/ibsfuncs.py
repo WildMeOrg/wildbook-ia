@@ -3271,6 +3271,8 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, i
         # break ties
         print('warning extending viewpoint yaws from the same position as towards')
         yawdist += 1E-3
+    if num1 is None:
+        num1 = 0
     if num2 is None:
         num2 = num1
     assert num1 >= 0, 'must specify positive num'
@@ -5287,11 +5289,16 @@ def filter_aids_to_species(ibs, aid_list, species):
         >>> aid_list = ibs.get_valid_aids()
         >>> species = ibeis.const.Species.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
-        >>> result = str(aid_list_)
-        [9, 10]
+        >>> result = 'aid_list_ = %r' % (aid_list_,)
+        >>> print(result)
+        aid_list_ = [9, 10]
     """
-    flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
-    aid_list_ = ut.list_compress(aid_list, flag_list)
+    species_rowid      = ibs.get_species_rowids_from_text(species)
+    species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+    is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
+    aid_list_           = ut.list_compress(aid_list, is_valid_species)
+    #flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
+    #aid_list_ = ut.list_compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -5616,6 +5623,9 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         aids (list):  list of annotation rowids
         prefix (str): (default = '')
 
+    Kwargs:
+        hashid, per_name, per_qual, per_vp, per_name_vpedge, per_image, min_name_hourdist
+
     Returns:
         dict: aid_stats_dict
 
@@ -5659,10 +5669,10 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     if kwargs.pop('per_name', True):
         keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)))]
 
-    if kwargs.pop('per_qual', True):
+    if kwargs.pop('per_qual', False):
         keyval_list += [(prefix + 'per_qual', _stat_str(ibs.get_annot_qual_stats(aids)))]
 
-    if kwargs.pop('per_vp', True):
+    if kwargs.pop('per_vp', False):
         keyval_list += [(prefix + 'per_vp', _stat_str(ibs.get_annot_yaw_stats(aids)))]
 
     # information about overlapping viewpoints

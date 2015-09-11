@@ -204,6 +204,20 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
     return cfg_combo
 
 
+def try_customize_base(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):
+    try:
+        cfg_combo = customize_base_cfg(
+            cfgname, cfgopt_strs, base_cfg, cfgtype,
+            alias_keys=alias_keys, valid_keys=valid_keys,
+            offset=len(cfg_combos), strict=strict)
+        return cfg_combo
+    except Exception as ex:
+        ut.printex(ex, 'Parse Error CfgstrList2',
+                   keys=['cfgname', 'cfgopt_strs', 'base_cfg',
+                         'cfgtype', 'alias_keys', 'valid_keys'])
+        raise
+
+
 def parse_cfgstr_name_options(cfgstr):
     r"""
     Args:
@@ -271,50 +285,141 @@ def parse_cfgstr_name_options(cfgstr):
     return cfgname, cfgopt_strs, subx
 
 
+def lookup_base_cfg_list(cfgname, named_defaults_dict):
+    if named_defaults_dict is None:
+        base_cfg_list = [{}]
+    else:
+        try:
+            base_cfg_list = named_defaults_dict[cfgname]
+        except KeyError as ex:
+            ut.printex(ex, 'Unknown configuration name', keys=['cfgname'])
+            raise
+    if not isinstance(base_cfg_list, list):
+        base_cfg_list = [base_cfg_list]
+    return base_cfg_list
+
+
 def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                        alias_keys=None, valid_keys=None, expand_nested=True,
-                       strict=True):
-    """
-    Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2
+                       strict=True, special_join_dict=None, is_nestedcfgtype=False):
+    r"""
+    Parses config strings. By looking up name in a dict of configs
+
+    Args:
+        cfgstr_list (list):
+        named_defaults_dict (dict): (default = None)
+        cfgtype (None): (default = None)
+        alias_keys (None): (default = None)
+        valid_keys (None): (default = None)
+        expand_nested (bool): (default = True)
+        strict (bool): (default = True)
+        is_nestedcfgtype - used for annot configs so special joins arent geometrically combined
+
+    Note:
+        Normal Case:
+            --flag name
+
+        Custom Arugment Cases:
+            --flag name:custom_key1=custom_val1,custom_key2=custom_val2
+
+        Multiple Config Case:
+            --flag name1:custom_args1 name2:custom_args2
+
+        Multiple Config (special join) Case:
+            (here name2 and name3 have some special interaction)
+            --flag name1:custom_args1 name2:custom_args2::name3:custom_args3
+
+        Varied Argument Case:
+            --flag name:key1=[val1,val2]
+
+    Returns:
+        list: cfg_combos_list
+
+    CommandLine:
+        python -m ibeis.experiments.cfghelpers --exec-parse_cfgstr_list2
+
+    Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> cfgstr_list = ['name', 'name:f=1', 'name:b=[1,2]', 'name1:f=1::name2:f=1,b=2']
+        >>> #cfgstr_list = ['name', 'name1:f=1::name2:f=1,b=2']
+        >>> named_defaults_dict = None
+        >>> cfgtype = None
+        >>> alias_keys = None
+        >>> valid_keys = None
+        >>> expand_nested = True
+        >>> strict = False
+        >>> special_join_dict = {'joined': True}
+        >>> cfg_combos_list = parse_cfgstr_list2(cfgstr_list, named_defaults_dict,
+        >>>                                      cfgtype, alias_keys, valid_keys,
+        >>>                                      expand_nested, strict,
+        >>>                                      special_join_dict)
+        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print(ut.depth_profile(cfg_combos_list))
+        >>> result = (get_varied_cfg_lbls(ut.flatten(cfg_combos_list)))
+        >>> print(result)
+        ['name:', 'name:f=1', 'name:b=1', 'name:b=2', 'name1:f=1,joined=True', 'name2:b=2,f=1,joined=True']
     """
-    cfg_combos_list = []
-    for cfgstr in cfgstr_list:
-        cfgname, cfgopt_strs, subx = parse_cfgstr_name_options(cfgstr)
-        # --
-        # Lookup named default settings
-        if named_defaults_dict is None:
-            base_cfg_list = [{}]
-        else:
-            try:
-                base_cfg_list = named_defaults_dict[cfgname]
-            except KeyError as ex:
-                ut.printex(ex, 'Unknown configuration name', keys=['cfgname'])
-                raise
-        if not isinstance(base_cfg_list, list):
-            base_cfg_list = [base_cfg_list]
-        # --
-        cfg_combos = []
-        for base_cfg in base_cfg_list:
-            try:
-                cfg_combo = customize_base_cfg(
-                    cfgname, cfgopt_strs, base_cfg, cfgtype,
+    with ut.Indenter('    '):
+        cfg_combos_list = []
+        for cfgstr in cfgstr_list:
+            cfg_combos = []
+            # Parse special joined cfg case
+            if cfgstr.find('::') > -1:
+                special_cfgstr_list = cfgstr.split('::')
+                special_combo_list = parse_cfgstr_list2(
+                    special_cfgstr_list,
+                    named_defaults_dict=named_defaults_dict, cfgtype=cfgtype,
                     alias_keys=alias_keys, valid_keys=valid_keys,
-                    offset=len(cfg_combos), strict=strict)
-            except Exception as ex:
-                ut.printex(ex, 'Parse Error CfgstrList2',
-                           keys=['cfgname', 'cfgopt_strs', 'base_cfg',
-                                 'cfgtype', 'alias_keys', 'valid_keys'])
-                raise
-            if expand_nested:
-                cfg_combos.extend(cfg_combo)
+                    strict=strict, expand_nested=expand_nested,
+                    is_nestedcfgtype=False)
+                OLD = False
+                if OLD:
+                    special_combo = ut.flatten(special_combo_list)
+                    if special_join_dict is not None:
+                        for cfg in special_combo:
+                            cfg.update(special_join_dict)
+                else:
+                    if special_join_dict is not None:
+                        for special_combo in special_combo_list:
+                            for cfg in special_combo:
+                                cfg.update(special_join_dict)
+                if is_nestedcfgtype:
+                    cfg_combo = tuple([combo for combo in special_combo_list])
+                else:
+                    # not sure if this is right
+                    cfg_combo = special_combo_list
+                # FIXME DUPLICATE CODE
+                if expand_nested:
+                    cfg_combos.extend(cfg_combo)
+                else:
+                    #print('Appending: ' + str(ut.depth_profile(cfg_combo)))
+                    #if ut.depth_profile(cfg_combo) == [1, 9]:
+                    #    ut.embed()
+                    cfg_combos_list.append(cfg_combo)
             else:
-                cfg_combos_list.append(cfg_combo)
-        # SUBX Cannot work here because of acfg hackiness
-        #if subx is not None:
-        #    cfg_combo = ut.list_take(cfg_combo, subx)
-        if expand_nested:
-            cfg_combos_list.append(cfg_combos)
+                cfgname, cfgopt_strs, subx = parse_cfgstr_name_options(cfgstr)
+                # --
+                # Lookup named default settings
+                base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict)
+                # --
+                for base_cfg in base_cfg_list:
+                    cfg_combo = try_customize_base(cfgname, cfgopt_strs, base_cfg,
+                                                   cfgtype, alias_keys, valid_keys,
+                                                   cfg_combos, strict)
+                    if is_nestedcfgtype:
+                        cfg_combo = [cfg_combo]
+                    if expand_nested:
+                        cfg_combos.extend(cfg_combo)
+                    else:
+                        cfg_combos_list.append(cfg_combo)
+            # SUBX Cannot work here because of acfg hackiness
+            #if subx is not None:
+            #    cfg_combo = ut.list_take(cfg_combo, subx)
+            if expand_nested:
+                cfg_combos_list.append(cfg_combos)
+        #    print('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))
+        #print('Returning len(cfg_combos_list) = %r' % (len(cfg_combos_list),))
     return cfg_combos_list
 
 

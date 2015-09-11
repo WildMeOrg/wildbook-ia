@@ -162,7 +162,8 @@ def parse_latex_comments_for_commmands():
     for cmd in cmd_list:
         #cmd = cmd.replace(' -t ', ' \\\n    -t ')
         #cmd = cmd.replace('--db', '\\\n    --db')
-        cmd = cmd.replace('python -m ibeis.dev', './dev.py')
+        #cmd = cmd.replace('python -m ibeis.dev', './dev.py')
+        cmd = cmd.replace('python -m ibeis.dev -e', 'ibeis -e')
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
