@@ -1570,13 +1570,18 @@ def show_all_colormaps():
 
 
 def colorbar(scalars, colors, custom=False, lbl=None):
-    """ adds a color bar next to the axes
+    """
+    adds a color bar next to the axes based on specific scalars
+
     Args:
         scalars (ndarray):
         colors (ndarray):
 
     Returns:
         cb : matplotlib colorbar object
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-colorbar --show
 
     Example:
         >>> from plottool.draw_func2 import *  # NOQA
@@ -1594,8 +1599,9 @@ def colorbar(scalars, colors, custom=False, lbl=None):
         >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale, reverse_cmap=reverse_cmap, val2_customcolor=val2_customcolor)
         >>> colorbar(scalars, colors, custom=custom)
         >>> df2.present()
+        >>> import plottool as pt
+        >>> pt.show_if_requested()
     """
-    printDBG('colorbar()')
     assert len(scalars) == len(colors), 'scalars and colors must be corresponding'
     if len(scalars) == 0:
         return None
@@ -1631,7 +1637,6 @@ def colorbar(scalars, colors, custom=False, lbl=None):
     #COLORBAR_SHRINK = .42  # 1
     #COLORBAR_PAD = .01  # 1
     #COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
-    #printDBG('[df] COLORBAR_ASPECT = %r' % COLORBAR_ASPECT)
 
     cb = plt.colorbar(sm, cax=cax)
 
@@ -1675,11 +1680,6 @@ def colorbar(scalars, colors, custom=False, lbl=None):
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
                 H1=None, H2=None, scale_factor1=None, scale_factor2=None, **kwargs):
-    if ut.VERYVERBOSE:
-        printDBG('-------------')
-        printDBG('draw_lines2()')
-        printDBG(' * len(fm) = %r' % len(fm))
-        printDBG(' * scale_factor = %r' % scale_factor)
     if scale_factor1 is None:
         scale_factor1 = 1.0, 1.0
     if scale_factor2 is None:
@@ -1830,16 +1830,16 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         # ensure numpy
         kpts = np.array(kpts)
 
-    if ut.DEBUG2:
-        printDBG('-------------')
-        printDBG('draw_kpts2():')
-        #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
-        printDBG(' * kpts.shape=%r:' % (kpts.shape,))
-        printDBG(' * ell=%r pts=%r' % (ell, pts))
-        printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
-        printDBG(' * scale_factor=%r' % (scale_factor,))
-        printDBG(' * offset=%r' % (offset,))
-        printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
+    #if ut.DEBUG2:
+    #    printDBG('-------------')
+    #    printDBG('draw_kpts2():')
+    #    #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
+    #    printDBG(' * kpts.shape=%r:' % (kpts.shape,))
+    #    printDBG(' * ell=%r pts=%r' % (ell, pts))
+    #    printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
+    #    printDBG(' * scale_factor=%r' % (scale_factor,))
+    #    printDBG(' * offset=%r' % (offset,))
+    #    printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
     try:
         assert len(kpts) > 0, 'len(kpts) < 0'
     except AssertionError as ex:
@@ -1944,7 +1944,6 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         >>> ut.show_if_requested()
     """
     #print('--------------------')
-    #printDBG('[df2] draw_keypoint_patch()')
     kpts = np.array([kp])
     if warped:
         patches, subkpts = ptool.get_warped_patches(rchip, kpts)
@@ -1995,11 +1994,6 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     Returns:
         tuple: (fig, ax)
     """
-    printDBG('imshow()')
-    #printDBG('[df2] ----- IMSHOW ------ ')
-    #printDBG('[***df2.imshow] fnum=%r pnum=%r title=%r *** ' % (fnum, pnum, title))
-    #printDBG('[***df2.imshow] img.shape = %r ' % (img.shape,))
-    #printDBG('[***df2.imshow] img.stats = %r ' % (ut.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
 
@@ -2036,10 +2030,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             imgBGR = img
             if imgBGR.dtype == np.float64:
                 if imgBGR.max() <= 1:
-                    printDBG('Drawing Float Color Image < 1')
                     imgBGR = np.array(imgBGR, dtype=np.float32)
                 else:
-                    printDBG('Drawing Float Color Image > 1')
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
             imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
             ax.imshow(imgRGB, **plt_imshow_kwargs)
@@ -2092,7 +2084,6 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
 def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
     # https://stackoverflow.com/questions/1843194/plotting-vector-fields-in-python-matplotlib
     # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.quiver
-    printDBG('[df2] draw_vector_vield()')
     quiv_kw = {
         'units': 'xy',
         'scale_units': 'xy',
@@ -2195,7 +2186,6 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     """
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
-    #printDBG('[df2] show_chipmatch2() locals_=%s' % (ut.dict_str(locals())))
     wh1 = gtool.get_size(rchip1)
     wh2 = gtool.get_size(rchip2)
     # Warp if homography is specified
@@ -2246,7 +2236,6 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
         colorbar_ (bool):
         draw_border (bool):
     """
-    printDBG('[df2] plot_fmatch')
     if fm is None and fm_norm is None:
         assert kpts1.shape == kpts2.shape, 'shapes different or fm not none'
         fm = np.tile(np.arange(0, len(kpts1)), (2, 1)).T
