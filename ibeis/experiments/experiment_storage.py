@@ -768,14 +768,16 @@ class TestResult(object):
         ]
         filt_cfg = filt_cfg.copy()
 
-        timedelta_keys = [
-            'min_gf_timedelta',
-            'max_gf_timedelta',
-        ]
+        #timedelta_keys = [
+        #    'min_gf_timedelta',
+        #    'max_gf_timedelta',
+        #]
+        #for tdkey in timedelta_keys:
 
-        for tdkey in timedelta_keys:
-            # hack to convert to seconds
-            filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
+        # hack to convert to seconds
+        for tdkey in filt_cfg.keys():
+            if tdkey.endswith('_timedelta'):
+                filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
 
         if verbose:
             print('Sampling from is_valid.size=%r with %r' % (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
