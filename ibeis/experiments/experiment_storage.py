@@ -486,7 +486,11 @@ class TestResult(object):
             try:
                 pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
             except KeyError:
-                pipeline_cfgname = test_result.common_cfgdict['_cfgname']
+                #pipeline_cfgname = test_result.common_cfgdict['_cfgname']
+                cfgstr_list = [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list]
+                uniuqe_cfgstrs = ut.unique_ordered(cfgstr_list)
+                pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
+
             annot_cfgname = test_result._shorten_lbls(annot_cfgname)
             pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
             title_aug += ' a=' + annot_cfgname
