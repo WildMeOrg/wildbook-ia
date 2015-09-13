@@ -55,7 +55,7 @@ def hack_argv():
                 sys.argv.extend([
                     '--dpath=~/latex/crall-candidacy-2015/',
                     '--clipwhite',
-                    #'--diskshow',
+                    '--diskshow',
                     '--contextadjust',
                     '--dpi=256',
                 ])

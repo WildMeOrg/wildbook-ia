@@ -5672,7 +5672,8 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     if kwargs.pop('per_qual', False):
         keyval_list += [(prefix + 'per_qual', _stat_str(ibs.get_annot_qual_stats(aids)))]
 
-    if kwargs.pop('per_vp', False):
+    #if kwargs.pop('per_vp', False):
+    if kwargs.pop('per_vp', True):
         keyval_list += [(prefix + 'per_vp', _stat_str(ibs.get_annot_yaw_stats(aids)))]
 
     # information about overlapping viewpoints

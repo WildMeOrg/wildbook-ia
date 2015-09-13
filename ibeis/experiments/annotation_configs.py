@@ -659,12 +659,17 @@ varysize_girm = {
 
 # Compare query of frontleft animals when database has only left sides
 """
+ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
+
 python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
 python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
 python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
 # Check composition of names per viewpoint
 python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
 python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+
+
+TODO: Need to explicitly setup the common config I think?
 
 """
 viewpoint_compare = {
@@ -682,6 +687,7 @@ viewpoint_compare = {
         controlled['dcfg'], {
             'view': ['primary1', 'primary'],
             'force_const_size': True,
+            'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
             #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
             #'view': ['primary'],
             #'sample_per_name': 1,
