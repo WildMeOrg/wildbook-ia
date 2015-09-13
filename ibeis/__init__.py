@@ -68,6 +68,32 @@ def import_subs():
     from ibeis import gui
     from ibeis import templates
 
+
+def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwargs):
+    """
+    Convience function
+    """
+    def find_expt_func(e):
+        import ibeis.dev
+        for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS:
+            modname, funcname = tup[:2]
+            aliases = tup[2] if len(tup) == 3 else []
+            if e == funcname or e in aliases:
+                module = ut.import_modname(modname)
+                func = module.__dict__[funcname]
+                return func
+
+    func = find_expt_func(e)
+    assert func is not None, 'unknown experiment e=%r' % (e,)
+
+    # most experiments need a test_result
+    from ibeis.init import main_helpers
+    ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t)
+
+    func(ibs, test_result, **kwargs)
+
+    #ibeis.dev.run_registered_precmd(e)
+
 #import_subs()
 #from ibeis import gui
 #from ibeis import model

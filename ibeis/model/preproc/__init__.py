@@ -24,7 +24,7 @@ def reload_subs(verbose=True):
     def fbrrr(*args, **kwargs):
         """ fallback reload """
         pass
-    getattr(preproc_annot, 'rrr', fbrrr)(verbose=verbose)
+    #getattr(preproc_annot, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_chip, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_detectimg, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_encounter, 'rrr', fbrrr)(verbose=verbose)
@@ -38,7 +38,7 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('preproc_annot', None),
+    #('preproc_annot', None),
     ('preproc_chip', None),
     ('preproc_detectimg', None),
     ('preproc_encounter', None),

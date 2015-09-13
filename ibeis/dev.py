@@ -150,7 +150,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.experiments.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.dev', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.experiments.experiment_drawing', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -171,141 +171,6 @@ def _register_doctest_precmds():
         devprecmd(*aliases)(_doctest_func)
 
 _register_doctest_precmds()
-
-
-#@devcmd('scores', 'score', 'namescore_roc')
-#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, test_result):
-    """
-    TODO: plot the difference between the top true score and the next best false score
-    CommandLine:
-        ib
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
-
-        python dev.py -t scores --db PZ_Master0 --allgt --show
-        python dev.py -t scores --db PZ_MTEST --allgt --show
-
-        python dev.py -t scores --db PZ_Master0 --show --controlled
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
-
-        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
-        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
-        python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
-
-        python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
-        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
-
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
-
-
-    Example:
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
-        >>> annotationmatch_scores(ibs, test_result)
-        >>> ut.show_if_requested()
-    """
-    import vtool as vt
-    print('[dev] annotationmatch_scores')
-    from ibeis.experiments import cfghelpers
-    from ibeis.init import main_helpers
-
-    filt_cfg = main_helpers.testdata_filtcfg()
-
-    assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
-    cfgx = 0
-    qreq_ = test_result.cfgx2_qreq_[cfgx]
-    common_qaids = test_result.get_common_qaids()
-    gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-    gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
-
-    # FIXME: may need to specify which cfg is used in the future
-    isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
-
-    tp_nscores = gt_rawscore[isvalid]
-    tn_nscores = gf_rawscore[isvalid]
-    tn_qaids = tp_qaids = common_qaids[isvalid]
-
-    #encoder = vt.ScoreNormalizer(target_tpr=.7)
-    print(qreq_.get_cfgstr())
-    part_attrs = {1: {'qaid': tp_qaids},
-                  0: {'qaid': tn_qaids}}
-
-    def attr_callback(qaid):
-        print('callback qaid = %r' % (qaid,))
-        test_result.interact_individual_result(qaid)
-        reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
-        print('Independent reconstruct')
-        print(reconstruct_str)
-
-    #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
-    encoder = vt.ScoreNormalizer(adjust=8, tpr=.85, monotonize=True)
-    tp_scores = tp_nscores
-    tn_scores = tn_nscores
-    name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
-    encoder.fit(name_scores, labels, attrs)
-    #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
-
-    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
-
-    figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
-    encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
-
-    if ut.get_argflag('--contextadjust'):
-        pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-        pt.adjust_subplots2(use_argv=True)
-
-    locals_ = locals()
-    return locals_
-
-#@devprecmd
-#def draw_rank_cdf():
-#    from ibeis.experiments.experiment_drawing import draw_rank_cdf
-#    testsrc = ut.get_doctest_examples(draw_rank_cdf)[0][0]
-#    exec(testsrc)
-
-
-#@devprecmd
-#def draw_rank_surface():
-#    from ibeis.experiments.experiment_drawing import draw_rank_surface
-#    testsrc = ut.get_doctest_examples(draw_rank_surface)[0][0]
-#    exec(testsrc)
-
-
-#@devprecmd
-#def inspect_acfg():
-#    """"
-#    ./dev.py -t inspect_acfg -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
-#    python -m ibeis.dev -t inspect_acfg --db PZ_Master1 -a varysize:qsize=500,dsize=[1500,2000,2500,3000]
-#    python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a varysize:qsize=500,dsize=[1500,2000,2500,3000] --db PZ_Master1
-#    """
-#    import ibeis.experiments.experiment_helpers
-#    _ = ut.get_doctest_examples(ibeis.experiments.experiment_helpers.get_annotcfg_list)
-#    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
-#    testsrc = testsrc_list[0]
-#    exec(testsrc)
-
-
-#@devprecmd
-#def print_test_results():
-#    import ibeis.experiments.experiment_printres
-#    _ = ut.get_doctest_examples(ibeis.experiments.experiment_printres.print_results)
-#    testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = _
-#    testsrc = testsrc_list[0]
-#    exec(testsrc)
 
 
 @devcmd('dists', 'dist', 'vecs_dist')
@@ -667,6 +532,15 @@ def compgrav_annotationmatch_scores(ibs, qaid_list, daid_list):
 #--------------------
 # RUN DEV EXPERIMENTS
 #--------------------
+
+
+#def run_registered_precmd(precmd_name):
+#    # Very hacky way to run just a single registered precmd
+#    for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
+#        for aliases in func_aliases:
+#            ret = precmd_name in input_precmd_list
+#            if ret:
+#                func()
 
 
 def run_devprecmds():

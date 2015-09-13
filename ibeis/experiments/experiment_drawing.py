@@ -30,6 +30,106 @@ DUMP_REGCHIP = False
 FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
+#@devcmd('scores', 'score', 'namescore_roc')
+#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+def annotationmatch_scores(ibs, test_result):
+    """
+    TODO: plot the difference between the top true score and the next best false score
+    CommandLine:
+        ib
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
+
+        python dev.py -t scores --db PZ_Master0 --allgt --show
+        python dev.py -t scores --db PZ_MTEST --allgt --show
+
+        python dev.py -t scores --db PZ_Master0 --show --controlled
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+
+        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
+        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
+        python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
+
+        python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
+        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
+
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
+
+
+    Example:
+        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
+        >>> annotationmatch_scores(ibs, test_result)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    import vtool as vt
+    print('[dev] annotationmatch_scores')
+    from ibeis.experiments import cfghelpers
+    from ibeis.init import main_helpers
+
+    filt_cfg = main_helpers.testdata_filtcfg()
+
+    assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
+    cfgx = 0
+    qreq_ = test_result.cfgx2_qreq_[cfgx]
+    common_qaids = test_result.get_common_qaids()
+    gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+    gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+
+    # FIXME: may need to specify which cfg is used in the future
+    isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+
+    tp_nscores = gt_rawscore[isvalid]
+    tn_nscores = gf_rawscore[isvalid]
+    tn_qaids = tp_qaids = common_qaids[isvalid]
+
+    #encoder = vt.ScoreNormalizer(target_tpr=.7)
+    print(qreq_.get_cfgstr())
+    part_attrs = {1: {'qaid': tp_qaids},
+                  0: {'qaid': tn_qaids}}
+
+    def attr_callback(qaid):
+        print('callback qaid = %r' % (qaid,))
+        test_result.interact_individual_result(qaid)
+        reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
+        print('Independent reconstruct')
+        print(reconstruct_str)
+
+    #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
+    encoder = vt.ScoreNormalizer(adjust=8, tpr=.85, monotonize=True)
+    tp_scores = tp_nscores
+    tn_scores = tn_nscores
+    name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+    encoder.fit(name_scores, labels, attrs)
+    #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
+
+    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
+
+    figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
+    encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
+
+    if ut.get_argflag('--contextadjust'):
+        pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+        pt.adjust_subplots2(use_argv=True)
+
+    locals_ = locals()
+    return locals_
+
+
 def draw_casetag_hist(ibs, test_result):
     r"""
     Args:
@@ -1024,7 +1124,7 @@ class IndividualResultsCopyTaskQueue(object):
 
 
 @profile
-def draw_case_timedeltas(ibs, test_result, metadata=None):
+def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None):
     r"""
 
     CommandLine:
@@ -1039,8 +1139,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
-        >>> metadata = None
-        >>> draw_case_timedeltas(ibs, test_result, metadata)
+        >>> draw_case_timedeltas(ibs, test_result)
         >>> ut.show_if_requested()
     """
     #category_poses = test_result.partition_case_types()
@@ -1059,8 +1158,10 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
     X_data_list = []
     X_label_list = []
     cfgx2_shortlbl = test_result.get_short_cfglbls()
-    FALSEPOS = ut.get_argflag('--falsepos')
-    TRUEPOS  = ut.get_argflag('--truepos')
+    if falsepos is None:
+        falsepos = ut.get_argflag('--falsepos')
+    if truepos is None:
+        truepos  = ut.get_argflag('--truepos')
     #ut.embed()
     for cfgx, lbl in enumerate(cfgx2_shortlbl):
         gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
@@ -1071,7 +1172,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
         #X_label_list += ['GT ' + lbl, 'GF ' + lbl]
         #X_data_list  += [gt_s_td, gt_f_td, gf_f_td, gf_s_td]
         #X_label_list += ['TP ' + lbl, 'FN ' + lbl, 'TN ' + lbl, 'FP ' + lbl]
-        if not FALSEPOS or TRUEPOS:
+        if not falsepos or truepos:
             X_data_list  += [
                 gt_s_td,
                 #gf_s_td
@@ -1080,7 +1181,7 @@ def draw_case_timedeltas(ibs, test_result, metadata=None):
                 'TP ' + lbl,
                 #'FP ' + lbl
             ]
-        if FALSEPOS:
+        if falsepos:
             X_data_list  += [
                 gf_s_td
             ]

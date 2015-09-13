@@ -227,7 +227,7 @@ def main():
     python win32bootstrap.py --dl numpy
 
     C:\Users\jon.crall\AppData\Roaming\utool\numpy-1.9.2rc1+mkl-cp27-none-win32.whl
-    pip instal C:/Users/jon.crall/AppData/Roaming/utool/numpy-1.9.2rc1+mkl-cp27-none-win32.whl
+    pip install C:/Users/jon.crall/AppData/Roaming/utool/numpy-1.9.2rc1+mkl-cp27-none-win32.whl
 
     """
     # Packages that you are requesting
