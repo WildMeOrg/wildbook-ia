@@ -87,12 +87,12 @@ class ConfusionMetrics(object):
     # --------------
 
     @classmethod
-    def from_scores_and_labels(cls, scores, labels, verbose=True):
+    def from_scores_and_labels(cls, scores, labels, verbose=False):
         self = get_confusion_metrics(scores, labels, verbose=verbose)
         return self
 
     @classmethod
-    def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=True):
+    def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=False):
         scores = np.hstack([tp_scores, tn_scores])
         labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
         self = get_confusion_metrics(scores, labels, verbose=verbose)
@@ -268,7 +268,7 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
     return recall_domain, p_interp
 
 
-def get_confusion_metrics(scores, labels, verbose=True):
+def get_confusion_metrics(scores, labels, verbose=False):
     """
     gets average percision using the PASCAL definition
 

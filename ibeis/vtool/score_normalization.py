@@ -211,7 +211,7 @@ class ScoreNormalizer(object):
         # Learneed classification threshold
         encoder.learned_thresh   = None
 
-    def fit(encoder, X, y, attrs=None, verbose=True, finite_only=True):
+    def fit(encoder, X, y, attrs=None, verbose=False, finite_only=True):
         """
         Fits estimator to data.
 
@@ -260,7 +260,7 @@ class ScoreNormalizer(object):
             attrs = ut.map_dict_vals(partial(np.compress, mask), attrs)
         return X, y, attrs
 
-    def learn_probabilities(encoder, verbose=True):
+    def learn_probabilities(encoder, verbose=False):
         """
         Kernel density estimation
         """
@@ -268,8 +268,9 @@ class ScoreNormalizer(object):
         tp_support, tn_support, part_attrs = encoder.get_partitioned_support()
         # heuristic
         encoder.learn_kw['reverse'] = tp_support.mean() < tn_support.mean()
-        print('[scorenorm] setting reverse = %r' %
-              (encoder.learn_kw['reverse']))
+        if verbose:
+            print('[scorenorm] setting reverse = %r' %
+                  (encoder.learn_kw['reverse']))
 
         tup = learn_score_normalization(tp_support, tn_support, return_all=True,
                                         verbose=verbose, **encoder.learn_kw)
@@ -288,7 +289,7 @@ class ScoreNormalizer(object):
             encoder.score_domain, encoder.p_tp_given_score, kind='linear',
             copy=False, assume_sorted=False)
 
-    def learn_threshold(encoder, verbose=True):
+    def learn_threshold(encoder, verbose=False):
         """
         Learns cutoff threshold that achieves the target confusion metric
         Typically a desired false positive rate (recall) is specified
@@ -529,7 +530,7 @@ class ScoreNormalizer(object):
 
 def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
                               return_all=False, monotonize=True,
-                              clip_factor=(ut.PHI + 1), verbose=True,
+                              clip_factor=(ut.PHI + 1), verbose=False,
                               reverse=False):
     r"""
     Takes collected data and applys parzen window density estimation and bayes rule.
