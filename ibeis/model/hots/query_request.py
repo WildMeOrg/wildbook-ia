@@ -185,11 +185,12 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     candetect = (len(unique_species) == 1 and
                  ibs.has_species_detector(unique_species[0]))
     if not candetect:
-        print('[qreq] HACKING FG_WEIGHT OFF (db species is not supported)')
-        if len(unique_species) != 1:
-            print('[qreq]  * len(unique_species) = %r' % len(unique_species))
-        else:
-            print('[qreq]  * unique_species = %r' % (unique_species,))
+        if ut.NOT_QUIET:
+            print('[qreq] HACKING FG_WEIGHT OFF (db species is not supported)')
+            if len(unique_species) != 1:
+                print('[qreq]  * len(unique_species) = %r' % len(unique_species))
+            else:
+                print('[qreq]  * unique_species = %r' % (unique_species,))
         #print('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
