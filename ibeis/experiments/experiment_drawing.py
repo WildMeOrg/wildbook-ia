@@ -175,7 +175,7 @@ def draw_casetag_hist(ibs, test_result, f=None):
 
 
 @profile
-def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_notebook=True):
+def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_notebook=True, annot_mode=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -252,7 +252,10 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_noteb
     show_kwargs['show_gf'] = True
     show_kwargs['with_figtitle'] = False
     #show_kwargs['with_figtitle'] = show_in_notebook
-    show_kwargs['annot_mode'] = 1 if not SHOW else 0
+    if annot_mode is not None:
+        show_kwargs['annot_mode'] = annot_mode
+    else:
+        show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
 
