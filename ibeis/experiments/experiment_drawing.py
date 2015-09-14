@@ -143,14 +143,14 @@ def draw_casetag_hist(ibs, test_result, f=None):
         # Experiments I tagged
         python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
-        python -m ibeis.dev -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
-        python -m ibeis.dev -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
-        python -m ibeis.dev -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
+        ibeis -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
+        ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
+        ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
 
         # Do more tagging
-        python -m ibeis.dev -e cases -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
-        python -m ibeis.dev -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
-        python -m ibeis.dev -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,:fail=False,min_gf_timedelta=12h,max_gf_tags=0 --show
+        ibeis -e cases -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+        ibeis -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
+        ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
 
     Example:
         >>> # DISABLE_DOCTEST

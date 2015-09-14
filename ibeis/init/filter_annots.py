@@ -164,7 +164,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
 
 
 @profile
-def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
+def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None):
     """
     Expands an annot config dict into qaids and daids
     New version of this function based on a configuration dictionary built from
@@ -213,14 +213,18 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=USE_ACFG_CACHE):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
     """
+
     from ibeis.experiments import annotation_configs
     import copy
     aidcfg = copy.deepcopy(aidcfg)
 
     # Check if this filter has been cached
     # TODO: keep a database state config that augments the cachestr
+
+    if use_cache is None:
+        use_cache = USE_ACFG_CACHE
+
     save_cache = True
-    use_cache = False
     if use_cache or save_cache:
         acfg_cacheinfo = get_acfg_cacheinfo(ibs, aidcfg)
         acfg_cachedir, acfg_cachename, aid_cachestr = acfg_cacheinfo
@@ -592,8 +596,6 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
             print('Warning: Cannot meet sample_size=%r. available_%saids '
                   'will be oversized by at least %d'
                   % (sample_size, prefix, -num_keep_gf,))
-            import sys
-            sys.exit(1)
         rng = np.random.RandomState(SEED2)
         gf_avl_aids = ut.random_sample(gf_avl_aids, num_keep_gf, rng=rng)
 
