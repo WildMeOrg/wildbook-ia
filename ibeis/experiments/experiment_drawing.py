@@ -175,7 +175,7 @@ def draw_casetag_hist(ibs, test_result, f=None):
 
 
 @profile
-def draw_individual_cases(ibs, test_result, metadata=None):
+def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_notebook=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -235,7 +235,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     # Sel rows index into qx_list
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
-    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg=None)
+    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg=f)
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
 
@@ -249,7 +249,8 @@ def draw_individual_cases(ibs, test_result, metadata=None):
     show_kwargs['viz_name_score'] = True
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    show_kwargs['with_figtitle'] = False
+    #show_kwargs['with_figtitle'] = False
+    show_kwargs['with_figtitle'] = show_in_notebook
     show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
@@ -317,6 +318,9 @@ def draw_individual_cases(ibs, test_result, metadata=None):
 
     print('figdir = %r' % (figdir,))
     fpaths_list = []
+
+    fnum = 1
+
     for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
         if SHOW:
             try:
@@ -334,7 +338,10 @@ def draw_individual_cases(ibs, test_result, metadata=None):
         fpaths_list.append([])
 
         for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
-            fnum = cfgx if SHOW else 1
+            if show_in_notebook:
+                fnum = fnum + 1
+            else:
+                fnum = cfgx if SHOW else 1
             # Get row and column index
             cfgstr = test_result.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
@@ -352,7 +359,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
             if DRAW_ANALYSIS:
                 analysis_fpath = join(individ_results_dpath, qres_fname)
                 #print('analysis_fpath = %r' % (analysis_fpath,))
-                if SHOW or overwrite or not ut.checkpath(analysis_fpath):
+                if SHOW or overwrite or not ut.checkpath(analysis_fpath) or show_in_notebook:
                     if SHOW:
                         qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
                     else:
@@ -425,7 +432,7 @@ def draw_individual_cases(ibs, test_result, metadata=None):
 
 def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, figdir, analysis_fpath_list):
     # HACK MAKE LATEX CONVINENCE STUFF
-    print('LATEX HACK')
+    #print('LATEX HACK')
     if len(fpaths_list) == 0:
         print('nothing to render')
         return
@@ -449,7 +456,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
             nCols = 2
 
         _cmdname = ibs.get_dbname() + ' Case ' + ' '.join(labels) + '_' + str(case_idx)
-        print('_cmdname = %r' % (_cmdname,))
+        #print('_cmdname = %r' % (_cmdname,))
         cmdname = ut.latex_sanatize_command_name(_cmdname)
         label_str = cmdname
         if len(caption_prefix) == 0:
@@ -563,7 +570,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     #from ibeis.experiments import cfghelpers
 
     #if sample_cfgstr_list is None:
-    if filt_cfg is None:
+    if filt_cfg is None or isinstance(filt_cfg, list):
         # Hack to check if specified on command line
         from ibeis.init import main_helpers
         filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)

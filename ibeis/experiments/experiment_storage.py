@@ -866,7 +866,12 @@ class TestResult(object):
         reverse = filt_cfg.get('reverse', False)
         #orderby = filt_cfg.get('orderbydesc', None)
         if orderby is not None:
-            order_values = truth2_prop['gt']['score']
+            if orderby == 'gtscore':
+                order_values = truth2_prop['gt']['score']
+            elif orderby == 'gfscore':
+                order_values = truth2_prop['gf']['score']
+            else:
+                raise NotImplementedError('Unknown orerby=%r' % (orderby,))
             flat_order = order_values[is_valid]
             # Flat sorting indeices in a matrix
             if reverse:
@@ -878,6 +883,13 @@ class TestResult(object):
             qx_list = qx_list.take(sortx, axis=0)
             cfgx_list = cfgx_list.take(sortx, axis=0)
             # order_values[tuple(case_pos_list.T)]  # assert in order
+
+        index = filt_cfg.get('index', None)
+        if index is not None:
+            if isinstance(index, six.string_types):
+                index = ut.fuzzy_int(index)
+            qx_list = ut.list_take(qx_list, index)
+            cfgx_list = ut.list_take(cfgx_list, index)
 
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
         return case_pos_list
