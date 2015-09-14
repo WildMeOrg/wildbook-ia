@@ -72,7 +72,8 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    print('[show_qres] qres.show_analysis()')
+    if ut.NOT_QUIET:
+        print('[show_qres] qres.show_analysis()')
     # Parse arguments
     N = kwargs.get('N', DEFAULT_NTOP)
     show_gt  = kwargs.pop('show_gt', True)

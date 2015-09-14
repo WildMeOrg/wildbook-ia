@@ -457,7 +457,6 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         cfgstr_list = default
     else:
         cfgstr_list = ut.get_argval(argname, type_=list, default=default)
-    print('cfgstr_list = %r' % (cfgstr_list,))
     cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
                                          named_defaults_dict=named_defaults_dict,
                                          valid_keys=valid_keys,

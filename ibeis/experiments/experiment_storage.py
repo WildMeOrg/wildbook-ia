@@ -797,6 +797,61 @@ class TestResult(object):
             num_tags = num_gt_tags + num_gf_tags
             return op(num_tags, val)
 
+        def has_gt_tags(val):
+            test_result.get_gt_tags()
+
+        def in_tags(val, tags_list):
+            #if '&' in val:
+            #    logop = all
+            #    vals = val.split('&')
+            #elif '|' in val:
+            #    logop = any
+            #    vals = val.split('|')
+            #else:
+            logop = any
+            vals = [val]
+
+            vals = [v.lower() for v in vals]
+            lower_tags = [
+                [[_.lower() for _ in t] for t in tags]
+                for tags in tags_list]
+
+            flags = np.array([
+                [logop([v in t for v in vals]) for t in tags]
+                for tags in lower_tags])
+            return flags
+
+        def notin_tags(val, tags_list):
+            return ~in_tags(val, tags_list)
+
+        def without_gf_tag(val):
+            gf_tags = test_result.get_gf_tags()
+            flags = notin_tags(val, gf_tags)
+            return flags
+
+        def without_gt_tag(val):
+            gt_tags = test_result.get_gt_tags()
+            flags = notin_tags(val, gt_tags)
+            return flags
+
+        def with_gt_tag(val):
+            gf_tags = test_result.get_gt_tags()
+            flags = in_tags(val, gf_tags)
+
+            return flags
+
+        def with_gf_tag(val):
+            gf_tags = test_result.get_gf_tags()
+            flags = in_tags(val, gf_tags)
+            return flags
+
+        def with_tag(val):
+            flags = np.logical_or(
+                in_tags(val, test_result.get_gt_tags()),
+                in_tags(val, test_result.get_gf_tags()),
+            )
+            return flags
+
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
@@ -810,6 +865,11 @@ class TestResult(object):
             ('max_gf_tags', partial(compare_num_gf_tags, operator.le)),
             ('min_gt_tags', partial(compare_num_gt_tags, operator.ge)),
             ('max_gt_tags', partial(compare_num_gt_tags, operator.le)),
+            ('without_gf_tag', without_gf_tag),
+            ('without_gt_tag', without_gt_tag),
+            ('with_gf_tag', with_gf_tag),
+            ('with_gt_tag', with_gt_tag),
+            ('with_tag', with_tag),
         ]
         filt_cfg = filt_cfg.copy()
 
@@ -886,8 +946,9 @@ class TestResult(object):
 
         index = filt_cfg.get('index', None)
         if index is not None:
+            print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
             if isinstance(index, six.string_types):
-                index = ut.fuzzy_int(index)
+                index = ut.smart_cast(index, slice)
             qx_list = ut.list_take(qx_list, index)
             cfgx_list = ut.list_take(cfgx_list, index)
 

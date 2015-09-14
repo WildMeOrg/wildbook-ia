@@ -215,7 +215,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_noteb
         >>> analysis_fpath_list = draw_individual_cases(ibs, test_result, metadata)
         >>> #ut.show_if_requested()
     """
-    ut.colorprint('[expt] Drawing individual results', 'yellow')
+    if ut.NOT_QUIET:
+        ut.colorprint('[expt] Drawing individual results', 'yellow')
     import plottool as pt
     cfgx2_qreq_ = test_result.cfgx2_qreq_
 
@@ -249,8 +250,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_noteb
     show_kwargs['viz_name_score'] = True
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    #show_kwargs['with_figtitle'] = False
-    show_kwargs['with_figtitle'] = show_in_notebook
+    show_kwargs['with_figtitle'] = False
+    #show_kwargs['with_figtitle'] = show_in_notebook
     show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
@@ -316,7 +317,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_noteb
 
     cfgx2_shortlbl = test_result.get_short_cfglbls()
 
-    print('figdir = %r' % (figdir,))
+    if ut.NOT_QUIET:
+        print('figdir = %r' % (figdir,))
     fpaths_list = []
 
     fnum = 1
@@ -700,9 +702,10 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     if sel_colxs is not None:
         sel_cols = ut.list_take(sel_cols, sel_colxs)
 
-    print('Returning Case Selection')
-    print('len(sel_rows) = %r/%r' % (len(sel_rows), len(qaids)))
-    print('len(sel_cols) = %r/%r' % (len(sel_cols), len(cfg_list)))
+    if ut.NOT_QUIET:
+        print('Returning Case Selection')
+        print('len(sel_rows) = %r/%r' % (len(sel_rows), len(qaids)))
+        print('len(sel_cols) = %r/%r' % (len(sel_cols), len(cfg_list)))
 
     return sel_rows, sel_cols, flat_case_labels
 
@@ -1128,7 +1131,8 @@ class IndividualResultsCopyTaskQueue(object):
 
     def flush_copy_tasks(self):
         # Execute all copy tasks and empty the lists
-        print('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
+        if ut.NOT_QUIET:
+            print('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
         for src, dst in self.cp_task_list:
             ut.copy(src, dst, verbose=False)
         del self.cp_task_list[:]
