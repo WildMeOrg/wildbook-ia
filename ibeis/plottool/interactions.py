@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import utool as ut
 import plottool as pt
 from plottool import abstract_interaction
 import plottool.interact_helpers as ih
@@ -7,16 +8,18 @@ import plottool.interact_helpers as ih
 
 def check_if_subinteract(func):
     try:
-        print('Checking if subinteraction')
-        print('func = %r' % (func,))
+        if ut.VERBOSE:
+            print('Checking if subinteraction')
+            print('func = %r' % (func,))
         is_sub = issubclass(
             func, abstract_interaction.AbstractInteraction)
     except TypeError:
         is_sub = False
-    if is_sub:
-        print('... yup')
-    else:
-        print('... nope')
+    if ut.VERBOSE:
+        if is_sub:
+            print('... yup')
+        else:
+            print('... nope')
 
     return is_sub
 
@@ -60,9 +63,11 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             func = pt.get_plotdat(ax, 'plot_func', None)
-            print('func = %r' % (func,))
+            if ut.VERBOSE:
+                print('func = %r' % (func,))
             if func is not None:
-                print('calling func = %r' % (func,))
+                if ut.VERBOSE:
+                    print('calling func = %r' % (func,))
                 fnum = pt.next_fnum()
                 #pt.figure(fnum=fnum)
                 pnum = (1, 1, 1)
