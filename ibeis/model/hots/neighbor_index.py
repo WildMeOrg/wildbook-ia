@@ -1314,8 +1314,30 @@ class NeighborIndex(object):
 
 #@profile
 def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
-    """
+    r"""
     Aggregates descriptors of input annotations and returns inverted information
+
+    Args:
+        vecs_list (list):
+        ax_list (list):
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        tuple: (idx2_vec, idx2_ax, idx2_fx)
+
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --exec-invert_index
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> import vtool as vt
+        >>> num = 1000
+        >>> rng = np.random.RandomState(0)
+        >>> ax_list = np.arange(num)
+        >>> vecs_list = [vt.tests.dummy.get_dummy_dpts(rng.randint(1000)) for ax in ax_list]
+        >>> verbose = True
+        >>> (idx2_vec, idx2_ax, idx2_fx) = invert_index(vecs_list, ax_list, verbose)
     """
     if ut.VERYVERBOSE:
         print('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
@@ -1329,7 +1351,9 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
-        print('[nnindex] memory(idx2_vecs) = {}'.format(ut.get_object_size_str(idx2_vec)))
+        print('[nnindex] idx2_vecs.dtype = {}'.format(idx2_vec.dtype))
+        print('[nnindex] memory(idx2_vecs) = {}'.format(
+            ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
     return idx2_vec, idx2_ax, idx2_fx
 
 
