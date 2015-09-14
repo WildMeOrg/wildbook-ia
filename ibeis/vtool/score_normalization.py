@@ -933,7 +933,7 @@ def inspect_pdfs(tn_support, tp_support,
     _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
                                      nSubplots=nSubplots)
 
-    print('Always interactive even if: interactive = %r' % (interactive,))
+    #print('Always interactive even if: interactive = %r' % (interactive,))
 
     # Make a plottool interaction
     inter = ExpandableInteraction(fnum, _pnumiter)
@@ -1029,7 +1029,7 @@ def inspect_pdfs(tn_support, tp_support,
             pass
 
     target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
-    print('target_tpr = %r' % (target_tpr,))
+    #print('target_tpr = %r' % (target_tpr,))
     ROCInteraction = vt.interact_roc_factory(confusions, target_tpr)
 
     def _score_support_hist(fnum, pnum):
