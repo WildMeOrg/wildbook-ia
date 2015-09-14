@@ -501,6 +501,7 @@ varypername = {
             'sample_size': 50,
             'sample_per_name': 1,
             'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
+            'force_const_size': True,
         }),
 
     'dcfg': ut.augdict(
