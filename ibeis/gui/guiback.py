@@ -1005,9 +1005,6 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         species_dict = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
 
-        def pluralize(wordtext, list_):
-            return wordtext + 's' if len(list_) > 1 else wordtext
-
         def get_unique_species_phrase(aid_list):
             def boldspecies(species):
                 species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
@@ -1027,7 +1024,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if daid_list is not None:
             msg_fmtstr_list += ['    Database annotations: {num_daids}']
             msg_fmtstr_list += ['    Database species:         {d_species_phrase}']
-            fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
+            fmtdict['d_annotation_s']  = ut.pluralize('annotation', len(daid_list))
             fmtdict['num_daids'] = len(daid_list)
             fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
             if qaid_list is not None:
@@ -1036,7 +1033,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if qaid_list is not None:
             msg_fmtstr_list += ['    Query annotations: {num_qaids}']
             msg_fmtstr_list += ['    Query species:         {q_species_phrase}']
-            fmtdict['q_annotation_s']  = pluralize('annotation', qaid_list)
+            fmtdict['q_annotation_s']  = ut.pluralize('annotation', len(qaid_list))
             fmtdict['num_qaids'] = len(qaid_list)
             fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
 

@@ -53,6 +53,7 @@ from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
                                test_main, opendb, opendb_in_background)
 from ibeis.control.IBEISControl import IBEISController
 from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
+from ibeis.init import main_helpers
 
 from ibeis import model
 
@@ -73,6 +74,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwar
     """
     Convience function
     """
+    import functools
     def find_expt_func(e):
         import ibeis.dev
         for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS:
@@ -83,16 +85,42 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwar
                 func = module.__dict__[funcname]
                 return func
 
+    # Equivalent command line version of this func
+    command_parts = ['ibeis',
+                     '-e', e,
+                     '--db', db,
+                     '-a', ' '.join(a),
+                     '-t', ' '.join(t),
+                    ]
+    if 'f' in kwargs:
+        command_parts.extend(['-f', ' '.join(kwargs['f'])])
+    if 'test_cfgx_slice' in kwargs:
+        # very hacky, much more than checking for f
+        slice_ = kwargs['test_cfgx_slice']
+        slicestr = ':'.join(map(str, ut.replace_nones([getattr(slice_, attr, '') for attr in ['start', 'stop', 'step']], '')))
+        command_parts.extend(['--test_cfgx_slice', slicestr])
+
+    command_parts.extend(['--show'])
+
+    command_line_str = ' '.join(command_parts)
+    print('Equivalent Command Line:')
+    print(command_line_str)
+
     func = find_expt_func(e)
     assert func is not None, 'unknown experiment e=%r' % (e,)
 
     # most experiments need a test_result
-    from ibeis.init import main_helpers
     ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t)
 
-    func(ibs, test_result, **kwargs)
+    draw_func = functools.partial(func, ibs, test_result, **kwargs)
+    test_result.draw_func = draw_func
+    return test_result
 
     #ibeis.dev.run_registered_precmd(e)
+
+def testdata_expts(*args, **kwargs):
+    ibs, test_result = main_helpers.testdata_expts(*args, **kwargs)
+    return test_result
 
 #import_subs()
 #from ibeis import gui

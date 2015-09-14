@@ -390,7 +390,11 @@ if GET_ARGFLAG('--serverchmod'):
 
 if GET_ARGFLAG('--chown'):
     # Fixes problems where repos are checked out as root
-    username = os.environ['USERNAME']
+    username = os.environ.get('USERNAME', ut.get_argval('--username'))
+    if username is None:
+        username = os.environ.get('USER', None)
+    if username is None:
+        raise AssertionError('cannot find username in commandline or environment vars')
     usergroup = username
     ut.gg_command('chown -R {username}:{usergroup} *'.format(**locals()),
                   sudo=True)

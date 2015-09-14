@@ -44,8 +44,10 @@ def testdata_pipecfg():
     return pcfgdict
 
 
-def testdata_filtcfg(default=['']):
+def testdata_filtcfg(default=None):
     from ibeis.experiments import cfghelpers
+    if default is None:
+        default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
     return filt_cfg
 

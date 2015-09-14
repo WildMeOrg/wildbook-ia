@@ -65,8 +65,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
             'default:sv_on=False',
         ]
     """
-    print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
-          test_cfg_name_list)
+    if ut.VERBOSE:
+        print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
+              test_cfg_name_list)
     if isinstance(test_cfg_name_list, six.string_types):
         test_cfg_name_list = [test_cfg_name_list]
     _standard_cfg_names = []
@@ -120,8 +121,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     cfgdict_list = ut.list_compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.list_compress(_pipecfg_list, _flag_list)
     if not QUIET:
-        print('[harn.help] return %d / %d unique pipeline configs' %
-              (len(cfgdict_list), len(_pcfgdict_list)))
+        print('[harn.help] return %d / %d unique pipeline configs from: %r' %
+              (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
 
     if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
         import sys
@@ -245,7 +246,7 @@ def parse_acfg_combo_list(acfg_name_list):
     return acfg_combo_list
 
 
-def filter_duplicate_acfgs(expanded_aids_list, acfg_list, verbose=ut.NOT_QUIET):
+def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbose=ut.NOT_QUIET):
     """
     Removes configs with the same expanded aids list
 
@@ -284,8 +285,8 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, verbose=ut.NOT_QUIET):
                     ut.dict_str(nonvaried_compressed_dict),))
                 print('L__')
 
-        print('[harn.help] parsed %d / %d unique annot configs' % (
-            len(acfg_list_), len(acfg_list)))
+        print('[harn.help] parsed %d / %d unique annot configs from: %r' % (
+            len(acfg_list_), len(acfg_list), acfg_name_list))
     return expanded_aids_list_, acfg_list_
 
 
@@ -326,7 +327,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         >>> annotation_configs.print_acfg_list(
         >>>     acfg_list, expanded_aids_list, ibs, **printkw)
     """
-    print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
+    if ut.VERBOSE:
+        print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from ibeis.experiments import annotation_configs
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
@@ -364,7 +366,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
 
     if filter_dups:
         expanded_aids_list, acfg_list = filter_duplicate_acfgs(
-            expanded_aids_list, acfg_list)
+            expanded_aids_list, acfg_list, acfg_name_list)
 
     if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo')):
         import sys

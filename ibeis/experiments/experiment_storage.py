@@ -472,6 +472,26 @@ class TestResult(object):
         return cfg_lbls
 
     def get_title_aug(test_result, withinfo=True):
+        r"""
+        Args:
+            withinfo (bool): (default = True)
+
+        Returns:
+            ?: title_aug
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-get_title_aug
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> import ibeis
+            >>> ibs, test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> withinfo = True
+            >>> title_aug = test_result.get_title_aug(withinfo)
+            >>> res = u'title_aug = %s' % (title_aug,)
+            >>> print(res)
+        """
         ibs = test_result.ibs
         title_aug = ''
         title_aug += ' db=' + (ibs.get_dbname())
@@ -535,6 +555,22 @@ class TestResult(object):
         return fname_aug
 
     def print_unique_annot_config_stats(test_result, ibs=None):
+        r"""
+        Args:
+            ibs (IBEISController):  ibeis controller object(default = None)
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-print_unique_annot_config_stats
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> import ibeis
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> ibs = None
+            >>> result = test_result.print_unique_annot_config_stats(ibs)
+            >>> print(result)
+        """
         if ibs is None:
             ibs = test_result.ibs
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids) for daids in test_result.cfgx2_daids]
@@ -542,7 +578,9 @@ class TestResult(object):
         with ut.Indenter('[acfgstats]'):
             print('+====')
             print('Printing %d unique annotconfig stats' % (len(unique_daids)))
-            print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+            common_acfg = test_result.common_acfg
+            common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
+            print('test_result.common_acfg = ' + ut.dict_str(common_acfg))
             print('param_basis(len(daids)) = %r' % (test_result.get_param_basis('len(daids)'),))
             for count, daids in enumerate(unique_daids):
                 print('+---')
@@ -648,7 +686,7 @@ class TestResult(object):
         all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
         return all_tags
 
-    def case_sample2(test_result, filt_cfg, return_mask=False, verbose=ut.NOT_QUIET):
+    def case_sample2(test_result, filt_cfg, return_mask=False, verbose=None):
         r"""
         Args:
             filt_cfg (?):
@@ -711,6 +749,9 @@ class TestResult(object):
             >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
+        if verbose is None:
+            verbose = ut.NOT_QUIET
+
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
         # Initialize isvalid flags to all true
         is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
@@ -784,7 +825,8 @@ class TestResult(object):
                 filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
 
         if verbose:
-            print('Sampling from is_valid.size=%r with %r' % (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
+            print('[test_result] Sampling from is_valid.size=%r with filt=%r' %
+                  (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
             print('  * is_valid.shape = %r' % (is_valid.shape,))
 
         for key, rule in rule_list:
@@ -1287,6 +1329,10 @@ class TestResult(object):
             '--db ' + test_result.ibs.get_dbname()
         ])
         return flagstr
+
+    def draw_rank_cdf(test_result):
+        from ibeis.experiments import experiment_drawing
+        experiment_drawing.draw_rank_cdf(test_result.ibs, test_result)
 
 
 if __name__ == '__main__':

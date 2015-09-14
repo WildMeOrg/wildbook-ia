@@ -32,7 +32,7 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 #@devcmd('scores', 'score', 'namescore_roc')
 #def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, test_result, f=['']):
+def annotationmatch_scores(ibs, test_result, f=None):
     """
     TODO: plot the difference between the top true score and the next best false score
     CommandLine:
@@ -77,7 +77,8 @@ def annotationmatch_scores(ibs, test_result, f=['']):
     """
     import plottool as pt
     import vtool as vt
-    print('[dev] annotationmatch_scores')
+    if ut.VERBOSE:
+        print('[dev] annotationmatch_scores')
     from ibeis.experiments import cfghelpers
     from ibeis.init import main_helpers
 
@@ -98,7 +99,7 @@ def annotationmatch_scores(ibs, test_result, f=['']):
     tn_qaids = tp_qaids = common_qaids[isvalid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
-    print(qreq_.get_cfgstr())
+    #print(qreq_.get_cfgstr())
     part_attrs = {1: {'qaid': tp_qaids},
                   0: {'qaid': tn_qaids}}
 
@@ -130,7 +131,7 @@ def annotationmatch_scores(ibs, test_result, f=['']):
     return locals_
 
 
-def draw_casetag_hist(ibs, test_result):
+def draw_casetag_hist(ibs, test_result, f=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -142,13 +143,14 @@ def draw_casetag_hist(ibs, test_result):
         # Experiments I tagged
         python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
-        python -m ibeis.dev -e taghist -a timequalcontrolled -t invarbest --db PZ_Master1  --show
-        python -m ibeis.dev -e taghist -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1  --show
-        python -m ibeis.dev -e taghist -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
+        python -m ibeis.dev -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
+        python -m ibeis.dev -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
+        python -m ibeis.dev -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
 
         # Do more tagging
-        python -m ibeis.dev -e cases -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
-        python -m ibeis.dev -e print -a timequalcontrolled:minqual=good -t invarbest --db PZ_Master1 --show
+        python -m ibeis.dev -e cases -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,min_gtrank=1,max_gf_tags=0 --show
+        python -m ibeis.dev -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
+        python -m ibeis.dev -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,:fail=False,min_gf_timedelta=12h,max_gf_tags=0 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -160,12 +162,12 @@ def draw_casetag_hist(ibs, test_result):
     """
     from ibeis.init import main_helpers
     from ibeis.experiments import cfghelpers
-    filt_cfg = main_helpers.testdata_filtcfg()
+    filt_cfg = main_helpers.testdata_filtcfg(f)
     case_pos_list = test_result.case_sample2(filt_cfg)
     all_tags = test_result.get_all_tags()
     selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
     flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
-    print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
+    #print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
     import plottool as pt
     pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
     pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
@@ -545,6 +547,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled
         python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --filt :fail=True,min_gtrank=5,gtrank_lt=20
 
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
@@ -561,10 +564,9 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     #if sample_cfgstr_list is None:
     if filt_cfg is None:
-        if ut.get_argflag('--filt'):
-            # Hack to check if specified on command line
-            from ibeis.init import main_helpers
-            filt_cfg = main_helpers.testdata_filtcfg()
+        # Hack to check if specified on command line
+        from ibeis.init import main_helpers
+        filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)
 
     cfg_list = test_result.cfg_list
     #qaids = test_result.qaids
@@ -698,7 +700,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     return sel_rows, sel_cols, flat_case_labels
 
 
-def draw_rank_surface(ibs, test_result):
+def draw_rank_surface(ibs, test_result, verbose=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -739,8 +741,9 @@ def draw_rank_surface(ibs, test_result):
         _cfgx_list = [test_result.get_cfgx_with_param(key, val) for val in _basis]
         cfgx_lists_dict[key] = _cfgx_list
         basis_dict[key] = _basis
-    print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
-    print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
+    if verbose:
+        print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
+        print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
 
     # Hold a key constant
     import plottool as pt
@@ -801,7 +804,7 @@ def draw_rank_surface(ibs, test_result):
 
     #if ut.get_argflag('--save'):
     # hack
-    if ut.NOT_QUIET:
+    if verbose:
         test_result.print_unique_annot_config_stats()
 
     #if test_result.has_constant_daids():
@@ -813,7 +816,7 @@ def draw_rank_surface(ibs, test_result):
         pt.adjust_subplots2(use_argv=True)
 
 
-def draw_rank_cdf(ibs, test_result):
+def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -858,7 +861,7 @@ def draw_rank_cdf(ibs, test_result):
                   for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
-    test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset', default=None)
+    test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset', default=test_cfgx_slice)
     if test_cfgx_slice is not None:
         print('test_cfgx_slice = %r' % (test_cfgx_slice,))
         cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent,
@@ -877,7 +880,8 @@ def draw_rank_cdf(ibs, test_result):
     figtitle = (figtitle_prefix + 'Cumulative Rank Histogram\n')
     figtitle += ' ' + test_result.get_title_aug()
 
-    test_result.print_unique_annot_config_stats(ibs)
+    if verbose:
+        test_result.print_unique_annot_config_stats(ibs)
 
     import vtool as vt
     # Find where the functions no longer change
@@ -1124,7 +1128,7 @@ class IndividualResultsCopyTaskQueue(object):
 
 
 @profile
-def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None):
+def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=False):
     r"""
 
     CommandLine:
@@ -1150,7 +1154,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None):
     #plotkw['linestyle'] = '--'
     import plottool as pt
 
-    test_result.print_unique_annot_config_stats(ibs)
+    if verbose:
+        test_result.print_unique_annot_config_stats(ibs)
 
     truth2_prop, prop2_mat = test_result.get_truth2_prop()
     is_failure = prop2_mat['is_failure']

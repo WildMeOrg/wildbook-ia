@@ -401,7 +401,11 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 cfgname, cfgopt_strs, subx = parse_cfgstr_name_options(cfgstr)
                 # --
                 # Lookup named default settings
-                base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict)
+                try:
+                    base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict)
+                except Exception as ex:
+                    ut.printex(ex, keys=['cfgstr_list'])
+                    raise
                 # --
                 for base_cfg in base_cfg_list:
                     cfg_combo = try_customize_base(cfgname, cfgopt_strs, base_cfg,
@@ -423,7 +427,8 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
     return cfg_combos_list
 
 
-def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=None):
+def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
+                   valid_keys=None):
     """ simple configs
 
     Args:
@@ -447,7 +452,11 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None, valid_keys=N
         >>> result = ('cfg_list = %s' % (str(cfg_list),))
         >>> print(result)
     """
-    cfgstr_list = ut.get_argval(argname, type_=list, default=default)
+    if ut.in_jupyter_notebook():
+        # dont parse argv in ipython notebook
+        cfgstr_list = default
+    else:
+        cfgstr_list = ut.get_argval(argname, type_=list, default=default)
     cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
                                          named_defaults_dict=named_defaults_dict,
                                          valid_keys=valid_keys,
