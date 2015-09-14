@@ -32,7 +32,7 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 #@devcmd('scores', 'score', 'namescore_roc')
 #def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, test_result):
+def annotationmatch_scores(ibs, test_result, f=['']):
     """
     TODO: plot the difference between the top true score and the next best false score
     CommandLine:
@@ -81,7 +81,7 @@ def annotationmatch_scores(ibs, test_result):
     from ibeis.experiments import cfghelpers
     from ibeis.init import main_helpers
 
-    filt_cfg = main_helpers.testdata_filtcfg()
+    filt_cfg = main_helpers.testdata_filtcfg(default=f)
 
     assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
     cfgx = 0

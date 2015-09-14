@@ -241,7 +241,7 @@ def parse_acfg_combo_list(acfg_name_list):
             acfg_combo.extend(_combo)
         acfg_combo_list.append(acfg_combo)
     #print('LLL--')
-    print(ut.depth_profile(acfg_combo_list))
+    #print(ut.depth_profile(acfg_combo_list))
     return acfg_combo_list
 
 
