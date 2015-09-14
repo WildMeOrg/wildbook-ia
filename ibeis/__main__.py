@@ -91,6 +91,7 @@ def run_ibeis():
         #print(module)
         sys.exit(retcode)
 
+    import ibeis
     main_locals = ibeis.main()
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>

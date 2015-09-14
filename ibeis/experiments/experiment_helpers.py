@@ -120,7 +120,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     _flag_list = ut.flag_unique_items(_pipecfg_list)
     cfgdict_list = ut.list_compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.list_compress(_pipecfg_list, _flag_list)
-    if not QUIET:
+    if ut.NOT_QUIET:
         print('[harn.help] return %d / %d unique pipeline configs from: %r' %
               (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
 
