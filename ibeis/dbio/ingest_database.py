@@ -193,6 +193,15 @@ def __standard(dbname):
         return func
     return __registerdb
 
+@__standard('humpbacks')
+def ingest_humpbacks(dbname):
+    # The original humpbacks data is ROI cropped images in the
+    # named folder format
+    return Ingestable(dbname, ingest_type='named_folders',
+                      adjust_percent=0.00,
+                      species = const.Species.WHALEHUMPBACK,
+                      # this zipfile is only on Zach's machine
+                      fmtkey='name')
 
 @__standard('polar_bears')
 def ingest_polar_bears(dbname):

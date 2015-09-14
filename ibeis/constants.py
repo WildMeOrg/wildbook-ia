@@ -265,6 +265,7 @@ class Species(object):
     LION          = 'lion'
     WILDDOG       = 'wild_dog'
     WHALESHARK    = 'whale_shark'
+    WHALEHUMPBACK = 'whale_humpback'
     SNAIL         = 'snail'
     SEALS_SPOTTED = 'seals_spotted'
     SEALS_RINGED  = 'seals_saimma_ringed'
