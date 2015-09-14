@@ -1296,7 +1296,30 @@ LEGEND_LOCATION = {
 
 
 #def legend(loc='upper right', fontproperties=None):
-def legend(loc='best', fontproperties=None, size=None):
+def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
+    r"""
+    Args:
+        loc (str): (default = 'best')
+        fontproperties (None): (default = None)
+        size (None): (default = None)
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-legend --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> loc = 'best'
+        >>> import plottool as pt
+        >>> xdata = np.linspace(-6, 6)
+        >>> ydata = np.sin(xdata)
+        >>> pt.plot(xdata, ydata, label='sin')
+        >>> fontproperties = None
+        >>> size = None
+        >>> result = legend(loc, fontproperties, size)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
     assert loc in LEGEND_LOCATION or loc == 'best', 'invalid loc. try one of %r' % (LEGEND_LOCATION,)
     ax = gca()
     if fontproperties is None:
@@ -1304,7 +1327,9 @@ def legend(loc='best', fontproperties=None, size=None):
     prop = {}
     if size is not None:
         prop['size'] = size
-    ax.legend(loc=loc, prop=prop)
+    legend = ax.legend(loc=loc, prop=prop)
+    legend.get_frame().set_fc(fc)
+    legend.get_frame().set_alpha(alpha)
 
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):

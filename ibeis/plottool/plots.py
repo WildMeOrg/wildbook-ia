@@ -723,7 +723,7 @@ def plot_score_histograms(scores_list,
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
     df2.legend(loc='best', size=kwargs.get('legendsize', 8))
-    print('[df2] show_histogram()')
+    #print('[df2] show_histogram()')
     df2.dark_background()
     #return fig
 
@@ -1442,16 +1442,17 @@ def word_histogram2(text_list, **kwargs):
     Args:
         text_list (list):
 
-    CommandLine:
-        python -m plottool.plots --exec-word_histogram2 --show
-
     References:
         http://stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
+
+    CommandLine:
+        python -m plottool.plots --exec-word_histogram2 --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
+        >>> #text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
+        >>> text_list = []
         >>> #text_list = [x.strip() for x in ut.lorium_ipsum().split()]
         >>> result = word_histogram2(text_list)
         >>> ut.show_if_requested()
@@ -1466,7 +1467,9 @@ def word_histogram2(text_list, **kwargs):
 
     width = .95
     freq_list = [np.array(freq, dtype=np.int)]
-    num_yticks = max([_freq.max() for _freq in freq_list]) + 1
+    num_yticks = 1 + max([
+        _freq.max() if len(_freq) > 0 else 0
+        for _freq in freq_list])
     pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
@@ -1491,8 +1494,11 @@ def wordcloud(text, fnum=None, pnum=None):
     from wordcloud import WordCloud
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
-    wordcloud = WordCloud().generate(text)
-    pt.plt.imshow(wordcloud)
+    if len(text) > 0:
+        wordcloud = WordCloud().generate(text)
+        pt.plt.imshow(wordcloud)
+    else:
+        pt.imshow_null()
     pt.plt.axis('off')
 
 
