@@ -762,8 +762,8 @@ def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
         idx2_fgw = None
     # </HACK:fgweights>
     ax2_aid = np.array(aid_list)
-    preptup = (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx)
-    return preptup
+    _preptup = (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx)
+    return _preptup
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -812,8 +812,8 @@ class NeighborIndex(object):
         prepares inverted indicies and FLANN data structure
         """
         assert nnindexer.flann is None, 'already initalized'
-        preptup = prepare_index_data(aid_list, vecs_list, fgws_list, verbose=verbose)
-        (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
+        _preptup = prepare_index_data(aid_list, vecs_list, fgws_list, verbose=verbose)
+        (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = _preptup
         nnindexer.flann    = pyflann.FLANN()  # Approximate search structure
         nnindexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
@@ -1329,6 +1329,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
+        print('[nnindex] memory(idx2_vecs) = {}'.format(ut.get_object_size_str(idx2_vec)))
     return idx2_vec, idx2_ax, idx2_fx
 
 
