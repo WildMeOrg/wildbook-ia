@@ -1159,9 +1159,12 @@ class IBEISController(object):
             >>> daids = ibs.get_valid_aids()
             >>> dict_list = ibs.query_chips_simple_dict(qaids, daids, return_cm=True)
             >>> qgids = ibs.get_annot_image_rowids(qaids)
-            >>> for dict_, qgid in zip(dict_list, qgids):
+            >>> qnids = ibs.get_annot_name_rowids(qaids)
+            >>> for dict_, qgid, qnid in zip(dict_list, qgids, qnids):
             >>>     dict_['qgid'] = qgid
+            >>>     dict_['qnid'] = qnid
             >>>     dict_['dgid_list'] = ibs.get_annot_image_rowids(dict_['daid_list'])
+            >>>     dict_['dnid_list'] = ibs.get_annot_name_rowids(dict_['daid_list'])
             >>>     dict_['dgname_list'] = ibs.get_image_gnames(dict_['dgid_list'])
             >>>     dict_['qgname'] = ibs.get_image_gnames(dict_['qgid'])
             >>> result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)
