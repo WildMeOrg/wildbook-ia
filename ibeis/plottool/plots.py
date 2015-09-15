@@ -831,7 +831,8 @@ def plot_probabilities(prob_list,
     }
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')
-    df2.legend(loc='best', size=kwargs.get('legendsize', 8))
+    if kwargs.get('use_legend', True):
+        df2.legend(loc='best', size=kwargs.get('legendsize', 8))
     #df2.iup()
 
 
@@ -1485,6 +1486,61 @@ def word_histogram2(text_list, **kwargs):
     #ax.autofmt_xdate()
     #plt.setp(plt.xticks()[1], rotation=30, ha='right')
     #pt.gcf().autofmt_xdate()
+
+
+def draw_time_histogram(unixtime_list, **kwargs):
+    import plottool as pt
+    freq, bins = np.histogram(unixtime_list, bins=30)
+
+    #meanshift = sklearn.cluster.MeanShift()
+    #meanshift.fit(unixtime_list)
+
+    bin_labels = [ut.unixtime_to_datetimeobj(b).strftime('%Y/%m/%d') for b in bins]
+    xints = np.arange(len(bin_labels))
+    freq_list = [np.array(freq, dtype=np.int)]
+    width = .95
+
+    #num_yticks = 1 + max([
+    #    _freq.max() if len(_freq) > 0 else 0
+    #    for _freq in freq_list])
+    pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
+                  #kind='plot',
+                  kind='bar',
+                  width=width,
+                  xtick_rotation=30,
+                  #num_yticks=num_yticks,
+                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
+                  #transpose=True,
+                  #ymax=num_yticks - 1,
+                  ylabel='Freq', xlabel='Time', **kwargs)
+    pass
+
+
+def draw_time_distribution(unixtime_list):
+    import vtool as vt
+    import plottool as pt
+    unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
+    unixtime_pdf = vt.estimate_pdf(unixtime_list)
+    unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+    xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+    fnum = pt.ensure_fnum(None)
+    pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True, use_legend=False, fnum=fnum)
+    #freq, bins = np.histogram(unixtime_list, bins=30, normed=True)
+    #xints = np.arange(len(xdata))
+    #ut.embed()
+    #pt.multi_plot(xints, [freq],
+    #              fnum=fnum,
+    #              kind='bar', dark_background=False)
+    #xtick_rotation=30,
+    #num_yticks=num_yticks,
+    #xticklabels=bin_labels,
+    #xmin=-1,
+    #xmax=len(xints),
+    #transpose=True,
+    #ymax=num_yticks - 1,
+    #ylabel='Freq',
+    #xlabel='Time',
+    #**kwargs)
 
 
 def wordcloud(text, fnum=None, pnum=None):
