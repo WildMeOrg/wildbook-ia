@@ -145,7 +145,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_results'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
-    ('ibeis.other.dbinfo', 'get_dbinfo'),
+    ('ibeis.other.dbinfo', 'latex_dbstats'),
     ('ibeis.other.dbinfo', 'show_image_time_distributions'),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
     ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
