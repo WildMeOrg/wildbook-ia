@@ -395,8 +395,78 @@ def get_cate_categories():
     return standard, other
 
 
-def get_annotmatches_of_case(ibs, tags, mode='any'):
+def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1_list (list):
+        aid2_list (list):
+        directed (bool): (default = True)
+
+    Returns:
+        list: tags_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_aidpair_tags --db PZ_Master1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_pairs = filter_aidpairs_by_tags(ibs, min_num=1)
+        >>> aid1_list = aid_pairs.T[0]
+        >>> aid2_list = aid_pairs.T[1]
+        >>> undirected_tags = get_aidpair_tags(ibs, aid1_list, aid2_list, directed=False)
+        >>> tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
+        >>> print(ut.list_str(tagged_pairs))
+        >>> print(ut.dict_str(ut.groupby_tags(tagged_pairs, undirected_tags), nl=2))
+    """
+    aid_pairs = np.vstack([aid1_list, aid2_list]).T
+    if directed:
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(aid_pairs.T[0], aid_pairs.T[1])
+        tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
+    else:
+        expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
+        expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
+        expanded_edgeids = vt.get_undirected_edge_ids(expanded_aid_pairs)
+        unique_edgeids, groupxs = vt.group_indices(expanded_edgeids)
+        expanded_tags_list = ibs.get_annotmatch_case_tags(expanded_annotmatch_rowid)
+        grouped_tags = vt.apply_grouping(np.array(expanded_tags_list, dtype=object), groupxs)
+        undirected_tags = [list(set(ut.flatten(tags))) for tags in grouped_tags]
+        edgeid2_tags = dict(zip(unique_edgeids, undirected_tags))
+        input_edgeids = expanded_edgeids[:len(aid_pairs)]
+        tags_list = ut.dict_take(edgeid2_tags, input_edgeids)
+    return tags_list
+
+
+def filter_aidpairs_by_tags(ibs, any_tags=None, all_tags=None, min_num=None, max_num=None):
+    """
+    list(zip(aid_pairs, undirected_tags))
+    """
+
+    filtered_annotmatch_rowids = filter_annotmatch_by_tags(
+        ibs, None, any_tags=any_tags, all_tags=all_tags, min_num=min_num,
+        max_num=max_num)
+    aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
+    aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
+    aid_pairs = np.vstack([aid1_list, aid2_list]).T
+    # Dont double count
+    vt.get_undirected_edge_ids(aid_pairs)
+    xs = vt.find_best_undirected_edge_indexes(aid_pairs)
+    aid1_list = aid1_list.take(xs)
+    aid2_list = aid2_list.take(xs)
+    aid_pairs = np.vstack([aid1_list, aid2_list]).T
+    return aid_pairs
+    #directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)
+    #valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)
+
+
+def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, any_tags=None,
+                              all_tags=None, min_num=None, max_num=None):
+    r"""
+    ignores case
+
     Args:
         ibs (IBEISController):  ibeis controller object
         flags (?):
@@ -405,12 +475,12 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
         list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags JoinCase
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags SplitCase
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags occlusion
-        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags viewpoint
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --min-num=1
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags JoinCase
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SplitCase
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags occlusion
+        python -m ibeis.ibsfuncs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -419,20 +489,22 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
         >>> #ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> #tags = ['Photobomb', 'SceneryMatch']
-        >>> tags = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
-        >>> prop = tags[0]
-        >>> mode = 'any'
-        >>> filtered_rowids = get_annotmatches_of_case(ibs, tags, mode)
-        >>> valid_tags_list = ibs.get_annotmatch_case_tags(filtered_rowids)
-        >>> print('valid_tags_list = %s' % (ut.list_str(valid_tags_list, nl=1),))
-        >>> aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_rowids))
-        >>> aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_rowids))
+        >>> any_tags = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> prop = any_tags[0]
+        >>> filtered_annotmatch_rowids = filter_annotmatch_by_tags(ibs, None, any_tags=any_tags, min_num=min_num)
+        >>> aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
+        >>> aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
         >>> aid_pairs = np.vstack([aid1_list, aid2_list]).T
         >>> # Dont double count
         >>> xs = vt.find_best_undirected_edge_indexes(aid_pairs)
         >>> aid1_list = aid1_list.take(xs)
         >>> aid2_list = aid2_list.take(xs)
-        >>> print('Aid pairs with %s of these tags' % (mode,))
+        >>> valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)
+        >>> print('valid_tags_list = %s' % (ut.list_str(valid_tags_list, nl=1),))
+        >>> #
+        >>> print('Aid pairs with any_tags=%s' % (any_tags,))
+        >>> print('Aid pairs with min_num=%s' % (min_num,))
         >>> print('aid_pairs = ' + ut.list_str(list(zip(aid1_list, aid2_list))))
 
         #>>> #timedelta_list = get_annot_pair_timdelta(ibs, aid1_list, aid2_list)
@@ -441,31 +513,43 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
         #>>> #pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (tags,))
         #>>> #ut.show_if_requested()
     """
-    pass
-    tags = set(ut.ensure_iterable(tags))
-    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+
+    def fix_tags(tags):
+        return {const.__STR__(t.lower()) for t in tags}
+
+    if annotmatch_rowids is None:
+        annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowids)
-    tags_list = list(map(set, tags_list))
-    tags = {const.__STR__(t.lower()) for t in tags}
-    tags_list = [{const.__STR__(t.lower()) for t in tags_}  for tags_ in tags_list]
-    """
-    has_tag_flag_list = [len(_tags) > 0 for _tags in tags_list]
-    annotmatch_rowids = ut.list_compress(annotmatch_rowids, has_tag_flag_list)
-    """
-    if mode == 'any':
-        flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
-    elif mode == 'all':
-        flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
+    tags_list = [fix_tags(tags_) for tags_ in tags_list]
 
-    if False:
-        print('get_annotmatches_of_case')
-        print('mode = %r' % (mode,))
-        print('tags = %r' % (tags,))
-        filtered_tags = ut.list_compress(tags_list, flag_list)
-        print('filtered_tags = %r' % (filtered_tags,))
+    annotmatch_rowids_ = annotmatch_rowids
+    tags_list_ = tags_list
 
-    filtered_rowids = ut.list_compress(annotmatch_rowids, flag_list)
-    return filtered_rowids
+    if min_num is not None:
+        flags = [len(tags_) >= min_num for tags_ in tags_list_]
+        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids_, flags)
+        tags_list_ = ut.list_compress(tags_list_, flags)
+
+    if max_num is not None:
+        flags = [len(tags_) <= max_num for tags_ in tags_list_]
+        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids_, flags)
+        tags_list_ = ut.list_compress(tags_list_, flags)
+
+    if any_tags is not None:
+        any_tags = fix_tags(set(ut.ensure_iterable(any_tags)))
+        flags = [len(any_tags.intersection(tags_)) > 0 for tags_ in tags_list_]
+        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids_, flags)
+        tags_list_ = ut.list_compress(tags_list_, flags)
+
+    if all_tags is not None:
+        all_tags = fix_tags(set(ut.ensure_iterable(all_tags)))
+        flags = [len(all_tags.intersection(tags_)) == len(all_tags) for tags_ in tags_list_]
+        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids_, flags)
+        tags_list_ = ut.list_compress(tags_list_, flags)
+
+    filtered_annotmatch_rowids = annotmatch_rowids_
+    return filtered_annotmatch_rowids
 
     #case_list = get_cate_categories()
 

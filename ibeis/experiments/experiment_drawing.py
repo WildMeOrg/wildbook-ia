@@ -198,7 +198,7 @@ def draw_casetag_hist(ibs, test_result, f=None):
 
 @profile
 def draw_individual_cases(ibs, test_result, metadata=None, f=None,
-                          show_in_notebook=True, annot_mode=None):
+                          show_in_notebook=True, annot_modes=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -273,12 +273,15 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     show_kwargs['viz_name_score'] = True
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    show_kwargs['with_figtitle'] = False
+    #show_kwargs['with_figtitle'] = False
+    show_kwargs['with_figtitle'] = True
     #show_kwargs['with_figtitle'] = show_in_notebook
-    if annot_mode is not None:
-        show_kwargs['annot_mode'] = annot_mode
-    else:
-        show_kwargs['annot_mode'] = 1 if not SHOW else 0
+    if annot_modes is None:
+        if SHOW:
+            annot_modes = [1]
+        else:
+            annot_modes = [0]
+    #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
 
@@ -319,8 +322,10 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     #sel_cols = (list(range(test_result.nConfig)))
 
     def toggle_annot_mode():
-        show_kwargs['annot_mode'] = (show_kwargs['annot_mode'] + 1) % 3
-        print('show_kwargs[annot_mode] = %r' % (show_kwargs['annot_mode'] ,))
+        for ix in range(len(annot_modes)):
+            annot_modes[ix] = (annot_modes[ix] + 1 % 3)
+        #show_kwargs['annot_mode'] = (show_kwargs['annot_mode'] + 1) % 3
+        #print('show_kwargs[annot_mode] = %r' % (show_kwargs['annot_mode'] ,))
 
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
@@ -388,10 +393,18 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                 analysis_fpath = join(individ_results_dpath, qres_fname)
                 #print('analysis_fpath = %r' % (analysis_fpath,))
                 if SHOW or overwrite or not ut.checkpath(analysis_fpath) or show_in_notebook:
-                    if SHOW:
-                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
-                    else:
-                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
+                    if show_in_notebook:
+                        # hack to show vertical line in notebook
+                        pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
+                    for annot_mode in annot_modes:
+                        show_kwargs['annot_mode'] = annot_mode
+                        if show_in_notebook:
+                            # hack to show vertical line
+                            fnum = fnum + 1
+                        if SHOW:
+                            qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
+                        else:
+                            qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
 
                     # So hacky
                     if ut.get_argflag('--tight'):

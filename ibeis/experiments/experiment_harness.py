@@ -27,7 +27,7 @@ TEST_INFO = True
 DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff
 
 
-def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=None):
+def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=None, qaid_override=None):
     """
     Loops over annot configs.
 
@@ -55,7 +55,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=
     if len(acfg_name_list) == 0:
         raise ValueError('must give acfg name list')
 
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list, qaid_override=qaid_override)
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 

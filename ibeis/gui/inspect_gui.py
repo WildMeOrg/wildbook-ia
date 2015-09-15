@@ -452,6 +452,15 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
     ]
 
+    from ibeis.viz.interact import interact_chip
+
+    options += [
+        ('Interact Chips', [
+            ('Interact Chip1', lambda: interact_chip.ishow_chip(ibs, aid1, config2_=qreq_.get_external_query_config2(), fnum=None, **kwargs)),
+            ('Interact Chip2', lambda: interact_chip.ishow_chip(ibs, aid2, config2_=qreq_.get_external_data_config2(), fnum=None, **kwargs)),
+        ]),
+    ]
+
     annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
 
     OLD = False

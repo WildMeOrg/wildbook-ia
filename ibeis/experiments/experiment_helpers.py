@@ -290,7 +290,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
     return expanded_aids_list_, acfg_list_
 
 
-def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
+def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None):
     r"""
     For now can only specify one acfg name list
 
@@ -359,7 +359,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True):
         expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
 
     # + --- Hack: Override qaids ---
-    _qaids = ut.get_argval('--qaid', type_=list, default=None)
+    _qaids = ut.get_argval('--qaid', type_=list, default=qaid_override)
     if _qaids is not None:
         expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
     # L___

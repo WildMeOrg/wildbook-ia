@@ -70,7 +70,7 @@ def import_subs():
     from ibeis import templates
 
 
-def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwargs):
+def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], qaid_override=None, **kwargs):
     """
     Convience function
 
@@ -95,6 +95,9 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwar
                      '-a', ' '.join(a),
                      '-t', ' '.join(t),
                     ]
+    if qaid_override is not None:
+        command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
+
     if 'f' in kwargs:
         command_parts.extend(['-f', ' '.join(kwargs['f'])])
     if 'test_cfgx_slice' in kwargs:
@@ -116,7 +119,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwar
     print('argspec = %r' % (argspec,))
     if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
         # most experiments need a test_result
-        ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t)
+        ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t, qaid_override=qaid_override)
 
         draw_func = functools.partial(func, ibs, test_result, **kwargs)
         test_result.draw_func = draw_func

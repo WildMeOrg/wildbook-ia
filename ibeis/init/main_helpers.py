@@ -90,6 +90,7 @@ def testdata_expts(defaultdb='testdb1',
                    default_test_cfg_name_list=['default'],
                    a=None,
                    t=None,
+                   qaid_override=None,
                    ):
     """
     Command line interface to quickly get testdata for test_results
@@ -106,7 +107,8 @@ def testdata_expts(defaultdb='testdb1',
     ibs = ibeis.opendb(defaultdb=defaultdb)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-    test_result_list = experiment_harness.run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list)
+    test_result_list = experiment_harness.run_test_configurations2(
+        ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
     test_result = experiment_storage.combine_test_results(ibs, test_result_list)
     return ibs, test_result
     #return ibs, test_result_list

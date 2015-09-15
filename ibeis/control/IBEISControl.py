@@ -1147,13 +1147,23 @@ class IBEISController(object):
             python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0
             python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1
 
+            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0 --humpbacks
+
         Example:
             >>> # WEB_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> qaid = ibs.get_valid_aids()[0:3]
-            >>> dict_list = ibs.query_chips_simple_dict(qaid, return_cm=True)
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> #qaid = ibs.get_valid_aids()[0:3]
+            >>> qaids = ibs.get_valid_aids()
+            >>> daids = ibs.get_valid_aids()
+            >>> dict_list = ibs.query_chips_simple_dict(qaids, daids, return_cm=True)
+            >>> qgids = ibs.get_annot_image_rowids(qaids)
+            >>> for dict_, qgid in zip(dict_list, qgids):
+            >>>     dict_['qgid'] = qgid
+            >>>     dict_['dgid_list'] = ibs.get_annot_image_rowids(dict_['daid_list'])
+            >>>     dict_['dgname_list'] = ibs.get_image_gnames(dict_['dgid_list'])
+            >>>     dict_['qgname'] = ibs.get_image_gnames(dict_['qgid'])
             >>> result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)
             >>> result = result.replace('u\'', '"').replace('\'', '"')
             >>> print(result)
