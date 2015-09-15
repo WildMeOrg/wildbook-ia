@@ -1435,6 +1435,7 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
     #ax = pt.gca()
     pt.set_xlabel(label + '\nsize=%d' % (size,))
+    pt.gca().set_aspect('equal')
 
 
 def word_histogram2(text_list, **kwargs):
@@ -1470,6 +1471,7 @@ def word_histogram2(text_list, **kwargs):
     num_yticks = 1 + max([
         _freq.max() if len(_freq) > 0 else 0
         for _freq in freq_list])
+    print('num_yticks = %r' % (num_yticks,))
     pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
@@ -1478,6 +1480,7 @@ def word_histogram2(text_list, **kwargs):
                   num_yticks=num_yticks,
                   xticklabels=bin_labels, xmin=-1, xmax=len(xints),
                   transpose=True,
+                  ymax=num_yticks - 1,
                   ylabel='Freq', xlabel='Word', **kwargs)
     #ax.autofmt_xdate()
     #plt.setp(plt.xticks()[1], rotation=30, ha='right')
