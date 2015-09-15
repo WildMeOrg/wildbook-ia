@@ -229,6 +229,37 @@ def get_crop_slices(isfill):
     return rowslice, colslice
 
 
+def get_undirected_edge_ids(directed_edges):
+    r"""
+    Args:
+        directed_edges (?):
+
+    Returns:
+        list: edgeid_list
+
+    CommandLine:
+        python -m vtool.other --exec-get_undirected_edge_ids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
+        >>> edgeid_list = get_undirected_edge_ids(directed_edges)
+        >>> result = ('edgeid_list = %s' % (str(edgeid_list),))
+        >>> print(result)
+        edgeid_list = [0 0 1 2 3 1 1]
+    """
+    import vtool as vt
+    assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
+    #flipped = qaid_arr < daid_arr
+    flipped = directed_edges.T[0] < directed_edges.T[1]
+    # standardize edge order
+    edges_dupl = directed_edges.copy()
+    edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+    edgeid_list = vt.compute_unique_data_ids(edges_dupl)
+    return edgeid_list
+
+
 def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
     r"""
     Args:
@@ -262,13 +293,14 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
         [0 2 3 4]
     """
     import vtool as vt
-    assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
-    #flipped = qaid_arr < daid_arr
-    flipped = directed_edges.T[0] < directed_edges.T[1]
-    # standardize edge order
-    edges_dupl = directed_edges.copy()
-    edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-    edgeid_list = vt.compute_unique_data_ids(edges_dupl)
+    #assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
+    ##flipped = qaid_arr < daid_arr
+    #flipped = directed_edges.T[0] < directed_edges.T[1]
+    ## standardize edge order
+    #edges_dupl = directed_edges.copy()
+    #edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+    #edgeid_list = vt.compute_unique_data_ids(edges_dupl)
+    edgeid_list = get_undirected_edge_ids(directed_edges)
     unique_edgeids, groupxs = vt.group_indices(edgeid_list)
     # if there is more than one edge in a group take the one with the highest score
     if score_arr is None:
