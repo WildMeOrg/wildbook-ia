@@ -68,6 +68,12 @@ def run_ibeis():
         ibeis.dev.devmain()
         sys.exit(0)
 
+    #if ut.get_argflag('-e'):
+    #    import ibeis
+    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment), prefix_list=['--', '-'])
+    #    ibeis.run_experiment(**expt_kw)
+    #    sys.exit(0)
+
     doctest_modname = ut.get_argval(('--doctest-module', '--tmod', '-tm'), type_=str, default=None, help_='specify a module to doctest')
     if doctest_modname is not None:
         """

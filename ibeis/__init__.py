@@ -73,6 +73,9 @@ def import_subs():
 def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwargs):
     """
     Convience function
+
+    CommandLine:
+        ibeis -e print
     """
     import functools
     def find_expt_func(e):
@@ -109,14 +112,30 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], **kwar
     func = find_expt_func(e)
     assert func is not None, 'unknown experiment e=%r' % (e,)
 
-    # most experiments need a test_result
-    ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t)
+    argspec = ut.get_func_argspec(func)
+    print('argspec = %r' % (argspec,))
+    if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
+        # most experiments need a test_result
+        ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t)
 
-    draw_func = functools.partial(func, ibs, test_result, **kwargs)
-    test_result.draw_func = draw_func
-    return test_result
+        draw_func = functools.partial(func, ibs, test_result, **kwargs)
+        test_result.draw_func = draw_func
+        return test_result
+    #elif len(argspec.args) >= 1 and argspec.args[0] == 'ibs':
+    #    pass
+    else:
+        #print('EXPERIMENT IS NOT A TEST RESULT FUNC')
+        #__exec_expt_from_testsrc(func)
+        #import ibeis.dev  # NOQA
+        #ibeis.dev.devmain()
+        raise AssertionError('Unknown type of function for experiment')
 
-    #ibeis.dev.run_registered_precmd(e)
+
+#def __exec_expt_from_testsrc(func):
+#    testsrc = ut.get_doctest_examples(func)[0][0]
+#    print('testsrc = \n%s' % (testsrc,))
+#    exec(testsrc, globals(), locals())
+#ibeis.dev.run_registered_precmd(e)
 
 def testdata_expts(*args, **kwargs):
     ibs, test_result = main_helpers.testdata_expts(*args, **kwargs)

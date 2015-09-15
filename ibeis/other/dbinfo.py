@@ -63,8 +63,10 @@ def get_dbinfo(ibs, verbose=True,
     CommandLine:
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0
         python -m ibeis.other.dbinfo --test-get_dbinfo:1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db NNP_Master3
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:1 --db PZ_ViewPoints
+        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db NNP_Master3
+        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
+        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
 
     Example1:
         >>> # SCRIPT
@@ -274,7 +276,8 @@ def get_dbinfo(ibs, verbose=True,
     #valid_unixtime_list = [time for time in unixtime_list if time != -1]
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
     if ut.get_argflag('--hackshow-unixtime'):
-        hackshow_times(ibs, unixtime_list)
+        show_time_distributions(ibs, unixtime_list)
+        ut.show_if_requested()
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
 
     # GPS stats
@@ -559,12 +562,39 @@ def hackshow_names(ibs, aid_list, fnum=None):
     ax.set_ylim(min(y_data) - .1, max(y_data) + .1)
 
 
-def hackshow_times(ibs, unixtime_list):
-    import vtool as vt
+def show_image_time_distributions(ibs, gid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    CommandLine:
+        python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> result = show_image_time_distributions(ibs, gid_list)
+        >>> print(result)
+    """
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    unixtime_list = np.array(unixtime_list, dtype=np.float)
+    unixtime_list = ut.list_replace(unixtime_list, -1, float('nan'))
+    show_time_distributions(ibs, unixtime_list)
+
+
+def show_time_distributions(ibs, unixtime_list):
+    r"""
+    """
+    #import vtool as vt
     import plottool as pt
     unixtime_list = np.array(unixtime_list)
+    num_nan = np.isnan(unixtime_list).sum()
+    num_total = len(unixtime_list)
     unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
-    unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
     if False:
         from matplotlib import dates as mpldates
         #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))
@@ -582,15 +612,14 @@ def hackshow_times(ibs, unixtime_list):
         #ax.set_xticks(bins_)
         #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
     else:
-        unixtime_pdf = vt.estimate_pdf(unixtime_list)
-        unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
-        xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
-        pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata)
+        pt.draw_time_distribution(unixtime_list)
+        #pt.draw_histogram()
         ax = pt.gca()
         ax.set_xlabel('Date')
-        ax.set_title('Timestamp distribution of %s' % (ibs.get_dbname()))
+        ax.set_title('Timestamp distribution of %s. #nan=%d/%d' % (
+            ibs.get_dbname_alias(),
+            num_nan, num_total))
         pt.gcf().autofmt_xdate()
-    ut.show_if_requested()
 
 
 def latex_dbstats(ibs_list):
@@ -603,7 +632,7 @@ def latex_dbstats(ibs_list):
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 GZ_ALL NNP_MasterGIRM_core
+        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -680,11 +709,9 @@ def latex_dbstats(ibs_list):
     SINGLE_TABLE = False
     EXTRA = True
 
-    dbname_alias = {'NNP_MasterGIRM_core': 'NNP_GIRM'}
     for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
         row_ = ut.dict_take(dbinfo_locals, col_keys)
-        dbname = ibs.get_dbname()
-        dbname = dbname_alias.get(dbname, dbname)
+        dbname = ibs.get_dbname_alias()
         row_lbls.append(dbname)
         multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
         stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
@@ -720,7 +747,8 @@ def latex_dbstats(ibs_list):
                 extra_collbls[key] = ut.unique_keep_order2(extra_collbls[key] + list(dbinfo_locals[key].keys()))
 
         extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
-        extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
+        #extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
+        extra_collbls['yawtext2_nAnnots'] = ['B', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:
@@ -728,7 +756,7 @@ def latex_dbstats(ibs_list):
 
         qualalias = {'UNKNOWN': None}
 
-        extra_collbls['yawtext2_nAnnots'] = [const.yawalias.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
+        extra_collbls['yawtext2_nAnnots'] = [const.YAWALIAS.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
         extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
 
         for key in extra_keys:
@@ -744,7 +772,7 @@ def latex_dbstats(ibs_list):
     count_tabular_str = ut.util_latex.make_score_tabular(
         row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, **tablekw)
 
-    print(row_lbls)
+    #print(row_lbls)
 
     if SINGLE_TABLE:
         tabular_str = count_tabular_str

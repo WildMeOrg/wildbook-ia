@@ -381,3 +381,13 @@ TRUTH_INT_TO_TEXT = {
 
 # Turn off features at Lewa :(
 SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_argflag('--simplify')
+
+
+# For candidacy document
+DBNAME_ALIAS = {
+    #'NNP_MasterGIRM_core': 'NNP_GIRM'
+    #'NNP_MasterGIRM_core': 'GIRM',
+    'NNP_MasterGIRM_core': 'GIRM',
+    'PZ_Master1': 'PZ',
+    'GZ_ALL': 'GZ',
+}

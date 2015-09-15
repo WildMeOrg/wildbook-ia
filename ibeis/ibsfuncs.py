@@ -5896,6 +5896,15 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         return annotconfig_stats_strs, locals()
 
 
+@__injectable
+def get_dbname_alias(ibs):
+    """
+    convinience for plots
+    """
+    dbname = ibs.get_dbname()
+    return const.DBNAME_ALIAS.get(dbname, dbname)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
