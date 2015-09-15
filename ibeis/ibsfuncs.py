@@ -407,6 +407,10 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show
         python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags JoinCase
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags SplitCase
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags occlusion
+        python -m ibeis.ibsfuncs --exec-get_annotmatches_of_case --show --db PZ_Master1 --tags viewpoint
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -415,7 +419,7 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
         >>> #ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> #tags = ['Photobomb', 'SceneryMatch']
-        >>> tags = ['SceneryMatch', 'Photobomb']
+        >>> tags = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
         >>> prop = tags[0]
         >>> mode = 'any'
         >>> filtered_rowids = get_annotmatches_of_case(ibs, tags, mode)
@@ -428,25 +432,38 @@ def get_annotmatches_of_case(ibs, tags, mode='any'):
         >>> xs = vt.find_best_undirected_edge_indexes(aid_pairs)
         >>> aid1_list = aid1_list.take(xs)
         >>> aid2_list = aid2_list.take(xs)
-        >>> # import vtool as vt
-        >>> # nids, groupxs = vt.group_indices(np.array(ibs.get_annot_name_rowids(aid1_list)))
-        >>> # aids1 = vt.apply_grouping(aid1_list, groupxs)
-        >>> # aids2 = vt.apply_grouping(aid2_list, groupxs)
-        >>> timedelta_list = get_annot_pair_timdelta(ibs, aid1_list, aid2_list)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (tags,))
-        >>> ut.show_if_requested()
+        >>> print('Aid pairs with %s of these tags' % (mode,))
+        >>> print('aid_pairs = ' + ut.list_str(list(zip(aid1_list, aid2_list))))
+
+        #>>> #timedelta_list = get_annot_pair_timdelta(ibs, aid1_list, aid2_list)
+        #>>> #ut.quit_if_noshow()
+        #>>> #import plottool as pt
+        #>>> #pt.draw_timedelta_pie(timedelta_list, label='timestamp of tags=%r' % (tags,))
+        #>>> #ut.show_if_requested()
     """
     pass
     tags = set(ut.ensure_iterable(tags))
     annotmatch_rowids = ibs._get_all_annotmatch_rowids()
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowids)
     tags_list = list(map(set, tags_list))
+    tags = {const.__STR__(t.lower()) for t in tags}
+    tags_list = [{const.__STR__(t.lower()) for t in tags_}  for tags_ in tags_list]
+    """
+    has_tag_flag_list = [len(_tags) > 0 for _tags in tags_list]
+    annotmatch_rowids = ut.list_compress(annotmatch_rowids, has_tag_flag_list)
+    """
     if mode == 'any':
         flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
     elif mode == 'all':
         flag_list = [len(tags.intersection(_tags)) > 0 for _tags in tags_list]
+
+    if False:
+        print('get_annotmatches_of_case')
+        print('mode = %r' % (mode,))
+        print('tags = %r' % (tags,))
+        filtered_tags = ut.list_compress(tags_list, flag_list)
+        print('filtered_tags = %r' % (filtered_tags,))
+
     filtered_rowids = ut.list_compress(annotmatch_rowids, flag_list)
     return filtered_rowids
 
