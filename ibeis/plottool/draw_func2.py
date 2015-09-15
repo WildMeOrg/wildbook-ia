@@ -208,6 +208,8 @@ def show_if_requested(N=1):
         #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
         label_str   = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
+        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
+        print('width_str = %r' % (width_str,))
         height_str  = ut.get_argval('--height', type_=str, default=None)
         #if dpath is not None:
         #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
