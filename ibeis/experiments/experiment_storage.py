@@ -20,6 +20,8 @@ from ibeis.experiments.old_storage import ResultMetadata  # NOQA
 
 def combine_test_results(ibs, test_result_list):
     """
+    combine test results over multiple annot configs
+
     CommandLine:
         python -m ibeis.experiments.experiment_storage --exec-combine_test_results
 
@@ -76,12 +78,18 @@ def combine_test_results(ibs, test_result_list):
         [[combine_lbls(lbl, acfg_lbl) for lbl in test_result.cfgx2_lbl]
          for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
 
+    import copy
+
+    agg_cfgx2_acfg = ut.flatten(
+        [[copy.deepcopy(acfg)] * len(test_result.cfg_list) for
+         test_result, acfg in zip(test_result_list, acfg_list)])
+
     big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls,
                                  agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
     big_test_result.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
-    big_test_result.cfgdict_list = agg_cfgdict_list
+    big_test_result.cfgdict_list = agg_cfgdict_list  # TODO: depricate
 
     big_test_result.common_acfg = annotation_configs.compress_aidcfg(big_test_result.acfg)
     big_test_result.common_cfgdict = reduce(ut.dict_intersection, big_test_result.cfgdict_list)
@@ -89,6 +97,10 @@ def combine_test_results(ibs, test_result_list):
     big_test_result.varied_cfg_list = [ut.delete_dict_keys(cfgdict.copy(), list(big_test_result.common_cfgdict.keys()))
                                        for cfgdict in big_test_result.cfgdict_list]
     big_test_result.acfg_list = acfg_list
+    big_test_result.cfgx2_acfg = agg_cfgx2_acfg
+    big_test_result.cfgx2_pcfg = agg_cfgdict_list
+
+    assert len(agg_cfgdict_list) == len(agg_cfgx2_acfg)
 
     #big_test_result.acfg
     test_result = big_test_result
@@ -434,23 +446,76 @@ class TestResult(object):
             lbl = re.sub(ser, rep, lbl)
         return lbl
 
-    def get_short_cfglbls(test_result):
+    #def _friendly_shorten_lbls(test_result, lbl):
+    #    import re
+    #    repl_list = [
+    #        ('dmingt=None,?', ''),
+    #        ('qpername=None,?', ''),
+    #    ]
+    #    for ser, rep in repl_list:
+    #        lbl = re.sub(ser, rep, lbl)
+    #    return lbl
+
+    def get_short_cfglbls(test_result, friendly=False):
         """
         Labels for published tables
 
         cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-get_short_cfglbls
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> import ibeis
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
+            >>> cfg_lbls = test_result.get_short_cfglbls(friendly=True)
+            >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
+            >>> print(result)
         """
-        cfg_lbls = test_result.cfgx2_lbl[:]
 
+        if friendly :
+            acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in test_result.cfgx2_acfg]
+            pcfg_names = [pcfg['_cfgstr'] for pcfg in test_result.cfgx2_pcfg]
+
+            # Only vary the label settings within the cfgname
+            acfg_hashes = np.array(list(map(hash, acfg_names)))
+            unique_hashes, a_groupxs = vt.group_indices(acfg_hashes)
+            a_label_groups = []
+            from ibeis.experiments import annotation_configs
+            for groupx in a_groupxs:
+                acfg_list = ut.list_take(test_result.cfgx2_acfg, groupx)
+                #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
+                varied_lbls = annotation_configs.get_varied_acfg_labels(acfg_list, mainkey='_cfgstr')
+                a_label_groups.append(varied_lbls)
+            acfg_lbls = vt.invert_apply_grouping(a_label_groups, a_groupxs)
+
+            pcfg_hashes = np.array(list(map(hash, pcfg_names)))
+            unique_hashes, p_groupxs = vt.group_indices(pcfg_hashes)
+            p_label_groups = []
+            for groupx in p_groupxs:
+                pcfg_list = ut.list_take(test_result.cfgx2_pcfg, groupx)
+                varied_lbls = cfghelpers.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
+                p_label_groups.append(varied_lbls)
+            pcfg_lbls = vt.invert_apply_grouping(p_label_groups, p_groupxs)
+
+            cfg_lbls = [albl + '+' + plbl for albl, plbl in zip(acfg_lbls, pcfg_lbls)]
+        else:
+            cfg_lbls = test_result.cfgx2_lbl[:]
         cfg_lbls = [test_result._shorten_lbls(lbl) for lbl in cfg_lbls]
-
         # split configs up by param and annots
         pa_tups = [lbl.split('+') for lbl in cfg_lbls]
         cfg_lbls2 = []
         for pa in pa_tups:
             new_parts = []
             for part in pa:
-                name, settings = part.split(cfghelpers.NAMEVARSEP)
+                _tup = part.split(cfghelpers.NAMEVARSEP)
+                if len(_tup) > 1:
+                    name, settings = _tup
+                else:
+                    name = _tup[0]
+                    settings = ''
                 if len(settings) == 0:
                     new_parts.append(name)
                 else:
@@ -471,13 +536,13 @@ class TestResult(object):
 
         return cfg_lbls
 
-    def get_title_aug(test_result, withinfo=True):
+    def get_title_aug(test_result, withinfo=True, friendly=False):
         r"""
         Args:
             withinfo (bool): (default = True)
 
         Returns:
-            ?: title_aug
+            str: title_aug
 
         CommandLine:
             python -m ibeis.experiments.experiment_storage --exec-get_title_aug
@@ -508,7 +573,7 @@ class TestResult(object):
             except KeyError:
                 #pipeline_cfgname = test_result.common_cfgdict['_cfgname']
                 cfgstr_list = [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list]
-                uniuqe_cfgstrs = ut.unique_ordered(cfgstr_list)
+                uniuqe_cfgstrs = ut.unique_keep_order2(cfgstr_list)
                 pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
 
             annot_cfgname = test_result._shorten_lbls(annot_cfgname)
@@ -540,6 +605,12 @@ class TestResult(object):
             elif test_result.has_constant_length_daids():
                 daids = test_result.cfgx2_daids[0]
                 title_aug += ' #daids=%r*' % (len(test_result.cfgx2_daids[0]),)
+
+        if friendly:
+            # Hackiness for friendliness
+            title_aug = title_aug.replace('db=PZ_Master1', 'Plains Zebras')
+            title_aug = title_aug.replace('db=NNP_MasterGIRM_core', 'Masai Giraffes')
+            title_aug = title_aug.replace('db=GZ_ALL', 'Grevy\'s Zebras')
 
         return title_aug
 
@@ -1390,12 +1461,12 @@ class TestResult(object):
         if '_cfgstr' in test_result.common_cfgdict:
             pipecfg_args = [test_result.common_cfgdict['_cfgstr']]
         else:
-            pipecfg_args = ut.unique_ordered([cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
+            pipecfg_args = ut.unique_keep_order2([cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
 
         if '_cfgstr' in test_result.common_acfg['common']:
             annotcfg_args = [test_result.common_acfg['common']['_cfgstr']]
         else:
-            annotcfg_args = ut.unique_ordered([acfg['common']['_cfgstr'] for acfg in test_result.varied_acfg_list])
+            annotcfg_args = ut.unique_keep_order2([acfg['common']['_cfgstr'] for acfg in test_result.varied_acfg_list])
         flagstr =  ' '.join([
             '-a ' + ' '.join(annotcfg_args),
             '-t ' + ' ' .join(pipecfg_args),

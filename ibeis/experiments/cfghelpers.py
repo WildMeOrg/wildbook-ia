@@ -38,7 +38,7 @@ def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
                 del cfg_options[key]
 
 
-def get_varied_cfg_lbls(cfg_list, default_cfg=None):
+def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
     r"""
     Args:
         cfg_list (list):
@@ -62,7 +62,7 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None):
         >>> print(result)
         cfglbl_list = ['test:f=1', 'test:f=2', 'test:f=3,z=4']
     """
-    cfgname_list = [cfg['_cfgname'] for cfg in cfg_list]
+    cfgname_list = [cfg[mainkey] for cfg in cfg_list]
     nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, default_cfg)
     cfglbl_list = [
         get_cfg_lbl(cfg, name)
@@ -121,7 +121,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
 
 
 def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
-    """
+    r"""
     Formats a flat configuration dict into a short string label
 
     Args:
@@ -133,7 +133,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
         str: cfg_lbl
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-get_cfg_lbl_list
+        python -m ibeis.experiments.cfghelpers --exec-get_cfg_lbl
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -141,20 +141,49 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
         >>> cfg = {'_cfgname': 'test', 'var1': 'val1', 'var2': 'val2'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
-        >>> cfg_lbl = get_cfg_lbl_list(cfg, name, nonlbl_keys)
+        >>> cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)
         >>> result = ('cfg_lbl = %s' % (str(cfg_lbl),))
         >>> print(result)
         cfg_lbl = test:var1=val1,var2=val2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> cfg = {'_cfgname': 'test:K=[1,2,3]', 'K': '1'}
+        >>> name = None
+        >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
+        >>> cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)
+        >>> result = ('cfg_lbl = %s' % (str(cfg_lbl),))
+        >>> print(result)
+        cfg_lbl = test:K=1
     """
     if name is None:
         name = cfg.get('_cfgname', '')
     _search = ['dict(', ')', ' ']
     _repl = [''] * len(_search)
+
     # remove keys that should not belong to the label
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
     _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True)
     _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
-    cfg_lbl = name + NAMEVARSEP + _lbl
+    if NAMEVARSEP in name:
+        # hack for when name contains a little bit of the _lbl
+        # VERY HACKY TO PARSE OUT PARTS OF THE GIVEN NAME.
+        hacked_name, _cfgstr, _ = parse_cfgstr_name_options(name)
+        _cfgstr_options_list = re.split(
+            r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), _cfgstr)
+        #cfgstr_options_list = cfgopt_strs.split(',')
+        _cfg_options = ut.parse_cfgstr_list(
+            _cfgstr_options_list, smartcast=False, oldmode=False)
+        #
+        ut.delete_keys(_cfg_options, cfg.keys())
+        _preflbl = ut.dict_str(_cfg_options, explicit=True, nl=False, strvals=True)
+        _preflbl = ut.multi_replace(_preflbl, _search, _repl).rstrip(',')
+        hacked_name += NAMEVARSEP + _preflbl
+        ###
+        cfg_lbl = hacked_name + _lbl
+    else:
+        cfg_lbl = name + NAMEVARSEP + _lbl
     return cfg_lbl
 
 

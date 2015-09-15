@@ -36,6 +36,41 @@ invarbest = [{
     'affine_invariance': False,
 }]
 
+invar3 = [
+    {
+        'augment_queryside_hack': False,
+        'affine_invariance': True,
+    },
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': False,
+    },
+    {
+        'augment_queryside_hack': False,
+        'affine_invariance': False,
+    },
+]
+
+
+invar4 = [
+    {
+        'augment_queryside_hack': False,
+        'affine_invariance': True,
+    },
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': False,
+    },
+    {
+        'augment_queryside_hack': False,
+        'affine_invariance': False,
+    },
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': True,
+    },
+]
+
 
 def get_candidacy_dbnames():
     return [
@@ -87,7 +122,7 @@ candidacy_baseline = [
 
 
 # Test all combinations of invariance
-candinvar = candidacy_invariance = [
+invar = candinvar = candidacy_invariance = [
     {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
     {'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
     {'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},

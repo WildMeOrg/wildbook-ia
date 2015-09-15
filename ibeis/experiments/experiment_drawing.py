@@ -118,7 +118,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     encoder.fit(name_scores, labels, attrs)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
 
-    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug()
+    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug(friendly=True)
 
     figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
     encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
@@ -165,6 +165,28 @@ def draw_casetag_hist(ibs, test_result, f=None):
     filt_cfg = main_helpers.testdata_filtcfg(f)
     case_pos_list = test_result.case_sample2(filt_cfg)
     all_tags = test_result.get_all_tags()
+
+    def consolodate_tags(all_tags):
+        remove_tags = ['badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard']
+        map_tags = {
+            'quality': 'Quality',
+            'scoringissue': 'ScoringIssue',
+            'orientation': 'Orientation',
+            'pose': 'Pose',
+            'lighting': 'Lighting',
+            'occlusion': 'Occlusion',
+            'edgematch': 'EdgeMatches',
+            'toolargematches': 'CoarseFeatures',
+            'badcoverage': 'LowCoverage',
+            'shouldhavemore': 'LowCoverage',
+            'viewpoint': 'Viewpoint',
+        }
+        new_tags = [[ut.unique_keep_order2([map_tags.get(t.lower(), t) for t in tags if t.lower() not in remove_tags ])
+                     for tags in case_tags] for case_tags in all_tags ]
+        return new_tags
+
+    all_tags = consolodate_tags(all_tags)
+
     selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
     flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
     #print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
@@ -318,7 +340,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None, show_in_noteb
     #overwrite = False
     overwrite = ut.get_argflag('--overwrite')
 
-    cfgx2_shortlbl = test_result.get_short_cfglbls()
+    cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
 
     if ut.NOT_QUIET:
         print('figdir = %r' % (figdir,))
@@ -813,7 +835,7 @@ def draw_rank_surface(ibs, test_result, verbose=False):
         figtitle_prefix +
         #'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
         'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy for\n')
-    figtitle += ' ' + test_result.get_title_aug()
+    figtitle += ' ' + test_result.get_title_aug(friendly=True)
 
     #if ut.get_argflag('--save'):
     # hack
@@ -869,7 +891,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     import plottool as pt
     #cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
-    label_list = test_result.get_short_cfglbls()
+    label_list = test_result.get_short_cfglbls(friendly=True)
     label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label
                   for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
@@ -891,7 +913,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     #
     figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
     figtitle = (figtitle_prefix + 'Cumulative Rank Histogram\n')
-    figtitle += ' ' + test_result.get_title_aug()
+    figtitle += ' ' + test_result.get_title_aug(friendly=True)
 
     if verbose:
         test_result.print_unique_annot_config_stats(ibs)
@@ -1176,7 +1198,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
     is_success = prop2_mat['is_success']
     X_data_list = []
     X_label_list = []
-    cfgx2_shortlbl = test_result.get_short_cfglbls()
+    cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
     if falsepos is None:
         falsepos = ut.get_argflag('--falsepos')
     if truepos is None:
@@ -1290,6 +1312,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
             pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
             ax = pt.gca()
             ax.set_xlabel(X_label_list[count] + '\nsize=%d' % (size,))
+            ax.set_aspect('equal')
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
@@ -1305,7 +1328,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         ax.set_xlabel('timedelta')
         #ax.set_ylabel('Frequency')
         ax.set_ylabel('% true positives')
-        ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug())
+        ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug(friendly=True))
         pt.gcf().autofmt_xdate()
 
         if ut.get_argflag('--contextadjust'):

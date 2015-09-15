@@ -134,7 +134,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
     return acfg
 
 
-def get_varied_acfg_labels(acfg_list):
+def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
     """
         >>> from ibeis.experiments.annotation_configs import *  # NOQA
 
@@ -313,7 +313,7 @@ default = {
 
 
 """
-ibeis -e print_acfg --db PZ_Master1 -a uncontrolled
+ibeis -e print_acfg --db PZ_Master1 -a unctrl
 """
 unctrl = uncontrolled = {
     'qcfg': ut.augdict(
@@ -327,8 +327,26 @@ unctrl = uncontrolled = {
         }),
 }
 
+
+# Uncontrolled but comparable to controlled
+unctrl_comp =  {
+    'qcfg': ut.augdict(
+        __baseline_aidcfg, {
+            #'default_aids': 'allgt',
+            'sample_per_name': 1,
+            'min_pername': 2,
+            'view_ext': 0,
+        }),
+
+    'dcfg': ut.augdict(
+        __baseline_aidcfg, {
+        }),
+}
+
 """
-ibeis -e print_acfg --db PZ_Master1 -a controlled
+ibeis -e print_acfg --db PZ_Master1 -a ctrl
+ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl:qpername=1,qview_ext=0
+ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl_comp
 """
 ctrl = controlled = {
     'qcfg': ut.augdict(
@@ -673,7 +691,7 @@ python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_
 TODO: Need to explicitly setup the common config I think?
 
 """
-viewpoint_compare = {
+vp = viewpoint_compare = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
