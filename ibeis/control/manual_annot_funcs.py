@@ -1187,9 +1187,13 @@ def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
 
 @register_ibs_method
 @register_api('/api/annot/hashid_visual_uuid/', methods=['GET'])
-def get_annot_hashid_visual_uuid(ibs, aid_list, prefix=''):
+def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', _new=False):
     r"""
     builds an aggregate visual hash id for a list of aids
+
+    Args:
+        _new (bool): Eventually we will change the hashing scheme and all old
+            data will be invalidated. (default=False)
 
     RESTful:
         Method: GET
@@ -1197,15 +1201,22 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix=''):
     """
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     label = ''.join(('_', prefix, 'VUUIDS'))
-    visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)
+    if _new:
+        visual_uuid_hashid  = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=True)
+    else:
+        visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)
     return visual_uuid_hashid
 
 
 @register_ibs_method
 @register_api('/api/annot/hashid_semantic_uuid/', methods=['GET'])
-def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
+def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
     r"""
     builds an aggregate semantic hash id for a list of aids
+
+    Args:
+        _new (bool): Eventually we will change the hashing scheme and all old
+            data will be invalidated. (default=False)
 
     RESTful:
         Method: GET
@@ -1213,7 +1224,10 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
     label = ''.join(('_', prefix, 'SUUIDS'))
-    semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
+    if _new:
+        semantic_uuid_hashid  = ut.hashstr_arr27(semantic_uuid_list, label, pathsafe=True)
+    else:
+        semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
     return semantic_uuid_hashid
 
 

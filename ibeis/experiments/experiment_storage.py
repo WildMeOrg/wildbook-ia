@@ -625,6 +625,35 @@ class TestResult(object):
         fname_aug = fname_aug.strip('_')
         return fname_aug
 
+    def print_acfg_info(test_result, **kwargs):
+        """
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-print_acfg_info
+
+        Kwargs;
+            see ibs.get_annot_stats_dict
+            hashid, per_name, per_qual, per_vp, per_name_vpedge, per_image,
+            min_name_hourdist
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> import ibeis
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
+            >>> ibs = None
+            >>> result = test_result.print_acfg_info()
+            >>> print(result)
+        """
+        from ibeis.experiments import annotation_configs
+        ibs = test_result.ibs
+        # Get unique annotation configs
+        cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(test_result.cfgx2_acfg)
+        flags = ut.flag_unique_items(cfgx2_acfg_label)
+        qreq_list = ut.list_compress(test_result.cfgx2_qreq_, flags)
+        acfg_list = ut.list_compress(test_result.cfgx2_acfg, flags)
+        expanded_aids_list = [(qreq_.qaids, qreq_.daids) for qreq_ in qreq_list]
+        annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, **kwargs)
+
     def print_unique_annot_config_stats(test_result, ibs=None):
         r"""
         Args:
@@ -637,7 +666,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
             >>> ibs = None
             >>> result = test_result.print_unique_annot_config_stats(ibs)
             >>> print(result)

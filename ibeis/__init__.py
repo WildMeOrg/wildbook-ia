@@ -109,6 +109,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], qaid_o
     command_parts.extend(['--show'])
 
     command_line_str = ' '.join(command_parts)
+    # Warning, not always equivalent
     print('Equivalent Command Line:')
     print(command_line_str)
 
@@ -116,7 +117,6 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], qaid_o
     assert func is not None, 'unknown experiment e=%r' % (e,)
 
     argspec = ut.get_func_argspec(func)
-    print('argspec = %r' % (argspec,))
     if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
         # most experiments need a test_result
         ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t, qaid_override=qaid_override)

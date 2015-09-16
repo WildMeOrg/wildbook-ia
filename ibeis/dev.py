@@ -138,7 +138,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist']),
+    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
     ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases', 'cases']),
     ('ibeis.experiments.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 

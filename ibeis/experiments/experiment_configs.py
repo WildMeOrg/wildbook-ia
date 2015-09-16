@@ -137,7 +137,7 @@ invar = candinvar = candidacy_invariance = [
 #    'augment_queryside_hack' : [False, True],
 #}
 
-candidacy_namescore = [
+candscoremech = candidacy_namescore = [
     #{
     #    'K': 1,
     #    'score_method':      ['nsum'],

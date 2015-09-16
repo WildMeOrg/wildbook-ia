@@ -518,7 +518,8 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
 
     if exclude_reference is not None:
         assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
-        # VerbosityContext.report_annot_stats()
+        # VerbosityContext.report_annot_stats(ibs, avail_aids, prefix, '')
+        # VerbosityContext.report_annot_stats(ibs, reference_aids, prefix, '')
         with VerbosityContext('exclude_reference', num_ref_aids=len(reference_aids)):
             avail_aids = ut.setdiff_ordered(avail_aids, reference_aids)
             avail_aids = sorted(avail_aids)
@@ -526,6 +527,10 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
     if not (sample_per_ref_name is not None or sample_size is not None):
         VerbosityContext.endfilter()
         return avail_aids
+
+    if isinstance(sample_size, float):
+        # A float sample size is a interpolations between full data and small data
+        sample_size = int(round((len(avail_aids) * sample_size + (1 - sample_size) * len(reference_aids))))
 
     # This function first partitions aids into a one set that corresonds with
     # the reference set and another that does not correspond with the reference

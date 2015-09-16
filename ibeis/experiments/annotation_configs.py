@@ -516,7 +516,7 @@ varypername = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
             #'default_aids': 'allgt',
-            'sample_size': 50,
+            #'sample_size': 50,
             'sample_per_name': 1,
             'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
             'force_const_size': True,
@@ -535,6 +535,21 @@ varypername = {
         }),
 }
 
+varypername_td = {
+    'qcfg': ut.augdict(
+        varypername['qcfg'], {
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
+        }),
+
+    'dcfg': ut.augdict(
+        varypername['dcfg'], {
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
+        }),
+}
+
+
 varypername_pzm = {
     'qcfg': ut.augdict(
         varypername['qcfg'], {
@@ -543,6 +558,21 @@ varypername_pzm = {
 
     'dcfg': ut.augdict(
         varypername['dcfg'], {
+        }),
+}
+
+varypername_pzm_td = {
+    'qcfg': ut.augdict(
+        varypername['qcfg'], {
+            'sample_size': 500,
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
+        }),
+
+    'dcfg': ut.augdict(
+        varypername['dcfg'], {
+            'require_timestamp': True,
+            'min_timedelta': 60 * 60 * 12,
         }),
 }
 
@@ -609,6 +639,55 @@ varysize = {
             'exclude_reference': True,
             'sample_size': [50, 200, 500],
             'min_pername': 1,
+        }),
+}
+
+
+"""
+ibeis -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache
+ibeis -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache
+"""
+
+varysize2 = {
+    'qcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'allgt',
+            'sample_size': None,
+            'sample_per_name': 1,
+            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
+        }),
+
+    'dcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'all',
+            'sample_per_name': [1, 2, 3],
+            'exclude_reference': True,
+            'sample_size': [0.25, 0.5, 0.75, 1.0],
+            'min_pername': 1,
+        }),
+}
+
+"""
+ibeis -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache
+"""
+varysize2_td = {
+    'qcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'allgt',
+            'sample_size': None,
+            'sample_per_name': 1,
+            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
+            'min_timedelta': 60 * 60 * 12,
+        }),
+
+    'dcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'all',
+            'sample_per_name': [1, 2, 3],
+            'exclude_reference': True,
+            'sample_size': [0.25, 0.5, 0.75, 1.0],
+            'min_pername': 1,
+            'min_timedelta': 60 * 60 * 12,
         }),
 }
 
@@ -691,7 +770,7 @@ python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_
 TODO: Need to explicitly setup the common config I think?
 
 """
-vp = viewpoint_compare = {
+viewdiff = vp = viewpoint_compare = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',

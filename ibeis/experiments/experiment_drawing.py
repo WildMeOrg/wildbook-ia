@@ -198,7 +198,7 @@ def draw_casetag_hist(ibs, test_result, f=None):
 
 @profile
 def draw_individual_cases(ibs, test_result, metadata=None, f=None,
-                          show_in_notebook=True, annot_modes=None):
+                          show_in_notebook=False, annot_modes=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object

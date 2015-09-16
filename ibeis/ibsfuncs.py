@@ -395,6 +395,30 @@ def get_cate_categories():
     return standard, other
 
 
+def export_tagged_chips(ibs, aid_list):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-export_tagged_chips  --tags Hard interesting --db PZ_Master1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> any_tags = ut.get_argval('--tags', type_=list, default=None)
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> aid_pairs = filter_aidpairs_by_tags(ibs, any_tags=any_tags, min_num=1)
+        >>> aid_list = np.unique(aid_pairs.flatten())
+        >>> print(aid_list)
+        >>> print('len(aid_list) = %r' % (len(aid_list),))
+        >>> export_tagged_chips(ibs, aid_list)
+    """
+    visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list, _new=True)
+    zip_fpath = 'exported_chips' +  visual_uuid_hashid + '.zip'
+    chip_fpath = ibs.get_annot_chip_fpath(aid_list)
+    ut.archive_files(zip_fpath, chip_fpath)
+
+
 def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     r"""
     Args:
@@ -407,14 +431,16 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         list: tags_list
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_aidpair_tags --db PZ_Master1
+        python -m ibeis.ibsfuncs --exec-get_aidpair_tags --db PZ_Master1 --tags Hard interesting
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aid_pairs = filter_aidpairs_by_tags(ibs, min_num=1)
+        >>> any_tags = ut.get_argval('--tags', type_=list, default=None)
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> aid_pairs = filter_aidpairs_by_tags(ibs, any_tags=any_tags, min_num=1)
         >>> aid1_list = aid_pairs.T[0]
         >>> aid2_list = aid_pairs.T[1]
         >>> undirected_tags = get_aidpair_tags(ibs, aid1_list, aid2_list, directed=False)
@@ -444,7 +470,6 @@ def filter_aidpairs_by_tags(ibs, any_tags=None, all_tags=None, min_num=None, max
     """
     list(zip(aid_pairs, undirected_tags))
     """
-
     filtered_annotmatch_rowids = filter_annotmatch_by_tags(
         ibs, None, any_tags=any_tags, all_tags=all_tags, min_num=min_num,
         max_num=max_num)
