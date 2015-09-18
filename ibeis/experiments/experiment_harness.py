@@ -120,6 +120,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=
     if DRY_RUN:
         print('DRYRUN: Cannot continue past run_test_configurations2')
         sys.exit(0)
+
     return test_result_list
 
 
@@ -177,10 +178,11 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             return test_result
 
     cfgx2_cfgresinfo = []
-    cfgiter = subindexer_partial(pipecfg_list, lbl='query config', freq=1, adjust=False, separate=True)
+    #nPipeCfg = len(pipecfg_list)
+    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)), lbl='query config', freq=1, adjust=False, separate=True)
     # Run each pipeline configuration
     prev_feat_cfgstr = None
-    for cfgx, pipe_cfg in enumerate(cfgiter):
+    for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
 
         ut.colorprint('testnameid=%r' % (testnameid,), 'green')
@@ -190,9 +192,16 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         if DRY_RUN:
             continue
 
+        indent_prefix = '[%s cfg %d/%d]' % (
+            dbname,
+            (cfgiter.parent_index * cfgiter.nTotal) + cfgx ,  # cfgiter.count (doesnt work when quiet)
+            cfgiter.nTotal * cfgiter.parent_nTotal
+        )
+
         #with ut.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
-        with ut.Indenter('[%s cfg %d/%d]' % (dbname, cfgiter.count, cfgiter.nTotal * cfgiter.parent_nTotal)):
+        with ut.Indenter(indent_prefix):
             # Run the test / read cache
+            _need_compute = True
             if use_cache:
                 # smaller cache for individual configuration runs
                 st_cfgstr = qreq_.get_cfgstr(with_query=True)
@@ -202,16 +211,19 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 try:
                     cfgres_info = ut.load_cache(st_cachedir, st_cachename, st_cfgstr)
                 except IOError:
-                    cfgres_info = get_query_result_info(qreq_)
-                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cfgres_info)
-            else:
+                    _need_compute = True
+                else:
+                    _need_compute = False
+            if _need_compute:
                 if prev_feat_cfgstr is not None and prev_feat_cfgstr != qreq_.qparams.feat_cfgstr:
-                    # If the features are different for this query clear the
-                    # ibeis cache to preserve memory
+                    # Clear features to preserve memory
                     ibs.clear_table_cache()
                     #qreq_.ibs.print_cachestats_str()
                 cfgres_info = get_query_result_info(qreq_)
-                qreq_.qparams.feat_cfgstr = prev_feat_cfgstr
+                prev_feat_cfgstr = qreq_.qparams.feat_cfgstr  # record previous feature configuration
+
+                if use_cache:
+                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cfgres_info)
         if not NOMEMORY:
             # Store the results
             cfgx2_cfgresinfo.append(cfgres_info)
@@ -269,7 +281,8 @@ def get_qres_name_result_info(ibs, qres):
         gf_aid = None
         gt_raw_score = None
         gf_raw_score = None
-        scorediff = scorefactor = scorelogfactor = scoreexpdiff = None
+        scorediff = scorefactor = None
+        #scorelogfactor = scoreexpdiff = None
     else:
 
         gt_aid = sorted_aids[gt_rank][0]
@@ -279,8 +292,9 @@ def get_qres_name_result_info(ibs, qres):
         # different comparison methods
         scorediff      = gt_raw_score - gf_raw_score
         scorefactor    = gt_raw_score / gf_raw_score
-        scorelogfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
-        scoreexpdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
+        #scorelogfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
+        #scoreexpdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
+
         # TEST SCORE COMPARISON METHODS
         #truescore  = np.random.rand(4)
         #falsescore = np.random.rand(4)
@@ -303,8 +317,8 @@ def get_qres_name_result_info(ibs, qres):
         gf_raw_score=gf_raw_score,
         scorediff=scorediff,
         scorefactor=scorefactor,
-        scorelogfactor=scorelogfactor,
-        scoreexpdiff=scoreexpdiff
+        #scorelogfactor=scorelogfactor,
+        #scoreexpdiff=scoreexpdiff
     )
     return qresinfo_dict
 

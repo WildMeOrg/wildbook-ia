@@ -1,5 +1,85 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import sys
+
+
+def hack_argv(arg):
+    # HACK COMMON ARGV SYMBOLS
+    if arg.startswith('--hargv='):
+        hack_argv_key = '='.join(arg.split('=')[1:])
+
+        common_args = [
+            '--dpath=~/latex/crall-candidacy-2015/',
+            '--clipwhite',
+            '--contextadjust',
+            '--dpi=256',
+            #'--diskshow',
+        ]
+
+        sys.argv.extend(common_args)
+
+        # Figsize hacks
+
+        if hack_argv_key in ['surf']:
+            sys.argv.extend([
+                '--figsize=14,5',
+                '--hspace=.3',
+                '--top=.8',
+                '--bottom=0.08',
+                '--left=.05',
+                '--right=.95'
+            ])
+
+        if hack_argv_key in ['scores']:
+            sys.argv.extend([
+                '--figsize=15,7',
+                '--hspace=.3',
+                '--top=.9',
+                '--bottom=0.08',
+                '--left=.05',
+                '--right=.95'
+            ])
+        elif hack_argv_key in ['expt']:
+            sys.argv.extend([
+                '--figsize=15,5',
+                '--top=.9',
+                '--bottom=.1',
+            ])
+        elif hack_argv_key in ['mech']:
+            sys.argv.extend([
+                '--figsize=14,5',
+                '--top=.8',
+            ])
+
+        # Save location
+        fname_fmt = 'figures/expt_{e}_{db}_a_{a}_t_{t}'
+
+        if hack_argv_key in ['scores']:
+            fname_fmt += '_{filt}'
+
+        if hack_argv_key in ['time']:
+            if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):
+                fname_fmt += '_TP'
+            if ('--falsepos' in sys.argv):
+                fname_fmt += '_FP'
+
+        if hack_argv_key in ['time', 'expt', 'mech', 'scores', 'surf']:
+            sys.argv.extend([
+                '--save',
+                fname_fmt + '.png',
+            ])
+
+        if hack_argv_key in ['time']:
+            sys.argv.extend([
+                '--figsize=18,8',
+                r'--width=".8\textwidth"',
+            ])
+
+#import IPython
+#IPython.embed()
+for arg in sys.argv[:]:
+    hack_argv(arg)
+
 import utool
 from utool.util_six import get_funcname
 #import functools

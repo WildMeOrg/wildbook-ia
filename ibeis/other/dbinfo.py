@@ -68,13 +68,28 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
 
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
+
     Example1:
         >>> # SCRIPT
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> # <HACK FOR FILTERING>
+        >>> from ibeis.experiments import cfghelpers
+        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.init import filter_annots
+        >>> named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
+        >>>                                    annotation_configs.TEST_NAMES)
+        >>> named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+        >>>                                ut.get_list_column(named_defaults_dict, 'qcfg')))
+        >>> acfg = cfghelpers.parse_argv_cfg(('--annot-filter', '-a'), named_defaults_dict=named_qcfg_defaults, default=None)[0]
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = filter_annots.filter_annots_independent(ibs, aid_list, acfg)
+        >>> # </HACK FOR FILTERING>
         >>> kwargs = ut.get_kwdefaults(get_dbinfo)
         >>> kwargs['verbose'] = False
+        >>> kwargs['aid_list'] = aid_list
         >>> kwargs = ut.parse_dict_from_argv(kwargs)
         >>> output = get_dbinfo(ibs, **kwargs)
         >>> result = (output['info_str'])
@@ -579,6 +594,7 @@ def show_image_time_distributions(ibs, gid_list):
         >>> gid_list = ibs.get_valid_gids()
         >>> result = show_image_time_distributions(ibs, gid_list)
         >>> print(result)
+        >>> ut.show_if_requested()
     """
     unixtime_list = ibs.get_image_unixtime(gid_list)
     unixtime_list = np.array(unixtime_list, dtype=np.float)
@@ -620,9 +636,12 @@ def show_time_distributions(ibs, unixtime_list):
             ibs.get_dbname_alias(),
             num_nan, num_total))
         pt.gcf().autofmt_xdate()
+    if ut.get_argflag('--contextadjust'):
+        #pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        pt.adjust_subplots2(use_argv=True)
 
 
-def latex_dbstats(ibs_list):
+def latex_dbstats(ibs_list, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -725,7 +744,8 @@ def latex_dbstats(ibs_list):
 
     CENTERLINE = False
     AS_TABLE = True
-    tablekw = dict(astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False, precision=2, col_sep='', multicol_sep='|')
+    tablekw = dict(astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False,
+                   precision=2, col_sep='', multicol_sep='|', **kwargs)
 
     if EXTRA:
         extra_keys = [

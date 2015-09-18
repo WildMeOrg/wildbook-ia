@@ -96,6 +96,12 @@ def expand_acfgs_consistently(ibs, acfg_combo):
     min_qsize = None
     min_dsize = None
 
+    # HACK: Find out the params being varied and disallow those from being
+    # prefiltered due to the lack of heirarchical filters
+    from ibeis.experiments import annotation_configs
+    nonvaried_dict, varied_acfg_list = annotation_configs.partition_acfg_list(acfg_combo)
+    hack_exclude_keys = list(set(ut.flatten([list(ut.merge_dicts(*acfg.values()).keys()) for acfg in varied_acfg_list])))
+
     for combox, acfg in enumerate(acfg_combo):
         qcfg = acfg['qcfg']
         dcfg = acfg['dcfg']
@@ -110,7 +116,27 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             dcfg['sample_size'] = tmpmin(dcfg['sample_size'] , min_dsize)
 
         # Expand modified acfgdict
-        expanded_aids = expand_acfgs(ibs, acfg)
+        expanded_aids = expand_acfgs(ibs, acfg, hack_exclude_keys=hack_exclude_keys)
+
+        if dcfg.get('hack_extra', None):
+            # SUCH HACK to get a larger database
+            _aidcfg = annotation_configs.default['dcfg']
+            _aidcfg['sample_per_name'] = 1
+            _aidcfg['sample_size'] = 500
+            _aidcfg['min_pername'] = 1
+            _aidcfg['require_viewpoint'] = True
+            _aidcfg['exclude_reference'] = True
+            _aidcfg['view'] = 'right'
+            prefix = 'hack'
+            qaids = expanded_aids[0]
+            daids = expanded_aids[1]
+
+            _extra_aids =  ibs.get_valid_aids()
+            _extra_aids = ibs.remove_groundtrue_aids(_extra_aids, (qaids + daids))
+            _extra_aids = filter_annots_independent(ibs, _extra_aids, _aidcfg, prefix)
+            _extra_aids = sample_annots(ibs, _extra_aids, _aidcfg, prefix)
+            daids = sorted(daids + _extra_aids)
+            expanded_aids = (qaids, daids)
 
         qsize = len(expanded_aids[0])
         dsize = len(expanded_aids[1])
@@ -164,7 +190,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
 
 
 @profile
-def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None):
+def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None, hack_exclude_keys=None):
     """
     Expands an annot config dict into qaids and daids
     New version of this function based on a configuration dictionary built from
@@ -254,6 +280,11 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None):
     idenfilt_cfg_empty = {key: None for key in idenfilt_cfg_default.keys()}
     idenfilt_cfg_common = ut.update_existing(idenfilt_cfg_empty,
                                              common_cfg, copy=True)
+
+    if hack_exclude_keys:
+        for key in hack_exclude_keys:
+            if key in idenfilt_cfg_common:
+                idenfilt_cfg_common[key] = None
 
     # Find the q/d specific filtering flags that were already taken care of in
     # common filtering. Set them all to None, so we dont rerun that filter
@@ -360,6 +391,11 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     """
     from ibeis import ibsfuncs
 
+    if aidcfg is None:
+        if verbose:
+            print('No annot filter returning')
+        return avail_aids
+
     VerbosityContext = verbose_context_factory(
         'FILTER_INDEPENDENT', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
@@ -396,6 +432,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, minqual, unknown_ok=not aidcfg['require_quality'])
         avail_aids = sorted(avail_aids)
 
+    # FIXME: This is NOT an independent filter because it depends on pairwise interactions
     if aidcfg['view_pername'] is not None:
         # This filter removes entire names.
         # The avaiable aids must be from names with certain viewpoint frequency
@@ -441,6 +478,13 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, valid_yaws, unknown_ok=unknown_ok)
         avail_aids = sorted(avail_aids)
 
+    #if True:
+    #    # Filter viewpoint
+    #    with VerbosityContext('view', hack=True):
+    #        avail_aids = ibs.remove_aids_of_viewpoint(
+    #            avail_aids, ['front', 'backleft'])
+
+    # FIXME: This is NOT an independent filter because it depends on pairwise interactions
     if aidcfg['min_timedelta'] is not None:
         min_timedelta = ut.ensure_timedelta(aidcfg['min_timedelta'])
         # Filter viewpoint
@@ -516,7 +560,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
     if offset is None:
         offset = 0
 
-    if exclude_reference is not None:
+    if exclude_reference:
         assert reference_aids is not None, 'reference_aids=%r' % (reference_aids,)
         # VerbosityContext.report_annot_stats(ibs, avail_aids, prefix, '')
         # VerbosityContext.report_annot_stats(ibs, reference_aids, prefix, '')
@@ -562,7 +606,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
         gt_sample_aids = ut.list_ziptake(gt_avl_grouped_aids, gt_sample_idxs_list)
         gt_avl_grouped_aids = gt_sample_aids
 
-        with VerbosityContext('sample_per_ref_name', 'sample_rule_ref', 'sample_offset'):
+        with VerbosityContext('sample_per_ref_name', 'sample_rule_ref', 'sample_offset', sample_per_ref_name=sample_per_ref_name):
             avail_aids = ut.flatten(gt_avl_grouped_aids) + ut.flatten(gf_avl_grouped_aids)
 
     if sample_per_name is not None:
@@ -605,7 +649,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
         gf_avl_aids = ut.random_sample(gf_avl_aids, num_keep_gf, rng=rng)
 
         # random ordering makes for bad hashes
-        with VerbosityContext('sample_size'):
+        with VerbosityContext('sample_size', sample_size=sample_size, num_remove_gf=num_remove_gf, num_keep_gf=num_keep_gf):
             avail_aids = gt_avl_aids + gf_avl_aids
 
     avail_aids = sorted(gt_avl_aids + gf_avl_aids)
@@ -886,7 +930,7 @@ def verbose_context_factory(filtertype, aidcfg, verbose):
                 num_after = len(aids)
                 num_removed = self.num_before - num_after
                 if num_removed > 0 or verbose > 1:
-                    print('[%s]   ... removing %d annots' % (self.prefix.upper(), num_removed,))
+                    print('[%s]   ... removing %d annots. %d remaning' % (self.prefix.upper(), num_removed, num_after))
     return VerbosityContext
 
 

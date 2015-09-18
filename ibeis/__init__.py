@@ -70,7 +70,9 @@ def import_subs():
     from ibeis import templates
 
 
-def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], qaid_override=None, **kwargs):
+def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
+                   qaid_override=None, lazy=False,
+                   **kwargs):
     """
     Convience function
 
@@ -88,57 +90,73 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'], qaid_o
                 func = module.__dict__[funcname]
                 return func
 
-    # Equivalent command line version of this func
-    command_parts = ['ibeis',
-                     '-e', e,
-                     '--db', db,
-                     '-a', ' '.join(a),
-                     '-t', ' '.join(t),
-                    ]
-    if qaid_override is not None:
-        command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
+    def build_commandline(e=e, **kwargs):
+        # Equivalent command line version of this func
+        command_parts = ['ibeis',
+                         '-e', e,
+                         '--db', db,
+                         '-a', ' '.join(a),
+                         '-t', ' '.join(t),
+                        ]
+        if qaid_override is not None:
+            command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
 
-    if 'f' in kwargs:
-        command_parts.extend(['-f', ' '.join(kwargs['f'])])
-    if 'test_cfgx_slice' in kwargs:
-        # very hacky, much more than checking for f
-        slice_ = kwargs['test_cfgx_slice']
-        slicestr = ':'.join(map(str, ut.replace_nones([getattr(slice_, attr, '') for attr in ['start', 'stop', 'step']], '')))
-        command_parts.extend(['--test_cfgx_slice', slicestr])
+        # hack parse out important args that were on command line
+        if 'f' in kwargs:
+            command_parts.extend(['-f', ' '.join(kwargs['f'])])
+        if 'test_cfgx_slice' in kwargs:
+            # very hacky, much more than checking for f
+            slice_ = kwargs['test_cfgx_slice']
+            slice_attrs = [getattr(slice_, attr, '')
+                           for attr in ['start', 'stop', 'step']]
+            slice_attrs = ut.replace_nones(slice_attrs, '')
+            slicestr = ':'.join(map(str, slice_attrs))
+            command_parts.extend(['--test_cfgx_slice', slicestr])
 
-    command_parts.extend(['--show'])
+        command_parts.extend(['--show'])
 
-    command_line_str = ' '.join(command_parts)
-    # Warning, not always equivalent
-    print('Equivalent Command Line:')
-    print(command_line_str)
+        command_line_str = ' '.join(command_parts)
+        # Warning, not always equivalent
+        print('Equivalent Command Line:')
+        print(command_line_str)
+        return command_line_str
+    command_line_str = build_commandline()
 
-    func = find_expt_func(e)
-    assert func is not None, 'unknown experiment e=%r' % (e,)
 
-    argspec = ut.get_func_argspec(func)
-    if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
-        # most experiments need a test_result
-        ibs, test_result = main_helpers.testdata_expts(db, a=a, t=t, qaid_override=qaid_override)
+    def draw_cases(test_result, **kwargs):
+        e_ = 'draw_cases'
+        func = find_expt_func(e_)
+        ibs = test_result.ibs
+        build_commandline(e=e_)
+        lazy_func = functools.partial(func, ibs, test_result, show_in_notebook=True, **kwargs)
+        return lazy_func
 
-        draw_func = functools.partial(func, ibs, test_result, **kwargs)
-        test_result.draw_func = draw_func
-        return test_result
-    #elif len(argspec.args) >= 1 and argspec.args[0] == 'ibs':
-    #    pass
+    def execute_test():
+        func = find_expt_func(e)
+        assert func is not None, 'unknown experiment e=%r' % (e,)
+
+        argspec = ut.get_func_argspec(func)
+        if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
+            # most experiments need a test_result
+            expts_kw = dict(defaultdb=db, a=a, t=t, qaid_override=qaid_override)
+            testdata_expts_func = functools.partial(main_helpers.testdata_expts, **expts_kw)
+
+            ibs, test_result = testdata_expts_func()
+            # Build the requested drawing funciton
+            draw_func = functools.partial(func, ibs, test_result, **kwargs)
+            test_result.draw_func = draw_func
+            ut.inject_func_as_method(test_result, draw_cases)
+            #test_result.draw_cases = draw_cases
+            return test_result
+        else:
+            raise AssertionError('Unknown type of function for experiment')
+
+    if lazy:
+        return execute_test
     else:
-        #print('EXPERIMENT IS NOT A TEST RESULT FUNC')
-        #__exec_expt_from_testsrc(func)
-        #import ibeis.dev  # NOQA
-        #ibeis.dev.devmain()
-        raise AssertionError('Unknown type of function for experiment')
+        test_result = execute_test()
+        return test_result
 
-
-#def __exec_expt_from_testsrc(func):
-#    testsrc = ut.get_doctest_examples(func)[0][0]
-#    print('testsrc = \n%s' % (testsrc,))
-#    exec(testsrc, globals(), locals())
-#ibeis.dev.run_registered_precmd(e)
 
 def testdata_expts(*args, **kwargs):
     ibs, test_result = main_helpers.testdata_expts(*args, **kwargs)

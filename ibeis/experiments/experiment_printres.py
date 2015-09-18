@@ -153,18 +153,12 @@ def print_results(ibs, test_result):
     cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
     cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
-    cfgx2_scorefactor    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorefactor')
-    cfgx2_scorelogfactor = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorelogfactor')
-    cfgx2_scoreexpdiff   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scoreexpdiff')
     cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
 
     column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
                    for lbl in cfgx2_lbl]
 
     scorediffs_mat     = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
-    scorefactor_mat    = np.array(ut.replace_nones(cfgx2_scorefactor, np.nan))
-    scorelogfactor_mat = np.array(ut.replace_nones(cfgx2_scorelogfactor, np.nan))
-    scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
 
     print(' --- PRINT RESULTS ---')
     print(' use --rank-lt-list=1,5 to specify X_LIST')
@@ -564,64 +558,6 @@ def print_results(ibs, test_result):
         sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)
         sel_stat_str = 'sel_col_lbls = %s' % (ut.list_str(sel_col_lbls),) + '\n' + sel_stat_str
         return stat_str, sel_stat_str
-
-    @ut.argv_flag_dec
-    def print_scorediff_mat_stats():
-        # Prints nextbest ranks
-        print('-------------')
-        print('ScoreDiffMatStats: %s' % testnameid)
-        print('column_lbls = %r' % (column_lbls,))
-        #print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, precision=3, newlines=True, use_nan=True),))
-        #print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
-
-        #pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
-        #neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
-
-        #score_comparison_mats = [scorediffs_mat, scorefactor_mat, scorelogfactor_mat, scoreexpdiff_mat]
-        #score_comparison_mats = [scorediffs_mat]
-        score_comparison_mats = [scorediffs_mat, scorefactor_mat]
-        # Get the variable names from the stack!
-        score_comparison_lbls = list(map(ut.get_varname_from_stack, score_comparison_mats))
-
-        full_statstr_list = []
-        sel_statstr_list  = []
-
-        # For each type of score difference get true and false subsets
-        for score_comp_mat, lbl in zip(score_comparison_mats, score_comparison_lbls):
-            #lbl = ut.get_varname_from_stack(score_comp_mat)
-            pos_score_comp_mat = vt.zipcompress(score_comp_mat, istrue_list)
-            neg_score_comp_mat = vt.zipcompress(score_comp_mat, isfalse_list)
-            # Get statistics on each type of score difference
-            full_statstr, sel_statstr         = jagged_stats_info(    score_comp_mat,          lbl, cfgx2_lbl)
-            full_pos_statstr, sel_pos_statstr = jagged_stats_info(pos_score_comp_mat, 'pos_' + lbl, cfgx2_lbl)
-            full_neg_statstr, sel_neg_statstr = jagged_stats_info(neg_score_comp_mat, 'neg_' + lbl, cfgx2_lbl)
-            # Append lists
-            full_statstr_list.extend([full_statstr, full_pos_statstr, full_neg_statstr])
-            sel_statstr_list.extend([sel_statstr, sel_pos_statstr, sel_neg_statstr])
-
-        #scorediff_str, scorediff_selstr = jagged_stats_info(scorediffs_mat, 'scorediffs_mat', cfgx2_lbl)
-        #pos_scorediff_str, pos_scorediff_selstr = jagged_stats_info(pos_scorediff_mat, 'pos_scorediff_mat', cfgx2_lbl)
-        #neg_scorediff_str, neg_scorediff_selstr = jagged_stats_info(neg_scorediff_mat, 'neg_scorediff_mat', cfgx2_lbl)
-
-        scorefactor_mat
-        scorelogfactor_mat
-        scoreexpdiff_mat
-        PRINT_FULL_STATS = False
-        if PRINT_FULL_STATS:
-            for statstr in full_statstr_list:
-                print(statstr)
-
-        for statstr in sel_statstr_list:
-            print(statstr)
-
-        #print(scorediff_str)
-        #print(neg_scorediff_str)
-        #print(pos_scorediff_str)
-
-        #print(scorediff_selstr)
-        #print(pos_scorediff_selstr)
-        #print(neg_scorediff_selstr)
-    print_scorediff_mat_stats(alias_flags=['--sdms'])
 
     @ut.argv_flag_dec
     def print_confusion_stats():

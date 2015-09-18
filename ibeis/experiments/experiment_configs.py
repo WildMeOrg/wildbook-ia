@@ -107,6 +107,13 @@ candk = candidacy_k = [
     {'K': [1, 2, 3, 4, 5, 7, 10]},
 ]
 
+candknorm = candidacy_k = [
+    {
+        'K': [1, 2, 3, 4, 10],
+        'Knorm': [1, 2, 3]
+    },
+]
+
 candidacy_baseline = [
     {},
     #{'fg_on': [True]},
@@ -153,6 +160,32 @@ candscoremech = candidacy_namescore = [
         'prescore_method':   ['nsum'],
     },
     {
+        'score_method':      ['csum'],
+        'prescore_method':   ['csum'],
+    }
+]
+
+
+candscoremech_invarbest = candidacy_namescore = [
+    #{
+    #    'K': 1,
+    #    'score_method':      ['nsum'],
+    #    'prescore_method':   ['nsum'],
+    #},
+    #{
+    #    'K': 1,
+    #    'score_method':      ['csum'],
+    #    'prescore_method':   ['csum'],
+    #},
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': False,
+        'score_method':      ['nsum'],
+        'prescore_method':   ['nsum'],
+    },
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': False,
         'score_method':      ['csum'],
         'prescore_method':   ['csum'],
     }

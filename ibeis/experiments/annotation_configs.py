@@ -19,10 +19,12 @@ ALIAS_KEYS = {
     'rule'     : 'sample_rule',
     'size'     : 'sample_size',
     'mingt'    : 'min_pername',
+    'excluderef': 'exclude_reference',
 }
 
 OTHER_DEFAULTS = {
     'force_const_size'    : None,  # forces a consistnet sample size across combinations
+    'hack_extra' : None,  # hack param to make bigger db sizes
 }
 
 # Defaults for the independent filter
@@ -134,6 +136,21 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
     return acfg
 
 
+def partition_acfg_list(acfg_list):
+    for acfg in acfg_list:
+        assert acfg['qcfg']['_cfgname'] == acfg['dcfg']['_cfgname'], (
+            'should be the same for now')
+
+    # Hack to make common params between q and d appear the same
+    _acfg_list = [compress_aidcfg(acfg) for acfg in acfg_list]
+
+    flat_acfg_list = flatten_acfg_list(_acfg_list)
+    flat_nonvaried_dict, flat_varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+    nonvaried_dict = unflatten_acfgdict(flat_nonvaried_dict)
+    varied_acfg_list = [unflatten_acfgdict(acfg) for acfg in flat_varied_acfg_list]
+    return nonvaried_dict, varied_acfg_list
+
+
 def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
     """
         >>> from ibeis.experiments.annotation_configs import *  # NOQA
@@ -173,8 +190,15 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
         for _dict in varied_acfg_list]
     nonlbl_keys = cfghelpers.INTERNAL_CFGKEYS
     nonlbl_keys = [prefix +  key for key in nonlbl_keys for prefix in ['', 'q', 'd']]
+    # hack for sorting by q/d stuff first
+
+    def get_key_order(cfg):
+        keys = [k for k in cfg.keys() if k not in nonlbl_keys]
+        sortorder = [2 * k.startswith('q') + 1 * k.startswith('d') for k in keys]
+        return ut.sortedby(keys, sortorder)[::-1]
+
     shortened_lbl_list = [
-        cfghelpers.get_cfg_lbl(cfg, name, nonlbl_keys)
+        cfghelpers.get_cfg_lbl(cfg, name, nonlbl_keys, key_order=get_key_order(cfg))
         for cfg, name in zip(shortened_cfg_list, cfgname_list)]
     return shortened_lbl_list
 
@@ -278,6 +302,36 @@ def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
     return acfg
 
 
+def apply_timecontrol(acfg, min_timedelta='12h'):
+    return {
+        'qcfg': ut.augdict(
+            acfg['qcfg'], {
+                'require_timestamp': True,
+                'min_timedelta': min_timedelta,
+            }),
+
+        'dcfg': ut.augdict(
+            acfg['dcfg'], {
+                'require_timestamp': True,
+                'min_timedelta': min_timedelta,
+            }),
+    }
+
+
+def apply_qualcontrol(acfg):
+    return {
+        'qcfg': ut.augdict(
+            acfg['qcfg'], {
+                'require_quality': True,
+            }),
+
+        'dcfg': ut.augdict(
+            acfg['dcfg'], {
+                'require_quality': True,
+            }),
+    }
+
+
 __baseline_aidcfg = ut.augdict(__default_aidcfg, {
     'is_known': True,
     'minqual': 'ok',
@@ -371,232 +425,117 @@ ctrl = controlled = {
 """
 ibeis -e print_acfg --db PZ_Master1 -a timectrl
 """
-timectrl = timecontrolled = {
-    'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            #'default_aids': 'largetime12',
-            'require_timestamp': True,
-            'min_timedelta': '12h',
-        }),
-
-    'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            #'default_aids': 'largetime12',
-            'require_timestamp': True,
-            'min_timedelta': '12h',
-        }),
-}
-
+timectrl = timecontrolled = apply_timecontrol(ctrl)
 
 """
 ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
 """
-timequalctrl = timequalcontrolled = {
-    'qcfg': ut.augdict(
-        timecontrolled['qcfg'], {
-            #'default_aids': 'largetime12',
-            'require_quality' : True,  # if True unknown qualities are removed
-        }),
-
-    'dcfg': ut.augdict(
-        timecontrolled['dcfg'], {
-            #'default_aids': 'largetime12',
-            'require_quality' : True,  # if True unknown qualities are removed
-        }),
-}
-
-
-"""
-# Test constistancy combos
-ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --nocache-aid
-ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --nocache-aid
-# make :: mean force_const_size
-ibeis -e print_acfg --db PZ_MTEST -a uncontrolled controlled::uncontrolled --nocache-aid
-"""
-#cont_uncon_compare = {
-#    'qcfg': [
-#        ut.augdict(
-#            controlled['qcfg'], {
-#                'force_const_size': True,
-#            }),
-#        ut.augdict(
-#            uncontrolled['qcfg'], {
-#                'force_const_size': True,
-#            }),
-#    ],
-
-#    'dcfg': [
-#        ut.augdict(
-#            controlled['dcfg'], {
-#                'force_const_size': True,
-#            }),
-#        ut.augdict(
-#            uncontrolled['dcfg'], {
-#                'force_const_size': True,
-#            }),
-#    ]
-#}
-
-"""
-ibeis -e print_acfg --db PZ_Master1 -a largetimedelta
-
-# Check if same as timecontrolled
-ibeis -e print_acfg --db PZ_Master1 -a largetimedelta timecontrolled
-ibeis -e print_acfg --db PZ_Master1 -a largetimedelta2 timecontrolled
-"""
-largetimedelta = {
-    'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            'sample_rule': 'mintime',
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 24,
-        }),
-
-    'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            'sample_rule_ref': 'maxtimedelta',
-            'sample_per_name': None,
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 24,
-        }),
-}
-
-largetimedelta2 = {
-    'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            #'sample_rule': 'mintime',
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
-        }),
-
-    'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            #'sample_rule_ref': 'maxtimedelta',
-            'sample_per_name': None,
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
-        }),
-}
-
-
-controlled2 = {
-    'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            'sample_size': None,  # keep this small for now until we can run full results
-        }),
-
-    'dcfg': ut.augdict(
-        controlled['dcfg'], {
-            'sample_size': None,  # keep this small for now until we can run full results
-        }),
-}
-
-
-#controlled = {
-#    'qcfg': ut.augdict(
-#        __controlled_aidcfg, {
-#            'default_aids': 'allgt',
-#            'sample_per_name': 1,
-#            'min_pername': 2,  # ensures each query will have a correct example for the groundtruth
-#        }),
-
-#    'dcfg': ut.augdict(
-#        __controlled_aidcfg, {
-#            'default_aids': 'all',
-#            'sample_per_name': 1,
-#            'exclude_reference': True,
-#            'sample_rule_ref': 'maxtimedelta',
-#            'min_pername': 1,
-#        }),
-#}
+timequalctrl = timequalcontrolled = apply_qualcontrol(timectrl)
 
 
 # Just vary the samples per name without messing with the number of annots in the database
 varypername = {
     'qcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'allgt',
-            #'sample_size': 50,
-            'sample_per_name': 1,
+        ctrl['qcfg'], {
             'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
             'force_const_size': True,
         }),
 
     'dcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'all',
+        ctrl['qcfg'], {
             #'sample_per_name': [1, 2, 3],
             'sample_per_name': [1, 3],
             #'sample_per_ref_name': [1, 2, 3],
             'sample_per_ref_name': [1, 3],
-            'exclude_reference': True,
-            'min_pername': 1,
             'force_const_size': True,
         }),
 }
 
-varypername_td = {
+
+varypername2 = {
     'qcfg': ut.augdict(
-        varypername['qcfg'], {
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
+        ctrl['qcfg'], {
+            'min_pername': 3,  # ensures each query will have a correct example for the groundtruth
+            'force_const_size': True,
         }),
 
     'dcfg': ut.augdict(
-        varypername['dcfg'], {
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
+        ctrl['dcfg'], {
+            #'sample_per_name': [1, 2, 3],
+            'sample_per_name': [1, 2],
+            #'sample_per_ref_name': [1, 2, 3],
+            'sample_per_ref_name': [1, 2],
+            'force_const_size': True,
         }),
 }
+varypername2_td = apply_timecontrol(varypername2)
 
 
-varypername_pzm = {
+"""
+ibeis -e print_acfg --db PZ_Master1 -a ctrl2
+ibeis -e print_acfg --db PZ_Master1 -a timectrl2
+ibeis -e rank_cdf --db PZ_Master1 -a timectrl2 -t invarbest
+"""
+ctrl2 = {
     'qcfg': ut.augdict(
-        varypername['qcfg'], {
-            'sample_size': 500,
+        ctrl['qcfg'], {
+            'min_pername': 3,  # ensures each query will have a correct example for the groundtruth
+            #'force_const_size': True,
         }),
 
     'dcfg': ut.augdict(
-        varypername['dcfg'], {
+        ctrl['dcfg'], {
+            #'sample_per_name': [1, 2, 3],
+            'sample_per_name': 2,
+            #[1, 2],
+            #'sample_per_ref_name': [1, 2, 3],
+            #'sample_per_ref_name': [1, 2],
+            'force_const_size': True,
         }),
 }
 
-varypername_pzm_td = {
-    'qcfg': ut.augdict(
-        varypername['qcfg'], {
-            'sample_size': 500,
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
-        }),
+timectrl2 = apply_timecontrol(ctrl2)
 
-    'dcfg': ut.augdict(
-        varypername['dcfg'], {
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
-        }),
-}
 
-varypername_gz = {
-    'qcfg': ut.augdict(
-        varypername['qcfg'], {
-            'sample_size': 200,
-        }),
+varypername_td = apply_timecontrol(varypername)
+"""
+ibeis -e print_acfg --db PZ_Master1 -a varypername_tdqual
+"""
+varypername_tdqual = apply_qualcontrol(varypername_td)
 
-    'dcfg': ut.augdict(
-        varypername['dcfg'], {
-        }),
-}
 
-varypername_girm = {
-    'qcfg': ut.augdict(
-        varypername['qcfg'], {
-            'sample_size': 50,
-        }),
+#varypername_pzm = {
+#    'qcfg': ut.augdict(
+#        varypername['qcfg'], {
+#            'sample_size': 500,
+#        }),
 
-    'dcfg': ut.augdict(
-        varypername['dcfg'], {
-        }),
-}
+#    'dcfg': ut.augdict(
+#        varypername['dcfg'], {
+#        }),
+#}
+
+#varypername_gz = {
+#    'qcfg': ut.augdict(
+#        varypername['qcfg'], {
+#            'sample_size': 200,
+#        }),
+
+#    'dcfg': ut.augdict(
+#        varypername['dcfg'], {
+#        }),
+#}
+
+#varypername_girm = {
+#    'qcfg': ut.augdict(
+#        varypername['qcfg'], {
+#            'sample_size': 50,
+#        }),
+
+#    'dcfg': ut.augdict(
+#        varypername['dcfg'], {
+#        }),
+#}
 
 
 """
@@ -623,24 +562,24 @@ python -m ibeis.experiments.experiment_printres --exec-print_results --db PZ_Mas
 ./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=1,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
 ./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=2,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
 """
-varysize = {
-    'qcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'allgt',
-            'sample_size': 50,
-            'sample_per_name': 1,
-            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
-        }),
+#varysize = {
+#    'qcfg': ut.augdict(
+#        __controlled_aidcfg, {
+#            #'default_aids': 'allgt',
+#            'sample_size': 50,
+#            'sample_per_name': 1,
+#            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
+#        }),
 
-    'dcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'all',
-            'sample_per_name': [1, 2, 3],
-            'exclude_reference': True,
-            'sample_size': [50, 200, 500],
-            'min_pername': 1,
-        }),
-}
+#    'dcfg': ut.augdict(
+#        __controlled_aidcfg, {
+#            #'default_aids': 'all',
+#            'sample_per_name': [1, 2, 3],
+#            'exclude_reference': True,
+#            'sample_size': [50, 200, 500],
+#            'min_pername': 1,
+#        }),
+#}
 
 
 """
@@ -648,12 +587,13 @@ ibeis -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache
 ibeis -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache
 """
 
-varysize2 = {
+varysize = {
     'qcfg': ut.augdict(
         __controlled_aidcfg, {
             #'default_aids': 'allgt',
             'sample_size': None,
             'sample_per_name': 1,
+            #'force_const_size': True,
             'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
         }),
 
@@ -662,7 +602,7 @@ varysize2 = {
             #'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
             'exclude_reference': True,
-            'sample_size': [0.25, 0.5, 0.75, 1.0],
+            'sample_size': [0.25, 0.5, 0.75],  # .95], 1.0],
             'min_pername': 1,
         }),
 }
@@ -670,89 +610,49 @@ varysize2 = {
 """
 ibeis -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache
 """
-varysize2_td = {
-    'qcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'allgt',
-            'sample_size': None,
-            'sample_per_name': 1,
-            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
-            'min_timedelta': 60 * 60 * 12,
-        }),
-
-    'dcfg': ut.augdict(
-        __controlled_aidcfg, {
-            #'default_aids': 'all',
-            'sample_per_name': [1, 2, 3],
-            'exclude_reference': True,
-            'sample_size': [0.25, 0.5, 0.75, 1.0],
-            'min_pername': 1,
-            'min_timedelta': 60 * 60 * 12,
-        }),
-}
+varysize_td = apply_timecontrol(varysize)
+varysize_tdqual = apply_qualcontrol(varysize_td)
 
 
-varysize_pzm = {
-    'qcfg': ut.augdict(
-        varysize['qcfg'], {
-            'sample_size': 500,
-        }),
+#varysize_pzm = {
+#    'qcfg': ut.augdict(
+#        varysize['qcfg'], {
+#            'sample_size': 500,
+#        }),
 
-    'dcfg': ut.augdict(
-        varysize['dcfg'], {
-            #'sample_size': [1500, 2000, 2500, 3000],
-            'sample_size': [1500, 2500, 3500, 4500],
-            #'sample_size': [1500, 17500, 2000, 2250, 2500, 2750, 3000, 3500, 4000, 4500],
-        }),
-}
-
-
-varysize_pzm_td = {
-    'qcfg': ut.augdict(
-        varysize_pzm['qcfg'], {
-            'sample_size': 100,
-            #'sample_rule': 'mintime',
-            'require_timestamp': True,
-            'min_timedelta': 60 * 60 * 12,
-            'min_pername': 4,  # ensures each query will have a correct example for the groundtruth
-        }),
-
-    'dcfg': ut.augdict(
-        varysize_pzm['dcfg'], {
-            'sample_rule_ref': 'maxtimedelta',
-            #'sample_per_name': None,
-            'require_timestamp': True,
-            'exclude_reference': True,
-            'sample_size': [250, 500, 750, 1000],
-            'min_timedelta': 60 * 60 * 12,
-        }),
-}
+#    'dcfg': ut.augdict(
+#        varysize['dcfg'], {
+#            #'sample_size': [1500, 2000, 2500, 3000],
+#            'sample_size': [1500, 2500, 3500, 4500],
+#            #'sample_size': [1500, 17500, 2000, 2250, 2500, 2750, 3000, 3500, 4000, 4500],
+#        }),
+#}
 
 
-varysize_gz = {
-    'qcfg': ut.augdict(
-        varysize['qcfg'], {
-            'sample_size': 60,
-        }),
+#varysize_gz = {
+#    'qcfg': ut.augdict(
+#        varysize['qcfg'], {
+#            'sample_size': 60,
+#        }),
 
-    'dcfg': ut.augdict(
-        varysize['dcfg'], {
-            'sample_size': [200, 300, 400, 500],
-        }),
-}
+#    'dcfg': ut.augdict(
+#        varysize['dcfg'], {
+#            'sample_size': [200, 300, 400, 500],
+#        }),
+#}
 
 
-varysize_girm = {
-    'qcfg': ut.augdict(
-        varysize['qcfg'], {
-            'sample_size': 30,
-        }),
+#varysize_girm = {
+#    'qcfg': ut.augdict(
+#        varysize['qcfg'], {
+#            'sample_size': 30,
+#        }),
 
-    'dcfg': ut.augdict(
-        varysize['dcfg'], {
-            'sample_size': [60, 90, 120, 150],
-        }),
-}
+#    'dcfg': ut.augdict(
+#        varysize['dcfg'], {
+#            'sample_size': [60, 90, 120, 150],
+#        }),
+#}
 
 
 # Compare query of frontleft animals when database has only left sides
@@ -769,6 +669,7 @@ python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_
 
 TODO: Need to explicitly setup the common config I think?
 
+ibeis -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
 """
 viewdiff = vp = viewpoint_compare = {
     'qcfg': ut.augdict(
@@ -778,7 +679,8 @@ viewdiff = vp = viewpoint_compare = {
             'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
             'force_const_size': True,
             'view': 'primary1',
-            #'min_pername': 3,
+            'sample_per_name': 1,
+            #'min_pername': 2,
         }),
 
     'dcfg': ut.augdict(
@@ -795,6 +697,12 @@ viewdiff = vp = viewpoint_compare = {
             'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
         }),
 }
+
+"""
+ibeis -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True
+ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True
+"""
+viewdiff_td = apply_timecontrol(viewpoint_compare, 20)
 
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1

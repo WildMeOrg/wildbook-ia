@@ -352,9 +352,13 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         print('figdir = %r' % (figdir,))
     fpaths_list = []
 
-    fnum = 1
+    fnum_start = None
+    fnum = pt.ensure_fnum(fnum_start)
 
-    for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
+    if show_in_notebook:
+        cfg_colors = pt.distinct_colors(len(test_result.cfgx2_qreq_))
+
+    for count, qx in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
         if SHOW:
             try:
                 case_labels = flat_case_labels[count]
@@ -363,12 +367,17 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                 print('flat_case_labels are known to be messed up')
                 pass
         qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
-        #qres_list = [load_qres(ibs, qaids[r], qreq_) for qreq_ in qreq_list]
+        #qres_list = [load_qres(ibs, qaids[qx], qreq_) for qreq_ in qreq_list]
         # TODO: try to get away with not reloading query results or loading
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
-        qres_list = [qreq_.load_cached_qres(qaids[r]) for qreq_ in qreq_list]
+        qres_list = [qreq_.load_cached_qres(qaids[qx]) for qreq_ in qreq_list]
         fpaths_list.append([])
+
+        if show_in_notebook:
+            # hack to show vertical line in notebook separate configs
+            fnum = fnum + 1
+            pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
 
         for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
             if show_in_notebook:
@@ -395,7 +404,10 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                 if SHOW or overwrite or not ut.checkpath(analysis_fpath) or show_in_notebook:
                     if show_in_notebook:
                         # hack to show vertical line in notebook
-                        pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
+                        if len(cfg_colors) > 0:
+                            bar = np.zeros((1, 400, 3), dtype=np.uint8) + (np.array(cfg_colors[cfgx]) * 255)
+                            fnum = fnum + 1
+                            pt.imshow(bar, fnum=fnum)
                     for annot_mode in annot_modes:
                         show_kwargs['annot_mode'] = annot_mode
                         if show_in_notebook:
@@ -406,10 +418,10 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                         else:
                             qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
 
-                    # So hacky
-                    if ut.get_argflag('--tight'):
-                        #pt.plt.tight_layout()
-                        pass
+                    ## So hacky
+                    #if ut.get_argflag('--tight'):
+                    #    #pt.plt.tight_layout()
+                    #    pass
                     fig = pt.gcf()
                     fig.savefig(analysis_fpath)
                     vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
@@ -479,6 +491,10 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
         return
     RENDER = ut.get_argflag('--render')
     DUMP_FIGDEF = ut.get_argflag(('--figdump', '--dump-figdef', '--figdef'))
+
+    if not (DUMP_FIGDEF or RENDER):  # HACK
+        return
+
     latex_code_blocks = []
     latex_block_keys = []
 
@@ -749,7 +765,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     return sel_rows, sel_cols, flat_case_labels
 
 
-def draw_rank_surface(ibs, test_result, verbose=False):
+def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -805,6 +821,9 @@ def draw_rank_surface(ibs, test_result, verbose=False):
     # Use consistent markers and colors.
     color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
     marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
+
+    fnum = pt.ensure_fnum(fnum)
+
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
         rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
@@ -820,15 +839,20 @@ def draw_rank_surface(ibs, test_result, verbose=False):
 
         #target_label = 'num rank ≤ 1'
         #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
-        target_label = '% groundtrue matches = rank 1'
+        #target_label = '% groundtrue matches = rank 1'
+        target_label = 'accuracy (%)'
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
+
+        ymin = 30 if known_target_points.min() > 30 else 0
+        num_yticks = 8 if ymin == 30 else 10
+
         #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
-        title = ('Accuracy when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        title = ('accuracy when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
         if PLOT3D:
-            pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=1, pnum=pnum_())
+            pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=fnum, pnum=pnum_())
         else:
             nonconst_basis_vals = np.unique(known_nd_data.T[1])
             # Find which colors will not be used
@@ -838,8 +862,8 @@ def draw_rank_surface(ibs, test_result, verbose=False):
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
-                                    marker_list=nonconst_marker_list, fnum=1,
-                                    pnum=pnum_(), num_yticks=8, ymin=30, ymax=100, ypad=.5,
+                                    marker_list=nonconst_marker_list, fnum=fnum,
+                                    pnum=pnum_(), num_yticks=num_yticks, ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
             #pt.plot2(
         #(const_idx + 1))
@@ -859,7 +883,14 @@ def draw_rank_surface(ibs, test_result, verbose=False):
     #if test_result.has_constant_daids():
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
     #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+
     pt.set_figtitle(figtitle, size=14)
+
+    # HACK FOR FIGSIZE
+    fig = pt.gcf()
+    fig.set_size_inches(14, 4)
+    pt.adjust_subplots(left=.05, bottom=.08, top=.80, right=.95, wspace=.2, hspace=.3)
+
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         pt.adjust_subplots2(use_argv=True)
@@ -926,6 +957,8 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     marker_list = ut.list_take(marker_list, sortx)
     #
     figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
+    if figtitle_prefix != '':
+        figtitle_prefix = figtitle_prefix.rstrip('') + ' '
     figtitle = (figtitle_prefix + 'Cumulative Rank Histogram\n')
     figtitle += ' ' + test_result.get_title_aug(friendly=True)
 
@@ -953,11 +986,16 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
+    target_label = 'accuracy (%)'
+    #target_label = '% groundtrue matches ≤ rank'
+
+    ymin = 30 if cfgx2_cumhist_percent.min() > 30 else 0
+    num_yticks = 8 if ymin == 30 else 10
 
     cumhistkw = dict(
-        xlabel='rank', ylabel='% groundtrue matches ≤ rank', color_list=color_list,
+        xlabel='rank', ylabel=target_label, color_list=color_list,
         marker_list=marker_list, fnum=fnum, legend_loc='lower right',
-        num_yticks=8, ymax=100, ymin=30, ypad=.5,
+        num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=.5, xmax=maxrank + .5,
         #xpad=.05,
         **FONTKW)
@@ -975,6 +1013,11 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
     pt.set_figtitle(figtitle, size=14)
+    # HACK FOR FIGSIZE
+
+    fig = pt.gcf()
+    #import utool as ut
+    fig.set_size_inches(15, 7)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
         pt.adjust_subplots2(use_argv=True)
@@ -1217,7 +1260,6 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         falsepos = ut.get_argflag('--falsepos')
     if truepos is None:
         truepos  = ut.get_argflag('--truepos')
-    #ut.embed()
     for cfgx, lbl in enumerate(cfgx2_shortlbl):
         gt_f_td = truth2_prop['gt']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
         gf_f_td = truth2_prop['gf']['timedelta'].T[cfgx][is_failure.T[cfgx]]  # NOQA
@@ -1431,8 +1473,6 @@ def draw_results(ibs, test_result):
         draw_individual_cases(ibs, test_result, metadata=metadata)
 
     metadata.write()
-    #ut.embed()
-    #if ut.is_developer():
     if ut.get_argflag(('--guiview', '--gv')):
         import guitool
         guitool.ensure_qapp()
@@ -1441,7 +1481,6 @@ def draw_results(ibs, test_result):
         wgt.show()
         wgt.raise_()
         guitool.qtapp_loop(wgt, frequency=100)
-    #ut.embed()
     metadata.close()
 
     if ut.NOT_QUIET:

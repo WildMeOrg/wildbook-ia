@@ -120,7 +120,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     return nonvaried_cfg, varied_cfg_list
 
 
-def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
+def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     r"""
     Formats a flat configuration dict into a short string label
 
@@ -164,7 +164,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS):
 
     # remove keys that should not belong to the label
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
-    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True)
+    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True, key_order=key_order)
     _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
     if NAMEVARSEP in name:
         # hack for when name contains a little bit of the _lbl
@@ -486,6 +486,8 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         cfgstr_list = default
     else:
         cfgstr_list = ut.get_argval(argname, type_=list, default=default)
+    if cfgstr_list is None:
+        return None
     cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
                                          named_defaults_dict=named_defaults_dict,
                                          valid_keys=valid_keys,

@@ -32,69 +32,6 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import sys
-
-
-def hack_argv():
-    # HACK COMMON ARGV SYMBOLS
-    for arg in sys.argv[:]:
-        if arg.startswith('--hargv='):
-            hack_argv_key = '='.join(arg.split('=')[1:])
-            if hack_argv_key in ['candexpt', 'expt', 'exptk', 'scores']:
-                if hack_argv_key in 'scores':
-                    sys.argv.extend([
-                        '--save',
-                        #'figures/expt_{db}_a_{a}_t_{t}.png',
-                        'figures/expt_{e}_{db}_a_{a}_t_{t}_{filt}.png',
-                    ])
-                else:
-                    sys.argv.extend([
-                        '--save',
-                        #'figures/expt_{db}_a_{a}_t_{t}.png',
-                        'figures/expt_{e}_{db}_a_{a}_t_{t}.png',
-                    ])
-                sys.argv.extend([
-                    '--dpath=~/latex/crall-candidacy-2015/',
-                    '--clipwhite',
-                    '--diskshow',
-                    '--contextadjust',
-                    '--dpi=256',
-                ])
-            if hack_argv_key in ['candexpt', 'expt', 'exptk']:
-                sys.argv.extend([
-                ])
-                if hack_argv_key != 'exptk':
-                    sys.argv.extend([
-                        '--figsize=15,5',
-                        '--top=.9',
-                        '--bottom=.1',
-                    ])
-
-            if hack_argv_key in ['match']:
-                sys.argv.extend([
-                    '--dpath=~/latex/crall-candidacy-2015/figures',
-                    #'--tight',
-                ])
-                #if '--show' not in sys.argv:
-                #    sys.argv.extend(['--vf'])
-            if hack_argv_key in ['time']:
-                fname_fmt = 'figures/{e}_{db}_a_{a}_t_{t}'
-                if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):
-                    fname_fmt += '_TP'
-                if ('--falsepos' in sys.argv):
-                    fname_fmt += '_FP'
-
-                sys.argv.extend([
-                    '--save',
-                    fname_fmt + '.png',
-                    '--dpath=~/latex/crall-candidacy-2015/',
-                    '--dpi=256',
-                    '--clipwhite',
-                    #'--diskshow',
-                    '--contextadjust',
-                ])
-                pass
-hack_argv()
-
 #from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS, DEVCMD_FUNCTIONS2, devcmd2
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
@@ -146,7 +83,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.other.dbinfo', 'latex_dbstats'),
-    ('ibeis.other.dbinfo', 'show_image_time_distributions'),
+    ('ibeis.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),
     ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
     ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
     ('ibeis.experiments.experiment_printres', 'print_results', ['printres', 'print']),

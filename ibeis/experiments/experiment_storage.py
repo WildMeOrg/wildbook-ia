@@ -198,7 +198,8 @@ class TestResult(object):
     def get_rank_mat(test_result, qaids=None):
         # Ranks of Best Results
         #get_infoprop_mat(test_result, 'qx2_bestranks')
-        rank_mat = test_result.get_infoprop_mat('qx2_bestranks', qaids=qaids)
+        with ut.embed_on_exception_context:
+            rank_mat = test_result.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
         #cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
         #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
         # Set invalid ranks to the worse possible rank
@@ -427,6 +428,8 @@ class TestResult(object):
             ('sample_per_ref_name', 'per_gt_name'),
             ('require_timestamp=True', 'require_timestamp'),
             ('require_timestamp=False,?', ''),
+            ('require_timestamp=None,?', ''),
+            ('[_A-Za-z]*=None,?', ''),
             ('dpername=None,?', ''),
             #???
             #('sample_per_ref_name', 'per_gt_name'),
@@ -475,7 +478,7 @@ class TestResult(object):
             >>> print(result)
         """
 
-        if friendly :
+        if False and friendly :
             acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in test_result.cfgx2_acfg]
             pcfg_names = [pcfg['_cfgstr'] for pcfg in test_result.cfgx2_pcfg]
 
@@ -545,13 +548,13 @@ class TestResult(object):
             str: title_aug
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_title_aug
+            python -m ibeis.experiments.experiment_storage --exec-get_title_aug --db PZ_Master1 -a timequalctrl::timectrl
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> ibs, test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
             >>> withinfo = True
             >>> title_aug = test_result.get_title_aug(withinfo)
             >>> res = u'title_aug = %s' % (title_aug,)
@@ -567,7 +570,9 @@ class TestResult(object):
                 except KeyError:
                     annot_cfgname = test_result.common_acfg['common']['_cfgname']
             else:
-                annot_cfgname = '[' + ','.join([cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]) + ']'
+                cfgname_list = [cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]
+                cfgname_list = ut.unique_keep_order2(cfgname_list)
+                annot_cfgname = '[' + ','.join(cfgname_list) + ']'
             try:
                 pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
             except KeyError:
@@ -608,10 +613,16 @@ class TestResult(object):
 
         if friendly:
             # Hackiness for friendliness
-            title_aug = title_aug.replace('db=PZ_Master1', 'Plains Zebras')
-            title_aug = title_aug.replace('db=NNP_MasterGIRM_core', 'Masai Giraffes')
-            title_aug = title_aug.replace('db=GZ_ALL', 'Grevy\'s Zebras')
-
+            #title_aug = title_aug.replace('db=PZ_Master1', 'Plains Zebras')
+            #title_aug = title_aug.replace('db=NNP_MasterGIRM_core', 'Masai Giraffes')
+            #title_aug = title_aug.replace('db=GZ_ALL', 'Grevy\'s Zebras')
+            title_aug = ut.multi_replace(
+                title_aug,
+                list(ibs.const.DBNAME_ALIAS.keys()),
+                list(ibs.const.DBNAME_ALIAS.values()))
+            #title_aug = title_aug.replace('db=PZ_Master1', 'db=PZ')
+            #title_aug = title_aug.replace('db=NNP_MasterGIRM_core', 'Masai Giraffes')
+            #title_aug = title_aug.replace('db=GZ_ALL', 'Grevy\'s Zebras')
         return title_aug
 
     def get_fname_aug(test_result, **kwargs):

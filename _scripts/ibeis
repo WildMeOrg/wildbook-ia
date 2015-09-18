@@ -14,4 +14,4 @@ fi
 
 #cd ~jonathan/code/ibeis
 #$PY main.py $FLAGS
-$PY -m ibeis $@
+$PY -m ibeis "$@"

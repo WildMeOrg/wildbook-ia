@@ -763,10 +763,12 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07], dtype=np.float64)
 
     """
-    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
-    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
-    unixtime_list1[unixtime_list1 == -1] = np.nan
-    unixtime_list2[unixtime_list2 == -1] = np.nan
+    #unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+    #unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+    unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
+    unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
+    #unixtime_list1[unixtime_list1 == -1] = np.nan
+    #unixtime_list2[unixtime_list2 == -1] = np.nan
     timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
     return timedelta_list
 
@@ -5249,6 +5251,16 @@ def remove_rfdetect(ibs):
 
 
 @__injectable
+def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
+    """ removes any aids that are known to match """
+    ref_nids = set(ibs.get_annot_name_rowids(ref_aid_list))
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    flag_list = [nid not in ref_nids for nid in nid_list]
+    aid_list_ = ut.list_compress(aid_list, flag_list)
+    return aid_list_
+
+
+@__injectable
 def search_annot_notes(ibs, pattern, aid_list=None):
     """
 
@@ -5311,6 +5323,19 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
     TODO; rename to valid_viewpoint because this func uses category labels
     """
     yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
+    aid_list_ = ut.list_compress(aid_list, yaw_flags)
+    return aid_list_
+
+
+@__injectable
+def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
+    """
+    Removes aids that do not have a valid yaw
+
+    TODO; rename to valid_viewpoint because this func uses category labels
+    """
+    notyaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, invalid_yaws, unknown_ok=False))
+    yaw_flags = ut.not_list(notyaw_flags)
     aid_list_ = ut.list_compress(aid_list, yaw_flags)
     return aid_list_
 
@@ -6029,6 +6054,53 @@ def get_dbname_alias(ibs):
     """
     dbname = ibs.get_dbname()
     return const.DBNAME_ALIAS.get(dbname, dbname)
+
+
+def find_unlabeled_name_members(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-find_unlabeled_name_members
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> result = find_unlabeled_name_members(ibs)
+        >>> print(result)
+    """
+    aid_list = ibs.get_valid_aids()
+    aids_list, nids = ibs.group_annots_by_name(aid_list)
+    aids_list = ut.list_compress(aids_list, [len(aids) > 1 for aids in aids_list])
+
+    def find_missing(props_list, flags_list):
+        missing_idx_list = ut.list_where([any(flags) and not all(flags) for flags in flags_list])
+        missing_flag_list = ut.list_take(flags_list, missing_idx_list)
+        missing_aids_list = ut.list_take(aids_list, missing_idx_list)
+        #missing_prop_list = ut.list_take(props_list, missing_idx_list)
+        missing_aid_list = vt.zipcompress(missing_aids_list, missing_flag_list)
+        return missing_aid_list
+
+    props_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
+    flags_list = [np.isnan(props) for props in props_list]
+    missing_time_aid_list = find_missing(props_list, flags_list)
+    print('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
+
+    props_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
+    flags_list = [ut.flag_None_items(props) for props in props_list]
+    missing_yaw_aid_list = find_missing(props_list, flags_list)
+    print('num_names_missing_qual = %r' % (len(missing_yaw_aid_list),))
+
+    props_list = ibs.unflat_map(ibs.get_annot_qualities, aids_list)
+    flags_list = [[p is None or p == -1 for p in props] for props in props_list]
+    missing_qual_aid_list = find_missing(props_list, flags_list)
+    print('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
+
+    #ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)
+    #ibs.unflat_map(ibs.get_annot_yaw_texts, aids_list)
 
 
 if __name__ == '__main__':
