@@ -216,15 +216,20 @@ def show_if_requested(N=1):
         #else:
         #    fpath_ = fpath
         fpath_list = [fpath_]
-        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
-                                                         label_str=label_str,
-                                                         caption_str=caption_str,
-                                                         width_str=width_str,
-                                                         height_str=height_str)
-        #import sys
-        #print(sys.argv)
-        latex_block = figure_str
-        latex_block = ut.latex_newcommand(label_str, latex_block)
+
+        if len(fpath_list) == 1 and ut.is_developer():
+            latex_block = '\ImageCommand{' + ''.join(fpath_list) + '}{' + width_str + '}{\n' + caption_str + '\n}{' + label_str + '}'
+            # HACK
+        else:
+            figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
+                                                             label_str=label_str,
+                                                             caption_str=caption_str,
+                                                             width_str=width_str,
+                                                             height_str=height_str)
+            #import sys
+            #print(sys.argv)
+            latex_block = figure_str
+            latex_block = ut.latex_newcommand(label_str, latex_block)
         #latex_block = ut.codeblock(
         #    r'''
         #    \newcommand{\%s}{
@@ -262,7 +267,7 @@ def show_if_requested(N=1):
             append_fpath = arg_dict['append']
             ut.write_to(append_fpath, '\n\n' + latex_block_, mode='a')
 
-        if ut.get_argflag('--diskshow'):
+        if ut.get_argflag(('--diskshow', '--ds')):
             # show what we wrote
             ut.startfile(absfpath_)
 

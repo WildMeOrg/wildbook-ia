@@ -826,6 +826,8 @@ def plot_probabilities(prob_list,
     ax.set_ylabel('probability', **labelkw)
     df2.dark_background()
     titlesize = kwargs.get('titlesize', 8)
+    if kwargs.get('remove_yticks', False):
+        ax.set_yticks([])
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }
@@ -1524,7 +1526,8 @@ def draw_time_distribution(unixtime_list):
     unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
     xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
     fnum = pt.ensure_fnum(None)
-    pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True, use_legend=False, fnum=fnum)
+    pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True,
+                          use_legend=False, fnum=fnum, remove_yticks=True)
     #freq, bins = np.histogram(unixtime_list, bins=30, normed=True)
     #xints = np.arange(len(xdata))
     #ut.embed()
