@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 It is better to use constant variables instead of hoping you spell the same
 string correctly every time you use it. (Also it makes it much easier if a
