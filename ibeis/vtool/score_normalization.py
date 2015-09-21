@@ -507,6 +507,8 @@ class ScoreNormalizer(object):
             interactive=False,
             use_stems=None,
             attr_callback=None,
+            with_prebayes=True,
+            with_postbayes=True,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
@@ -900,7 +902,8 @@ def inspect_pdfs(tn_support, tp_support,
                  prob_thresh=None, score_thresh=None, with_scores=False,
                  with_roc=False, with_precision_recall=False, with_hist=False,
                  fnum=None, figtitle=None, interactive=None, use_stems=None,
-                 part_attrs=None, thresh_kw=None, attr_callback=None):
+                 part_attrs=None, thresh_kw=None, attr_callback=None,
+                 with_prebayes=True, with_postbayes=True):
     """
     Shows plots of learned thresholds
 
@@ -920,8 +923,8 @@ def inspect_pdfs(tn_support, tp_support,
         fnum = pt.next_fnum()
 
     with_normscore = with_scores
-    with_prebayes = True
-    with_postbayes = True
+    #with_prebayes = True
+    #with_postbayes = True
 
     nSubplots = (with_normscore + with_prebayes + with_postbayes +
                  with_scores + with_roc + with_precision_recall + with_hist)
