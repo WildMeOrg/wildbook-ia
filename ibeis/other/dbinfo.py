@@ -182,7 +182,7 @@ def get_dbinfo(ibs, verbose=True,
 
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True)
+    gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True, use_median=True)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -283,7 +283,7 @@ def get_dbinfo(ibs, verbose=True,
     if verbose:
         print('Building Stats String')
 
-    multiton_stats = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
+    multiton_stats = ut.get_stats_str(multiton_nid2_nannots, newlines=True, use_median=True)
 
     # Time stats
     unixtime_list = ibs.get_image_unixtime(valid_gids)
@@ -718,7 +718,8 @@ def latex_dbstats(ibs_list, **kwargs):
     row_lbls   = []
     row_values = []
 
-    stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
+    #stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
+    stat_col_lbls = ['max', 'min', 'mean', 'std', 'median']
     #stat_row_lbls = ['# Annot per Name (multiton)']
     stat_row_lbls = []
     stat_row_values = []
@@ -732,7 +733,7 @@ def latex_dbstats(ibs_list, **kwargs):
         row_ = ut.dict_take(dbinfo_locals, col_keys)
         dbname = ibs.get_dbname_alias()
         row_lbls.append(dbname)
-        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
+        multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'], use_median=True)
         stat_rows = ut.dict_take(multiton_annot_stats, stat_col_lbls)
         if SINGLE_TABLE:
             row_.extend(stat_rows)

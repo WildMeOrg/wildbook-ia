@@ -1611,7 +1611,9 @@ class SQLDatabaseController(object):
                             # FIXME: Rectify duplicate code
                             superkeys = db.get_table_superkey_colnames(tablename_)
                             if len(superkeys) > 1:
+                                #primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
                                 primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
+                                db.get_table_superkey_colnames('contributors')
                                 if primary_superkey is None:
                                     raise AssertionError(
                                         ('tablename_=%r has multiple superkeys=%r, but no primary superkey.'
@@ -1622,6 +1624,19 @@ class SQLDatabaseController(object):
                             elif len(superkeys) == 1:
                                 superkey_colnames = superkeys[0]
                             else:
+                                print(db.get_table_csv_header(tablename_))
+                                db.print_table_csv('metadata', exclude_columns=['metadata_value'])
+                                # Execute hack to fix contributor tables
+                                if tablename_ == 'contributors':
+                                    # hack to fix contributors table
+                                    import parse
+                                    constraint_str = db.get_metadata_val(tablename_ + '_constraint')
+                                    parse_result = parse.parse('CONSTRAINT superkey UNIQUE ({superkey})', constraint_str)
+                                    superkey = parse_result['superkey']
+                                    assert superkey == 'contributor_tag', 'hack failed1'
+                                    assert None is db.get_metadata_val('contributors_superkey'), 'hack failed2'
+                                    if True:
+                                        db.set_metadata_val('contributors_superkeys', "[('" + superkey + "',)]")
                                 raise NotImplementedError('Cannot Handle: len(superkeys) == 0. Probably a degenerate case')
                         except Exception as ex:
                             ut.printex(ex, 'Error Getting superkey colnames',

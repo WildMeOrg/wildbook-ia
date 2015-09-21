@@ -1183,16 +1183,43 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
 
 
 @__injectable
+def get_missing_gids(ibs, gid_list=None):
+    r"""
+    Finds gids with broken links to the original data.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_missing_gids --db GZ_Master1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> #ibs = ibeis.opendb('GZ_Master1')
+        >>> gid_list = None
+        >>> bad_gids = ibs.get_missing_gids(gid_list)
+    """
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    gpath_list = ibs.get_image_paths(gid_list)
+    exists_list = list(map(exists, gpath_list))
+    bad_gids = ut.filterfalse_items(gid_list, exists_list)
+    return bad_gids
+
+
+@__injectable
 def assert_images_exist(ibs, gid_list=None, verbose=True):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
     print('checking images exist')
-    gpath_list = ibs.get_image_paths(gid_list)
-    exists_list = list(map(exists, gpath_list))
-    bad_gids = ut.filterfalse_items(gid_list, exists_list)
+    bad_gids = ibs.get_missing_gids()
     num_bad_gids = len(bad_gids)
     if verbose:
-        bad_gpaths = ut.filterfalse_items(gpath_list, exists_list)
+        bad_gpaths = ibs.get_image_paths(bad_gids)
         print('Bad Gpaths:')
         print(ut.truncate_str(ut.list_str(bad_gpaths), maxlen=500))
     assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
@@ -1240,6 +1267,23 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
 
 @__injectable
 def check_image_consistency(ibs, gid_list=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = None
+        >>> result = check_image_consistency(ibs, gid_list)
+        >>> print(result)
+    """
     # TODO: more consistency checks
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -1261,6 +1305,7 @@ def check_image_uuid_consistency(ibs, gid_list):
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
         python -m ibeis.ibsfuncs --test-check_image_uuid_consistency
 
     Example:
@@ -2933,6 +2978,8 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
     genkw = {
         'ordered': False,
         'chunksize': chunksize,
+        'freq': 50,
+        'adjust': True,
         #'force_serial': True,
     }
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)

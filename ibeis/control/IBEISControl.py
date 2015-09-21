@@ -243,7 +243,8 @@ class IBEISController(object):
         print('[ibs] clearing table_cache[%r]' % (tablename,))
         if tablename is None:
             ibs.reset_table_cache()
-        del ibs.table_cache[tablename]
+        else:
+            del ibs.table_cache[tablename]
 
     def get_cachestats_str(ibs):
         """

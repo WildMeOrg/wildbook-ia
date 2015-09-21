@@ -1374,7 +1374,7 @@ def get_image_num_annotations(ibs, gid_list):
 @accessor_decors.deleter
 @accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['DELETE'])
-def delete_images(ibs, gid_list):
+def delete_images(ibs, gid_list, trash_images=True):
     r"""
     deletes images from the database that belong to gids
 
@@ -1382,7 +1382,7 @@ def delete_images(ibs, gid_list):
         Method: DELETE
         URL:    /api/image/
     """
-    if not ut.QUIET:
+    if ut.NOT_QUIET:
         print('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images
@@ -1390,11 +1390,14 @@ def delete_images(ibs, gid_list):
     gpath_list = ibs.get_image_paths(gid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     ext_list   = ibs.get_image_exts(gid_list)
-    trash_dir  = ibs.get_trashdir()
-    ut.ensuredir(trash_dir)
-    gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
-                   zip(gname_list, ext_list)]
-    ut.copy_list(gpath_list, gpath_list2)
+    if trash_images:
+        trash_dir  = ibs.get_trashdir()
+        ut.ensuredir(trash_dir)
+        gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
+                       zip(gname_list, ext_list)]
+        ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True, lbl='Trashing Images')
+    else:
+        raise NotImplementedError('must trash images for now')
     #ut.view_directory(trash_dir)
 
     # Delete annotations first

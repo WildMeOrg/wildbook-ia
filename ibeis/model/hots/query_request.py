@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 TODO: make qparams and qreq_ serializeable
+
+TODO:
+    Rename to IdentifyRequest
 """
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index

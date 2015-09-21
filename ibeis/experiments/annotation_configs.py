@@ -302,7 +302,7 @@ def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
     return acfg
 
 
-def apply_timecontrol(acfg, min_timedelta='12h'):
+def apply_timecontrol(acfg, min_timedelta='6h'):
     return {
         'qcfg': ut.augdict(
             acfg['qcfg'], {
@@ -426,6 +426,7 @@ ctrl = controlled = {
 ibeis -e print_acfg --db PZ_Master1 -a timectrl
 """
 timectrl = timecontrolled = apply_timecontrol(ctrl)
+timectrl1h = timecontrolled = apply_timecontrol(ctrl, '1h')
 
 """
 ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
@@ -446,7 +447,7 @@ varypername = {
             #'sample_per_name': [1, 2, 3],
             'sample_per_name': [1, 3],
             #'sample_per_ref_name': [1, 2, 3],
-            'sample_per_ref_name': [1, 3],
+            #'sample_per_ref_name': [1, 3],
             'force_const_size': True,
         }),
 }
@@ -464,7 +465,7 @@ varypername2 = {
             #'sample_per_name': [1, 2, 3],
             'sample_per_name': [1, 2],
             #'sample_per_ref_name': [1, 2, 3],
-            'sample_per_ref_name': [1, 2],
+            #'sample_per_ref_name': [1, 2],
             'force_const_size': True,
         }),
 }
@@ -671,7 +672,7 @@ TODO: Need to explicitly setup the common config I think?
 
 ibeis -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
 """
-viewdiff = vp = viewpoint_compare = {
+viewpoint_compare = {
     'qcfg': ut.augdict(
         controlled['qcfg'], {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
@@ -698,11 +699,40 @@ viewdiff = vp = viewpoint_compare = {
         }),
 }
 
+
+viewdiff = vp = viewpoint_compare = {
+    'qcfg': ut.augdict(
+        controlled['qcfg'], {
+            #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
+            'sample_size': None,
+            'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
+            'force_const_size': True,
+            'view': 'primary1',
+            'sample_per_name': 1,
+            #'min_pername': 2,
+        }),
+
+    'dcfg': ut.augdict(
+        controlled['dcfg'], {
+            'view': ['primary'],
+            'force_const_size': True,
+            'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
+            #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
+            #'view': ['primary'],
+            #'sample_per_name': 1,
+            #'sample_rule_ref': 'maxtimedelta',
+            'sample_per_ref_name': 1,
+            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
+            'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
+        }),
+}
+
 """
 ibeis -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True
 ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True
 """
-viewdiff_td = apply_timecontrol(viewpoint_compare, 20)
+viewdiff_td = apply_timecontrol(viewdiff)
+viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1

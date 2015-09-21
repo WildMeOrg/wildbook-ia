@@ -13,7 +13,7 @@ def hack_argv(arg):
             '--clipwhite',
             '--contextadjust',
             '--dpi=256',
-            #'--diskshow',
+            '--diskshow',
         ]
 
         sys.argv.extend(common_args)
@@ -52,7 +52,7 @@ def hack_argv(arg):
             ])
 
         # Save location
-        fname_fmt = 'figures/expt_{e}_{db}_a_{a}_t_{t}'
+        fname_fmt = 'figuresX/expt_{e}_{db}_a_{a}_t_{t}'
 
         if hack_argv_key in ['scores']:
             fname_fmt += '_{filt}'

@@ -126,7 +126,8 @@ def parse_latex_comments_for_commmands():
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> parse_latex_comments_for_commmands()
     """
-    text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefexpt.tex'))
+    fname = ut.get_argval('--fname', type_=str, default='figdefexpt.tex')
+    text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/' + fname))
     #text = ut.read_from(ut.truepath('~/latex/crall-candidacy-2015/figdefindiv.tex'))
     lines = text.split('\n')
     cmd_list = ['']
@@ -168,7 +169,9 @@ def parse_latex_comments_for_commmands():
     cmd_list = cmd_list2
 
     print('cmd_list = %s' % (ut.list_str(cmd_list),))
-    fname, script, line_list = write_script_lines(cmd_list, 'regen_figdef_expt.sh')
+    from os.path import splitext
+    script_fname =  'regen_' + splitext(fname)[0] + '.sh'
+    fname, script, line_list = write_script_lines(cmd_list, script_fname)
     #ut.chmod_add_executable(fname)
 
 

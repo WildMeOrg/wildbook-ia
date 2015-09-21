@@ -844,7 +844,7 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
 
-        ymin = 30 if known_target_points.min() > 30 else 0
+        ymin = 30 if known_target_points.min() > 30 and False else 0
         num_yticks = 8 if ymin == 30 else 10
 
         #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
@@ -989,7 +989,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     target_label = 'accuracy (%)'
     #target_label = '% groundtrue matches ≤ rank'
 
-    ymin = 30 if cfgx2_cumhist_percent.min() > 30 else 0
+    ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
     num_yticks = 8 if ymin == 30 else 10
 
     cumhistkw = dict(
