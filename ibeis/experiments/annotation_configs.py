@@ -612,6 +612,7 @@ varysize = {
 ibeis -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache
 """
 varysize_td = apply_timecontrol(varysize)
+varysize_td1h = apply_timecontrol(varysize, '1h')
 varysize_tdqual = apply_qualcontrol(varysize_td)
 
 

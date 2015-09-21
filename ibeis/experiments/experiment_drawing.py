@@ -121,7 +121,15 @@ def annotationmatch_scores(ibs, test_result, f=None):
     figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug(friendly=True)
 
     figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
-    encoder.visualize(figtitle=figtitle, with_hist=True, with_roc=True, attr_callback=attr_callback)
+    encoder.visualize(figtitle=figtitle,
+                      #
+                      with_scores=False,
+                      with_prebayes=False,
+                      with_postbayes=False,
+                      #
+                      with_hist=True,
+                      with_roc=True,
+                      attr_callback=attr_callback)
 
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)

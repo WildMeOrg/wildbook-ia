@@ -191,6 +191,15 @@ candscoremech_invarbest = candidacy_namescore = [
     }
 ]
 
+
+candk_invarbest = [
+    {
+        'augment_queryside_hack': True,
+        'affine_invariance': False,
+        'K': [1, 2, 3, 4, 5, 7, 10]
+    },
+]
+
 candidacy_linear = candidacy_baseline + [
     {'algorithm': ['linear'], 'K': [1, 2, 4]},
     {'algorithm': ['linear'], 'K': [1], 'augment_queryside_hack': [True]},

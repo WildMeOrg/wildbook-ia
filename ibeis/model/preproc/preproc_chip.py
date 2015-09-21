@@ -365,7 +365,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     #ut.embed()
     # We have to force serial here until we can figure out why parallel chip generation causes a freeze
     # utool has a unstable test that reproduces this reliably (BECAUSE OF CV2.WARP_AFFINE WITH BIG OUTPUT)
-    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True)
+    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True, freq=10)
     #chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list, ordered=True)
     #print(ut.util_parallel.__POOL__)
     # Compute and write chips in asychronous process

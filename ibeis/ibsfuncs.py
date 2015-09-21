@@ -382,6 +382,8 @@ ANNOTMATCH_PROPS_OTHER = [
     'random',  # gf case has random matches, the gt is to blame
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
+    'ViewpointOMG',  # gf is a bad tail match
+    'ViewpointCanDo',  # gf is a bad tail match
 ]
 
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])

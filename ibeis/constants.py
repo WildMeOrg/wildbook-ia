@@ -388,7 +388,9 @@ SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_ar
 DBNAME_ALIAS = {
     #'NNP_MasterGIRM_core': 'NNP_GIRM'
     #'NNP_MasterGIRM_core': 'GIRM',
-    'NNP_MasterGIRM_core': 'GIRM',
+    #'NNP_MasterGIRM_core': 'GIRM',
     'PZ_Master1': 'PZ',
-    'GZ_ALL': 'GZ',
+    'GZ_Master1': 'GZ',
+    'GIRM_Master1': 'GIRM',
+    #'GZ_ALL': 'GZ',
 }
