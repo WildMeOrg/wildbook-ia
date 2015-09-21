@@ -369,13 +369,15 @@ def multi_plot(xdata, ydata_list, **kwargs):
     if use_legend:
         df2.legend(loc=legend_loc, size=kwargs.get('legendsize', 8))
 
-    use_darkbackground = kwargs.get('use_darkbackground', True)
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
     if use_darkbackground:
         pt.dark_background()
     return fig
 
 
-def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8):
+def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8, **kwargs):
     r"""
     Args:
         hist (ndarray):
@@ -447,7 +449,12 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
         plt.scatter(submaxima_x, submaxima_y, marker='*', color='r', s=100)
         # Draw Bins
         plt.scatter(centers, hist, c=bin_colors, marker='o', s=25)
-        df2.dark_background()
+
+        use_darkbackground = kwargs.get('use_darkbackground', None)
+        if use_darkbackground is None:
+            use_darkbackground = not ut.get_argflag('--save')
+        if use_darkbackground:
+            df2.dark_background()
 
 
 def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
@@ -586,7 +593,7 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.
     return lc
 
 
-def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):
+def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
     """
 
     CommandLine:
@@ -608,7 +615,13 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1)):
     ax = df2.gca()
     ax.set_xlabel('query index')
     ax.set_ylabel('query ranks')
-    df2.dark_background()
+
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        df2.dark_background()
+
     ax.set_figtitle('plot_stems')
     #df2.legend(loc='upper left')
     df2.legend(loc='best')
@@ -715,7 +728,7 @@ def plot_score_histograms(scores_list,
     ax = df2.gca()
     ax.set_xlabel(score_label, **labelkw)
     ax.set_ylabel('frequency', **labelkw)
-    df2.dark_background()
+    #df2.dark_background()
     titlesize = kwargs.get('titlesize', 8)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
@@ -724,7 +737,13 @@ def plot_score_histograms(scores_list,
     #df2.legend(loc='upper left')
     df2.legend(loc='best', size=kwargs.get('legendsize', 8))
     #print('[df2] show_histogram()')
-    df2.dark_background()
+    #df2.dark_background()
+
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        df2.dark_background()
     #return fig
 
 
@@ -824,7 +843,13 @@ def plot_probabilities(prob_list,
     #ax.set_xlim(xdata.min(), xdata.max())
     ax.set_xlabel('score value', **labelkw)
     ax.set_ylabel('probability', **labelkw)
-    df2.dark_background()
+
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        df2.dark_background()
+
     titlesize = kwargs.get('titlesize', 8)
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
@@ -965,7 +990,12 @@ def plot_sorted_scores(scores_list,
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
     ax.set_ylabel(score_label, **labelkw)
-    df2.dark_background()
+
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        df2.dark_background()
     titlesize = kwargs.get('titlesize', 8)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)

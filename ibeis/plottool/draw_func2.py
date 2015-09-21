@@ -622,7 +622,7 @@ def plot(*args, **kwargs):
 
 
 def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
-          unitbox=False, flipx=False, flipy=False, title=None, dark=True,
+          unitbox=False, flipx=False, flipy=False, title=None, dark=None,
           equal_aspect=True, pad=0, label='', fnum=None, pnum=None, *args,
           **kwargs):
     """
@@ -687,7 +687,11 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
             ax.invert_xaxis()
         if flipy:
             ax.invert_yaxis()
-        if dark:
+
+        use_darkbackground = dark
+        if use_darkbackground is None:
+            use_darkbackground = not ut.get_argflag('--save')
+        if use_darkbackground:
             dark_background(ax)
     else:
         # No data, draw big red x
@@ -992,7 +996,13 @@ def show_histogram(data, bins=None, **kwargs):
     fig = figure(**kwargs)
     ax  = gca()
     ax.hist(data, bins=bins, range=(dmin, dmax))
-    dark_background()
+    #dark_background()
+
+    use_darkbackground = None
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        dark_background(ax)
     return fig
     #help(np.bincount)
     #fig.show()
@@ -1124,7 +1134,13 @@ def plot_sift_signature(sift, title='', fnum=None, pnum=None):
     space_xticks(9, 16)
     space_yticks(5, 64)
     set_title(title, ax=ax)
-    dark_background(ax)
+    #dark_background(ax)
+
+    use_darkbackground = None
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        dark_background(ax)
     return ax
 
 
@@ -1169,7 +1185,13 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
     #space_xticks(9, 16)
     #space_yticks(5, 64)
     set_title(title, ax=ax)
-    dark_background(ax)
+
+    use_darkbackground = None
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
+        dark_background(ax)
+
     return ax
 
 
@@ -3160,7 +3182,10 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         ax.set_ylabel(ylabel, **ylabelkw)
     if zlabel is not None:
         ax.set_zlabel(zlabel, **zlabelkw)
-    if dark is True:
+    use_darkbackground = dark
+    if use_darkbackground is None:
+        use_darkbackground = not ut.get_argflag('--save')
+    if use_darkbackground:
         dark_background()
     return ax
 #L_____
