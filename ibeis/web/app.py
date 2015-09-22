@@ -1408,7 +1408,15 @@ def group_review():
         ibs = current_app.ibs
         aid_list = ibs.get_valid_aids()
         bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(aid_list)
-        candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+
+        GROUP_BY_PREDICTION = True
+        if GROUP_BY_PREDICTION:
+            grouped_dict = ut.group_items(bad_viewpoint_list, ut.get_list_column(bad_viewpoint_list, 3))
+            grouped_list = grouped_dict.values()
+            regrouped_items = ut.flatten(ut.sortedby(grouped_list, map(len, grouped_list)))
+            candidate_aid_list = ut.get_list_column(regrouped_items, 0)
+        else:
+            candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
     else:
         candidate_aid_list = ''
     return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list)

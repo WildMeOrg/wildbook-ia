@@ -302,17 +302,17 @@ def unflatten_acfgdict(flat_dict, prefix_list=['dcfg', 'qcfg']):
     return acfg
 
 
-def apply_timecontrol(acfg, min_timedelta='6h'):
+def apply_timecontrol(acfg, min_timedelta='6h', require_timestamp=True):
     return {
         'qcfg': ut.augdict(
             acfg['qcfg'], {
-                'require_timestamp': True,
+                'require_timestamp': require_timestamp,
                 'min_timedelta': min_timedelta,
             }),
 
         'dcfg': ut.augdict(
             acfg['dcfg'], {
-                'require_timestamp': True,
+                'require_timestamp': require_timestamp,
                 'min_timedelta': min_timedelta,
             }),
     }
@@ -428,6 +428,8 @@ ibeis -e print_acfg --db PZ_Master1 -a timectrl
 timectrl = timecontrolled = apply_timecontrol(ctrl)
 timectrl1h = timecontrolled = apply_timecontrol(ctrl, '1h')
 
+timectrlL = timecontrolled = apply_timecontrol(ctrl, require_timestamp=False)
+
 """
 ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
 """
@@ -444,8 +446,8 @@ varypername = {
 
     'dcfg': ut.augdict(
         ctrl['qcfg'], {
-            #'sample_per_name': [1, 2, 3],
-            'sample_per_name': [1, 3],
+            'sample_per_name': [1, 2, 3],
+            #'sample_per_name': [1, 3],
             #'sample_per_ref_name': [1, 2, 3],
             #'sample_per_ref_name': [1, 3],
             'force_const_size': True,
@@ -499,6 +501,7 @@ timectrl2 = apply_timecontrol(ctrl2)
 
 
 varypername_td = apply_timecontrol(varypername)
+varypername_td1h = apply_timecontrol(varypername, '1h')
 """
 ibeis -e print_acfg --db PZ_Master1 -a varypername_tdqual
 """
@@ -602,6 +605,7 @@ varysize = {
         __controlled_aidcfg, {
             #'default_aids': 'all',
             'sample_per_name': [1, 2, 3],
+            #'sample_per_name': [1, 3],
             'exclude_reference': True,
             'sample_size': [0.25, 0.5, 0.75],  # .95], 1.0],
             'min_pername': 1,
@@ -695,7 +699,7 @@ viewpoint_compare = {
             #'sample_per_name': 1,
             #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
-            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
+            'sample_per_name': 1,  # None this seems to produce odd results where the per_ref is still more then 1
             'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
         }),
 }
@@ -717,13 +721,13 @@ viewdiff = vp = viewpoint_compare = {
         controlled['dcfg'], {
             'view': ['primary'],
             'force_const_size': True,
-            'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
+            #'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
             #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
             #'view': ['primary'],
             #'sample_per_name': 1,
             #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
-            'sample_per_name': None,  # this seems to produce odd results where the per_ref is still more then 1
+            'sample_per_name': 1,  # None this seems to produce odd results where the per_ref is still more then 1
             'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
         }),
 }

@@ -14,7 +14,8 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[cfgbank]')
 ALIAS_KEYS = {
     'RI': 'rotation_invariance',
     'AI': 'affine_invariance',
-    'AQH': 'augment_queryside_hack',
+    #'AQH': 'augment_queryside_hack',
+    'QRH': 'augment_queryside_hack',
     'SV': 'sv_on',
     #'SVxy': 'xy_thresh',
     #'SVxy': 'xy_thresh',
@@ -26,15 +27,76 @@ def augbase(basedict, updatedict):
     newdict.update(updatedict)
     return newdict
 
+
+def apply_k(cfg):
+    import copy
+    cfg = copy.deepcopy(cfg)
+    for _ in cfg:
+        _['K'] = [1, 2, 3, 4, 5, 7, 10]
+    return cfg
+
+
+def apply_CircQRH(cfg):
+    import copy
+    cfg = copy.deepcopy(cfg)
+    for _ in cfg:
+        _['augment_queryside_hack'] = True
+        _['affine_invariance'] = False
+    return cfg
+
+
+def apply_Ell(cfg):
+    import copy
+    cfg = copy.deepcopy(cfg)
+    for _ in cfg:
+        _['augment_queryside_hack'] = False
+        _['affine_invariance'] = True
+    return cfg
+
+
+def apply_EllQRH(cfg):
+    import copy
+    cfg = copy.deepcopy(cfg)
+    for _ in cfg:
+        _['augment_queryside_hack'] = True
+        _['affine_invariance'] = True
+    return cfg
+
 exclude_vars = vars().keys()   # this line is before tests
 
 default = [{}]
 baseline = [{}]
 
+ScoreMech = candidacy_namescore = [
+    {
+        'score_method':      ['nsum'],
+        'prescore_method':   ['nsum'],
+    },
+    {
+        'score_method':      ['csum'],
+        'prescore_method':   ['csum'],
+    }
+]
+
+
+CircQRH = apply_CircQRH(default)
+Ell = apply_Ell(default)
+EllQRH = apply_EllQRH(default)
+
+CircQRH_K = apply_k(CircQRH)
+Ell_K = apply_k(Ell)
+EllQRH_K = apply_k(EllQRH)
+
+Ell_ScoreMech = apply_Ell(ScoreMech)
+CircQRH_ScoreMech = apply_CircQRH(ScoreMech)
+
+
+# only best for grevys
 invarbest = [{
     'augment_queryside_hack': True,
     'affine_invariance': False,
 }]
+
 
 invar3 = [
     {
@@ -136,68 +198,6 @@ invar = candinvar = candidacy_invariance = [
     {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
     {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
     {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
-]
-
-#candidacy_invariance = {
-#    'rotation_invariance'    : [True, False],
-#    'affine_invariance'      : [False, True],
-#    'augment_queryside_hack' : [False, True],
-#}
-
-candscoremech = candidacy_namescore = [
-    #{
-    #    'K': 1,
-    #    'score_method':      ['nsum'],
-    #    'prescore_method':   ['nsum'],
-    #},
-    #{
-    #    'K': 1,
-    #    'score_method':      ['csum'],
-    #    'prescore_method':   ['csum'],
-    #},
-    {
-        'score_method':      ['nsum'],
-        'prescore_method':   ['nsum'],
-    },
-    {
-        'score_method':      ['csum'],
-        'prescore_method':   ['csum'],
-    }
-]
-
-
-candscoremech_invarbest = candidacy_namescore = [
-    #{
-    #    'K': 1,
-    #    'score_method':      ['nsum'],
-    #    'prescore_method':   ['nsum'],
-    #},
-    #{
-    #    'K': 1,
-    #    'score_method':      ['csum'],
-    #    'prescore_method':   ['csum'],
-    #},
-    {
-        'augment_queryside_hack': True,
-        'affine_invariance': False,
-        'score_method':      ['nsum'],
-        'prescore_method':   ['nsum'],
-    },
-    {
-        'augment_queryside_hack': True,
-        'affine_invariance': False,
-        'score_method':      ['csum'],
-        'prescore_method':   ['csum'],
-    }
-]
-
-
-candk_invarbest = [
-    {
-        'augment_queryside_hack': True,
-        'affine_invariance': False,
-        'K': [1, 2, 3, 4, 5, 7, 10]
-    },
 ]
 
 candidacy_linear = candidacy_baseline + [

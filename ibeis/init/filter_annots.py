@@ -434,6 +434,9 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
 
     # FIXME: This is NOT an independent filter because it depends on pairwise interactions
     if aidcfg['view_pername'] is not None:
+        if species is None:
+            # hack
+            species = ibs.get_dominant_species(avail_aids)
         # This filter removes entire names.
         # The avaiable aids must be from names with certain viewpoint frequency
         # properties

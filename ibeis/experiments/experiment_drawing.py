@@ -853,7 +853,7 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         known_target_points = np.array(rank_list)
 
         ymin = 30 if known_target_points.min() > 30 and False else 0
-        num_yticks = 8 if ymin == 30 else 10
+        num_yticks = 8 if ymin == 30 else 11
 
         #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
         title = ('accuracy when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
@@ -967,8 +967,11 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
     if figtitle_prefix != '':
         figtitle_prefix = figtitle_prefix.rstrip('') + ' '
-    figtitle = (figtitle_prefix + 'Cumulative Rank Histogram\n')
-    figtitle += ' ' + test_result.get_title_aug(friendly=True)
+    figtitle = (figtitle_prefix + 'Cumulative Rank Histogram')
+    hasprefix = figtitle_prefix == ''
+    if hasprefix:
+        figtitle += '\n'
+    figtitle += ' ' + test_result.get_title_aug(friendly=True, with_cfg=hasprefix)
 
     if verbose:
         test_result.print_unique_annot_config_stats(ibs)
@@ -998,7 +1001,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     #target_label = '% groundtrue matches ≤ rank'
 
     ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
-    num_yticks = 8 if ymin == 30 else 10
+    num_yticks = 8 if ymin == 30 else 11
 
     cumhistkw = dict(
         xlabel='rank', ylabel=target_label, color_list=color_list,

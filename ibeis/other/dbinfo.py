@@ -39,7 +39,7 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
 def get_dbinfo(ibs, verbose=True,
                with_imgsize=False,
                with_bytes=False,
-               with_contrib=False,
+               with_contrib=True,
                with_agesex=False,
                with_header=True,
                short=False,
@@ -67,6 +67,7 @@ def get_dbinfo(ibs, verbose=True,
         python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
         python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
+        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
 
@@ -76,16 +77,16 @@ def get_dbinfo(ibs, verbose=True,
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> # <HACK FOR FILTERING>
-        >>> from ibeis.experiments import cfghelpers
-        >>> from ibeis.experiments import annotation_configs
-        >>> from ibeis.init import filter_annots
-        >>> named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
-        >>>                                    annotation_configs.TEST_NAMES)
-        >>> named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-        >>>                                ut.get_list_column(named_defaults_dict, 'qcfg')))
-        >>> acfg = cfghelpers.parse_argv_cfg(('--annot-filter', '-a'), named_defaults_dict=named_qcfg_defaults, default=None)[0]
+        >>> #from ibeis.experiments import cfghelpers
+        >>> #from ibeis.experiments import annotation_configs
+        >>> #from ibeis.init import filter_annots
+        >>> #named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
+        >>> #                                   annotation_configs.TEST_NAMES)
+        >>> #named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+        >>> #                               ut.get_list_column(named_defaults_dict, 'qcfg')))
+        >>> #acfg = cfghelpers.parse_argv_cfg(('--annot-filter', '-a'), named_defaults_dict=named_qcfg_defaults, default=None)[0]
         >>> aid_list = ibs.get_valid_aids()
-        >>> aid_list = filter_annots.filter_annots_independent(ibs, aid_list, acfg)
+        >>> #aid_list = filter_annots.filter_annots_independent(ibs, aid_list, acfg)
         >>> # </HACK FOR FILTERING>
         >>> kwargs = ut.get_kwdefaults(get_dbinfo)
         >>> kwargs['verbose'] = False
@@ -769,7 +770,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
         extra_collbls['qualtext2_nAnnots'] = ['excellent', 'good', 'ok', 'poor', 'junk', 'UNKNOWN']
         #extra_collbls['yawtext2_nAnnots'] = ['backleft', 'left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', None]
-        extra_collbls['yawtext2_nAnnots'] = ['B', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
+        extra_collbls['yawtext2_nAnnots'] = ['BL', 'L', 'FL', 'F', 'FR', 'R', 'BR', 'B', None]
 
         for ibs, dbinfo_locals in zip(ibs_list, dbinfo_list):
             for key in extra_keys:

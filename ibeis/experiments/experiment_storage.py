@@ -421,7 +421,7 @@ class TestResult(object):
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
-            ('augment_queryside_hack', 'AQH'),
+            ('augment_queryside_hack', 'QRH'),
             ('nNameShortlistSVER', 'nRR'),
             #
             #('sample_per_ref_name', 'per_ref_name'),
@@ -442,8 +442,10 @@ class TestResult(object):
             (r'_orig_size=[^,]+,?', ''),
             # Hack
             ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + '\,?', ''),
-            ('=True', '=On'),
-            ('=False', '=Off'),
+            #('=True', '=On'),
+            #('=False', '=Off'),
+            ('=True', '=T'),
+            ('=False', '=F'),
         ]
         for ser, rep in repl_list:
             lbl = re.sub(ser, rep, lbl)
@@ -539,10 +541,10 @@ class TestResult(object):
 
         return cfg_lbls
 
-    def get_title_aug(test_result, withinfo=True, friendly=False):
+    def get_title_aug(test_result, with_size=True, with_db=True, with_cfg=True, friendly=False):
         r"""
         Args:
-            withinfo (bool): (default = True)
+            with_size (bool): (default = True)
 
         Returns:
             str: title_aug
@@ -555,42 +557,44 @@ class TestResult(object):
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST')
-            >>> withinfo = True
-            >>> title_aug = test_result.get_title_aug(withinfo)
+            >>> with_size = True
+            >>> title_aug = test_result.get_title_aug(with_size)
             >>> res = u'title_aug = %s' % (title_aug,)
             >>> print(res)
         """
         ibs = test_result.ibs
         title_aug = ''
-        title_aug += ' db=' + (ibs.get_dbname())
-        try:
-            if '_cfgname' in test_result.common_acfg['common']:
-                try:
-                    annot_cfgname = test_result.common_acfg['common']['_cfgstr']
-                except KeyError:
-                    annot_cfgname = test_result.common_acfg['common']['_cfgname']
-            else:
-                cfgname_list = [cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]
-                cfgname_list = ut.unique_keep_order2(cfgname_list)
-                annot_cfgname = '[' + ','.join(cfgname_list) + ']'
+        if with_db:
+            title_aug += ' db=' + (ibs.get_dbname())
+        if with_cfg:
             try:
-                pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
-            except KeyError:
-                #pipeline_cfgname = test_result.common_cfgdict['_cfgname']
-                cfgstr_list = [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list]
-                uniuqe_cfgstrs = ut.unique_keep_order2(cfgstr_list)
-                pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
+                if '_cfgname' in test_result.common_acfg['common']:
+                    try:
+                        annot_cfgname = test_result.common_acfg['common']['_cfgstr']
+                    except KeyError:
+                        annot_cfgname = test_result.common_acfg['common']['_cfgname']
+                else:
+                    cfgname_list = [cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]
+                    cfgname_list = ut.unique_keep_order2(cfgname_list)
+                    annot_cfgname = '[' + ','.join(cfgname_list) + ']'
+                try:
+                    pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
+                except KeyError:
+                    #pipeline_cfgname = test_result.common_cfgdict['_cfgname']
+                    cfgstr_list = [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list]
+                    uniuqe_cfgstrs = ut.unique_keep_order2(cfgstr_list)
+                    pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
 
-            annot_cfgname = test_result._shorten_lbls(annot_cfgname)
-            pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
-            title_aug += ' a=' + annot_cfgname
-            title_aug += ' t=' + pipeline_cfgname
-        except Exception as ex:
-            print(ut.dict_str(test_result.common_acfg))
-            print(ut.dict_str(test_result.common_cfgdict))
-            ut.printex(ex)
-            raise
-        if withinfo:
+                annot_cfgname = test_result._shorten_lbls(annot_cfgname)
+                pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
+                title_aug += ' a=' + annot_cfgname
+                title_aug += ' t=' + pipeline_cfgname
+            except Exception as ex:
+                print(ut.dict_str(test_result.common_acfg))
+                print(ut.dict_str(test_result.common_cfgdict))
+                ut.printex(ex)
+                raise
+        if with_size:
             if test_result.has_constant_qaids():
                 title_aug += ' #qaids=%r' % (len(test_result.qaids),)
             elif test_result.has_constant_length_qaids():

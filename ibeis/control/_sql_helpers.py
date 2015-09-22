@@ -6,18 +6,17 @@ from os.path import split, splitext, join, exists
 import datetime
 import logging
 import re
-import utool
 import utool as ut
 import distutils
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[sql-helpers]')
 
 # =======================
 # Helper Functions
 # =======================
-VERBOSE_SQL    = utool.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql'))
-#AUTODUMP = utool.get_argflag('--auto-dump')
-NOT_QUIET = not (utool.QUIET or utool.get_argflag('--quiet-sql'))
+VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql'))
+#AUTODUMP = ut.get_argflag('--auto-dump')
+NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
 def default_decor(func):
@@ -142,6 +141,33 @@ def fix_metadata_consistency(db):
 MAX_KEEP = 2048
 
 
+def revert_to_backup(ibs):
+    r"""
+    Args:
+        db_dir (?):
+
+    CommandLine:
+        python -m ibeis.control._sql_helpers --exec-revert_to_backup
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control._sql_helpers import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> result = revert_to_backup(ibs)
+        >>> print(result)
+    """
+    db_path = ibs.get_db_core_path()
+    ibs.disconnect_sqldatabase()
+    backup_dir = ibs.backupdir
+    ut.move(db_path, ut.get_nonconflicting_path(db_path + 'revertfrom.%d.orig'))
+    # Carefull may invalidate the cache
+    fname, ext = splitext(db_path)
+    path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
+    previous_backup = path_list[-1]
+    ut.copy(previous_backup, db_path)
+
+
 def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
     database_backup(db_dir, db_fname, backup_dir, max_keep=max_keep, manual=False)
 
@@ -160,14 +186,14 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
     dst_fpath = join(backup_dir, dst_fname)
     if exists(src_fpath) and not exists(dst_fpath):
         print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
-        utool.copy(src_fpath, dst_fpath)
+        ut.copy(src_fpath, dst_fpath)
         # Clean-up old database backups
-        path_list = sorted(utool.glob(backup_dir, '*%s' % ext))
+        path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
         if len(path_list) > max_keep:
             path_delete_list = path_list[:-1 * max_keep]
             for path_delete in path_delete_list:
                 print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
-                utool.remove_file(path_delete, verbose=False)
+                ut.remove_file(path_delete, verbose=False)
 
 
 # ========================
@@ -215,7 +241,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     # NEW DATABASE CONDITION
     is_base_version = (version == const.BASE_DATABASE_VERSION)
     # <DEBUG>
-    #if utool.get_flag('--verbsql') or utool.VERBOSE or True:
+    #if ut.get_flag('--verbsql') or ut.VERBOSE or True:
     #    key_list = locals().keys()
     #    keystr_list = sorted(ut.parse_locals_keylist(locals(), key_list))
     #    print('KEYLIST:' + ut.indentjoin(keystr_list, '\n * '))
@@ -287,11 +313,11 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
         db_backup_fpath = join(db_dpath, db_backup_fname)
         count = 0
         # TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)
-        while utool.checkpath(db_backup_fpath, verbose=True):
+        while ut.checkpath(db_backup_fpath, verbose=True):
             db_backup_fname = ''.join((db_fname_noext, '_backup', '_v', version, '_copy', str(count), ext))
             db_backup_fpath = join(db_dpath, db_backup_fname)
             count += 1
-        utool.copy(db_fpath, db_backup_fpath)
+        ut.copy(db_fpath, db_backup_fpath)
 
     legacy_update_funcs = schema_spec.LEGACY_UPDATE_FUNCTIONS
     for legacy_version, func in legacy_update_funcs:
@@ -323,21 +349,21 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
     except Exception as ex:
         if dobackup:
             msg = 'The database update failed, rolled back to the original version.'
-            utool.printex(ex, msg, iswarning=True)
-            utool.remove_file(db_fpath)
-            utool.copy(db_backup_fpath, db_fpath)
+            ut.printex(ex, msg, iswarning=True)
+            ut.remove_file(db_fpath)
+            ut.copy(db_backup_fpath, db_fpath)
             if clearbackup:
-                utool.remove_file(db_backup_fpath)
-            # Why are we using the logging module when utool does it for us?
+                ut.remove_file(db_backup_fpath)
+            # Why are we using the logging module when ut does it for us?
             logging.exception(msg)
             raise
         else:
-            utool.printex(ex, (
+            ut.printex(ex, (
                 'The database update failed, and no backup was made.'),
                 iswarning=False)
             raise
     if dobackup and clearbackup:
-        utool.remove_file(db_backup_fpath)
+        ut.remove_file(db_backup_fpath)
 
 
 # =======================
@@ -370,7 +396,7 @@ class SQLExecutionContext(object):
     @default_decor
     def __enter__(context):
         """ Checks to see if the operating will change the database """
-        #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
+        #ut.printif(lambda: '[sql] Callers: ' + ut.get_caller_name(range(3, 6)), DEBUG)
         if context.nInput is not None:
             context.operation_lbl = ('[sql] execute nInput=%d optype=%s: '
                                        % (context.nInput, context.operation_type))
@@ -389,7 +415,7 @@ class SQLExecutionContext(object):
         # Comment out timeing code
         if __debug__:
             if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-                context.tt = utool.tic(context.operation_lbl)
+                context.tt = ut.tic(context.operation_lbl)
         return context
 
     # --- with SQLExecutionContext: statment code happens here ---
@@ -403,7 +429,7 @@ class SQLExecutionContext(object):
             context.cur.execute(context.operation, params)
             #print(context.cur.rowcount)
         except lite.Error as ex:
-            utool.printex(ex, 'sql.Error', keys=['params'])
+            ut.printex(ex, 'sql.Error', keys=['params'])
             #print('[sql.Error] %r' % (type(ex),))
             #print('[sql.Error] params=<%r>' % (params,))
             raise
@@ -416,7 +442,7 @@ class SQLExecutionContext(object):
         #print('exit context')
         if __debug__:
             if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-                utool.toc(context.tt)
+                ut.toc(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY CONTEXT')
@@ -447,19 +473,19 @@ def get_operation_type(operation):
     operation = ' '.join(operation.split('\n')).strip()
     operation_type = operation.split(' ')[0].strip()
     if operation_type.startswith('SELECT'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('INSERT'):
-        operation_args = utool.str_between(operation, operation_type, '(').strip()
+        operation_args = ut.str_between(operation, operation_type, '(').strip()
     elif operation_type.startswith('DROP'):
         operation_args = ''
     elif operation_type.startswith('ALTER'):
         operation_args = ''
     elif operation_type.startswith('UPDATE'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('DELETE'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+        operation_args = ut.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('CREATE'):
-        operation_args = utool.str_between(operation, operation_type, '(').strip()
+        operation_args = ut.str_between(operation, operation_type, '(').strip()
     else:
         operation_args = None
     operation_type += ' ' + operation_args.replace('\n', ' ')
@@ -573,7 +599,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
     cachedir = ut.ensure_app_resource_dir('ibeis_test')
     db_fname = 'test_%s.sqlite3' % dbname
-    utool.delete(join(cachedir, db_fname))
+    ut.delete(join(cachedir, db_fname))
     db = sqldbc.SQLDatabaseController(cachedir, db_fname, text_factory=unicode)
     ensure_correct_version(
         None, db, version_expected, schema_spec, dobackup=False)

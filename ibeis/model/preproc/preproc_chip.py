@@ -76,7 +76,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
             raise
     nTotal = len(aid_list)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
-    mk_cpath_iter = functools.partial(ut.ProgressIter, cfpath_list, nTotal=nTotal, enabled=verbose)
+    mk_cpath_iter = functools.partial(ut.ProgressIter, cfpath_list, nTotal=nTotal, enabled=verbose, freq=100)
     try:
         if ensure:
             cfpath_iter = mk_cpath_iter(lbl='reading ensured chips')

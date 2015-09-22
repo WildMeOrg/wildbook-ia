@@ -133,9 +133,13 @@ def parse_latex_comments_for_commmands():
     cmd_list = ['']
     in_comment = True
     for line in lines:
-        if line.startswith('% --- '):
+        if line.startswith('% ---'):
             # Keep separators
-            cmd_list.append(line.replace('%', '#'))
+            toadd = line.replace('%', '#')
+            if not (len(cmd_list) > 1 and cmd_list[-1].startswith('# ---')):
+                cmd_list[-1] += (toadd)
+            else:
+                cmd_list.append(toadd)
             cmd_list.append('')
 
         if line.strip().startswith(r'\begin{comment}'):

@@ -1202,8 +1202,9 @@ def get_missing_gids(ibs, gid_list=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> #ibs = ibeis.opendb('GZ_Master1')
-        >>> gid_list = None
+        >>> gid_list = ibs.get_valid_gids()
         >>> bad_gids = ibs.get_missing_gids(gid_list)
+        >>> print('#bad_gids = %r / %r' % (len(bad_gids), len(gid_list)))
     """
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -2938,7 +2939,37 @@ def draw_thumb_helper(tup):
 @__injectable
 def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
                             draw_annots=True, thumbsize=None, **kwargs):
-    """ Computes thumbs of images in parallel based on kwargs """
+    """
+    Computes thumbs of images in parallel based on kwargs
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): (default = None)
+        use_cache (bool):  turns on disk based caching(default = True)
+        chunksize (int): (default = 8)
+        draw_annots (bool): (default = True)
+        thumbsize (None): (default = None)
+
+    Returns:
+        list: thumbpath_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-preprocess_image_thumbs --db GZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = None
+        >>> use_cache = True
+        >>> chunksize = 8
+        >>> draw_annots = True
+        >>> thumbsize = None
+        >>> thumbpath_list = preprocess_image_thumbs(ibs, gid_list, use_cache, chunksize, draw_annots, thumbsize)
+        >>> result = ('thumbpath_list = %s' % (str(thumbpath_list),))
+        >>> print(result)
+    """
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
     thumbsize = ibs.get_image_thumbsize(thumbsize, draw_annots)
@@ -2981,7 +3012,7 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
         'ordered': False,
         'chunksize': chunksize,
         'freq': 50,
-        'adjust': True,
+        #'adjust': True,
         #'force_serial': True,
     }
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
@@ -3764,29 +3795,30 @@ def get_primary_database_species(ibs, aid_list=None):
     return primary_species
 
 
-#def get_dominant_species(ibs, aid_list):
-#    r"""
-#    Args:
-#        aid_list (int):  list of annotation ids
+@__injectable
+def get_dominant_species(ibs, aid_list):
+    r"""
+    Args:
+        aid_list (int):  list of annotation ids
 
-#    CommandLine:
-#        python -m ibeis.ibsfuncs --test-get_dominant_species
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_dominant_species
 
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.ibsfuncs import *  # NOQA
-#        >>> import ibeis
-#        >>> ibs = ibeis.opendb('testdb1')
-#        >>> aid_list = ibs.get_valid_aids()
-#        >>> result = get_dominant_species(ibs, aid_list)
-#        >>> print(result)
-#        zebra_plains
-#    """
-#    hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
-#    keys = hist_.keys()
-#    vals = hist_.values()
-#    species_text = keys[ut.list_argmax(vals)]
-#    return species_text
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_dominant_species(ibs, aid_list)
+        >>> print(result)
+        zebra_plains
+    """
+    hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
+    keys = hist_.keys()
+    vals = hist_.values()
+    species_text = keys[ut.list_argmax(vals)]
+    return species_text
 
 
 @__injectable

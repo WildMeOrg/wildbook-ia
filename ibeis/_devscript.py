@@ -13,7 +13,7 @@ def hack_argv(arg):
             '--clipwhite',
             '--contextadjust',
             '--dpi=256',
-            '--diskshow',
+            #'--diskshow',
         ]
 
         sys.argv.extend(common_args)
@@ -41,7 +41,8 @@ def hack_argv(arg):
             ])
         elif hack_argv_key in ['expt']:
             sys.argv.extend([
-                '--figsize=15,5',
+                #'--figsize=15,3',
+                '--figsize=15,3.5',
                 '--top=.9',
                 '--bottom=.1',
             ])

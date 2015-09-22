@@ -484,6 +484,13 @@ class IBEISController(object):
         ibs.dbcache.close()
         ibs.dbcache = None
 
+    def disconnect_sqldatabase(ibs):
+        print('disconnecting from sql database')
+        ibs.dbcache.close()
+        ibs.dbcache = None
+        ibs.db.close()
+        ibs.db = None
+
     @default_decorator
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
