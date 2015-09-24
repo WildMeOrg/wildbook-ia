@@ -33,6 +33,10 @@ from six.moves import zip
 
 VERBOSE = ut.VERBOSE
 
+WEB_URL = '127.0.0.1'
+WEB_PORT = 5000
+WEB_DOMAIN = '%s:%s' % (WEB_URL, WEB_PORT, )
+
 
 def backreport(func):
     """
@@ -202,18 +206,74 @@ class MainWindowBackend(GUIBACK_BASE):
         bbox = interact.iselect_bbox(back.ibs, gid)
         return bbox
 
-    def show_image(back, gid, sel_aids=[], **kwargs):
-        kwargs.update({
-            'sel_aids': sel_aids,
-            'select_callback': back.select_gid,
-        })
-        interact.ishow_image(back.ibs, gid, **kwargs)
+    def show_eid_list_in_web(back, eid_list, **kwargs):
+        import webbrowser
+        back.start_web_server_parallel(browser=False)
 
-    def show_annotation(back, aid, show_image=False, **kwargs):
-        interact.ishow_chip(back.ibs, aid, **kwargs)
+        if not isinstance(eid_list, (tuple, list)):
+            eid_list = [eid_list]
+        if len(eid_list) > 0:
+            eid_str = ','.join( map(str, eid_list) )
+        else:
+            eid_str = ''
+
+        url = 'http://%s/view/images?eid=%s' % (WEB_DOMAIN, eid_str, )
+        webbrowser.open(url)
+
+    def show_image(back, gid, sel_aids=[], web=False, **kwargs):
+        if web:
+            import webbrowser
+            back.start_web_server_parallel(browser=False)
+            url = 'http://%s/turk/detection?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
+            webbrowser.open(url)
+        else:
+            kwargs.update({
+                'sel_aids': sel_aids,
+                'select_callback': back.select_gid,
+            })
+            interact.ishow_image(back.ibs, gid, **kwargs)
+
+    def show_gid_list_in_web(back, gid_list, **kwargs):
+        import webbrowser
+        back.start_web_server_parallel(browser=False)
+
+        if not isinstance(gid_list, (tuple, list)):
+            gid_list = [gid_list]
+        if len(gid_list) > 0:
+            gid_list = ','.join( map(str, gid_list) )
+        else:
+            gid_list = ''
+
+        url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_list, )
+        webbrowser.open(url)
+
+    def show_annotation(back, aid, show_image=False, web=False, **kwargs):
+        if web:
+            import webbrowser
+            back.start_web_server_parallel(browser=False)
+            url = 'http://%s/view/annotations?aid=%s' % (WEB_DOMAIN, aid, )
+            webbrowser.open(url)
+        else:
+            interact.ishow_chip(back.ibs, aid, **kwargs)
+
         if show_image:
             gid = back.ibs.get_annot_gids(aid)
-            interact.ishow_image(back.ibs, gid, sel_aids=[aid])
+            # interact.ishow_image(back.ibs, gid, sel_aids=[aid])
+            back.show_image(gid, sel_aids=[aid], web=web, **kwargs)
+
+    def show_aid_list_in_web(back, aid_list, **kwargs):
+        import webbrowser
+        back.start_web_server_parallel(browser=False)
+
+        if not isinstance(aid_list, (tuple, list)):
+            aid_list = [aid_list]
+        if len(aid_list) > 0:
+            aid_list = ','.join( map(str, aid_list) )
+        else:
+            aid_list = ''
+
+        url = 'http://%s/view/annotations?aid=%s' % (WEB_DOMAIN, aid_list, )
+        webbrowser.open(url)
 
     def show_name(back, nid, sel_aids=[], **kwargs):
         kwargs.update({
@@ -223,6 +283,27 @@ class MainWindowBackend(GUIBACK_BASE):
         #nid = back.ibs.get_name_rowids_from_text(name)
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
+
+    def show_nid_list_in_web(back, nid_list, **kwargs):
+        import webbrowser
+        back.start_web_server_parallel(browser=False)
+
+        if not isinstance(nid_list, (tuple, list)):
+            nid_list = [nid_list]
+
+        aids_list = back.ibs.get_name_aids(nid_list)
+        aid_list = []
+        for aids in aids_list:
+            if len(aids) > 0:
+                aid_list.append(aids[0])
+
+        if len(aid_list) > 0:
+            aid_str = ','.join( map(str, aid_list) )
+        else:
+            aid_str = ''
+
+        url = 'http://%s/view/names?aid=%s' % (WEB_DOMAIN, aid_str, )
+        webbrowser.open(url)
 
     def show_hough_image(back, gid, **kwargs):
         viz.show_hough_image(back.ibs, gid, **kwargs)
@@ -528,7 +609,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back._set_selection(sel_eids=eid, **kwargs)
 
     #@backblock
-    def select_gid(back, gid, eid=None, show=True, sel_aids=None, fnum=None, **kwargs):
+    def select_gid(back, gid, eid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
         """ Table Click -> Image Table """
         # Select the first ANNOTATION in the image if unspecified
         if sel_aids is None:
@@ -540,22 +621,22 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] select_gid(gid=%r, eid=%r, sel_aids=%r)' % (gid, eid, sel_aids))
         back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_eids=eid, **kwargs)
         if show:
-            back.show_image(gid, sel_aids=sel_aids, fnum=fnum)
+            back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
     #@backblock
-    def select_gid_from_aid(back, aid, eid=None, show=True):
+    def select_gid_from_aid(back, aid, eid=None, show=True, web=False):
         gid = back.ibs.get_annot_gids(aid)
-        back.select_gid(gid, eid=eid, show=show, sel_aids=[aid])
+        back.select_gid(gid, eid=eid, show=show, web=web, sel_aids=[aid])
 
     #@backblock
-    def select_aid(back, aid, eid=None, show=True, show_annotation=True, **kwargs):
+    def select_aid(back, aid, eid=None, show=True, show_annotation=True, web=False, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))
         gid = back.ibs.get_annot_gids(aid)
         nid = back.ibs.get_annot_name_rowids(aid)
         back._set_selection(sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_eids=eid, **kwargs)
         if show and show_annotation:
-            back.show_annotation(aid, **kwargs)
+            back.show_annotation(aid, web=web, **kwargs)
 
     @backblock
     def select_nid(back, nid, eid=None, show=True, show_name=True, **kwargs):
@@ -1538,12 +1619,12 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         ibsfuncs.export_to_xml(ibs)
 
-    def start_web_server_parallel(back):
+    def start_web_server_parallel(back, browser=True):
         import ibeis
         ibs = back.ibs
         if back.web_instance is None:
             print('[guiback] Starting web service')
-            back.web_instance = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=True)
+            back.web_instance = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=browser)
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 

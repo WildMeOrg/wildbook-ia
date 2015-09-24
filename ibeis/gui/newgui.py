@@ -1076,6 +1076,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # TODO: remove duplicate code
             if len(eid_list) == 1:
                 context_options += [
+                    ('View encounter in Web', lambda: ibswgt.back.show_eid_list_in_web(eid_list)),
+                    ('----', lambda: None),
                     ('Run detection on encounter (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
                     ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
@@ -1108,17 +1110,25 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 eid = model.eid
-                view_aid_options = [
-                    ('View aid=%r' % (aid,), lambda: ibswgt.back.show_annotation(aid))
+                view_aid_options1 = [
+                    ('View aid=%r in Matplotlib' % (aid,), lambda: ibswgt.back.show_annotation(aid, web=False))
+                    for aid in ibs.get_image_aids(gid)
+                ]
+                view_aid_options2 = [
+                    ('View aid=%r in Web' % (aid,), lambda: ibswgt.back.show_annotation(aid, web=True))
                     for aid in ibs.get_image_aids(gid)
                 ]
                 context_options += [
-                    ('View image',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True)),
+                    ('View image in Matplotlib',
+                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=False)),
+                    ('View image in Web',
+                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image(gid)),
-                    ('View annotation:',
-                       view_aid_options),
+                    ('View annotation in Matplotlib:',
+                       view_aid_options1),
+                    ('View annotation in Web:',
+                       view_aid_options2),
                     ('Add annotation from entire image',
                         lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)',
@@ -1126,6 +1136,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
             else:
                 context_options += [
+                    ('View images in Web',
+                        lambda: ibswgt.back.show_gid_list_in_web(gid_list)),
+                    ('----', lambda: None),
                     ('Add annotation from entire images',
                         lambda: ibswgt.back.add_annotation_from_image(gid_list)),
                     ('Run detection on images (can cause duplicates)',
@@ -1176,8 +1189,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Go to image in Images Table',
                         lambda: ibswgt.goto_table_id(IMAGE_TABLE, gid)),
                     ('----', lambda: None),
-                    ('View image',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True)),
+                    ('View image in Matplotlib',
+                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=False)),
+                    ('View image in Web',
+                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image(gid)),
                     ('Add annotation from entire image',
@@ -1185,6 +1200,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Run detection on image (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_images([gid])),
                 ]
+            else:
+                context_options += [
+                    ('View images in Web',
+                        lambda: ibswgt.back.show_gid_list_in_web(gid_list)),
+                    ('----', lambda: None),
+                    ('Add annotation from entire images',
+                        lambda: ibswgt.back.add_annotation_from_image(gid_list)),
+                    ('Run detection on images (can cause duplicates)',
+                        lambda: ibswgt.back.run_detection_on_images(gid_list)),
+                ]
+
             # Special condition for encounters
             if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
                 context_options += [
@@ -1228,11 +1254,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Edit Annotation in Image',
                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
                     ('----', lambda: None),
-                    ('View annotation',
+                    ('View annotation in Matplotlib',
                         #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                        lambda: ibswgt.back.show_annotation(aid)),
-                    ('View image',
-                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                        lambda: ibswgt.back.show_annotation(aid, web=False)),
+                    ('View annotation in Web',
+                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        lambda: ibswgt.back.show_annotation(aid, web=True)),
+                    ('View image in Matplotlib',
+                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                    ('View image in Web',
+                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
                     #back.show_image(gid, sel_aids=sel_aids)
                     ('View detection chip (probability) [dev]',
                         lambda: ibswgt.back.show_probability_chip(aid)),
@@ -1244,6 +1275,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
             else:
                 context_options += [
+                    ('View annotations in Web',
+                        lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
                     ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
                     ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
@@ -1266,8 +1299,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         ('Go to image', lambda: _goto_annot_image(aid)),
                         ('Go to annotation', lambda: _goto_annot(aid)),
                         ('----', lambda: None),
-                        ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                        ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                        ('View annotation in Matplotlib', lambda: ibswgt.back.select_aid(aid, eid, show=False)),
+                        ('View annotation in Web', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        ('View image in Matplotlib', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                        ('View image in Web', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
                     ]
                 if len(aid_list) > 0:
                     def set_annot_names_to_same_new_name(ibswgt, aid_list):
@@ -1295,6 +1330,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         ibswgt.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=False)
 
                     context_options += [
+                        ('View name(s) in Web', lambda: ibswgt.back.show_nid_list_in_web(nid_list)),
+                        ('----', lambda: None),
                         ('Check for splits', lambda: run_splits(ibs, nid_list)),
                         ('Export names', lambda: export_nids(ibs, nid_list)),
                         ('Create Encounter From Name(s)', lambda: create_new_encounter_from_names_(ibs, nid_list)),

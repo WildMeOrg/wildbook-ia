@@ -1270,6 +1270,45 @@ def export_images_temp(ibs):
     export_images(ibs, gid_list_, '/Datasets/PZ_Master1-Sub3')
 
 
+def find_gid_list(ibs, min_count=500, ensure_annots=False):
+    import random
+    gid_list = ibs.get_valid_gids()
+    reviewed_list = ibs.get_image_reviewed(gid_list)
+
+    if ensure_annots:
+        aids_list = ibs.get_image_aids(gid_list)
+        reviewed_list = [
+            0 if len(aids) == 0 else reviewed
+            for aids, reviewed in zip(aids_list, reviewed_list)
+        ]
+
+    # Filter by reviewed
+    gid_list = [
+        gid
+        for gid, reviewed in zip(gid_list, reviewed_list)
+        if reviewed == 1
+    ]
+
+    if len(gid_list) < min_count:
+        return None
+
+    while len(gid_list) > min_count:
+        index = random.randint(0, len(gid_list) - 1)
+        del gid_list[index]
+
+    return gid_list
+
+
+def __export_reviewed_subset(ibs, min_count=500, ensure_annots=False):
+    from os.path import join
+    gid_list = find_gid_list(ibs, min_count=min_count, ensure_annots=ensure_annots)
+    if gid_list is None:
+        return None
+    new_dbpath = '/' + join('Datasets', 'BACKGROUND', ibs.dbname)
+    print('Exporting to %r with %r images' % (new_dbpath, len(gid_list), ))
+    return export_images(ibs, gid_list, new_dbpath=new_dbpath)
+
+
 def export_images(ibs, gid_list, new_dbpath=None):
     """
     exports a subset of images and other required info
