@@ -509,6 +509,7 @@ class ScoreNormalizer(object):
             attr_callback=None,
             with_prebayes=True,
             with_postbayes=True,
+            bin_width=None,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
@@ -784,6 +785,8 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     """
     Gives an overview of how well threshold can be learned from raw scores.
 
+    DEPRICATE
+
     CommandLine:
         python -m vtool.score_normalization --test-test_score_normalization --show
 
@@ -903,7 +906,7 @@ def inspect_pdfs(tn_support, tp_support,
                  with_roc=False, with_precision_recall=False, with_hist=False,
                  fnum=None, figtitle=None, interactive=None, use_stems=None,
                  part_attrs=None, thresh_kw=None, attr_callback=None,
-                 with_prebayes=True, with_postbayes=True):
+                 with_prebayes=True, with_postbayes=True, **kwargs):
     """
     Shows plots of learned thresholds
 
@@ -948,7 +951,15 @@ def inspect_pdfs(tn_support, tp_support,
     # probs = encoder.normalize_scores(scores)
     probs = normalize_scores(score_domain, p_tp_given_score, scores)
 
-    confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+    confusions = vt.ConfusionMetrics.from_scores_and_labels(
+        probs, labels)
+    # Hack change confusion prob thresholds to score thresholds
+    #inverse_interp = scipy.interpolate.interp1d(
+    #    p_tp_given_score, score_domain, kind='linear',
+    #    copy=False, assume_sorted=False)
+    #confusions._orig_thresholds = confusions.thresholds
+    #confusions.thresholds = inverse_interp(confusions.thresholds)
+    #confusions._hackscores = scores
 
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
     false_color = pt.FALSE_RED
@@ -987,7 +998,7 @@ def inspect_pdfs(tn_support, tp_support,
                 (tn_support, tp_support),
                 fnum=fnum, pnum=pnum,
                 score_label='score',
-                thresh=score_thresh,
+                #thresh=score_thresh,
                 **support_sort_kw
             )
 
@@ -1031,17 +1042,20 @@ def inspect_pdfs(tn_support, tp_support,
             # Find the nearest label
             pass
 
-    target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+    #target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+    target_tpr = None
     #print('target_tpr = %r' % (target_tpr,))
     ROCInteraction = vt.interact_roc_factory(confusions, target_tpr)
 
     def _score_support_hist(fnum, pnum):
         pt.plot_score_histograms(
             (tn_support, tp_support),
-            score_thresh=score_thresh,
+            #score_thresh=score_thresh,
             score_label='score',
             fnum=fnum,
             pnum=pnum,
+            bin_width=kwargs.get('bin_width', None),
+            num_bins=kwargs.get('num_bins', 40),
             **support_kw)
 
     def _prob_support_hist(fnum, pnum):
@@ -1052,6 +1066,8 @@ def inspect_pdfs(tn_support, tp_support,
             score_label='prob',
             fnum=fnum,
             pnum=pnum,
+            bin_width=kwargs.get('bin_width', None),
+            num_bins=kwargs.get('num_bins', 40),
             **support_kw)
 
     def _prob_support_sorted(fnum, pnum):
@@ -1061,7 +1077,7 @@ def inspect_pdfs(tn_support, tp_support,
             (tn_probs, tp_probs),
             fnum=fnum, pnum=pnum,
             score_label='prob',
-            thresh=prob_thresh,
+            #thresh=prob_thresh,
             **support_sort_kw
         )
         #ax = pt.gca()
@@ -1069,14 +1085,15 @@ def inspect_pdfs(tn_support, tp_support,
         #ax.set_ylim(-max_score, max_score)
 
     def _prebayes(fnum, pnum):
-        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp,
-                          p_score, score_thresh=score_thresh, cfgstr='',
-                          fnum=fnum, pnum=pnum)
+        plot_prebayes_pdf(
+            score_domain, p_score_given_tn, p_score_given_tp, p_score,
+            #score_thresh=score_thresh,
+            cfgstr='', fnum=fnum, pnum=pnum)
 
     def _postbayes(fnum, pnum):
         plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
                            #prob_thresh=prob_thresh,
-                           score_thresh=score_thresh,
+                           #score_thresh=score_thresh,
                            cfgstr='', fnum=fnum, pnum=pnum)
 
     def _precision_recall(fnum, pnum):

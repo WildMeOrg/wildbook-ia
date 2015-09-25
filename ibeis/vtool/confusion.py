@@ -211,6 +211,14 @@ class ConfusionMetrics(object):
 
     @property
     def auc(self):
+        """
+        The AUC is a standard measure used to evaluate a binary classifier and
+          represents the probability that a random correct case will
+          receive a higher score than a random incorrect case.
+
+        References:
+            https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
+        """
         return sklearn.metrics.auc(self.fpr, self.tpr)
 
 
@@ -445,6 +453,7 @@ def interact_roc_factory(confusions, target_tpr=None):
         def static_plot(fnum, pnum, **kwargs):
             #print('ROC Interact2')
             kwargs['thresholds'] = kwargs.get('thresholds', confusions.thresholds)
+            #ut.embed()
             confusions.draw_roc_curve(fnum=fnum, pnum=pnum, target_tpr=target_tpr, **kwargs)
 
         def plot(self, fnum, pnum):
@@ -460,10 +469,14 @@ def interact_roc_factory(confusions, target_tpr=None):
 
 
 def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
-                   target_fpr=None, thresholds=None, color=(0.4, 1.0, 0.4)):
+                   target_fpr=None, thresholds=None, color=None):
     import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
+
+    if color is None:
+        color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
+
     roc_auc = sklearn.metrics.auc(fpr, tpr)
 
     title_suffix = ''
@@ -492,8 +505,10 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
             choice_thresh = thresholds[index]
         #percent = ut.scalar_str(choice_tpr * 100).split('.')[0]
         #title_suffix = ', FPR%s=%05.2f%%' % (percent, choice_fpr)
-        title_suffix = ', fpr=%.2f, tpr=%.2f, thresh=%.2f' % (
-            choice_fpr, choice_tpr, choice_thresh)
+        title_suffix = ''
+        if False:
+            title_suffix = ', fpr=%.2f, tpr=%.2f, thresh=%.2f' % (
+                choice_fpr, choice_tpr, choice_thresh)
     else:
         title_suffix = ''
 
@@ -501,7 +516,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
     #    ave_p = np.nan
     #else:
     #    ave_p = p_interp.sum() / p_interp.size
-    title = 'Receiver operating characteristic\n' + 'auc=%.3f' % (roc_auc,)
+    title = 'Receiver operating characteristic\n' + 'AUC=%.3f' % (roc_auc,)
     title += title_suffix
 
     pt.plot2(fpr, tpr, marker=marker,
@@ -532,8 +547,11 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
 
 
 def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
-                                fnum=1, pnum=None, color=(0.4, 1.0, 0.4)):
+                                fnum=1, pnum=None,
+                                color=None):
     import plottool as pt
+    if color is None:
+        color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
     if recall_domain is None:
         recall_domain = np.array([])
         p_interp = np.array([])
