@@ -410,6 +410,7 @@ def build_nested_qmenu(widget, context_options, name=None):
             shortcut = QtGui.QKeySequence(shortcut_str)
 
         if isinstance(func, list):
+            # Recursive case
             sub_menu, sub_action_list = build_nested_qmenu(widget, func, opt)
             menu.addMenu(sub_menu)
             action_list.append((sub_menu, sub_action_list))
