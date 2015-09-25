@@ -24,7 +24,7 @@ from plottool import interact_helpers as ih
 
 def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
                             with_interact_name=True, with_interact_chip=True,
-                            with_interact_image=True):
+                            with_interact_image=True, config2_=None):
     """
     Defines logic for poping up a context menu when viewing an annotation.
     Used in other interactions like name_interaction and interact_query_decision
@@ -34,6 +34,9 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
     """
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
+
+    # TODO
+    config2_ = None
 
     def refresh_wrp():
         if refresh_func is None:
@@ -85,7 +88,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
 
     if with_interact_chip:
         callback_list += [
-            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None))
+            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None, config2_=config2_))
         ]
     if with_interact_name and not ibs.is_nid_unknown(nid):
         from ibeis.viz.interact import interact_name
@@ -97,6 +100,11 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
         from ibeis.viz.interact import interact_annotations2
         callback_list.append(
             ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
+        )
+    if True:
+        from ibeis import viz
+        callback_list.append(
+            ('View detection chip (probability) [dev]', lambda: viz.show_probability_chip(ibs, aid, config2_=config2_)),
         )
     guitool.popup_menu(qwin, qpoint, callback_list)
 
@@ -175,7 +183,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
                 refresh_func = functools.partial(_chip_view, **kwargs)
                 interact_chip.show_annot_context_menu(
                     ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
-                    with_interact_chip=False)
+                    with_interact_chip=False, config2_=config2_)
             else:
                 viztype = vh.get_ibsdat(ax, 'viztype')
                 print_('[ic] viztype=%r' % viztype)

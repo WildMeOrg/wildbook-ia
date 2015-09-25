@@ -51,6 +51,38 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
 
 @register_ibs_method
+def new_query_params(ibs, cfgdict=None):
+    """
+    convinience method while configs are still in a state of disarray.
+    Converts ibs.cfg.query_cfg into a QueryParams object
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cfgdict (dict): (default = None)
+
+    Returns:
+        QueryParams: qparams -  query hyper-parameters
+
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs --exec-new_query_params
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> cfgdict = None
+        >>> qparams = new_query_params(ibs, cfgdict)
+        >>> result = ('qparams = %s' % (str(qparams),))
+        >>> print(result)
+    """
+    from ibeis.model.hots import query_params
+    query_cfg = ibs.cfg.query_cfg
+    qparams = query_params.QueryParams(query_cfg, cfgdict)
+    return qparams
+
+
+@register_ibs_method
 def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
     # TODO: change into config_rowid
     if qreq_ is not None:

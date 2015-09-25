@@ -1454,6 +1454,7 @@ class IBEISController(object):
             Method: GET
             URL:    /api/core/has_species_detector/
         """
+        # FIXME: infer this
         return species_text in const.SPECIES_WITH_DETECTORS
 
     @default_decorator
@@ -1464,8 +1465,8 @@ class IBEISController(object):
             Method: GET
             URL:    /api/core/species_with_detectors/
         """
+        # FIXME: infer this
         return const.SPECIES_WITH_DETECTORS
-        pass
 
 
 if __name__ == '__main__':

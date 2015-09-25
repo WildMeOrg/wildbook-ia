@@ -314,7 +314,7 @@ def parse_cfgstr_name_options(cfgstr):
     return cfgname, cfgopt_strs, subx
 
 
-def lookup_base_cfg_list(cfgname, named_defaults_dict):
+def lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=None):
     if named_defaults_dict is None:
         base_cfg_list = [{}]
     else:
@@ -323,6 +323,9 @@ def lookup_base_cfg_list(cfgname, named_defaults_dict):
         except KeyError as ex:
             ut.printex(ex, 'Unknown configuration name', keys=['cfgname'])
             raise
+    if ut.is_funclike(base_cfg_list):
+        # make callable function
+        base_cfg_list = base_cfg_list(metadata)
     if not isinstance(base_cfg_list, list):
         base_cfg_list = [base_cfg_list]
     return base_cfg_list
@@ -330,7 +333,8 @@ def lookup_base_cfg_list(cfgname, named_defaults_dict):
 
 def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                        alias_keys=None, valid_keys=None, expand_nested=True,
-                       strict=True, special_join_dict=None, is_nestedcfgtype=False):
+                       strict=True, special_join_dict=None, is_nestedcfgtype=False,
+                       metadata=None):
     r"""
     Parses config strings. By looking up name in a dict of configs
 
@@ -401,7 +405,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                     named_defaults_dict=named_defaults_dict, cfgtype=cfgtype,
                     alias_keys=alias_keys, valid_keys=valid_keys,
                     strict=strict, expand_nested=expand_nested,
-                    is_nestedcfgtype=False)
+                    is_nestedcfgtype=False, metadata=metadata)
                 OLD = False
                 if OLD:
                     special_combo = ut.flatten(special_combo_list)
@@ -431,7 +435,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 # --
                 # Lookup named default settings
                 try:
-                    base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict)
+                    base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=metadata)
                 except Exception as ex:
                     ut.printex(ex, keys=['cfgstr_list'])
                     raise

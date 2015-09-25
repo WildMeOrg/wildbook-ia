@@ -454,11 +454,17 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
 
     from ibeis.viz.interact import interact_chip
 
+    interact_chip_options = [
+        ('Interact Chip&1', lambda: interact_chip.ishow_chip(ibs, aid1, config2_=qreq_.get_external_query_config2(), fnum=None, **kwargs)),
+        ('Interact Chip&2', lambda: interact_chip.ishow_chip(ibs, aid2, config2_=qreq_.get_external_data_config2(), fnum=None, **kwargs)),
+    ]
+    interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
+    interact_chip_options.append(
+        ('Interact &All Chips', lambda: [func() for func in interact_chip_actions]),
+    )
+
     options += [
-        ('Interact Chips', [
-            ('Interact Chip1', lambda: interact_chip.ishow_chip(ibs, aid1, config2_=qreq_.get_external_query_config2(), fnum=None, **kwargs)),
-            ('Interact Chip2', lambda: interact_chip.ishow_chip(ibs, aid2, config2_=qreq_.get_external_data_config2(), fnum=None, **kwargs)),
-        ]),
+        ('Interact Chips', interact_chip_options),
     ]
 
     annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]

@@ -541,6 +541,40 @@ class TestResult(object):
 
         return cfg_lbls
 
+    def make_figtitle(test_result, plotname='', filt_cfg=None):
+        """
+        Helper for consistent figure titles
+
+        CommandLine:
+            python -m ibeis.experiments.experiment_storage --exec-make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> import ibeis
+            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> plotname = ''
+            >>> figtitle = test_result.make_figtitle(plotname)
+            >>> result = ('figtitle = %s' % (str(figtitle),))
+            >>> print(result)
+        """
+        figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
+        if figtitle_prefix != '':
+            figtitle_prefix = figtitle_prefix.rstrip() + ' '
+        figtitle = (figtitle_prefix + plotname)
+        hasprefix = figtitle_prefix == ''
+        if hasprefix:
+            figtitle += '\n'
+
+        title_aug = test_result.get_title_aug(friendly=True, with_cfg=hasprefix)
+        figtitle += ' ' + title_aug
+
+        if filt_cfg is not None:
+            filt_cfgstr = cfghelpers.get_cfg_lbl(filt_cfg)
+            if filt_cfgstr.strip() != ':':
+                figtitle += ' ' + filt_cfgstr
+        return figtitle
+
     def get_title_aug(test_result, with_size=True, with_db=True, with_cfg=True, friendly=False):
         r"""
         Args:
@@ -565,7 +599,7 @@ class TestResult(object):
         ibs = test_result.ibs
         title_aug = ''
         if with_db:
-            title_aug += ' db=' + (ibs.get_dbname())
+            title_aug += 'db=' + (ibs.get_dbname())
         if with_cfg:
             try:
                 if '_cfgname' in test_result.common_acfg['common']:
@@ -606,7 +640,7 @@ class TestResult(object):
                     locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
                     all_daid_per_name_stats = locals_['all_daid_per_name_stats']
                     if all_daid_per_name_stats['std'] == 0:
-                        title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),)
+                        title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], max_precision=2),)
                     else:
                         title_aug += ' dper_name=%s±%s' % (
                             ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),
@@ -972,6 +1006,8 @@ class TestResult(object):
             ('success',  prop2_mat['is_success']),
             ('min_gtrank', partial(operator.ge, truth2_prop['gt']['rank'])),
             ('max_gtrank', partial(operator.le, truth2_prop['gt']['rank'])),
+            ('max_gtscore', partial(operator.le, truth2_prop['gt']['score'])),
+            ('min_gtscore', partial(operator.ge, truth2_prop['gt']['score'])),
             ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
             ('max_gf_timedelta', partial(operator.le, truth2_prop['gf']['timedelta'])),
             ('min_tags', partial(compare_num_tags, operator.ge)),
@@ -1004,8 +1040,11 @@ class TestResult(object):
                   (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
             print('  * is_valid.shape = %r' % (is_valid.shape,))
 
+        import copy
+        filt_cfg = copy.deepcopy(filt_cfg)
+
         for key, rule in rule_list:
-            val = filt_cfg.get(key, None)
+            val = filt_cfg.pop(key, None)
             if val is not None:
                 if isinstance(rule, np.ndarray):
                     # When a rule is an ndarray it must have boolean values
@@ -1037,8 +1076,22 @@ class TestResult(object):
         qx_list, cfgx_list = np.nonzero(is_valid)
 
         #    np.vstack((qaids, gt_aids, gt_ranks)).T
-        orderby = filt_cfg.get('orderby', None)
-        reverse = filt_cfg.get('reverse', False)
+        orderby = filt_cfg.pop('orderby', None)
+        reverse = filt_cfg.pop('reverse', None)
+        sortasc = filt_cfg.pop('sortasc', None)
+        sortdsc = filt_cfg.pop('sortdsc', filt_cfg.pop('sortdesc', None))
+        if sortdsc is not None:
+            assert orderby is None, 'use orderby or sortasc'
+            assert reverse is None, 'reverse does not work with sortdsc'
+            orderby = sortdsc
+            reverse = True
+        elif sortasc is not None:
+            assert reverse is None, 'reverse does not work with sortasc'
+            assert sortasc is None, 'use orderby or sortasc'
+            orderby = sortasc
+            reverse = False
+        else:
+            reverse = False
         #orderby = filt_cfg.get('orderbydesc', None)
         if orderby is not None:
             if orderby == 'gtscore':
@@ -1059,13 +1112,18 @@ class TestResult(object):
             cfgx_list = cfgx_list.take(sortx, axis=0)
             # order_values[tuple(case_pos_list.T)]  # assert in order
 
-        index = filt_cfg.get('index', None)
+        index = filt_cfg.pop('index', None)
         if index is not None:
             print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
             if isinstance(index, six.string_types):
                 index = ut.smart_cast(index, slice)
             qx_list = ut.list_take(qx_list, index)
             cfgx_list = ut.list_take(cfgx_list, index)
+
+        ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
+
+        if len(filt_cfg) > 0:
+            raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
 
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
         return case_pos_list

@@ -1,6 +1,9 @@
 """
 Algorithm and behavior configurations are stored here.  These classes are based
 off of the utool.Preference.Pref class which really needs a good overhaul
+
+NEED TO REDO THESE CONFIGURATIONS.
+Flat definitions? Then link dependencies?
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -503,7 +506,7 @@ class NNWeightConfig(ConfigBase):
                 #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
-                ut.ParamInfoBool('fg_on', False, hideif=False),
+                ut.ParamInfoBool('fg_on', True, hideif=False),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
@@ -784,6 +787,7 @@ class QueryConfig(ConfigBase):
                 query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
                 pass
 
+        # HACK
         if nnweight_cfg.fg_on is not True:
             featweight_cfg.featweight_enabled = False
         if featweight_cfg.featweight_enabled is not True:
@@ -803,6 +807,10 @@ class QueryConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class FeatureWeightConfig(ConfigBase):
     """
+
+    CommandLine:
+        python -m ibeis.model.Config --exec-FeatureWeightConfig
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
@@ -822,9 +830,11 @@ class FeatureWeightConfig(ConfigBase):
         # Feature weights depend on the detector, but we only need to mirror
         # some parameters because featweight_cfg should not use the detect_cfg
         # object
-        featweight_cfg.featweight_enabled = False
+        #featweight_cfg.featweight_enabled = False
+        featweight_cfg.featweight_enabled = True
         featweight_cfg.featweight_species  = 'uselabel'
-        featweight_cfg.featweight_detector = 'rf'
+        #featweight_cfg.featweight_detector = 'rf'
+        featweight_cfg.featweight_detector = 'cnn'
         featweight_cfg.update(**kwargs)
 
     def make_feasible(featweight_cfg):

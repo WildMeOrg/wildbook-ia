@@ -80,6 +80,9 @@ class UUIDMapHyrbridCache(object):
         ut.lock_and_save_cPkl(cpkl_fpath, self.uuid_maps)
 
     def load(self, cachedir):
+        """
+        Returns a cache UUIDMap
+        """
         fname = 'uuid_maps_hybrid_cache.cPkl'
         cpkl_fpath = join(cachedir, fname)
         self.uuid_maps = ut.lock_and_load_cPkl(cpkl_fpath)
@@ -87,26 +90,6 @@ class UUIDMapHyrbridCache(object):
     #def __setitem__(self, daids_hashid, visual_uuid_list):
     #    uuid_map_fpath = self.uuid_map_fpath
     #    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
-
-    @profile
-    def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
-        """ uses in memory dictionary instead of disk """
-        uuid_map = self.uuid_maps[uuid_map_fpath]
-        candidate_uuids = {
-            key: val for key, val in six.iteritems(uuid_map)
-            if len(val) >= min_reindex_thresh
-        }
-        return candidate_uuids
-
-    @profile
-    def write_uuid_map_dict(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        """ uses in memory dictionary instead of disk """
-        if NOCACHE_UUIDS:
-            print('uuid cache is off')
-            return
-        #with ut.EmbedOnException():
-        uuid_map = self.uuid_maps[uuid_map_fpath]
-        uuid_map[daids_hashid] = visual_uuid_list
 
     #@profile
     #def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
@@ -156,29 +139,34 @@ class UUIDMapHyrbridCache(object):
     #        uuid_map[daids_hashid] = visual_uuid_list
     #        ut.save_cPkl(uuid_map_fpath, uuid_map)
 
+    @profile
+    def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
+        """ uses in memory dictionary instead of disk """
+        uuid_map = self.uuid_maps[uuid_map_fpath]
+        candidate_uuids = {
+            key: val for key, val in six.iteritems(uuid_map)
+            if len(val) >= min_reindex_thresh
+        }
+        return candidate_uuids
+
+    @profile
+    def write_uuid_map_dict(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+        """
+        uses in memory dictionary instead of disk
+
+        let the multi-indexer know about any big caches we've made multi-indexer.
+        Also lets nnindexer know about other prebuilt indexers so it can attempt to
+        just add points to them as to avoid a rebuild.
+        """
+        if NOCACHE_UUIDS:
+            print('uuid cache is off')
+            return
+        #with ut.EmbedOnException():
+        uuid_map = self.uuid_maps[uuid_map_fpath]
+        uuid_map[daids_hashid] = visual_uuid_list
+
 
 UUID_MAP_CACHE = UUIDMapHyrbridCache()
-
-
-#@profile
-def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
-    """
-    let the multi-indexer know about any big caches we've made multi-indexer.
-    Also lets nnindexer know about other prebuilt indexers so it can attempt to
-    just add points to them as to avoid a rebuild.
-    """
-    #UUID_MAP_CACHE[daids_hashid] = visual_uuid_list
-    UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
-    #with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
-    #    uuid_map[daids_hashid] = visual_uuid_list
-
-
-#@profile
-def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
-
-    #with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
-    candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, min_reindex_thresh)
-    return candidate_uuids
 
 
 #@profile
@@ -256,7 +244,7 @@ def print_uuid_cache(qreq_):
     """
     print('[nnindex] clearing uuid cache')
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    candidate_uuids = read_uuid_map(uuid_map_fpath, 0)
+    candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, 0)
     print(candidate_uuids)
 
 
@@ -394,7 +382,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
             daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
             visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-            write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+            UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
         # Write to memcache
         if ut.VERBOSE:
             print('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))
@@ -470,17 +458,6 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
             if ut.VERBOSE or ut.VERYVERBOSE:
                 print('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
     return nnindexer
-    #except MemoryError as ex:
-    #    if not allow_memfallback:
-    #        ut.printex(ex, '[NNINDEX MEMORY FATAL ERROR.]', iswarning=False)
-    #        raise
-    #    else:
-    #        NEIGHBOR_CACHE.clear()
-    #        ut.printex(ex, '[NNINDEX MEMORY ERROR. CLEARING CACHE]', iswarning=True)
-    #        request_memcached_ibeis_nnindexer(
-    #            qreq_, daid_list, use_memcache=use_memcache, verbose=verbose,
-    #            veryverbose=veryverbose, force_rebuild=force_rebuild,
-    #            allow_memfallback=False)
 
 
 #@profile
@@ -545,7 +522,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
         uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
         visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
         if memtrack is not None:
             memtrack.report('[AFTER WRITE_UUID_MAP]')
     return nnindexer
@@ -591,7 +568,7 @@ def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
     ibs = qreq_.ibs
     # read which annotations have prebuilt caches
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
-    candidate_uuids = read_uuid_map(uuid_map_fpath, min_reindex_thresh)
+    candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, min_reindex_thresh)
     # find a maximum independent set cover of the requested annotations
     annot_vuuid_list = ibs.get_annot_visual_uuids(daid_list)  # 3.2 %
     covertup = ut.greedy_max_inden_setcover(
@@ -730,7 +707,7 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
     if memtrack is not None:
         memtrack.report('AFTER INIT SUPPORT')
     # Load or build the indexing structure
-    nnindexer.load_or_build(cachedir, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
+    nnindexer.ensure_indexer(cachedir, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
     if memtrack is not None:
         memtrack.report('AFTER LOAD OR BUILD')
     return nnindexer
@@ -957,7 +934,11 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE ADD POINTS')
 
-    def load_or_build(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
+    def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
+        """
+        Ensures that you get a neighbor indexer. It either loads a chached
+        indexer or rebuilds a new one.
+        """
         #with ut.PrintStartEndContext(msg='CACHED NNINDEX', verbose=verbose):
         if NOCACHE_FLANN or force_rebuild:
             print('...nnindex flann cache is forced off')
@@ -1006,6 +987,9 @@ class NeighborIndex(object):
     # ---- <cachable_interface> ---
 
     def save(nnindexer, cachedir, verbose=True):
+        """
+        Caches a neighbor indexer to disk
+        """
         if NOSAVE_FLANN:
             if ut.VERYVERBOSE or verbose:
                 print('[nnindex] flann save is deactivated')
@@ -1017,21 +1001,22 @@ class NeighborIndex(object):
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir, verbose=True):
+        """
+        Loads a cached neighbor indexer from disk
+        """
         load_success = False
         flann_fpath = nnindexer.get_fpath(cachedir)
         nnindexer.flann_fpath = flann_fpath
-        if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
+        if ut.checkpath(flann_fpath, verbose=verbose):
+            idx2_vec = nnindexer.idx2_vec
+            # Warning: Loading a FLANN index with old headers may silently fail.
             try:
-                idx2_vec = nnindexer.idx2_vec
-                # CAREFUL THIS CAN FAIL SILENTLY IF THE FLANN HEADERS ARE OLD
                 nnindexer.flann.load_index(flann_fpath, idx2_vec)
             except (IOError, pyflann.FLANNException) as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
             else:
                 load_success = True
         return load_success
-        if ut.VERYVERBOSE or ut.VERBOSE:
-            print('[nnindex] load_success = %r' % (load_success,))
 
     def get_prefix(nnindexer):
         return nnindexer.prefix1
@@ -1290,6 +1275,11 @@ class NeighborIndex(object):
 
     def get_nn_fgws(nnindexer, qfx2_nnidx):
         r"""
+        Gets forground weights of neighbors
+
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --exec-NeighborIndex.get_nn_fgws
+
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
@@ -1399,7 +1389,7 @@ def check_background_process():
     CURRENT_THREAD = None
     # Write data to current uuidcache
     if len(visual_uuid_list) > min_reindex_thresh:
-        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     return True
 
 
@@ -1477,9 +1467,9 @@ def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, flann_param
     # Initialize neighbor with unindexed data
     nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=True)
     # Load or build the indexing structure
-    nnindexer.load_or_build(cachedir, verbose=True)
+    nnindexer.ensure_indexer(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:
-        write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     print('[BG] Finished Background FLANN')
 
 

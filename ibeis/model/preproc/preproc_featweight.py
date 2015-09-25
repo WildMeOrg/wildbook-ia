@@ -16,52 +16,32 @@ from ibeis import constants as const
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
 
 
-def test_problem_featweight(ibs):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.model.preproc.preproc_featweight --test-test_problem_featweight
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('GZ_ALL')
-        >>> test_problem_featweight(ibs)
+def test_featweight_worker():
     """
-    from uuid import UUID
-    import vtool.patch as vtpatch  # NOQA
-    import vtool.image as vtimage  # NOQA
-    from ibeis.model.preproc import preproc_probchip
-    # build test data
-    avuuid = UUID('2046509f-0a9f-1470-2b47-5ea59f803d4b')
-    aid_list = ibs.get_annot_aids_from_visual_uuid([avuuid])
-    aid = aid_list[0]
-    fx = 68
-    probchip_fpath = preproc_probchip.compute_and_write_probchip(ibs, aid_list)[0]
-    probchip = vtimage.imread(probchip_fpath, grayscale=True)
-    #kp = np.array([ 508.7315979 ,  208.54475403,   13.65085793, 10.16940975,    6.1403141 ,    0.        ])
-    kpts = ibs.get_annot_kpts(aid_list)[0]
-    kp = kpts[fx]
-    patch = vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
-    vtpatch.gaussian_average_patch(patch)
-    tup = (aid, kpts, probchip)
-    featweights = gen_featweight_worker(tup)[1]
-    featweights[fx]
+    test function
 
-    ibs.get_annot_fgweights(aid_list)[0][fx]
+    python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker --show --cnn
+    """
 
-
-def test_featweight_worker(ibs, qreq_):
+    from ibeis.model.hots import _pipeline_helpers as plh
+    ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_MTEST',
+                                           qaid_list=[1],
+                                           #qaid_list='all',
+                                           preload=False,
+                                           cfgdict={'featweight_detector': 'cnn'})
+    config2_ = qreq_.qparams
+    lazy = True
     aid_list            = qreq_.get_external_qaids()
+    #aid_list = ibs.get_valid_aids()[0:30]
     kpts_list           = ibs.get_annot_kpts(aid_list)
-    chipsize_list       = ibs.get_annot_chip_sizes(aid_list, config2_=qreq_.qparams)
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, lazy=False)
+    chipsize_list       = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, lazy=lazy, config2_=config2_)
+    print('probchip_fpath_list = %r' % (probchip_fpath_list,))
     probchip_list       = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
                            for fpath in probchip_fpath_list]
-    for aid, kpts, probchip, chipsize in zip(aid_list, kpts_list, probchip_list, chipsize_list):
+
+    _iter = list(zip(aid_list, kpts_list, probchip_list, chipsize_list))
+    for aid, kpts, probchip, chipsize in ut.InteractiveIter(_iter, enabled=ut.get_argflag('--show')):
         #kpts     = kpts_list[0]
         #aid      = aid_list[0]
         #probchip = probchip_list[0]
@@ -87,7 +67,7 @@ def test_featweight_worker(ibs, qreq_):
             fnum = 1
             pt.figure(fnum=fnum, doclf=True)
             ###
-            pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(0), fnum=fnum)
+            pt.imshow(ibs.get_annot_chips(aid, config2_=config2_), pnum=pnum_(0), fnum=fnum)
             if ut.get_argflag('--numlbl'):
                 pt.gca().set_xlabel('(1)')
             ###
@@ -102,12 +82,14 @@ def test_featweight_worker(ibs, qreq_):
             #cb.set_label('featweights')
             ###
             pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(1), fnum=fnum)
-            color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3, cmap_='jet')
+            #color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3, cmap_='jet')
+            color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
             cb = pt.colorbar(weights, color_list)
             cb.set_label('featweights')
             if ut.get_argflag('--numlbl'):
                 pt.gca().set_xlabel('(3)')
             #pt.draw_kpts2(kpts, ell_alpha=.4)
+            pt.draw()
             pt.show_if_requested()
 
 
@@ -128,10 +110,7 @@ def gen_featweight_worker(tup):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis.model.hots import _pipeline_helpers as plh
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', qaid_list=[3], preload=False)
-        >>> test_featweight_worker(ibs, qreq_)
+        >>> test_featweight_worker()
 
     Ignore::
         import plottool as pt
@@ -140,7 +119,6 @@ def gen_featweight_worker(tup):
         patch_ = patch_list[0].copy()
         patch = patch_
         patch = patch_[-20:, :20, 0]
-
 
         import vtool as vt
         gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)

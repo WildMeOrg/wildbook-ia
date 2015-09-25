@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.viz import viz_helpers as vh
@@ -5,15 +6,15 @@ from vtool import image as gtool
 from ibeis.model.detect import randomforest
 from os.path import splitext
 from plottool import viz_image2
-from plottool import draw_func2 as df2
+import plottool as pt
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[viz_hough]', DEBUG=False)
 
 
-@utool.indent_func
+#@utool.indent_func
 def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     if fnum is None:
-        fnum = df2.next_fnum()
+        fnum = pt.next_fnum()
     title = 'Hough Image: ' + vh.get_image_titles(ibs, gid)
     print(title)
 
@@ -34,10 +35,13 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     return fig, ax
 
 
-@utool.indent_func
-def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
+#@utool.indent_func
+def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kwargs):
     """
     TODO: allow species override in controller
+
+    CommandLine:
+        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show
 
     Example:
         >>> from ibeis.viz.viz_hough import *  # NOQA
@@ -49,13 +53,24 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
         >>> aid = ibs.get_valid_aids()[0]
         >>> kwargs = {}
         >>> fig, ax = show_probability_chip(ibs, aid, species, fnum, **kwargs)
-        >>> df2.present()
+        >>> ut.show_if_requested()
     """
-    if fnum is None:
-        fnum = df2.next_fnum()
+    fnum = pt.ensure_fnum(fnum)
     title = 'Probability Chip: ' + ', '.join(vh.get_annot_text(ibs, [aid], True))
-    print(title)
-    hough_cpath = ibs.get_annot_probchip_fpath(aid)
+    hough_cpath = ibs.get_annot_probchip_fpath(aid, config2_=config2_)
     img = gtool.imread(hough_cpath)
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_hough
+        python -m ibeis.viz.viz_hough --allexamples
+        python -m ibeis.viz.viz_hough --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

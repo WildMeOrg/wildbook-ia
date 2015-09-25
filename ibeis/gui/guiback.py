@@ -319,8 +319,8 @@ class MainWindowBackend(GUIBACK_BASE):
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])
 
-    def show_probability_chip(back, cid, **kwargs):
-        viz.show_probability_chip(back.ibs, cid, **kwargs)
+    def show_probability_chip(back, aid, **kwargs):
+        viz.show_probability_chip(back.ibs, aid, **kwargs)
         viz.draw()
 
     @blocking_slot()
@@ -1155,12 +1155,36 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> # GUI_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> back = testdata_guiback()
-            >>> back.ibs
+            >>> ibs = back.ibs
             >>> aids_list, nids = back.ibs.group_annots_by_name(back.ibs.get_valid_aids())
             >>> aid_list = aids_list[ut.list_argmax(list(map(len, aids_list)))]
             >>> back.run_annot_splits(aid_list)
             >>> ut.quit_if_noshow()
             >>> guitool.qtapp_loop(back.mainwin, frequency=100)
+
+        Ignore:
+            >>> # Find aids that still need splits
+            >>> aid_pair_list = ibs.filter_aidpairs_by_tags('SplitCase')
+            >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
+            >>> _aid_list = ut.list_compress(aid_pair_list, truth_list)
+            >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
+            >>> _nid_list = ut.get_list_column(_nids_list, 0)
+            >>> import vtool as vt
+            >>> split_nids, groupxs = vt.group_indices(np.array(_nid_list))
+            >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
+            >>> #
+            >>> split_aids_list = ibs.get_name_aids(split_nids)
+            >>> assert len(split_aids_list) > 0, 'split cases are finished'
+            >>> problem_aids = problem_aids_list[0]
+            >>> aid_list = split_aids_list[0]
+            >>> #
+            >>> back.run_annot_splits(aid_list)
+
+            rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
+            ibs.get_annotmatch_prop('SplitCase', rowids)
+
+            #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
+
 
         """
         cfgdict = {
@@ -1702,7 +1726,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback(db='testdb1')
+            >>> back = testdata_guiback(defaultdb='testdb1')
             >>> import ibeis
             >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
             >>> dbdir = None
@@ -1833,7 +1857,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Example:
             >>> # DEV_GUI_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback(db='freshsmart_test', delete_ibsdir=True, allow_newdir=True)
+            >>> back = testdata_guiback(defaultdb='freshsmart_test', delete_ibsdir=True, allow_newdir=True)
             >>> ibs = back.ibs
             >>> defaultdir = ut.truepath('~/lewa-desktop/Desktop/GZ_Foal_Patrol_22_06_2015')
             >>> dir_ = None if not ut.get_argflag('--auto') else join(defaultdir, 'Photos')
@@ -2086,9 +2110,9 @@ class MainWindowBackend(GUIBACK_BASE):
         ibeis.sysres.set_workdir(work_dir=None, allow_gui=True)
 
 
-def testdata_guiback(db='testdb2', **kwargs):
+def testdata_guiback(defaultdb='testdb2', **kwargs):
     import ibeis
-    main_locals = ibeis.main(db=db, **kwargs)
+    main_locals = ibeis.main(defaultdb=defaultdb, **kwargs)
     back = main_locals['back']
     return back
 

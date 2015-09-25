@@ -48,10 +48,10 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> #test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
         >>> #test_cfg_name_list = ['default', 'default:sv_on=False', 'best']
-        >>> test_cfg_name_list = ['default', 'default:sv_on=False']
+        >>> test_cfg_name_list = ['default', 'default:sv_on=False', 'best']
         >>> # execute function
         >>> (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)
         >>> # verify results
@@ -103,9 +103,10 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
             experiment_configs.__dict__, experiment_configs.TEST_NAMES)
         alias_keys = experiment_configs.ALIAS_KEYS
         # Parse standard pipeline cfgstrings
+        metadata = {'ibs': ibs}
         dict_comb_list = cfghelpers.parse_cfgstr_list2(
             cfgstr_list, named_defaults_dict, cfgtype=None, alias_keys=alias_keys,
-            valid_keys=valid_keys)
+            valid_keys=valid_keys, metadata=metadata)
         # Get varied params (there may be duplicates)
         _pcfgdict_list.extend(ut.flatten(dict_comb_list))
 

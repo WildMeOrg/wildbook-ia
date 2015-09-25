@@ -365,29 +365,152 @@ ANNOTMATCH_PROPS_OTHER = [
     'Viewpoint',
     'Pose',
     'Lighting',
-    'Shadowing',  # shadow causes failure
     'Quality',  # quality causes failure
+
+    'Orientation',  # orientation caused failure
+
     'EdgeMatch',  # descriptors on the edge of the naimal produce strong matches
     'Interesting',   # flag a case as interesting
-    'GoodCoverage',  # matches were spread out correctly (scoring may be off though)
-    'BadCoverage',  # matches were not in good places (missing matches)
-    'ScoringIssue',  # matches should be scored differently
+
     'JoinCase',  # case should actually be marked as correct
     'SplitCase',  # case should actually be marked as correct
-    'TooLargeMatches',  # really big nondistinct matches
-    'TooSmallMatches',  # really big nondistinct matches
-    'orientation',  # orientation caused failure
-    'shouldhavemore',  # orientation caused failure
-    'success',  # A good success case
+
     'random',  # gf case has random matches, the gt is to blame
+
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
-    'ViewpointOMG',  # gf is a bad tail match
-    'ViewpointCanDo',  # gf is a bad tail match
 ]
 
+OLD_ANNOTMATCH_PROPS = [
+    'TooLargeMatches',  # really big nondistinct matches
+    'TooSmallMatches',  # really big nondistinct matches
+    'ScoringIssue',  # matches should be scored differently
+    'BadCoverage',  # matches were not in good places (missing matches)
+    'ViewpointOMG',  # gf is a bad tail match
+    'ViewpointCanDo',  # gf is a bad tail match
+    'shouldhavemore',
+    'Shadowing',  # shadow causes failure
+    'success',  # A good success case
+    'GoodCoverage',  # matches were spread out correctly (scoring may be off though)
+]
+
+# Changes to prop names
+PROP_MAPPING = {
+    'ViewpointCanDo' : 'Correctable',
+    'ViewpointOMG'   : 'Uncorrectable',
+
+    'Shadowing'      : 'Lighting',
+
+    'success': None,
+    'GoodCoverage':  None,
+
+    'Hard'           : 'NeedsWork',
+    'shouldhavemore' : 'NeedsWork',
+    'BadCoverage'    : 'NeedsWork',
+    'ScoringIssue'   : 'NeedsWork',
+
+    'TooSmallMatches' : 'FeatureScale',
+    'TooLargeMatches' : 'FeatureScale',
+
+    #'BadShoulder' : 'BadShoulder',
+    #'GoodCoverage': None,
+}
+
+for key, val in PROP_MAPPING.items():
+    if key in ANNOTMATCH_PROPS_OTHER:
+        ANNOTMATCH_PROPS_OTHER.remove(key)
+    if val is not None and val not in ANNOTMATCH_PROPS_OTHER:
+        ANNOTMATCH_PROPS_OTHER.append(val)
+
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])
+ANNOTMATCH_PROPS_OLD_SET = set([_.lower() for _ in OLD_ANNOTMATCH_PROPS])
 ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
+
+
+def consolodate_tags(case_tags):
+    remove_tags = [
+        'needswork',
+        'correctable',
+        'uncorrectable',
+        'interesting',
+        'splitcase',
+        'joincase',
+        'orientation',
+        'random',
+        #'badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard'
+    ]
+    tags_dict = {
+        #'quality': 'Quality',
+        #'scoringissue': 'ScoringIssue',
+        #'orientation': 'Orientation',
+        #'pose': 'Pose',
+        #'lighting': 'Lighting',
+        #'occlusion': 'Occlusion',
+        #'featurescale': 'FeatureScale',
+        #'edgematch': 'EdgeMatches',
+        'featurescale': 'Pose',
+        'edgematch': 'Pose',
+        'badtail': 'NonDistinct',
+        'badshoulder': 'NonDistinct',
+        #'toolargematches': 'CoarseFeatures',
+        #'badcoverage': 'LowCoverage',
+        #'shouldhavemore': 'LowCoverage',
+        #'viewpoint': 'Viewpoint',
+    }
+
+    def filter_tags(tags):
+        return [t for t in tags if t.lower() not in remove_tags]
+
+    def map_tags(tags):
+        return [tags_dict.get(t.lower(), t) for t in tags]
+
+    def cap_tags(tags):
+        return [t[0].upper() + t[1:] for t in tags]
+
+    filtered_tags = list(map(filter_tags, case_tags))
+    mapped_tags = list(map(map_tags, filtered_tags))
+    unique_tags = list(map(ut.unique_keep_order2,  mapped_tags))
+    new_tags = list(map(cap_tags, unique_tags))
+
+    return new_tags
+
+
+def rename_and_reduce_tags(ibs, annotmatch_rowids):
+    """
+    Script to update tags to newest values
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-rename_and_reduce_tags --db PZ_Master1
+
+    Example:
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> annotmatch_rowids = filter_annotmatch_by_tags(ibs, min_num=1)
+        >>> rename_and_reduce_tags(ibs, annotmatch_rowids)
+    """
+
+    tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
+    def fix_tags(tags):
+        return {const.__STR__(t.lower()) for t in tags}
+    tags_list = list(map(fix_tags, tags_list_))
+
+    prop_mapping = {
+        const.__STR__(key.lower()): val
+        for key, val in six.iteritems(PROP_MAPPING)
+    }
+
+    bad_tags = fix_tags(prop_mapping.keys())
+
+    for rowid, tags in zip(annotmatch_rowids, tags_list):
+        old_tags = tags.intersection(bad_tags)
+        for tag in old_tags:
+            ibs.set_annotmatch_prop(tag, [rowid], [False])
+        new_tags = ut.dict_take(prop_mapping, old_tags)
+        for tag in new_tags:
+            if tag is not None:
+                ibs.set_annotmatch_prop(tag, [rowid], [True])
 
 
 def get_cate_categories():
@@ -468,6 +591,7 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
     return tags_list
 
 
+@__injectable
 def filter_aidpairs_by_tags(ibs, any_tags=None, all_tags=None, min_num=None, max_num=None):
     """
     list(zip(aid_pairs, undirected_tags))
@@ -669,7 +793,7 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         getter = getattr(ibs, 'get_annotmatch_is_' + prop.lower())
         flag_list = getter(annotmatch_rowids)
         return flag_list
-    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET:
+    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
         return get_annotmatch_other_prop(ibs, prop, annotmatch_rowids)
     else:
         raise NotImplementedError('Unknown prop=%r' % (prop,))
@@ -683,7 +807,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
         setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
         return setter(annotmatch_rowids, flags)
-    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET:
+    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
         return set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags)
     else:
         raise NotImplementedError('Unknown prop=%r' % (prop,))

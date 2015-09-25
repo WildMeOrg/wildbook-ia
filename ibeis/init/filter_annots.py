@@ -18,7 +18,10 @@ VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
 SEED1 = 0
 SEED2 = 42
 
-USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid', '--nocache')) and ut.USE_CACHE
+if ut.is_developer():
+    USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid', '--nocache')) and ut.USE_CACHE
+else:
+    USE_ACFG_CACHE = False
 
 
 @profile

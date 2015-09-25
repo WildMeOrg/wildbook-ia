@@ -161,7 +161,7 @@ def group_aids_by_featweight_species(ibs, aid_list, config2_=None):
     grouped_aids    = vtool.apply_grouping(aid_list, groupxs)
     grouped_species = vtool.apply_grouping(species_list, groupxs)
     unique_species = ut.get_list_column(grouped_species, 0)
-    return grouped_aids, unique_species
+    return grouped_aids, unique_species, groupxs
 
 
 def get_probchip_fname_fmt(ibs, config2_=None, species=None):
@@ -256,8 +256,9 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:0
+        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:0 --show
         python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:1
+        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:2 --show --cnn
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -270,6 +271,10 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
+        >>> ut.show_if_requested()
 
     Example:
         >>> # SLOW_DOCTEST
@@ -283,19 +288,36 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
 
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> config2_ = ibs.new_query_params({'featweight_detector': 'cnn'})
+        >>> lazy = True
+        >>> aid_list = ibs.get_valid_aids()
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
+        >>> result = ut.list_str(probchip_fpath_list_)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
+        >>> ut.show_if_requested()
+
     Dev::
         #ibs.delete_annot_chips(aid_list)
         #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
     """
     # Get probchip dest information (output path)
-    grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, config2_)
+    # TODO; properly ungroup output
+    grouped_aids, unique_species, groupxs = group_aids_by_featweight_species(ibs, aid_list, config2_)
     nSpecies = len(unique_species)
     nTasks = len(aid_list)
     print('[preproc_probchip.compute_and_write_probchip] Preparing to compute %d probchips of %d species' % (nTasks, nSpecies))
     cachedir = ibs.get_probchip_dir()
     ut.ensuredir(cachedir)
 
-    probchip_fpath_list_ = []
+    grouped_probchip_fpath_list = []
     if ut.VERBOSE:
         print('[preproc_probchip] +--------------------')
     for aids, species in zip(grouped_aids, unique_species):
@@ -304,83 +326,119 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
             print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
-        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=config2_, species=species)
+        probchip_fpaths = get_annot_probchip_fpath_list(ibs, aids, config2_=config2_, species=species)
 
         if lazy:
             # Filter out probchips that are already on disk
             # pyrf used to do this, now we need to do it
             # caching should be implicit due to using the visual_annot_uuid in
             # the filename
-            isdirty_list = ut.not_list(map(exists, probchip_fpath_list))
+            isdirty_list = ut.not_list(map(exists, probchip_fpaths))
             dirty_aids = ut.filter_items(aids, isdirty_list)
-            dirty_probchip_fpath_list = ut.filter_items(probchip_fpath_list, isdirty_list)
+            dirty_probchip_fpath_list = ut.filter_items(probchip_fpaths, isdirty_list)
             print('[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute %d/%d of species=%s' %
                   (len(dirty_aids), len(aids), species))
         else:
             # No filtering
             dirty_aids  = aids
-            dirty_probchip_fpath_list = probchip_fpath_list
+            dirty_probchip_fpath_list = probchip_fpaths
 
         if len(dirty_aids) > 0:
-            (detectchip_extramargin_fpath_list,
-             probchip_extramargin_fpath_list,
-             halfoffset_cs_list,
-             ) = compute_extramargin_detectchip(ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
-            #dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)
-            config = {
-                'scale_list': [1.0],
-                'output_gpath_list': probchip_extramargin_fpath_list,
-                'mode': 1,
-            }
-            probchip_generator = randomforest.detect_gpath_list_with_species(ibs, detectchip_extramargin_fpath_list, species, **config)
-            # Evalutate genrator until completion
-            ut.evaluate_generator(probchip_generator)
-            #import cv2
-            #import skimage.filters
-            #import skimage.morphology
-            #kernel = np.ones((7, 7), np.uint8)
-            #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, species)
 
-            for (probchip_fpath, probchip_extramargin_fpath, halfmargin) in zip(dirty_probchip_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list):
-                probchip = vt.imread(probchip_extramargin_fpath, grayscale=True)
-                #radius = 5
-                #selem = skimage.morphology.disk(radius)
-                #local_otsu = skimage.filters.rank.otsu(probchip, selem)
-                #threshold_global_otsu = skimage.filters.threshold_otsu(probchip)
-                #global_otsu = (probchip >= threshold_global_otsu).astype(np.uint8) * 255
-                #probchip = local_otsu
-
-                # dilate + errosion = closing
-                #cv2.dilate(probchip, kernel, iterations=3, dst=probchip)
-                #cv2.erode(probchip, kernel, iterations=3, dst=probchip)
-
-                #vt.GaussianBlurInplace(probchip, 2.6)
-                half_w, half_h = halfmargin
-                probchip = probchip[half_h:-half_h, half_w:-half_w]
-                vt.imwrite(probchip_fpath, probchip)
-            # Crop the extra margin off of the new probchips
-            VIS = False
-            if VIS:
-                import plottool as pt
-                _iter2 = enumerate(zip(aids, detectchip_extramargin_fpath_list, probchip_extramargin_fpath_list, dirty_probchip_fpath_list))
-                for fnum, (aid, detectchip_extramargin_fpath, probchip_extramargin_fpath, dirty_probchip_fpath) in _iter2:
-                    print('fsdfsda')
-                    pt.figure(fnum=fnum, doclf=True)
-                    pt.imshow(detectchip_extramargin_fpath, fnum=fnum, pnum=(1, 3, 1))
-                    pt.imshow(probchip_extramargin_fpath, fnum=fnum, pnum=(1, 3, 2))
-                    pt.imshow(dirty_probchip_fpath, fnum=fnum, pnum=(1, 3, 3))
-                    pt.df2.plt.show()
-                pt.present()
-            #    #pt.show_if_requested()
-            #    #input('')
-
-            #    #pass
-            #    #dirty_probchip_fpath_list
-        probchip_fpath_list_.extend(probchip_fpath_list)
+        grouped_probchip_fpath_list.append(probchip_fpaths)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
-    return probchip_fpath_list_
+
+    probchip_fpath_list = vt.invert_apply_grouping2(grouped_probchip_fpath_list, groupxs, dtype=object)
+    return probchip_fpath_list
+
+
+def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, species):
+    if config2_ is None:
+        featweight_detector = ibs.cfg.featweight_cfg.featweight_detector
+    else:
+        featweight_detector = config2_.get('featweight_detector')
+
+    if featweight_detector == 'rf':
+        (extramargin_fpath_list,
+         probchip_extramargin_fpath_list,
+         halfoffset_cs_list,
+         ) = compute_extramargin_detectchip(ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
+        #dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)
+
+        config = {
+            'scale_list': [1.0],
+            'output_gpath_list': probchip_extramargin_fpath_list,
+            'mode': 1,
+        }
+        probchip_generator = randomforest.detect_gpath_list_with_species(ibs, extramargin_fpath_list, species, **config)
+        # Evalutate genrator until completion
+        ut.evaluate_generator(probchip_generator)
+        extramargin_mask_gen = (vt.imread(fpath, grayscale=True) for fpath in probchip_extramargin_fpath_list)
+
+        # Crop the extra margin off of the new probchips
+        _iter = zip(dirty_probchip_fpath_list,
+                    extramargin_mask_gen,
+                    halfoffset_cs_list)
+        for (probchip_fpath, extramargin_probchip, halfmargin) in _iter:
+            half_w, half_h = halfmargin
+            probchip = extramargin_probchip[half_h:-half_h, half_w:-half_w]
+            vt.imwrite(probchip_fpath, probchip)
+    elif featweight_detector == 'cnn':
+        # dont use extrmargin here (for now)
+        chip_fpath_list = ibs.get_annot_chip_fpath(dirty_aids, config2_=config2_)
+        mask_gen = ibs.generate_species_background_mask(chip_fpath_list, species)
+        for probchip_fpath, probchip in zip(dirty_probchip_fpath_list, mask_gen):
+            probchip = postprocess_mask(probchip)
+            vt.imwrite(probchip_fpath, probchip)
+    else:
+        raise NotImplementedError('bad featweight_detector=%r' % (featweight_detector,))
+
+
+def postprocess_mask(mask):
+    r"""
+    Args:
+        mask (ndarray):
+
+    Returns:
+        ndarray: mask2
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import ibeis_cnn
+        >>> import ibeis
+        >>> import vtool as vt
+        >>> import plottool as pt
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> chip_fpath = ibs.get_annot_chip_fpath([10])[0]
+        >>> chip = vt.imread(chip_fpath)
+        >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath]))
+        >>> mask = mask_list[0]
+        >>> mask2 = postprocess_mask(mask)
+        >>> ut.quit_if_noshow()
+        >>> fnum = 1
+        >>> pt.imshow(chip, pnum=(1, 3, 1), fnum=fnum)
+        >>> pt.imshow(mask, pnum=(1, 3, 2), fnum=fnum, title='before')
+        >>> pt.imshow(mask2, pnum=(1, 3, 3), fnum=fnum, title='after')
+        >>> ut.show_if_requested()
+    """
+    import cv2
+    thresh = 20
+    kernel_size = 20
+    mask2 = mask.copy()
+    # light threshold
+    mask2[mask2 < thresh] = 0
+    # open and close
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
+    return mask2
 
 
 def gen_detectchip(tup):
@@ -398,9 +456,9 @@ def compute_extramargin_detectchip(ibs, aid_list, config2_=None, species=None, F
     #from vtool import image as gtool
     arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, config2_=config2_, species=species, FACTOR=FACTOR)
     # Again, it seems we cannot use warpAffine in parallel loops
-    detectchip_extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True, force_serial=True))
-    probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in detectchip_extramargin_fpath_list]
-    return detectchip_extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
+    extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True, force_serial=True))
+    probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in extramargin_fpath_list]
+    return extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
     #probchip_extramargin_fpath_list = []
     #chipBGR = vt.imread(fpath)
     #print(chipBGR.shape)
@@ -482,15 +540,15 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
     # TODO: make this work
     probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list, config2_=config2_, species=species)
     #probchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin') for fpath in probchip_fpath_list]
-    detectchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin').replace('probchip', 'detectchip')
-                                         for fpath in probchip_fpath_list]
+    extramargin_fpath_list = [ut.augpath(fpath, '_extramargin').replace('probchip', 'detectchip')
+                              for fpath in probchip_fpath_list]
     # # filter by species and add a suffix for the probchip_input
     # # also compute a probchip fpath with an expanded suffix for the detector
     #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=None, species=species)
     # Then crop the output and write that as the real probchip
 
     filtlist_iter = ([] for _ in range(len(aid_list)))
-    arg_iter = zip(detectchip_extramargin_fpath_list, gfpath_list,
+    arg_iter = zip(extramargin_fpath_list, gfpath_list,
                    expanded_bbox_gs_list, theta_list, expanded_newsize_list,
                    filtlist_iter)
     arg_list = list(arg_iter)

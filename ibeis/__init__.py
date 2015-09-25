@@ -131,6 +131,14 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         lazy_func = functools.partial(func, ibs, test_result, show_in_notebook=True, **kwargs)
         return lazy_func
 
+    def draw_taghist(test_result, **kwargs):
+        e_ = 'taghist'
+        func = find_expt_func(e_)
+        ibs = test_result.ibs
+        build_commandline(e=e_)
+        lazy_func = functools.partial(func, ibs, test_result, **kwargs)
+        return lazy_func
+
     def execute_test():
         func = find_expt_func(e)
         assert func is not None, 'unknown experiment e=%r' % (e,)
@@ -146,6 +154,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
             draw_func = functools.partial(func, ibs, test_result, **kwargs)
             test_result.draw_func = draw_func
             ut.inject_func_as_method(test_result, draw_cases)
+            ut.inject_func_as_method(test_result, draw_taghist)
             #test_result.draw_cases = draw_cases
             return test_result
         else:

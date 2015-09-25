@@ -1583,7 +1583,7 @@ def start_tornado(ibs, port=None, browser=BROWSER):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None):
     """
     Parse command line options and start the server.
 
@@ -1591,6 +1591,9 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
         python -m ibeis --db PZ_MTEST --web
         python -m ibeis --db PZ_MTEST --web --browser
     """
+    if precache is None:
+        precache = ut.get_argflag('--precache')
+
     if precache:
         print('[web] Pre-computing all image thumbnails (with annots)...')
         ibs.preprocess_image_thumbs()

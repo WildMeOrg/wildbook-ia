@@ -57,7 +57,7 @@ def parse_args():
         parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indices. . Out of bounds errors are clipped')
         #parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
         #parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
-        parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
+        #parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
         parser2.add_ints(('--daid-exclude', '--daids-exclude'), default=[], help='exclude daids from matching')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
         parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')

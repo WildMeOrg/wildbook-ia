@@ -13,10 +13,12 @@ def hack_argv(arg):
             '--clipwhite',
             '--contextadjust',
             '--dpi=256',
-            #'--diskshow',
         ]
 
         sys.argv.extend(common_args)
+
+        if '--noshow' not in sys.argv:
+            sys.argv.extend(['--diskshow'])
 
         # Figsize hacks
 
@@ -24,7 +26,8 @@ def hack_argv(arg):
             sys.argv.extend([
                 '--figsize=14,5',
                 '--hspace=.3',
-                '--top=.8',
+                #'--top=.8',
+                '--top=.85',
                 '--bottom=0.08',
                 '--left=.05',
                 '--right=.95'
@@ -32,39 +35,52 @@ def hack_argv(arg):
 
         if hack_argv_key in ['scores']:
             sys.argv.extend([
-                '--figsize=15,7',
+                #'--figsize=15,7',
+                #'--top=.8',
+                '--figsize=14,3',
+                '--top=.8',
                 '--hspace=.3',
-                '--top=.9',
                 '--bottom=0.08',
                 '--left=.05',
                 '--right=.95'
+            ])
+        elif hack_argv_key in ['tags']:
+            sys.argv.extend([
+                #'--figsize=14,3',
+                #'--top=.8',
+                #'--hspace=.3',
+                #'--bottom=0.08',
+                #'--left=.05',
+                #'--right=.95'
             ])
         elif hack_argv_key in ['expt']:
             sys.argv.extend([
                 #'--figsize=15,3',
                 '--figsize=15,3.5',
-                '--top=.9',
+                '--top=.8',
                 '--bottom=.1',
             ])
         elif hack_argv_key in ['mech']:
             sys.argv.extend([
-                '--figsize=14,5',
-                '--top=.8',
+                #'--figsize=14,5',
+                '--figsize=14,3',
+                '--top=.9',
             ])
 
         # Save location
-        fname_fmt = 'figuresX/expt_{e}_{db}_a_{a}_t_{t}'
+        #fname_fmt = 'figuresX/expt_{e}_{db}_a_{a}_t_{t}'
+        fname_fmt = 'figuresX/expt_{label}'
 
-        if hack_argv_key in ['scores']:
-            fname_fmt += '_{filt}'
+        #if hack_argv_key in ['scores']:
+        #    fname_fmt += '_{filt}'
 
-        if hack_argv_key in ['time']:
-            if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):
-                fname_fmt += '_TP'
-            if ('--falsepos' in sys.argv):
-                fname_fmt += '_FP'
+        #if hack_argv_key in ['time']:
+        #    if not ('--falsepos' in sys.argv) or ('--truepos' in sys.argv):
+        #        fname_fmt += '_TP'
+        #    if ('--falsepos' in sys.argv):
+        #        fname_fmt += '_FP'
 
-        if hack_argv_key in ['time', 'expt', 'mech', 'scores', 'surf']:
+        if hack_argv_key in ['time', 'expt', 'mech', 'scores', 'surf', 'tags']:
             sys.argv.extend([
                 '--save',
                 fname_fmt + '.png',
@@ -81,7 +97,9 @@ def hack_argv(arg):
 for arg in sys.argv[:]:
     hack_argv(arg)
 
-import utool
+import utool as ut
+#ut.show_if_requested()
+#sys.exit(1)
 from utool.util_six import get_funcname
 #import functools
 
@@ -106,9 +124,9 @@ DEVPRECMD_FUNCTIONS = []
 #        func_aliases.extend([get_funcname(func)])
 #        DEVCMD_FUNCTIONS2.append((tuple(func_aliases), func))
 #        def func_wrapper(*args_, **kwargs_):
-#            #if utool.VERBOSE:
-#            #if utool.QUIET:
-#            print('[DEVCMD2] ' + utool.func_str(func, args_, kwargs_))
+#            #if ut.VERBOSE:
+#            #if ut.QUIET:
+#            print('[DEVCMD2] ' + ut.func_str(func, args_, kwargs_))
 #            return func(*args_, **kwargs_)
 #        return func_wrapper
 #    if noargs:
@@ -130,9 +148,9 @@ def devcmd(*args):
         func_aliases.extend([get_funcname(func)])
         DEVCMD_FUNCTIONS.append((tuple(func_aliases), func))
         def func_wrapper(*args_, **kwargs_):
-            #if utool.VERBOSE:
-            #if utool.QUIET:
-            print('[DEVCMD] ' + utool.func_str(func, args_, kwargs_))
+            #if ut.VERBOSE:
+            #if ut.QUIET:
+            print('[DEVCMD] ' + ut.func_str(func, args_, kwargs_))
             return func(*args_, **kwargs_)
         return func_wrapper
     if noargs:
@@ -154,9 +172,9 @@ def devprecmd(*args):
         func_aliases.extend([get_funcname(func)])
         DEVPRECMD_FUNCTIONS.append((tuple(func_aliases), func))
         def func_wrapper(*args_, **kwargs_):
-            #if utool.VERBOSE:
-            #if utool.QUIET:
-            print('[DEVPRECMD] ' + utool.func_str(func, args_, kwargs_))
+            #if ut.VERBOSE:
+            #if ut.QUIET:
+            print('[DEVPRECMD] ' + ut.func_str(func, args_, kwargs_))
             return func(*args_, **kwargs_)
         return func_wrapper
     if noargs:

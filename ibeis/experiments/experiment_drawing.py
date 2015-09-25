@@ -79,7 +79,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     import vtool as vt
     if ut.VERBOSE:
         print('[dev] annotationmatch_scores')
-    from ibeis.experiments import cfghelpers
+    #from ibeis.experiments import cfghelpers
     from ibeis.init import main_helpers
 
     filt_cfg = main_helpers.testdata_filtcfg(default=f)
@@ -111,25 +111,30 @@ def annotationmatch_scores(ibs, test_result, f=None):
         print(reconstruct_str)
 
     #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
-    encoder = vt.ScoreNormalizer(adjust=8, tpr=.85, monotonize=True)
+    fpr = ut.get_argval('--fpr', type_=float, default=None)
+    tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
+    encoder = vt.ScoreNormalizer(adjust=8, fpr=fpr, tpr=tpr, monotonize=True)
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
     encoder.fit(name_scores, labels, attrs)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
 
-    figtitle = 'Learned Name Score Normalizer\n' + test_result.get_title_aug(friendly=True)
+    plotname = ''
+    figtitle = test_result.make_figtitle(plotname, filt_cfg=filt_cfg)
 
-    figtitle += cfghelpers.get_cfg_lbl(filt_cfg)
-    encoder.visualize(figtitle=figtitle,
-                      #
-                      with_scores=False,
-                      with_prebayes=False,
-                      with_postbayes=False,
-                      #
-                      with_hist=True,
-                      with_roc=True,
-                      attr_callback=attr_callback)
+    encoder.visualize(
+        figtitle=figtitle,
+        #
+        with_scores=False,
+        with_prebayes=False,
+        with_postbayes=False,
+        #
+        with_hist=True,
+        with_roc=True,
+        attr_callback=attr_callback,
+        bin_width=.125,
+    )
 
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
@@ -139,7 +144,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     return locals_
 
 
-def draw_casetag_hist(ibs, test_result, f=None):
+def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argflag('--no-wordcloud')):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -160,6 +165,8 @@ def draw_casetag_hist(ibs, test_result, f=None):
         ibeis -e print -a timequalctrl:minqual=good -t invarbest --db PZ_Master1 --show
         ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
 
+        ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_drawing import *  # NOQA
@@ -169,39 +176,34 @@ def draw_casetag_hist(ibs, test_result, f=None):
         >>> ut.show_if_requested()
     """
     from ibeis.init import main_helpers
-    from ibeis.experiments import cfghelpers
+    #from ibeis.experiments import cfghelpers
+    import plottool as pt
+    from ibeis import ibsfuncs
     filt_cfg = main_helpers.testdata_filtcfg(f)
     case_pos_list = test_result.case_sample2(filt_cfg)
     all_tags = test_result.get_all_tags()
 
-    def consolodate_tags(all_tags):
-        remove_tags = ['badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard']
-        map_tags = {
-            'quality': 'Quality',
-            'scoringissue': 'ScoringIssue',
-            'orientation': 'Orientation',
-            'pose': 'Pose',
-            'lighting': 'Lighting',
-            'occlusion': 'Occlusion',
-            'edgematch': 'EdgeMatches',
-            'toolargematches': 'CoarseFeatures',
-            'badcoverage': 'LowCoverage',
-            'shouldhavemore': 'LowCoverage',
-            'viewpoint': 'Viewpoint',
-        }
-        new_tags = [[ut.unique_keep_order2([map_tags.get(t.lower(), t) for t in tags if t.lower() not in remove_tags ])
-                     for tags in case_tags] for case_tags in all_tags ]
-        return new_tags
-
-    all_tags = consolodate_tags(all_tags)
+    all_tags = [ibsfuncs.consolodate_tags(case_tags) for case_tags in all_tags]
 
     selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
     flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
     #print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
-    import plottool as pt
-    pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
-    pt.wordcloud(' '.join(flat_tags), fnum=1, pnum=(1, 2, 2))
-    pt.set_figtitle(cfghelpers.get_cfg_lbl(filt_cfg))
+    pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
+    fnum = None
+    fnum = pt.ensure_fnum(fnum)
+    pt.word_histogram2(flat_tags, fnum=fnum, pnum=pnum_(), xlabel='Tag')
+
+    if with_wordcloud:
+        pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
+
+    figtitle = test_result.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+
+    pt.set_figtitle(figtitle)
+
+    if ut.get_argflag('--contextadjust'):
+        #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+        #pt.adjust_subplots(wspace=.01)
+        pt.adjust_subplots2(use_argv=True, wspace=.01)
 
 
 @profile
@@ -281,14 +283,14 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     show_kwargs['viz_name_score'] = True
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    #show_kwargs['with_figtitle'] = False
-    show_kwargs['with_figtitle'] = True
+    #show_kwargs['with_figtitle'] = True
+    show_kwargs['with_figtitle'] = show_in_notebook
     #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
         if SHOW:
             annot_modes = [1]
         else:
-            annot_modes = [0]
+            annot_modes = [1]
     #show_kwargs['annot_mode'] = 1 if not SHOW else 0
 
     cpq = IndividualResultsCopyTaskQueue()
@@ -534,7 +536,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
             caption_str += ut.escape_latex('Each figure shows a different configuration: ')
             sublbls = ['(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))]
         else:
-            caption_str += ut.escape_latex('This figure depicts positive and negative matches from configuration: ')
+            #caption_str += ut.escape_latex('This figure depicts correct and incorrect matches from configuration: ')
             sublbls = [''] * len(cfgx2_shortlbl)
         def wrap_tt(text):
             return r'{\tt ' + text + '}'
@@ -873,15 +875,9 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
                                     marker_list=nonconst_marker_list, fnum=fnum,
                                     pnum=pnum_(), num_yticks=num_yticks, ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
-            #pt.plot2(
-        #(const_idx + 1))
 
-    figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
-    figtitle = (
-        figtitle_prefix +
-        #'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on #Ranks = 1 for\n')
-        'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy for\n')
-    figtitle += ' ' + test_result.get_title_aug(friendly=True)
+    plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
+    figtitle = test_result.make_figtitle(plotname)
 
     #if ut.get_argflag('--save'):
     # hack
@@ -945,8 +941,11 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     #cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
     cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
     label_list = test_result.get_short_cfglbls(friendly=True)
-    label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label
-                  for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+    label_list = [
+        ('%6.2f' % (percent,))
+        #ut.scalar_str(percent, precision=2)
+        + '% - ' + label
+        for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
     test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset', default=test_cfgx_slice)
@@ -964,14 +963,8 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     color_list = ut.list_take(color_list, sortx)
     marker_list = ut.list_take(marker_list, sortx)
     #
-    figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')
-    if figtitle_prefix != '':
-        figtitle_prefix = figtitle_prefix.rstrip('') + ' '
-    figtitle = (figtitle_prefix + 'Cumulative Rank Histogram')
-    hasprefix = figtitle_prefix == ''
-    if hasprefix:
-        figtitle += '\n'
-    figtitle += ' ' + test_result.get_title_aug(friendly=True, with_cfg=hasprefix)
+
+    figtitle = test_result.make_figtitle('Cumulative Rank Histogram')
 
     if verbose:
         test_result.print_unique_annot_config_stats(ibs)
@@ -1357,7 +1350,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
     PIE = True
 
     if PIE:
-        fnum = 1
+        fnum = None
+        fnum = pt.ensure_fnum(fnum)
         pt.figure(fnum=fnum)
         pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
         bin_labels[0]
@@ -1385,22 +1379,26 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
             pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
             pt.adjust_subplots2(use_argv=True)
     else:
-        xints = np.arange(len(bin_labels))
-        pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
-        ax = pt.gca()
+        pass
+        #xints = np.arange(len(bin_labels))
+        #pt.multi_plot(xints, freq_list, label_list=X_label_list, xpad=1, ypad=.5, **plotkw)
+        #ax = pt.gca()
 
-        xtick_labels = [''] + bin_labels + ['']
+        #xtick_labels = [''] + bin_labels + ['']
 
-        ax.set_xticklabels(xtick_labels)
-        ax.set_xlabel('timedelta')
-        #ax.set_ylabel('Frequency')
-        ax.set_ylabel('% true positives')
-        ax.set_title('Timedelta histogram of correct matches\n' + test_result.get_title_aug(friendly=True))
-        pt.gcf().autofmt_xdate()
+        #ax.set_xticklabels(xtick_labels)
+        #ax.set_xlabel('timedelta')
+        ##ax.set_ylabel('Frequency')
+        #ax.set_ylabel('% true positives')
 
-        if ut.get_argflag('--contextadjust'):
-            pt.adjust_subplots(left=.2, bottom=.2, wspace=.0, hspace=.15)
-            pt.adjust_subplots2(use_argv=True)
+        #plotname = 'Timedelta histogram of correct matches'
+        #figtitle = test_result.make_figtitle(plotname)
+        #ax.set_title(figtitle)
+        #pt.gcf().autofmt_xdate()
+
+        #if ut.get_argflag('--contextadjust'):
+        #    pt.adjust_subplots(left=.2, bottom=.2, wspace=.0, hspace=.15)
+        #    pt.adjust_subplots2(use_argv=True)
 
 
 @profile

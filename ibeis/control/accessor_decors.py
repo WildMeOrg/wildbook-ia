@@ -52,11 +52,14 @@ DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
 
 RELEASE_MODE = True
 if RELEASE_MODE:
-    API_CACHE = not ut.get_argflag('--no-api-cache')
-    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
-else:
+    # API Cache is only for when you can gaurentee one instance of the
+    # Controller will be running. This is not safe to use in production.  Use
+    # only for local testing.
     API_CACHE = ut.get_argflag('--api-cache')
     ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+else:
+    API_CACHE = not ut.get_argflag('--no-api-cache')
+    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
 
 if ut.VERBOSE:
     if ut.in_main_process():

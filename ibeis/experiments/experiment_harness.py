@@ -20,7 +20,7 @@ print, print_, printDBG, rrr, profile = ut.inject(
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
-NOCACHE_TESTRES =  ut.get_argflag('--nocache-testres', False)
+NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
 USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test')) and ut.USE_CACHE and not NOCACHE_TESTRES
 TEST_INFO = True
 

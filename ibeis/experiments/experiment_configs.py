@@ -28,39 +28,32 @@ def augbase(basedict, updatedict):
     return newdict
 
 
-def apply_k(cfg):
+def apply_param(cfg, **kwargs):
     import copy
     cfg = copy.deepcopy(cfg)
     for _ in cfg:
-        _['K'] = [1, 2, 3, 4, 5, 7, 10]
+        _.update(**kwargs)
     return cfg
+
+
+def apply_k(cfg):
+    return apply_param(cfg, K=[1, 2, 3, 4, 5, 7, 10])
+
+
+def apply_knorm(cfg):
+    return apply_param(cfg, K=[1, 2, 3, 4, 10], Knorm=[1, 2, 3])
 
 
 def apply_CircQRH(cfg):
-    import copy
-    cfg = copy.deepcopy(cfg)
-    for _ in cfg:
-        _['augment_queryside_hack'] = True
-        _['affine_invariance'] = False
-    return cfg
+    return apply_param(cfg, augment_queryside_hack=True, affine_invariance=False)
 
 
 def apply_Ell(cfg):
-    import copy
-    cfg = copy.deepcopy(cfg)
-    for _ in cfg:
-        _['augment_queryside_hack'] = False
-        _['affine_invariance'] = True
-    return cfg
+    return apply_param(cfg, augment_queryside_hack=False, affine_invariance=True)
 
 
 def apply_EllQRH(cfg):
-    import copy
-    cfg = copy.deepcopy(cfg)
-    for _ in cfg:
-        _['augment_queryside_hack'] = True
-        _['affine_invariance'] = True
-    return cfg
+    return apply_param(cfg, augment_queryside_hack=True, affine_invariance=True)
 
 exclude_vars = vars().keys()   # this line is before tests
 
@@ -84,11 +77,29 @@ Ell = apply_Ell(default)
 EllQRH = apply_EllQRH(default)
 
 CircQRH_K = apply_k(CircQRH)
+CircQRH_Knrom = apply_knorm(CircQRH)
 Ell_K = apply_k(Ell)
 EllQRH_K = apply_k(EllQRH)
 
 Ell_ScoreMech = apply_Ell(ScoreMech)
 CircQRH_ScoreMech = apply_CircQRH(ScoreMech)
+
+
+def best(metadata):
+    """
+    Infer the best pipeline config based on the metadata
+    """
+    if metadata is not None:
+        ibs = metadata.get('ibs', None)
+        if ibs is not None:
+            dbname = ibs.get_dbname()
+            if dbname == 'PZ_Master1':
+                return apply_param(CircQRH, K=3)
+            if dbname in ['GZ_Master1', 'GZ_ALL']:
+                return apply_param(Ell, K=1)
+            if dbname in ['NNP_MasterGIRM_core', 'GIRM_Master1']:
+                return apply_param(Ell, K=2)
+    return default
 
 
 # only best for grevys
@@ -746,7 +757,7 @@ vsmany_best = {
     'max_alts':        [1000],
     'chip_sqrt_area':  [450],
 }
-best = vsmany_best
+#best = vsmany_best
 
 gv_test = vsmany_best.copy()
 gv_test.update({
