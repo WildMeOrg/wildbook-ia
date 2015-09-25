@@ -14,6 +14,11 @@ import numpy as np
 ut.noinject(__name__, '[plots]')
 
 
+def is_default_dark_bg():
+    #return True
+    return not ut.get_argflag('--save')
+
+
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
                          target_label, title=None, use_legend=True,
                          color_list=None, marker_list=None, **kwargs):
@@ -371,7 +376,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+        use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         pt.dark_background()
     return fig
@@ -452,7 +457,7 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
 
         use_darkbackground = kwargs.get('use_darkbackground', None)
         if use_darkbackground is None:
-            use_darkbackground = not ut.get_argflag('--save')
+            use_darkbackground = is_default_dark_bg()
         if use_darkbackground:
             df2.dark_background()
 
@@ -618,7 +623,7 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+        use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
 
@@ -664,7 +669,7 @@ def plot_score_histograms(scores_list,
         >>> print(result)
     """
     if figtitle is None:
-        figtitle = 'histogram of ' + score_label
+        figtitle = 'histogram of ' + score_label + 's'
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
@@ -688,11 +693,15 @@ def plot_score_histograms(scores_list,
     df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
 
     bins = None
+    bin_width = kwargs.get('bin_width', None)
+    if bin_width is not None:
+        num_bins = kwargs.get('num_bins', 40)
+        bins = [bin_width * count for count in range(num_bins)]
 
     # Plot each datapoint on a line
     _n_max = 0
     _n_min = 0
-    for lblx in range(len(scores_list)):
+    for lblx in list(range(len(scores_list))):
         label = scores_lbls[lblx]
         color = score_colors[lblx]
         #marker = score_markers[lblx]
@@ -714,6 +723,8 @@ def plot_score_histograms(scores_list,
         #    _p.set_edgecolor(None)
         _n_min = min(_n_min, _n.min())
         _n_max = max(_n_max, _n.max())
+
+    _n_max = ax.get_ylim()[1]
 
     if score_thresh is not None:
         ydomain = np.linspace(_n_min, _n_max, 10)
@@ -739,9 +750,12 @@ def plot_score_histograms(scores_list,
     #print('[df2] show_histogram()')
     #df2.dark_background()
 
+    #ax.set_xscale('log')
+    #ax.set_yscale('log')
+
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+        use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
     #return fig
@@ -846,7 +860,7 @@ def plot_probabilities(prob_list,
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+        use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
 
@@ -977,6 +991,7 @@ def plot_sorted_scores(scores_list,
         df2.plot(indicies, [thresh] * len(indicies), 'g-', label=score_label + ' thresh=%.2f' % (thresh,))
 
     if logscale:
+        # DEPRICATE
         set_logyscale_from_data(sorted_scores)
 
     ax = df2.gca()
@@ -993,7 +1008,7 @@ def plot_sorted_scores(scores_list,
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
-        use_darkbackground = not ut.get_argflag('--save')
+        use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
     titlesize = kwargs.get('titlesize', 8)
@@ -1008,6 +1023,7 @@ def plot_sorted_scores(scores_list,
 
 
 def set_logyscale_from_data(y_data):
+    # DEPRICATE
     if len(y_data) == 1:
         print('Warning: not enough information to infer yscale')
         return
@@ -1017,6 +1033,7 @@ def set_logyscale_from_data(y_data):
 
 
 def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
+    # DEPRICATE
     # Attempts to detect knee points by looking for
     # log derivatives way past the normal standard deviations
     # The input data is assumed to be sorted and y_data
@@ -1501,20 +1518,22 @@ def word_histogram2(text_list, **kwargs):
 
     width = .95
     freq_list = [np.array(freq, dtype=np.int)]
-    num_yticks = 1 + max([
+    ymax = max([
         _freq.max() if len(_freq) > 0 else 0
         for _freq in freq_list])
-    print('num_yticks = %r' % (num_yticks,))
+    print('ymax = %r' % (ymax,))
     pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
                   width=width,
                   #xtick_rotation=90,
-                  num_yticks=num_yticks,
+                  #num_yticks=ymax + 1,
                   xticklabels=bin_labels, xmin=-1, xmax=len(xints),
                   transpose=True,
-                  ymax=num_yticks - 1,
-                  ylabel='Freq', xlabel='Word', **kwargs)
+                  ymax=ymax,
+                  ylabel='Freq',
+                  xlabel=kwargs.pop('xlabel', 'Word'),
+                  **kwargs)
     #ax.autofmt_xdate()
     #plt.setp(plt.xticks()[1], rotation=30, ha='right')
     #pt.gcf().autofmt_xdate()
@@ -1581,13 +1600,44 @@ def wordcloud(text, fnum=None, pnum=None):
     References:
         http://bioinfoexpert.com/?p=592
         sudo pip install git+git://github.com/amueller/word_cloud.git
+
+    Args:
+        text (str):
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+
+    CommandLine:
+        python -m plottool.plots --exec-wordcloud --show
+        python -m plottool.plots --exec-wordcloud --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> text = '''
+                Normally, Frost-Breath-type cards are only good in aggressive decks,
+                but add an Eldrazi Scion into the mix and that all changes. I'm not
+                adverse to playing a card that ramps my mana, can trade for an x/1, and
+                does so while keeping me alive. I still would rather be beating down if
+                I'm including this in my deck, but I think it does enough different
+                things at a good rate that you are more likely to play it than not.
+                Cards that swing a race this drastically are situationally awesome, and
+                getting the Eldrazi Scion goes a long way toward mitigating the cost of
+                drawing this when you aren't in a race (which is the reason
+                non-aggressive decks tend to avoid this effect).
+            '''
+        >>> fnum = None
+        >>> pnum = None
+        >>> result = wordcloud(text, fnum, pnum)
+        >>> ut.show_if_requested()
+        >>> print(result)
     """
     import plottool as pt
     from wordcloud import WordCloud
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
     if len(text) > 0:
-        wordcloud = WordCloud().generate(text)
+        _wc = WordCloud(background_color='black' if is_default_dark_bg() else 'white')
+        wordcloud = _wc.generate(text)
         pt.plt.imshow(wordcloud)
     else:
         pt.imshow_null()

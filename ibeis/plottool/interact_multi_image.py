@@ -17,8 +17,27 @@ ut.noinject(__name__, '[pt.interact_multiimage]')
 
 
 class MultiImageInteraction(object):
-    def __init__(self, gpath_list, nPerPage=4, bboxes_list=None, thetas_list=None, verts_list=None, gid_list=None,
-                 nImgs=None, fnum=None):
+    """
+
+    CommandLine:
+        python -m plottool.interact_multi_image --exec-MultiImageInteraction --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.interact_multi_image import *  # NOQA
+        >>> import utool as ut
+        >>> TEST_IMAGES_URL = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+        >>> test_image_dir = ut.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
+        >>> imgpaths       = ut.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
+        >>> bboxes_list = [[]] * len(imgpaths)
+        >>> bboxes_list[0] = [(-200, -100, 400, 400)]
+        >>> iteract_obj = MultiImageInteraction(imgpaths, nPerPage=4, bboxes_list=bboxes_list)
+        >>> ut.show_if_requested()
+    """
+
+    def __init__(self, gpath_list, nPerPage=4, bboxes_list=None,
+                 thetas_list=None, verts_list=None, gid_list=None, nImgs=None,
+                 fnum=None):
         print('Creating multi-image interaction')
 
     #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None, bboxes_list=None, nPerPage=10,fnum=None):
@@ -132,7 +151,7 @@ class MultiImageInteraction(object):
         """ Displays a page of matches """
         if pagenum is None:
             pagenum = self.current_pagenum
-        print('[iqr2] show page: %r' % pagenum)
+        #print('[iqr2] show page: %r' % pagenum)
         self.current_pagenum = pagenum
         self.prepare_page(pagenum)
         # Begin showing matches
@@ -151,9 +170,14 @@ class MultiImageInteraction(object):
         px = index - self.start_index
         gpath      = self.gpath_list[index]
         bbox_list  = self.bboxes_list[index]
-        print('bbox_list %r in display for px: %r ' % (bbox_list, px))
+        #print('bbox_list %r in display for px: %r ' % (bbox_list, px))
         theta_list = self.thetas_list[index]
-        img = vt.imread(gpath)
+
+        if isinstance(gpath, six.string_types):
+            img = vt.imread(gpath)
+        else:
+            img = gpath
+
         label_list = [ix + 1 for ix in range(len(bbox_list))]
         #Add true values for every bbox to display
         sel_list = [True for ix in range(len(bbox_list))]
@@ -172,19 +196,19 @@ class MultiImageInteraction(object):
         _, ax = viz_image2.show_image(img, **_vizkw)
         ph.set_plotdat(ax, 'px', str(px))
         ph.set_plotdat(ax, 'index', index)
-        print(index)
+        #print(index)
         ph.set_plotdat(ax, 'bbox_list', bbox_list)
         ph.set_plotdat(ax, 'gpath', gpath)
 
     def update_images(self, img_ind, updated_bbox_list, updated_theta_list):
         """Insert code for viz_image2 redrawing here"""
-        print('update called')
+        #print('update called')
         index = int(img_ind)
-        print('index: %r' % index)
-        print('Images bbox before: %r' % (self.bboxes_list[index],))
+        #print('index: %r' % index)
+        #print('Images bbox before: %r' % (self.bboxes_list[index],))
         self.bboxes_list[index] = updated_bbox_list
         self.thetas_list[index] = updated_theta_list
-        print('Images bbox after: %r' % (self.bboxes_list[index],))
+        #print('Images bbox after: %r' % (self.bboxes_list[index],))
         self.plot_image(index)
         self.draw()
 
@@ -207,7 +231,10 @@ class MultiImageInteraction(object):
             theta_list = self.thetas_list[index]
             print('theta_list = %r' % (theta_list,))
             #img = mpimg.imread(gpath)
-            img = vt.imread(gpath)
+            if isinstance(gpath, six.string_types):
+                img = vt.imread(gpath)
+            else:
+                img = gpath
             fnum = df2.next_fnum()
             mc = interact_annotations.ANNOTATIONInteraction(img, index, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
             self.mc = mc
@@ -224,3 +251,16 @@ class MultiImageInteraction(object):
             self.display_next_page()
         if event.key == 'p':
             self.display_prev_page()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.interact_multi_image
+        python -m plottool.interact_multi_image --allexamples
+        python -m plottool.interact_multi_image --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

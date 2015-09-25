@@ -218,7 +218,7 @@ def show_if_requested(N=1):
         fpath_list = [fpath_]
 
         if len(fpath_list) == 1 and ut.is_developer():
-            latex_block = '\ImageCommand{' + ''.join(fpath_list) + '}{' + width_str + '}{\n' + caption_str + '\n}{' + label_str + '}'
+            latex_block = '\ImageCommandII{' + ''.join(fpath_list) + '}{' + width_str + '}{\n' + caption_str + '\n}{' + label_str + '}'
             # HACK
         else:
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
