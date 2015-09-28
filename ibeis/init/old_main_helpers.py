@@ -227,7 +227,8 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
     CONTROLLED_CASES = ut.get_argflag('--controlled') or ut.get_argflag('--controlled_qaids')
     NO_REVIEWED = ut.get_argflag('--unreviewed')
     species = ut.get_argval('--species')
-    QAID = params.args.qaid
+    #QAID = params.args.qaid
+    QAID = ut.get_argval('qaid', type_='fuzzy_int', default=None)
     QINDEX = params.args.qindex
     QSHUFFLE = ut.get_argval('--qshuffle')
 
