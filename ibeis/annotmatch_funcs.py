@@ -123,7 +123,7 @@ def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
     else:
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
         truth = ibs.const.TRUTH_UNKNOWN if (nid1 == nid2) else ibs.const.TRUTH_NOT_MATCH
-    ibs.add_or_update_annotmatch(aid1, aid2, truth, [1.0])
+    ibs.add_or_update_annotmatch(aid1, aid2, truth, 1.0)
 
 
 @register_ibs_method
