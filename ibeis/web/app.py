@@ -1417,6 +1417,15 @@ def group_review():
             candidate_aid_list = ut.get_list_column(regrouped_items, 0)
         else:
             candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+    elif request.args.get('aid_list', None) is not None:
+        aid_list = request.args.get('aid_list', '')
+        if len(aid_list) > 0:
+            aid_list = aid_list.replace('[', '')
+            aid_list = aid_list.replace(']', '')
+            aid_list = aid_list.strip().split(',')
+            candidate_aid_list = [ int(aid_.strip()) for aid_ in aid_list ]
+        else:
+            candidate_aid_list = ''
     else:
         candidate_aid_list = ''
     return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list)
