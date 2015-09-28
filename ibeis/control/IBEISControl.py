@@ -36,8 +36,11 @@ from ibeis.model.hots import pipeline
 
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.
+#     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
 
 # <Pyinstaller hacks>
+from ibeis import annotmatch_funcs  # NOQA
+
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import _autogen_party_funcs  # NOQA
 from ibeis.control import _autogen_annotmatch_funcs  # NOQA
@@ -86,15 +89,18 @@ autogenmodname_list = [
     ('ibeis.control', 'manual_feat_funcs'),
 ]
 
-WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
+#WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
+WITH_CNN = not ut.get_argflag(('--no-cnn', '--nocnn'))
 
 # HACK, don't include cnn unless its already there due to theano stuff
 pluginmodname_list = []
 import sys
 if 'ibeis_cnn' in sys.modules or WITH_CNN:
-    pluginmodname_list = [
-        ('ibeis_cnn', '_plugin'),
-    ]
+    from ibeis_cnn import _plugin  # NOQA
+    import ibeis_cnn  # NOQA
+    #pluginmodname_list = [
+    #    ('ibeis_cnn', '_plugin'),
+    #]
 
 
 def make_explicit_imports_for_pyinstaller():
@@ -268,7 +274,7 @@ class IBEISController(object):
     #    if module not in INJECTED_MODULES:
     #        INJECTED_MODULES.append(module)
     #    ut.inject_instance(
-    #        ibs, classtype=module.CLASS_INJECT_KEY,
+    #        ibs, classkey=module.CLASS_INJECT_KEY,
     #        allow_override=ibs.allow_override, strict=False)
 
     def _initialize_self(ibs):
@@ -281,17 +287,18 @@ class IBEISController(object):
             print('[ibs] _initialize_self()')
         ibs.reset_table_cache()
 
-        for module in INJECTED_MODULES:
-            ut.inject_instance(
-                ibs, classtype=module.CLASS_INJECT_KEY,
-                allow_override=ibs.allow_override, strict=False)
-        ut.inject_instance(ibs, classtype=ibsfuncs.CLASS_INJECT_KEY,
-                           allow_override=ibs.allow_override, strict=True)
-        assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
+        ut.util_class.inject_all_external_modules(
+            ibs, controller_inject.CONTROLLER_CLASSNAME,
+            allow_override=ibs.allow_override)
 
-        #ut.inject_instance(ibs, classtype=('IBEISController', 'autogen_featweight'),
+        #ut.inject_instance(ibs, classkey=ibsfuncs.CLASS_INJECT_KEY,
+        #                   allow_override=ibs.allow_override, strict=True)
+        assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
+        assert hasattr(ibs, 'get_annot_pair_timdelta'), 'issue with annotmatch_funcs'
+
+        #ut.inject_instance(ibs, classkey=('IBEISController', 'autogen_featweight'),
         #                   allow_override=ibs.allow_override, strict=False)
-        #ut.inject_instance(ibs, classtype=('IBEISController', 'manual'),
+        #ut.inject_instance(ibs, classkey=('IBEISController', 'manual'),
         #                   allow_override=ibs.allow_override, strict=False)
         ibs.register_controller()
 

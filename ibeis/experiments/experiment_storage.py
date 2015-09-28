@@ -547,6 +547,7 @@ class TestResult(object):
 
         CommandLine:
             python -m ibeis.experiments.experiment_storage --exec-make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
+            python -m ibeis.experiments.experiment_storage --exec-make_figtitle
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -555,7 +556,7 @@ class TestResult(object):
             >>> test_result = ibeis.testdata_expts('PZ_MTEST')
             >>> plotname = ''
             >>> figtitle = test_result.make_figtitle(plotname)
-            >>> result = ('figtitle = %s' % (str(figtitle),))
+            >>> result = ('figtitle = %r' % (figtitle,))
             >>> print(result)
         """
         figtitle_prefix = ut.get_argval('--prefix', type_=str, default='')

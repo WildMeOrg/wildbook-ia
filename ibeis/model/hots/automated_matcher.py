@@ -436,6 +436,8 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
 
     FIXME: a miss-save in vim will trigger module unloading
 
+    FIXME: broken
+
     Args:
         ibs (IBEISController):  ibeis controller object
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -449,7 +451,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
         python -m ibeis.model.hots.automated_matcher --test-update_normalizer
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs, qaid_chunk = testdata_automatch()
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)

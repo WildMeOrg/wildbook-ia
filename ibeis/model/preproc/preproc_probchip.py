@@ -142,7 +142,7 @@ def group_aids_by_featweight_species(ibs, aid_list, config2_=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> config2_ = None
         >>> aid_list = ibs.get_valid_aids()
-        >>> grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, config2_)
+        >>> grouped_aids, unique_species, groupxs = group_aids_by_featweight_species(ibs, aid_list, config2_)
     """
     if config2_ is None:
         featweight_species = ibs.cfg.featweight_cfg.featweight_species
@@ -179,18 +179,11 @@ def get_probchip_fname_fmt(ibs, config2_=None, species=None):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.testdata_ibeis()
-        >>> config2_ = None
-        >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
-        >>> #want = 'probchip_aid=%d_bbox=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
-        >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
+        >>> config2_ = ibs.new_query_params(dict(fg_on=False))
+        >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs, config2_=config2_)
         >>> result = probchip_fname_fmt
         >>> print(result)
         probchip_avuuid={avuuid}_CHIP(sz450)_FEATWEIGHT(OFF).png
-
-        probchip_avuuid={avuuid}_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf).png
-
-
-    probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
     cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs, config2_=config2_)
 
@@ -231,8 +224,8 @@ def get_annot_probchip_fpath_list(ibs, aid_list, config2_=None, species=None):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> from os.path import basename
         >>> ibs, aid_list = preproc_chip.testdata_ibeis()
-        >>> config2_ = None
-        >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
+        >>> config2_ = ibs.new_query_params(dict(fg_on=False))
+        >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list, config2_=config2_)
         >>> result = ut.relpath_unix(probchip_fpath_list[1], ibs.get_dbdir())
         >>> print(result)
         _ibsdb/_ibeis_cache/prob_chips/probchip_avuuid=5a1a53ba-fd44-b113-7f8c-fcf248d7047f_CHIP(sz450)_FEATWEIGHT(OFF).png
@@ -248,7 +241,8 @@ def get_annot_probchip_fpath_list(ibs, aid_list, config2_=None, species=None):
     #probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(
     #    ibs, aid_list, probchip_fname_fmt, cachedir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
-    probchip_fpath_list = [ut.unixjoin(cachedir, probchip_fname_fmt.format(avuuid=avuuid)) for avuuid in annot_visual_uuid_list]
+    probchip_fpath_list = [ut.unixjoin(cachedir, probchip_fname_fmt.format(avuuid=avuuid))
+                           for avuuid in annot_visual_uuid_list]
     return probchip_fpath_list
 
 

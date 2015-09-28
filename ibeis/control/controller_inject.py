@@ -541,6 +541,34 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
 
 ##########################################################################################
 
+def dev_autogen_explicit_injects():
+    r"""
+    CommandLine:
+        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.controller_inject import *  # NOQA
+        >>> result = dev_autogen_explicit_injects()
+        >>> print(result)
+    """
+    import ibeis  # NOQA
+    #ibs = ibeis.opendb('testdb1')
+    classname = 'IBEISController'
+    line_list = []
+    for modname in ut.util_class.__CLASSKEY_MODNAME_REGISTER__[classname]:
+        parts = modname.split('.')
+        frompart = '.'.join(parts[:-1])
+        imppart = parts[-1]
+        line = 'from %s import %s  # NOQA' % (frompart, imppart)
+        line_list.append(line)
+    print('\n'.join(line_list))
+    #ut.util_class.__CLASSTYPE_ATTRIBUTES__
+    #ut.util_class.__CLASSTYPE_POSTINJECT_FUNCS__
+
+
+CONTROLLER_CLASSNAME = 'IBEISController'
+
 
 def make_ibs_register_decorator(modname):
     """
@@ -550,10 +578,11 @@ def make_ibs_register_decorator(modname):
     if __name__ == '__main__':
         print('WARNING: cannot register controller functions as main')
     #else:
-    CLASS_INJECT_KEY = ('IBEISController', modname)
+    CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)
     # Create dectorator to inject these functions into the IBEISController
     #register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
-    register_ibs_unaliased_method = ut.make_class_method_decorator(CLASS_INJECT_KEY, modname)
+    register_ibs_unaliased_method = ut.make_class_method_decorator(
+        CLASS_INJECT_KEY, modname)
 
     # TODO Replace IBEISContoller INEJECTED MODULES with this one
     #INJECTED_MODULES.append(sys.modules[modname])

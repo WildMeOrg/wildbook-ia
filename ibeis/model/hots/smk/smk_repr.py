@@ -17,6 +17,9 @@ from collections import namedtuple
 DEBUG_SMK = ut.DEBUG2 or ut.get_argflag('--debug-smk')
 
 
+INVERTED_INDEX_INJECT_KEY = ('InvertedIndex', __name__)
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class InvertedIndex(object):
     r"""
@@ -70,11 +73,11 @@ class InvertedIndex(object):
 
         # Inject debug function
         from ibeis.model.hots.smk import smk_debug
-        ut.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
-        ut.inject_instance(invindex)
+        ut.make_class_method_decorator(INVERTED_INDEX_INJECT_KEY)(smk_debug.invindex_dbgstr)
+        ut.inject_instance(invindex, classkey=INVERTED_INDEX_INJECT_KEY)
 
 
-@ut.make_class_method_decorator(InvertedIndex)
+@ut.make_class_method_decorator(INVERTED_INDEX_INJECT_KEY)
 def report_memory(obj, objname='obj'):
     """
     obj = invindex
@@ -90,7 +93,7 @@ def report_memory(obj, objname='obj'):
         print(sizestr)
 
 
-report_memsize = ut.make_class_method_decorator(InvertedIndex)(ut.report_memsize)
+report_memsize = ut.make_class_method_decorator(INVERTED_INDEX_INJECT_KEY)(ut.report_memsize)
 
 
 QueryIndex = namedtuple(

@@ -76,7 +76,7 @@ def testdata_qres(defaultdb='testdb1'):
     pcfgdict = testdata_pipecfg()
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     print('qaids = %r' % (qaids,))
-    assert len(qaids) == 1, 'only one qaid for this tests'
+    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
     qres = qreq_.load_cached_qres(qaids[0])
     print('qreq_ = %r' % (qreq_,))
     return ibs, qreq_, qres
@@ -165,7 +165,8 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         ibs = ibeis.opendb(defaultdb=defaultdb)
     # TODO: rectify command line with function arguments
     from ibeis.experiments import experiment_helpers
-    aidcfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'])
+    aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'], return_specified=True)
+
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
@@ -173,6 +174,10 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
     aidcfg = acfg_list[0]
 
     qaid_list, daid_list = expanded_aids_list[0]
+
+    if not _specified and default_qaids is not None:
+        # hack
+        qaid_list = default_qaids
 
     #ibs.get_annotconfig_stats(qaid_list, daid_list)
 

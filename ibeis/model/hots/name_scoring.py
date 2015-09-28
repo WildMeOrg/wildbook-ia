@@ -173,7 +173,7 @@ def compute_nsum_score2(cm, qreq_=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(fg_on=False, augment_queryside_hack=True))
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_.ibs)
         >>> ut.quit_if_noshow()
@@ -195,13 +195,15 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     CommandLine:
         python -m ibeis.model.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
 
+    FIXME: breaks when fg_on=True
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> from ibeis.model.hots import name_scoring
         >>> from ibeis.model.hots import scoring
         >>> # Test to make sure name score and chips score are equal when per_name=1
-        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1'])
+        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1,fg_on=True'])
         >>> qreq_, cm_list = qreq_list[0], cms_list[0]
         >>> cm = cm_list[0]
         >>> # Ensure there is only one aid per database name

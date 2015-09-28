@@ -1163,6 +1163,9 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> guitool.qtapp_loop(back.mainwin, frequency=100)
 
         Ignore:
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback(defaultdb='PZ_Master1')
+            >>> ibs = back.ibs
             >>> # Find aids that still need splits
             >>> aid_pair_list = ibs.filter_aidpairs_by_tags('SplitCase')
             >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
@@ -1178,7 +1181,9 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> problem_aids = problem_aids_list[0]
             >>> aid_list = split_aids_list[0]
             >>> #
+            >>> print('Run splits for tagd problem cases %r' % (problem_aids))
             >>> back.run_annot_splits(aid_list)
+            >>> print('Review splits for tagd problem cases %r' % (problem_aids))
 
             rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
             ibs.get_annotmatch_prop('SplitCase', rowids)

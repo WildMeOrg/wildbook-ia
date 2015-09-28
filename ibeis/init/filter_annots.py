@@ -61,7 +61,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
         print(' * acfg = %s' % (ut.dict_str(annotation_configs.compress_aidcfg(aidcfg), align=True),))
         print('+---------------------')
     #avail_aids = expand_to_default_aids(ibs, aidcfg)
-    avail_aids = ut._get_all_aids()
+    avail_aids = ibs._get_all_aids()
     avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg)
     avail_aids = sample_annots(ibs, avail_aids, aidcfg)
     avail_aids = subindex_annots(ibs, avail_aids, aidcfg)

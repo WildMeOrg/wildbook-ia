@@ -32,6 +32,8 @@ except ImportError as ex:
     ut.printex('COMMIT TO DETECTTOOLS')
     pass
 from ibeis.control import accessor_decors
+from ibeis.control import controller_inject
+from ibeis import annotmatch_funcs  # NOQA
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -40,8 +42,9 @@ from ibeis.control import accessor_decors
 
 # Try to work around circular import
 #from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
-__injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+#CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
+#register_ibs_method = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
 
 
 def fix_zero_features(ibs):
@@ -91,7 +94,7 @@ def postinject_func(ibs):
     ibs.unflat_map = unflat_map
 
 
-@__injectable
+@register_ibs_method
 def refresh(ibs):
     """
     DEPRICATE
@@ -187,7 +190,7 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
             print("Skipping:\n%r\n\n" % (image_path, ))
 
 
-@__injectable
+@register_ibs_method
 def export_to_hotspotter(ibs):
     from ibeis.dbio import export_hsdb
     export_hsdb.export_ibeis_to_hotspotter(ibs)
@@ -201,7 +204,7 @@ def export_to_hotspotter(ibs):
 #    ut.copy_files_to(gpath_list, dst_fpath_list=gname_list)
 
 
-@__injectable
+@register_ibs_method
 def get_image_time_statstr(ibs, gid_list=None):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -212,21 +215,21 @@ def get_image_time_statstr(ibs, gid_list=None):
     return unixtime_statstr
 
 
-@__injectable
+@register_ibs_method
 def get_image_annotation_bboxes(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.get_unflat_annotation_bboxes(aids_list)
     return bboxes_list
 
 
-@__injectable
+@register_ibs_method
 def get_image_annotation_thetas(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     thetas_list = ibs.get_unflat_annotation_thetas(aids_list)
     return thetas_list
 
 
-@__injectable
+@register_ibs_method
 def filter_junk_annotations(ibs, aid_list):
     r"""
     remove junk annotations from a list
@@ -259,7 +262,7 @@ def filter_junk_annotations(ibs, aid_list):
     return filtered_aid_list
 
 
-@__injectable
+@register_ibs_method
 def compute_all_chips(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips
@@ -270,7 +273,7 @@ def compute_all_chips(ibs, **kwargs):
     return cid_list
 
 
-@__injectable
+@register_ibs_method
 def compute_all_features(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips and features
@@ -281,7 +284,7 @@ def compute_all_features(ibs, **kwargs):
     return fid_list
 
 
-@__injectable
+@register_ibs_method
 def compute_all_featweights(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips and features
@@ -292,12 +295,12 @@ def compute_all_featweights(ibs, **kwargs):
     return featweight_rowid_list
 
 
-@__injectable
+@register_ibs_method
 def precompute_all_annot_dependants(ibs, **kwargs):
     ibs.compute_all_featweights(**kwargs)
 
 
-@__injectable
+@register_ibs_method
 def recompute_fgweights(ibs, aid_list=None):
     """ delete all feature weights and then recompute them """
     # Delete all featureweights
@@ -312,7 +315,7 @@ def recompute_fgweights(ibs, aid_list=None):
     ibs.get_annot_fgweights(aid_list, ensure=True)
 
 
-@__injectable
+@register_ibs_method
 def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=False):
     if chips or feats or featweights:
         cid_list = ibs.add_annot_chips(aid_list)
@@ -322,7 +325,7 @@ def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=Fa
         featweight_rowid_list = ibs.add_feat_featweights(fid_list)  # NOQA
 
 
-@__injectable
+@register_ibs_method
 def convert_empty_images_to_annotations(ibs):
     """ images without chips are given an ANNOTATION over the entire image """
     gid_list = ibs.get_empty_gids()
@@ -330,7 +333,7 @@ def convert_empty_images_to_annotations(ibs):
     return aid_list
 
 
-@__injectable
+@register_ibs_method
 def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                               notes_list=None, adjust_percent=0.0):
     """ Adds an annotation the size of the entire image to each image.
@@ -350,7 +353,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
     return aid_list
 
 
-@__injectable
+@register_ibs_method
 def assert_valid_species_texts(ibs, species_list, iswarning=True):
     if ut.NO_ASSERTS:
         return
@@ -367,7 +370,7 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             raise
 
 
-@__injectable
+@register_ibs_method
 def assert_singleton_relationship(ibs, alrids_list):
     if ut.NO_ASSERTS:
         return
@@ -380,7 +383,7 @@ def assert_singleton_relationship(ibs, alrids_list):
         raise
 
 
-@__injectable
+@register_ibs_method
 def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     r"""
     """
@@ -398,7 +401,7 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
         print('passed assert_valid_gids')
 
 
-@__injectable
+@register_ibs_method
 def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     r"""
     Args:
@@ -447,7 +450,7 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
         print('passed assert_valid_aids')
 
 
-@__injectable
+@register_ibs_method
 def get_missing_gids(ibs, gid_list=None):
     r"""
     Finds gids with broken links to the original data.
@@ -477,7 +480,7 @@ def get_missing_gids(ibs, gid_list=None):
     return bad_gids
 
 
-@__injectable
+@register_ibs_method
 def assert_images_exist(ibs, gid_list=None, verbose=True):
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -531,7 +534,7 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         raise
 
 
-@__injectable
+@register_ibs_method
 def check_image_consistency(ibs, gid_list=None):
     r"""
     Args:
@@ -600,7 +603,7 @@ def check_image_uuid_consistency(ibs, gid_list):
         assert guuid_stored == guuid_computed, 'image ix=%d had a bad uuid' % ix
 
 
-@__injectable
+@register_ibs_method
 def check_annot_consistency(ibs, aid_list=None):
     r"""
     Args:
@@ -686,7 +689,7 @@ def check_name_consistency(ibs, nid_list):
         raise AssertionError('A total of %d names failed check_name_consistency' % (len(error_list)))
 
 
-@__injectable
+@register_ibs_method
 def check_name_mapping_consistency(ibs, nx2_aids):
     """
     checks that all the aids grouped in a name ahave the same name
@@ -715,7 +718,7 @@ def check_name_mapping_consistency(ibs, nx2_aids):
         ut.printex(ex, keys=['good', 'bad', 'huh'])
 
 
-@__injectable
+@register_ibs_method
 def check_annot_size(ibs):
     print('Checking annot sizes')
     aid_list = ibs.get_valid_aids()
@@ -772,7 +775,7 @@ def check_exif_data(ibs, gid_list):
     end_()
 
 
-@__injectable
+@register_ibs_method
 def run_integrity_checks(ibs, embed=False):
     """ Function to run all database consistency checks """
     print('[ibsfuncs] Checking consistency')
@@ -791,7 +794,7 @@ def run_integrity_checks(ibs, embed=False):
     print('[ibsfuncs] Finshed consistency check')
 
 
-@__injectable
+@register_ibs_method
 def check_annotmatch_consistency(ibs):
     annomatch_rowids = ibs._get_all_annotmatch_rowids()
     aid1_list = ibs.get_annotmatch_aid1(annomatch_rowids)
@@ -804,7 +807,7 @@ def check_annotmatch_consistency(ibs):
     return invalid_annotmatch_rowids
 
 
-@__injectable
+@register_ibs_method
 def fix_invalid_annotmatches(ibs):
     print('Fixing invalid annotmatches')
     invalid_annotmatch_rowids = ibs.check_annotmatch_consistency()
@@ -850,7 +853,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
             assert len(ibs_dup_annots) == 0
 
 
-@__injectable
+@register_ibs_method
 def fix_and_clean_database(ibs):
     """ Function to run all database cleanup scripts
 
@@ -881,7 +884,7 @@ def fix_and_clean_database(ibs):
         print('finished fixes and consistency checks\n')
 
 
-@__injectable
+@register_ibs_method
 def fix_exif_data(ibs, gid_list):
     """ TODO CALL SCRIPT """
     import vtool.exif as exif
@@ -919,7 +922,7 @@ def fix_exif_data(ibs, gid_list):
         ibs.set_image_gps(gid_list__, latlon_list__)
 
 
-@__injectable
+@register_ibs_method
 def fix_invalid_nids(ibs):
     r"""
     Make sure that all rowids are greater than 0
@@ -966,7 +969,7 @@ def fix_invalid_nids(ibs):
             raise AssertionError(errmsg)
 
 
-@__injectable
+@register_ibs_method
 def fix_invalid_name_texts(ibs):
     r"""
     Ensure  that no name text is empty or '____'
@@ -1013,7 +1016,7 @@ def fix_invalid_name_texts(ibs):
         print('all names seem valid')
 
 
-@__injectable
+@register_ibs_method
 def copy_encounters(ibs, eid_list):
     r"""
     Args:
@@ -1058,7 +1061,7 @@ def copy_encounters(ibs, eid_list):
     return new_eid_list
 
 
-@__injectable
+@register_ibs_method
 def fix_unknown_exemplars(ibs):
     """
     Goes through all of the annotations, and sets their exemplar flag to 0 if it
@@ -1081,7 +1084,7 @@ def fix_unknown_exemplars(ibs):
     pass
 
 
-@__injectable
+@register_ibs_method
 def delete_all_recomputable_data(ibs):
     """
     Delete all cached data including chips and encounters
@@ -1093,7 +1096,7 @@ def delete_all_recomputable_data(ibs):
     print('[ibs] finished delete_all_recomputable_data')
 
 
-@__injectable
+@register_ibs_method
 def delete_cache(ibs, delete_chips=False, delete_encounters=False):
     """
     Deletes the cache directory in the database directory.
@@ -1108,7 +1111,7 @@ def delete_cache(ibs, delete_chips=False, delete_encounters=False):
         ibs.delete_all_encounters()
 
 
-@__injectable
+@register_ibs_method
 def delete_cachedir(ibs):
     """
     Deletes the cache directory in the database directory.
@@ -1127,7 +1130,7 @@ def delete_cachedir(ibs):
     ibs._init_sqldbcache()
 
 
-@__injectable
+@register_ibs_method
 def delete_qres_cache(ibs):
     print('[ibs] delete delete_qres_cache')
     qreq_cachedir = ibs.get_qres_cachedir()
@@ -1143,7 +1146,7 @@ def delete_qres_cache(ibs):
     print('[ibs] finished delete_qres_cache')
 
 
-@__injectable
+@register_ibs_method
 def delete_neighbor_cache(ibs):
     print('[ibs] delete neighbor_cache')
     neighbor_cachedir = ibs.get_neighbor_cachedir()
@@ -1152,7 +1155,7 @@ def delete_neighbor_cache(ibs):
     print('[ibs] finished delete neighbor_cache')
 
 
-@__injectable
+@register_ibs_method
 def delete_all_features(ibs):
     print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
@@ -1160,7 +1163,7 @@ def delete_all_features(ibs):
     print('[ibs] finished delete_all_features')
 
 
-@__injectable
+@register_ibs_method
 def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
     ut.ensuredir(ibs.chipdir)
@@ -1171,7 +1174,7 @@ def delete_all_chips(ibs):
     print('[ibs] finished delete_all_chips')
 
 
-@__injectable
+@register_ibs_method
 def delete_all_encounters(ibs):
     print('[ibs] delete_all_encounters')
     all_eids = ibs._get_all_eids()
@@ -1179,7 +1182,7 @@ def delete_all_encounters(ibs):
     print('[ibs] finished delete_all_encounters')
 
 
-@__injectable
+@register_ibs_method
 def delete_all_annotations(ibs):
     """ Carefull with this function. Annotations are not recomputable """
     print('[ibs] delete_all_annotations')
@@ -1191,12 +1194,12 @@ def delete_all_annotations(ibs):
     print('[ibs] finished delete_all_annotations')
 
 
-@__injectable
+@register_ibs_method
 def delete_thumbnails(ibs):
     ut.remove_files_in_dir(ibs.get_thumbdir())
 
 
-@__injectable
+@register_ibs_method
 def delete_flann_cachedir(ibs):
     print('[ibs] delete_flann_cachedir')
     flann_cachedir = ibs.get_flann_cachedir()
@@ -1215,17 +1218,17 @@ def print_flann_cachedir(ibs):
     print(ut.list_str(ut.ls(flann_cachedir)))
 
 
-@__injectable
+@register_ibs_method
 def vd(ibs):
     ibs.view_dbdir()
 
 
-@__injectable
+@register_ibs_method
 def view_dbdir(ibs):
     ut.view_directory(ibs.get_dbdir())
 
 
-@__injectable
+@register_ibs_method
 def get_empty_gids(ibs, eid=None):
     """ returns gid list without any chips """
     gid_list = ibs.get_valid_gids(eid=eid)
@@ -1234,7 +1237,7 @@ def get_empty_gids(ibs, eid=None):
     return empty_gids
 
 
-@__injectable
+@register_ibs_method
 def get_annot_vecs_cache(ibs, aids):
     """ When you have a list with duplicates and you dont want to copy data
     creates a reference to each data object indexed by a dict """
@@ -1246,7 +1249,7 @@ def get_annot_vecs_cache(ibs, aids):
 
 # TODO: move to const
 
-@__injectable
+@register_ibs_method
 def get_annot_is_hard(ibs, aid_list):
     """
     CmdLine:
@@ -1276,14 +1279,14 @@ def get_annot_is_hard(ibs, aid_list):
     return is_hard_list
 
 
-@__injectable
+@register_ibs_method
 def get_hard_annot_rowids(ibs):
     valid_aids = ibs.get_valid_aids()
     hard_aids = ut.filter_items(valid_aids, ibs.get_annot_is_hard(valid_aids))
     return hard_aids
 
 
-@__injectable
+@register_ibs_method
 def get_easy_annot_rowids(ibs):
     hard_aids = ibs.get_hard_annot_rowids()
     easy_aids = ut.setdiff_ordered(ibs.get_valid_aids(), hard_aids)
@@ -1291,7 +1294,7 @@ def get_easy_annot_rowids(ibs):
     return easy_aids
 
 
-@__injectable
+@register_ibs_method
 def set_annot_is_hard(ibs, aid_list, flag_list):
     """
     Hack to mark hard cases in the notes column
@@ -1322,37 +1325,37 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
     return is_hard_list
 
 
-@__injectable
+@register_ibs_method
 @accessor_decors.getter_1to1
 def is_nid_unknown(ibs, nid_list):
     return [ nid <= 0 for nid in nid_list]
 
 
-@__injectable
+@register_ibs_method
 def set_annot_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
     ibs.set_annot_names(aid_list, [next_name] * len(aid_list))
 
 
-@__injectable
+@register_ibs_method
 def _overwrite_annot_species_to_plains(ibs, aid_list):
     species_list = [const.Species.ZEB_PLAIN] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
-@__injectable
+@register_ibs_method
 def _overwrite_annot_species_to_grevys(ibs, aid_list):
     species_list = [const.Species.ZEB_GREVY] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
-@__injectable
+@register_ibs_method
 def _overwrite_annot_species_to_giraffe(ibs, aid_list):
     species_list = [const.Species.GIR] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
-@__injectable
+@register_ibs_method
 def _overwrite_all_annot_species_to(ibs, species):
     """ THIS OVERWRITES A LOT OF INFO """
     assert species in const.VALID_SPECIES, repr(species) + 'is not in ' + repr(const.VALID_SPECIES)
@@ -1497,7 +1500,7 @@ def vsstr(qaid, aid, lite=False):
         return 'qaid%d-vs-aid%d' % (qaid, aid)
 
 
-@__injectable
+@register_ibs_method
 @ut.time_func
 #@profile
 def update_exemplar_special_encounter(ibs):
@@ -1512,7 +1515,7 @@ def update_exemplar_special_encounter(ibs):
     ibs.set_image_eids(gid_list, [exemplar_eid] * len(gid_list))
 
 
-@__injectable
+@register_ibs_method
 @ut.time_func
 #@profile
 def update_reviewed_unreviewed_image_special_encounter(ibs):
@@ -1534,7 +1537,7 @@ def update_reviewed_unreviewed_image_special_encounter(ibs):
     ibs.set_image_eids(reviewed_gids, [reviewed_eid] * len(reviewed_gids))
 
 
-@__injectable
+@register_ibs_method
 @ut.time_func
 #@profile
 def update_all_image_special_encounter(ibs):
@@ -1546,7 +1549,7 @@ def update_all_image_special_encounter(ibs):
     ibs.set_image_eids(gid_list, [allimg_eid] * len(gid_list))
 
 
-@__injectable
+@register_ibs_method
 def get_special_eids(ibs):
     get_enctext_eid = ibs.get_encounter_eids_from_text
     special_enctext_list = [
@@ -1562,7 +1565,7 @@ def get_special_eids(ibs):
     return special_eids
 
 
-@__injectable
+@register_ibs_method
 def get_ungrouped_gids(ibs):
     """
     CommandLine:
@@ -1598,7 +1601,7 @@ def get_ungrouped_gids(ibs):
     return ungrouped_gids
 
 
-@__injectable
+@register_ibs_method
 #@ut.time_func
 #@profile
 def update_ungrouped_special_encounter(ibs):
@@ -1637,7 +1640,7 @@ def update_ungrouped_special_encounter(ibs):
         print('[ibsfuncs] update_ungrouped_special_encounter.5')
 
 
-@__injectable
+@register_ibs_method
 @ut.time_func
 #@profile
 def update_special_encounters(ibs):
@@ -1709,24 +1712,24 @@ def _get_exemplar_gids(ibs):
     return gid_list
 
 
-#@__injectable
+#@register_ibs_method
 #def print_stats(ibs):
     #from ibeis.other import dbinfo
     #dbinfo.dbstats(ibs)
 
 
-@__injectable
+@register_ibs_method
 def print_dbinfo(ibs, **kwargs):
     from ibeis.other import dbinfo
     dbinfo.get_dbinfo(ibs, *kwargs)
 
 
-@__injectable
+@register_ibs_method
 def print_infostr(ibs, **kwargs):
     print(ibs.get_infostr())
 
 
-@__injectable
+@register_ibs_method
 def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
     """
     Dumps annotation table to stdout
@@ -1755,7 +1758,7 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
     print(ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns))
 
 
-@__injectable
+@register_ibs_method
 def print_annotmatch_table(ibs):
     """
     Dumps annotation match table to stdout
@@ -1780,14 +1783,14 @@ def print_annotmatch_table(ibs):
     print(ibs.db.get_table_csv(const.ANNOTMATCH_TABLE, exclude_columns=exclude_columns))
 
 
-@__injectable
+@register_ibs_method
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.CHIP_TABLE))
 
 
-@__injectable
+@register_ibs_method
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -1795,7 +1798,7 @@ def print_feat_table(ibs):
         'feature_keypoints', 'feature_vecs']))
 
 
-@__injectable
+@register_ibs_method
 def print_image_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -1803,7 +1806,7 @@ def print_image_table(ibs, **kwargs):
     #, exclude_columns=['image_rowid']))
 
 
-@__injectable
+@register_ibs_method
 def print_party_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -1811,42 +1814,42 @@ def print_party_table(ibs, **kwargs):
     #, exclude_columns=['image_rowid']))
 
 
-@__injectable
+@register_ibs_method
 def print_lblannot_table(ibs, **kwargs):
     """ Dumps lblannot table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.LBLANNOT_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_name_table(ibs, **kwargs):
     """ Dumps name table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.NAME_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_species_table(ibs, **kwargs):
     """ Dumps species table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.SPECIES_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_alr_table(ibs, **kwargs):
     """ Dumps alr table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.AL_RELATION_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_config_table(ibs, **kwargs):
     """ Dumps config table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.CONFIG_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_encounter_table(ibs, **kwargs):
     """ Dumps encounter table to stdout
 
@@ -1857,14 +1860,14 @@ def print_encounter_table(ibs, **kwargs):
     print(ibs.db.get_table_csv(const.ENCOUNTER_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_egpairs_table(ibs, **kwargs):
     """ Dumps egpairs table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.EG_RELATION_TABLE, **kwargs))
 
 
-@__injectable
+@register_ibs_method
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
         exclude_columns = ['annot_uuid', 'lblannot_uuid', 'annot_verts', 'feature_keypoints',
@@ -1886,7 +1889,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     print('\n')
 
 
-@__injectable
+@register_ibs_method
 def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
     """
     Dumps annotation table to stdout
@@ -1914,7 +1917,7 @@ def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
     print(ibs.db.get_table_csv(const.CONTRIBUTOR_TABLE, exclude_columns=exclude_columns))
 
 
-@__injectable
+@register_ibs_method
 def is_aid_unknown(ibs, aid_list):
     """
     Returns if an annotation has been given a name (even if that name is temporary)
@@ -1929,7 +1932,7 @@ def make_enctext_list(eid_list, enc_cfgstr):
     return enctext_list
 
 
-@__injectable
+@register_ibs_method
 def batch_rename_consecutive_via_species(ibs, eid=None):
     """ actually sets the new consectuive names"""
     new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(eid=eid)
@@ -1950,7 +1953,7 @@ def batch_rename_consecutive_via_species(ibs, eid=None):
     ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET)
 
 
-@__injectable
+@register_ibs_method
 def get_consecutive_newname_list_via_species(ibs, eid=None):
     """
     Just creates the nams, but does not set them
@@ -2025,7 +2028,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     return new_nid_list, new_name_list
 
 
-@__injectable
+@register_ibs_method
 def set_annot_names_to_same_new_name(ibs, aid_list):
     new_nid = ibs.make_next_nids(num=1)[0]
     if ut.VERBOSE:
@@ -2034,7 +2037,7 @@ def set_annot_names_to_same_new_name(ibs, aid_list):
     ibs.set_annot_name_rowids(aid_list, [new_nid] * len(aid_list))
 
 
-@__injectable
+@register_ibs_method
 def set_annot_names_to_different_new_names(ibs, aid_list):
     new_nid_list = ibs.make_next_nids(num=len(aid_list))
     if ut.VERBOSE:
@@ -2043,7 +2046,7 @@ def set_annot_names_to_different_new_names(ibs, aid_list):
     ibs.set_annot_name_rowids(aid_list, new_nid_list)
 
 
-@__injectable
+@register_ibs_method
 def make_next_nids(ibs, *args, **kwargs):
     """
     makes name and adds it to the database returning the newly added name rowid(s)
@@ -2058,7 +2061,7 @@ def make_next_nids(ibs, *args, **kwargs):
     return next_nids
 
 
-@__injectable
+@register_ibs_method
 def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text=None):
     """ Creates a number of names which are not in the database, but does not
     add them
@@ -2199,7 +2202,7 @@ def draw_thumb_helper(tup):
     #return (thumb_path, thumb)
 
 
-@__injectable
+@register_ibs_method
 def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
                             draw_annots=True, thumbsize=None, **kwargs):
     """
@@ -2282,7 +2285,7 @@ def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots
     ut.evaluate_generator(gen)
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
     r"""
     This function is probably the fastest of its siblings
@@ -2328,7 +2331,7 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
     return list(nid2_aids.values())
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     r"""
     FIXME; rectify this
@@ -2365,7 +2368,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     return known_aids_list, unknown_aids
 
 
-@__injectable
+@register_ibs_method
 def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
                     clamp_gf=1, seed=False):
     """
@@ -2452,7 +2455,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     return upsizetup
 
 
-@__injectable
+@register_ibs_method
 def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     """
     get_annot_groundfalse_sample
@@ -2517,7 +2520,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     return gf_aids_list
 
 
-@__injectable
+@register_ibs_method
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     r"""
     get_annot_groundtruth_sample
@@ -2562,7 +2565,7 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     return sample_trues_list
 
 
-@__injectable
+@register_ibs_method
 def get_one_annot_per_name(ibs, col='rand'):
     r"""
 
@@ -2610,7 +2613,7 @@ def get_one_annot_per_name(ibs, col='rand'):
     return aid_list
 
 
-@__injectable
+@register_ibs_method
 def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
                            method='random', seed=0,
                            offset=0, stagger_names=False, distinguish_unknowns=True, grouped_aids=None):
@@ -2852,7 +2855,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     return aid_subset
 
 
-@__injectable
+@register_ibs_method
 def get_num_annots_per_name(ibs, aid_list):
     """
     Returns the number of annots per name (IN THIS LIST)
@@ -2892,14 +2895,14 @@ def get_num_annots_per_name(ibs, aid_list):
     return num_annots_per_name, unique_nids
 
 
-@__injectable
+@register_ibs_method
 def get_annots_per_name_stats(ibs, aid_list, **kwargs):
     stats_kw = dict(use_nan=True)
     stats_kw.update(kwargs)
     return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], **stats_kw)
 
 
-@__injectable
+@register_ibs_method
 def get_aids_with_groundtruth(ibs):
     """ returns aids with valid groundtruth """
     valid_aids = ibs.get_valid_aids()
@@ -2908,7 +2911,7 @@ def get_aids_with_groundtruth(ibs):
     return hasgt_aids
 
 
-@__injectable
+@register_ibs_method
 def get_dbnotes_fpath(ibs, ensure=False):
     notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
     if ensure and not exists(ibs.get_dbnotes_fpath()):
@@ -2971,21 +2974,21 @@ def get_species_dbs(species_prefix):
     return ut.filter_items(ibs_dblist, isvalid_list)
 
 
-@__injectable
+@register_ibs_method
 def get_annot_bbox_area(ibs, aid_list):
     bbox_list = ibs.get_annot_bboxes(aid_list)
     area_list = [bbox[2] * bbox[3] for bbox in bbox_list]
     return area_list
 
 
-@__injectable
+@register_ibs_method
 def get_match_text(ibs, aid1, aid2):
     truth = ibs.get_match_truth(aid1, aid2)
     text = const.TRUTH_INT_TO_TEXT.get(truth, None)
     return text
 
 
-@__injectable
+@register_ibs_method
 def get_database_species(ibs, aid_list=None):
     r"""
 
@@ -3015,7 +3018,7 @@ def get_database_species(ibs, aid_list=None):
     return unique_species
 
 
-@__injectable
+@register_ibs_method
 def get_primary_database_species(ibs, aid_list=None):
     r"""
     Args:
@@ -3058,7 +3061,7 @@ def get_primary_database_species(ibs, aid_list=None):
     return primary_species
 
 
-@__injectable
+@register_ibs_method
 def get_dominant_species(ibs, aid_list):
     r"""
     Args:
@@ -3084,7 +3087,7 @@ def get_dominant_species(ibs, aid_list):
     return species_text
 
 
-@__injectable
+@register_ibs_method
 def get_database_species_count(ibs, aid_list=None):
     """
 
@@ -3107,7 +3110,7 @@ def get_database_species_count(ibs, aid_list=None):
     return species_count_dict
 
 
-@__injectable
+@register_ibs_method
 def get_match_truth(ibs, aid1, aid2):
     nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
@@ -3122,7 +3125,7 @@ def get_match_truth(ibs, aid1, aid2):
     return truth
 
 
-@__injectable
+@register_ibs_method
 def get_aidpair_truths(ibs, aid1_list, aid2_list):
     r"""
     Uses NIDS to verify truth
@@ -3178,13 +3181,13 @@ def get_title(ibs):
     return title
 
 
-@__injectable
+@register_ibs_method
 def get_dbinfo_str(ibs):
     from ibeis.other import dbinfo
     return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
 
 
-@__injectable
+@register_ibs_method
 def get_infostr(ibs):
     """ Returns sort printable database information
 
@@ -3198,7 +3201,7 @@ def get_infostr(ibs):
     return dbinfo.get_short_infostr(ibs)
 
 
-@__injectable
+@register_ibs_method
 def get_dbnotes(ibs):
     """ sets notes for an entire database """
     notes = ut.read_from(ibs.get_dbnotes_fpath(), strict=False)
@@ -3208,19 +3211,19 @@ def get_dbnotes(ibs):
     return notes
 
 
-@__injectable
+@register_ibs_method
 def set_dbnotes(ibs, notes):
     """ sets notes for an entire database """
     assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
     ut.write_to(ibs.get_dbnotes_fpath(), notes)
 
 
-@__injectable
+@register_ibs_method
 def annotstr(ibs, aid):
     return 'aid=%d' % aid
 
 
-@__injectable
+@register_ibs_method
 def redownload_detection_models(ibs):
     r"""
     Args:
@@ -3244,7 +3247,7 @@ def redownload_detection_models(ibs):
     grabmodels.redownload_models(modeldir=modeldir)
 
 
-@__injectable
+@register_ibs_method
 def view_model_dir(ibs):
     print('[ibsfuncs] redownload_detection_models')
     modeldir = ibs.get_detect_modeldir()
@@ -3252,7 +3255,7 @@ def view_model_dir(ibs):
     #grabmodels.redownload_models(modeldir=modeldir)
 
 
-@__injectable
+@register_ibs_method
 def merge_names(ibs, merge_name, other_names):
     r"""
     Args:
@@ -3328,7 +3331,7 @@ def detect_false_positives(ibs):
     #    top_aids = qres.get_top_aids(num=2)
 
 
-@__injectable
+@register_ibs_method
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, eid=None, dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
@@ -3547,7 +3550,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_v
     return new_aid_list, new_flag_list
 
 
-@__injectable
+@register_ibs_method
 def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
     """
     TODO: this needs to be integrated more cleanly with a nonhacky way of
@@ -3663,7 +3666,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
     return aid_subset
 
 
-@__injectable
+@register_ibs_method
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
     """
     Example:
@@ -3782,7 +3785,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     return new_aid_list, new_flag_list
 
 
-#@__injectable
+#@register_ibs_method
 #def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, eid=None):
 #    """
 
@@ -3850,7 +3853,7 @@ def _split_car_contrib_tag(contrib_tag, distinguish_invalids=True):
         return contrib_tag
 
 
-@__injectable
+@register_ibs_method
 def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     def sanitize_list(data_list):
         data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
@@ -3993,13 +3996,13 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     return return_list
 
 
-@__injectable
+@register_ibs_method
 def report_sightings_str(ibs, **kwargs):
     line_list = ibs.report_sightings(**kwargs)
     return '\n'.join(line_list)
 
 
-@__injectable
+@register_ibs_method
 def check_chip_existence(ibs, aid_list=None):
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
@@ -4014,7 +4017,7 @@ def check_chip_existence(ibs, aid_list=None):
     ibs.delete_chips(cid_kill_list)
 
 
-@__injectable
+@register_ibs_method
 def is_special_encounter(ibs, eid_list):
     enctext_list = ibs.get_encounter_text(eid_list)
     isspecial_list = [str(enctext) in set(const.SPECIAL_ENCOUNTER_LABELS)
@@ -4022,7 +4025,7 @@ def is_special_encounter(ibs, eid_list):
     return isspecial_list
 
 
-@__injectable
+@register_ibs_method
 def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     r"""
     Args:
@@ -4066,7 +4069,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     return qual_flags
 
 
-@__injectable
+@register_ibs_method
 def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
     r"""
     Args:
@@ -4104,7 +4107,7 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
     return yaw_flags
 
 
-@__injectable
+@register_ibs_method
 def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
     qual_flags = get_quality_filterflags(aid_list, minqual)
     yaw_flags = get_viewpoint_filterflags(aid_list, valid_yaws)
@@ -4116,7 +4119,7 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
     return flags_list
 
 
-@__injectable
+@register_ibs_method
 def get_annot_custom_filterflags(ibs, aid_list):
     if not ibs.cfg.other_cfg.enable_custom_filter:
         return [True] * len(aid_list)
@@ -4128,7 +4131,7 @@ def get_annot_custom_filterflags(ibs, aid_list):
     return flags_list
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_custom(ibs, aid_list):
     r"""
     Args:
@@ -4162,7 +4165,7 @@ def filter_aids_custom(ibs, aid_list):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def flag_aids_count(ibs, aid_list):
     r"""
     Args:
@@ -4220,7 +4223,7 @@ def flag_aids_count(ibs, aid_list):
     return gzc_flag_list
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
     if aid_list is None:
         # Get all aids and pre-sort by unixtime
@@ -4233,7 +4236,7 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def filterflags_unflat_aids_custom(ibs, aids_list):
     def some(flags):
         """ like any, but some at least one must be True """
@@ -4243,7 +4246,7 @@ def filterflags_unflat_aids_custom(ibs, aids_list):
     return isvalid_list
 
 
-@__injectable
+@register_ibs_method
 def filter_nids_custom(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
@@ -4251,7 +4254,7 @@ def filter_nids_custom(ibs, nid_list):
     return filtered_nid_list
 
 
-@__injectable
+@register_ibs_method
 def filter_gids_custom(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
@@ -4259,7 +4262,7 @@ def filter_gids_custom(ibs, gid_list):
     return filtered_gid_list
 
 
-@__injectable
+@register_ibs_method
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
     CommandLine:
@@ -4298,7 +4301,7 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     return nid_list, gps_track_list, aid_track_list
 
 
-@__injectable
+@register_ibs_method
 def get_unflat_annots_kmdists_list(ibs, aids_list):
     #ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
@@ -4307,7 +4310,7 @@ def get_unflat_annots_kmdists_list(ibs, aids_list):
     return km_dists_list
 
 
-@__injectable
+@register_ibs_method
 def get_unflat_annots_hourdists_list(ibs, aids_list):
     """
     Example:
@@ -4327,7 +4330,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     return hour_dists_list
 
 
-@__injectable
+@register_ibs_method
 def get_unflat_annots_timedelta_list(ibs, aids_list):
     """
     Example:
@@ -4347,7 +4350,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
     return timedelta_list
 
 
-@__injectable
+@register_ibs_method
 def get_unflat_annots_speeds_list(ibs, aids_list):
     km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
@@ -4368,7 +4371,7 @@ def get_valid_multiton_nids_custom(ibs):
     return nid_list
 
 
-@__injectable
+@register_ibs_method
 def get_name_speeds(ibs, nid_list):
     r"""
     CommandLine:
@@ -4390,7 +4393,7 @@ def get_name_speeds(ibs, nid_list):
     return speeds_list
 
 
-@__injectable
+@register_ibs_method
 @accessor_decors.getter
 def get_name_hourdiffs(ibs, nid_list):
     """
@@ -4413,7 +4416,7 @@ def get_name_hourdiffs(ibs, nid_list):
     return hourdiffs_list
 
 
-@__injectable
+@register_ibs_method
 @accessor_decors.getter
 def get_name_max_hourdiff(ibs, nid_list):
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
@@ -4421,7 +4424,7 @@ def get_name_max_hourdiff(ibs, nid_list):
     return maxhourdiff_list
 
 
-@__injectable
+@register_ibs_method
 @accessor_decors.getter
 def get_name_max_speed(ibs, nid_list):
     """
@@ -4442,7 +4445,7 @@ def get_name_max_speed(ibs, nid_list):
     return maxspeed_list
 
 
-@__injectable
+@register_ibs_method
 def make_next_encounter_text(ibs):
     """
     Creates what the next encounter name would be but does not add it to the database
@@ -4469,7 +4472,7 @@ def make_next_encounter_text(ibs):
     return new_enctext
 
 
-@__injectable
+@register_ibs_method
 def add_next_encounter(ibs):
     """
     Adds a new encounter to the database
@@ -4479,7 +4482,7 @@ def add_next_encounter(ibs):
     return new_eid
 
 
-@__injectable
+@register_ibs_method
 def create_new_encounter_from_images(ibs, gid_list, new_eid=None):
     r"""
     Args:
@@ -4507,7 +4510,7 @@ def create_new_encounter_from_images(ibs, gid_list, new_eid=None):
     return new_eid
 
 
-@__injectable
+@register_ibs_method
 def new_encounters_from_images(ibs, gids_list):
     r"""
     Args:
@@ -4517,7 +4520,7 @@ def new_encounters_from_images(ibs, gids_list):
     return eid_list
 
 
-@__injectable
+@register_ibs_method
 def create_new_encounter_from_names(ibs, nid_list):
     r"""
     Args:
@@ -4547,7 +4550,7 @@ def create_new_encounter_from_names(ibs, nid_list):
     return new_eid
 
 
-@__injectable
+@register_ibs_method
 def prepare_annotgroup_review(ibs, aid_list):
     r"""
     Args:
@@ -4594,7 +4597,7 @@ def remove_rfdetect(ibs):
     ibs.set_annot_notes(aids, newnotes)
 
 
-@__injectable
+@register_ibs_method
 def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
     """ removes any aids that are known to match """
     ref_nids = set(ibs.get_annot_name_rowids(ref_aid_list))
@@ -4604,7 +4607,7 @@ def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def search_annot_notes(ibs, pattern, aid_list=None):
     """
 
@@ -4652,14 +4655,14 @@ def search_list(text_list, pattern, flags=0):
     return valid_index_list, valid_match_list
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
     qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
     aid_list_ = ut.list_compress(aid_list, qual_flags)
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
     """
     Removes aids that do not have a valid yaw
@@ -4671,7 +4674,7 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
     """
     Removes aids that do not have a valid yaw
@@ -4684,7 +4687,7 @@ def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_without_name(ibs, aid_list, invert=False):
     """
     Remove aids without names
@@ -4697,7 +4700,7 @@ def filter_aids_without_name(ibs, aid_list, invert=False):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     r"""
     Args:
@@ -4748,7 +4751,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     return filtered_aids
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     """
     Removes aids without timestamps
@@ -4762,7 +4765,7 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def filter_aids_to_species(ibs, aid_list, species):
     """
     Args:
@@ -4797,7 +4800,7 @@ def filter_aids_to_species(ibs, aid_list, species):
     return aid_list_
 
 
-@__injectable
+@register_ibs_method
 def partition_annots_into_singleton_multiton(ibs, aid_list):
     """
     aid_list = aid_list_
@@ -4808,7 +4811,7 @@ def partition_annots_into_singleton_multiton(ibs, aid_list):
     return singletons, multitons
 
 
-@__injectable
+@register_ibs_method
 def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     """
     Returns 4 lists of lists. In the first two each list is a list of aids
@@ -4869,7 +4872,7 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_grouped_aids2
 
 
-@__injectable
+@register_ibs_method
 def dans_lists(ibs, positives=10, negatives=10, verbose=False):
     from random import shuffle
 
@@ -4951,7 +4954,7 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
 
 
 # Quality and Viewpoint Stats
-@__injectable
+@register_ibs_method
 def get_annot_qual_stats(ibs, aid_list):
     annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
     qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
@@ -4963,7 +4966,7 @@ def get_annot_qual_stats(ibs, aid_list):
     return qualtext2_nAnnots
 
 
-@__injectable
+@register_ibs_method
 def get_annot_yaw_stats(ibs, aid_list):
     annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
     yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
@@ -4977,7 +4980,7 @@ def get_annot_yaw_stats(ibs, aid_list):
     return yawtext2_nAnnots
 
 
-@__injectable
+@register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """
         >>> from ibeis.ibsfuncs import *  # NOQA
@@ -5011,13 +5014,13 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     return edge2_vp2_pername_stats
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_name_dict(ibs, aids):
     grouped_aids, nids = ibs.group_annots_by_name(aids)
     return dict(zip(nids, map(list, grouped_aids)))
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_prop(ibs, aids, getter_func):
     # Make a dictionary that maps props into a dictionary of names to aids
     annot_prop_list = getter_func(aids)
@@ -5025,7 +5028,7 @@ def group_annots_by_prop(ibs, aids, getter_func):
     return prop2_aids
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_prop_and_name(ibs, aids, getter_func):
     # Make a dictionary that maps props into a dictionary of names to aids
     prop2_aids = group_annots_by_prop(ibs, aids, getter_func)
@@ -5033,7 +5036,7 @@ def group_annots_by_prop_and_name(ibs, aids, getter_func):
     return prop2_nid2_aids
 
 
-@__injectable
+@register_ibs_method
 def group_annots_by_multi_prop(ibs, aids, getter_list):
     r"""
 
@@ -5109,7 +5112,7 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
 
 
 # Indepdentent query / database stats
-@__injectable
+@register_ibs_method
 def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     """ stats for a set of annots
 
@@ -5195,7 +5198,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     return aid_stats_dict
 
 
-@__injectable
+@register_ibs_method
 def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
     aid_stats_dict = ibs.get_annot_stats_dict(aids, prefix=prefix, **kwargs)
     print(label + ut.dict_str(aid_stats_dict, strvals=True))
@@ -5232,18 +5235,18 @@ def viewpoint_diff(ori1, ori2):
     return viewpoint_diff
 
 
-@__injectable
+@register_ibs_method
 def get_annot_per_name_stats(ibs, aid_list):
     """  stats about this set of aids """
     return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], use_nan=True)
 
 
-@__injectable
+@register_ibs_method
 def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
     ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
 
 
-@__injectable
+@register_ibs_method
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwargs):
     r"""
     Args:
@@ -5391,7 +5394,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         return annotconfig_stats_strs, locals()
 
 
-@__injectable
+@register_ibs_method
 def get_dbname_alias(ibs):
     """
     convinience for plots

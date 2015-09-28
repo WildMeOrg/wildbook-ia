@@ -618,7 +618,7 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
         >>> # execute function
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> # verify results
