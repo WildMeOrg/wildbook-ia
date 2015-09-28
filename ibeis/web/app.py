@@ -707,7 +707,7 @@ def turk_detection():
     previous = request.args.get('previous', None)
     finished = gid is None
     review = 'review' in request.args.keys()
-    display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
+    display_instructions = request.cookies.get('detection_instructions_seen', 1) == 0
     display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
@@ -804,7 +804,7 @@ def turk_viewpoint():
     value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
+    display_instructions = request.cookies.get('viewpoint_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
@@ -864,7 +864,7 @@ def turk_quality():
         value = 1
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
+    display_instructions = request.cookies.get('quality_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
@@ -940,7 +940,7 @@ def turk_additional():
 
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('additional_instructions_seen', 0) == 0
+    display_instructions = request.cookies.get('additional_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
