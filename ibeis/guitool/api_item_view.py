@@ -30,9 +30,10 @@ VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
 VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtGui.QAbstractItemView
-register_view_method = utool.make_class_method_decorator(API_VIEW_BASE, __name__)
+ABSTRACT_VIEW_INJECT_KEY = ('QtGui.QAbstractItemView', 'guitool')
+register_view_method = utool.make_class_method_decorator(ABSTRACT_VIEW_INJECT_KEY, __name__)
 
-injectviewinstance = functools.partial(utool.inject_instance, classtype=API_VIEW_BASE)
+injectviewinstance = functools.partial(utool.inject_instance, classkey=ABSTRACT_VIEW_INJECT_KEY)
 
 
 VALID_API_MODELS = (FilterProxyModel, StripeProxyModel, APIItemModel)
