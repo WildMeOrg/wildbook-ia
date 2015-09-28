@@ -541,6 +541,21 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
 
 ##########################################################################################
 
+def dev_autogen_explicit_imports():
+    r"""
+    CommandLine:
+        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.controller_inject import *  # NOQA
+        >>> dev_autogen_explicit_imports()
+    """
+    import ibeis  # NOQA
+    classname = CONTROLLER_CLASSNAME
+    print(ut.autogen_import_list(classname))
+
+
 def dev_autogen_explicit_injects():
     r"""
     CommandLine:
@@ -549,22 +564,15 @@ def dev_autogen_explicit_injects():
     Example:
         >>> # SCRIPT
         >>> from ibeis.control.controller_inject import *  # NOQA
-        >>> result = dev_autogen_explicit_injects()
-        >>> print(result)
+        >>> dev_autogen_explicit_injects()
     """
     import ibeis  # NOQA
-    #ibs = ibeis.opendb('testdb1')
-    classname = 'IBEISController'
-    line_list = []
-    for modname in ut.util_class.__CLASSKEY_MODNAME_REGISTER__[classname]:
-        parts = modname.split('.')
-        frompart = '.'.join(parts[:-1])
-        imppart = parts[-1]
-        line = 'from %s import %s  # NOQA' % (frompart, imppart)
-        line_list.append(line)
-    print('\n'.join(line_list))
-    #ut.util_class.__CLASSTYPE_ATTRIBUTES__
-    #ut.util_class.__CLASSTYPE_POSTINJECT_FUNCS__
+    classname = CONTROLLER_CLASSNAME
+    source_block = ut.autogen_explicit_injectable_metaclass(classname)
+    import ibeis.control.IBEISControl
+    dpath = ut.get_module_dir(ibeis.control.IBEISControl)
+    fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
+    ut.writeto(fpath, source_block)
 
 
 CONTROLLER_CLASSNAME = 'IBEISController'

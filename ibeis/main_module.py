@@ -56,7 +56,7 @@ def _init_matplotlib():
 
 
 #@profile
-def _init_gui():
+def _init_gui(activate=True):
     import guitool
     if NOT_QUIET:
         print('[main] _init_gui()')
@@ -68,7 +68,8 @@ def _init_gui():
     #else:
     #    from ibeis.gui import newgui
     #    back = newgui.IBEISGuiWidget()
-    guitool.activate_qwindow(back.mainwin)
+    if activate:
+        guitool.activate_qwindow(back.mainwin)
     return back
 
 
@@ -278,7 +279,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         # Build IBEIS Control object
         ibs = _init_ibeis(dbdir)
         if gui and USE_GUI:
-            back = _init_gui()
+            back = _init_gui(activate=kwargs.get('activate', True))
             back.connect_ibeis_control(ibs)
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))

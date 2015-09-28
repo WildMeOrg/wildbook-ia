@@ -553,6 +553,7 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     autogen_cmd = ut.codeblock(
         '''
         python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
+        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
         python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
         '''
     ).format(schema_spec_fname=schema_spec_fname, funcname=schema_spec_fname.lower())

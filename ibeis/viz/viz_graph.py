@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import plottool as pt
 import vtool as vt
+import numpy as np  # NOQA
 #import sys
 #from os.path import join
 try:
@@ -103,6 +104,49 @@ def make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list):
     return netx_graph
 
 
+def make_netx_graph_from_nids(ibs, nids, full=False):
+    aids_list = ibs.get_name_aids(nids)
+    import itertools
+    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
+    #if full:
+    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+    aids1 = ut.get_list_column(aid_pairs, 0)
+    aids2 = ut.get_list_column(aid_pairs, 1)
+
+    unique_aids = list(ut.flatten(aids_list))
+
+    if not full:
+        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
+        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+    return make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
+
+
+def make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=None):
+    # Enumerate annotmatch properties
+    import numpy as np  # NOQA
+    rng = np.random.RandomState(0)
+    edge_props = {
+        'weight': rng.rand(len(aids1)),
+        #'reviewer_confidence': rng.rand(len(aids1)),
+        #'algo_confidence': rng.rand(len(aids1)),
+    }
+
+    edge_keys = list(edge_props.keys())
+    edge_vals = ut.dict_take(edge_props, edge_keys)
+
+    if unique_aids is None:
+        unique_aids = list(set(aids1 + aids2))
+    # Make a graph between the chips
+    nodes = list(zip(unique_aids))
+    edges = list(zip(aids1, aids2, *edge_vals))
+    node_lbls = [('aid', 'int')]
+    edge_lbls = [('weight', 'float')]
+    netx_graph = make_netx_graph(nodes, edges, node_lbls, edge_lbls)
+    return netx_graph
+
+
 def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
     print('make_netx_graph')
     # Make a graph between the chips
@@ -116,82 +160,46 @@ def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
     return netx_graph
 
 
-def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
-    if fnum is None:
-        fnum = pt.next_fnum()
-    print('[encounter] drawing chip graph')
-    pt.figure(fnum=fnum, pnum=(1, 1, 1))
-    ax = pt.gca()
-    #pos = netx.spring_layout(graph)
-    pos = netx.graphviz_layout(netx_graph)
-    #pos = netx.fruchterman_reingold_layout(netx_graph)
-    #pos = netx.spring_layout(netx_graph)
-    netx.draw(netx_graph, pos=pos, ax=ax)
-    if with_images:
-        import cv2
-        aid_list = netx_graph.nodes()
-        pos_list = [pos[aid] for aid in aid_list]
-        img_list = ibs.get_annot_chips(aid_list)
-        img_list = [vt.resize_thumb(img, (220, 220)) for img in img_list]
-        img_list = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in img_list]
-        netx_draw_images_at_positions(img_list, pos_list, zoom=zoom)
-
-
 def netx_draw_images_at_positions(img_list, pos_list, zoom=.4):
     """
     References:
         https://gist.github.com/shobhit/3236373
         http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+
+        http://matplotlib.org/api/text_api.html
+        http://matplotlib.org/api/offsetbox_api.html
+
+    TODO: look into DraggableAnnotation
     """
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
     print('[encounter] drawing %d images' % len(img_list))
-    # Thumb stack
+    # Thumb stackartist
     ax  = pt.gca()
-    fig = pt.gcf()
-    trans_data_to_axes = ax.transData.transform
-    trans_figure_to_axes = fig.transFigure.inverted().transform
-    def trans_data_to_figure(pt_data):
-        pt_ax = trans_data_to_axes(pt_data)
-        pt_fig = trans_figure_to_axes(pt_ax)
-        return pt_fig
-    #for pos, img in ut.ProgressIter(zip(pos_list, img_list),  lbl='drawing img'):
     artist_list = []
     offset_img_list = []
     for pos, img in zip(pos_list, img_list):
-        FIG_COORDS = False
-        if FIG_COORDS:
-            pass
-            #x, y = trans_data_to_figure(pos)
-            #height, width = trans_data_to_figure(img.shape[0:2])
-            ## Hack to get the sizes correct
-            #height *= .17
-            #width *= .17
-            #tlx = x - (width / 2.0)
-            #tly = y - (height / 2.0)
-            #img_bbox = [tlx, tly, width, height]
-            ## Make new axis for the image
-            #img_ax = pt.plt.axes(img_bbox)
-            #img_ax.imshow(img)
-            #pt.draw_border(img_ax)
-            #img_ax.set_aspect('equal')
-            #img_ax.axis('off')
-        else:
-            x, y = pos
-            height, width = img.shape[0:2]
-            #offset_img = OffsetImage(img, zoom=.4)
-            offset_img = OffsetImage(img, zoom=zoom)
-            artist = AnnotationBbox(
-                offset_img,
-                (x, y),
-                xybox=(-0., 0.),
-                xycoords='data',
-                boxcoords="offset points",
-                pad=0.1)  # ,arrowprops=dict(arrowstyle="->"))
-            offset_img_list.append(offset_img)
-            artist_list.append(artist)
+        x, y = pos
+        height, width = img.shape[0:2]
+        offset_img = OffsetImage(img, zoom=zoom)
+        artist = AnnotationBbox(
+            offset_img,
+            (x, y),
+            xybox=(-0., 0.),
+            xycoords='data',
+            boxcoords="offset points",
+            #pad=0.1,
+            pad=0.25,
+            #frameon=False,
+            frameon=True,
+            #bboxprops=dict(fc="cyan"),
+        )  # ,arrowprops=dict(arrowstyle="->"))
+        offset_img_list.append(offset_img)
+        artist_list.append(artist)
 
     for artist in artist_list:
         ax.add_artist(artist)
+
+    # TODO: move this to the interaction
 
     def _onresize(event):
         print('foo' + ut.get_timestamp())
@@ -252,6 +260,135 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4):
         return zoom_fun
     #pt.interact_helpers.connect_callback(fig, 'resize_event', _onresize)
     zoom_factory(ax)
+    return artist_list
+
+
+def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
+    if fnum is None:
+        fnum = pt.next_fnum()
+    print('[encounter] drawing chip graph')
+    pt.figure(fnum=fnum, pnum=(1, 1, 1))
+    ax = pt.gca()
+    #pos = netx.spring_layout(graph)
+    pos = netx.graphviz_layout(netx_graph)
+    #pos = netx.fruchterman_reingold_layout(netx_graph)
+    #pos = netx.spring_layout(netx_graph)
+    netx.draw(netx_graph, pos=pos, ax=ax)
+    if with_images:
+        import cv2
+        aid_list = netx_graph.nodes()
+        pos_list = [pos[aid] for aid in aid_list]
+        img_list = ibs.get_annot_chips(aid_list)
+        img_list = [vt.resize_thumb(img, (220, 220)) for img in img_list]
+        img_list = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in img_list]
+        artist_list = netx_draw_images_at_positions(img_list, pos_list, zoom=zoom)
+        for artist, aid in zip(artist_list, aid_list):
+            pt.set_plotdat(artist, 'aid', aid)
+    return pos
+
+
+def make_split_interaction(ibs, netx_graph):
+    import plottool as pt
+    from plottool.abstract_interaction import AbstractInteraction
+
+    class SplitInteraction(AbstractInteraction):
+        def __init__(self, ibs, netx_graph):
+            super(SplitInteraction, self).__init__()
+            self.netx_graph = netx_graph
+            self.ibs = ibs
+            self.selected_aids = []
+            self.aid2_index = {key: val for val, key in enumerate(netx_graph.nodes())}
+
+        def plot(self, fnum, pnum):
+            from ibeis.viz.viz_graph import viz_netx_chipgraph
+            self.pos = viz_netx_chipgraph(self.ibs, self.netx_graph,
+                                          fnum=self.fnum, with_images=True,
+                                          zoom=.4)
+            #self.static_plot(fnum, pnum)
+
+        def toggle_selected_aid(self, aid):
+            ax = self.ax
+            if aid in self.selected_aids:
+                self.selected_aids.remove(aid)
+                index = self.aid2_index[aid]
+                artist = ax.artists[index]
+                artist.patch.set_facecolor(pt.WHITE)
+            else:
+                self.selected_aids.append(aid)
+                index = self.aid2_index[aid]
+                artist = ax.artists[index]
+                artist.patch.set_facecolor(pt.ORANGE)
+            ax.figure.canvas.draw()  # force re-draw
+
+        def on_key_press(self, event):
+            print(event)
+            if event.key == 'i':
+                ut.embed()
+
+            if len(self.selected_aids) == 2:
+                ibs = self.ibs
+                aid1, aid2 = self.selected_aids
+                _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+                if _rowid is None:
+                    _rowid = ibs.get_annotmatch_rowid_from_superkey([aid2], [aid1])
+                rowid = _rowid
+
+        def on_click_inside(self, event, ax):
+            self.ax = ax
+            self.event = event
+            event = self.event
+            #print(ax)
+            #print(event.x)
+            #print(event.y)
+            aids = list(self.pos.keys())
+            pos_list = ut.dict_take(self.pos, aids)
+            #x = 10
+            #y = 10
+            import numpy as np  # NOQA
+            x, y = event.xdata, event.ydata
+            point = np.array([x, y])
+            pos_list = np.array(pos_list)
+            index, dist = vt.closest_point(point, pos_list)
+            #print('point = %r' % (point,))
+            #print('pos_list = %r' % (pos_list,))
+            #print('dist = %r' % (dist,))
+            #print('index = %r' % (index,))
+            aid = aids[index]
+
+            print('aid = %r' % (aid,))
+
+            self.toggle_selected_aid(aid)
+
+            if self.event.button == 3:
+                # right click
+                import guitool
+                from ibeis.viz.interact import interact_chip
+                height = self.fig.canvas.geometry().height()
+                qpoint = guitool.newQPoint(event.x, height - event.y)
+                #refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
+                refresh_func = None
+                interact_chip.show_annot_context_menu(
+                    ibs, aid, self.fig.canvas, qpoint, refresh_func=refresh_func,
+                    with_interact_name=False)
+
+    self = SplitInteraction(ibs, netx_graph)
+    self.show_page()
+    self.show()
+
+    #ax = self.fig.axes[0]
+    #for index in range(len(ax.artists)):
+    #    artist = ax.artists[index]
+    #    bbox = artist.patch
+    #    bbox.set_facecolor(pt.ORANGE)
+    #    #offset_img = artist.offsetbox
+    #    #img = offset_img.get_data()
+    #    #offset_img.set_data(vt.draw_border(img, thickness=5))
+
+    #bbox = artist.patch
+
+    #ax.figure.canvas.draw()  # force re-draw
+
+    return self
 
 
 if __name__ == '__main__':

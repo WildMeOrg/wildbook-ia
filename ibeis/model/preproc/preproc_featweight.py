@@ -234,10 +234,11 @@ def generate_featweight_properties(ibs, feat_rowid_list, config2_=None):
         >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
+        >>> config2_ = ibs.new_query_params(dict(fg_on=True, featweight_detector='rf'))
         >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=True)
         >>> #fid_list = ibs.get_valid_fids()[1:2]
-        >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list)
+        >>> featweighttup_gen = generate_featweight_properties(ibs, fid_list, config2_=config2_)
         >>> featweighttup_list = list(featweighttup_gen)
         >>> featweight_list = featweighttup_list[0][0]
         >>> featweight_test = featweight_list[0:3]

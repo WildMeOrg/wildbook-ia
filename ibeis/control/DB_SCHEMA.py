@@ -1135,15 +1135,21 @@ def update_1_4_6(db, ibs=None):
             # HACK: add a column for parsable tags, this should later be
             # replaced with a tag table and a tag-annot relation table
             (None, 'annot_tags',    'TEXT', None),
+            # Remove these columns
+            ('annot_is_occluded', None, None, None),
+            ('annot_is_shadowed', None, None, None),
+            ('annot_is_washedout', None, None, None),
+            ('annot_is_blury', None, None, None),
+            ('annot_is_novelpose', None, None, None),
+            ('annot_is_commonpose', None, None, None),
         ]
     )
-    # TODO: Remove these columns
-    #(None, 'annot_is_occluded',    'INTEGER', None),
-    #(None, 'annot_is_shadowed',    'INTEGER', None),
-    #(None, 'annot_is_washedout',   'INTEGER', None),
-    #(None, 'annot_is_blury',       'INTEGER', None),
-    #(None, 'annot_is_novelpose',   'INTEGER', None),
-    #(None, 'annot_is_commonpose',  'INTEGER', None),
+    db.modify_table(
+        const.ANNOTMATCH_TABLE, [
+            (None, 'annotmatch_reviewed', 'INTEGER', None),
+            (None, 'annotmatch_reviewer', 'TEXT', None),
+        ]
+    )
 
 
 def update_1_4_7(db, ibs=None):
@@ -1204,7 +1210,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.3',    (None,                 update_1_4_3,       None                )),
     ('1.4.4',    (None,                 update_1_4_4,       None                )),
     ('1.4.5',    (None,                 update_1_4_5,       None                )),
-    #('1.4.6',    (None,                 update_1_4_6,       None                )),
+    ('1.4.6',    (None,                 update_1_4_6,       None                )),
     #('1.4.7',    (None,                 update_1_4_7,       None                )),
 ])
 

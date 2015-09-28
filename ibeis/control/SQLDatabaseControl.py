@@ -56,7 +56,8 @@ class SQLAtomicContext(object):
             context.cur.close()
 
 
-def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None):
+def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname,
+                                version_current, version_next=None):
     """
     hacky function to ensure that only developer sees the development schema
     and only on test databases
@@ -64,12 +65,14 @@ def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_curren
     TESTING_NEW_SQL_VERSION = version_current != version_next
     if TESTING_NEW_SQL_VERSION:
         print('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
-        devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'testdb2', 'testdb_dst2', 'emptydatabase']
+        devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'testdb2',
+                      'testdb_dst2', 'emptydatabase']
         testing_newschmea = ut.is_developer() and dbname in devdb_list
         #testing_newschmea = False
         #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
         if testing_newschmea:
-            # Set to true until the schema module is good then continue tests with this set to false
+            # Set to true until the schema module is good then continue tests
+            # with this set to false
             testing_force_fresh = True or ut.get_argflag('--force-fresh')
             # Work on a fresh schema copy when developing
             dev_sqldb_fname = ut.augpath(sqldb_fname, '_develop_schema')
@@ -945,7 +948,8 @@ class SQLDatabaseController(object):
         assert tablename is not None, 'tablename must be given'
         if VERBOSE_SQL or ut.VERBOSE:
             print('[sql] schema modifying tablename=%r' % tablename)
-            print('[sql] * colmap_list = ' + 'None' if colmap_list is None else ut.list_str(colmap_list))
+            print('[sql] * colmap_list = ' + 'None' if colmap_list is None else
+                  ut.list_str(colmap_list))
 
         if colmap_list is None:
             colmap_list = []
@@ -963,8 +967,10 @@ class SQLDatabaseController(object):
             #    ut.embed()
             if (src is None or isinstance(src, int)):
                 # Add column
-                assert dst is not None and len(dst) > 0, "New column's name must be valid"
-                assert type_ is not None and len(type_) > 0, "New column's type must be specified"
+                assert dst is not None and len(dst) > 0, (
+                    "New column's name must be valid")
+                assert type_ is not None and len(type_) > 0, (
+                    "New column's type must be specified")
                 if isinstance(src, int) and (src < 0 or len(colname_list) <= src):
                     src = None
                 if src is None:
@@ -972,19 +978,22 @@ class SQLDatabaseController(object):
                     coltype_list.append(type_)
                 else:
                     if insert:
-                        print('[sql] WARNING: multiple index inserted add columns, may cause allignment issues')
+                        print('[sql] WARNING: multiple index inserted add columns'
+                              ', may cause allignment issues')
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
             else:
                 try:
-                    assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
+                    assert src in colname_list, (
+                        'Unkown source colname=%s in tablename=%s' % (src, tablename))
                 except AssertionError as ex:
                     ut.printex(ex, keys=['colname_list'])
                 index = colname_list.index(src)
                 if dst is None:
                     # Drop column
-                    assert src is not None and len(src) > 0, "Deleted column's name  must be valid"
+                    assert src is not None and len(src) > 0, (
+                        "Deleted column's name  must be valid")
                     del colname_list[index]
                     del coltype_list[index]
                     del colname_dict[src]

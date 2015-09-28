@@ -476,11 +476,12 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         else:
             tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
             tags = [_.lower() for _ in tags]
-        standard, other = ibsfuncs.get_cate_categories()
+        from ibeis import tag_funcs
+        standard, other = tag_funcs.get_cate_categories()
         case_list = standard + other
 
-        used_chars = find_used_chars(ut.get_list_column(options, 0))
-        case_hotlink_list = make_word_hotlinks(case_list, used_chars)
+        used_chars = guitool.find_used_chars(ut.get_list_column(options, 0))
+        case_hotlink_list = guitool.make_word_hotlinks(case_list, used_chars)
         case_options = []
         if True or ut.VERBOSE:
             print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
@@ -552,38 +553,6 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         #    if ut.VERBOSE:
         #        print('[inspect_gui] options = %s' % (ut.list_str(options),))
     return options
-
-
-def find_used_chars(name_list):
-    """ Move to guitool """
-    used_chars = []
-    for name in name_list:
-        index = name.find('&')
-        if index == -1 or index + 1 >= len(name):
-            continue
-        char = name[index + 1]
-        used_chars.append(char)
-    return used_chars
-
-
-def make_word_hotlinks(name_list, used_chars):
-    """ Move to guitool """
-    seen_ = set(used_chars)
-    hotlinked_name_list = []
-    for name in name_list:
-        added = False
-        for count, char in enumerate(name):
-            char = char.upper()
-            if char not in seen_:
-                added = True
-                seen_.add(char)
-                linked_name = name[:count] + '&' + name[count:]
-                hotlinked_name_list.append(linked_name)
-                break
-        if not added:
-            # Cannot hotlink this name
-            hotlinked_name_list.append(name)
-    return hotlinked_name_list
 
 
 def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, **kwargs):

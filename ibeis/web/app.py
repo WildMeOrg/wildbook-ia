@@ -1556,7 +1556,7 @@ def error404(exception=None):
 ################################################################################
 
 
-def start_tornado(ibs, port=None, browser=BROWSER):
+def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
     """
         Initialize the web server
     """
@@ -1575,8 +1575,10 @@ def start_tornado(ibs, port=None, browser=BROWSER):
         print('[web] Tornado server starting at %s' % (app.server_url,))
         # Launch the web browser to view the web interface and API
         if browser:
+            url = app.server_url + url_suffix
             import webbrowser
-            webbrowser.open(app.server_url)
+            print('[web] opening browser with url = %r' % (url,))
+            webbrowser.open(url)
         # Start the tornado web handler
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
@@ -1592,7 +1594,7 @@ def start_tornado(ibs, port=None, browser=BROWSER):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix=''):
     """
     Parse command line options and start the server.
 
@@ -1611,4 +1613,4 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None):
         print('[web] Pre-computing all annotation chips...')
         ibs.check_chip_existence()
         ibs.compute_all_chips()
-    start_tornado(ibs, port, browser)
+    start_tornado(ibs, port, browser, url_suffix)

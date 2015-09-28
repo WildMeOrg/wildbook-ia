@@ -14,7 +14,6 @@ TODO:
 # TODO: rename annotation annotations
 # TODO: make all names consistent
 from __future__ import absolute_import, division, print_function
-# Python
 import six
 import atexit
 import requests
@@ -25,21 +24,24 @@ import utool as ut
 import ibeis  # NOQA
 from ibeis.init import sysres
 from ibeis import constants as const
-#from ibeis import params
 from ibeis.control import accessor_decors, controller_inject
-from ibeis.control.accessor_decors import (default_decorator, )
 import xml.etree.ElementTree as ET
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
-from ibeis import ibsfuncs
+from ibeis import ibsfuncs  # NOQA
 from ibeis.model.hots import pipeline
 
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.
+#     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
 #     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+
+# Ensure that all injectable modules are imported before constructing the class
+# instance
 
 # <Pyinstaller hacks>
 from ibeis import annotmatch_funcs  # NOQA
+from ibeis import tag_funcs  # NOQA
 
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import _autogen_party_funcs  # NOQA
@@ -65,57 +67,15 @@ from ibeis.control import manual_feat_funcs  # NOQA
 
 
 # Shiny new way to inject external functions
-autogenmodname_list = [
-    ('ibeis.control', '_autogen_featweight_funcs'),
-    ('ibeis.control', '_autogen_party_funcs'),
-    ('ibeis.control', '_autogen_annotmatch_funcs'),
-    # ('ibeis.control', '_autogen_annot_funcs'),
-    ('ibeis.control', 'manual_ibeiscontrol_funcs'),
-    ('ibeis.control', 'manual_wildbook_funcs'),
-    ('ibeis.control', 'manual_meta_funcs'),
-    ('ibeis.control', 'manual_lbltype_funcs'),   # DEPRICATE
-    ('ibeis.control', 'manual_lblannot_funcs'),  # DEPRICATE
-    ('ibeis.control', 'manual_lblimage_funcs'),  # DEPRICATE
-    ('ibeis.control', 'manual_image_funcs'),
-    ('ibeis.control', 'manual_encounter_funcs'),
-    ('ibeis.control', 'manual_egrelate_funcs'),
-    ('ibeis.control', 'manual_garelate_funcs'),
-    ('ibeis.control', 'manual_annot_funcs'),
-    ('ibeis.control', 'manual_name_funcs'),
-    ('ibeis.control', 'manual_species_funcs'),
-    ('ibeis.control', 'manual_annotgroup_funcs'),
-    # ('ibeis.control', 'manual_dependant_funcs'),
-    ('ibeis.control', 'manual_chip_funcs'),
-    ('ibeis.control', 'manual_feat_funcs'),
-]
-
 #WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
 WITH_CNN = not ut.get_argflag(('--no-cnn', '--nocnn'))
 
 # HACK, don't include cnn unless its already there due to theano stuff
-pluginmodname_list = []
 import sys
 if 'ibeis_cnn' in sys.modules or WITH_CNN:
     from ibeis_cnn import _plugin  # NOQA
     import ibeis_cnn  # NOQA
-    #pluginmodname_list = [
-    #    ('ibeis_cnn', '_plugin'),
-    #]
 
-
-def make_explicit_imports_for_pyinstaller():
-    #making actual imports pyinstaller
-    print('\n'.join(['from %s import %s  # NOQA' % pkgtup for pkgtup in autogenmodname_list]))
-
-INJECTED_MODULES = []
-
-for pkgname, modname in autogenmodname_list + pluginmodname_list:
-    try:
-        exec('from %s import %s' % (pkgname, modname, ), globals(), locals())
-        module = eval(modname)
-        INJECTED_MODULES.append(module)
-    except ImportError as ex:
-        ut.printex(ex, 'Cannot load package=%r, module=%r' % (pkgname, modname, ))
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
@@ -162,7 +122,6 @@ def request_IBEISController(
         >>> result = str(ibs)
         >>> print(result)
     """
-    # TODO: change name from new to request
     global __IBEIS_CONTROLLER_CACHE__
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
@@ -250,7 +209,10 @@ class IBEISController(object):
         if tablename is None:
             ibs.reset_table_cache()
         else:
-            del ibs.table_cache[tablename]
+            try:
+                del ibs.table_cache[tablename]
+            except KeyError:
+                pass
 
     def get_cachestats_str(ibs):
         """
@@ -269,14 +231,6 @@ class IBEISController(object):
         print(cachestats_str)
         return cachestats_str
 
-    #def inject_module_plugin(ibs, module):
-    #    global INJECTED_MODULES
-    #    if module not in INJECTED_MODULES:
-    #        INJECTED_MODULES.append(module)
-    #    ut.inject_instance(
-    #        ibs, classkey=module.CLASS_INJECT_KEY,
-    #        allow_override=ibs.allow_override, strict=False)
-
     def _initialize_self(ibs):
         """
         For utools auto reload
@@ -286,20 +240,11 @@ class IBEISController(object):
         if ut.VERBOSE:
             print('[ibs] _initialize_self()')
         ibs.reset_table_cache()
-
         ut.util_class.inject_all_external_modules(
             ibs, controller_inject.CONTROLLER_CLASSNAME,
             allow_override=ibs.allow_override)
-
-        #ut.inject_instance(ibs, classkey=ibsfuncs.CLASS_INJECT_KEY,
-        #                   allow_override=ibs.allow_override, strict=True)
         assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
         assert hasattr(ibs, 'get_annot_pair_timdelta'), 'issue with annotmatch_funcs'
-
-        #ut.inject_instance(ibs, classkey=('IBEISController', 'autogen_featweight'),
-        #                   allow_override=ibs.allow_override, strict=False)
-        #ut.inject_instance(ibs, classkey=('IBEISController', 'manual'),
-        #                   allow_override=ibs.allow_override, strict=False)
         ibs.register_controller()
 
     def _on_reload(ibs):
@@ -313,10 +258,15 @@ class IBEISController(object):
         ibs.allow_override = True
         ibs.unregister_controller()
         # Reload dependent modules
-        for module in INJECTED_MODULES:
-            module.rrr()
-        ibsfuncs.rrr()
-        pass
+        ut.reload_injected_modules(controller_inject.CONTROLLER_CLASSNAME)
+
+    #def inject_module_plugin(ibs, module):
+    #    global INJECTED_MODULES
+    #    if module not in INJECTED_MODULES:
+    #        INJECTED_MODULES.append(module)
+    #    ut.inject_instance(
+    #        ibs, classkey=module.CLASS_INJECT_KEY,
+    #        allow_override=ibs.allow_override, strict=False)
 
     # We should probably not implement __del__
     # see: https://docs.python.org/2/reference/datamodel.html#object.__del__
@@ -350,18 +300,18 @@ class IBEISController(object):
         for observer_weakref in ibs.observer_weakref_list:
             observer_weakref().notify_controller_killed()
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def register_observer(ibs, observer):
         print('[register_observer] Observer registered: %r' % observer)
         observer_weakref = weakref.ref(observer)
         ibs.observer_weakref_list.append(observer_weakref)
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def remove_observer(ibs, observer):
         print('[remove_observer] Observer removed: %r' % observer)
         ibs.observer_weakref_list.remove(observer)
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def notify_observers(ibs):
         print('[notify_observers] Observers (if any) notified')
         for observer_weakref in ibs.observer_weakref_list:
@@ -383,7 +333,7 @@ class IBEISController(object):
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def _init_sql(ibs, request_dbversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
@@ -435,13 +385,13 @@ class IBEISController(object):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.4.5'
+            ibs.db_version_expected = '1.4.6'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.5')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.6')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
@@ -498,7 +448,7 @@ class IBEISController(object):
         ibs.db.close()
         ibs.db = None
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
@@ -507,13 +457,13 @@ class IBEISController(object):
         #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
         return ibs2
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def backup_database(ibs):
         from ibeis.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
                                      ibs.backupdir)
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def _send_wildbook_request(ibs, wbaddr, payload=None):
         if wbaddr is None:
             return
@@ -531,7 +481,7 @@ class IBEISController(object):
             return None
         return response
 
-    @default_decorator
+    @accessor_decors.default_decorator
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
                    workdir='~/ibeis_workdir', ensure=True):
         """
@@ -833,7 +783,7 @@ class IBEISController(object):
     # --- DETECTION ---
     #------------------
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @accessor_decors.getter_1to1
     @register_api('/api/core/detect_random_forest/', methods=['PUT', 'GET'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
@@ -1105,7 +1055,7 @@ class IBEISController(object):
     # --- IDENTIFICATION ---
     #-----------------------
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/get_current_log_text/', methods=['GET'])
     def get_current_log_text(ibs):
         """
@@ -1130,7 +1080,7 @@ class IBEISController(object):
         text = ut.get_current_log_text()
         return text
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/recognition_query_aids/', methods=['GET'])
     def get_recognition_query_aids(ibs, is_known, species=None):
         """
@@ -1404,7 +1354,7 @@ class IBEISController(object):
     #_query_chips = _query_chips3
     _query_chips = _query_chips4
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/query_encounter/', methods=['PUT'])
     def query_encounter(ibs, qaid_list, eid, **kwargs):
         """
@@ -1421,7 +1371,7 @@ class IBEISController(object):
             qres.eid = eid
         return qaid2_qres
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/query_exemplars/', methods=['PUT'])
     def query_exemplars(ibs, qaid_list, **kwargs):
         """
@@ -1435,7 +1385,7 @@ class IBEISController(object):
         assert len(daid_list) > 0, 'there are no exemplars'
         return ibs._query_chips4(qaid_list, daid_list, **kwargs)
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/query_all/', methods=['PUT'])
     def query_all(ibs, qaid_list, **kwargs):
         """
@@ -1451,7 +1401,7 @@ class IBEISController(object):
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/has_species_detector/', methods=['GET'])
     def has_species_detector(ibs, species_text):
         """
@@ -1464,7 +1414,7 @@ class IBEISController(object):
         # FIXME: infer this
         return species_text in const.SPECIES_WITH_DETECTORS
 
-    @default_decorator
+    @accessor_decors.default_decorator
     @register_api('/api/core/species_with_detectors/', methods=['GET'])
     def get_species_with_detectors(ibs):
         """

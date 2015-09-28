@@ -31,6 +31,52 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
 
     CommandLine:
         python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+
+    """
+    import guitool
+    callback_list = build_annot_context_options(ibs, aid,
+                                                refresh_func=refresh_func,
+                                                with_interact_name=with_interact_name,
+                                                with_interact_chip=with_interact_chip,
+                                                with_interact_image=with_interact_image,
+                                                config2_=config2_)
+    guitool.popup_menu(qwin, qpoint, callback_list)
+
+
+def build_annot_context_options(ibs, aid, refresh_func=None,
+                                 with_interact_name=True,
+                                 with_interact_chip=True,
+                                 with_interact_image=True, config2_=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid (int):  annotation id
+        refresh_func (None): (default = None)
+        with_interact_name (bool): (default = True)
+        with_interact_chip (bool): (default = True)
+        with_interact_image (bool): (default = True)
+        config2_ (dict): (default = None)
+
+    Returns:
+        list: callback_list
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_chip --exec-build_annot_context_options
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid = ibs.get_valid_aids()[0]
+        >>> refresh_func = None
+        >>> with_interact_name = True
+        >>> with_interact_chip = True
+        >>> with_interact_image = True
+        >>> config2_ = None
+        >>> callback_list = build_annot_context_options(ibs, aid, refresh_func, with_interact_name, with_interact_chip, with_interact_image, config2_)
+        >>> result = ('callback_list = %s' % (ut.list_str(callback_list, nl=4),))
+        >>> print(result)
     """
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
@@ -86,6 +132,38 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
     ]
     nid = ibs.get_annot_name_rowids(aid)
 
+    with_tags = True
+    if with_tags:
+        from ibeis import tag_funcs
+        case_list = tag_funcs.get_available_annot_tags()
+        tags = ibs.get_annot_case_tags([aid])[0]
+        tags = [_.lower() for _ in tags]
+
+        case_hotlink_list = guitool.make_word_hotlinks(case_list)
+
+        def _wrap_set_annot_prop(prop, toggle_val):
+            if ut.VERBOSE:
+                print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+            ibs.set_annot_prop(prop, [aid], [toggle_val])
+            if ut.VERBOSE:
+                print('[SETTING] done')
+
+        from functools import partial
+
+        annot_tag_options = []
+        for case, case_hotlink in zip(case_list, case_hotlink_list):
+            toggle_val = case.lower() not in tags
+            fmtstr = 'Mark %s case' if toggle_val else 'Untag %s'
+            annot_tag_options += [
+                #(fmtstr % (case_hotlink,), lambda: ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(), [toggle_val])),
+                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
+                (fmtstr % (case_hotlink,), partial(_wrap_set_annot_prop, case, toggle_val)),
+            ]
+
+        callback_list += [
+            ('Set Annot &Tags', annot_tag_options),
+        ]
+
     if with_interact_chip:
         callback_list += [
             ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None, config2_=config2_))
@@ -106,7 +184,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
         callback_list.append(
             ('View detection chip (probability) [dev]', lambda: viz.show_probability_chip(ibs, aid, config2_=config2_)),
         )
-    guitool.popup_menu(qwin, qpoint, callback_list)
+    return callback_list
 
 
 # CHIP INTERACTION 2
@@ -145,7 +223,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
-    mode_ptr = [1]
+    #mode_ptr = [1]
+    mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont

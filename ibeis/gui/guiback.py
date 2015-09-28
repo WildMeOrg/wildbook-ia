@@ -1149,7 +1149,7 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list (int):  list of annotation ids
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-run_annot_splits --show
+            python -m ibeis.gui.guiback --test-run_annot_splits:1 --show
 
         Example:
             >>> # GUI_DOCTEST
@@ -1162,10 +1162,13 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> ut.quit_if_noshow()
             >>> guitool.qtapp_loop(back.mainwin, frequency=100)
 
-        Ignore:
+        Example:
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback(defaultdb='PZ_Master1')
-            >>> ibs = back.ibs
+            >>> import numpy as np
+            >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
+            >>> #ibs = back.ibs
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
             >>> # Find aids that still need splits
             >>> aid_pair_list = ibs.filter_aidpairs_by_tags('SplitCase')
             >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
@@ -1182,13 +1185,25 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> aid_list = split_aids_list[0]
             >>> #
             >>> print('Run splits for tagd problem cases %r' % (problem_aids))
-            >>> back.run_annot_splits(aid_list)
+            >>> #back.run_annot_splits(aid_list)
             >>> print('Review splits for tagd problem cases %r' % (problem_aids))
+            >>> from ibeis.viz import viz_graph
+            >>> nids = [split_nids[0]]
+            >>> netx_graph = viz_graph.make_netx_graph_from_nids(ibs, nids)
+            >>> self = viz_graph.make_split_interaction(ibs, netx_graph)
+            >>> ut.show_if_requested()
 
             rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
             ibs.get_annotmatch_prop('SplitCase', rowids)
 
             #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
+
+
+
+
+            viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)
+            import plottool as pt
+            pt.iup()
 
 
         """

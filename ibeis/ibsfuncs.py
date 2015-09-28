@@ -4109,8 +4109,8 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
 
 @register_ibs_method
 def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
-    qual_flags = get_quality_filterflags(aid_list, minqual)
-    yaw_flags = get_viewpoint_filterflags(aid_list, valid_yaws)
+    qual_flags = get_quality_filterflags(ibs, aid_list, minqual)
+    yaw_flags = get_viewpoint_filterflags(ibs, aid_list, valid_yaws)
     #qual_list = ibs.get_annot_qualities(aid_list)
     #yaw_list = ibs.get_annot_yaw_texts(aid_list)
     #qual_flags = (qual is None or qual > minqual for qual in qual_list)
