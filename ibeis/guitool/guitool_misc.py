@@ -16,6 +16,38 @@ WITH_GUILOG = utool.get_argflag('--guilog')
 #WITH_GUILOG = not utool.get_argflag('--noguilog')
 
 
+def find_used_chars(name_list):
+    """ Move to guitool """
+    used_chars = []
+    for name in name_list:
+        index = name.find('&')
+        if index == -1 or index + 1 >= len(name):
+            continue
+        char = name[index + 1]
+        used_chars.append(char)
+    return used_chars
+
+
+def make_word_hotlinks(name_list, used_chars=[]):
+    """ Move to guitool """
+    seen_ = set(used_chars)
+    hotlinked_name_list = []
+    for name in name_list:
+        added = False
+        for count, char in enumerate(name):
+            char = char.upper()
+            if char not in seen_:
+                added = True
+                seen_.add(char)
+                linked_name = name[:count] + '&' + name[count:]
+                hotlinked_name_list.append(linked_name)
+                break
+        if not added:
+            # Cannot hotlink this name
+            hotlinked_name_list.append(name)
+    return hotlinked_name_list
+
+
 class BlockContext(object):
     def __init__(self, widget):
         self.widget = widget
