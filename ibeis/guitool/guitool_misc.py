@@ -28,13 +28,40 @@ def find_used_chars(name_list):
     return used_chars
 
 
-def make_word_hotlinks(name_list, used_chars=[]):
-    """ Move to guitool """
+def make_word_hotlinks(name_list, used_chars=[], after_colon=False):
+    """ Move to guitool
+
+    Args:
+        name_list (list):
+        used_chars (list): (default = [])
+
+    Returns:
+        list: hotlinked_name_list
+
+    CommandLine:
+        python -m guitool.guitool_misc --exec-make_word_hotlinks
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_misc import *  # NOQA
+        >>> name_list = ['occlusion', 'occlusion:large', 'occlusion:medium', 'occlusion:small', 'lighting', 'lighting:shadowed', 'lighting:overexposed', 'lighting:underexposed']
+        >>> used_chars = []
+        >>> hotlinked_name_list = make_word_hotlinks(name_list, used_chars)
+        >>> result = ('hotlinked_name_list = %s' % (str(hotlinked_name_list),))
+        >>> print(result)
+    """
     seen_ = set(used_chars)
     hotlinked_name_list = []
     for name in name_list:
         added = False
-        for count, char in enumerate(name):
+        if after_colon:
+            split_chars = name.split(':')
+            offset = len(':'.join(split_chars[:-1])) + 1
+            avail_chars = split_chars[-1]
+        else:
+            offset = 0
+            avail_chars = name
+        for count, char in enumerate(avail_chars, start=offset):
             char = char.upper()
             if char not in seen_:
                 added = True
