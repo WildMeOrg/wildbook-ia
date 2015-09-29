@@ -11,6 +11,14 @@
         </div>
         <input type="submit" name="group-review-submit" id="turk-submit-review"   class="btn btn-default pull-left" value="Begin Review"/>
         <input type="submit" name="group-review-submit" id="turk-submit-populate" class="btn btn-default pull-right" value="Populate"/>
+        <br/>
+        <select name="group-review-mode" class="form-control" style="margin-top:30px;">
+            {% for mode, mode_nice in mode_list %}
+            <option value="{{ mode }}" default>{{ mode_nice }}</option>
+            {% endfor %}
+            <!--<option value="turk_viewpoint" default>Viewpoint</option>-->
+            <!--<option value="turk_quality">Quality</option>-->
+        </select>
     </form>
   </div>
 {% endblock %}

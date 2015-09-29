@@ -38,7 +38,7 @@
         <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&eid={{ eid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
-      <form method="post" action="{{ url_for('submit_quality') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}">
+      <form method="post" action="{{ url_for('submit_quality') }}?eid={{ eid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="quality-aid" value="{{ aid }}" style="display: none;" readonly>
         Value: <span id="label-value"></span> | Label: <span id="label-text"></span>
         <br/>
@@ -72,7 +72,7 @@
         </div>
         <br/>
         {% if previous %}
-          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_quality') }}?eid={{ eid }}&aid={{ previous }}">Previous {{ previous }}</a>
+          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_quality') }}?eid={{ eid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
         <input type="submit" name="quality-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
         <input type="submit" name="quality-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">

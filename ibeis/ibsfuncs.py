@@ -1482,8 +1482,98 @@ def ensure_unix_gpaths(gpath_list):
     return gpath_list
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_info(ibs, aid_list, default=False, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        default (bool): (default = False)
+
+    Returns:
+        list: infodict_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_annot_info --tb
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> default = True
+        >>> infodict_list = ibs.get_annot_info(1, default)
+        >>> result = ('infodict_list = %s' % (ut.obj_str(infodict_list, nl=4),))
+        >>> print(result)
+    """
+    # TODO rectify and combine with viz_helpers.get_annot_texts
+    key_list = []
+    vals_list = []
+
+    #if len(aid_list) == 0:
+    #    return []
+
+    key = 'aid'
+    if kwargs.get(key, default):
+        vals_list += [aid_list]
+        key_list += [key]
+
+    key = 'notes'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_notes(aid_list)]
+        key_list += [key]
+
+    key = 'tags'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_case_tags(aid_list)]
+        key_list += [key]
+
+    key = 'name'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_names(aid_list)]
+        key_list += [key]
+
+    key = 'nid'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_name_rowids(aid_list)]
+        key_list += [key]
+
+    key = 'num_gt'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_num_groundtruth(aid_list)]
+        key_list += [key]
+
+    key = 'gname'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_image_names(aid_list)]
+        key_list += [key]
+
+    key = 'yawtext'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_yaw_texts(aid_list)]
+        key_list += [key]
+
+    key = 'quality_text'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_quality_texts(aid_list)]
+        key_list += [key]
+
+    key = 'exemplar'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_exemplar_flags(aid_list)]
+        key_list += [key]
+
+    infodict_list = [
+        {key_: val for key_, val in zip(key_list, vals)}
+        for vals in zip(*vals_list)
+    ]
+    return infodict_list
+
+
 def aidstr(aid, ibs=None, notes=False):
-    """ Helper to make a string from an RID """
+    """ Helper to make a string from an aid """
     if not notes:
         return 'aid%d' % (aid,)
     else:
@@ -4627,32 +4717,10 @@ def search_annot_notes(ibs, pattern, aid_list=None):
     # convert a list of patterns into an or statement
     if isinstance(pattern, (list, tuple)):
         pattern = '|'.join(['(%s)' % pat for pat in pattern])
-    valid_index_list, valid_match_list = search_list(notes_list, pattern, flags=re.IGNORECASE)
+    valid_index_list, valid_match_list = ut.search_list(notes_list, pattern, flags=re.IGNORECASE)
     #[match.group() for match in valid_match_list]
     valid_aid_list = ut.list_take(aid_list, valid_index_list)
     return valid_aid_list
-
-
-def search_list(text_list, pattern, flags=0):
-    """
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-search_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> text_list = ['ham', 'jam', 'eggs', 'spam']
-        >>> pattern = '.am'
-        >>> flags = 0
-        >>> (valid_index_list, valid_match_list) = search_list(text_list, pattern, flags)
-        >>> result = str(valid_index_list)
-        >>> print(result)
-        [0, 1, 3]
-    """
-    match_list = [re.search(pattern, text, flags=flags) for text in text_list]
-    valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
-    valid_match_list = ut.list_take(match_list, valid_index_list)
-    return valid_index_list, valid_match_list
 
 
 @register_ibs_method
@@ -4667,8 +4735,25 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
     """
     Removes aids that do not have a valid yaw
 
-    TODO; rename to valid_viewpoint because this func uses category labels
+    TODO: rename to valid_viewpoint because this func uses category labels
+
+    valid_yaws = ['primary', 'primary1', 'primary-1']
     """
+
+    def rectify_view_category(view):
+        @ut.memoize
+        def _primary_species():
+            return ibs.get_primary_database_species()
+        if view == 'primary':
+            view = get_primary_species_viewpoint(_primary_species())
+        if view == 'primary1':
+            view = get_primary_species_viewpoint(_primary_species(), 1)
+        if view == 'primary-1':
+            view = get_primary_species_viewpoint(_primary_species(), -1)
+        return view
+
+    valid_yaws = [rectify_view_category(view) for view in valid_yaws]
+
     yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
     aid_list_ = ut.list_compress(aid_list, yaw_flags)
     return aid_list_
@@ -5403,20 +5488,25 @@ def get_dbname_alias(ibs):
     return const.DBNAME_ALIAS.get(dbname, dbname)
 
 
-def find_unlabeled_name_members(ibs):
+@register_ibs_method
+def find_unlabeled_name_members(ibs, **kwargs):
     r"""
+    Find annots where some members of a name have information but others do not.
+
     Args:
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-find_unlabeled_name_members
+        python -m ibeis.ibsfuncs --exec-find_unlabeled_name_members --qual
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> result = find_unlabeled_name_members(ibs)
+        >>> defaultdict = dict(ut.parse_func_kwarg_keys(find_unlabeled_name_members, with_vals=True))
+        >>> kwargs = ut.argparse_dict(defaultdict)
+        >>> result = find_unlabeled_name_members(ibs, **kwargs)
         >>> print(result)
     """
     aid_list = ibs.get_valid_aids()
@@ -5429,25 +5519,79 @@ def find_unlabeled_name_members(ibs):
         missing_aids_list = ut.list_take(aids_list, missing_idx_list)
         #missing_prop_list = ut.list_take(props_list, missing_idx_list)
         missing_aid_list = vt.zipcompress(missing_aids_list, missing_flag_list)
+
+        if False:
+            missing_percent_list = [sum(flags) / len(flags) for flags in missing_flag_list]
+            print('Missing per name stats')
+            print(ut.dict_str(ut.get_stats(missing_percent_list, use_median=True)))
         return missing_aid_list
 
-    props_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
-    flags_list = [np.isnan(props) for props in props_list]
-    missing_time_aid_list = find_missing(props_list, flags_list)
-    print('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
+    selected_aids_list = []
 
-    props_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
-    flags_list = [ut.flag_None_items(props) for props in props_list]
-    missing_yaw_aid_list = find_missing(props_list, flags_list)
-    print('num_names_missing_qual = %r' % (len(missing_yaw_aid_list),))
+    if kwargs.get('time', False):
+        props_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
+        flags_list = [np.isnan(props) for props in props_list]
+        missing_time_aid_list = find_missing(props_list, flags_list)
+        print('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
+        selected_aids_list.append(missing_time_aid_list)
 
-    props_list = ibs.unflat_map(ibs.get_annot_qualities, aids_list)
-    flags_list = [[p is None or p == -1 for p in props] for props in props_list]
-    missing_qual_aid_list = find_missing(props_list, flags_list)
-    print('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
+    if kwargs.get('yaw', False):
+        props_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
+        flags_list = [ut.flag_None_items(props) for props in props_list]
+        missing_yaw_aid_list = find_missing(props_list, flags_list)
+        print('num_names_missing_yaw = %r' % (len(missing_yaw_aid_list),))
+        selected_aids_list.append(missing_yaw_aid_list)
+
+    if kwargs.get('qual', False):
+        props_list = ibs.unflat_map(ibs.get_annot_qualities, aids_list)
+        flags_list = [[p is None or p == -1 for p in props] for props in props_list]
+        missing_qual_aid_list = find_missing(props_list, flags_list)
+        print('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
+        selected_aids_list.append(missing_qual_aid_list)
+
+    x = ut.flatten(selected_aids_list)
+    y = ut.sortedby2(x, list(map(len, x)))
+    selected_aids = ut.unique_keep_order2(ut.flatten(y))
+    return selected_aids
 
     #ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)
     #ibs.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+
+
+@register_ibs_method
+def start_web_annot_groupreview(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    CommandLine:
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
+        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        >>> #aid_list = ibs.get_valid_aids()
+        >>> # -----
+        >>> any_tags = ut.get_argval('--tags', type_=list, default=['Viewpoint'])
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> prop = any_tags[0]
+        >>> filtered_annotmatch_rowids = filter_annotmatch_by_tags(ibs, None, any_tags=any_tags, min_num=min_num)
+        >>> aid1_list = (ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
+        >>> aid2_list = (ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))
+        >>> aid_list = list(set(ut.flatten([aid2_list, aid1_list])))
+        >>> result = start_web_annot_groupreview(ibs, aid_list)
+        >>> print(result)
+    """
+    import ibeis.web
+    aid_strs = ','.join(list(map(str, aid_list)))
+    url_suffix = '/group_review/?aid_list=%s' % (aid_strs)
+    ibeis.web.app.start_from_ibeis(ibs, url_suffix=url_suffix, browser=True)
 
 
 if __name__ == '__main__':

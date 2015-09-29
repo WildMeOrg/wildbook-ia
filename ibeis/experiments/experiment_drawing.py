@@ -178,12 +178,12 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
     from ibeis.init import main_helpers
     #from ibeis.experiments import cfghelpers
     import plottool as pt
-    from ibeis import ibsfuncs
+    from ibeis import tag_funcs
     filt_cfg = main_helpers.testdata_filtcfg(f)
     case_pos_list = test_result.case_sample2(filt_cfg)
     all_tags = test_result.get_all_tags()
 
-    all_tags = [ibsfuncs.consolodate_tags(case_tags) for case_tags in all_tags]
+    all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
 
     selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
     flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))

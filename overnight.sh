@@ -1,6 +1,6 @@
+./regen_figdefexpt.sh --noshow
+sleep 1
 ./regen_figdefexpt.sh
-sleep1
+sleep 1
 ./regen_figdefexpt.sh
-sleep1
-./regen_figdefexpt.sh
-sleep1
+sleep 1

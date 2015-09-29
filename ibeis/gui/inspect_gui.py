@@ -32,6 +32,162 @@ REVIEWED_STATUS_TEXT = 'Reviewed'
 USE_FILTER_PROXY = False
 
 
+def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
+    """ assert that the ampersand cannot have duplicate keys
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        qres (QueryResult):  object of feature correspondences and scores
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+        aid_list (list):  list of annotation rowids(default = None)
+
+    Returns:
+        list: options
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
+        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
+
+        # Other scripts that call this one;w
+        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
+        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show --verbadd --verbaset --verbose
+        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db testdb1 --show --qaid 1
+        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
+
+
+        python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl   -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs, qreq_, qres = ibeis.testdata_qres()
+        >>> aid1 = qres.qaid
+        >>> aid2 = qres.get_top_aids()[0]
+        >>> aid_list = None
+        >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_, aid_list)
+        >>> result = ('options = %s' % (ut.list_str(options),))
+        >>> print(result)
+
+    """
+    if ut.VERBOSE:
+        print('[inspect_gui] Building AID pair context menu options')
+    assert qreq_ is not None, 'must specify qreq_'
+    show_chip_match_features_option = ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_))
+    if aid_list is not None:
+        # Give a subcontext menu for multiple options
+        def partial_show_chip_matches_to(aid_):
+            return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
+        show_chip_match_features_option = (
+            'Show chip feature matches',
+            [
+                ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
+                for aid_ in aid_list
+            ]
+        )
+
+    options = [
+        show_chip_match_features_option,
+        ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+        ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
+        ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),
+        ('Mark as &True Match.', lambda: mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+        ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+    ]
+
+    with_interact_chips = True
+    if with_interact_chips:
+        from ibeis.viz.interact import interact_chip
+
+        aid_list2 = [aid1, aid2]
+        config2_list_ = [qreq_.get_external_query_config2(), qreq_.get_external_data_config2()]
+
+        interact_chip_options = []
+        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
+            interact_chip_options += [
+                ('Interact Chip&%d' % (count,), lambda: interact_chip.ishow_chip(ibs, aid, config2_=config2_, fnum=None, **kwargs)),
+            ]
+        interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
+        interact_chip_options.append(
+            ('Interact &All Chips', lambda: [func() for func in interact_chip_actions]),
+        )
+
+        chip_contex_options = []
+        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
+            chip_contex_options += [
+                ('Chip&%d Options (aid=%r)' % (count, aid,), interact_chip.build_annot_context_options(
+                    ibs, aid, refresh_func=None, config2_=config2_))
+            ]
+
+        options += [
+            ('Interact Chips', interact_chip_options),
+            ('Chip Conte&xt Options', chip_contex_options),
+        ]
+
+    with_match_tags = True
+    if with_match_tags:
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+
+        if annotmatch_rowid is None:
+            tags = []
+        else:
+            tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
+            tags = [_.lower() for _ in tags]
+        from ibeis import tag_funcs
+        standard, other = tag_funcs.get_cate_categories()
+        case_list = standard + other
+
+        #used_chars = guitool.find_used_chars(ut.get_list_column(options, 0))
+        used_chars = []
+        case_hotlink_list = guitool.make_word_hotlinks(case_list, used_chars)
+        case_options = []
+        if True or ut.VERBOSE:
+            print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+            print('[inspect_gui] tags = %r' % (tags,))
+        if ut.VERBOSE:
+            print('[inspect_gui] Making case hotlist: ' + ut.list_str(case_hotlink_list))
+
+        def _wrap_set_annotmatch_prop(prop, toggle_val):
+            if ut.VERBOSE:
+                print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+            if ut.VERBOSE:
+                print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
+                print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
+            ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
+            if ut.VERBOSE:
+                print('[SETTING] done')
+            if True:
+                # hack for reporting
+                if annotmatch_rowid is None:
+                    tags = []
+                else:
+                    tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
+                    tags = [_.lower() for _ in tags]
+                print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+                print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+                print('[inspect_gui] tags = %r' % (tags,))
+
+        for case, case_hotlink in zip(case_list, case_hotlink_list):
+            toggle_val = case.lower() not in tags
+            fmtstr = 'Flag %s case' if toggle_val else 'Unflag %s case'
+            case_options += [
+                #(fmtstr % (case_hotlink,), lambda: ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(), [toggle_val])),
+                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
+                (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop, case, toggle_val)),
+            ]
+        if ut.VERBOSE:
+            print('Partial tag funcs:' + ut.list_str([ut.func_str(func, func.args, func.keywords) for func in ut.get_list_column(case_options, 1)]))
+        options += [
+            ('Match Ta&gs', case_options)
+        ]
+    return options
+
+
 class CustomFilterModel(FilterProxyModel):
     def __init__(model, headers=None, parent=None, *args):
         FilterProxyModel.__init__(model, parent=parent, *args)
@@ -384,175 +540,6 @@ def review_match_at_qtindex(qres_wgt, qtindex):
 
 
 # ______
-
-
-def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
-    """ assert that the ampersand cannot have duplicate keys
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  annotation id
-        aid2 (int):  annotation id
-        qres (QueryResult):  object of feature correspondences and scores
-        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
-        aid_list (list):  list of annotation rowids(default = None)
-
-    Returns:
-        list: options
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
-
-        # Other scripts that call this one;w
-        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
-        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show --verbadd --verbaset --verbose
-        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db testdb1 --show --qaid 1
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
-
-
-        python -m ibeis.dev -e cases -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --show --vh
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> ibs, qreq_, qres = ibeis.testdata_qres()
-        >>> aid1 = qres.qaid
-        >>> aid2 = qres.get_top_aids()[0]
-        >>> aid_list = None
-        >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_, aid_list)
-        >>> result = ('options = %s' % (ut.list_str(options),))
-        >>> print(result)
-
-    """
-    if ut.VERBOSE:
-        print('[inspect_gui] Building AID pair context menu options')
-    assert qreq_ is not None, 'must specify qreq_'
-    show_chip_match_features_option = ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_))
-    if aid_list is not None:
-        # Give a subcontext menu for multiple options
-        def partial_show_chip_matches_to(aid_):
-            return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
-        show_chip_match_features_option = (
-            'Show chip feature matches',
-            [
-                ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
-                for aid_ in aid_list
-            ]
-        )
-
-    options = [
-        show_chip_match_features_option,
-        ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
-        ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
-        ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),
-        ('Mark as &True Match.', lambda: mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-        ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-    ]
-
-    from ibeis.viz.interact import interact_chip
-
-    interact_chip_options = [
-        ('Interact Chip&1', lambda: interact_chip.ishow_chip(ibs, aid1, config2_=qreq_.get_external_query_config2(), fnum=None, **kwargs)),
-        ('Interact Chip&2', lambda: interact_chip.ishow_chip(ibs, aid2, config2_=qreq_.get_external_data_config2(), fnum=None, **kwargs)),
-    ]
-    interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
-    interact_chip_options.append(
-        ('Interact &All Chips', lambda: [func() for func in interact_chip_actions]),
-    )
-
-    options += [
-        ('Interact Chips', interact_chip_options),
-    ]
-
-    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
-
-    OLD = False
-    if not OLD:
-        if annotmatch_rowid is None:
-            tags = []
-        else:
-            tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
-            tags = [_.lower() for _ in tags]
-        from ibeis import tag_funcs
-        standard, other = tag_funcs.get_cate_categories()
-        case_list = standard + other
-
-        used_chars = guitool.find_used_chars(ut.get_list_column(options, 0))
-        case_hotlink_list = guitool.make_word_hotlinks(case_list, used_chars)
-        case_options = []
-        if True or ut.VERBOSE:
-            print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-            print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-            print('[inspect_gui] tags = %r' % (tags,))
-        if ut.VERBOSE:
-            print('[inspect_gui] Making case hotlist: ' + ut.list_str(case_hotlink_list))
-
-        def _wrap_set_annotmatch_prop(prop, toggle_val):
-            if ut.VERBOSE:
-                print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
-            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
-            if ut.VERBOSE:
-                print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
-                print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
-            ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
-            if ut.VERBOSE:
-                print('[SETTING] done')
-
-        for case, case_hotlink in zip(case_list, case_hotlink_list):
-            toggle_val = case.lower() not in tags
-            fmtstr = 'Flag %s case' if toggle_val else 'Unflag %s case'
-            case_options += [
-                #(fmtstr % (case_hotlink,), lambda: ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(), [toggle_val])),
-                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
-                (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop, case, toggle_val)),
-            ]
-        if ut.VERBOSE:
-            print('Partial tag funcs:' + ut.list_str([ut.func_str(func, func.args, func.keywords) for func in ut.get_list_column(case_options, 1)]))
-        options += case_options
-    elif OLD:
-        pass
-        #if annotmatch_rowid is None:
-        #    if ut.VERBOSE:
-        #        print('[inspect_gui] Explicit annotmatch options')
-        #    options += [
-        #        ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        #        ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        #        ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        #        ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
-        #    ]
-        #else:
-        #    # If the match already exists allow untoggleing
-        #    key_list = [
-        #        'SceneryMatch',
-        #        'Photobomb',
-        #        'Hard',
-        #        'NonDistinct',
-        #    ]
-        #    # VERY HACKY
-        #    if ut.VERBOSE:
-        #        print('[inspect_gui] Hacking the annotmatch options')
-        #    for key in key_list:
-        #        getter = getattr(ibs, 'get_annotmatch_is_' + key.lower())
-        #        setter = getattr(ibs, 'set_annotmatch_is_' + key.lower())
-        #        flag = getter([annotmatch_rowid])[0]
-        #        if ut.VERBOSE:
-        #            print('[inspect_gui] * getter = %r' % (getter,))
-        #            print('[inspect_gui] * setter = %r' % (setter,))
-        #            print('[inspect_gui] * flag = %r' % (flag,))
-        #        if flag:
-        #            options += [
-        #                ('Remove &' + key + ' Flag', lambda:  setter([annotmatch_rowid], [False])),
-        #            ]
-        #        else:
-        #            options += [
-        #                ('Flag &' + key + ' Case', lambda:  setter([annotmatch_rowid], [True])),
-        #            ]
-        #    if ut.VERBOSE:
-        #        print('[inspect_gui] options = %s' % (ut.list_str(options),))
-    return options
 
 
 def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, **kwargs):

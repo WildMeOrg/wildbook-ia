@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 # HTTP / HTML
@@ -19,7 +20,7 @@ from ibeis.web import appfuncs as ap
 # Others
 # import numpy as np
 # from scipy.optimize import curve_fit
-from detecttools.directory import Directory
+#from detecttools.directory import Directory
 import random
 from os.path import join, exists
 import zipfile
@@ -38,6 +39,7 @@ PAGE_SIZE = 500
 ################################################################################
 
 def default_species(ibs):
+    # hack function
     dbname = ibs.get_dbname()
     if dbname == 'CHTA_Master':
         default_species = Species.CHEETAH
@@ -760,22 +762,27 @@ def turk_detection():
                        review=review)
 
 
-@register_route('/turk/viewpoint')
-def turk_viewpoint():
+def get_turk_annot_args(is_reviewed_func):
+    """
+    Helper to return aids in an encounter or a group review
+    """
     ibs = current_app.ibs
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    enctext = None if eid is None else ibs.get_encounter_text(eid)
-    src_ag = request.args.get('src_ag', '')
-    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
-    dst_ag = request.args.get('dst_ag', '')
-    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+    def _ensureid(_id):
+        return None if _id == 'None' or _id == '' else int(_id)
 
-    group_review = src_ag is not None and dst_ag is not None
-    if not group_review:
+    eid = request.args.get('eid', '')
+    src_ag = request.args.get('src_ag', '')
+    dst_ag = request.args.get('dst_ag', '')
+
+    eid = _ensureid(eid)
+    src_ag = _ensureid(src_ag)
+    dst_ag = _ensureid(dst_ag)
+
+    group_review_flag = src_ag is not None and dst_ag is not None
+    if not group_review_flag:
         gid_list = ibs.get_valid_gids(eid=eid)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
+        reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
         dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
@@ -796,11 +803,29 @@ def turk_viewpoint():
         if len(aid_list_) == 0:
             aid = None
         else:
-            if group_review:
+            if group_review_flag:
                 aid = aid_list_[0]
             else:
                 aid = random.choice(aid_list_)
+
     previous = request.args.get('previous', None)
+
+    print('aid = %r' % (aid,))
+    #print(ut.dict_str(ibs.get_annot_info(aid)))
+    print(ut.obj_str(ibs.get_annot_info(aid, default=True, nl=True)))
+    return aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous
+
+
+@register_route('/turk/viewpoint')
+def turk_viewpoint():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-group_review_submit
+    """
+    ibs = current_app.ibs
+    tup = get_turk_annot_args(encounter_annot_viewpoint_processed)
+    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+
     value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
     review = 'review' in request.args.keys()
     finished = aid is None
@@ -814,6 +839,8 @@ def turk_viewpoint():
         gid       = None
         gpath     = None
         image_src = None
+
+    enctext = ibs.get_encounter_text(eid)
     return ap.template('turk', 'viewpoint',
                        eid=eid,
                        src_ag=src_ag,
@@ -833,30 +860,24 @@ def turk_viewpoint():
 
 @register_route('/turk/quality')
 def turk_quality():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(qual=True)
+        >>> valid_views = ['primary', 'primary1', 'primary-1']
+        >>> aid_list = ibs.filter_aids_to_viewpoint(aid_list_, valid_views, unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
     ibs = current_app.ibs
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
+    tup = get_turk_annot_args(encounter_annot_quality_processed)
+    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
 
-    gid_list = ibs.get_valid_gids(eid=eid)
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    reviewed_list = encounter_annot_quality_processed(ibs, aid_list)
-    try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
-    except ZeroDivisionError:
-        progress = '0.00'
-
-    enctext = None if eid is None else ibs.get_encounter_text(eid)
-    aid = request.args.get('aid', '')
-    if len(aid) > 0:
-        aid = int(aid)
-    else:
-        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-        if len(aid_list_) == 0:
-            aid = None
-        else:
-            # aid = aid_list_[0]
-            aid = random.choice(aid_list_)
-    previous = request.args.get('previous', None)
     value = ibs.get_annot_qualities(aid)
     if value == -1:
         value = None
@@ -874,8 +895,11 @@ def turk_quality():
         gid       = None
         gpath     = None
         image_src = None
+    enctext = ibs.get_encounter_text(eid)
     return ap.template('turk', 'quality',
                        eid=eid,
+                       src_ag=src_ag,
+                       dst_ag=dst_ag,
                        gid=gid,
                        aid=aid,
                        value=value,
@@ -887,6 +911,130 @@ def turk_quality():
                        finished=finished,
                        display_instructions=display_instructions,
                        review=review)
+
+
+##@register_route('/turk/viewpoint')
+#def old_turk_viewpoint():
+#    #ibs = current_app.ibs
+#    #eid = request.args.get('eid', '')
+#    #eid = None if eid == 'None' or eid == '' else int(eid)
+#    #enctext = None if eid is None else ibs.get_encounter_text(eid)
+#    #src_ag = request.args.get('src_ag', '')
+#    #src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+#    #dst_ag = request.args.get('dst_ag', '')
+#    #dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
+#    #group_review_flag = src_ag is not None and dst_ag is not None
+#    #if not group_review_flag:
+#    #    gid_list = ibs.get_valid_gids(eid=eid)
+#    #    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+#    #    reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
+#    #else:
+#    #    src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
+#    #    dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
+#    #    src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
+#    #    dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
+#    #    aid_list = src_aid_list
+#    #    reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
+#    #previous = request.args.get('previous', None)
+#    ibs = current_app.ibs
+#    tup = get_turk_annot_args(encounter_annot_viewpoint_processed)
+#    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+
+#    value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+#    review = 'review' in request.args.keys()
+#    finished = aid is None
+#    display_instructions = request.cookies.get('viewpoint_instructions_seen', 1) == 0
+#    if not finished:
+#        gid       = ibs.get_annot_gids(aid)
+#        gpath     = ibs.get_annot_chip_fpath(aid)
+#        image     = ap.open_oriented_image(gpath)
+#        image_src = ap.embed_image_html(image)
+#    else:
+#        gid       = None
+#        gpath     = None
+#        image_src = None
+#    enctext = ibs.get_encounter_text(eid)
+#    return ap.template('turk', 'viewpoint',
+#                       eid=eid,
+#                       src_ag=src_ag,
+#                       dst_ag=dst_ag,
+#                       gid=gid,
+#                       aid=aid,
+#                       value=value,
+#                       image_path=gpath,
+#                       image_src=image_src,
+#                       previous=previous,
+#                       enctext=enctext,
+#                       progress=progress,
+#                       finished=finished,
+#                       display_instructions=display_instructions,
+#                       review=review)
+
+
+#@register_route('/turk/quality')
+#def old_turk_quality():
+#    #ibs = current_app.ibs
+#    #eid = request.args.get('eid', '')
+#    #eid = None if eid == 'None' or eid == '' else int(eid)
+
+#    #gid_list = ibs.get_valid_gids(eid=eid)
+#    #aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+#    #reviewed_list = encounter_annot_quality_processed(ibs, aid_list)
+#    #try:
+#    #    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+#    #except ZeroDivisionError:
+#    #    progress = '0.00'
+
+#    #aid = request.args.get('aid', '')
+#    #if len(aid) > 0:
+#    #    aid = int(aid)
+#    #else:
+#    #    aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+#    #    if len(aid_list_) == 0:
+#    #        aid = None
+#    #    else:
+#    #        # aid = aid_list_[0]
+#    #        aid = random.choice(aid_list_)
+#    #previous = request.args.get('previous', None)
+
+#    ibs = current_app.ibs
+#    tup = get_turk_annot_args(encounter_annot_quality_processed)
+#    (aid_list, reviewed_list, eid, src_ag, dst_ag, progress, aid, previous) = tup
+
+#    value = ibs.get_annot_qualities(aid)
+#    if value == -1:
+#        value = None
+#    if value == 0:
+#        value = 1
+#    review = 'review' in request.args.keys()
+#    finished = aid is None
+#    display_instructions = request.cookies.get('quality_instructions_seen', 1) == 0
+#    if not finished:
+#        gid       = ibs.get_annot_gids(aid)
+#        gpath     = ibs.get_annot_chip_fpath(aid)
+#        image     = ap.open_oriented_image(gpath)
+#        image_src = ap.embed_image_html(image)
+#    else:
+#        gid       = None
+#        gpath     = None
+#        image_src = None
+#    enctext = ibs.get_encounter_text(eid)
+#    return ap.template('turk', 'quality',
+#                       eid=eid,
+#                       src_ag=src_ag,
+#                       dst_ag=dst_ag,
+#                       gid=gid,
+#                       aid=aid,
+#                       value=value,
+#                       image_path=gpath,
+#                       image_src=image_src,
+#                       previous=previous,
+#                       enctext=enctext,
+#                       progress=progress,
+#                       finished=finished,
+#                       display_instructions=display_instructions,
+#                       review=review)
 
 
 @register_route('/turk/additional')
@@ -1055,6 +1203,17 @@ def submit_detection():
         return redirect(url_for('turk_detection', eid=eid, previous=gid))
 
 
+def movegroup_aid(ibs, aid, src_ag, dst_ag):
+    gar_rowid_list = ibs.get_annot_gar_rowids(aid)
+    annotgroup_rowid_list = ibs.get_gar_annotgroup_rowid(gar_rowid_list)
+    src_index = annotgroup_rowid_list.index(src_ag)
+    src_gar_rowid = gar_rowid_list[src_index]
+    vals = (aid, src_ag, src_gar_rowid, dst_ag)
+    print('Moving aid: %s from src_ag: %s (%s) to dst_ag: %s' % vals)
+    # ibs.delete_gar([src_gar_rowid])
+    ibs.add_gar([dst_ag], [aid])
+
+
 @register_route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
     ibs = current_app.ibs
@@ -1122,14 +1281,7 @@ def submit_viewpoint():
         return redirect(redirection)
     else:
         if src_ag is not None and dst_ag is not None:
-            gar_rowid_list = ibs.get_annot_gar_rowids(aid)
-            annotgroup_rowid_list = ibs.get_gar_annotgroup_rowid(gar_rowid_list)
-            src_index = annotgroup_rowid_list.index(src_ag)
-            src_gar_rowid = gar_rowid_list[src_index]
-            vals = (aid, src_ag, src_gar_rowid, dst_ag)
-            print('Moving aid: %s from src_ag: %s (%s) to dst_ag: %s' % vals)
-            # ibs.delete_gar([src_gar_rowid])
-            ibs.add_gar([dst_ag], [aid])
+            movegroup_aid(ibs, aid, src_ag, dst_ag)
         value = int(request.form['viewpoint-value'])
         yaw = convert_old_viewpoint_to_yaw(value)
         ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
@@ -1152,11 +1304,18 @@ def submit_quality():
     aid = int(request.form['quality-aid'])
     turk_id = request.cookies.get('turk_id', -1)
 
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
     else:
+        if src_ag is not None and dst_ag is not None:
+            movegroup_aid(ibs, aid, src_ag, dst_ag)
         quality = int(request.form['quality-value'])
         ibs.set_annot_qualities([aid], [quality])
         print('[web] turk_id: %s, aid: %d, quality: %d' % (turk_id, aid, quality))
@@ -1165,7 +1324,8 @@ def submit_quality():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_quality', eid=eid, previous=aid))
+        return redirect(url_for('turk_quality', eid=eid, src_ag=src_ag,
+                                dst_ag=dst_ag, previous=aid))
 
 
 @register_route('/submit/additional', methods=['POST'])
@@ -1337,9 +1497,24 @@ def image_upload_zip(**kwargs):
         ut.remove_dirs(upload_path)
         raise IOError('Image archive extracton failed')
 
+    """
+    test to ensure Directory and utool do the same thing
+
+    from detecttools.directory import Directory
+    upload_path = ut.truepath('~/Pictures')
+    gpath_list1 = sorted(ut.list_images(upload_path, recursive=False, full=True))
+
     direct = Directory(upload_path, include_file_extensions='images', recursive=False)
     gpath_list = direct.files()
     gpath_list = sorted(gpath_list)
+
+    assert gpath_list1 == gpath_list
+    """
+
+    gpath_list = sorted(ut.list_images(upload_path, recursive=False, full=True))
+    #direct = Directory(upload_path, include_file_extensions='images', recursive=False)
+    #gpath_list = direct.files()
+    #gpath_list = sorted(gpath_list)
     gid_list = ibs.add_images(gpath_list, **kwargs)
     return gid_list
 
@@ -1401,6 +1576,12 @@ def hello_world(*args, **kwargs):
     print('request.form', request.form)
 
 
+VALID_TURK_MODES = [
+    ('turk_viewpoint', 'Viewpoint'),
+    ('turk_quality', 'Quality'),
+]
+
+
 @register_route('/group_review/')
 def group_review():
     prefill = request.args.get('prefill', '')
@@ -1428,11 +1609,25 @@ def group_review():
             candidate_aid_list = ''
     else:
         candidate_aid_list = ''
-    return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list)
+
+    return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list, mode_list=VALID_TURK_MODES)
 
 
 @register_route('/group_review/submit/', methods=['POST'])
 def group_review_submit():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-group_review_submit
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.web.app import *  # NOQA
+        >>> import ibeis
+        >>> import ibeis.web
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
     ibs = current_app.ibs
     method = request.form.get('group-review-submit', '')
     if method.lower() == 'populate':
@@ -1453,7 +1648,10 @@ def group_review_submit():
     else:
         aid_list = []
     src_ag, dst_ag = ibs.prepare_annotgroup_review(aid_list)
-    return redirect(url_for('turk_viewpoint', src_ag=src_ag, dst_ag=dst_ag))
+    valid_modes = ut.get_list_column(VALID_TURK_MODES, 0)
+    mode = request.form.get('group-review-mode', None)
+    assert mode in valid_modes
+    return redirect(url_for(mode, src_ag=src_ag, dst_ag=dst_ag))
 
 
 @register_route('/ajax/annotation/src/<aid>')
@@ -1614,3 +1812,16 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix=
         ibs.check_chip_existence()
         ibs.compute_all_chips()
     start_tornado(ibs, port, browser, url_suffix)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.web.app
+        python -m ibeis.web.app --allexamples
+        python -m ibeis.web.app --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

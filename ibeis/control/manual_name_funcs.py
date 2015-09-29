@@ -458,7 +458,13 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     if enable_unknown_fix:
         #enable_unknown_fix == distinguish_unknowns
         # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
-        aids_list = [[-nid] if nid < 0 else aids for nid, aids in zip(nid_list, aids_list)]
+        #aids_list = [None if nid is None else ([-nid] if nid < 0 else aids)
+        #             for nid, aids in zip(nid_list, aids_list)]
+        # Not sure if this should fail or return empty list on None nid
+        aids_list = [[] if nid is None else ([-nid] if nid < 0 else aids)
+                     for nid, aids in zip(nid_list, aids_list)]
+        #aids_list = [[-nid] if nid < 0 else aids
+        #             for nid, aids in zip(nid_list, aids_list)]
     return aids_list
 
 
