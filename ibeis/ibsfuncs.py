@@ -1484,7 +1484,7 @@ def ensure_unix_gpaths(gpath_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_info(ibs, aid_list, default=False, **kwargs):
+def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1553,6 +1553,18 @@ def get_annot_info(ibs, aid_list, default=False, **kwargs):
     key = 'yawtext'
     if kwargs.get(key, default):
         vals_list += [ibs.get_annot_yaw_texts(aid_list)]
+        key_list += [key]
+
+    key = 'time'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_image_unixtimes(aid_list)]
+        key_list += [key]
+
+    key = 'timedelta'
+    if kwargs.get(key, default) and reference_aid is not None:
+        times = np.array(ibs.get_annot_image_unixtimes_asfloat(aid_list))
+        ref_time = ibs.get_annot_image_unixtimes_asfloat(reference_aid)
+        vals_list += [(times - ref_time)]
         key_list += [key]
 
     key = 'quality_text'

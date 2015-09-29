@@ -139,7 +139,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         tags = ibs.get_annot_case_tags([aid])[0]
         tags = [_.lower() for _ in tags]
 
-        case_hotlink_list = guitool.make_word_hotlinks(case_list)
+        case_hotlink_list = guitool.make_word_hotlinks(case_list, after_colon=True)
 
         def _wrap_set_annot_prop(prop, toggle_val):
             if ut.VERBOSE:
@@ -161,7 +161,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             ]
 
         callback_list += [
-            ('Set Annot &Tags', annot_tag_options),
+            ('Set Annot Ta&gs', annot_tag_options),
         ]
 
     if with_interact_chip:

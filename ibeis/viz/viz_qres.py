@@ -251,6 +251,9 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
 
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
+    print('query_info = ' + ut.obj_str(ibs.get_annot_info(qres.qaid, default=True), nl=4))
+    print('top_aids_info = ' + ut.obj_str(ibs.get_annot_info(top_aids, default=True, reference_aid=qres.qaid), nl=4))
+
     if make_figtitle is True:
         figtitle = qres.make_title(pack=True)
 

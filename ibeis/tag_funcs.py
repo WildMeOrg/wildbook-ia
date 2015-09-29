@@ -533,6 +533,15 @@ def set_tags_in_textformat(prop, text_list, flags):
 
 
 ANNOT_TAGS = [
+    'occlusion',
+    'lighting',
+    'quality',
+    'pose',
+    'error',
+    'interesting',
+    'error:viewpoint',
+    'error:quality',
+
     'occlusion:large',
     'occlusion:medium',
     'occlusion:small',
@@ -549,11 +558,7 @@ ANNOT_TAGS = [
 
     'error:bbox',
     'error:mask',
-    'error:quality',
-    'error:viewpoint',
     'error:other',
-
-    'interesting',
 ]
 
 

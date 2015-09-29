@@ -108,7 +108,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         interact_chip_options = []
         for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
             interact_chip_options += [
-                ('Interact Chip&%d' % (count,), lambda: interact_chip.ishow_chip(ibs, aid, config2_=config2_, fnum=None, **kwargs)),
+                ('Interact Chip&%d' % (count,), partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_, fnum=None, **kwargs)),
             ]
         interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
         interact_chip_options.append(
