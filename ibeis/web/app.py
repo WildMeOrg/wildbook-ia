@@ -820,7 +820,16 @@ def get_turk_annot_args(is_reviewed_func):
 def turk_viewpoint():
     """
     CommandLine:
-        python -m ibeis.web.app --exec-group_review_submit
+        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
+        >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
     tup = get_turk_annot_args(encounter_annot_viewpoint_processed)
@@ -861,8 +870,24 @@ def turk_viewpoint():
 @register_route('/turk/quality')
 def turk_quality():
     """
+    PZ Needs Tags:
+        17242
+        14468
+        14427
+        15946
+        14771
+        14084
+        4102
+        6074
+        3409
+
+    GZ Needs Tags;
+    1302
+
     CommandLine:
         python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
+        python -m ibeis.web.app --exec-turk_quality --db GZ_Master1
+        python -m ibeis.web.app --exec-turk_quality --db GIRM_Master1
 
     Example:
         >>> # SCRIPT

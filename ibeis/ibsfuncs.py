@@ -5549,6 +5549,24 @@ def find_unlabeled_name_members(ibs, **kwargs):
         print('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
         selected_aids_list.append(missing_qual_aid_list)
 
+    if kwargs.get('suspect_yaws', False):
+        yaws_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
+        time_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
+        max_timedelta_list = np.array([
+            np.nanmax(ut.safe_pdist(unixtime_arr[:, None], metric=ut.absdiff))
+            for unixtime_arr in time_list])
+        flags = max_timedelta_list > 60 * 60 * 1
+
+        aids1 = ut.list_compress(aids_list, flags)
+        max_yawdiff_list = np.array([
+            np.nanmax(ut.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
+            for yaws in ut.list_compress(yaws_list, flags)
+        ])
+
+        # Find annots with large timedeltas but 0 viewpoint difference
+        flags2 = max_yawdiff_list == 0
+        selected_aids_list.append(ut.list_compress(aids1, flags2))
+
     x = ut.flatten(selected_aids_list)
     y = ut.sortedby2(x, list(map(len, x)))
     selected_aids = ut.unique_keep_order2(ut.flatten(y))
