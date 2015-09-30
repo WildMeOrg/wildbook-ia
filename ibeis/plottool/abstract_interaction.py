@@ -155,3 +155,10 @@ class AbstractInteraction(object):
 
     def on_click_outside(self, event):
         pass
+
+    def show_popup_menu(self, options, event):
+        import guitool
+        height = self.fig.canvas.geometry().height()
+        qpoint = guitool.newQPoint(event.x, height - event.y)
+        qwin = self.fig.canvas
+        guitool.popup_menu(qwin, qpoint, options)

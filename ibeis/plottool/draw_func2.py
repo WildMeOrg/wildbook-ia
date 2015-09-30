@@ -12,7 +12,6 @@ import six
 import utool as ut  # NOQA
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
 try:
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 except ImportError as ex:
@@ -1767,7 +1766,9 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     ]
     linewidth = [lw for fx in range(len(fm))]
     line_alpha = line_alpha
-    line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
+
+    line_group = mpl.collections.LineCollection(
+        segments, linewidth, color_list, alpha=line_alpha)
     #plt.colorbar(line_group, ax=ax)
     ax.add_collection(line_group)
     #figure(100)
@@ -2395,8 +2396,9 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     trans = trans + ax.transData
     width_list = [lw] * len(segments)
     color_list = [color] * len(segments)
-    line_group = LineCollection(segments, width_list, color_list, alpha=alpha,
-                                transOffset=trans)
+    line_group = mpl.collections.LineCollection(segments, width_list,
+                                                color_list, alpha=alpha,
+                                                transOffset=trans)
     ax.add_collection(line_group)
 
 
