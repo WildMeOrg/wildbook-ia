@@ -1010,6 +1010,16 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 
+    def ishow_analysis(cm, qreq_, **kwargs):
+        from ibeis.model.hots import pipeline
+        # hack: just make chipmatch the primary result type
+        qres = pipeline.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        kwshow = {
+            'show_query': False,
+            'show_timedelta': True,
+        }
+        kwshow.update(kwargs)
+        return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
 
 if __name__ == '__main__':
     """

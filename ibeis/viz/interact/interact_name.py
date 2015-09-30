@@ -548,8 +548,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def on_close(self, event=None):
         super(MatchVerificationInteraction, self).on_close(event)
-        # closing this gui means you have reviewed the annotation.
-        self.ibs.mark_annot_pair_as_reviewed(self.aid1, self.aid2)
+        pass
 
     def unname_annotation(self, aid, event=None):
         if ut.VERBOSE:
@@ -590,6 +589,8 @@ class MatchVerificationInteraction(AbstractInteraction):
             print('Warning: no review callback connected.')
 
     def close_(self, event=None):
+        # closing this gui with the button means you have reviewed the annotation.
+        self.ibs.set_annot_pair_as_reviewed(self.aid1, self.aid2)
         self.close()
 
     def unname_all(self, event=None):

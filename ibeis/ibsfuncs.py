@@ -1516,7 +1516,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     #    return []
 
     key = 'aid'
-    if kwargs.get(key, default):
+    if kwargs.get(key, default or True):
         vals_list += [aid_list]
         key_list += [key]
 

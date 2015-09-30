@@ -170,7 +170,7 @@ def vsone_independant(qreq_):
     CommandLine:
         ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
 
-        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
+        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --show
 
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode
 
@@ -183,7 +183,7 @@ def vsone_independant(qreq_):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots import _pipeline_helpers as plh
-        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
+        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone', fg_on=False)
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])
         >>> result = vsone_independant(qreq_)
         >>> print(result)
@@ -194,28 +194,78 @@ def vsone_independant(qreq_):
     # Get matches that have some property (scenerymatch)
     # HACK TEST SCRIPT
 
-    def get_scenery_match_aid_pairs(ibs):
-        import utool as ut
-        annotmatch_rowids = ibs._get_all_annotmatch_rowids()
-        flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
-        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids, flags)
-        aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
-        aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
-        aid_pair_list = list(zip(aid1_list, aid2_list))
-        return aid_pair_list
-    aid_pair_list = get_scenery_match_aid_pairs(ibs)
-    aid1, aid2 = aid_pair_list[0]
+    #def get_scenery_match_aid_pairs(ibs):
+    #    import utool as ut
+    #    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+    #    flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
+    #    annotmatch_rowids_ = ut.list_compress(annotmatch_rowids, flags)
+    #    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
+    #    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
+    #    aid_pair_list = list(zip(aid1_list, aid2_list))
+    #    return aid_pair_list
+
+    #aid_pair_list = get_scenery_match_aid_pairs(ibs)
+    #aid1, aid2 = aid_pair_list[0]
+
+    qaids = qreq_.get_internal_qaids()
+    daids = qreq_.get_internal_daids()
+    import vtool as vt
+
     info_list = []
-    for aid1, aid2 in ut.ProgressIter(aid_pair_list):
-        rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
-        matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
-        info_list.append((matches, metadata))
-        print('So Far')
-        print(sum([matches['RAT+SV'][0].shape[0] for (matches, metadata) in info_list]))  # NOQA
+    #for aid1, aid2 in ut.ProgressIter(aid_pair_list):
+    for aid1 in qaids:
+        for aid2 in daids:
+            rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+            matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+            info_list.append((matches, metadata))
+            print('So Far')
+            print(sum([matches['RAT+SV'][0].shape[0] for (matches, metadata) in info_list]))  # NOQA
     # nnp_master had 15621 background examples
-    vt.matching.show_matching_dict(matches, metadata)
-    # TODO
-    pass
+
+    for matches, metadata in info_list:
+        vt.matching.show_matching_dict(matches, metadata)
+
+
+def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
+    """ simple hack convinience func
+    Uses vsmany qreq to build a "similar" vsone qreq
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> aid1 = 1
+        >>> aid2 = 2
+        >>> qreq_ = None
+        >>> result = vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    cfgdict = dict(codename='vsone', fg_on=False)
+    # FIXME: update this cfgdict a little better
+    if qreq_ is not None:
+        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
+    vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
+    vsone_qres = ibs.query_chips(qreq_=vsone_qreq_)[0]
+    cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
+    cm_vsone.ishow_analysis(vsone_qreq_)
+    #qres_vsone.ishow_analysis(ibs=ibs)
+    #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+    #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+    #vt.matching.show_matching_dict(matches, metadata)
 
 
 def marge_matches_lists(fmfs_A, fmfs_B):

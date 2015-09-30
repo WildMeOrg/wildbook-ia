@@ -210,6 +210,8 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
             elif annot_mode == 1, then dont draw lines or ellipse
             elif annot_mode == 2, then draw only lines
 
+        See: viz_matches.show_name_matches, viz_helpers.get_query_text
+
     Returns:
         mpl.Figure: fig
 

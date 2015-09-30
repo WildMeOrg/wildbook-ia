@@ -21,7 +21,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
 
 
-def testdata_pipecfg():
+def testdata_pipecfg(t=['default']):
     r"""
     Returns:
         dict: pcfgdict
@@ -37,7 +37,7 @@ def testdata_pipecfg():
         >>> print(result)
     """
     from ibeis.experiments import experiment_helpers
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['default'])
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=t)
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
     pcfgdict = pcfgdict_list[0]
@@ -52,7 +52,7 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_qres(defaultdb='testdb1'):
+def testdata_qres(defaultdb='testdb1', t=['default']):
     r"""
     Args:
         defaultdb (str): (default = 'testdb1')
@@ -73,7 +73,7 @@ def testdata_qres(defaultdb='testdb1'):
         >>> print(result)
     """
     ibs, qaids, daids = testdata_ibeis(defaultdb=defaultdb)
-    pcfgdict = testdata_pipecfg()
+    pcfgdict = testdata_pipecfg(t=t)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)

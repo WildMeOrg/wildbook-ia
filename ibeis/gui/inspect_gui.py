@@ -32,7 +32,9 @@ REVIEWED_STATUS_TEXT = 'Reviewed'
 USE_FILTER_PROXY = False
 
 
-def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
+def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
+                                     marking_mode=False,
+                                     aid_list=None, **kwargs):
     """ assert that the ampersand cannot have duplicate keys
 
     Args:
@@ -52,19 +54,13 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
 
         # Other scripts that call this one;w
-        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
-        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show --verbadd --verbaset --verbose
-        python -m ibeis.viz.interact.interact_qres --test-ishow_qres -a timecontrolled -t invarbest --db testdb1 --show --qaid 1
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
-
-
         python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl   -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
-        >>> ibs, qreq_, qres = ibeis.testdata_qres()
+        >>> ibs, qreq_, qres = ibeis.testdata_qres(t=['default:fg_on=False'])
         >>> aid1 = qres.qaid
         >>> aid2 = qres.get_top_aids()[0]
         >>> aid_list = None
@@ -75,27 +71,33 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
     """
     if ut.VERBOSE:
         print('[inspect_gui] Building AID pair context menu options')
-    assert qreq_ is not None, 'must specify qreq_'
-    show_chip_match_features_option = ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_))
-    if aid_list is not None:
-        # Give a subcontext menu for multiple options
-        def partial_show_chip_matches_to(aid_):
-            return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
-        show_chip_match_features_option = (
-            'Show chip feature matches',
-            [
-                ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
-                for aid_ in aid_list
-            ]
-        )
+    options = []
 
-    options = [
-        show_chip_match_features_option,
-        ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+    #assert qreq_ is not None, 'must specify qreq_'
+
+    if qres is not None:
+        show_chip_match_features_option = ('Show chip feature matches', partial(qres.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
+        if aid_list is not None:
+            # Give a subcontext menu for multiple options
+            def partial_show_chip_matches_to(aid_):
+                return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
+            show_chip_match_features_option = (
+                'Show chip feature matches',
+                [
+                    ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
+                    for aid_ in aid_list
+                ]
+            )
+        options += [
+            show_chip_match_features_option,
+            ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+        ]
+
+    options += [
         ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
-        ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),
-        ('Mark as &True Match.', lambda: mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-        ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+        ('Mark as &Reviewed', lambda: ibs.set_annot_pair_as_reviewed(aid1, aid2)),
+        ('Mark as &True Match.', lambda: set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+        ('Mark as &False Match.', lambda:  set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
     ]
 
     with_interact_chips = True
@@ -103,7 +105,10 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
         from ibeis.viz.interact import interact_chip
 
         aid_list2 = [aid1, aid2]
-        config2_list_ = [qreq_.get_external_query_config2(), qreq_.get_external_data_config2()]
+        if qreq_ is None:
+            config2_list_ = [None, None]
+        else:
+            config2_list_ = [qreq_.get_external_query_config2(), qreq_.get_external_data_config2()]
 
         interact_chip_options = []
         for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
@@ -129,8 +134,11 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
 
     with_vsone = True
     if with_vsone:
+        from ibeis.model.hots import vsone_pipeline
+
+        #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
         options += [
-            ('Run Vsone', None)
+            ('Run Vsone', partial(vsone_pipeline.vsone_independant_pair_hack, ibs, aid1, aid2, qreq_=qreq_))
         ]
 
     with_match_tags = True
@@ -491,33 +499,6 @@ def get_annotmatch_rowid_from_qtindex(qres_wgt, qtindex):
     return annotmatch_rowid_list
 
 
-def mark_pair_as_reviewed(qres_wgt, qtindex):
-    """
-    Sets the reviewed flag to whatever the current truth status is
-    """
-    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
-    ibs = qres_wgt.ibs
-    ibs.mark_annot_pair_as_reviewed(qaid, daid)
-
-
-def mark_pair_as_positive_match(qres_wgt, qtindex):
-    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
-    ibs = qres_wgt.ibs
-    try:
-        status = mark_annot_pair_as_positive_match_(ibs, qaid, daid)
-        print('status = %r' % (status,))
-    except guiexcept.NeedsUserInput:
-        review_match_at_qtindex(qres_wgt, qtindex)
-    except guiexcept.UserCancel:
-        print('user canceled positive match')
-
-
-def mark_pair_as_negative_match(qres_wgt, qtindex):
-    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
-    ibs = qres_wgt.ibs
-    return mark_annot_pair_as_negative_match_(ibs, qaid, daid)
-
-
 def show_match_at_qtindex(qres_wgt, qtindex):
     print('interact')
     qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
@@ -556,7 +537,7 @@ def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, *
     guitool.popup_menu(qwin, qpoint, options)
 
 
-def mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+def set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
     def on_nontrivial_merge(ibs, aid1, aid2):
         MERGE_NEEDS_INTERACTION  = False
         MERGE_NEEDS_VERIFICATION = True
@@ -577,7 +558,7 @@ def mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
             if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
                 raise guiexcept.UserCancel('canceled merge')
     try:
-        status = ibs.mark_annot_pair_as_positive_match(aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
+        status = ibs.set_annot_pair_as_positive_match(aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
@@ -585,13 +566,13 @@ def mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
         print('user canceled positive match')
 
 
-def mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+def set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
     def on_nontrivial_split(ibs, aid1, aid2):
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
         print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
         raise guiexcept.NeedsUserInput('non-trivial split')
     try:
-        status = ibs.mark_annot_pair_as_negative_match(aid1, aid2, on_nontrivial_split=on_nontrivial_split)
+        status = ibs.set_annot_pair_as_negative_match(aid1, aid2, on_nontrivial_split=on_nontrivial_split)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
@@ -1282,11 +1263,9 @@ def inspect_orphaned_qres_bigcache(ibs, bc_fpath, cfgdict={}):
     from ibeis.gui import inspect_gui
     guitool.ensure_qapp()
     ranks_lt = 1
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                              ranks_lt=ranks_lt, qreq_=qreq_,
-                                              filter_reviewed=True,
-                                              filter_duplicate_namepair_matches=True,
-                                              query_title='Recovery Hack')
+    qres_wgt = inspect_gui.QueryResultsWidget(
+        ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=True,
+        filter_duplicate_namepair_matches=True, query_title='Recovery Hack')
     qres_wgt.show()
     qres_wgt.raise_()
 

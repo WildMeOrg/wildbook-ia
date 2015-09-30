@@ -1161,51 +1161,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.run_annot_splits(aid_list)
             >>> ut.quit_if_noshow()
             >>> guitool.qtapp_loop(back.mainwin, frequency=100)
-
-        Example:
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import numpy as np
-            >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
-            >>> #ibs = back.ibs
-            >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-            >>> # Find aids that still need splits
-            >>> aid_pair_list = ibs.filter_aidpairs_by_tags('SplitCase')
-            >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
-            >>> _aid_list = ut.list_compress(aid_pair_list, truth_list)
-            >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
-            >>> _nid_list = ut.get_list_column(_nids_list, 0)
-            >>> import vtool as vt
-            >>> split_nids, groupxs = vt.group_indices(np.array(_nid_list))
-            >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
-            >>> #
-            >>> split_aids_list = ibs.get_name_aids(split_nids)
-            >>> assert len(split_aids_list) > 0, 'split cases are finished'
-            >>> problem_aids = problem_aids_list[0]
-            >>> aid_list = split_aids_list[0]
-            >>> #
-            >>> print('Run splits for tagd problem cases %r' % (problem_aids))
-            >>> #back.run_annot_splits(aid_list)
-            >>> print('Review splits for tagd problem cases %r' % (problem_aids))
-            >>> from ibeis.viz import viz_graph
-            >>> nids = [split_nids[0]]
-            >>> netx_graph = viz_graph.make_netx_graph_from_nids(ibs, nids)
-            >>> self = viz_graph.make_split_interaction(ibs, netx_graph)
-            >>> ut.show_if_requested()
-
-            rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
-            ibs.get_annotmatch_prop('SplitCase', rowids)
-
-            #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
-
-
-
-
-            viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)
-            import plottool as pt
-            pt.iup()
-
-
         """
         cfgdict = {
             'can_match_samename': True,

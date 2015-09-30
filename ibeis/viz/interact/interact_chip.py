@@ -109,9 +109,28 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             #refresh_wrp()
         return _wrp_qual
     # Define popup menu
-    callback_list = [
-        ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
-    ]
+    callback_list = []
+
+    nid = ibs.get_annot_name_rowids(aid)
+
+    if with_interact_chip:
+        callback_list += [
+            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None, config2_=config2_))
+        ]
+
+    if with_interact_name and not ibs.is_nid_unknown(nid):
+        from ibeis.viz.interact import interact_name
+        callback_list.append(
+            ('Interact name', functools.partial(interact_name.ishow_name, ibs, nid, fnum=None))
+        )
+
+    if with_interact_image:
+        gid = ibs.get_annot_gids(aid)
+        from ibeis.viz.interact import interact_annotations2
+        callback_list.append(
+            ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
+        )
+
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
     current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
     # Nested viewpoints
@@ -130,7 +149,6 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             for count, key in enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
         ]),
     ]
-    nid = ibs.get_annot_name_rowids(aid)
 
     with_tags = True
     if with_tags:
@@ -164,21 +182,10 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             ('Set Annot Ta&gs', annot_tag_options),
         ]
 
-    if with_interact_chip:
-        callback_list += [
-            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None, config2_=config2_))
-        ]
-    if with_interact_name and not ibs.is_nid_unknown(nid):
-        from ibeis.viz.interact import interact_name
-        callback_list.append(
-            ('Interact name', functools.partial(interact_name.ishow_name, ibs, nid, fnum=None))
-        )
-    if with_interact_image:
-        gid = ibs.get_annot_gids(aid)
-        from ibeis.viz.interact import interact_annotations2
-        callback_list.append(
-            ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
-        )
+    callback_list += [
+        ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
+    ]
+
     if True:
         from ibeis import viz
         callback_list.append(
