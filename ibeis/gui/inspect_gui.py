@@ -127,6 +127,12 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None, aid_list
             ('Chip Conte&xt Options', chip_contex_options),
         ]
 
+    with_vsone = True
+    if with_vsone:
+        options += [
+            ('Run Vsone', None)
+        ]
+
     with_match_tags = True
     if with_match_tags:
         annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]

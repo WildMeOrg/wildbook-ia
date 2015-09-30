@@ -169,7 +169,9 @@ def vsone_independant(qreq_):
 
     CommandLine:
         ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
+
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
+
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode
 
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
