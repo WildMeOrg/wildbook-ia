@@ -213,6 +213,9 @@ def L1(hist1, hist2, dtype=TEMP_VEC_DTYPE):
 def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
     """ returns the squared L2 distance
 
+    # FIXME:
+        if hist1.shape = (0,) and hist.shape = (0,) then result=0.0
+
     SeeAlso:
         L2
 
@@ -652,7 +655,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
         if dists[xlist[0]] == dists[xlist[1]]:
             print('conflict')
     index = xlist[0]
-    dist = dists[0]
+    dist = dists[index]
     return index, dist
 
 
