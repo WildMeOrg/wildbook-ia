@@ -409,6 +409,9 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
     Returns:
         qfx2_selnorm - index of the selected normalizer for each query feature
 
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --exec-mark_name_valid_normalizers
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -450,11 +453,17 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
     # Taking the logical or of all of these results gives you a matrix with the
     # shape of qfx2_normnid that is True where a normalizing feature's name
     # appears anywhere in the corresponding row of qfx2_topnid
-    qfx2_valid = np.logical_not(vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid, comp_op=np.equal, logic_op=np.logical_or))
+    qfx2_invalid = vt.compare_matrix_columns(
+        qfx2_normnid, qfx2_topnid,
+        comp_op=np.equal,
+        logic_op=np.logical_or)
+    qfx2_valid = np.logical_not(qfx2_invalid)
 
     #if qnid is not None:
     # Mark self as invalid, if given that information
     qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
+
+    # TODO: warn if any([np.any(flags) for flags in qfx2_invalid]), 'Normalizers are potential matches. Increase Knorm'
 
     # For each query feature find its best normalizer (using negative indices)
     Knorm = qfx2_normnid.shape[1]

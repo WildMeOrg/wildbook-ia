@@ -27,7 +27,12 @@ def testdata_showname():
 def testdata_multichips():
     import ibeis
     ibs = ibeis.opendb(defaultdb='testdb1')
-    aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+    tags = ut.get_argval('--tags', type_=list, default=None)
+    if tags is not None:
+        index = ut.get_argval('--index', default=0)
+        aid_list = ibs.filter_aidpairs_by_tags(any_tags=tags)[index]
+    else:
+        aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
     in_image = not ut.get_argflag('--no-inimage')
     return ibs, aid_list, in_image
 
@@ -79,6 +84,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
     ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
 
     print('[viz_name] * annot_vuuid=%r' % ((ibs.get_annot_visual_uuids(aid_list),)))
+    print('[viz_name] * aid_list=%r' % ((aid_list,)))
 
     DOBOTH = ut.get_argflag('--doboth')
 
