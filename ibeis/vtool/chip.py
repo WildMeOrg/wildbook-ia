@@ -97,9 +97,9 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
 
 
 @profile
-def extract_chip_from_gpath(gfpath, bbox, theta, new_size):
+def extract_chip_from_gpath(gfpath, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     imgBGR = gtool.imread(gfpath)  # Read parent image
-    chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size)
+    chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation)
     return chipBGR
 
 
@@ -118,7 +118,7 @@ def extract_chip_from_gpath_into_square(args):
 
 
 @profile
-def extract_chip_from_img(imgBGR, bbox, theta, new_size):
+def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     """ Crops chip from image ; Rotates and scales;
 
     ibs.show_annot_image(aid)[0].pt_save_and_view()
@@ -153,11 +153,81 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size):
         >>> pt.imshow(chipBGR)
         >>> pt.show_if_requested()
     """
-    M = get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
     # THE CULPRIT FOR MULTIPROCESSING FREEZES
-    chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+    flags = interpolation
+    if False:
+        M = get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
+        chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=flags, borderMode=cv2.BORDER_CONSTANT)
+    else:
+        # if theta == 0, not sure if this is better. Certainly not more general
+        x, y, w, h = bbox
+        roiBGR = imgBGR[y:y + h, x:x + w, :]
+        chipBGR = cv2.resize(roiBGR, tuple(new_size), interpolation=interpolation)
     #chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
     return chipBGR
+
+
+def gridsearch_chipextract():
+    r"""
+    CommandLine:
+        python -m vtool.chip --test-gridsearch_chipextract --show
+
+    Example:
+        >>> # GRIDSEARCH
+        >>> from vtool.chip import *  # NOQA
+        >>> gridsearch_chipextract()
+        >>> ut.show_if_requested()
+    """
+    import cv2
+    test_func = extract_chip_from_img
+    if False:
+        gpath = ut.grab_test_imgpath('carl.jpg')
+        bbox = (100, 3, 100, 100)
+        theta = 0.0
+        new_size = (58, 34)
+    else:
+        gpath = '/media/raid/work/GZ_Master1/_ibsdb/images/1524525d-2131-8770-d27c-3a5f9922e9e9.jpg'
+        bbox = (450, 373, 2062, 1124)
+        theta = 0.0
+        old_size = bbox[2:4]
+        #target_area = 700 ** 2
+        target_area = 1200 ** 2
+        new_size = get_scaled_sizes_with_area(target_area, [old_size])[0]
+        print('old_size = %r' % (old_size,))
+        print('new_size = %r' % (new_size,))
+        #new_size = (677, 369)
+    imgBGR = gtool.imread(gpath)
+    args = (imgBGR, bbox, theta, new_size)
+    param_info = ut.ParamInfoList('extract_params', [
+        ut.ParamInfo('interpolation', cv2.INTER_LANCZOS4,
+                     varyvals=[
+                         cv2.INTER_LANCZOS4,
+                         cv2.INTER_CUBIC,
+                         cv2.INTER_LINEAR,
+                         cv2.INTER_NEAREST,
+                         #cv2.INTER_AREA
+                     ],)
+    ])
+    show_func = None
+    # Generalize
+    import plottool as pt
+    pt.imshow(imgBGR)  # HACK
+    cfgdict_list, cfglbl_list = param_info.get_gridsearch_input(defaultslice=slice(0, 10))
+    fnum = pt.ensure_fnum(None)
+    if show_func is None:
+        show_func = pt.imshow
+    lbl = ut.get_funcname(test_func)
+    cfgresult_list = [
+        test_func(*args, **cfgdict)
+        for cfgdict in ut.ProgressIter(cfgdict_list, lbl=lbl)
+    ]
+    onclick_func = None
+    ut.interact_gridsearch_result_images(
+        show_func, cfgdict_list, cfglbl_list,
+        cfgresult_list, fnum=fnum,
+        figtitle=lbl, unpack=False,
+        max_plots=25, onclick_func=onclick_func)
+    pt.iup()
 
 
 def get_scaled_size_with_width(target_width, w, h):
@@ -213,7 +283,7 @@ def get_scaled_sizes_with_area(target_area, size_list):
 
 
 #@profile
-def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
+def compute_chip(gfpath, bbox, theta, new_size, filter_list=[], interpolation=cv2.INTER_LANCZOS4):
     """ Extracts a chip and applies filters
 
     Args:
@@ -250,7 +320,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
         >>> pt.imshow(chipBGR, pnum=(1, 2, 2))
         >>> pt.show_if_requested()
     """
-    chipBGR = extract_chip_from_gpath(gfpath, bbox, theta, new_size)
+    chipBGR = extract_chip_from_gpath(gfpath, bbox, theta, new_size, interpolation)
     chipBGR = apply_filter_funcs(chipBGR, filter_list)
     return chipBGR
 

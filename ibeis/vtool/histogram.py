@@ -94,8 +94,9 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     print('bgr_ori.max = %r' % bgr_ori.max())
     #bgr_ori = np.array(bgr_ori, dtype=np.uint8)
     legend = pt.make_ori_legend_img()
-    #gorimag_, woff, hoff = pt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
-    gorimag_, offsets, sftup = pt.stack_images(bgr_ori, legend, vert=False, modifysize=True, return_offset=True, return_sf=True)
+    #gorimag_, woff, hoff = vt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
+    import vtool as vt
+    gorimag_, offsets, sftup = vt.stack_images(bgr_ori, legend, vert=False, modifysize=True, return_offset=True, return_sf=True)
     (woff, hoff) = offsets[1]
     if patch is None:
         pt.imshow(gorimag_, fnum=fnum)
