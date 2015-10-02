@@ -1488,7 +1488,7 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     pt.gca().set_aspect('equal')
 
 
-def word_histogram2(text_list, **kwargs):
+def word_histogram2(text_list, weight_list=None, **kwargs):
     """
     Args:
         text_list (list):
@@ -1502,14 +1502,16 @@ def word_histogram2(text_list, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> #text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
         >>> text_list = []
+        >>> item_list = text_list = ['spam', 'eggs', 'ham', 'jam', 'spam', 'spam', 'spam', 'eggs', 'spam']
+        >>> weight_list = None
+        >>> #weight_list = [.1, .2, .3, .4, .5, .5, .4, .3, .1]
         >>> #text_list = [x.strip() for x in ut.lorium_ipsum().split()]
-        >>> result = word_histogram2(text_list)
+        >>> result = word_histogram2(text_list, weight_list)
         >>> ut.show_if_requested()
     """
     import plottool as pt
-    text_hist = ut.dict_hist(text_list)
+    text_hist = ut.dict_hist(text_list, weight_list=weight_list)
     text_vals = list(text_hist.values())
     sortx = ut.list_argsort(text_vals)[::-1]
     bin_labels = ut.list_take(list(text_hist.keys()), sortx)
@@ -1517,7 +1519,7 @@ def word_histogram2(text_list, **kwargs):
     xints = np.arange(len(bin_labels))
 
     width = .95
-    freq_list = [np.array(freq, dtype=np.int)]
+    freq_list = [np.array(freq, dtype=np.float)]
     ymax = max([
         _freq.max() if len(_freq) > 0 else 0
         for _freq in freq_list])

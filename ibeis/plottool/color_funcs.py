@@ -37,11 +37,12 @@ def brighten_rgb(rgb, amount):
 
 def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
     import plottool as pt
+    import vtool as vt
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
     #print(ut.list_str(block_list))
     #print(ut.list_str(rgb_list))
-    stacked_block = pt.stack_image_list(block_list, vert=False)
+    stacked_block = vt.stack_image_list(block_list, vert=False)
     # convert to bgr
     stacked_block = stacked_block[:, :, ::-1]
     uint8_img = (255 * stacked_block).astype(np.uint8)

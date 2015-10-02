@@ -140,7 +140,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     #df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
 
 
-def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, **kwargs):
+def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, vert=None, **kwargs):
     """
 
     CommandLine:
@@ -154,7 +154,8 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, **k
         >>> inliers = aff_inliers
         >>> mx = None
         >>> fnum = 1
-        >>> result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum)
+        >>> vert = None  # ut.get_argval('--vert', type_=bool, default=None)
+        >>> result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum, vert=vert)
         >>> print(result)
         >>> ut.show_if_requested()
     """
@@ -169,7 +170,7 @@ def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, **k
     inlier_mask = vt.index_to_boolmask(inliers, maxval=len(fm))
     fm_inliers = fm.compress(inlier_mask, axis=0)
     fm_outliers = fm.compress(np.logical_not(inlier_mask), axis=0)
-    ax, xywh1, xywh2 = df2.show_chipmatch2(chip1, chip2)
+    ax, xywh1, xywh2 = df2.show_chipmatch2(chip1, chip2, vert=vert)
     fmatch_kw = dict(ell_linewidth=2, ell_alpha=.7, line_alpha=.7)
     df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_inliers, colors=color1, **fmatch_kw)
     df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_outliers, colors=color2, **fmatch_kw)
