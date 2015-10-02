@@ -179,19 +179,45 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
     #from ibeis.experiments import cfghelpers
     import plottool as pt
     from ibeis import tag_funcs
-    filt_cfg = main_helpers.testdata_filtcfg(f)
-    case_pos_list = test_result.case_sample2(filt_cfg)
-    all_tags = test_result.get_all_tags()
 
+    # All unfiltered tags
+    all_tags = test_result.get_all_tags()
     all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
 
-    selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
-    flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
-    #print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
+    # Get tags that match the filter
+    filt_cfg = main_helpers.testdata_filtcfg(f)
+    case_pos_list = test_result.case_sample2(filt_cfg)
+    case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+    selected_tags = ut.list_take(all_tags, case_qx_list)
+
+    flat_tags_list = list(map(ut.flatten, selected_tags))
+
+    WITH_NOTAGS = True
+    if WITH_NOTAGS:
+        flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag'] for tags in flat_tags_list]
+    else:
+        flat_tags_list_ = flat_tags_list
+
+    WITH_TOTAL = False
+    if WITH_TOTAL:
+        total = [['Total']] * len(case_qx_list)
+        flat_tags_list_ += total
+
+    WITH_WEIGHTS = True
+    if WITH_WEIGHTS:
+        flat_weights_list = [[1. / len(tags)] * len(tags) for tags in  flat_tags_list_]
+
+    flat_tags = list(map(str, ut.flatten(flat_tags_list_)))
+    if WITH_WEIGHTS:
+        weight_list = ut.flatten(flat_weights_list)
+    else:
+        weight_list = None
+
     pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
     fnum = None
     fnum = pt.ensure_fnum(fnum)
-    pt.word_histogram2(flat_tags, fnum=fnum, pnum=pnum_(), xlabel='Tag')
+
+    pt.word_histogram2(flat_tags, weight_list=weight_list, fnum=fnum, pnum=pnum_(), xlabel='Tag')
 
     if with_wordcloud:
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
@@ -203,7 +229,7 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         #pt.adjust_subplots(wspace=.01)
-        pt.adjust_subplots2(use_argv=True, wspace=.01)
+        pt.adjust_subplots2(use_argv=True, wspace=.01, bottom=.3)
 
 
 @profile
@@ -216,6 +242,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         metadata (None): (default = None)
 
     CommandLine:
+        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_cases
+
         python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
@@ -285,6 +313,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     show_kwargs['show_gf'] = True
     #show_kwargs['with_figtitle'] = True
     show_kwargs['with_figtitle'] = show_in_notebook
+    show_kwargs['fastmode'] = True
     #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
         if SHOW:
@@ -337,9 +366,14 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         #show_kwargs['annot_mode'] = (show_kwargs['annot_mode'] + 1) % 3
         #print('show_kwargs[annot_mode] = %r' % (show_kwargs['annot_mode'] ,))
 
+    def toggle_fast_mode():
+        show_kwargs['fastmode'] = not show_kwargs['fastmode']
+        print('show_kwargs[\'fastmode\'] = %r' % (show_kwargs['fastmode'],))
+
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
-        ('toggle_annot_mode', ['f'], 'toggle_annot_mode', toggle_annot_mode),
+        ('toggle_annot_mode', ['a'], 'toggle_annot_mode', toggle_annot_mode),
+        ('toggle_fast_mode', ['f'], 'toggle_fast_mode', toggle_fast_mode, 'Fast mode lowers drwaing quality'),
     ]
 
     analysis_fpath_list = []
@@ -381,6 +415,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         # TODO: try to get away with not reloading query results or loading
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
+        # TODO: be able to load old results even if they are currently invalid
         qres_list = [qreq_.load_cached_qres(qaids[qx]) for qreq_ in qreq_list]
         fpaths_list.append([])
 
@@ -432,10 +467,11 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                     #if ut.get_argflag('--tight'):
                     #    #pt.plt.tight_layout()
                     #    pass
-                    fig = pt.gcf()
-                    fig.savefig(analysis_fpath)
-                    vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
-                    cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
+                    if False:
+                        fig = pt.gcf()
+                        fig.savefig(analysis_fpath)
+                        vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
+                        cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                     #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
                     #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
                     #reset()

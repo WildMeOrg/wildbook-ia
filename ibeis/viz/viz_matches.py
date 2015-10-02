@@ -23,13 +23,15 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches):
     return rchip1, kpts1
 
 
-def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches):
+def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches, scale_down=False):
     data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
     rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
     if draw_fmatches:
         kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
     else:
         kpts2_list = [None] * len(aid_list)
+    if scale_down:
+        pass
     return rchip2_list, kpts2_list
 
 
@@ -148,7 +150,10 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     ax.set_xlabel(xlabel)
 
 
-def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, fnum=None, pnum=None, **kwargs):
+@profile
+def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
+                         fs_list, featflag_list, fnum=None, pnum=None,
+                         **kwargs):
     """ move to df2
     rchip = rchip1
     H = H1 = None
@@ -158,6 +163,8 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     import vtool.image as gtool
     import plottool as pt
     import numpy as np
+    import vtool as vt
+
     def preprocess_chips(rchip, H, target_wh):
         rchip_ = rchip if H is None else gtool.warpHomog(rchip, H, target_wh)
         return rchip_
@@ -175,8 +182,23 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     num = 0 if len(rchip2_list) < 3 else 1
     vert = True if len(rchip2_list) > 1 else False
 
-    match_img, offset_list, sf_list = pt.stack_image_list_special(rchip1_, rchip2_list_, num=num, vert=vert)
+    if False and kwargs.get('fastmode', False):
+        # This doesn't actually help the speed very much
+        stackkw = dict(
+            # Hack draw results faster Q
+            #initial_sf=.4,
+            #initial_sf=.9,
+            use_larger=False,
+        )
+    else:
+        stackkw = dict()
+    #use_larger = True
 
+    match_img, offset_list, sf_list = vt.stack_image_list_special(rchip1_,
+                                                                  rchip2_list_,
+                                                                  num=num,
+                                                                  vert=vert,
+                                                                  **stackkw)
     wh_list = np.array(ut.flatten([[wh1], wh2_list])) * sf_list
 
     offset1 = offset_list[0]

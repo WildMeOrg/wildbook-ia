@@ -91,6 +91,7 @@ ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDAR
 
 
 def consolodate_annotmatch_tags(case_tags):
+    #return case_tags
     remove_tags = [
         'needswork',
         'correctable',

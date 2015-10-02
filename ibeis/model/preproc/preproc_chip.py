@@ -14,9 +14,8 @@ DONE:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
 from os.path import exists, join, relpath
-import utool as ut  # NOQA
-import vtool.chip as ctool
-import vtool.image as gtool
+import utool as ut
+import vtool as vt
 import functools
 #ut.noinject('[preproc_chip]')
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_chip]')
@@ -28,7 +27,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
     cfpath_list = ibs.get_chip_fpath(cid_list, **kwargs)
     # --- generalize params
     rowid_list = cid_list
-    readfunc = gtool.imread
+    readfunc = vt.imread
     fpath_list = cfpath_list
     # --- generalize func
     """
@@ -80,17 +79,17 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
     try:
         if ensure:
             cfpath_iter = mk_cpath_iter(lbl='reading ensured chips')
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
+            chip_list = [vt.imread(cfpath) for cfpath in cfpath_iter]
         else:
             cfpath_iter = mk_cpath_iter(lbl='reading existing chips')
-            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_iter]
+            chip_list = [None if cfpath is None else vt.imread(cfpath) for cfpath in cfpath_iter]
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
         ibs.add_annot_chips(aid_list)
         try:
             cfpath_iter = mk_cpath_iter(lbl='reading fallback1 chips')
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
+            chip_list = [vt.imread(cfpath) for cfpath in cfpath_iter]
         except IOError:
             print('[preproc_chip] cache must have been deleted from disk')
             # TODO: WE CAN SEARCH FOR NON EXISTANT PATHS HERE AND CALL
@@ -98,7 +97,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
             compute_and_write_chips_lazy(ibs, aid_list)
             # Try just one more time
             cfpath_iter = mk_cpath_iter(lbl='reading fallback2 chips')
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
+            chip_list = [vt.imread(cfpath) for cfpath in cfpath_iter]
 
     return chip_list
 
@@ -180,9 +179,9 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
                 ut.printex(ex, key_list=['cid_list'])
                 raise
             else:
-                chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+                chip_list = [vt.imread(cfpath) for cfpath in cfpath_list]
         else:
-            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
+            chip_list = [None if cfpath is None else vt.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
@@ -196,7 +195,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         # Try readding things
         new_cid_list = ibs.add_annot_chips(aid_list)
         cfpath_list = ibs.get_chip_fpath(new_cid_list)
-        chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        chip_list = [vt.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
 
 
@@ -241,7 +240,7 @@ def generate_chip_properties(ibs, aid_list, config2_=None):
             cfpath, width, height = chip_result
             chip_uri = relpath(cfpath, chip_dir)
             # Can be made faster by getting size from generator
-            #pil_chip = gtool.open_pil_image(cfpath)
+            #pil_chip = vt.open_pil_image(cfpath)
             #width, height = pil_chip.size
             if ut.DEBUG2:
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
@@ -261,14 +260,16 @@ def gen_chip(tup):
 
     THERE MAY BE AN ERROR IN HERE DUE TO IMWITE BEING INSIDE A PARALLEL FUNCTION
     BUT IT MAY BE SOMETHING ELSE?
+
+    Either way we probably shouldn't call imwrite inside here
     """
     #print('generating chip')
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
-    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    chipBGR = vt.compute_chip(gfpath, bbox, theta, new_size, filter_list)
     #if DEBUG:
     #print('write chip: %r' % cfpath)
     height, width = chipBGR.shape[0:2]
-    gtool.imwrite(cfpath, chipBGR)
+    vt.imwrite(cfpath, chipBGR)
     return cfpath, width, height
 
 
@@ -278,30 +279,30 @@ def gen_chip2(tup):
     """
     #print('generating chip')
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
-    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    chipBGR = vt.compute_chip(gfpath, bbox, theta, new_size, filter_list)
     #if DEBUG:
     #print('write chip: %r' % cfpath)
     height, width = chipBGR.shape[0:2]
-    #gtool.imwrite(cfpath, chipBGR)
+    #vt.imwrite(cfpath, chipBGR)
     return chipBGR, cfpath, width, height
 
 
 def compute_and_write_chips(ibs, aid_list, config2_=None):
-    r"""Spawns compute compute chip processess.
+    r"""
+    Starts the compute chip process
 
     Args:
-        ibs (IBEISController):
-        aid_list (list):
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        config2_ (dict): (default = None)
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_chip --test-compute_and_write_chips
 
 
     FIXME: THERE IS A FREEZE THAT HAPPENS HERE
-
         ./reset_dbs.py
         python -m ibeis.experiments.experiment_harness --exec-precompute_test_configuration_features -t custom --expt-preload
-
 
     Example:
         >>> # SLOW_DOCTEST
@@ -325,6 +326,36 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> assert ibs.get_chip_fpath(cid_list) == cfpath_list, 'should be what we had before'
 
+    Ignore:
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        from os.path import basename
+        import ibeis
+        ibs = ibeis.opendb('GZ_Master1')
+        aid_list = [1915]
+        extract_chip_from_img(imgBGR, bbox, theta, new_size)
+        gfpath_list = ibs.get_annot_image_paths(aid_list)
+        bbox_list   = ibs.get_annot_bboxes(aid_list)
+        theta_list  = ibs.get_annot_thetas(aid_list)
+        bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
+        newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
+        gfpath = gfpath_list[0]
+        img = vt.imread(gfpath)
+        chip_sqrt_area = 450
+        chip_sqrt_area = 500
+        target_area = chip_sqrt_area ** 2
+        bbox = bbox_list[0]
+        theta = theta_list[0]
+        new_size = newsize_list[0]
+        #new_size = bbox[2:4]
+        chipBGR = vt.compute_chip(gfpath, bbox, theta, new_size, {})
+        import plottool as pt
+        print('chipBGR.shape = %r' % (chipBGR.shape,))
+        print('chipBGR.shape = %r' % (np.sqrt(np.prod(chipBGR.shape[0:2])),))
+        pt.imshow(chipBGR, fnum=1)
+        pt.imshow(img, fnum=2)
+        pt.iup()
+        pt.present()
+
     """
     ut.ensuredir(ibs.get_chipdir())
     # CONFIG INFO
@@ -342,14 +373,14 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     # source information (image, annotation_bbox, theta)
     # Get how big to resize each chip, etc...
     nChips = len(aid_list)
-    filter_list = ctool.get_filter_list(chip_cfg_dict)
+    filter_list = vt.get_filter_list(chip_cfg_dict)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
     target_area = chip_sqrt_area ** 2
     bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
-    newsize_list = ctool.get_scaled_sizes_with_area(target_area, bbox_size_list)
+    newsize_list = vt.get_scaled_sizes_with_area(target_area, bbox_size_list)
     invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]
     filtlist_iter = (filter_list for _ in range(nChips))
     # Check for invalid chips
@@ -365,17 +396,22 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     #ut.embed()
     # We have to force serial here until we can figure out why parallel chip generation causes a freeze
     # utool has a unstable test that reproduces this reliably (BECAUSE OF CV2.WARP_AFFINE WITH BIG OUTPUT)
-    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True, freq=10)
-    #chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list, ordered=True)
+
+    DO_IMWRITE_IN_WORKER = False
+    if DO_IMWRITE_IN_WORKER:
+        # Compute and write chips in asychronous process
+        chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True, freq=10)
+        chip_result_list = list(chip_result_iter)
+    else:
+        # Compute chips in asychronous process. Write here
+        chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list, ordered=True, force_serial=True, freq=10)
+        chip_result_list = []
+        for chipBGR, cfpath, width, height in chip_result_iter:
+            vt.imwrite(cfpath, chipBGR)
+            chip_result_list.append((cfpath, width, height))
     #print(ut.util_parallel.__POOL__)
-    # Compute and write chips in asychronous process
     if ut.VERBOSE:
         print('Computing %d chips' % (len(cfpath_list)))
-    chip_result_list = []
-    #for chipBGR, cfpath, width, height in chip_result_iter:
-    #    gtool.imwrite(cfpath, chipBGR)
-    #    chip_result_list.append((cfpath, width, height))
-    chip_result_list = list(chip_result_iter)
     if not ut.VERBOSE:
         print('Done computing chips')
     return chip_result_list

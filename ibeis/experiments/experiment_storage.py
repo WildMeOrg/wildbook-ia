@@ -1088,7 +1088,7 @@ class TestResult(object):
             reverse = True
         elif sortasc is not None:
             assert reverse is None, 'reverse does not work with sortasc'
-            assert sortasc is None, 'use orderby or sortasc'
+            assert orderby is None, 'use orderby or sortasc'
             orderby = sortasc
             reverse = False
         else:

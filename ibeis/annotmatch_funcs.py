@@ -12,6 +12,22 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[annotmatch_funcs]'
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
+@register_ibs_method
+def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
+    """
+    TODO autogenerate
+    """
+    from ibeis.control import _autogen_annotmatch_funcs
+    colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
+    # FIXME: col_rowid is not correct
+    params_iter = zip(aid1_list)
+    andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
+    annotmatch_rowid_list = ibs.db.get_where2(
+        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
+        eager=eager, nInput=nInput, unpack_scalars=False)
+    return annotmatch_rowid_list
+
+
 def setup_pzmtest_subgraph(ibs):
     import ibeis
     ibs = ibeis.opendb(db='PZ_MTEST')

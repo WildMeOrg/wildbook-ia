@@ -43,7 +43,8 @@ def show_many_chips(ibs, aid_list):
     config2_ = None
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
-    stacked_chips = pt.stack_image_recurse(chip_list, modifysize=True)
+    import vtool as vt
+    stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True)
     pt.imshow(stacked_chips)
 
 

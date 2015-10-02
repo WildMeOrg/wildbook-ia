@@ -82,6 +82,8 @@ def expand_acfgs_consistently(ibs, acfg_combo):
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master0 --verbtd --nofilter-dups  -a varysize
         python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list -a viewpoint_compare --db PZ_Master1 --verbtd --nofilter-dups
 
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd --nofilter-dups
+
     """
     # Edit configs so the sample sizes are consistent
     # FIXME: requiers that smallest configs are specified first
@@ -139,6 +141,18 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             _extra_aids = filter_annots_independent(ibs, _extra_aids, _aidcfg, prefix)
             _extra_aids = sample_annots(ibs, _extra_aids, _aidcfg, prefix)
             daids = sorted(daids + _extra_aids)
+            expanded_aids = (qaids, daids)
+
+        REMOVE_SPLIT_JOIN_QUERIES = True
+        if REMOVE_SPLIT_JOIN_QUERIES:
+            qaids, daids = expanded_aids
+            tags_list = ibs.get_annot_case_tags(qaids)
+            flags_list = ['error:viewpoint' in tags for tags in tags_list]
+            qaids = ut.list_compress(qaids, ut.not_list(flags_list))
+            annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid1(qaids)
+            pairwise_tags = list(map(ut.flatten, ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowid_list)))
+            flags_list = ['splitcase' in tags or 'joincase' in tags for tags in pairwise_tags]
+            qaids = ut.list_compress(qaids, ut.not_list(flags_list))
             expanded_aids = (qaids, daids)
 
         qsize = len(expanded_aids[0])

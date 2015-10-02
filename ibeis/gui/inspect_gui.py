@@ -93,14 +93,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
             ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
         ]
 
-    options += [
-        ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
-        ('Mark as &Reviewed', lambda: ibs.set_annot_pair_as_reviewed(aid1, aid2)),
-        ('Mark as &True Match.', lambda: set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-        ('Mark as &False Match.', lambda:  set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-    ]
-
     with_interact_chips = True
+
     if with_interact_chips:
         from ibeis.viz.interact import interact_chip
 
@@ -113,23 +107,41 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
         interact_chip_options = []
         for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
             interact_chip_options += [
-                ('Interact Chip&%d' % (count,), partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_, fnum=None, **kwargs)),
+                ('Interact Annot&%d' % (count,), partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_, fnum=None, **kwargs)),
             ]
         interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
         interact_chip_options.append(
-            ('Interact &All Chips', lambda: [func() for func in interact_chip_actions]),
+            ('Interact &All Annots', lambda: [func() for func in interact_chip_actions]),
         )
 
         chip_contex_options = []
         for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
             chip_contex_options += [
-                ('Chip&%d Options (aid=%r)' % (count, aid,), interact_chip.build_annot_context_options(
+                ('Annot&%d Options (aid=%r)' % (count, aid,), interact_chip.build_annot_context_options(
                     ibs, aid, refresh_func=None, config2_=config2_))
             ]
 
+        #options += [
+        #    #('Interact Annots', interact_chip_options),
+        #    #('Annot Conte&xt Options', chip_contex_options),
+        #]
+        if len(chip_contex_options) > 2:
+            options += [
+                ('Annot Conte&xt Options', chip_contex_options),
+            ]
+        else:
+            options += chip_contex_options
+
+    with_review_options = True
+
+    from ibeis.viz import viz_graph
+    if with_review_options:
         options += [
-            ('Interact Chips', interact_chip_options),
-            ('Chip Conte&xt Options', chip_contex_options),
+            ('Mark as &Reviewed', lambda: ibs.set_annot_pair_as_reviewed(aid1, aid2)),
+            ('Mark as &True Match.', lambda: set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+            ('Mark as &False Match.', lambda:  set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+            ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
+            ('Interact Name Graph', partial(viz_graph.make_name_graph_interaction, ibs, aids=aid_list2, selected_aids=aid_list2))
         ]
 
     with_vsone = True

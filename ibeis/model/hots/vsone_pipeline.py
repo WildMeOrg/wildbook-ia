@@ -230,6 +230,9 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     """ simple hack convinience func
     Uses vsmany qreq to build a "similar" vsone qreq
 
+    TODO:
+        in the context menu let me change preferences for running vsone
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid1 (int):  annotation id

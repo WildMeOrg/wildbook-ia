@@ -283,6 +283,7 @@ def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
     ouptuts them to disk
     """
     from plottool import draw_func2 as df2
+    import vtool as vt
     import parse
 
     vocabdir = join(figdir, 'vocab_patches2')
@@ -322,9 +323,9 @@ def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
             for patch, newpatch in zip(patch_list, newpatch_list):
                 newpatch[wpad:-wpad, hpad:-hpad, :] = patch
             #img_list = patch_list
-            #bigpatch = df2.stack_image_recurse(patch_list)
-        #bigpatch = df2.stack_image_list(patch_list, vert=False)
-        bigpatch = df2.stack_square_images(newpatch_list)
+            #bigpatch = vt.stack_image_recurse(patch_list)
+        #bigpatch = vt.stack_image_list(patch_list, vert=False)
+        bigpatch = vt.stack_square_images(newpatch_list)
         bigpatch_fpath = join(seldpath, basename(dpath) + '_patches.png')
 
         #

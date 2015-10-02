@@ -24,7 +24,7 @@ def hack_argv(arg):
 
         if hack_argv_key in ['surf']:
             sys.argv.extend([
-                '--figsize=14,5',
+                '--figsize=14,3',
                 '--hspace=.3',
                 #'--top=.8',
                 '--top=.85',
@@ -32,8 +32,7 @@ def hack_argv(arg):
                 '--left=.05',
                 '--right=.95'
             ])
-
-        if hack_argv_key in ['scores']:
+        elif hack_argv_key in ['scores']:
             sys.argv.extend([
                 #'--figsize=15,7',
                 #'--top=.8',
@@ -56,15 +55,20 @@ def hack_argv(arg):
         elif hack_argv_key in ['expt']:
             sys.argv.extend([
                 #'--figsize=15,3',
-                '--figsize=15,3.5',
-                '--top=.8',
-                '--bottom=.1',
+                '--figsize=15,3.1',
+                '--top=.9',
+                '--bottom=.15',
             ])
         elif hack_argv_key in ['mech']:
             sys.argv.extend([
                 #'--figsize=14,5',
                 '--figsize=14,3',
                 '--top=.9',
+            ])
+        elif hack_argv_key in ['tags']:
+            sys.argv.extend([
+                '--bottom=.3',
+                '--left=.2',
             ])
 
         # Save location

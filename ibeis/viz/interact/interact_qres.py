@@ -122,6 +122,23 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         else:
             _top_matches_view(toggle=1)
 
+    #def _on_keypress(event):
+    #    if event.key == ',':
+    #        print(event.key)
+    #        from ibeis.gui import inspect_gui
+    #        update_callback = _refresh
+    #        backend_callback = None
+    #        print('qreq_ = %r' % (self.qreq_,))
+    #        print('right click')
+    #        height = fig.canvas.geometry().height()
+    #        import guitool
+    #        qpoint = guitool.newQPoint(event.x, height - event.y)
+    #        qwin = fig.canvas
+    #        inspect_gui.show_aidpair_context_menu(
+    #            ibs, qwin, qpoint, qres.qaid, aid2, qres, qreq_=self.qreq_,
+    #            update_callback=update_callback,
+    #            backend_callback=backend_callback, aid_list=aid_list)
+
     def _on_match_click(event):
         """ result interaction mpl event callback slot """
         print('[viz] clicked result')
@@ -191,6 +208,7 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     if dodraw:
         ph.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
+    #ih.connect_callback(fig, 'key_press_event', _on_keypress)
     #if verbose:
     #    print('[ishow_qres] Finished')
     return fig
