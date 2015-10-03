@@ -429,7 +429,10 @@ def print_results(ibs, test_result):
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
             frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
-            print('Pairwise Difference:' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
+            print('frac_list = %r' % (frac_list,))
+            print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            print('')
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
