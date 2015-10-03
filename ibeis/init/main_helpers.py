@@ -103,6 +103,11 @@ def testdata_expts(defaultdb='testdb1',
     if t is not None:
         default_test_cfg_name_list = t
 
+    if isinstance(default_acfgstr_name_list, six.string_types):
+        default_acfgstr_name_list = [default_acfgstr_name_list]
+    if isinstance(default_test_cfg_name_list, six.string_types):
+        default_test_cfg_name_list = [default_test_cfg_name_list]
+
     #from ibeis.experiments import experiment_helpers
     ibs = ibeis.opendb(defaultdb=defaultdb)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)

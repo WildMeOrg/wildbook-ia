@@ -118,16 +118,12 @@ def print_results(ibs, test_result):
         test_result (experiment_storage.TestResult):
 
     CommandLine:
-        python dev.py -t best --db seals2 --allgt --vz
+        python dev.py -e print --db PZ_MTEST -a default:dpername=1,qpername=[1,2]  -t default:fg_on=False
 
-        python dev.py --db PZ_MTEST --allgt -t custom --print-confusion-stats
-
-        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
-        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
-        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats --print-scorediff-mat-stats
-
-        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
-        python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py -e print -t best --db seals2 --allgt --vz
+        python dev.py -e print --db PZ_MTEST --allgt -t custom --print-confusion-stats
+        python dev.py -e print --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
     CommandLine:
         python -m ibeis.experiments.experiment_printres --test-print_results
@@ -137,7 +133,7 @@ def print_results(ibs, test_result):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.experiments.experiment_printres import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a='default:dpername=1,qpername=[1,2]', t='default:fg_on=False')
         >>> result = print_results(ibs, test_result)
         >>> print(result)
     """
@@ -162,60 +158,82 @@ def print_results(ibs, test_result):
 
     print(' --- PRINT RESULTS ---')
     print(' use --rank-lt-list=1,5 to specify X_LIST')
-    # Num of ranks less than to score
-    X_LIST = test_result.get_X_LIST()
-    #X_LIST = [1, 5]
+    if True:
+        # Num of ranks less than to score
+        X_LIST = test_result.get_X_LIST()
+        #X_LIST = [1, 5]
 
-    nConfig = len(cfg_list)
-    nQuery = len(test_result.qaids)
-    #--------------------
+        nConfig = len(cfg_list)
+        #nQuery = len(test_result.qaids)
+        cfgx2_nQuery = list(map(len, test_result.cfgx2_qaids))
+        cfgx2_qx2_ranks = test_result.get_infoprop_list('qx2_bestranks')
+        #--------------------
 
-    gt_raw_score_mat = np.vstack(cfgx2_gt_raw_score).T
-    rank_mat = test_result.get_rank_mat()
+        # A positive scorediff indicates the groundtruth was better than the
+        # groundfalse scores
+        istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
+        isfalse_list = [~istrue for istrue in istrue_list]
 
-    # A positive scorediff indicates the groundtruth was better than the
-    # groundfalse scores
-    istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
-    isfalse_list = [~istrue for istrue in istrue_list]
+        #------------
+        # Build Colscore
+        nLessX_dict = test_result.get_nLessX_dict()
 
-    # Label the rank matrix:
-    _colxs = np.arange(nConfig)
-    lbld_mat = ut.debug_vstack([_colxs, rank_mat])
+        #------------
+        best_rankscore_summary = []
+        #to_intersect_list = []
+        # print each configs scores less than X=thresh
+        for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
+            max_nLessX = cfgx2_nLessX.max()
+            bestX_cfgx_list = np.where(cfgx2_nLessX == max_nLessX)[0]
+            best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestX_cfgx_list)
+            # FIXME
+            best_rankscore += rankscore_str(X, max_nLessX, cfgx2_nQuery[bestX_cfgx_list[0]])
+            best_rankscore_summary += [best_rankscore]
+            #to_intersect_list.append(ut.list_take(cfgx2_lbl, max_nLessX))
 
-    _rowxs = np.arange(nQuery + 1).reshape(nQuery + 1, 1) - 1
-    lbld_mat = np.hstack([_rowxs, lbld_mat])
-    #------------
-    # Build row lbls
-    qx2_lbl = np.array([
-        'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(test_result.qaids[qx], ibs=ibs, notes=True))
-        for qx in range(nQuery)])
+        #intersected = to_intersect_list[0] if len(to_intersect_list) > 0 else []
+        #for ix in range(1, len(to_intersect_list)):
+        #    intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
-    #------------
-    # Build Colscore and hard cases
-    qx2_min_rank = []
-    qx2_argmin_rank = []
-    new_hard_qaids = []
-    new_hardtup_list = []
+    #if False:
+    #    #gt_raw_score_mat = np.vstack(cfgx2_gt_raw_score).T
 
-    for qx in range(nQuery):
-        ranks = rank_mat[qx]
-        valid_ranks = ranks[ranks >= 0]
-        min_rank = ranks.min() if len(valid_ranks) > 0 else -3
-        bestCFG_X = np.where(ranks == min_rank)[0]
-        qx2_min_rank.append(min_rank)
-        # Find the best rank over all configurations
-        qx2_argmin_rank.append(bestCFG_X)
+    #    #rank_mat = test_result.get_rank_mat()
 
-    new_hard_qx_list = test_result.get_new_hard_qx_list()
+    #    #------------
+    #    # Build row lbls
+    #    if False:
+    #        qx2_lbl = np.array([
+    #            'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(test_result.qaids[qx], ibs=ibs, notes=True))
+    #            for qx in range(nQuery)])
 
-    for qx in new_hard_qx_list:
-        # New list is in aid format instead of cx format
-        # because you should be copying and pasting it
-        notes = ' ranks = ' + str(rank_mat[qx])
-        qaid = test_result.qaids[qx]
-        name = ibs.get_annot_names(qaid)
-        new_hardtup_list += [(qaid, name + " - " + notes)]
-        new_hard_qaids += [qaid]
+    #    #------------
+    #    # Build Colscore and hard cases
+    #    if False:
+    #        qx2_min_rank = []
+    #        qx2_argmin_rank = []
+    #        new_hard_qaids = []
+    #        new_hardtup_list = []
+
+    #        for qx in range(nQuery):
+    #            ranks = rank_mat[qx]
+    #            valid_ranks = ranks[ranks >= 0]
+    #            min_rank = ranks.min() if len(valid_ranks) > 0 else -3
+    #            bestCFG_X = np.where(ranks == min_rank)[0]
+    #            qx2_min_rank.append(min_rank)
+    #            # Find the best rank over all configurations
+    #            qx2_argmin_rank.append(bestCFG_X)
+
+    #        new_hard_qx_list = test_result.get_new_hard_qx_list()
+
+    #        for qx in new_hard_qx_list:
+    #            # New list is in aid format instead of cx format
+    #            # because you should be copying and pasting it
+    #            notes = ' ranks = ' + str(rank_mat[qx])
+    #            qaid = test_result.qaids[qx]
+    #            name = ibs.get_annot_names(qaid)
+    #            new_hardtup_list += [(qaid, name + " - " + notes)]
+    #            new_hard_qaids += [qaid]
 
     @ut.argv_flag_dec
     def intersect_hack():
@@ -286,17 +304,13 @@ def print_results(ibs, test_result):
     #ut.embed()
     #intersect_hack()
 
-    #------------
-    # Build Colscore
-    nLessX_dict = test_result.get_nLessX_dict()
-
-    @ut.argv_flag_dec
-    def print_rowlbl():
-        print('=====================')
-        print('[harn] Row/Query Labels: %s' % testnameid)
-        print('=====================')
-        print('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
-    print_rowlbl()
+    #@ut.argv_flag_dec
+    #def print_rowlbl():
+    #    print('=====================')
+    #    print('[harn] Row/Query Labels: %s' % testnameid)
+    #    print('=====================')
+    #    print('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
+    #print_rowlbl()
     #------------
 
     @ut.argv_flag_dec
@@ -324,66 +338,66 @@ def print_results(ibs, test_result):
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_rowscore():
-        print('=======================')
-        print('[harn] Scores per Query: %s' % testnameid)
-        print('=======================')
-        for qx in range(nQuery):
-            bestCFG_X = qx2_argmin_rank[qx]
-            min_rank = qx2_min_rank[qx]
-            minimizing_cfg_str = ut.indentjoin(cfgx2_lbl[bestCFG_X], '\n  * ')
-            #minimizing_cfg_str = str(bestCFG_X)
+    #@ut.argv_flag_dec
+    #def print_rowscore():
+    #    print('=======================')
+    #    print('[harn] Scores per Query: %s' % testnameid)
+    #    print('=======================')
+    #    for qx in range(nQuery):
+    #        bestCFG_X = qx2_argmin_rank[qx]
+    #        min_rank = qx2_min_rank[qx]
+    #        minimizing_cfg_str = ut.indentjoin(cfgx2_lbl[bestCFG_X], '\n  * ')
+    #        #minimizing_cfg_str = str(bestCFG_X)
 
-            print('-------')
-            print(qx2_lbl[qx])
-            print(' best_rank = %d ' % min_rank)
-            if len(cfgx2_lbl) != 1:
-                print(' minimizing_cfg_x\'s = %s ' % minimizing_cfg_str)
-    print_rowscore()
-
-    #------------
-
-    @ut.argv_flag_dec
-    def print_row_ave_precision():
-        print('=======================')
-        print('[harn] Scores per Query: %s' % testnameid)
-        print('=======================')
-        for qx in range(nQuery):
-            aveprecs = ', '.join(['%.2f' % (aveprecs[qx],) for aveprecs in cfgx2_aveprecs])
-            print('-------')
-            print(qx2_lbl[qx])
-            print(' aveprecs = %s ' % aveprecs)
-    print_row_ave_precision()
+    #        print('-------')
+    #        print(qx2_lbl[qx])
+    #        print(' best_rank = %d ' % min_rank)
+    #        if len(cfgx2_lbl) != 1:
+    #            print(' minimizing_cfg_x\'s = %s ' % minimizing_cfg_str)
+    #print_rowscore()
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_hardcase():
-        print('--- hard new_hardtup_list (w.r.t these configs): %s' % testnameid)
-        print('\n'.join(map(repr, new_hardtup_list)))
-        print('There are %d hard cases ' % len(new_hardtup_list))
-        aid_list = [aid_notes[0] for aid_notes in new_hardtup_list]
-        name_list = ibs.get_annot_names(aid_list)
-        name_set = set(name_list)
-        print(sorted(aid_list))
-        print('Names: %r' % (name_set,))
-    print_hardcase()
+    #@ut.argv_flag_dec
+    #def print_row_ave_precision():
+    #    print('=======================')
+    #    print('[harn] Scores per Query: %s' % testnameid)
+    #    print('=======================')
+    #    for qx in range(nQuery):
+    #        aveprecs = ', '.join(['%.2f' % (aveprecs[qx],) for aveprecs in cfgx2_aveprecs])
+    #        print('-------')
+    #        print(qx2_lbl[qx])
+    #        print(' aveprecs = %s ' % aveprecs)
+    #print_row_ave_precision()
+
+    ##------------
+
+    #@ut.argv_flag_dec
+    #def print_hardcase():
+    #    print('--- hard new_hardtup_list (w.r.t these configs): %s' % testnameid)
+    #    print('\n'.join(map(repr, new_hardtup_list)))
+    #    print('There are %d hard cases ' % len(new_hardtup_list))
+    #    aid_list = [aid_notes[0] for aid_notes in new_hardtup_list]
+    #    name_list = ibs.get_annot_names(aid_list)
+    #    name_set = set(name_list)
+    #    print(sorted(aid_list))
+    #    print('Names: %r' % (name_set,))
+    #print_hardcase()
     #default=not ut.get_argflag('--allhard'))
 
     #------------
 
-    @ut.argv_flag_dec
-    def echo_hardcase():
-        print('--- hardcase commandline: %s' % testnameid)
-        # Show index for current query where hardids reside
-        #print('--index ' + (' '.join(map(str, new_hard_qx_list))))
-        #print('--take new_hard_qx_list')
-        #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_hard_qaids))
-        hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_hard_qaids))
-        print(hardaids_str)
-    #echo_hardcase(default=not ut.get_argflag('--allhard'))
-    echo_hardcase()
+    #@ut.argv_flag_dec
+    #def echo_hardcase():
+    #    print('--- hardcase commandline: %s' % testnameid)
+    #    # Show index for current query where hardids reside
+    #    #print('--index ' + (' '.join(map(str, new_hard_qx_list))))
+    #    #print('--take new_hard_qx_list')
+    #    #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_hard_qaids))
+    #    hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_hard_qaids))
+    #    print(hardaids_str)
+    ##echo_hardcase(default=not ut.get_argflag('--allhard'))
+    #echo_hardcase()
 
     #------------
 
@@ -400,7 +414,7 @@ def print_results(ibs, test_result):
     print_colmap()
     #------------
 
-    @ut.argv_flag_dec
+    @ut.argv_flag_dec_true
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
@@ -414,31 +428,17 @@ def print_results(ibs, test_result):
         for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
+            frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
+            print('Pairwise Difference:' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
-                rankstr = rankscore_str(X, nLessX_, nQuery, withlbl=False)
+                rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
     print_colscore()
 
     #------------
 
     ut.argv_flag_dec(print_latexsum)(ibs, test_result)
-
-    #------------
-    best_rankscore_summary = []
-    to_intersect_list = []
-    # print each configs scores less than X=thresh
-    for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
-        max_LessX = cfgx2_nLessX.max()
-        bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
-        best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
-        best_rankscore += rankscore_str(X, max_LessX, nQuery)
-        best_rankscore_summary += [best_rankscore]
-        to_intersect_list.append(ut.list_take(cfgx2_lbl, bestCFG_X))
-
-    intersected = to_intersect_list[0] if len(to_intersect_list) > 0 else []
-    for ix in range(1, len(to_intersect_list)):
-        intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
     #@ut.argv_flag_dec
     #def print_bestcfg():
@@ -463,43 +463,36 @@ def print_results(ibs, test_result):
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_gtscore():
-        # Prints best ranks
-        print('gtscore_mat: %s' % testnameid)
-        print(' nRows=%r, nCols=%r' % lbld_mat.shape)
-        header = (' labled rank matrix: rows=queries, cols=cfgs:')
-        #print('\n'.join(qx2_lbl))
-        print('\n'.join(cfgx2_lbl))
-        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
-        column_list = gt_raw_score_mat.T
-        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
-                                column_lbls=column_lbls, header=header,
-                                transpose=False,
-                                use_lbl_width=len(cfgx2_lbl) < 5))
-    print_gtscore()
+    #@ut.argv_flag_dec
+    #def print_gtscore():
+    #    # Prints best ranks
+    #    print('gtscore_mat: %s' % testnameid)
+    #    print(' nRows=%r, nCols=%r' % (nQuery, nConfig))
+    #    header = (' labled rank matrix: rows=queries, cols=cfgs:')
+    #    print('\n'.join(cfgx2_lbl))
+    #    column_list = gt_raw_score_mat.T
+    #    print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
+    #                            column_lbls=column_lbls, header=header,
+    #                            transpose=False,
+    #                            use_lbl_width=len(cfgx2_lbl) < 5))
+    #print_gtscore()
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_best_rankmat():
-        # Prints best ranks
-        print('-------------')
-        print('RankMat: %s' % testnameid)
-        print(' nRows=%r, nCols=%r' % lbld_mat.shape)
-        header = (' labled rank matrix: rows=queries, cols=cfgs:')
-        #print('\n'.join(qx2_lbl))
-        print('\n'.join(cfgx2_lbl))
-        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
-        column_list = rank_mat.T
-        print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
-                                column_lbls=column_lbls, header=header,
-                                transpose=False,
-                                use_lbl_width=len(cfgx2_lbl) < 5))
-        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
-        #print(lbld_mat)
-    print_best_rankmat()
+    #@ut.argv_flag_dec
+    #def print_best_rankmat():
+    #    # Prints best ranks
+    #    print('-------------')
+    #    print('RankMat: %s' % testnameid)
+    #    print(' nRows=%r, nCols=%r' % (nQuery, nConfig))
+    #    header = (' labled rank matrix: rows=queries, cols=cfgs:')
+    #    print('\n'.join(cfgx2_lbl))
+    #    column_list = rank_mat.T
+    #    print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
+    #                            column_lbls=column_lbls, header=header,
+    #                            transpose=False,
+    #                            use_lbl_width=len(cfgx2_lbl) < 5))
+    #print_best_rankmat()
 
     #------------
 
@@ -509,17 +502,12 @@ def print_results(ibs, test_result):
         print('-------------')
         print('NextRankMat: %s' % testnameid)
         header = (' top false rank matrix: rows=queries, cols=cfgs:')
-        #print('\n'.join(qx2_lbl))
         print('\n'.join(cfgx2_lbl))
-        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = cfgx2_nextbestranks
         print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
                                 column_lbls=column_lbls, header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
-        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
-        #print(lbld_mat)
     print_next_rankmat()
 
     #------------
@@ -530,9 +518,7 @@ def print_results(ibs, test_result):
         print('-------------')
         print('ScoreDiffMat: %s' % testnameid)
         header = (' score difference between top true and top false: rows=queries, cols=cfgs:')
-        #print('\n'.join(qx2_lbl))
         print('\n'.join(cfgx2_lbl))
-        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
         column_list = cfgx2_scorediffs
         column_type = [float] * len(column_list)
         print(ut.make_csv_table(column_list, row_lbls=test_result.qaids,
@@ -541,9 +527,6 @@ def print_results(ibs, test_result):
                                 header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
-        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
-        #print(lbld_mat)
     print_scorediff_mat(alias_flags=['--sdm'])
 
     #------------
@@ -598,61 +581,61 @@ def print_results(ibs, test_result):
 
     print_confusion_stats(alias_flags=['--cs'])
 
-    @ut.argv_flag_dec
-    def print_diffmat():
-        # score differences over configs
-        print('-------------')
-        print('Diffmat: %s' % testnameid)
-        diff_matstr = get_diffmat_str(rank_mat, test_result.qaids, nConfig)
-        print(diff_matstr)
-    print_diffmat()
+    #@ut.argv_flag_dec
+    #def print_diffmat():
+    #    # score differences over configs
+    #    print('-------------')
+    #    print('Diffmat: %s' % testnameid)
+    #    diff_matstr = get_diffmat_str(rank_mat, test_result.qaids, nConfig)
+    #    print(diff_matstr)
+    #print_diffmat()
 
-    @ut.argv_flag_dec
-    def print_rankhist_time():
-        print('A rank histogram is a dictionary. '
-              'The keys denote the range of the ranks that the values fall in')
-        # TODO: rectify this code with other hist code
-        agg_hist_dict = test_result.get_rank_histograms()
+    #@ut.argv_flag_dec
+    #def print_rankhist_time():
+    #    print('A rank histogram is a dictionary. '
+    #          'The keys denote the range of the ranks that the values fall in')
+    #    # TODO: rectify this code with other hist code
+    #    agg_hist_dict = test_result.get_rank_histograms()
 
-        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
-        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+    #    config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
 
-        _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
-        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
-            #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-            #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
-            # find the qxs that belong to each bin
-            aid_list1 = test_result.qaids
-            aid_list2 = qx2_gt_aid
-            ibs.assert_valid_aids(aid_list1)
-            ibs.assert_valid_aids(aid_list2)
-            timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-            #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
-            #                      for delta in timedelta_list]
+    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+    #        #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+    #        #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+    #        # find the qxs that belong to each bin
+    #        aid_list1 = test_result.qaids
+    #        aid_list2 = qx2_gt_aid
+    #        ibs.assert_valid_aids(aid_list1)
+    #        ibs.assert_valid_aids(aid_list2)
+    #        timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+    #        #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
+    #        #                      for delta in timedelta_list]
 
-            bin_edges = test_result.get_rank_histogram_bin_edges()
-            timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+    #        bin_edges = test_result.get_rank_histogram_bin_edges()
+    #        timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
 
-            timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
-            print('Time statistics for each rank range:')
-            print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
-    print_rankhist_time()
+    #        timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+    #        print('Time statistics for each rank range:')
+    #        print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+    #print_rankhist_time()
 
-    @ut.argv_flag_dec
-    def print_rankhist():
-        print('A rank histogram is a dictionary. '
-              'The keys denote the range of the ranks that the values fall in')
-        # TODO: rectify this code with other hist code
-        agg_hist_dict = test_result.get_rank_histograms()
+    #@ut.argv_flag_dec
+    #def print_rankhist():
+    #    print('A rank histogram is a dictionary. '
+    #          'The keys denote the range of the ranks that the values fall in')
+    #    # TODO: rectify this code with other hist code
+    #    agg_hist_dict = test_result.get_rank_histograms()
 
-        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
-        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+    #    config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
 
-        _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
-        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
-            print('Frequency of rank ranges:')
-            ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
-    print_rankhist()
+    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+    #        print('Frequency of rank ranges:')
+    #        ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
+    #print_rankhist()
 
     #------------
     # Print summary
@@ -676,10 +659,10 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     percent = 100 * nLess / total
     fmtsf = '%' + str(ut.num2_sigfig(total)) + 'd'
     if withlbl:
-        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        fmtstr = ':#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + '/' + str(total) + ')'
         rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
     else:
-        fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
+        fmtstr = fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + '/' + str(total) + ')'
         rankscore_str = fmtstr % (nLess, total, percent, (total - nLess))
     return rankscore_str
 

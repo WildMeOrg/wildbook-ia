@@ -198,8 +198,7 @@ class TestResult(object):
     def get_rank_mat(test_result, qaids=None):
         # Ranks of Best Results
         #get_infoprop_mat(test_result, 'qx2_bestranks')
-        with ut.embed_on_exception_context:
-            rank_mat = test_result.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
+        rank_mat = test_result.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
         #cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
         #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
         # Set invalid ranks to the worse possible rank
@@ -337,17 +336,23 @@ class TestResult(object):
         return config_rand_bin_qxs
 
     def get_X_LIST(test_result):
-        X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
+        #X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
+        X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1, 5])
         return X_LIST
 
     def get_nLessX_dict(test_result):
         # Build a (histogram) dictionary mapping X (as in #ranks < X) to a list of cfg scores
         X_LIST = test_result.get_X_LIST()
         nLessX_dict = {int(X): np.zeros(test_result.nConfig) for X in X_LIST}
+        cfgx2_qx2_bestrank = test_result.get_infoprop_list('qx2_bestranks')
+        #rank_mat = test_result.rank_mat  # HACK
         for X in X_LIST:
-            rank_mat = test_result.rank_mat
-            lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
-            nLessX_dict[int(X)] = lessX_.sum(axis=0)
+            cfgx2_lessX_mask = [
+                np.logical_and(0 <= qx2_ranks, qx2_ranks < X)
+                for qx2_ranks in cfgx2_qx2_bestrank]
+            #lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
+            cfgx2_nLessX = np.array([lessX_.sum(axis=0) for lessX_ in cfgx2_lessX_mask])
+            nLessX_dict[int(X)] = cfgx2_nLessX
         return nLessX_dict
 
     def get_all_varied_params(test_result):
