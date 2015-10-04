@@ -387,6 +387,7 @@ class SQLDatabaseController(object):
 
     @default_decor
     def get_where2(db, tblname, colnames, params_iter, andwhere_colnames,
+                   orwhere_colnames=[],
                    unpack_scalars=True, eager=True, **kwargs):
         """ hacked in function for nicer templates """
         andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
@@ -402,6 +403,9 @@ class SQLDatabaseController(object):
 
         unpack_scalars = True
         kwargs = {}
+
+        Kwargs:
+            verbose:
         """
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
         logicop_ = ' %s ' % (logicop,)

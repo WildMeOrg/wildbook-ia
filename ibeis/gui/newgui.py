@@ -250,7 +250,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     """
     CommandLine:
         # Testing
-        python -m ibies --db NNP_Master3 --onlyimgtbl
+        python -m ibeis --db NNP_Master3 --onlyimgtbl
+        python -m ibeis --db PZ_Master1 --onlyimgtbl
 
     """
     def __init__(ibswgt, back=None, ibs=None, parent=None):
@@ -1481,44 +1482,67 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def filter_annotation_table(ibswgt):
         r"""
-        Args:
-
+        TODO:  Finish implementation
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-filter_annotation_table
+            python -m ibeis.gui.newgui --test-filter_annotation_table --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.newgui import *  # NOQA
-            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
-            >>> result = ibswgt.filter_annotation_table(
+            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('PZ_Master1')
+            >>> result = ibswgt.filter_annotation_table()
             >>> print(result)
+            >>> testdata_main_loop(globals(), locals())
         """
+        from functools import partial
         model = ibswgt.models[gh.ANNOTATION_TABLE]  # NOQA
 
+        #ibs.filter_annots_general()
+
         ibs = ibswgt.back.ibs
-        annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
-        isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
-        ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
+        model._ider()
 
-        def get_aids_with_annotmatchprop():
-            from ibeis import constants as const
-            from ibeis.control import _autogen_annotmatch_funcs
-            colnames = (_autogen_annotmatch_funcs.ANNOT_ROWID1, _autogen_annotmatch_funcs.ANNOT_ROWID2)
-            tblname = const.ANNOTMATCH_TABLE
-            wherecol = _autogen_annotmatch_funcs.ANNOTMATCH_IS_SCENERYMATCH
-            whereclause = wherecol + '=?'
-            colname_str = ', '.join(colnames)
-            operation = ut.codeblock(
-                '''
-                SELECT {colname_str}
-                FROM {tblname}
-                WHERE {whereclause}
-                ''').format(colname_str=colname_str, tblname=tblname, whereclause=whereclause)
+        #ibs.filterannots_by_tags(aid_list)
 
-            ibs.db.cur.execute(operation, [True])
-            scenery_aids = list(set(ut.flatten(ibs.db.cur.fetchall())))
-            return scenery_aids
+        #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
+        #isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
+        #ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
+
+        # Applies annotation based filtering to the annotation table
+        filter_kw = dict(any_matches='.*error.*')
+        filter_fn = partial(ibs.filter_annots_general, filter_kw=filter_kw)
+
+        model.set_ider_filters([filter_fn])
+        with ChangeLayoutContext([model]):
+            #model._update_rows(rebuild_structure=True)
+            model._update_rows()
+
+        #def get_error_aids():
+        #    # DISABLE_DOCTEST
+        #    aid_list = ibs.get_valid_aids()
+        #    #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
+        #    aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
+
+        #def get_aids_with_annotmatchprop():
+        #    from ibeis import constants as const
+        #    from ibeis.control import _autogen_annotmatch_funcs
+        #    colnames = (_autogen_annotmatch_funcs.ANNOT_ROWID1, _autogen_annotmatch_funcs.ANNOT_ROWID2)
+        #    tblname = const.ANNOTMATCH_TABLE
+        #    wherecol = _autogen_annotmatch_funcs.ANNOTMATCH_IS_SCENERYMATCH
+        #    whereclause = wherecol + '=?'
+        #    colname_str = ', '.join(colnames)
+        #    operation = ut.codeblock(
+        #        '''
+        #        SELECT {colname_str}
+        #        FROM {tblname}
+        #        WHERE {whereclause}
+        #        ''').format(colname_str=colname_str, tblname=tblname, whereclause=whereclause)
+
+        #    ibs.db.cur.execute(operation, [True])
+        #    scenery_aids = list(set(ut.flatten(ibs.db.cur.fetchall())))
+        #    return scenery_aids
 
         #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         #ishard_list         = ibs.get_annotmatch_is_hard(annotmatch_rowid_list)
@@ -1538,9 +1562,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         #def filter_to_background(aid_list, ibs=ibswgt.back.ibs):
         #    ibswgt.back.ibs
-        #model.set_ider_filters()
-        #with ChangeLayoutContext([model]):
-        #    IBEISSTRIPEMODEL_BASE._update_rows(model)
         #pass
 
 

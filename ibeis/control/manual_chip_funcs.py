@@ -255,7 +255,7 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None, check_extern
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/', methods=['GET'])
-def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
+def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, eager=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -266,8 +266,10 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
     Returns:
         list: chip_list
 
+
     CommandLine:
         python -m ibeis.control.manual_chip_funcs --test-get_annot_chips
+        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_annot_chips\>'
 
     RESTful:
         Method: GET
@@ -288,7 +290,7 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
     """
     ut.assert_all_not_None(aid_list, 'aid_list')
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chip_list = ibs.get_chips(cid_list, ensure=ensure, verbose=verbose)
+    chip_list = ibs.get_chips(cid_list, ensure=ensure, verbose=verbose, eager=eager)
     return chip_list
 
 
@@ -580,7 +582,7 @@ def get_chip_aids(ibs, cid_list):
         python -m ibeis.control.manual_chip_funcs --test-get_chip_aids
 
     Example:
-        >>> # UNSTABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> import ibeis
         >>> from ibeis.model import Config
@@ -602,15 +604,17 @@ def get_chip_aids(ibs, cid_list):
         >>> ibs.get_chip_config_rowid(config2_)
         >>> ibs.get_chip_config_rowid(config3_)
         >>> # Extra testing
-        >>> # Delete the fpath
-        >>> cfpath_lcfpath_list2ist2 = ibs.get_chip_fpath(cid_list2)
+        >>> # Delete the fpath and the annotations
         >>> cfpath_list2 = ibs.get_chip_fpath(cid_list2)
         >>> ut.remove_file_list(cfpath_list2)
+        >>> ibs.delete_annot_feats(aid_list)
+        >>> # Trying to get the vecs should fail because the chip is not there.
+        >>> # But trying it again will work.
         >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
         >>> try:
-        >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
+        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
         >>> except controller_inject.ExternalStorageException:
-        >>>     vecs1 = ibs.get_annot_vecs(aid_list, config2_=config2_)
+        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
         >>> else:
         >>>     assert False, 'Should have gotten external storage execpetion'
         >>> print(result)
@@ -744,7 +748,7 @@ def get_chip_sizes(ibs, cid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_chips(ibs, cid_list, ensure=True, verbose=False):
+def get_chips(ibs, cid_list, ensure=True, verbose=False, eager=True, config2_=None):
     r"""
     Returns:
         chip_list (list): a list cropped images in numpy array form by their cid
@@ -758,6 +762,9 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False):
         Method: GET
         URL:    /api/annot/<aid>
 
+    CommandLine:
+        python -m ibeis.templates.template_generator --key chip --funcname-filter '\<get_chips\>'
+
     Returns:
         list: chip_list
     """
@@ -770,7 +777,20 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False):
                 'ensure', 'cid_list'])
             raise
     aid_list = ibs.get_chip_aids(cid_list)
-    chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure, verbose=verbose)
+    if eager:
+        chip_list = preproc_chip.compute_or_read_annotation_chips(
+            ibs, aid_list, ensure=ensure, verbose=verbose, config2_=config2_)
+    else:
+        import vtool as vt
+        cfpath_list = preproc_chip.make_annot_chip_fpath_list(
+            ibs, aid_list, config2_=config2_)
+        nInput = len(cid_list)
+        chip_list = (
+            vt.imread(cfpath)
+            for cfpath in ut.ProgressIter(cfpath_list, Total=nInput,
+                                          lbl='Lazy Reading Chips',
+                                          enabled=verbose, freq=100)
+        )
     return chip_list
 
 

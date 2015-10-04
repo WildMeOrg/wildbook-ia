@@ -42,12 +42,13 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kw
 
     CommandLine:
         python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show
+        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1
 
     Example:
         >>> from ibeis.viz.viz_hough import *  # NOQA
         >>> import ibeis
         >>> from ibeis.viz import viz_hough  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> fnum = 1
         >>> species = None
         >>> aid = ibs.get_valid_aids()[0]

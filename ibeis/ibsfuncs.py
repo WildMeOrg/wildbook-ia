@@ -5252,7 +5252,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     def get_per_prop_stats(ibs, aids, getter_func):
         prop2_aids = ibs.group_annots_by_prop(aids, getter_func=getter_func)
         num_aids_list = list(map(len, prop2_aids.values()))
-        num_aids_stats = ut.get_stats(num_aids_list, use_nan=True)
+        num_aids_stats = ut.get_stats(num_aids_list, use_nan=True, use_median=True)
         return num_aids_stats
 
     keyval_list = [
@@ -5262,7 +5262,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         keyval_list += [(prefix + 'hashid', ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
 
     if kwargs.pop('per_name', True):
-        keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True)))]
+        keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True, use_median=True)))]
 
     if kwargs.pop('per_qual', False):
         keyval_list += [(prefix + 'per_qual', _stat_str(ibs.get_annot_qual_stats(aids)))]

@@ -46,7 +46,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
     failed_rowids    = ut.list_take(rowid_list, failed_index_list)
     failed_fpaths    = ut.list_take(fpath_list, failed_index_list)
     exists_list      = [exists(fpath) for fpath in failed_fpaths]
-    missing_rowids   = ut.filter_items(failed_rowids, exists_list)  # NOQA
+    missing_rowids   = ut.list_compress(failed_rowids, exists_list)  # NOQA
     corrupted_rowids = ut.filterfalse_items(failed_rowids, exists_list)  # NOQA
     # FINISHME
 
@@ -55,7 +55,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
 
-def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
+def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, eager=True):
     r"""
     SUPER HACY FUNCTION. NEED TO DEPRICATE
 
@@ -80,9 +80,13 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
         if ensure:
             cfpath_iter = mk_cpath_iter(lbl='reading ensured chips')
             chip_list = [vt.imread(cfpath) for cfpath in cfpath_iter]
+            #for cfpath in cfpath_iter:
+            #    yield vt.imread(cfpath)
         else:
             cfpath_iter = mk_cpath_iter(lbl='reading existing chips')
             chip_list = [None if cfpath is None else vt.imread(cfpath) for cfpath in cfpath_iter]
+            #for cfpath in cfpath_iter:
+            #    yield None if cfpath is None else vt.imread(cfpath)
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
@@ -117,8 +121,8 @@ def compute_and_write_chips_lazy(ibs, aid_list, config2_=None):
         print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
-    exists_flags = [exists(cfpath) for cfpath in cfpath_list]
-    invalid_aids = ut.get_dirty_items(aid_list, exists_flags)
+    missing_flags = [not exists(cfpath) for cfpath in cfpath_list]
+    invalid_aids = ut.list_compress(aid_list, missing_flags)
     if ut.VERBOSE:
         print('[preproc_chip] %d / %d chips need to be computed' %
               (len(invalid_aids), len(aid_list)))
@@ -188,8 +192,8 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         # Remove bad annotations from the sql database
         aid_list = ibs.get_chip_aids(cid_list)
         valid_list    = [cid is not None for cid in cid_list]
-        valid_aids    = ut.filter_items(aid_list, valid_list)
-        valid_cfpaths = ut.filter_items(cfpath_list, valid_list)
+        valid_aids    = ut.list_compress(aid_list, valid_list)
+        valid_cfpaths = ut.list_compress(cfpath_list, valid_list)
         invalid_aids  = ut.filterfalse_items(valid_aids, map(exists, valid_cfpaths))
         ibs.delete_annot_chips(invalid_aids)
         # Try readding things

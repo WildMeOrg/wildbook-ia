@@ -24,6 +24,171 @@ else:
     USE_ACFG_CACHE = False
 
 
+from ibeis.control import controller_inject
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+
+
+def get_default_annot_filter_form():
+    """
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-get_default_annot_filter_form
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> filter_kw = get_default_annot_filter_form()
+        >>> print(ut.dict_str(filter_kw, align=True))
+    """
+    from ibeis.experiments import annotation_configs
+    iden_defaults = annotation_configs.INDEPENDENT_DEFAULTS.copy()
+    tag_defaults = get_annot_tag_filterflags(None, None, {}, request_defaultkw=True)
+    filter_kw = ut.dict_union3(iden_defaults, tag_defaults, combine_op=None)
+    return filter_kw
+
+
+@register_ibs_method
+def filter_annots_general(ibs, aid_list, filter_kw={}):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        filter_kw (?):
+
+    FilterKW:
+        'has_all'           : None,
+        'has_all_annot'     : None,
+        'has_all_annotmatch': None,
+        'has_any'           : None,
+        'any_matches'       : None,
+        'has_any_annot'     : None,
+        'has_any_annotmatch': None,
+        'is_known'          : None,
+        'max_num'           : None,
+        'max_num_annot'     : None,
+        'max_num_annotmatch': None,
+        'min_num'           : None,
+        'min_num_annot'     : None,
+        'min_num_annotmatch': None,
+        'min_pername'       : None,
+        'min_timedelta'     : None,
+        'minqual'           : 'poor',
+        'require_quality'   : None,
+        'require_timestamp' : None,
+        'require_viewpoint' : None,
+        'species'           : 'primary',
+        'view'              : None,
+        'view_ext'          : 0,
+        'view_ext1'         : None,
+        'view_ext2'         : None,
+        'view_pername'      : None,
+
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-filter_annots_general
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
+        >>> filter_kw = dict(is_known=True, min_num=1, any_matches='.*error.*')
+        >>> aid_list_ = filter_annots_general(ibs, aid_list, filter_kw)
+        >>> ibs.get_annot_all_tags(aid_list_)
+    """
+    aid_list_ = aid_list
+    filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
+    aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
+    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw)
+    return aid_list_
+
+
+@register_ibs_method
+@profile
+def get_annot_tag_filterflags(ibs, aid_list, filter_kw, request_defaultkw=False):
+    from ibeis import tag_funcs
+
+    # Build Filters
+    filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
+
+    annotmatch_filterkw = {}
+    annot_filterkw = {}
+    both_filterkw = {}
+
+    kwreg = ut.KWReg(enabled=request_defaultkw)
+
+    for key in filter_keys:
+        annotmatch_filterkw[key] = filter_kw.get(*kwreg(key + '_annotmatch', None))
+        annot_filterkw[key]      = filter_kw.get(*kwreg(key + '_annot', None))
+        both_filterkw[key]       = filter_kw.get(*kwreg(key, None))
+
+    if request_defaultkw:
+        return kwreg.defaultkw
+
+    # Grab Data
+    need_annot_tags = any([var is not None for var in annot_filterkw.values()])
+    need_annotmatch_tags =  any([var is not None for var in annotmatch_filterkw.values()])
+    need_both_tags =  any([var is not None for var in both_filterkw.values()])
+
+    if need_annot_tags or need_both_tags:
+        annot_tags_list = ibs.get_annot_case_tags(aid_list)
+
+    if need_annotmatch_tags or need_both_tags:
+        annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
+
+    if need_both_tags:
+        both_tags_list = list(map(ut.unique_keep_order2, map(ut.flatten, zip(annot_tags_list, annotmatch_tags_list))))
+
+    # Filter Data
+    flags = np.ones(len(aid_list), dtype=np.bool)
+    if need_annot_tags:
+        flags_ = tag_funcs.filterflags_general_tags(annot_tags_list, **annot_filterkw)
+        np.logical_and(flags_, flags, out=flags)
+
+    if need_annotmatch_tags:
+        flags_ = tag_funcs.filterflags_general_tags(annotmatch_tags_list, **annotmatch_filterkw)
+        np.logical_and(flags_, flags, out=flags)
+
+    if need_both_tags:
+        flags_ = tag_funcs.filterflags_general_tags(both_tags_list, **both_filterkw)
+        np.logical_and(flags_, flags, out=flags)
+    return flags
+
+
+@register_ibs_method
+def filterannots_by_tags(ibs, aid_list, filter_kw):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-filterannots_by_tags
+        utprof.py -m ibeis.init.filter_annots --exec-filterannots_by_tags
+
+    SeeAlso:
+        filter_annotmatch_by_tags
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> has_any = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
+        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
+        >>> filter_kw = dict(has_any=has_any, min_num=1)
+        >>> aid_list_ = filterannots_by_tags(ibs, aid_list, filter_kw)
+        >>> print('aid_list_ = %r' % (aid_list_,))
+        >>> ut.quit_if_noshow()
+        >>> pass
+        >>> # TODO: show special annot group in GUI
+    """
+    flags = get_annot_tag_filterflags(ibs, aid_list, filter_kw)
+    aid_list_ = ut.list_compress(aid_list, flags)
+    return aid_list_
+
+
 @profile
 def testdata_single_acfg(ibs, default_options=''):
     r"""
@@ -143,18 +308,6 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             daids = sorted(daids + _extra_aids)
             expanded_aids = (qaids, daids)
 
-        REMOVE_SPLIT_JOIN_QUERIES = True
-        if REMOVE_SPLIT_JOIN_QUERIES:
-            qaids, daids = expanded_aids
-            tags_list = ibs.get_annot_case_tags(qaids)
-            flags_list = ['error:viewpoint' in tags for tags in tags_list]
-            qaids = ut.list_compress(qaids, ut.not_list(flags_list))
-            annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid1(qaids)
-            pairwise_tags = list(map(ut.flatten, ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowid_list)))
-            flags_list = ['splitcase' in tags or 'joincase' in tags for tags in pairwise_tags]
-            qaids = ut.list_compress(qaids, ut.not_list(flags_list))
-            expanded_aids = (qaids, daids)
-
         qsize = len(expanded_aids[0])
         dsize = len(expanded_aids[1])
 
@@ -172,6 +325,30 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             min_qsize = tmpmin(min_qsize, qsize)
         if dcfg['force_const_size']:  # UNSURE
             min_dsize = tmpmin(min_dsize, dsize)
+
+        # so hacky
+        # this has to be after sample_size assignment, otherwise the filtering is unstable
+        REMOVE_SPLIT_JOIN_QUERIES = True
+        if REMOVE_SPLIT_JOIN_QUERIES:
+            qaids_, daids_ = expanded_aids
+            OLD = False
+            if OLD:
+                tags_list = ibs.get_annot_case_tags(qaids_)
+                flags_list = ['error:viewpoint' in tags for tags in tags_list]
+                qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
+                annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid1(qaids_)
+                pairwise_tags = list(map(ut.flatten, ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowid_list)))
+                flags_list = ['splitcase' in tags or 'joincase' in tags for tags in pairwise_tags]
+                qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
+                expanded_aids = (qaids_, daids_)
+                print('len(qaids_ = %r' % (len(qaids_),))
+            else:
+                #grouped_aids = ibs.group_annots_by_name(qaids_)[0]
+                flags = ut.not_list(ibs.get_annot_tag_filterflags(
+                    qaids_, dict(has_any=['error:viewpoint', 'splitcase', 'joincase'])))
+                filtered_qaids_ = ut.list_compress(qaids_, flags)
+                #tags_list = ibs.get_annot_case_tags(filtered_qaids_)
+                expanded_aids = (filtered_qaids_, daids_)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)
@@ -369,6 +546,7 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None, hack_exclud
 
 
 @profile
+@register_ibs_method
 def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                               verbose=VERB_TESTDATA, withpre=False):
     r""" Filtering that doesn't have to do with a reference set of aids

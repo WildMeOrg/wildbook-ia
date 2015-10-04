@@ -392,6 +392,7 @@ class SQLExecutionContext(object):
         #context.__dict__.update(locals())  # Too mystic?
         context.operation_type = get_operation_type(operation)  # Parse the optype
         context.verbose = verbose
+        context.is_insert = context.operation_type.startswith('INSERT')
 
     @default_decor
     def __enter__(context):
@@ -433,8 +434,7 @@ class SQLExecutionContext(object):
             #print('[sql.Error] %r' % (type(ex),))
             #print('[sql.Error] params=<%r>' % (params,))
             raise
-        is_insert = context.operation_type.startswith('INSERT')
-        return _results_gen(context.cur, get_last_id=is_insert)
+        return _results_gen(context.cur, get_last_id=context.is_insert)
 
     @default_decor
     def __exit__(context, type_, value, trace):

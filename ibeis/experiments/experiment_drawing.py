@@ -327,11 +327,11 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     figdir = ibs.get_fig_dir()
     figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
     #figdir = join(figdir, 'cases_' + test_result.get_fname_aug(withinfo=False))
-    figdir = join(figdir, 'cases_' + ibs.get_dbname())
-    ut.ensuredir(figdir)
+    case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
+    ut.ensuredir(case_figdir)
 
     if ut.get_argflag(('--view-fig-directory', '--vf')):
-        ut.view_directory(figdir)
+        ut.view_directory(case_figdir)
 
     DRAW_ANALYSIS = True
     DRAW_BLIND = False and not SHOW
@@ -341,15 +341,15 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     #DRAW_QUERY_RESULT_CONTEXT  = DUMP_EXTRA
 
     # Common directory
-    individual_results_figdir = join(figdir, 'individual_results')
+    individual_results_figdir = join(case_figdir, 'individual_results')
     ut.ensuredir(individual_results_figdir)
 
     if DRAW_ANALYSIS:
-        top_rank_analysis_dir = join(figdir, 'top_rank_analysis')
+        top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
         ut.ensuredir(top_rank_analysis_dir)
 
     if DRAW_BLIND:
-        blind_results_figdir  = join(figdir, 'blind_results')
+        blind_results_figdir  = join(case_figdir, 'blind_results')
         ut.ensuredir(blind_results_figdir)
 
     qaids = test_result.get_common_qaids()
@@ -393,7 +393,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
 
     if ut.NOT_QUIET:
-        print('figdir = %r' % (figdir,))
+        print('case_figdir = %r' % (case_figdir,))
     fpaths_list = []
 
     fnum_start = None
@@ -462,16 +462,21 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                             qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
                         else:
                             qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
-
+                    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
+                    if cmdaug is not None:
+                        # Hack for candidacy
+                        analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
+                        print('analysis_fpath = %r' % (analysis_fpath,))
                     ## So hacky
                     #if ut.get_argflag('--tight'):
                     #    #pt.plt.tight_layout()
                     #    pass
-                    if False:
+                    if overwrite:
                         fig = pt.gcf()
                         fig.savefig(analysis_fpath)
                         vt.clipwhite_ondisk(analysis_fpath, analysis_fpath, verbose=ut.VERBOSE)
-                        cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
+                        if cmdaug is None:
+                            cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                     #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
                     #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
                     #reset()
@@ -525,11 +530,11 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     # Copy summary images to query_analysis folder
     cpq.flush_copy_tasks()
 
-    make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, figdir, analysis_fpath_list)
+    make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list)
     return analysis_fpath_list
 
 
-def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, figdir, analysis_fpath_list):
+def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list):
     # HACK MAKE LATEX CONVINENCE STUFF
     #print('LATEX HACK')
     if len(fpaths_list) == 0:
@@ -606,7 +611,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
     # HACK
     remove_fpath = ut.truepath('~/latex/crall-candidacy-2015') + '/'
 
-    latex_fpath = join(figdir, 'latex_cases.tex')
+    latex_fpath = join(case_figdir, 'latex_cases.tex')
 
     if selected is not None:
         selected_keys = selected

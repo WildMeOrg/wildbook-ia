@@ -321,6 +321,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             time.sleep(.5)
 
     # Make sure permissions are correctly set in wildbook
+    # Comment out the line that requires authentication
     permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
     ut.assertpath(permission_fpath)
     permission_text = ut.readfrom(permission_fpath)

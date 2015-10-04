@@ -160,9 +160,14 @@ def make_table_declarations(ibs):
 
     # dynamicly defined headers
     if not const.SIMPLIFY_INTERFACE:
+        from ibeis.control import accessor_decors
+        if accessor_decors.API_CACHE:
+            # Too slow without api cache
+            TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
+                'percent_annotmatch_reviewed_str',
+                'percent_names_with_exemplar_str',
+            ])
         TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
-            'percent_annotmatch_reviewed_str',
-            'percent_names_with_exemplar_str',
             #'percent_imgs_reviewed_str',
             'encounter_start_datetime',
         ])
