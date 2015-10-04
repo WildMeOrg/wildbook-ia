@@ -363,6 +363,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
 
+    xscale          = kwargs.get('xscale', None)
+    yscale          = kwargs.get('yscale', None)
+    if yscale is not None:
+        ax.set_yscale(yscale)
+    if xscale is not None:
+        ax.set_xscale(xscale)
+
     # Setup title
     if title is not None:
         titlesize = kwargs.get('titlesize', 8)

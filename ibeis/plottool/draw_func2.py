@@ -177,7 +177,8 @@ def show_if_requested(N=1):
         arg_dict = {key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']') if isinstance(val, list) else val for key, val in arg_dict.items()}
         fpath_ = fpath_.format(**arg_dict)
         fpath_ = ut.remove_chars(fpath_, ' \'"')
-        dpath = ut.get_argval('--dpath', type_=str, default=None)
+        #dpath = ut.get_argval('--dpath', type_=str, default=None)
+        dpath = ut.get_argval('--dpath', type_=str, default='.')
         fpath = join(dpath, fpath_)
 
         fig = pt.gcf()
