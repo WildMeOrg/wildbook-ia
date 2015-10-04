@@ -1458,6 +1458,45 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         return imgB
 
 
+def ensure_3channel(patch):
+    r"""
+    Args:
+        patch (ndarray[N, M, ...]):
+
+    Returns:
+        ndarray: [N, M, 3]
+
+    CommandLine:
+        python -m vtool.image --exec-ensure_3channel --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> patch1 = vt.imread(ut.grab_test_imgpath('lena.png'))[0:512, 0:500, :]
+        >>> patch2 = vt.imread(ut.grab_test_imgpath('ada.jpg'))[:, :, 0:1]
+        >>> patch3 = vt.imread(ut.grab_test_imgpath('jeff.png'))[0:390, 0:400, 0]
+        >>> res1 = ensure_3channel(patch1)
+        >>> res2 = ensure_3channel(patch2)
+        >>> res3 = ensure_3channel(patch3)
+        >>> assert res1.shape[0:2] == patch1.shape[0:2], 'failed test1'
+        >>> assert res2.shape[0:2] == patch2.shape[0:2], 'failed test2'
+        >>> assert res3.shape[0:2] == patch3.shape[0:2], 'failed test3'
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(res1, pnum=(1, 3, 1), fnum=1)
+        >>> pt.imshow(res2, pnum=(1, 3, 2), fnum=1)
+        >>> pt.imshow(res3, pnum=(1, 3, 3), fnum=1)
+        >>> ut.show_if_requested()
+    """
+    if len(patch.shape) == 2:
+        return np.tile(patch[:, :, None], 3)
+    elif len(patch.shape) == 3 and patch.shape[-1] == 1:
+        return np.tile(patch, 3)
+    else:
+        return patch.copy()
+
+
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
                  use_larger=True, interpolation=cv2.INTER_NEAREST):
     r"""
@@ -1499,9 +1538,15 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     import operator
     import vtool as vt
     # TODO: move this to the same place I'm doing the color gradient
-    nChannels = vt.get_num_channels(img1)
+    nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
-    assert nChannels == nChannels2
+    if nChannels1 == 1 and nChannels2 == 3:
+        img1 = vt.ensure_3channel(img1)
+    if nChannels1 == 3 and nChannels2 == 1:
+        img2 = vt.ensure_3channel(img2)
+    nChannels1 = vt.get_num_channels(img1)
+    nChannels2 = vt.get_num_channels(img2)
+    assert nChannels1 == nChannels2
     def infer_vert(img1, img2, vert):
         (h1, w1) = img1.shape[0: 2]  # get chip dimensions
         (h2, w2) = img2.shape[0: 2]
@@ -1546,11 +1591,11 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     # concatentate images
     dtype = img1.dtype
     assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
-    if nChannels == 3 or len(img1.shape) > 2:
-        imgB = np.zeros((hB, wB, nChannels), dtype)
+    if nChannels1 == 3 or len(img1.shape) > 2:
+        imgB = np.zeros((hB, wB, nChannels1), dtype)
         imgB[0:h1, 0:w1, :] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
-    elif nChannels == 1:
+    elif nChannels1 == 1:
         imgB = np.zeros((hB, wB), dtype)
         imgB[0:h1, 0:w1] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
