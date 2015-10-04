@@ -114,6 +114,7 @@ def download_tomcat():
         python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
     """
     from os.path import splitext, dirname
+    # FIXME: need to make a stable link
     if ut.WIN32:
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24-windows-x86.zip'
     else:
