@@ -798,7 +798,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
             >>> gf_tags = test_result.get_gf_tags()
@@ -807,6 +807,9 @@ class TestResult(object):
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
         gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
         gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
+        #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gf']['aid'])
+        #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
+        #ibs.get_annot_case_tags(test_result.qaids)
         return gf_tags
 
     def get_all_tags(test_result):
@@ -820,7 +823,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
             >>> all_tags = test_result.get_all_tags()
@@ -839,7 +842,22 @@ class TestResult(object):
         #gt_tags = [[['gt_' + t for t in tag] for tag in tags] for tags in gt_tags]
         #gf_tags = [[['gf_' + t for t in tag] for tag in tags] for tags in gf_tags]
         all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
+        #from ibeis import tag_funcs
+        #ibs.get_annot_case_tags()
+        #truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        #gt_annotmatch_rowids = truth2_prop['gt']['aid']
+        #all_tags = [tag_funcs.consolodate_annotmatch_tags(_) for _ in all_tags]
         return all_tags
+
+    def get_gt_annot_tags(test_result):
+        ibs = test_result.ibs
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        return ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
+
+    def get_query_annot_tags(test_result):
+        ibs = test_result.ibs
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        return ibs.unflat_map(ibs.get_annot_case_tags, test_result.qaids)
 
     def case_sample2(test_result, filt_cfg, return_mask=False, verbose=None):
         r"""
@@ -946,14 +964,13 @@ class TestResult(object):
             num_gt_tags = map_num_tags(test_result.get_gt_tags())
             return op(num_gt_tags, val)
 
-        def compare_num_tags(op, val):
-            num_gt_tags = map_num_tags(test_result.get_gt_tags())
-            num_gf_tags = map_num_tags(test_result.get_gf_tags())
-            num_tags = num_gt_tags + num_gf_tags
-            return op(num_tags, val)
+        def compare_num_annot_tags(op, val):
+            num_gt_tags = map_num_tags(test_result.get_all_tags())
+            return op(num_gt_tags, val)
 
-        def has_gt_tags(val):
-            test_result.get_gt_tags()
+        def compare_num_tags(op, val):
+            num_tags = map_num_tags(test_result.get_all_tags())
+            return op(num_tags, val)
 
         def in_tags(val, tags_list):
             #if '&' in val:
@@ -1001,11 +1018,12 @@ class TestResult(object):
             return flags
 
         def with_tag(val):
-            flags = np.logical_or(
-                in_tags(val, test_result.get_gt_tags()),
-                in_tags(val, test_result.get_gf_tags()),
-            )
+            all_tags = test_result.get_all_tags()
+            flags = in_tags(val, all_tags)
             return flags
+
+        from ibeis import tag_funcs
+        lambda has_any: tag_funcs.filterflags_general_tags(test_result.get_all_tags(), has_any=has_any)
 
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
@@ -1022,6 +1040,7 @@ class TestResult(object):
             ('max_gf_tags', partial(compare_num_gf_tags, operator.le)),
             ('min_gt_tags', partial(compare_num_gt_tags, operator.ge)),
             ('max_gt_tags', partial(compare_num_gt_tags, operator.le)),
+            ('max_annot_tags', partial(compare_num_annot_tags, operator.le)),
             ('without_gf_tag', without_gf_tag),
             ('without_gt_tag', without_gt_tag),
             ('with_gf_tag', with_gf_tag),

@@ -5239,7 +5239,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibs.get_valid_aids()
         >>> prefix = ''
-        >>> kwkeys = ut.parse_kwarg_keys(ut.get_func_sourcecode(get_annot_stats_dict, strip_docstr=True, strip_comments=True))
+        >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
         >>> default = True if ut.get_argflag('--all') else None
         >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [default] * len(kwkeys))))
         >>> print('kwargs = %r' % (kwargs,))

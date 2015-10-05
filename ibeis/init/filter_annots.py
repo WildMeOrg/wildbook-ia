@@ -92,7 +92,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}):
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> aid_list = ibs.get_valid_aids()
         >>> #filter_kw = dict(is_known=True, min_num=1, has_any='viewpoint')
-        >>> filter_kw = dict(is_known=True, min_num=1, any_matches='.*error.*')
+        >>> filter_kw = dict(is_known=True, min_num=1, any_match='.*error.*')
         >>> aid_list_ = filter_annots_general(ibs, aid_list, filter_kw)
         >>> ibs.get_annot_all_tags(aid_list_)
     """
@@ -331,24 +331,29 @@ def expand_acfgs_consistently(ibs, acfg_combo):
         REMOVE_SPLIT_JOIN_QUERIES = True
         if REMOVE_SPLIT_JOIN_QUERIES:
             qaids_, daids_ = expanded_aids
-            OLD = False
-            if OLD:
-                tags_list = ibs.get_annot_case_tags(qaids_)
-                flags_list = ['error:viewpoint' in tags for tags in tags_list]
-                qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
-                annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid1(qaids_)
-                pairwise_tags = list(map(ut.flatten, ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowid_list)))
-                flags_list = ['splitcase' in tags or 'joincase' in tags for tags in pairwise_tags]
-                qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
-                expanded_aids = (qaids_, daids_)
-                print('len(qaids_ = %r' % (len(qaids_),))
-            else:
-                #grouped_aids = ibs.group_annots_by_name(qaids_)[0]
-                flags = ut.not_list(ibs.get_annot_tag_filterflags(
-                    qaids_, dict(has_any=['error:viewpoint', 'splitcase', 'joincase'])))
-                filtered_qaids_ = ut.list_compress(qaids_, flags)
-                #tags_list = ibs.get_annot_case_tags(filtered_qaids_)
-                expanded_aids = (filtered_qaids_, daids_)
+            #NEW = False
+            #if NEW:
+            #grouped_aids = ibs.group_annots_by_name(qaids_)[0]
+            #flags = ut.not_list(ibs.get_annot_tag_filterflags(
+            #    qaids_, dict(has_any=['error:viewpoint', 'splitcase', 'joincase']))
+            #)
+            #flags = ibs.get_annot_tag_filterflags(
+            #    qaids_, dict(has_none=['error:viewpoint', 'splitcase', 'joincase']))
+            flags = ibs.get_annot_tag_filterflags(
+                qaids_, dict(none_match=['.*error.*']))
+            filtered_qaids_ = ut.list_compress(qaids_, flags)
+            expanded_aids = (filtered_qaids_, daids_)
+            #tags_list = ibs.get_annot_case_tags(filtered_qaids_)
+            #else:
+            #    tags_list = ibs.get_annot_case_tags(qaids_)
+            #    flags_list = ['error:viewpoint' in tags for tags in tags_list]
+            #    qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
+            #    annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid1(qaids_)
+            #    pairwise_tags = list(map(ut.flatten, ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowid_list)))
+            #    flags_list = ['splitcase' in tags or 'joincase' in tags for tags in pairwise_tags]
+            #    qaids_ = ut.list_compress(qaids_, ut.not_list(flags_list))
+            #    expanded_aids = (qaids_, daids_)
+            #    print('len(qaids_ = %r' % (len(qaids_),))
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)

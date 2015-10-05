@@ -193,15 +193,17 @@ def __standard(dbname):
         return func
     return __registerdb
 
+
 @__standard('humpbacks')
 def ingest_humpbacks(dbname):
     # The original humpbacks data is ROI cropped images in the
     # named folder format
     return Ingestable(dbname, ingest_type='named_folders',
                       adjust_percent=0.00,
-                      species = const.Species.WHALEHUMPBACK,
+                      species=const.Species.WHALEHUMPBACK,
                       # this zipfile is only on Zach's machine
                       fmtkey='name')
+
 
 @__standard('polar_bears')
 def ingest_polar_bears(dbname):
@@ -492,7 +494,7 @@ def ingest_serengeti_mamal_cameratrap(species):
     chosen_path_list = download_image_urls(chosen_url_infos)
 
     ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
-    gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)
+    gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)  # NOQA
 
     # Attempt to automatically detect the annotations
     #aids_list = ibs.detect_random_forest(gid_list_, species)
@@ -877,6 +879,7 @@ if __name__ == '__main__':
         python ibeis/dbio/ingest_database.py --db snails_drop1
         python ibeis/dbio/ingest_database.py --db testdb1
         python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
+
     """
     if ut.doctest_was_requested():
         ut.doctest_funcs()

@@ -142,5 +142,10 @@ if __name__ == '__main__':
 
         python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 
+
+        stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo
+        rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/snow-leopards /raid/raw_rsync
+
+
     """
     rsync_ibsdb_main()

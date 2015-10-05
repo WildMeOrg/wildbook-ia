@@ -182,7 +182,9 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
 
     # All unfiltered tags
     all_tags = test_result.get_all_tags()
-    all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
+
+    if not ut.get_argflag('--fulltag'):
+        all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
 
     # Get tags that match the filter
     filt_cfg = main_helpers.testdata_filtcfg(f)

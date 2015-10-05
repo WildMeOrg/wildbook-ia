@@ -343,11 +343,13 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
 def filterflags_general_tags(tags_list,
                              has_any=None,
                              has_all=None,
+                             has_none=None,
                              min_num=None,
                              max_num=None,
                              any_startswith=None,
                              any_endswith=None,
-                             any_matches=None):
+                             any_match=None,
+                             none_match=None):
     r"""
     Args:
         tags_list (list):
@@ -357,10 +359,26 @@ def filterflags_general_tags(tags_list,
         max_num (None): (default = None)
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --helpx
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --none_match n
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --has_none=n,o
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:1
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags:2
 
-    Example:
+    Example0:
         >>> # DISABLE_DOCTEST
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> tags_list = [['v'], [], ['P'], ['P', 'o'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['q', 'v'], ['n'], ['n'], ['N']]
+        >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=list)
+        >>> print('kwargs = %r' % (kwargs,))
+        >>> flags = filterflags_general_tags(tags_list, **kwargs)
+        >>> print(flags)
+        >>> result = ut.list_compress(tags_list, flags)
+        >>> print('result = %r' % (result,))
+
+    Example1:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
         >>> has_any = None
@@ -368,10 +386,32 @@ def filterflags_general_tags(tags_list,
         >>> min_num = 1
         >>> max_num = None
         >>> flags = filterflags_general_tags(tags_list, has_any, has_all, min_num, max_num)
-        >>> print(flags)
         >>> result = ut.list_compress(tags_list, flags)
         >>> print('result = %r' % (result,))
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
+        >>> kwargs = {
+        >>>     'any_endswith': 'n',
+        >>>     'any_match': None,
+        >>>     'any_startswith': 'n',
+        >>>     'has_all': None,
+        >>>     'has_any': None,
+        >>>     'has_none': None,
+        >>>     'max_num': 3,
+        >>>     'min_num': 1,
+        >>>     'none_match': ['P'],
+        >>> }
+        >>> flags = filterflags_general_tags(tags_list, **kwargs)
+        >>> result = ut.list_compress(tags_list, flags)
+        >>> print('result = %r' % (result,))
+        result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
+    import re
+    from ibeis import constants as const
+
     def fix_tags(tags):
         from ibeis import constants as const
         return {const.__STR__(t.lower()) for t in tags}
@@ -392,24 +432,73 @@ def filterflags_general_tags(tags_list,
         flags_ = [len(has_any.intersection(tags_)) > 0 for tags_ in tags_list_]
         np.logical_and(flags, flags_, out=flags)
 
+    if has_none is not None:
+        has_none = fix_tags(set(ut.ensure_iterable(has_none)))
+        flags_ = [len(has_none.intersection(tags_)) == 0 for tags_ in tags_list_]
+        np.logical_and(flags, flags_, out=flags)
+
     if has_all is not None:
         has_all = fix_tags(set(ut.ensure_iterable(has_all)))
         flags_ = [len(has_all.intersection(tags_)) == len(has_all) for tags_ in tags_list_]
         np.logical_and(flags, flags_, out=flags)
 
-    if any_startswith is not None:
-        any_startswith = fix_tags(set(ut.ensure_iterable(any_startswith)))
-        flags_ = [len([t for t in tags_ if any([t.startswith(sw) for sw in any_startswith])]) > 0 for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+    import operator
 
-    if any_endswith is not None:
-        flags_ = [len([t for t in tags_ if any([t.startswith(ew) for ew in any_endswith])]) > 0 for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+    def test_item(tags_, fields, op, compare):
+        t_flags = [any([compare(t, f) for f in fields]) for t in tags_]
+        num_passed = sum(t_flags)
+        flag = op(num_passed, 0)
+        return flag
 
-    if any_matches is not None:
-        import re
-        flags_ = [len([t for t in tags_ if re.match(any_matches, t)]) > 0 for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+    def flag_tags(tags_list, fields, op, compare):
+        flags = [test_item(tags_, fields, op, compare) for tags_ in tags_list_]
+        return flags
+
+    def execute_filter(flags, tags_list, fields, op, compare):
+        if fields is not None:
+            fields = ut.ensure_iterable(fields)
+            flags_ = flag_tags(tags_list, fields, op, compare)
+            np.logical_and(flags, flags_, out=flags)
+        return flags
+
+    flags = execute_filter(
+        flags, tags_list, any_startswith,
+        operator.gt, const.__STR__.startswith)
+
+    flags = execute_filter(
+        flags, tags_list, any_endswith,
+        operator.gt, const.__STR__.endswith)
+
+    flags = execute_filter(
+        flags, tags_list, any_match,
+        operator.gt, lambda t, f: re.match(f, t))
+
+    flags = execute_filter(
+        flags, tags_list, none_match,
+        operator.eq, lambda t, f: re.match(f, t))
+
+    #if any_startswith is not None:
+    #    any_startswith = fix_tags(set(ut.ensure_iterable(any_startswith)))
+    #    #flags_ = [len([t for t in tags_ if any([t.startswith(sw) for sw in any_startswith])]) > 0 for tags_ in tags_list_]
+    #    flags_ = flag_tags(tags_list, str.startswith, any_startswith, operator.gt)
+    #    np.logical_and(flags, flags_, out=flags)
+
+    #if any_endswith is not None:
+    #    any_startswith = ut.ensure_iterable(any_endswith)
+    #    #flags_ = [len([t for t in tags_ if any([t.startswith(ew) for ew in any_endswith])]) > 0 for tags_ in tags_list_]
+    #    flags_ = flag_tags(tags_list, str.endswith, any_endswith, operator.gt)
+    #    np.logical_and(flags, flags_, out=flags)
+
+    #if any_match is not None:
+    #    any_match = ut.ensure_iterable(any_match)
+    #    #flags_ = [len([t for t in tags_ if re.match(any_match, t)]) > 0 for tags_ in tags_list_]
+    #    flags_ = flag_tags(tags_list, lambda t, f: re.match(f, t), any_match, operator.gt)
+    #    np.logical_and(flags, flags_, out=flags)
+
+    #if none_match is not None:
+    #    #flags_ = [len([t for t in tags_ if re.match(none_match, t)]) == 0 for tags_ in tags_list_]
+    #    flags_ = flag_tags(tags_list, lambda t, f: re.match(f, t), none_match, operator.eq)
+    #    np.logical_and(flags, flags_, out=flags)
     return flags
 
 
@@ -459,6 +548,8 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
             flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
             for tags in ut.list_compress(tags_list, flag_list):
                 tags.append(case)
+    #if ut.get_argval('--consol') or True:
+    #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
 
 
