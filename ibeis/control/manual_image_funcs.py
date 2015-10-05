@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from os.path import join, exists
+from os.path import join, exists, abspath, normpath
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -369,7 +369,6 @@ def localize_images(ibs, gid_list_=None):
     loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     # Copy images to local directory
-    from os.path import abspath, normpath
     not_localized_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
                                for gp, lgp in zip(gpath_list, loc_gpath_list)]
     # ---

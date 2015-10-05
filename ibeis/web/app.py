@@ -13,7 +13,7 @@ from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
 import ibeis.constants as const
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT, PI, TAU
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, PI, TAU
 import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
@@ -26,6 +26,9 @@ from os.path import join, exists
 import zipfile
 import time
 import math
+
+
+DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
