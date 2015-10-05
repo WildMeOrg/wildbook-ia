@@ -603,6 +603,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
     CommandLine:
         python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
+        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
     Example:
         >>> # SCRIPT
@@ -649,7 +650,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
         unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
         for zipfile in zipfile_list:
-            ut.unzip_file(zipfile, output_dir=unzipped_file_dir)
+            ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
         gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
         return gpath_list
 
