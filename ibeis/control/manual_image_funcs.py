@@ -369,9 +369,17 @@ def localize_images(ibs, gid_list_=None):
     loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     # Copy images to local directory
-    ut.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
+    from os.path import abspath, normpath
+    not_localized_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
+                               for gp, lgp in zip(gpath_list, loc_gpath_list)]
+    # ---
+    loc_gpath_list_ = ut.list_compress(loc_gpath_list, not_localized_flags)
+    loc_gname_list_ = ut.list_compress(loc_gname_list, not_localized_flags)
+    gpath_list_     = ut.list_compress(gpath_list, not_localized_flags)
+    gid_list_       = ut.list_compress(gpath_list, not_localized_flags)
+    ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
     # Update database uris
-    ibs.set_image_uris(gid_list, loc_gname_list)
+    ibs.set_image_uris(gid_list_, loc_gname_list_)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
 

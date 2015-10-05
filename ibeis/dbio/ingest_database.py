@@ -554,7 +554,7 @@ class Ingestable(object):
     """
     def __init__(self, dbname, img_dir=None, ingest_type=None, fmtkey=None,
                  adjust_percent=0.0, postingest_func=None, zipfile=None,
-                 species=None):
+                 species=None, images_as_annots=True):
         self.dbname          = dbname
         self.img_dir         = img_dir
         self.ingest_type     = ingest_type
@@ -563,6 +563,7 @@ class Ingestable(object):
         self.adjust_percent  = adjust_percent
         self.postingest_func = postingest_func
         self.species         = species
+        self.images_as_annots = images_as_annots
         self.ensure_feasibility()
 
     def __str__(self):
@@ -620,6 +621,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>>                   ingest_type='unknown',
         >>>                   fmtkey=None,
         >>>                   species=None,
+        >>>                   images_as_annots=False,
         >>>                   adjust_percent=0.00)
         >>> from ibeis.control import IBEISControl
         >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
@@ -694,12 +696,13 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     unique_gids, unique_names, unique_notes = resolve_name_conflicts(
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
-    aid_list = ibs.use_images_as_annotations(unique_gids,
-                                             adjust_percent=adjust_percent)
-    ibs.set_annot_names(aid_list, unique_names)
-    ibs.set_annot_notes(aid_list, unique_notes)
-    if species_text is not None:
-        ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
+    if ingestable.images_as_annots:
+        aid_list = ibs.use_images_as_annotations(unique_gids,
+                                                 adjust_percent=adjust_percent)
+        ibs.set_annot_names(aid_list, unique_names)
+        ibs.set_annot_notes(aid_list, unique_notes)
+        if species_text is not None:
+            ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
     if localize:
         ibs.localize_images()
     if postingest_func is not None:
@@ -711,7 +714,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_alr_table()
     #ibs.print_lblannot_table()
     #ibs.print_image_table()
-    return aid_list
+    #return aid_list
 
 
 def ingest_oxford_style_db(dbdir):
