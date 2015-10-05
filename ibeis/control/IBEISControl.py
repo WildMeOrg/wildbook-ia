@@ -33,6 +33,8 @@ from ibeis.model.hots import pipeline
 
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.
+
+# THE Long term solution is to get these working
 #     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
 #     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
 
@@ -73,8 +75,12 @@ WITH_CNN = not ut.get_argflag(('--no-cnn', '--nocnn'))
 # HACK, don't include cnn unless its already there due to theano stuff
 import sys
 if 'ibeis_cnn' in sys.modules or WITH_CNN:
-    from ibeis_cnn import _plugin  # NOQA
-    import ibeis_cnn  # NOQA
+    try:
+        from ibeis_cnn import _plugin  # NOQA
+        import ibeis_cnn  # NOQA
+    except ImportError:
+        if ut.is_developer():
+            raise
 
 
 # Inject utool functions

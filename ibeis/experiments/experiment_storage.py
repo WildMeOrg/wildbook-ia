@@ -270,7 +270,7 @@ class TestResult(object):
 
         CommandLine:
             python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist
-            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist -t baseline -a uncontrolled controlled
+            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -880,7 +880,7 @@ class TestResult(object):
             >>> # The same results is achievable with different filter config settings
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
             >>> case_pos_list1 = test_result.case_sample2(filt_cfg1)
             >>> filt_cfg2 = {'min_gtrank': 1}
@@ -897,7 +897,7 @@ class TestResult(object):
             >>> # SCRIPT
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
@@ -911,7 +911,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['controlled'])
+            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
             >>> case_pos_list = test_result.case_sample2(filt_cfg)
@@ -993,6 +993,13 @@ class TestResult(object):
                 for tags in lower_tags])
             return flags
 
+        def unflat_tag_filterflags(tags_list, **kwargs):
+            from ibeis import tag_funcs
+            flat_tags, cumsum = ut.invertible_flatten2(tags_list)
+            flat_flags = tag_funcs.filterflags_general_tags(flat_tags, **kwargs)
+            flags = np.array(ut.unflatten2(flat_flags, cumsum))
+            return flags
+
         def notin_tags(val, tags_list):
             return ~in_tags(val, tags_list)
 
@@ -1022,9 +1029,6 @@ class TestResult(object):
             flags = in_tags(val, all_tags)
             return flags
 
-        from ibeis import tag_funcs
-        lambda has_any: tag_funcs.filterflags_general_tags(test_result.get_all_tags(), has_any=has_any)
-
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
             ('success',  prop2_mat['is_success']),
@@ -1041,11 +1045,11 @@ class TestResult(object):
             ('min_gt_tags', partial(compare_num_gt_tags, operator.ge)),
             ('max_gt_tags', partial(compare_num_gt_tags, operator.le)),
             ('max_annot_tags', partial(compare_num_annot_tags, operator.le)),
-            ('without_gf_tag', without_gf_tag),
-            ('without_gt_tag', without_gt_tag),
-            ('with_gf_tag', with_gf_tag),
-            ('with_gt_tag', with_gt_tag),
-            ('with_tag', with_tag),
+            ('without_gf_tag', lambda val: unflat_tag_filterflags(test_result.get_gf_tags(), has_none=val)),
+            ('without_gt_tag', lambda val: unflat_tag_filterflags(test_result.get_gt_tags(), has_none=val)),
+            ('with_gf_tag', lambda val: unflat_tag_filterflags(test_result.get_gf_tags(), has_any=val)),
+            ('with_gt_tag', lambda val: unflat_tag_filterflags(test_result.get_gt_tags(), has_any=val)),
+            ('with_tag',    lambda val: unflat_tag_filterflags(test_result.get_all_tags(), has_any=val)),
         ]
         filt_cfg = filt_cfg.copy()
 
