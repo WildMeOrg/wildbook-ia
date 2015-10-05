@@ -590,9 +590,44 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_images':
         Converts imgname structure where imgnames = name_id.ext, to ibsdb
 
-
     CommandLine:
         python ibeis/dbio/ingest_database.py --db seals_drop2
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        ingestable (?):
+        localize (bool): (default = False)
+
+    Returns:
+        list: aid_list -  list of annotation rowids
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
+
+    Example:
+        >>> # SCRIPT
+        >>> # General ingest script
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> import ibeis
+        >>> dbname = ut.get_argval('--db', str, None)  # 'snow-leopards')
+        >>> force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
+        >>> img_dir = ut.get_argval('--imgdir', type_=str, default=None)
+        >>> assert img_dir is not None, 'specify img dir'
+        >>> assert dbname is not None, 'specify dbname'
+        >>> ingestable = Ingestable(dbname,
+        >>>                   img_dir=img_dir,
+        >>>                   ingest_type='unknown',
+        >>>                   fmtkey=None,
+        >>>                   species=None,
+        >>>                   adjust_percent=0.00)
+        >>> from ibeis.control import IBEISControl
+        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
+        >>> ut.ensuredir(dbdir, verbose=True)
+        >>> ibs = IBEISControl.request_IBEISController(dbdir)
+        >>> localize = False
+        >>> aid_list = ingest_rawdata(ibs, ingestable, localize)
+        >>> result = ('aid_list = %s' % (str(aid_list),))
+        >>> print(result)
     """
 
     print('[ingest_rawdata] Ingestable' + str(ingestable))
@@ -610,16 +645,26 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
 
-    def list_images(img_dir, fullpath=True, recursive=True):
+    def extract_zipfile_images():
+        zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
+        unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
+        for zipfile in zipfile_list:
+            ut.unzip_file(zipfile, output_dir=unzipped_file_dir)
+        gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+        return gpath_list
+
+    def list_images(img_dir):
         """ lists images that are not in an internal cache """
         ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
         gpath_list = ut.list_images(img_dir,
-                                       fullpath=fullpath,
-                                       recursive=recursive,
+                                       fullpath=True,
+                                       recursive=True,
                                        ignore_list=ignore_list)
         return gpath_list
 
-    gpath_list  = list_images(img_dir)
+    gpath_list = []
+    gpath_list += list_images(img_dir)
+    gpath_list += extract_zipfile_images()
     # Parse structure for image names
     if ingest_type == 'named_folders':
         name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
@@ -844,6 +889,7 @@ def injest_main():
     r"""
     CommandLine:
         python -m ibeis.dbio.ingest_database --test-injest_main
+        python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 
     Example:
         >>> # DISABLE_DOCTEST
