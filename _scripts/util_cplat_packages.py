@@ -596,7 +596,7 @@ def __install_command_pip(pkg, upgrade=None):
     else:
         pipcmd = 'pip'
     fmtstr_install_pip = pipcmd + ' install %s'
-    WITH_SUDO = not WIN32 and '--nosudo' in sys.argv
+    WITH_SUDO = not WIN32 and '--nosudo' not in sys.argv
     if WITH_SUDO:
         fmtstr_install_pip = 'sudo ' + fmtstr_install_pip
     # First check if we already have this package
