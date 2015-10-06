@@ -542,7 +542,7 @@ def maxima_neighbors(argmaxima, hist, centers=None):
 def interpolate_submaxima(argmaxima, hist, centers=None):
     r"""
     CommandLine:
-        python -m vtool.histogram --test-interpolate_submaxima
+        python -m vtool.histogram --test-interpolate_submaxima --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -556,6 +556,12 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
         >>> # verify results
         >>> result = str((submaxima_x, submaxima_y))
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.figure(fnum=pt.ensure_fnum(None))
+        >>> pt.plot(centers, hist, '-x')
+        >>> pt.plot(submaxima_x, submaxima_y, 'o')
+        >>> pt.show_if_requested()
         (array([ 0.14597723,  3.0318792 ]), array([  9.20251557,  37.19208239]))
 
     Ignore:
