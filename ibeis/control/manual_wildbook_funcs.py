@@ -3,6 +3,7 @@
 CommandLine;
     # Reset IBEIS database (can skip if done)
     python -m ibeis.tests.reset_testdbs --reset_mtest
+    python -m ibeis --tf reset_mtest
 
 CommandLine;
     # Reset Wildbook database

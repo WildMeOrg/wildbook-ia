@@ -87,8 +87,10 @@ def run_ibeis():
     #    sys.exit(0)
 
     # Attempt to run a test using the funciton name alone
+    import ibeis.tests.run_tests
+    import ibeis.tests.reset_testdbs
     ignore_prefix = [
-        'ibeis.tests',
+        #'ibeis.tests',
         'ibeis.control.__SQLITE3__',
         '_autogen_explicit_controller']
     ignore_suffix = ['_grave']

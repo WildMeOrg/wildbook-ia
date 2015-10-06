@@ -129,9 +129,10 @@ def ensure_smaller_testingdbs():
         ingest_database.ingest_standard_database('testdb1')
 
 
-def reset_testdbs():
+def reset_testdbs(**kwargs):
     default_args = {'reset_' + key: False for key in six.iterkeys(TEST_DBNAMES_MAP) }
     default_args['reset_all'] = False
+    default_args.update(kwargs)
     argdict = ut.parse_dict_from_argv(default_args)
     if not any(list(six.itervalues(argdict))):
         # Default behavior is to reset the small dbs
@@ -149,6 +150,20 @@ def reset_testdbs():
     workdir = ibeis.sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
+
+
+def reset_mtest():
+    r"""
+    CommandLine:
+        python -m ibeis --tf reset_mtest
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tests.reset_testdbs import *  # NOQA
+        >>> result = reset_mtest()
+    """
+    # Hack, this function does not have a utool main
+    return reset_testdbs(reset_mtest=True)
 
 
 if __name__ == '__main__':
