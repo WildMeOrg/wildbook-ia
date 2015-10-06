@@ -451,4 +451,13 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
     return fig
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_qres
+        python -m ibeis.viz.viz_qres --allexamples
+        python -m ibeis.viz.viz_qres --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
     ut.doctest_funcs()

@@ -58,7 +58,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
-        >>> cfgdict = {'sv_on': False, 'fg_on': True}
+        >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'featweight_detector': 'rf'}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Check Results
@@ -67,8 +67,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
+        PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
 
+        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
         PZ_MTEST_DSUUIDS((5)q87ho9a0@9s02imh)
 
     Example1:
@@ -89,9 +90,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(result)
         NAUT_test_DSUUIDS((5)&flvjboruwyi08%t)
 
-    NAUT_test_DSUUIDS((5)4e972cjxcj30a8u1)
-    NAUT_test_DSUUIDS((5)8l4exo@+@b+kh9!!)
-
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -108,6 +106,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
+        PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
+
         PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
 
 

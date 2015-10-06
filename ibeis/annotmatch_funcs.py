@@ -721,7 +721,7 @@ def review_subgraph(ibs, nid_list):
         python -m ibeis.annotmatch_funcs --exec-review_subgraph --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
