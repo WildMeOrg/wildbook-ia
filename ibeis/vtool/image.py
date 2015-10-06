@@ -1213,6 +1213,17 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True, 
         interpolation=interpolation
     )
 
+    if vert is None:
+        vert_, _ = ut.get_argval('--vert', return_was_specified=True)
+        if _:
+            vert = not vert_
+        else:
+            if len(img_list) > 0:
+                vert = not infer_vert(img1, img_list[0], vert)[0]
+            else:
+                # HACK FIXME move flag setting to viz_matches or experiment drawing
+                vert = True
+
     offset_list1 = [(0, 0)]
     if initial_sf is None:
         initial_sf = 1.0
@@ -1497,6 +1508,27 @@ def ensure_3channel(patch):
         return patch.copy()
 
 
+def infer_vert(img1, img2, vert):
+    " which is the better stack dimension """
+    (h1, w1) = img1.shape[0: 2]  # get chip dimensions
+    (h2, w2) = img2.shape[0: 2]
+    woff, hoff = 0, 0
+    vert_wh  = max(w1, w2), h1 + h2
+    horiz_wh = w1 + w2, max(h1, h2)
+    if vert is None:
+        # Display the orientation with the better (closer to 1) aspect ratio
+        vert_ar  = max(vert_wh) / min(vert_wh)
+        horiz_ar = max(horiz_wh) / min(horiz_wh)
+        vert = vert_ar < horiz_ar
+    if vert:
+        wB, hB = vert_wh
+        hoff = h1
+    else:
+        wB, hB = horiz_wh
+        woff = w1
+    return vert, h1, h2, w1, w2, wB, hB, woff, hoff
+
+
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
                  use_larger=True, interpolation=cv2.INTER_NEAREST):
     r"""
@@ -1547,24 +1579,6 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     assert nChannels1 == nChannels2
-    def infer_vert(img1, img2, vert):
-        (h1, w1) = img1.shape[0: 2]  # get chip dimensions
-        (h2, w2) = img2.shape[0: 2]
-        woff, hoff = 0, 0
-        vert_wh  = max(w1, w2), h1 + h2
-        horiz_wh = w1 + w2, max(h1, h2)
-        if vert is None:
-            # Display the orientation with the better (closer to 1) aspect ratio
-            vert_ar  = max(vert_wh) / min(vert_wh)
-            horiz_ar = max(horiz_wh) / min(horiz_wh)
-            vert = vert_ar < horiz_ar
-        if vert:
-            wB, hB = vert_wh
-            hoff = h1
-        else:
-            wB, hB = horiz_wh
-            woff = w1
-        return vert, h1, h2, w1, w2, wB, hB, woff, hoff
     vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     if modifysize:
         side_index = 1 if vert else 0
