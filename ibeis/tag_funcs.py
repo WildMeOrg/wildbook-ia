@@ -385,15 +385,13 @@ def filterflags_general_tags(tags_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
-        >>> has_any = None
         >>> has_all = 'n'
         >>> min_num = 1
-        >>> max_num = None
-        >>> flags = filterflags_general_tags(tags_list, has_any, has_all, min_num, max_num)
+        >>> flags = filterflags_general_tags(tags_list, has_all=has_all, min_num=min_num)
         >>> result = ut.list_compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example1:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
@@ -409,8 +407,8 @@ def filterflags_general_tags(tags_list,
         >>>     'none_match': ['P'],
         >>> }
         >>> flags = filterflags_general_tags(tags_list, **kwargs)
-        >>> result = ut.list_compress(tags_list, flags)
-        >>> print('result = %r' % (result,))
+        >>> filtered = ut.list_compress(tags_list, flags)
+        >>> result = ('result = %r' % (filtered,))
         result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
     import re

@@ -22,7 +22,8 @@ def testdata_mindexer():
     import ibeis
     ibs = ibeis.opendb(db='PZ_MTEST')
     daid_list = ibs.get_valid_aids()[1:60]
-    qreq_ = ibs.new_query_request(daid_list, daid_list)
+    cfgdict = dict(fg_on=False)
+    qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
     index_method = 'name'
     mxer = request_ibeis_mindexer(qreq_, index_method)
     return mxer, qreq_, ibs
@@ -77,7 +78,8 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> valid_aids = ibs.get_valid_aids()
         >>> daid_list = valid_aids[1:60]
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> cfgdict = dict(fg_on=False)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
 
@@ -88,7 +90,8 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> ibs = ibeis.opendb(db='PZ_Master0')
         >>> valid_aids = ibs.get_valid_aids()
         >>> daid_list = valid_aids[1:60]
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> cfgdict = dict(fg_on=False)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
 
@@ -104,14 +107,15 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> ibs.delete_flann_cachedir()
         >>> # This request should build a new nnindexer
         >>> daid_list = valid_aids[1:30]
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> cfgdict = dict(fg_on=False)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one subindexer')
         >>> # The next request should trigger a background process
         >>> # and build two subindexer
         >>> daid_list = valid_aids[1:60]
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
         >>> # Do some work in the foreground to ensure that it doesnt block
@@ -125,7 +129,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 2, 'two subindexer')
         >>> # And this shoud build just one subindexer
         >>> daid_list = valid_aids[1:60]
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=cfgdict)
         >>> index_method = 'multi'
         >>> mxer = request_ibeis_mindexer(qreq_, index_method)
         >>> ut.assert_eq(len(mxer.nn_indexer_list), 1, 'one big subindexer')

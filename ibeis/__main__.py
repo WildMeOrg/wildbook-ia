@@ -40,12 +40,6 @@ def run_ibeis():
         python -m ibeis
         python -m ibeis --tf find_installed_tomcat
         python -m ibeis --tf get_annot_groundtruth:1
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.__main__ import *  # NOQA
-        >>> result = run_ibeis()
-        >>> print(result)
     """
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()

@@ -343,7 +343,7 @@ def localize_images(ibs, gid_list_=None):
         >>> # execute function
         >>> result = localize_images(ibs, gid_list_)
         >>> gpath_list3 = ibs.get_image_paths(gid_list_)
-        >>> assert gpath_list3 != gpath_list2, 'should now be different'
+        >>> assert gpath_list3 != gpath_list2, 'should now be different gpath_list3=%r' % (gpath_list3,)
         >>> gpath3 = gpath_list3[0]
         >>> rel_gpath3 = ut.relpath_unix(gpath3, ibs.get_workdir())
         >>> result = rel_gpath3
@@ -375,7 +375,7 @@ def localize_images(ibs, gid_list_=None):
     loc_gpath_list_ = ut.list_compress(loc_gpath_list, not_localized_flags)
     loc_gname_list_ = ut.list_compress(loc_gname_list, not_localized_flags)
     gpath_list_     = ut.list_compress(gpath_list, not_localized_flags)
-    gid_list_       = ut.list_compress(gpath_list, not_localized_flags)
+    gid_list_       = ut.list_compress(gid_list, not_localized_flags)
     ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
     # Update database uris
     ibs.set_image_uris(gid_list_, loc_gname_list_)

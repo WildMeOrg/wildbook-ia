@@ -211,7 +211,8 @@ def clear_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
+        >>> cfgdict = dict(fg_on=False)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=cfgdict)
         >>> # execute function
         >>> fgws_list = clear_uuid_cache(qreq_)
         >>> # verify results
@@ -235,7 +236,8 @@ def print_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False)
+        >>> cfgdict = dict(fg_on=False)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False, cfgdict=cfgdict)
         >>> # execute function
         >>> print_uuid_cache(qreq_)
         >>> # verify results
@@ -1038,7 +1040,8 @@ class NeighborIndex(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=True)
+            >>> cfgdict = dict(fg_on=False)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=True, cfgdict=cfgdict)
             >>> nnindexer = qreq_.indexer
             >>> noquery = True
             >>> flann_cfgstr = nnindexer.get_cfgstr(noquery)
@@ -1133,8 +1136,6 @@ class NeighborIndex(object):
             >>> rawdist    = vt.L2_sqrd(qfx2_vec, qfx2_dvec).T
             >>> assert np.all(qfx2_dist * nnindexer.max_distance_sqrd == rawdist), 'inconsistant distance calculations'
             >>> assert np.allclose(targetdist, qfx2_dist), 'inconsistant distance calculations'
-            >>> print(result)
-            (1257, 2) (1257, 2)
 
         Example2:
             >>> # ENABLE_DOCTEST
@@ -1240,9 +1241,13 @@ class NeighborIndex(object):
             qfx2_aid : (N x K) qfx2_fx[n][k] is the annotation id index of the
                                 kth approximate nearest data vector
 
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --exec-get_nn_aids
+
         Example:
             >>> # ENABLE_DOCTEST
-            >>> cfgdict = dict()
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> cfgdict = dict(fg_on=False)
             >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=True)
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], config2_=qreq_.get_internal_query_config2())
@@ -1250,8 +1255,7 @@ class NeighborIndex(object):
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
             >>> result = qfx2_aid.shape
-            >>> print(result)
-            (1257, 4)
+            >>> assert qfx2_aid.shape[1] == num_neighbors
         """
         #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
         #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
@@ -1358,7 +1362,9 @@ def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     daid_list = [7, 8, 9, 10, 11]
     ibs = ibeis.opendb(db=dbname)
     # use_memcache isn't use here because we aren't lazy loading the indexer
-    qreq_ = ibs.new_query_request(daid_list, daid_list, use_memcache=use_memcache)
+    cfgdict = dict(fg_on=False)
+    qreq_ = ibs.new_query_request(daid_list, daid_list,
+                                  use_memcache=use_memcache, cfgdict=cfgdict)
     if with_indexer:
         # we do an explicit creation of an indexer for these tests
         nnindexer = request_ibeis_nnindexer(qreq_, use_memcache=use_memcache)
