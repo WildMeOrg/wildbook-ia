@@ -155,14 +155,14 @@ def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER
     """
     # THE CULPRIT FOR MULTIPROCESSING FREEZES
     flags = interpolation
-    if False:
-        M = get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
-        chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=flags, borderMode=cv2.BORDER_CONSTANT)
-    else:
-        # if theta == 0, not sure if this is better. Certainly not more general
-        x, y, w, h = bbox
-        roiBGR = imgBGR[y:y + h, x:x + w, :]
-        chipBGR = cv2.resize(roiBGR, tuple(new_size), interpolation=interpolation)
+    #if True:
+    M = get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
+    chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=flags, borderMode=cv2.BORDER_CONSTANT)
+    #else:
+    #    # if theta == 0, not sure if this is better. Certainly not more general
+    #    x, y, w, h = bbox
+    #    roiBGR = imgBGR[y:y + h, x:x + w, :]
+    #    chipBGR = cv2.resize(roiBGR, tuple(new_size), interpolation=interpolation)
     #chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
     return chipBGR
 
