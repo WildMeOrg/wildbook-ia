@@ -308,7 +308,8 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
         >>> zoom = 0.4
         >>> #netx_graph = make_netx_graph_from_nids(ibs, nid_list)
         >>> #pos = viz_netx_chipgraph(ibs, netx_graph, fnum, with_images, zoom)
-        >>> make_name_graph_interaction(ibs, nid_list)
+        >>> make_name_graph_interaction(ibs, None, ibs.get_valid_aids()[0:1])
+        >>> #make_name_graph_interaction(ibs, nid_list)
         >>> ut.show_if_requested()
     """
     if fnum is None:
@@ -352,7 +353,10 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
 
         I = np.array(aids1)
         J = np.array(aids2)
-        N = max(aid_list) + 1
+        if len(aid_list) > 0:
+            N = max(aid_list) + 1
+        else:
+            N = 1
         forced_edge_idxs = ut.dict_take(dict(zip(zip(I, J), range(len(I)))), netx_graph.edges())
         data = vt.L2(edge_pts1, edge_pts2)
         if len(forced_edge_idxs) > 0:
@@ -430,6 +434,9 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[]):
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 1342 758 --show
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 758 1342 --show
 
+        python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 --show
+        python -m ibeis --tf make_name_graph_interaction --aids 3 --show
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -444,6 +451,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[]):
     """
     import plottool as pt
     from plottool.abstract_interaction import AbstractInteraction
+    print('aids = %r' % (aids,))
 
     class NameGraphInteraction(AbstractInteraction):
         def __init__(self, ibs, nids=None, aids=None, selected_aids=[]):

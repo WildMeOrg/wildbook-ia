@@ -32,6 +32,15 @@ from plottool.abstract_interaction import AbstractInteraction
 MAX_COLS = 3
 
 
+def build_name_context_options(ibs, nids):
+    callback_list = []
+    from ibeis.viz import viz_graph
+    callback_list.append(
+        ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=nids)),
+    )
+    return callback_list
+
+
 def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=True, **kwargs):
     r"""
     Args:

@@ -164,6 +164,7 @@ def find_installed_tomcat(check_unpacked=True):
         str: tomcat_dpath
 
     CommandLine:
+        python -m ibeis --tmod ibeis.control.manual_wildbook_funcs --exec-find_installed_tomcat
         python -m ibeis.control.manual_wildbook_funcs --exec-find_installed_tomcat
         python -m ibeis -tm ibeis.control.manual_wildbook_funcs --exec-find_installed_tomcat
         python -m ibeis --tf find_installed_tomcat

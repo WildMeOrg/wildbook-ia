@@ -84,29 +84,33 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     # TODO
     config2_ = None
 
-    def refresh_wrp():
-        if refresh_func is None:
-            print('no refresh func')
-        else:
-            print('calling refresh_func=%r' % (refresh_func,))
-            refresh_func()
+    def refresh_wrp(func):
+        def _wrp():
+            ret = func()
+            if refresh_func is None:
+                print('no refresh func')
+            else:
+                print('calling refresh_func=%r' % (refresh_func,))
+                refresh_func()
+            return ret
+        return _wrp
 
+    @refresh_wrp
     def toggle_exemplar_func():
         new_flag = not is_exemplar
         print('set_annot_exemplar(%r, %r)' % (aid, new_flag))
         ibs.set_annot_exemplar_flags(aid, new_flag)
-        refresh_wrp()
     def set_yaw_func(yawtext):
+        #@refresh_wrp()
         def _wrap_yaw():
             ibs.set_annot_yaw_texts([aid], [yawtext])
             print('set_annot_yaw(%r, %r)' % (aid, yawtext))
-            #refresh_wrp()
         return _wrap_yaw
     def set_quality_func(qualtext):
+        #@refresh_wrp()
         def _wrp_qual():
             ibs.set_annot_quality_texts([aid], [qualtext])
             print('set_annot_quality(%r, %r)' % (aid, qualtext))
-            #refresh_wrp()
         return _wrp_qual
     # Define popup menu
     callback_list = []
@@ -123,12 +127,22 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         callback_list.append(
             ('Interact name', functools.partial(interact_name.ishow_name, ibs, nid, fnum=None))
         )
+        from ibeis.viz import viz_graph
+        callback_list.append(
+            ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=None, aids=[aid])),
+        )
 
     if with_interact_image:
         gid = ibs.get_annot_gids(aid)
         from ibeis.viz.interact import interact_annotations2
         callback_list.append(
             ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
+        )
+
+    if True:
+        from ibeis import viz
+        callback_list.append(
+            ('View detection chip (probability) [dev]', refresh_wrp(lambda: viz.show_probability_chip(ibs, aid, config2_=config2_))),
         )
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
@@ -185,12 +199,6 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     callback_list += [
         ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
     ]
-
-    if True:
-        from ibeis import viz
-        callback_list.append(
-            ('View detection chip (probability) [dev]', lambda: viz.show_probability_chip(ibs, aid, config2_=config2_)),
-        )
     return callback_list
 
 

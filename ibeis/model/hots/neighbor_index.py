@@ -1254,8 +1254,10 @@ class NeighborIndex(object):
             >>> num_neighbors = 4
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
-            >>> result = qfx2_aid.shape
             >>> assert qfx2_aid.shape[1] == num_neighbors
+            >>> result = ('qfx2_aid.shape = %r' % (qfx2_aid.shape,))
+            >>> print(result)
+            qfx2_aid.shape = (1257, 4)
         """
         #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
         #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]

@@ -513,12 +513,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             bgcolor=identify_color,
             fgcolor=(0, 0, 0), fontkw=primary_fontkw)
 
-        hack_enabled_machines = [
-            'ibeis.cs.uic.edu',
-            'pachy.cs.uic.edu',
-            'hyrule',
-        ]
-        enable_complete = ut.get_computer_name() in hack_enabled_machines
+        #hack_enabled_machines = [
+        #    'ibeis.cs.uic.edu',
+        #    'pachy.cs.uic.edu',
+        #    'hyrule',
+        #]
+        #enable_complete = ut.get_computer_name() in hack_enabled_machines
+        enable_complete = True
 
         ibswgt.reviewed_button = _NEWBUT(
             '5) Complete',
@@ -1246,34 +1247,37 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 aid = aid_list[0]
                 eid = model.eid
                 context_options += [
-                    ('----', lambda: None),
                     ('Go to image',
                         lambda: _goto_annot_image(aid)),
                     ('Go to name',
                         lambda: _goto_annot_name(aid)),
-                    ('----', lambda: None),
                     ('Edit Annotation in Image',
                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
                     ('----', lambda: None),
-                    ('View annotation in Matplotlib',
-                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                        lambda: ibswgt.back.show_annotation(aid, web=False)),
                     ('View annotation in Web',
                         #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                         lambda: ibswgt.back.show_annotation(aid, web=True)),
-                    ('View image in Matplotlib',
-                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
                     ('View image in Web',
                         lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
-                    #back.show_image(gid, sel_aids=sel_aids)
-                    ('View detection chip (probability) [dev]',
-                        lambda: ibswgt.back.show_probability_chip(aid)),
+                    #('View annotation in Matplotlib',
+                    #    #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    #    lambda: ibswgt.back.show_annotation(aid, web=False)),
+                    #('View image in Matplotlib',
+                    #    lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                    #('View detection chip (probability) [dev]',
+                    #    lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
-                    ('Unset annotation\'s name',
+                    ('Remove annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
                     ('Delete annotation',
                         lambda: ibswgt.back.delete_annot(aid_list)),
+                    ('----', lambda: None),
                 ]
+                from ibeis.viz.interact import interact_chip
+                from ibeis import viz
+                context_options += interact_chip.build_annot_context_options(
+                    ibswgt.back.ibs, aid, refresh_func=viz.draw,
+                    with_interact_image=False)
             else:
                 context_options += [
                     ('View annotations in Web',
@@ -1337,11 +1341,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         ('Export names', lambda: export_nids(ibs, nid_list)),
                         ('Create Encounter From Name(s)', lambda: create_new_encounter_from_names_(ibs, nid_list)),
                     ]
+
+                    from ibeis.viz.interact import interact_name
+                    context_options += interact_name.build_name_context_options(ibswgt.back.ibs, nid_list)
                 else:
-                    print('nutin')
+                    from ibeis.viz.interact import interact_name
+                    context_options += interact_name.build_name_context_options(ibswgt.back.ibs, nid_list)
+                    #print('nutin')
                     pass
         # Show the context menu
-        ut.print_list(context_options)
+        #ut.print_list(context_options, nl=2)
         if len(context_options) > 0:
             guitool.popup_menu(tblview, pos, context_options)
 
