@@ -841,7 +841,8 @@ class TestResult(object):
         gf_tags = test_result.get_gf_tags()
         #gt_tags = [[['gt_' + t for t in tag] for tag in tags] for tags in gt_tags]
         #gf_tags = [[['gf_' + t for t in tag] for tag in tags] for tags in gf_tags]
-        all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
+        #all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
+        all_tags = [ut.list_zipflatten(*item) for item in zip(gf_tags, gt_tags)]
         #from ibeis import tag_funcs
         #ibs.get_annot_case_tags()
         #truth2_prop, prop2_mat = test_result.get_truth2_prop()
@@ -1647,6 +1648,72 @@ class TestResult(object):
     def draw_rank_cdf(test_result):
         from ibeis.experiments import experiment_drawing
         experiment_drawing.draw_rank_cdf(test_result.ibs, test_result)
+
+    def find_score_thresh_cutoff(test_result):
+        """
+        FIXME
+        DUPLICATE CODE
+        rectify with experiment_drawing
+        """
+        #import plottool as pt
+        import vtool as vt
+        if ut.VERBOSE:
+            print('[dev] annotationmatch_scores')
+        #from ibeis.experiments import cfghelpers
+
+        assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
+        cfgx = 0
+        #qreq_ = test_result.cfgx2_qreq_[cfgx]
+        common_qaids = test_result.get_common_qaids()
+        gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+        gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+
+        # FIXME: may need to specify which cfg is used in the future
+        #isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+
+        tp_nscores = gt_rawscore
+        tn_nscores = gf_rawscore
+        tn_qaids = tp_qaids = common_qaids
+        #encoder = vt.ScoreNormalizer(target_tpr=.7)
+        #print(qreq_.get_cfgstr())
+        part_attrs = {1: {'qaid': tp_qaids},
+                      0: {'qaid': tn_qaids}}
+
+        def attr_callback(qaid):
+            print('callback qaid = %r' % (qaid,))
+            test_result.interact_individual_result(qaid)
+            reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
+            print('Independent reconstruct')
+            print(reconstruct_str)
+
+        #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
+        fpr = ut.get_argval('--fpr', type_=float, default=None)
+        tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
+        encoder = vt.ScoreNormalizer(adjust=8, fpr=fpr, tpr=tpr, monotonize=True)
+        #tp_scores = tp_nscores
+        #tn_scores = tn_nscores
+        name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+        encoder.fit(name_scores, labels, attrs)
+        #score_thresh = encoder.learn_threshold()
+
+        # Find intersection point
+        # TODO: add to score normalizer.
+        # Improve robustness
+        weights = encoder.p_score_given_tp
+        values = encoder.score_domain
+        mean = np.average(values, weights=weights)
+        std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
+        score_cutoff = mean + (2 * std)
+        cutx = np.sum(encoder.score_domain < score_cutoff)
+
+        xdata = encoder.score_domain[:cutx]
+        curve = (encoder.p_score_given_tp[:cutx] - encoder.p_score_given_tn[:cutx])
+        x_submax, y_submax = vt.interpolate_submaxima(np.array([curve.argmax()]), curve, xdata)
+        score_thresh = y_submax[0]
+        #pt.figure()
+        #pt.plot(xdata, curve)
+        #pt.plot(x_submax, y_submax, 'o')
+        return score_thresh
 
 
 if __name__ == '__main__':

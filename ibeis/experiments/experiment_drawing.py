@@ -166,6 +166,8 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
         ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
 
         ibeis -e cases -a timequalctrl -t invarbest --db PZ_Master1 --filt :orderby=gfscore,reverse=1,max_gf_tags=0,:fail=True,min_gf_timedelta=12h --show
+        python -m ibeis -e taghist --db PZ_Master1   -a timectrl -t best --filt :fail=True --no-wordcloud --hargv=tags  --prefix "Failure Case " --label PZTags  --figsize=10,3  --left=.2
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -182,6 +184,32 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
 
     # All unfiltered tags
     all_tags = test_result.get_all_tags()
+
+    if True:
+        # Remove gf tags below a thresh and gt tags above a thresh
+        gt_tags = test_result.get_gt_tags()
+        gf_tags = test_result.get_gf_tags()
+        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+
+        score_thresh = test_result.find_score_thresh_cutoff()
+        print('score_thresh = %r' % (score_thresh,))
+        # TODO: I want the point that the prob true is greater than prob false
+        gt_is_problem = truth2_prop['gt']['score'] < score_thresh
+        gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
+        other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
+        #ut.embed()
+
+        zipmask = lambda _tags, _flags : [[item if flag else [] for item, flag in zip(list_, flags)] for list_, flags in zip(_tags, _flags)]
+        def combinetags(tags1, tags2):
+            import utool as ut
+            return [ut.list_zipflatten(t1, t2) for t1, t2 in zip(tags1, tags2)]
+
+        gt_problem_tags = zipmask(gt_tags, gt_is_problem)
+        gf_problem_tags = zipmask(gf_tags, gf_is_problem)
+        other_problem_tags = zipmask(all_tags, other_is_problem)
+        all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
+                                        other_problem_tags
+                                       ])
 
     if not ut.get_argflag('--fulltag'):
         all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
