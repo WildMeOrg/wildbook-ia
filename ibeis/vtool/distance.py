@@ -651,7 +651,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     assert len(pt_arr) > 0
     dists = distfunc(pt, pt_arr)
     xlist = dists.argsort()
-    if len(xlist) > 0:
+    if len(xlist) > 1:
         if dists[xlist[0]] == dists[xlist[1]]:
             print('conflict')
     index = xlist[0]
