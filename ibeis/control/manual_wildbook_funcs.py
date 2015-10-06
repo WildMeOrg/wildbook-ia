@@ -44,11 +44,16 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
+
 #PREFERED_BROWSER = 'chrome'
+#webbrowser._tryorder
 PREFERED_BROWSER = None
 if ut.get_computer_name() == 'hyrule':
     PREFERED_BROWSER = 'firefox'
-#webbrowser._tryorder
+
+
+# FIXME add as controller config
+ALLOW_SYSTEM_TOMCAT = ut.get_argflag('--allow-system-tomcat')
 
 
 def get_tomcat_startup_tmpdir():
@@ -56,10 +61,11 @@ def get_tomcat_startup_tmpdir():
         #os.environ.get('CATALINA_TMPDIR', None),
         ut.ensure_app_resource_dir('ibeis', 'tomcat', 'ibeis_startup_tmpdir'),
     ]
-    return_path = ut.search_candidate_paths(dpath_list, verbose=True)
-    return return_path
+    tomcat_startup_dir = ut.search_candidate_paths(dpath_list, verbose=True)
+    return tomcat_startup_dir
 
 
+@ut.tracefunc_xml
 def find_tomcat(verbose=ut.NOT_QUIET):
     r"""
     Returns:
@@ -67,6 +73,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
 
     CommandLine:
         python -m ibeis.control.manual_wildbook_funcs --test-find_tomcat
+        python -m ibeis --tf find_tomcat
 
     Example:
         >>> # SCRIPT
@@ -78,13 +85,16 @@ def find_tomcat(verbose=ut.NOT_QUIET):
     import utool as ut
     import os
     fname_list = ['Tomcat', 'tomcat']
-    # Places for system install of tomcat
-    if ut.WIN32:
-        dpath_list = ['C:/Program Files (x86)', 'C:/Program Files']
+    if ALLOW_SYSTEM_TOMCAT:
+        # Places for system install of tomcat
+        if ut.WIN32:
+            dpath_list = ['C:/Program Files (x86)', 'C:/Program Files']
+        else:
+            dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
+        if ut.DARWIN:
+            dpath_list = ['/Library'] + dpath_list
     else:
-        dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
-    if ut.DARWIN:
-        dpath_list = ['/Library'] + dpath_list
+        dpath_list = []
 
     priority_paths = [
         # Numberone preference is the CATALINA_HOME directory
@@ -99,12 +109,15 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         'bin/catalina.sh',
     ]
 
-    return_path = ut.search_candidate_paths(dpath_list, fname_list, priority_paths, required_subpaths, verbose=verbose)
+    return_path = ut.search_candidate_paths(dpath_list, fname_list,
+                                            priority_paths, required_subpaths,
+                                            verbose=verbose)
     tomcat_dpath = return_path
     print('tomcat_dpath = %r ' % (tomcat_dpath,))
     return tomcat_dpath
 
 
+@ut.tracefunc_xml
 def download_tomcat():
     """
     Put tomcat into a directory controlled by ibeis
@@ -114,12 +127,14 @@ def download_tomcat():
         python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
     """
     from os.path import splitext, dirname
+    print('Grabbing tomcat')
     # FIXME: need to make a stable link
     if ut.WIN32:
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24-windows-x86.zip'
     else:
         tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.zip'
     zip_fpath = ut.grab_file_url(tomcat_binary_url, appname='ibeis')
+    # Download tomcat into the IBEIS resource directory
     tomcat_dpath = join(dirname(zip_fpath), 'tomcat')
     if not ut.checkpath(tomcat_dpath, verbose=True):
         # hack because unzipping is still weird
@@ -136,9 +151,29 @@ def download_tomcat():
     return tomcat_dpath
 
 
+@ut.tracefunc_xml
 def find_installed_tomcat(check_unpacked=True):
     """
     Asserts that tomcat was properly installed
+
+    Args:
+        check_unpacked (bool): (default = True)
+
+    Returns:
+        str: tomcat_dpath
+
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --exec-find_installed_tomcat
+        python -m ibeis -tm ibeis.control.manual_wildbook_funcs --exec-find_installed_tomcat
+        python -m ibeis --tf find_installed_tomcat
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> check_unpacked = True
+        >>> tomcat_dpath = find_installed_tomcat(check_unpacked)
+        >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
+        >>> print(result)
     """
     tomcat_dpath = find_tomcat()
     if tomcat_dpath is None:
@@ -162,6 +197,9 @@ def find_or_download_tomcat():
         # Reset
         python -m ibeis.control.manual_wildbook_funcs --test-reset_local_wildbook
         python -m ibeis.control.manual_wildbook_funcs --test-find_or_download_tomcat
+
+        python -m ibeis --tf reset_local_wildbook
+        python -m ibeis --tf find_or_download_tomcat
 
     Example:
         >>> # SCRIPT
@@ -199,9 +237,11 @@ def find_java_jvm():
 
 
 def find_or_download_wilbook_warfile():
-    #scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war ~/Downloads/pachy_ibeis.war
-    #wget http://dev.wildme.org/ibeis_data_dir/ibeis.war
-
+    r"""
+    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war \
+            ~/Downloads/pachy_ibeis.war wget
+    http://dev.wildme.org/ibeis_data_dir/ibeis.war
+    """
     war_url = 'http://dev.wildme.org/ibeis_data_dir/ibeis.war'
     war_fpath = ut.grab_file_url(war_url, appname='ibeis')
     return war_fpath
@@ -225,12 +265,20 @@ def reset_local_wildbook():
     ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))
 
 
+@ut.tracefunc_xml
 def install_wildbook(verbose=ut.NOT_QUIET):
     """
     Script to setup wildbook on a unix based system
     (hopefully eventually this will generalize to win32)
 
     CommandLine:
+        # Reset
+        python -m ibeis --tf reset_local_wildbook
+        # Setup
+        python -m ibeis --tf install_wildbook
+        # Startup
+        python -m ibeis --tf startup_wildbook_server --show --exec-mode
+
         # Reset
         python -m ibeis.control.manual_wildbook_funcs --test-reset_local_wildbook
         # Setup
@@ -252,15 +300,20 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     import re
     import subprocess
     try:
-        output = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
-        java_version = output.split('\n')[0].replace('java version ', '').replace('"', '')
+        output = subprocess.check_output(['java', '-version'],
+                                         stderr=subprocess.STDOUT)
+        _java_version = output.split('\n')[0]
+        _java_version = _java_version.replace('java version ', '')
+        java_version = _java_version.replace('"', '')
         print('java_version = %r' % (java_version,))
         if not java_version.startswith('1.7'):
             print('Warning wildbook is only supported for java 1.7')
     except OSError:
         output = None
     if output is None:
-        raise ImportError('Cannot find java on this machine. Please install java: http://www.java.com/en/download/')
+        raise ImportError(
+            'Cannot find java on this machine. '
+            'Please install java: http://www.java.com/en/download/')
 
     tomcat_dpath = find_or_download_tomcat()
     assert tomcat_dpath is not None, 'Could not find tomcat'
@@ -285,8 +338,10 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     if not ut.checkpath(unpacked_war_dpath, verbose=verbose):
         # Need to make sure you start catalina in the same directory otherwise
         # the derby databsae gets put in in cwd
-        with ut.ChdirContext(get_tomcat_startup_tmpdir()):
-            # Starting and stoping catalina should be sufficient to unpack the war
+        tomcat_startup_dir = get_tomcat_startup_tmpdir()
+        with ut.ChdirContext(tomcat_startup_dir):
+            # Starting and stoping catalina should be sufficient to unpack the
+            # war
             startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
             shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
             ut.cmd(ut.quote_single_command(startup_fpath))
@@ -331,13 +386,19 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     new_permission_text = permission_text[:]
     for line in lines_to_remove:
         re.search(re.escape(line), permission_text)
-        pattern = '^' + ut.named_field('prefix', '\\s*') + re.escape(line) + ut.named_field('suffix', '\\s*\n')
-        match = re.search(pattern, permission_text, flags=re.MULTILINE | re.DOTALL)
+        prefix = ut.named_field('prefix', '\\s*')
+        suffix = ut.named_field('suffix', '\\s*\n')
+        pattern = ('^' + prefix + re.escape(line) + suffix)
+        match = re.search(pattern, permission_text,
+                          flags=re.MULTILINE | re.DOTALL)
         if match is None:
             continue
-        repl = ut.bref_field('prefix') + '<!--' + line + ' -->' + ut.bref_field('suffix')
-        new_permission_text = re.sub(pattern, repl, permission_text, flags=re.MULTILINE | re.DOTALL)
-        assert new_permission_text != permission_text, 'text should have changed'
+        newline = '<!--%s -->' % (line,)
+        repl = ut.bref_field('prefix') + newline + ut.bref_field('suffix')
+        new_permission_text = re.sub(pattern, repl, permission_text,
+                                     flags=re.MULTILINE | re.DOTALL)
+        assert new_permission_text != permission_text, (
+            'text should have changed')
     if new_permission_text != permission_text:
         print('Need to write new permission texts')
         ut.writeto(permission_fpath, new_permission_text)
@@ -347,6 +408,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     print('Wildbook is installed and waiting to be started')
 
 
+@ut.tracefunc_xml
 def startup_wildbook_server(verbose=ut.NOT_QUIET):
     r"""
     Args:
@@ -417,6 +479,8 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
 
 def test_wildbook_login():
     r"""
+    Helper function to test wildbook login automagically
+
     Returns:
         tuple: (wb_target, tomcat_dpath)
 
@@ -473,7 +537,8 @@ def testdata_wildbook_server():
     """
     # Very hacky and specific testdata script.
     #if ut.is_developer():
-    #    tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
+    #    tomcat_dpath = join(os.environ['CODE_DIR'],
+    #                        'Wildbook/tmp/apache-tomcat-8.0.24')
     #else:
     #    tomcat_dpath = '/var/lib/tomcat'
     import ibeis
@@ -494,7 +559,8 @@ def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
     wildbook_tomcat_path = ibs.get_wildbook_tomcat_path(tomcat_dpath, wb_target)
     # Setup
     print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
-    ut.assert_exists(wildbook_tomcat_path, 'Wildbook is not installed on this machine', info=True)
+    ut.assert_exists(wildbook_tomcat_path,
+                     'Wildbook is not installed on this machine', info=True)
     return wildbook_base_url, wildbook_tomcat_path
 
 
@@ -516,7 +582,8 @@ def get_wildbook_base_url(ibs, wb_target=None):
     return wildbook_base_url
 
 
-def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False, timeout=2):
+def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False,
+                        timeout=2):
     """
     mirroring the one in IBEISController.py, but with changed functionality
     """
@@ -535,7 +602,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False, t
                 response = requests.post(url, data=payload, timeout=timeout)
                 #r = requests.post(url, data=None, auth=('tomcat', 'tomcat123'))
         except requests.ConnectionError as ex:
-            ut.printex(ex, 'Could not connect to Wildbook server at url=%r' % url)
+            ut.printex(ex, 'Could not connect to Wildbook server url=%r' % url)
             raise
         else:
             status = True
@@ -559,25 +626,32 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False, t
     return status, response
 
 
+@ut.tracefunc_xml
 def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
-    wildbook_properteis_dpath = join(wildbook_tomcat_path, 'WEB-INF/classes/bundles/')
-    print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properteis_dpath, ))
+    wildbook_properteis_dpath = join(wildbook_tomcat_path,
+                                     'WEB-INF/classes/bundles/')
+    print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (
+        wildbook_properteis_dpath, ))
     # The src file is non-standard. It should be remove here as well
-    wildbook_config_fpath_dst = join(wildbook_properteis_dpath, 'commonConfiguration.properties')
+    wildbook_config_fpath_dst = join(wildbook_properteis_dpath,
+                                     'commonConfiguration.properties')
     ut.assert_exists(wildbook_properteis_dpath)
     # for come reason the .default file is not there, that should be ok though
     orig_content = ut.read_from(wildbook_config_fpath_dst)
     content = orig_content
-    content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
-    content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
+    content = re.sub('IBEIS_DB_path = .*',
+                     'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
+    content = re.sub('IBEIS_image_path = .*',
+                     'IBEIS_image_path = ' + ibs.get_imgdir(), content)
 
     # Write to the configuration if it is different
     if orig_content != content:
         need_sudo = not ut.is_file_writable(wildbook_config_fpath_dst)
         if need_sudo:
             quoted_content = '"%s"' % (content, )
-            print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-            command = ['sudo', 'sh', '-c', '\'', 'echo', quoted_content, '>', wildbook_config_fpath_dst, '\'']
+            print('Attempting to gain sudo access to update wildbook config')
+            command = ['sudo', 'sh', '-c', '\'', 'echo',
+                       quoted_content, '>', wildbook_config_fpath_dst, '\'']
             # ut.cmd(command, sudo=True)
             command = ' '.join(command)
             if not dryrun:
@@ -687,12 +761,14 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         #url_command += '=authcBasicWildbook'
         username = 'tomcat'
         password = 'tomcat123'
-        wildbook_base_url = 'http://' + username + ':' + password + '@' + wildbook_base_url.replace('http://', '')
+        wildbook_base_url = ('http://' + username + ':' + password + '@' +
+                             wildbook_base_url.replace('http://', ''))
     url_args_fmtstr = '&'.join([
         'encounterID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
-    submit_namchange_url_fmtstr = wildbook_base_url + '/' + url_command + '?' + url_args_fmtstr
+    submit_namchange_url_fmtstr = (wildbook_base_url + '/' + url_command + '?'
+                                   + url_args_fmtstr)
 
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_known=True)
@@ -700,7 +776,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     annot_name_text_list = ibs.get_annot_name_texts(aid_list)
     submit_url_list = [
-        submit_namchange_url_fmtstr.format(annot_uuid=str(annot_uuid), name_text=str(name_text))
+        submit_namchange_url_fmtstr.format(
+            annot_uuid=str(annot_uuid), name_text=str(name_text))
         for annot_uuid, name_text in zip(annot_uuid_list, annot_name_text_list)
     ]
 
@@ -724,7 +801,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
             message_list.append(str(response_json['message']))
         except Exception as ex:
             print(ut.indentjoin(message_list))
-            ut.printex(ex, 'Failed getting json from responce. This probably means there is an authentication issue')
+            ut.printex(ex, ('Failed getting json from responce. '
+                            'Is there an authentication issue?'))
             raise
         assert response_json['success']
     print(ut.indentjoin(message_list))
@@ -733,7 +811,9 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
 @register_ibs_method
 @register_api('/api/core/wildbook_signal_eid_list/', methods=['PUT'])
-def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url_on_complete=True, tomcat_dpath=None, wb_target=None, dryrun=False):
+def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
+                             open_url_on_complete=True, tomcat_dpath=None,
+                             wb_target=None, dryrun=False):
     """
     Exports specified encounters to wildbook. This is a synchronous call.
 
@@ -816,8 +896,10 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
             print(smart_xml_fname, smart_waypoint_id)
             smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
             smart_xml_content_list = open(smart_xml_fpath).readlines()
-            print('[_send] Sending with SMART payload - patrol: %r (%d lines) waypoint_id: %r' %
-                  (smart_xml_fpath, len(smart_xml_content_list), smart_waypoint_id))
+            print('[_send] Sending with SMART payload')
+            print('[_send] - patrol: %r (%d lines) waypoint_id: %r' %
+                  (smart_xml_fpath, len(smart_xml_content_list),
+                   smart_waypoint_id))
             smart_xml_content = ''.join(smart_xml_content_list)
             payload = {
                 'smart_xml_content': smart_xml_content,
@@ -835,10 +917,12 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
 
     def _complete(eid):
         encounter_uuid = ibs.get_encounter_uuid(eid)
-        complete_url_ = complete_url_fmtstr.format(encounter_uuid=encounter_uuid)
+        complete_url_ = complete_url_fmtstr.format(
+            encounter_uuid=encounter_uuid)
         print('[_complete] URL=%r' % (complete_url_, ))
         if open_url_on_complete and not dryrun:
-            ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(complete_url_)
+            _browser = ut.get_prefered_browser(PREFERED_BROWSER)
+            _browser.open_new_tab(complete_url_)
 
     if eid_list is None:
         eid_list = ibs.get_valid_eids()
@@ -846,18 +930,26 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
     for eid in eid_list:
         # First, check if encounter can be pushed
         aid_list = ibs.get_encounter_aids(eid)
-        assert len(aid_list) > 0, 'Encounter eid=%r cannot be shipped becuase there are no annotations' % (eid,)
+        assert len(aid_list) > 0, (
+            'Encounter eid=%r cannot be shipped with0 annots' % (eid,))
         unknown_flags = ibs.is_aid_unknown(aid_list)
         unnamed_aid_list = ut.list_compress(aid_list, unknown_flags)
-        assert len(unnamed_aid_list) == 0, 'Encounter eid=%r cannot be shipped becuase annotation(s) %r are not named' % (eid, unnamed_aid_list, )
+        assert len(unnamed_aid_list) == 0, (
+            ('Encounter eid=%r cannot be shipped becuase '
+             'annotation(s) %r are not named') % (eid, unnamed_aid_list, ))
 
     # Configuration
     use_config_file = True
-    wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
-    submit_eid_url_fmtstr   = wildbook_base_url + '/OccurrenceCreateIBEIS?ibeis_encounter_id={encounter_uuid!s}'
-    complete_url_fmtstr = wildbook_base_url + '/occurrence.jsp?number={encounter_uuid!s}'
+    wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(
+        tomcat_dpath, wb_target)
+    submit_eid_url_fmtstr  = (
+        wildbook_base_url +
+        '/OccurrenceCreateIBEIS?ibeis_encounter_id={encounter_uuid!s}')
+    complete_url_fmtstr = (
+        wildbook_base_url + '/occurrence.jsp?number={encounter_uuid!s}')
     # Call Wildbook url to signal update
-    print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
+    print('[ibs.wildbook_signal_eid_list] ship eid_list = %r to wildbook' % (
+        eid_list, ))
 
     # With a lock file, modify the configuration with the new settings
     lock_fpath = join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')

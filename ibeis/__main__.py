@@ -35,6 +35,18 @@ def dependencies_for_myprogram():
 
 
 def run_ibeis():
+    r"""
+    CommandLine:
+        python -m ibeis
+        python -m ibeis --tf find_installed_tomcat
+        python -m ibeis --tf get_annot_groundtruth:1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.__main__ import *  # NOQA
+        >>> result = run_ibeis()
+        >>> print(result)
+    """
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
@@ -74,19 +86,29 @@ def run_ibeis():
     #    ibeis.run_experiment(**expt_kw)
     #    sys.exit(0)
 
-    doctest_modname = ut.get_argval(('--doctest-module', '--tmod', '-tm'), type_=str, default=None, help_='specify a module to doctest')
+    # Attempt to run a test using the funciton name alone
+    ignore_prefix = ['ibeis.tests', 'ibeis.control.__SQLITE3__',
+                     '_autogen_explicit_controller']
+    ignore_suffix = ['_grave']
+    ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix)
+
+    doctest_modname = ut.get_argval(
+        ('--doctest-module', '--tmod', '-tm', '--testmod'),
+        type_=str, default=None, help_='specify a module to doctest')
     if doctest_modname is not None:
         """
         Allow any doctest to be run the main ibeis script
 
         python -m ibeis --tmod utool.util_str --test-align:0
         python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        python -m ibeis --tf request_ibeis_query_L0:0 --show
         ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
         """
+        print('[ibeis] Testing module')
         mod_alias_list = {
             'exptdraw': 'ibeis.experiments.experiment_drawing'
         }

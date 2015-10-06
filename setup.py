@@ -78,6 +78,7 @@ INSTALL_REQUIRES = [
     #'decorator',
     'lockfile >= 0.10.2',
     'apipkg',
+    'networkx >= 1.9.1',
     #'objgraph',
     #'pycallgraph',
     #'gevent',
