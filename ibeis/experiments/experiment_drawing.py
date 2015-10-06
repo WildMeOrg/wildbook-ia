@@ -51,10 +51,10 @@ def annotationmatch_scores(ibs, test_result, f=None):
         python dev.py -t scores --db PZ_Master0 --allgt --show
         python dev.py -t scores --db PZ_MTEST --allgt --show
 
-        python dev.py -t scores --db PZ_Master0 --show --controlled
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
-        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+        python dev.py -t scores --db PZ_Master0 --show --ctrl
+        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg bar_l2_on:True lnbnn_on:False
+        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
+        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
 
         python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
         python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
@@ -225,6 +225,7 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
 
     figtitle = test_result.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    figtitle += ' #cases=%r' % (len(case_qx_list))
 
     pt.set_figtitle(figtitle)
 
@@ -247,8 +248,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         python -m ibeis.experiments.experiment_drawing --exec-draw_individual_cases
 
         python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
-        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a controlled -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         python -m ibeis.dev -e print --db PZ_Master1 -a timecontrolled -t invarbest
         python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt : --show
@@ -389,8 +390,9 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                     ut.prinex(ex)
                 pass
 
+    overwrite = True
     #overwrite = False
-    overwrite = ut.get_argflag('--overwrite')
+    #overwrite = ut.get_argflag('--overwrite')
 
     cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
 
@@ -661,8 +663,8 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         tuple: (sel_rows, sel_cols, flat_case_labels)
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a controlled --filt :fail=True,min_gtrank=5,gtrank_lt=20
+        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl
+        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
 
 
     Example:
@@ -953,21 +955,10 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
 
         python -m ibeis.dev -e draw_rank_cdf
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a controlled:qsize=1 controlled:qsize=3
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_Master0 --controlled --show
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore --db PZ_Master0 --controlled --show
-
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_namescore --db PZ_MTEST --controlled --show
-
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a controlled --show
-
-        python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a controlled --db PZ_MTEST --show
-
-        python -m ibeis.dev -e rank_cdf -t baseline:AQH=True,AI=False baseline:AQH=False,AI=True baseline:AQH=False,AI=False -a largetimedelta --db PZ_Master1 --show
-
-        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a controlled --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a ctrl --show
+        python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a ctrl --db PZ_MTEST --show
+        python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
 
@@ -985,9 +976,9 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
     label_list = test_result.get_short_cfglbls(friendly=True)
     label_list = [
-        ('%6.2f' % (percent,))
+        ('%6.2f%%' % (percent,))
         #ut.scalar_str(percent, precision=2)
-        + '% - ' + label
+        + ' - ' + label
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
@@ -1041,7 +1032,9 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
 
     cumhistkw = dict(
         xlabel='rank', ylabel=target_label, color_list=color_list,
-        marker_list=marker_list, fnum=fnum, legend_loc='lower right',
+        marker_list=marker_list, fnum=fnum,
+        #legend_loc='lower right',
+        legend_loc='lower right',
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=.5, xmax=maxrank + .5,
         #xpad=.05,
@@ -1050,6 +1043,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
         num_xticks=maxrank,
+        legend_alpha=.85,
         use_legend=True, pnum=pnum_(), **cumhistkw)
 
     if USE_ZOOM:
@@ -1274,8 +1268,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
     CommandLine:
         python -m ibeis.dev -e draw_case_timedeltas
 
-        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
-        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled controlled:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
+        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
+        python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
 
 
     Example:
@@ -1398,7 +1392,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         pt.figure(fnum=fnum)
         pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
         bin_labels[0]
-        # python -m ibeis.dev -e timedelta_hist -t baseline -a controlled:force_const_size=True uncontrolled:force_const_size=True --consistent --db GZ_ALL  --show
+        # python -m ibeis.dev -e timedelta_hist -t baseline -a ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db GZ_ALL  --show
 
         colors = pt.distinct_colors(len(bin_labels))
         if WITH_NAN:

@@ -28,7 +28,7 @@ def hack_argv(arg):
                 '--hspace=.3',
                 #'--top=.8',
                 '--top=.85',
-                '--bottom=0.08',
+                '--bottom=0.18',
                 '--left=.05',
                 '--right=.95'
             ])

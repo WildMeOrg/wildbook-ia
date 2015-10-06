@@ -106,6 +106,9 @@ def filter_annots_general(ibs, aid_list, filter_kw={}):
 @register_ibs_method
 @profile
 def get_annot_tag_filterflags(ibs, aid_list, filter_kw, request_defaultkw=False):
+    """
+    Filters annotations by tags including those that is belongs to in a pair
+    """
     from ibeis import tag_funcs
 
     # Build Filters
@@ -328,8 +331,10 @@ def expand_acfgs_consistently(ibs, acfg_combo):
 
         # so hacky
         # this has to be after sample_size assignment, otherwise the filtering is unstable
-        REMOVE_SPLIT_JOIN_QUERIES = True
-        if REMOVE_SPLIT_JOIN_QUERIES:
+        # Remove queries that have labeling errors in them.
+        # TODO: fix errors AND remove labels
+        REMOVE_LABEL_ERRORS = True
+        if REMOVE_LABEL_ERRORS:
             qaids_, daids_ = expanded_aids
             #NEW = False
             #if NEW:
@@ -339,11 +344,32 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             #)
             #flags = ibs.get_annot_tag_filterflags(
             #    qaids_, dict(has_none=['error:viewpoint', 'splitcase', 'joincase']))
-            flags = ibs.get_annot_tag_filterflags(
-                qaids_, dict(none_match=['.*error.*']))
-            filtered_qaids_ = ut.list_compress(qaids_, flags)
+
+            partitioned_sets = ibs.partition_annots_into_corresponding_groups(
+                qaids_, daids_)
+            query_group, data_group, unknown_group, distract_group = partitioned_sets
+
+            unknown_flags  = ibs.unflat_map(ibs.get_annot_tag_filterflags, unknown_group, filter_kw=dict(none_match=['.*error.*']))
+            data_flags  = ibs.unflat_map(ibs.get_annot_tag_filterflags, data_group, filter_kw=dict(none_match=['.*error.*']))  # NOQA
+            query_flags = ibs.unflat_map(ibs.get_annot_tag_filterflags, query_group, filter_kw=dict(none_match=['.*error.*']))
+
+            query_noterror_flags = list(map(all, ut.list_zipflatten(
+                query_flags,
+                #data_flags,
+            )))
+            unknown_noterror_flags = list(map(all, unknown_flags))
+
+            filtered_queries = ut.flatten(ut.list_compress(query_group, query_noterror_flags))
+            filtered_unknown = ut.flatten(ut.list_compress(unknown_group, unknown_noterror_flags))
+
+            filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
+
+            #flags = ibs.get_annot_tag_filterflags(
+            #    qaids_, dict(none_match=['.*error.*']))
+
+            #filtered_qaids_ = ut.list_compress(qaids_, flags)
             expanded_aids = (filtered_qaids_, daids_)
-            #tags_list = ibs.get_annot_case_tags(filtered_qaids_)
+            #tags_list = ibs.get_annot_case_tags(qaids_)
             #else:
             #    tags_list = ibs.get_annot_case_tags(qaids_)
             #    flags_list = ['error:viewpoint' in tags for tags in tags_list]

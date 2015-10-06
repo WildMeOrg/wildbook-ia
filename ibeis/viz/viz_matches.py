@@ -180,7 +180,8 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     wh2_list = [gtool.get_size(rchip2) for rchip2 in rchip2_list_]
 
     num = 0 if len(rchip2_list) < 3 else 1
-    vert = True if len(rchip2_list) > 1 else False
+    #vert = True if len(rchip2_list) > 1 else False
+    vert = True if len(rchip2_list) > 1 else None
 
     if False and kwargs.get('fastmode', False):
         # This doesn't actually help the speed very much

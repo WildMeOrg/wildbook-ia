@@ -852,12 +852,22 @@ class TestResult(object):
     def get_gt_annot_tags(test_result):
         ibs = test_result.ibs
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
-        return ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
+        gt_annot_tags = ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
+        return gt_annot_tags
 
     def get_query_annot_tags(test_result):
         ibs = test_result.ibs
         truth2_prop, prop2_mat = test_result.get_truth2_prop()
-        return ibs.unflat_map(ibs.get_annot_case_tags, test_result.qaids)
+        #len(test_result.cfgx2_qaids)
+        unflat_qids = np.tile(test_result.qaids[:, None], (len(test_result.cfgx2_qaids)))
+        query_annot_tags = ibs.unflat_map(ibs.get_annot_case_tags, unflat_qids)
+        return query_annot_tags
+
+    def get_gtquery_annot_tags(test_result):
+        gt_annot_tags = test_result.get_gt_annot_tags()
+        query_annot_tags = test_result.get_query_annot_tags()
+        both_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(query_annot_tags, gt_annot_tags)]
+        return both_tags
 
     def case_sample2(test_result, filt_cfg, return_mask=False, verbose=None):
         r"""
@@ -934,100 +944,108 @@ class TestResult(object):
 
         #common_qaids = test_result.get_common_qaids()
 
-        @ut.memoize
-        def get_num_casetags():
-            ibs = test_result.ibs
-            #gt_aids = truth2_prop['gt']['aid']
-            #gf_aids = truth2_prop['gf']['aid']
-            gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
-            gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
-            num_gt_tags = np.array([list(map(len, _gt_tags)) for _gt_tags in gt_tags])
-            gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
+        #@ut.memoize
+        #def get_num_casetags():
+        #    ibs = test_result.ibs
+        #    #gt_aids = truth2_prop['gt']['aid']
+        #    #gf_aids = truth2_prop['gf']['aid']
+        #    gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
+        #    gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
+        #    num_gt_tags = np.array([list(map(len, _gt_tags)) for _gt_tags in gt_tags])
+        #    gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
 
-            #gt_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gt_aids) for _gt_aids in gt_aids.T]
-            #gf_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gf_aids) for _gf_aids in gf_aids.T]
+        #    #gt_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gt_aids) for _gt_aids in gt_aids.T]
+        #    #gf_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gf_aids) for _gf_aids in gf_aids.T]
 
-            gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
+        #    gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
 
-            # get matrix of num tags
-            num_gf_tags = np.array([list(map(len, _gf_tags)) for _gf_tags in gf_tags])
-            return num_gt_tags, num_gf_tags
+        #    # get matrix of num tags
+        #    num_gf_tags = np.array([list(map(len, _gf_tags)) for _gf_tags in gf_tags])
+        #    return num_gt_tags, num_gf_tags
 
-        def map_num_tags(tags_list):
-            return np.array([list(map(len, _tags)) for _tags in tags_list])
+        #def map_num_tags(tags_list):
+        #    return np.array([list(map(len, _tags)) for _tags in tags_list])
 
-        def compare_num_gf_tags(op, val):
-            num_gf_tags = map_num_tags(test_result.get_gf_tags())
-            return op(num_gf_tags, val)
+        #def compare_num_gf_tags(op, val):
+        #    num_gf_tags = map_num_tags(test_result.get_gf_tags())
+        #    return op(num_gf_tags, val)
 
-        def compare_num_gt_tags(op, val):
-            num_gt_tags = map_num_tags(test_result.get_gt_tags())
-            return op(num_gt_tags, val)
+        #def compare_num_gt_tags(op, val):
+        #    num_gt_tags = map_num_tags(test_result.get_gt_tags())
+        #    return op(num_gt_tags, val)
 
-        def compare_num_annot_tags(op, val):
-            num_gt_tags = map_num_tags(test_result.get_all_tags())
-            return op(num_gt_tags, val)
+        #def compare_num_annot_tags(op, val):
+        #    num_gt_tags = map_num_tags(test_result.get_all_tags())
+        #    return op(num_gt_tags, val)
 
-        def compare_num_tags(op, val):
-            num_tags = map_num_tags(test_result.get_all_tags())
-            return op(num_tags, val)
+        #def compare_num_tags(op, val):
+        #    num_tags = map_num_tags(test_result.get_all_tags())
+        #    return op(num_tags, val)
 
-        def in_tags(val, tags_list):
-            #if '&' in val:
-            #    logop = all
-            #    vals = val.split('&')
-            #elif '|' in val:
-            #    logop = any
-            #    vals = val.split('|')
-            #else:
-            logop = any
-            vals = [val]
+        #def in_tags(val, tags_list):
+        #    #if '&' in val:
+        #    #    logop = all
+        #    #    vals = val.split('&')
+        #    #elif '|' in val:
+        #    #    logop = any
+        #    #    vals = val.split('|')
+        #    #else:
+        #    logop = any
+        #    vals = [val]
 
-            vals = [v.lower() for v in vals]
-            lower_tags = [
-                [[_.lower() for _ in t] for t in tags]
-                for tags in tags_list]
+        #    vals = [v.lower() for v in vals]
+        #    lower_tags = [
+        #        [[_.lower() for _ in t] for t in tags]
+        #        for tags in tags_list]
 
-            flags = np.array([
-                [logop([v in t for v in vals]) for t in tags]
-                for tags in lower_tags])
-            return flags
+        #    flags = np.array([
+        #        [logop([v in t for v in vals]) for t in tags]
+        #        for tags in lower_tags])
+        #    return flags
 
         def unflat_tag_filterflags(tags_list, **kwargs):
+            #ut.embed()
             from ibeis import tag_funcs
             flat_tags, cumsum = ut.invertible_flatten2(tags_list)
             flat_flags = tag_funcs.filterflags_general_tags(flat_tags, **kwargs)
             flags = np.array(ut.unflatten2(flat_flags, cumsum))
             return flags
 
-        def notin_tags(val, tags_list):
-            return ~in_tags(val, tags_list)
+        UTFF = unflat_tag_filterflags
 
-        def without_gf_tag(val):
-            gf_tags = test_result.get_gf_tags()
-            flags = notin_tags(val, gf_tags)
-            return flags
+        #def notin_tags(val, tags_list):
+        #    return UTFF(tags_list, has_none=val)
+        #    #return ~in_tags(val, tags_list)
 
-        def without_gt_tag(val):
-            gt_tags = test_result.get_gt_tags()
-            flags = notin_tags(val, gt_tags)
-            return flags
+        #def without_gf_tag(val):
+        #    gf_tags = test_result.get_gf_tags()
+        #    return UTFF(gf_tags, has_none=val)
+        #    #flags = notin_tags(val, gf_tags)
+        #    #return flags
 
-        def with_gt_tag(val):
-            gf_tags = test_result.get_gt_tags()
-            flags = in_tags(val, gf_tags)
+        #def without_gt_tag(val):
+        #    gt_tags = test_result.get_gt_tags()
+        #    return UTFF(gt_tags, has_none=val)
+        #    #flags = notin_tags(val, gt_tags)
+        #    #return flags
 
-            return flags
+        #def with_gt_tag(val):
+        #    gf_tags = test_result.get_gt_tags()
+        #    return UTFF(gf_tags, has_any=val)
+        #    #flags = in_tags(val, gf_tags)
+        #    #return flags
 
-        def with_gf_tag(val):
-            gf_tags = test_result.get_gf_tags()
-            flags = in_tags(val, gf_tags)
-            return flags
+        #def with_gf_tag(val):
+        #    gf_tags = test_result.get_gf_tags()
+        #    return UTFF(gf_tags, has_any=val)
+        #    #flags = in_tags(val, gf_tags)
+        #    #return flags
 
-        def with_tag(val):
-            all_tags = test_result.get_all_tags()
-            flags = in_tags(val, all_tags)
-            return flags
+        #def with_tag(val):
+        #    all_tags = test_result.get_all_tags()
+        #    return UTFF(all_tags, has_any=val)
+        #    #flags = in_tags(val, all_tags)
+        #    #return flags
 
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
@@ -1038,18 +1056,26 @@ class TestResult(object):
             ('min_gtscore', partial(operator.ge, truth2_prop['gt']['score'])),
             ('min_gf_timedelta', partial(operator.ge, truth2_prop['gf']['timedelta'])),
             ('max_gf_timedelta', partial(operator.le, truth2_prop['gf']['timedelta'])),
-            ('min_tags', partial(compare_num_tags, operator.ge)),
-            ('max_tags', partial(compare_num_tags, operator.le)),
-            ('min_gf_tags', partial(compare_num_gf_tags, operator.ge)),
-            ('max_gf_tags', partial(compare_num_gf_tags, operator.le)),
-            ('min_gt_tags', partial(compare_num_gt_tags, operator.ge)),
-            ('max_gt_tags', partial(compare_num_gt_tags, operator.le)),
-            ('max_annot_tags', partial(compare_num_annot_tags, operator.le)),
-            ('without_gf_tag', lambda val: unflat_tag_filterflags(test_result.get_gf_tags(), has_none=val)),
-            ('without_gt_tag', lambda val: unflat_tag_filterflags(test_result.get_gt_tags(), has_none=val)),
-            ('with_gf_tag', lambda val: unflat_tag_filterflags(test_result.get_gf_tags(), has_any=val)),
-            ('with_gt_tag', lambda val: unflat_tag_filterflags(test_result.get_gt_tags(), has_any=val)),
-            ('with_tag',    lambda val: unflat_tag_filterflags(test_result.get_all_tags(), has_any=val)),
+
+            # Tag filtering
+            ('min_tags', lambda val: UTFF(test_result.get_all_tags(), min_num=val)),
+            ('max_tags', lambda val: UTFF(test_result.get_all_tags(), max_num=val)),
+            ('min_gf_tags', lambda val: UTFF(test_result.get_gf_tags(), min_num=val)),
+            ('max_gf_tags', lambda val: UTFF(test_result.get_gf_tags(), max_num=val)),
+            ('min_gt_tags', lambda val: UTFF(test_result.get_gt_tags(), min_num=val)),
+            ('max_gt_tags', lambda val: UTFF(test_result.get_gt_tags(), max_num=val)),
+
+            ('min_query_annot_tags', lambda val: UTFF(test_result.get_query_annot_tags(), min_num=val)),
+            ('min_gt_annot_tags', lambda val: UTFF(test_result.get_gt_annot_tags(), min_num=val)),
+            ('min_gtq_tags', lambda val: UTFF(test_result.get_gtquery_annot_tags(), min_num=val)),
+            ('max_gtq_tags', lambda val: UTFF(test_result.get_gtquery_annot_tags(), max_num=val)),
+
+            ('without_gf_tag', lambda val: UTFF(test_result.get_gf_tags(), has_none=val)),
+            ('without_gt_tag', lambda val: UTFF(test_result.get_gt_tags(), has_none=val)),
+            ('with_gf_tag', lambda val: UTFF(test_result.get_gf_tags(), has_any=val)),
+            ('with_gt_tag', lambda val: UTFF(test_result.get_gt_tags(), has_any=val)),
+            ('with_tag',    lambda val: UTFF(test_result.get_all_tags(), has_any=val)),
+
         ]
         filt_cfg = filt_cfg.copy()
 
@@ -1127,8 +1153,21 @@ class TestResult(object):
                 order_values = truth2_prop['gt']['score']
             elif orderby == 'gfscore':
                 order_values = truth2_prop['gf']['score']
+            if orderby == 'gtscore':
+                order_values = truth2_prop['gt']['score']
+            elif orderby == 'gfscore':
+                order_values = truth2_prop['gf']['score']
             else:
-                raise NotImplementedError('Unknown orerby=%r' % (orderby,))
+                if orderby.startswith('gt_'):
+                    order_values = truth2_prop['gt'][orderby[3:]]
+                elif orderby.startswith('gt'):
+                    order_values = truth2_prop['gt'][orderby[2:]]
+                elif orderby.startswith('gf_'):
+                    order_values = truth2_prop['gt'][orderby[3:]]
+                elif orderby.startswith('gf'):
+                    order_values = truth2_prop['gt'][orderby[2:]]
+                else:
+                    raise NotImplementedError('Unknown orerby=%r' % (orderby,))
             flat_order = order_values[is_valid]
             # Flat sorting indeices in a matrix
             if reverse:

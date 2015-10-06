@@ -26,6 +26,7 @@ ANNOTMATCH_PROPS_STANDARD = [
 ANNOTMATCH_PROPS_OTHER = [
     'Occlusion',
     'Viewpoint',
+    'MildViewpoint',
     'Pose',
     'Lighting',
     'Quality',  # quality causes failure
@@ -99,7 +100,7 @@ def consolodate_annotmatch_tags(case_tags):
         'interesting',
         'splitcase',
         'joincase',
-        'orientation',
+        #'orientation',
         'random',
         #'badtail', 'badshoulder', 'splitcase', 'joincase', 'goodcoverage', 'interesting', 'hard'
     ]
@@ -107,15 +108,18 @@ def consolodate_annotmatch_tags(case_tags):
         #'quality': 'Quality',
         #'scoringissue': 'ScoringIssue',
         #'orientation': 'Orientation',
-        #'pose': 'Pose',
+        'pose': 'SimilarPose',
         #'lighting': 'Lighting',
         #'occlusion': 'Occlusion',
         #'featurescale': 'FeatureScale',
         #'edgematch': 'EdgeMatches',
-        'featurescale': 'Pose',
-        'edgematch': 'Pose',
+        #'featurescale': 'Pose',
+        'featurescale': 'FeatureScale',
+        'edgematch': 'SimilarPose',
         'badtail': 'NonDistinct',
         'badshoulder': 'NonDistinct',
+        'mildviewpoint': 'MildViewpoint',
+        #'mildviewpoint': 'Viewpoint',
         #'toolargematches': 'CoarseFeatures',
         #'badcoverage': 'LowCoverage',
         #'shouldhavemore': 'LowCoverage',
