@@ -1305,7 +1305,8 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True):
         >>> offsets_list  = [offset_list1, offset_list2, offset_list3]
         >>> sfs_list      = [sf_list1, sf_list2, sf_list3]
         >>> vert = False
-        >>> (stacked_img, stacked_offsets, stacked_sfs) = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
+        >>> tup = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
+        >>> (stacked_img, stacked_offsets, stacked_sfs) = tup
         >>> result = ut.remove_doublspaces(ut.numpy_str(np.array(stacked_offsets).T, precision=2, max_line_width=10000)).replace(' ,', ',')
         >>> print(result)
         >>> ut.quit_if_noshow()
@@ -1414,9 +1415,9 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, return_info
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> # verify results
-        >>> ut.quit_if_noshow()
         >>> result = ut.numpy_str(np.array(offset_list).T, precision=2)
         >>> print(result)
+        >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(imgB)
         >>> wh_list = np.array([vt.get_size(img) for img in img_list])
@@ -1565,7 +1566,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> pt.draw_bbox((0, 0, wh1[0], wh1[1]), bbox_color=(1, 0, 0))
         >>> pt.draw_bbox((woff, hoff, wh2[0], wh2[0]), bbox_color=(0, 1, 0))
         >>> pt.show_if_requested()
-        ((762, 512, 3), 0, 250)
+        ((762, 512, 3), (0.0, 0.0), (0, 250))
     """
     import operator
     import vtool as vt

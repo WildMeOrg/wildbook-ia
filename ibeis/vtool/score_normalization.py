@@ -34,8 +34,7 @@ def partition_scores(X, y, attrs=None):
     Args:
         tp_scores (ndarray):
         tn_scores (ndarray):
-        tp_attrs (dict): (default = None)
-        tn_attrs (dict): (default = None)
+        attrs (dict): (default = None)
 
     Returns:
         tuple: (scores, labels, attrs)
@@ -51,14 +50,17 @@ def partition_scores(X, y, attrs=None):
         >>> y = np.array([1, 1, 1, 1, 0, 0, 0], dtype=np.bool)
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
-        >>>     ['tp_scores', 'tn_scores', 'tp_attrs','tn_attrs'], tup))
+        >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
         >>> result = ut.dict_str(resdict, nobraces=True, force_dtype=False,
-        >>>                      explicit=True, nl=1)
+        >>>                      explicit=True, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
         tn_scores=np.array([1, 2, 2]),
-        tp_attrs={'qaid': np.array([21, 24, 25, 26])},
-        tn_attrs={'qaid': np.array([11, 14, 15])},
+        part_attrs={
+            False: {'qaid': np.array([11, 14, 15])},
+            True: {'qaid': np.array([21, 24, 25, 26])},
+        },
+
     """
     import vtool as vt
     # Make partitioning
