@@ -87,8 +87,10 @@ def run_ibeis():
     #    sys.exit(0)
 
     # Attempt to run a test using the funciton name alone
-    ignore_prefix = ['ibeis.tests', 'ibeis.control.__SQLITE3__',
-                     '_autogen_explicit_controller']
+    ignore_prefix = [
+        'ibeis.tests',
+        'ibeis.control.__SQLITE3__',
+        '_autogen_explicit_controller']
     ignore_suffix = ['_grave']
     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix)
 

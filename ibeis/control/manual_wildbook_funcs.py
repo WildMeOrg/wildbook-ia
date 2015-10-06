@@ -415,7 +415,8 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server --show --exec-mode
+        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server
+        python -m ibeis --tf startup_wildbook_server  --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -450,7 +451,8 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --test-shutdown_wildbook_server --exec-mode
+        python -m ibeis.control.manual_wildbook_funcs --exec-shutdown_wildbook_server --exec-mode
+        python -m ibeis --tf shutdown_wildbook_server
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -486,6 +488,7 @@ def test_wildbook_login():
 
     CommandLine:
         python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
+        python -m ibeis --tf test_wildbook_login
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -699,6 +702,11 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
 
+        python -m ibeis --tf wildbook_signal_annot_name_changes:0 --dryrun
+        python -m ibeis --tf wildbook_signal_annot_name_changes:1 --dryrun
+        python -m ibeis --tf wildbook_signal_annot_name_changes:1
+        python -m ibeis --tf wildbook_signal_annot_name_changes:2
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
@@ -801,7 +809,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
             message_list.append(str(response_json['message']))
         except Exception as ex:
             print(ut.indentjoin(message_list))
-            ut.printex(ex, ('Failed getting json from responce. '
+            ut.printex(ex, ('Failed getting json from response. '
                             'Is there an authentication issue?'))
             raise
         assert response_json['success']
@@ -831,27 +839,35 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
 
         # Reset IBEIS database
         python -m ibeis.tests.reset_testdbs --reset_mtest
+        python -m ibeis --tf reset_mtest
 
         # Reset Wildbook database
-        python -m ibeis.control.manual_wildbook_funcs --exec-reset_local_wildbook
+        #python -m ibeis.control.manual_wildbook_funcs --exec-reset_local_wildbook
+        python -m ibeis --tf reset_local_wildbook
 
         # Install Wildbook
-        python -m ibeis.control.manual_wildbook_funcs --test-install_wildbook
+        #python -m ibeis.control.manual_wildbook_funcs --test-install_wildbook
+        python -m ibeis --tf install_wildbook
 
         # Startup Wildbook
-        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server
+        #python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server
+        python -m ibeis --tf startup_wildbook_server
 
         # Login to wildbook
-        python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
+        #python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
+        python -m ibeis --tf test_wildbook_login
 
         # Ship Encounters to wildbook
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
+        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
+        python -m ibeis --tf wildbook_signal_eid_list
 
         # Change annotations names to a single name
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
+        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
+        python -m ibeis --tf wildbook_signal_annot_name_changes:1
 
         # Change annotations names back to normal
-        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
+        #python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
+        python -m ibeis --tf wildbook_signal_annot_name_changes:2
 
     CommandLine:
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
