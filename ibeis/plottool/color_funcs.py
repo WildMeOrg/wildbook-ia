@@ -246,6 +246,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
 
     CommandLine:
         python -m plottool.color_funcs --exec-distinct_colors --show
+        python -m plottool.color_funcs --exec-distinct_colors --show --no-randomize --N 50
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -268,15 +269,37 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
     """
     # TODO: Add sin wave modulation to the sat and value
     #import plottool as pt
-    #cmap = pt.plt.cm.jet
-    cmap = None
+    if True:
+        import plottool as pt
+        # HACK for white figures
+        remove_yellow = not pt.is_default_dark_bg()
+        #if not pt.is_default_dark_bg():
+        #    brightness = .8
+
+    use_jet = False
+    if use_jet:
+        import plottool as pt
+        cmap = pt.plt.cm.jet
+    else:
+        cmap = None
+
     if cmap is not None:
         RGB_tuples = list(map(tuple, cmap(np.linspace(0, 1, N))))
     else:
         sat = brightness
         val = brightness
         hmin, hmax = hue_range
-        hue_list = np.linspace(hmin, hmax, N, endpoint=False, dtype=np.float)
+        if remove_yellow:
+            hue_skips = [(.13, .24)]
+        else:
+            hue_skips = []
+        hue_skip_ranges = [_[1] - _[0] for _ in hue_skips]
+        total_skip = sum(hue_skip_ranges)
+        hmax_ = hmax - total_skip
+        hue_list = np.linspace(hmin, hmax_, N, endpoint=False, dtype=np.float)
+        # Remove colors (like hard to see yellows) in specified ranges
+        for skip, range_ in zip(hue_skips, hue_skip_ranges):
+            hue_list = [hue if hue <= skip[0] else hue + range_ for hue in hue_list]
         HSV_tuples = [(hue, sat, val) for hue in hue_list]
         RGB_tuples = [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]
     if randomize:

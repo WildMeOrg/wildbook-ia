@@ -21,7 +21,8 @@ def is_default_dark_bg():
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
                          target_label, title=None, use_legend=True,
-                         color_list=None, marker_list=None, **kwargs):
+                         color_list=None, marker_list=None, report_max=True,
+                         **kwargs):
     r"""
 
     CommandLine:
@@ -65,7 +66,24 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
 
     xdata = nd_basis[0]
     ydata_list = data_field.T
-    label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
+
+    if report_max:
+        # TODO: multiple max poses
+        import vtool as vt
+        maxpos_list = ydata_list.argmax(axis=1)
+        max_nd0_list = nd_basis[0].take(maxpos_list)
+        max_score_list = vt.ziptake(ydata_list, maxpos_list)
+        hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(axis=1) > 1
+        multiple_max_markers = ['*' if flag else '' for flag in hasmultiple_max]
+
+        label_list = [
+            '%.2f%% %s=%r%s - %s=%r'
+            % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
+            for val, max_nd0, max_score, marker in zip(nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
+        ]
+    else:
+        label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
+
     fig = multi_plot(
         xdata, ydata_list, label_list=label_list, markersize=10,
         marker_list=marker_list, color_list=color_list, title=title,
@@ -218,8 +236,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Parse out axes formating options
     title           = kwargs.get('title', None)
-    use_legend      = kwargs.get('use_legend', 'label' in valid_keys)
-    legend_loc      = kwargs.get('legend_loc', 'best')
 
     # Setup figure
     fig = pt.figure(fnum=fnum, pnum=pnum)
@@ -378,8 +394,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
         }
         ax.set_title(title, **titlekw)
 
+    use_legend      = kwargs.get('use_legend', 'label' in valid_keys)
+    legend_loc      = kwargs.get('legend_loc', 'best')
+    legend_alpha      = kwargs.get('legend_alpha', 1.0)
     if use_legend:
-        df2.legend(loc=legend_loc, size=kwargs.get('legendsize', 8))
+        df2.legend(loc=legend_loc, size=kwargs.get('legendsize', 8), alpha=legend_alpha)
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
