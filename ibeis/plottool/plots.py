@@ -669,6 +669,8 @@ def plot_score_histograms(scores_list,
                           figtitle=None,
                           score_label='score',
                           score_thresh=None,
+                          overlay_prob_given_list=None,
+                          overlay_score_domain=None,
                           **kwargs):
     """
     CommandLine:
@@ -727,6 +729,7 @@ def plot_score_histograms(scores_list,
     # Plot each datapoint on a line
     _n_max = 0
     _n_min = 0
+    _bin_max = 0
     for lblx in list(range(len(scores_list))):
         label = scores_lbls[lblx]
         color = score_colors[lblx]
@@ -749,13 +752,27 @@ def plot_score_histograms(scores_list,
         #    _p.set_edgecolor(None)
         _n_min = min(_n_min, _n.min())
         _n_max = max(_n_max, _n.max())
+        _bin_max = max(_bin_max, max(_bins))
+
+    if overlay_score_domain is not None:
+        p_max = max([prob.max() for prob in overlay_prob_given_list])
+        scale_factor = _n_max / p_max
+        for lblx in list(range(len(scores_list))):
+            color = score_colors[lblx]
+            p_given_lbl = overlay_prob_given_list[lblx]
+            p_given_lbl_norm = p_given_lbl * scale_factor
+            #/ p_given_lbl.max()
+            flags = overlay_score_domain < _bin_max
+            overlay_score_domain_clip = overlay_score_domain[flags]
+            p_given_lbl_norm_clip = p_given_lbl_norm[flags]
+            ax.plot(overlay_score_domain_clip, p_given_lbl_norm_clip, color=color)
 
     _n_max = ax.get_ylim()[1]
 
     if score_thresh is not None:
         ydomain = np.linspace(_n_min, _n_max, 10)
         xvalues = [score_thresh] * len(ydomain)
-        df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh')
+        df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
     import matplotlib as mpl
     labelkw = {
@@ -873,7 +890,7 @@ def plot_probabilities(prob_list,
         ydata_min = min([_ydata.min() for _ydata in prob_list])
         ydata_max = max([_ydata.max() for _ydata in prob_list])
         ydomain = np.linspace(ydata_min, ydata_max, 10)
-        df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-', label='score thresh')
+        df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
     import matplotlib as mpl
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
