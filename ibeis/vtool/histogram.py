@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip
 # Science
-import scipy.signal as spsignal
+import scipy.signal
 import numpy as np
 import utool as ut
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[hist]', DEBUG=False)
@@ -498,6 +498,7 @@ def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8,
 @profile
 def hist_argmaxima(hist, centers=None, maxima_thresh=.8):
     """
+    must take positive only values
 
     CommandLine:
         python -m vtool.histogram --test-hist_argmaxima
@@ -518,7 +519,7 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=.8):
 
     """
     # FIXME: Not handling general cases
-    argmaxima_ = spsignal.argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
+    argmaxima_ = scipy.signal.argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
     if len(argmaxima_) == 0:
         argmaxima_ = hist.argmax()  # Hack for no maxima
     # threshold maxima to be within a factor of the maximum

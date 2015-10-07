@@ -291,6 +291,74 @@ class ScoreNormalizer(object):
             encoder.score_domain, encoder.p_tp_given_score, kind='linear',
             copy=False, assume_sorted=False)
 
+    def learn_threshold2(encoder):
+        """
+        Finds a cutoff where the probability of a truepos stats becoming
+        greater than probability of trueneg
+        """
+
+        #weights = encoder.p_score_given_tp
+        weights = encoder.p_score_given_tn
+        values = encoder.score_domain
+        mean = np.average(values, weights=weights)
+        std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
+        score_cutoff = mean + (2 * std)
+        cutx = np.sum(encoder.score_domain < score_cutoff)
+
+        xdata = encoder.score_domain[:cutx]
+
+        tp1 = encoder.p_score_given_tp[:cutx]
+        tn1 = encoder.p_score_given_tn[:cutx]
+
+        curve = -np.abs(tp1 - tn1)
+        curve = curve - curve.min()
+        import vtool as vt
+        maxpos = np.array([curve.argmax()])
+        x_submax, y_submax = vt.interpolate_submaxima(maxpos, curve, xdata)
+        #x_submax = curve[maxpos[0]]
+        score_thresh = x_submax[0]
+        # Find intersection point
+        # TODO: Improve robustness
+        if False:
+            import plottool as pt
+            pt.figure(doclf=True, fnum=100)
+            pt.plot(xdata, tp1)
+            pt.plot(xdata, tn1)
+            pt.plot(xdata, curve)
+            #pt.plot(xdata[0:-2], np.diff(np.diff(curve)))
+            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(curve)
+            pt.plot(x_submax, y_submax, 'o')
+            #pt.plot(xdata[maxima_x], maxima_y, 'rx')
+
+            pt.plot(x_submax, y_submax, 'o')
+            #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
+            #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
+            #pt.plot(xdata[maxima_x], tp1[maxima_x], 'rx')
+            #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
+            #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
+
+            _interp_sgtp = scipy.interpolate.interp1d(xdata, tn1, kind='linear', copy=False, assume_sorted=False)
+            pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
+
+            _interp_sgtp = scipy.interpolate.interp1d(xdata, tp1, kind='linear', copy=False, assume_sorted=False)
+            pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
+            pt.iup()
+
+        #from scipy.optimize import fsolve
+        #def f(input_vector):
+        #   x, y = input_vector
+        #   return  np.array([
+        #       y - x ** 2,
+        #       y - x - 1.0
+        #   ])
+        # Solve the function, using (x=1, y=2) as the initial guess
+        #fsolve(f, [1.0, 2.0])
+
+        #print('score_thresh = %r' % (score_thresh,))
+        #print('y_submax = %r' % (y_submax,))
+        #print('x_submax = %r' % (x_submax,))
+        return score_thresh
+
     def learn_threshold(encoder, verbose=False):
         """
         Learns cutoff threshold that achieves the target confusion metric
@@ -515,8 +583,12 @@ class ScoreNormalizer(object):
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
-        prob_thresh = encoder.learned_thresh
-        score_thresh = encoder.inverse_normalize(prob_thresh)
+
+        #prob_thresh = encoder.learned_thresh
+        #score_thresh = encoder.inverse_normalize(prob_thresh)
+        score_thresh = encoder.learn_threshold2()
+        prob_thresh = encoder.normalize_scores(score_thresh)
+
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
         inter = inspect_pdfs(
@@ -956,12 +1028,13 @@ def inspect_pdfs(tn_support, tp_support,
     confusions = vt.ConfusionMetrics.from_scores_and_labels(
         probs, labels)
     # Hack change confusion prob thresholds to score thresholds
-    #inverse_interp = scipy.interpolate.interp1d(
-    #    p_tp_given_score, score_domain, kind='linear',
-    #    copy=False, assume_sorted=False)
-    #confusions._orig_thresholds = confusions.thresholds
-    #confusions.thresholds = inverse_interp(confusions.thresholds)
-    #confusions._hackscores = scores
+    if False:
+        inverse_interp = scipy.interpolate.interp1d(
+            p_tp_given_score, score_domain, kind='linear',
+            copy=False, assume_sorted=False)
+        confusions._orig_thresholds = confusions.thresholds
+        confusions.thresholds = inverse_interp(confusions.thresholds)
+        confusions._hackscores = scores
 
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
     false_color = pt.FALSE_RED
@@ -1000,7 +1073,7 @@ def inspect_pdfs(tn_support, tp_support,
                 (tn_support, tp_support),
                 fnum=fnum, pnum=pnum,
                 score_label='score',
-                #thresh=score_thresh,
+                thresh=score_thresh,
                 **support_sort_kw
             )
 
@@ -1044,20 +1117,22 @@ def inspect_pdfs(tn_support, tp_support,
             # Find the nearest label
             pass
 
-    #target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
-    target_tpr = None
+    #target_tpr = None
+    target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
     #print('target_tpr = %r' % (target_tpr,))
     ROCInteraction = vt.interact_roc_factory(confusions, target_tpr)
 
     def _score_support_hist(fnum, pnum):
         pt.plot_score_histograms(
             (tn_support, tp_support),
-            #score_thresh=score_thresh,
+            score_thresh=score_thresh,
             score_label='score',
             fnum=fnum,
             pnum=pnum,
             bin_width=kwargs.get('bin_width', None),
             num_bins=kwargs.get('num_bins', 40),
+            overlay_prob_given_list=(p_score_given_tn, p_score_given_tp),
+            overlay_score_domain=score_domain,
             **support_kw)
 
     def _prob_support_hist(fnum, pnum):
@@ -1079,7 +1154,7 @@ def inspect_pdfs(tn_support, tp_support,
             (tn_probs, tp_probs),
             fnum=fnum, pnum=pnum,
             score_label='prob',
-            #thresh=prob_thresh,
+            thresh=prob_thresh,
             **support_sort_kw
         )
         #ax = pt.gca()
@@ -1089,13 +1164,13 @@ def inspect_pdfs(tn_support, tp_support,
     def _prebayes(fnum, pnum):
         plot_prebayes_pdf(
             score_domain, p_score_given_tn, p_score_given_tp, p_score,
-            #score_thresh=score_thresh,
+            score_thresh=score_thresh,
             cfgstr='', fnum=fnum, pnum=pnum)
 
     def _postbayes(fnum, pnum):
         plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
-                           #prob_thresh=prob_thresh,
-                           #score_thresh=score_thresh,
+                           prob_thresh=prob_thresh,
+                           score_thresh=score_thresh,
                            cfgstr='', fnum=fnum, pnum=pnum)
 
     def _precision_recall(fnum, pnum):
