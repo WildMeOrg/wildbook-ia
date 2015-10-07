@@ -113,7 +113,10 @@ def annotationmatch_scores(ibs, test_result, f=None):
     #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
     fpr = ut.get_argval('--fpr', type_=float, default=None)
     tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
-    encoder = vt.ScoreNormalizer(adjust=8, fpr=fpr, tpr=tpr, monotonize=True)
+    encoder = vt.ScoreNormalizer(
+        #adjust=8,
+        adjust=1.5,
+        fpr=fpr, tpr=tpr, monotonize=True)
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
@@ -133,7 +136,8 @@ def annotationmatch_scores(ibs, test_result, f=None):
         with_hist=True,
         with_roc=True,
         attr_callback=attr_callback,
-        bin_width=.125,
+        #bin_width=.125,
+        bin_width=.05,
     )
 
     if ut.get_argflag('--contextadjust'):
@@ -208,8 +212,7 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
         gf_problem_tags = zipmask(gf_tags, gf_is_problem)
         other_problem_tags = zipmask(all_tags, other_is_problem)
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
-                                        other_problem_tags
-                                       ])
+                                        other_problem_tags])
 
     if not ut.get_argflag('--fulltag'):
         all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]

@@ -812,21 +812,37 @@ class NeighborIndex(object):
             #raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
             nnindexer.max_distance_sqrd = None
 
+    @ut.tracefunc_xml
     def add_ibeis_support(nnindexer, qreq_, new_daid_list):
         # TODO: ensure that the memcache changes appropriately
-        print('adding single-indexer support')
-        new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
-        nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
+        clear_memcache()
+        print('[nnindex] request add %d annots to single-indexer' % (len(new_daid_list)))
+        duplicate_aids = set(new_daid_list).intersection(nnindexer.get_indexed_aids())
+        if len(duplicate_aids) > 0:
+            print('[nnindex] request has %d annots that are already indexed. ignore those' % (len(duplicate_aids),))
+            new_daid_list_ = np.array(sorted(list(set(new_daid_list) - duplicate_aids)))
+        else:
+            new_daid_list_ = new_daid_list
+        if len(new_daid_list_) == 0:
+            print('[nnindex] Nothing to do')
+        else:
+            new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list_)
+            nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list)
 
+    @ut.tracefunc_xml
     def remove_ibeis_support(nnindexer, qreq_, remove_daid_list):
         # TODO: ensure that the memcache changes appropriately
-        print('adding single-indexer support')
+        print('[nnindex] request remove %d annots from single-indexer' % (len(remove_daid_list)))
+        clear_memcache()
         nnindexer.remove_support(remove_daid_list)
 
     def remove_support(nnindexer, remove_daid_list):
         """
         CommandLine:
             python -m ibeis.model.hots.neighbor_index --test-remove_support
+
+        SeeAlso:
+            ~/code/flann/src/python/pyflann/index.py
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -848,17 +864,31 @@ class NeighborIndex(object):
         """
         if ut.DEBUG2:
             print('REMOVING POINTS')
+        # TODO: ensure no duplicates
         ax2_remove_flag = np.in1d(nnindexer.ax2_aid, remove_daid_list)
         remove_ax_list = np.nonzero(ax2_remove_flag)[0]
         idx2_remove_flag = np.in1d(nnindexer.idx2_ax, remove_ax_list)
         remove_idx_list = np.nonzero(idx2_remove_flag)[0]
+        print('[nnindex] Found %d / %d annots that need removing' % (len(remove_ax_list), len(remove_daid_list)))
+        print('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
         # FIXME: indicies may need adjustment after remove points
         # Currently this is not being done and the data is just being left alone
         # This should be ok temporarilly because removed ids should not
         # be returned by the flann object
         nnindexer.flann.remove_points(remove_idx_list)
+
+        # FIXME:
+        #nnindexer.ax2_aid
+        if True:
+            nnindexer.ax2_aid[remove_ax_list] = -1
+            nnindexer.idx2_fx[remove_idx_list] = -1
+            nnindexer.idx2_vec[remove_idx_list] = 0
+            if nnindexer.idx2_fgw is not None:
+                nnindexer.idx2_fgw[remove_idx_list] = np.nan
+
         # FIXME: This will definitely bug out if you remove points and then try
         # to add the same points back again.
+
         if ut.DEBUG2:
             print('DONE REMOVE POINTS')
 
@@ -893,6 +923,7 @@ class NeighborIndex(object):
             >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
             >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
+        # TODO: ensure no duplicates
         nAnnots = nnindexer.num_indexed_annots()
         nVecs = nnindexer.num_indexed_vecs()
         nNewAnnots = len(new_daid_list)
@@ -1221,7 +1252,7 @@ class NeighborIndex(object):
         #return len(nnindexer.ax2_aid)
 
     def get_indexed_aids(nnindexer):
-        return nnindexer.ax2_aid
+        return nnindexer.ax2_aid[nnindexer.ax2_aid != -1]
 
     def get_nn_vecs(nnindexer, qfx2_nnidx):
         """ gets matching vectors """

@@ -94,6 +94,7 @@ ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDAR
 def consolodate_annotmatch_tags(case_tags):
     #return case_tags
     remove_tags = [
+        'hard',
         'needswork',
         'correctable',
         'uncorrectable',
@@ -108,13 +109,17 @@ def consolodate_annotmatch_tags(case_tags):
         #'quality': 'Quality',
         #'scoringissue': 'ScoringIssue',
         #'orientation': 'Orientation',
-        'pose': 'SimilarPose',
+        'orientation': 'MildViewpoint',
+        #'pose': 'SimilarPose',
+        'pose': 'NonDistinct',
         #'lighting': 'Lighting',
         #'occlusion': 'Occlusion',
         #'featurescale': 'FeatureScale',
         #'edgematch': 'EdgeMatches',
         #'featurescale': 'Pose',
-        'featurescale': 'FeatureScale',
+        #'featurescale': 'FeatureScale',
+        'nondistinct': 'NonDistinct',
+        'featurescale': 'NonDistinct',
         'edgematch': 'SimilarPose',
         'badtail': 'NonDistinct',
         'badshoulder': 'NonDistinct',

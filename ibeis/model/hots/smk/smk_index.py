@@ -30,12 +30,12 @@ WITH_TOTALTIME = True
 
 #@ut.memprof
 @profile
-def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=None):
+def learn_visual_words(ibs, config2_=None, use_cache=USE_CACHE_WORDS, memtrack=None):
     """
     Computes and caches visual words
 
     Args:
-        annots_df (?):
+        ibs (?):
         qreq_ (QueryRequest):  query request object with hyper-parameters
         use_cache (bool):  turns on disk based caching(default = True)
         memtrack (None): (default = None)
@@ -52,7 +52,18 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
         >>> use_cache = True
-        >>> words = learn_visual_words(annots_df, qreq_)
+        >>> words = learn_visual_words(ibs, qreq_)
+        >>> print(words.shape)
+        (8000, 128)
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master1')
+        >>> config2_ = ibs.new_query_params(cfgdict=dict(nWords=128000))
+        >>> use_cache = True
+        >>> words = learn_visual_words(ibs, config2_)
         >>> print(words.shape)
         (8000, 128)
 
@@ -64,16 +75,17 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
     """
     #if memtrack is None:
     #    memtrack = ut.MemoryTracker('[learn_visual_words]')
-    nWords = qreq_.qparams.nWords
+    #config2_ = qreq_.get_external_data_config2()
+    nWords = config2_.nWords
     # TODO: Incorporated taids (vocab training ids) into qreq
-    if qreq_.qparams.vocab_taids == 'all':
-        taids = annots_df.ibs.get_valid_aids()  # exemplar
+    if config2_.vocab_taids == 'all':
+        taids = ibs.get_valid_aids(species=ibs.get_primary_database_species())  # exemplar
     else:
-        taids = qreq_.qparams.vocab_taids
-    initmethod   = qreq_.qparams.vocab_init_method
-    max_iters    = qreq_.qparams.vocab_nIters
-    flann_params = qreq_.qparams.vocab_flann_params
-    train_vecs_list = annots_df.ibs.get_annot_vecs(taids, eager=True)
+        taids = config2_.vocab_taids
+    initmethod   = config2_.vocab_init_method
+    max_iters    = config2_.vocab_nIters
+    flann_params = config2_.vocab_flann_params
+    train_vecs_list = ibs.get_annot_vecs(taids, eager=True, config2_=config2_)
     #memtrack.track_obj(train_vecs_list[0], 'train_vecs_list[0]')
     #memtrack.report('loaded trainvecs')
     train_vecs = np.vstack(train_vecs_list)
@@ -86,8 +98,6 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
                 initmethod=initmethod, appname='smk',
                 flann_params=flann_params)
     words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
-    #annots_df.ibs.dbcache.squeeze()
-    #annots_df.ibs.dbcache.reboot()
     del train_vecs
     del kwds
     #memtrack.report('returning words')

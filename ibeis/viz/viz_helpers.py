@@ -337,7 +337,7 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
         if name_rank is not None:
             text_list.append('name_rank=%s' % (str(name_rank),))
     #with ut.embed_on_exception_context:
-    if kwargs.get('show_timedelta', False):
+    if kwargs.get('show_timedelta', True):
         assert qaid is not None, 'qaid cannot be None'
         # TODO: fixme
         if isinstance(aid2, list):

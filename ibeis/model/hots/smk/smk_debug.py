@@ -43,6 +43,7 @@ from ibeis.model.hots import query_request
 
 def testdata_ibeis(**kwargs):
     """
+    DEPRICATE
     Step 1
 
     builds ibs for testing
@@ -75,7 +76,7 @@ def testdata_ibeis(**kwargs):
     return ibs
 
 
-def testdata_ibeis2(**kwargs):
+def testdata_ibeis2(cfgdict=None, **kwargs):
     """
     Step 2
 
@@ -103,14 +104,16 @@ def testdata_ibeis2(**kwargs):
     cfgdict = {
         'vocab_taids': 'all',
     }
+    if cfgdict is not None:
+        cfgdict.update(cfgdict)
     qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, cfgdict)
     qreq_.ibs = ibs  # Hack
     return ibs, taids, daids, qaids, qreq_
 
 
-def testdata_dataframe(**kwargs):
+def testdata_dataframe(cfgdict=None, **kwargs):
     from ibeis.model.hots.smk import smk_debug
-    ibs, taids, daids, qaids, qreq_ = smk_debug.testdata_ibeis2(**kwargs)
+    ibs, taids, daids, qaids, qreq_ = smk_debug.testdata_ibeis2(cfgdict=cfgdict, **kwargs)
     print('[smk_debug] testdata_dataframe')
     # Pandas Annotation Dataframe
     annots_df = smk_repr.make_annot_df(ibs)

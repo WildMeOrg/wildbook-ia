@@ -123,7 +123,10 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey([qaid] * len(name_daid_list), name_daid_list)
     annotmatch_rowid_list = ut.filter_Nones(annotmatch_rowid_list)
     # Case tags
+    from ibeis import tag_funcs
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
+    if not ut.get_argflag('--show'):  # False:
+        tags_list = tag_funcs.consolodate_annotmatch_tags(tags_list)
     tag_list = ut.unique_keep_order2(ut.flatten(tags_list))
 
     name_rank = kwargs.get('name_rank', None)
@@ -281,9 +284,6 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
         nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
         name_list = ibs.get_annot_names(aid_list)
         lbls_list = [[] for _ in range(len(aid_list))]
-        if kwargs.get('show_aid', True):
-            for count, (lbls, aid) in enumerate(zip(lbls_list, aid_list)):
-                lbls.append(('q' if count == 0 else '') + vh.get_aidstrs(aid))
         if kwargs.get('show_name', False):
             for (lbls, name) in zip(lbls_list, name_list):
                 lbls.append(repr(str(name)))
@@ -293,6 +293,9 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
                 LABEL_ALL_NIDS = False
                 if count <= 1 or LABEL_ALL_NIDS:
                     lbls.append(vh.get_nidstrs(nid))
+        if kwargs.get('show_aid', True):
+            for count, (lbls, aid) in enumerate(zip(lbls_list, aid_list)):
+                lbls.append(('q' if count == 0 else '') + vh.get_aidstrs(aid))
         if kwargs.get('show_annot_score', True) and name_annot_scores is not None:
             for (lbls, score) in zip(lbls_list[1:], name_annot_scores):
                 lbls.append(ut.num_fmt(score))

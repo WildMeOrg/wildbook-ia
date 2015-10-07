@@ -147,6 +147,8 @@ def make_annot_df(ibs):
     """
     Creates a pandas like DataFrame interface to an IBEISController
 
+    DEPRICATE
+
     Args:
         ibs ():
 

@@ -125,7 +125,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid        = qres.qaid
         cmtup_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
         fsv_col_lbls = qres.filtkey_list
-        #ut.embed()
         cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls, daid_list=qres.daids)
         #with ut.embed_on_exception_context:
         #if 'lnbnn' in fsv_col_lbls:
@@ -980,6 +979,24 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
 
     def show_ranked_matches(cm, qreq_, clip_top=6, *args, **kwargs):
+        r"""
+        Args:
+            qreq_ (QueryRequest):  query request object with hyper-parameters
+            clip_top (int): (default = 6)
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> clip_top = 3
+            >>> cm.show_ranked_matches(qreq_, clip_top, plottype='namematch')
+            >>> ut.show_if_requested()
+        """
         idx_list  = ut.listclip(cm.argsort(), clip_top)
         cm.show_index_matches(qreq_, idx_list, *args, **kwargs)
 
@@ -987,26 +1004,33 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         idx_list = ut.dict_take(cm.daid2_idx, daids)
         cm.show_index_matches(qreq_, idx_list, *args, **kwargs)
 
-    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None, **kwargs):
+    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None, plottype='annotmatch', **kwargs):
         import plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
-        nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=True)
+        nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=False)
         next_pnum     = pt.make_pnum_nextgen(nRows, nCols)
         for idx in idx_list:
             daid  = cm.daid_list[idx]
             pnum = next_pnum()
-            cm.show_single_annotmatch(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
-            score = vt.trytake(cm.score_list, idx)
-            annot_score = vt.trytake(cm.annot_score_list, idx)
-            score_str = ('score = %.3f' % (score,)
-                         if score is not None else
-                         'score = None')
-            annot_score_str = ('annot_score = %.3f' % (annot_score,)
-                               if annot_score is not None else
-                               'annot_score = None')
-            title = score_str + '\n' + annot_score_str
-            pt.set_title(title)
+            if plottype == 'namematch':
+                dnid = qreq_.ibs.get_annot_nids(daid)
+                cm.show_single_namematch(qreq_, dnid, pnum=pnum, fnum=fnum, **kwargs)
+            elif plottype == 'annotmatch':
+                cm.show_single_annotmatch(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
+                # FIXME:
+                score = vt.trytake(cm.score_list, idx)
+                annot_score = vt.trytake(cm.annot_score_list, idx)
+                score_str = ('score = %.3f' % (score,)
+                             if score is not None else
+                             'score = None')
+                annot_score_str = ('annot_score = %.3f' % (annot_score,)
+                                   if annot_score is not None else
+                                   'annot_score = None')
+                title = score_str + '\n' + annot_score_str
+                pt.set_title(title)
+            else:
+                raise NotImplementedError('Unknown plottype=%r' % (plottype,))
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 

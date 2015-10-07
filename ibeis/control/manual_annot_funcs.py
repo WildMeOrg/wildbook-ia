@@ -1252,7 +1252,6 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
     if _new:
         semantic_uuid_hashid  = ut.hashstr_arr27(semantic_uuid_list, label, pathsafe=True)
     else:
-        print('semantic_uuid_list = %r' % (semantic_uuid_list,))
         semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
     return semantic_uuid_hashid
 

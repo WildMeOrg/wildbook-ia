@@ -1679,37 +1679,19 @@ class TestResult(object):
         part_attrs = {1: {'qaid': tp_qaids},
                       0: {'qaid': tn_qaids}}
 
-        def attr_callback(qaid):
-            print('callback qaid = %r' % (qaid,))
-            test_result.interact_individual_result(qaid)
-            reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
-            print('Independent reconstruct')
-            print(reconstruct_str)
-
-        #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
-        fpr = ut.get_argval('--fpr', type_=float, default=None)
-        tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
+        fpr = None
+        tpr = .85
         encoder = vt.ScoreNormalizer(adjust=8, fpr=fpr, tpr=tpr, monotonize=True)
         #tp_scores = tp_nscores
         #tn_scores = tn_nscores
         name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
         encoder.fit(name_scores, labels, attrs)
         #score_thresh = encoder.learn_threshold()
+        score_thresh = encoder.learn_threshold2()
 
         # Find intersection point
         # TODO: add to score normalizer.
         # Improve robustness
-        weights = encoder.p_score_given_tp
-        values = encoder.score_domain
-        mean = np.average(values, weights=weights)
-        std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
-        score_cutoff = mean + (2 * std)
-        cutx = np.sum(encoder.score_domain < score_cutoff)
-
-        xdata = encoder.score_domain[:cutx]
-        curve = (encoder.p_score_given_tp[:cutx] - encoder.p_score_given_tn[:cutx])
-        x_submax, y_submax = vt.interpolate_submaxima(np.array([curve.argmax()]), curve, xdata)
-        score_thresh = y_submax[0]
         #pt.figure()
         #pt.plot(xdata, curve)
         #pt.plot(x_submax, y_submax, 'o')

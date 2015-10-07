@@ -425,6 +425,88 @@ def test_incremental_add(ibs):
     #    if
 
 
+def test_multiple_add_removes():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots._neighbor_experiment --exec-test_multiple_add_removes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
+        >>> result = test_multiple_add_removes()
+        >>> print(result)
+    """
+    from ibeis.model.hots.neighbor_index import test_nnindexer
+    K = 4
+    nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
+    print('\n\n --- got nnindex testdata --- ')
+    print('')
+
+    nnindexer.get_indexed_aids()
+    def print_nnindexer(nnindexer):
+        print('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
+        print('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
+
+    print_nnindexer(nnindexer)
+
+    config2_ = qreq_.get_internal_query_config2()
+    qaid = 1
+    qfx2_vec = ibs.get_annot_vecs(qaid, config2_=config2_)
+    (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
+    aids1 = set(nnindexer.get_nn_aids(qfx2_idx1).ravel())
+    print('aids1 = %r' % (aids1,))
+
+    # execute test function
+    print('')
+    print('testing remove')
+    remove_daid_list = [8, 10, 11]
+    nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
+    print_nnindexer(nnindexer)
+    # test after modification
+    (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
+    aids2 = set(nnindexer.get_nn_aids(qfx2_idx2).ravel())
+    print('aids2 = %r' % (aids2,))
+    assert len(aids2.intersection(remove_daid_list)) == 0
+
+    print('')
+    print('testing duplicate remove')
+    nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
+    print_nnindexer(nnindexer)
+    # test after modification
+    (qfx2_idx2_, qfx2_dist2_) = nnindexer.knn(qfx2_vec, K)
+    assert np.all(qfx2_idx2_ == qfx2_idx2)
+    assert np.all(qfx2_dist2_ == qfx2_dist2)
+
+    print('')
+    print('testing add')
+    new_daid_list = [8, 10]
+    nnindexer.add_ibeis_support(qreq_, new_daid_list)
+    print_nnindexer(nnindexer)
+    # test after modification
+    (qfx2_idx3, qfx2_dist3) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid3 = nnindexer.get_nn_aids(qfx2_idx3)
+    aids3 = set(nnindexer.get_nn_aids(qfx2_idx3).ravel())
+    assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(remove_daid_list)
+
+    if False:
+        print('testing duplicate add')
+        new_daid_list = [8, 10]
+        nnindexer.add_ibeis_support(qreq_, new_daid_list)
+        # test after modification
+        (qfx2_idx3_, qfx2_dist3_) = nnindexer.knn(qfx2_vec, K)
+        qfx2_aid3_ = nnindexer.get_nn_aids(qfx2_idx3_)
+        assert np.all(qfx2_aid3 == qfx2_aid3_)
+        pass
+
+    # Add query annot
+    add_daid_list1 = [qaid]
+    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
+
+    #
+    #ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
+    pass
+
+
 if __name__ == '__main__':
     """
     CommandLine:
