@@ -4,7 +4,7 @@ import utool as ut
 import numpy as np
 from six.moves import zip, map, range  # NOQA
 from scipy.spatial import distance
-import scipy.cluster.hierarchy as hier
+import scipy.cluster.hierarchy
 import sklearn.cluster
 #from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
@@ -164,21 +164,59 @@ def prepare_X_data(ibs, gid_list, use_gps=False):
 
 
 def agglomerative_cluster_encounters(X_data, seconds_thresh):
-    """ Agglomerative encounter clustering algorithm
-    Input:  Length N array of data to cluster
-    Output: Length N array of cluster indexes
     """
-    label_arr = hier.fclusterdata(X_data, seconds_thresh, criterion='distance')
+    Agglomerative encounter clustering algorithm
+
+    Args:
+        X_data (ndarray):  Length N array of data to cluster
+        seconds_thresh (float):
+
+    Returns:
+        ndarray: (label_arr) - Length N array of cluster indexes
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_encounter --exec-agglomerative_cluster_encounters
+
+    References:
+        https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata
+        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> X_data = '?'
+        >>> seconds_thresh = '?'
+        >>> (enc_ids, enc_gids) = agglomerative_cluster_encounters(X_data, seconds_thresh)
+        >>> result = ('(enc_ids, enc_gids) = %s' % (str((enc_ids, enc_gids)),))
+        >>> print(result)
+    """
+    label_arr = scipy.cluster.hierarchy.fclusterdata(
+        X_data, seconds_thresh, criterion='distance')
     return label_arr
 
 
 def meanshift_cluster_encounters(X_data, quantile):
     """ Meanshift encounter clustering algorithm
-    Input: Length N array of data to cluster
-    Output: Length N array of labels
+
+    Args:
+        X_data (ndarray):  Length N array of data to cluster
+        quantile (float): quantile should be between [0, 1].
+            eg: quantile=.5 represents the median of all pairwise distances
+
+    Returns:
+        ndarray : Length N array of labels
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_encounter --exec-meanshift_cluster_encounters
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> X_data = '?'
+        >>> quantile = '?'
+        >>> result = meanshift_cluster_encounters(X_data, quantile)
+        >>> print(result)
     """
-    # quantile should be between [0, 1]
-    # e.g: quantile=.5 represents the median of all pairwise distances
     try:
         bandwidth = sklearn.cluster.estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
         assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
@@ -255,10 +293,15 @@ def timespace_pdist(X_data):
 
 
 def cluster_timespace(X_data, thresh):
+    """
+        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html
+    """
     condenced_dist_mat = distance.pdist(X_data, timespace_distance)
-    linkage_mat        = hier.linkage(condenced_dist_mat, method='centroid')
-    X_labels           = hier.fcluster(linkage_mat, thresh, criterion='inconsistent',
-                                        depth=2, R=None, monocrit=None)
+    linkage_mat        = scipy.cluster.hierarchy.linkage(
+        condenced_dist_mat, method='centroid')
+    X_labels           = scipy.cluster.hierarchy.fcluster(
+        linkage_mat, thresh, criterion='inconsistent',
+        depth=2, R=None, monocrit=None)
     return X_labels
 
 
@@ -325,7 +368,7 @@ def testdata_gps():
     #]
     # Linkage matrixes are interpeted incrementally starting from the first row
     # They are unintuitive, but not that difficult to grasp
-    linkage_mat = hier.linkage(condenced_dist_mat, method='single')
+    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat, method='single')
     #print(linkage_mat)
     #hier.leaves_list(linkage_mat)
     # FCluster forms flat clusters from the heirarchical linkage matrix
