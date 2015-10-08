@@ -31,6 +31,10 @@ from utool._internal.meta_util_six import get_funcname
 ASSERT_FUNCS = []
 
 
+#LIB_DEP = ut.get_argflag('--nolibdep')
+LIB_DEP = not ut.get_argflag('--libdep')
+
+
 def get_site_package_directories():
     import site
     import sys
@@ -121,7 +125,7 @@ def pip_version():
 @checkinfo(None)
 def pyflann_version():
     import pyflann
-    if ut.get_argflag('--nolibdep'):
+    if LIB_DEP:
         libdep = None
     else:
         libdep = ut.get_dynlib_dependencies(pyflann.flannlib._name)
@@ -131,7 +135,7 @@ def pyflann_version():
 @checkinfo('1.1.1')
 def pyhesaff_version():
     import pyhesaff
-    if ut.get_argflag('--nolibdep'):
+    if LIB_DEP:
         libdep = None
     else:
         libdep = ut.get_dynlib_dependencies(pyhesaff.__LIB_FPATH__)
@@ -141,7 +145,7 @@ def pyhesaff_version():
 @checkinfo('1.0.0')
 def pyrf_version():
     import pyrf
-    if ut.get_argflag('--nolibdep'):
+    if LIB_DEP:
         libdep = None
     else:
         libdep = ut.get_dynlib_dependencies(pyrf.RF_CLIB._name)
@@ -158,7 +162,7 @@ def utool_version():
 def vtool_version():
     import vtool
     libdep = None
-    if ut.get_argflag('--nolibdep'):
+    if LIB_DEP:
         libdep = None
     else:
         try:
@@ -190,7 +194,7 @@ def matplotlib_version():
 def opencv_version():
     import cv2
     #print(cv2.getBuildInformation())
-    if ut.get_argflag('--nolibdep'):
+    if LIB_DEP:
         libdep = None
     else:
         libdep = ut.get_dynlib_dependencies(cv2.__file__)
@@ -201,6 +205,12 @@ def opencv_version():
 def scipy_version():
     import scipy
     return module_stdinfo_dict(scipy)
+
+
+@checkinfo('0.4.9')
+def scipy_linalg_version():
+    import scipy.linalg
+    return module_stdinfo_dict(scipy.linalg)
 
 
 @checkinfo('1.8.0')
