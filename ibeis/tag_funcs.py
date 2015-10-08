@@ -407,6 +407,7 @@ def filterflags_general_tags(tags_list,
         max_num (None): (default = None)
 
     CommandLine:
+        python -m ibeis.tag_funcs --exec-filterflags_general_tags
         python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --helpx
         python -m ibeis.tag_funcs --exec-filterflags_general_tags:0
         python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --none_match n
@@ -462,6 +463,9 @@ def filterflags_general_tags(tags_list,
     def fix_tags(tags):
         from ibeis import constants as const
         return {const.__STR__(t.lower()) for t in tags}
+
+    if logic is None:
+        logic = 'and'
 
     logic_func = {
         'and': np.logical_and,
