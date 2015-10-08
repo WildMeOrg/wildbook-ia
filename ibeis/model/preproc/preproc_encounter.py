@@ -1,67 +1,131 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 import numpy as np
-from six.moves import zip, map  # NOQA
+from six.moves import zip, map, range  # NOQA
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
-from sklearn.cluster import MeanShift, estimate_bandwidth
+import sklearn.cluster
+#from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
-(print, rrr, profile) = utool.inject2(__name__, '[preproc_encounter]')
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_encounter]')
 
 
-#@utool.indent_func('[encounter]')
+#@ut.indent_func('[encounter]')
 def ibeis_compute_encounters(ibs, gid_list):
     """
     clusters encounters togethers (by time, not yet space)
     An encounter is a meeting, localized in time and space between a camera and
     a group of animals.  Animals are identified within each encounter.
+
+    Does not modify database state, just returns cluster ids
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        tuple: (None, None)
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_encounter --exec-ibeis_compute_encounters
+
+        TODO: FIXME: good example of autogen doctest return failure
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> (flat_eids, flat_gids) = ibeis_compute_encounters(ibs, gid_list)
+        >>> result = ('(None, None) = %s' % (str((None, None)),))
+        >>> print(result)
     """
-    # Config info
     enc_cfgstr       = ibs.cfg.enc_cfg.get_cfgstr()
-    seconds_thresh   = ibs.cfg.enc_cfg.seconds_thresh
-    min_imgs_per_enc = ibs.cfg.enc_cfg.min_imgs_per_encounter
+    print('[enc] enc_cfgstr = %r' % enc_cfgstr)
     cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
-    quantile         = ibs.cfg.enc_cfg.quantile
-    print('[encounter] Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
-    print('[encounter] enc_cfgstr = %r' % enc_cfgstr)
-    if len(gid_list) == 0:
-        print('[encounter] WARNING: len(gid_list) == 0. No images to compute encounters with')
-        return [], []
-    elif len(gid_list) == 1:
-        print('[encounter] WARNING: custering 1 image into its own encounter')
-        gid_arr = np.array(gid_list)
-        label_arr = np.zeros(gid_arr.shape)
-    else:
-        X_data, gid_arr = _prepare_X_data(ibs, gid_list, use_gps=False)
-        # Agglomerative clustering of unixtimes
-        if cluster_algo == 'agglomerative':
-            label_arr = _agglomerative_cluster_encounters(X_data, seconds_thresh)
-        elif cluster_algo == 'meanshift':
-            label_arr = _meanshift_cluster_encounters(X_data, quantile)
-        else:
-            raise AssertionError('[encounter] Uknown clustering algorithm: %r' % cluster_algo)
-    # Group images by unique label
-    labels, label_gids = _group_images_by_label(label_arr, gid_arr)
-    # Remove encounters less than the threshold
-    enc_labels    = labels
-    enc_gids      = label_gids
-    enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
-    enc_labels, enc_gids = _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes)
+    enc_labels, enc_gids = compute_encounter_groups(ibs, gid_list)
+    cfgdict = dict(
+        min_imgs_per_enc=ibs.cfg.enc_cfg.min_imgs_per_encounter,
+        seconds_thresh=ibs.cfg.enc_cfg.seconds_thresh,
+        quantile=ibs.cfg.enc_cfg.quantile,
+    )
     # Flatten gids list by enounter
-    flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
-    # Create enctext for each image
-    # Moved to ibeis.control.IBEISControl.compute_encounters so that it does not overwrite into existing encounters
-    #enctext_list = ['Encounter ' + str(eid) for eid in flat_eids]
-    # enctext_list = ['E' + str(eid) + enc_cfgstr for eid in flat_eids]
-    #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in zip(enc_labels, enc_datetimes)]
-    #enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
-    print('[encounter] Found %d clusters.' % len(labels))
+    flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids, cluster_algo, cfgdict)
     return flat_eids, flat_gids
 
 
-def _compute_encounter_unixtime(ibs, enc_gids):
+def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=False):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        tuple: (None, None)
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_encounter --exec-ibeis_compute_encounter_groups
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> gid_list = ibs.get_valid_gids(require_unixtime=True, require_gps=True)
+        >>> use_gps = True
+        >>> cluster_algo = 'meanshift'
+        >>> cfgdict = dict(quantile=.005, min_imgs_per_enc=2)
+        >>> (enc_labels, enc_gids) = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict, use_gps=use_gps)
+    """
+    # Config info
+
+    print('[enc] Computing %r encounters on %r images.' % (
+        cluster_algo, len(gid_list)))
+    if len(gid_list) == 0:
+        print('[enc] WARNING: len(gid_list) == 0. '
+              'No images to compute encounters with')
+        enc_labels, enc_gids = [], []
+    else:
+        if len(gid_list) == 1:
+            print('[enc] WARNING: custering 1 image into its own encounter')
+            gid_arr = np.array(gid_list)
+            label_arr = np.zeros(gid_arr.shape)
+        else:
+            X_data, gid_arr = prepare_X_data(ibs, gid_list, use_gps=use_gps)
+            # Agglomerative clustering of unixtimes
+            if cluster_algo == 'agglomerative':
+                seconds_thresh = cfgdict.get('seconds_thresh', 60.0)
+                label_arr = agglomerative_cluster_encounters(X_data,
+                                                             seconds_thresh)
+            elif cluster_algo == 'meanshift':
+                quantile = cfgdict.get('quantile', 0.01)
+                label_arr = meanshift_cluster_encounters(X_data, quantile)
+            else:
+                raise AssertionError(
+                    '[encounter] Uknown clustering algorithm: %r' % cluster_algo)
+        # Group images by unique label
+        labels, label_gids = group_images_by_label(label_arr, gid_arr)
+        # Remove encounters less than the threshold
+        enc_labels    = labels
+        enc_gids      = label_gids
+        enc_unixtimes = compute_encounter_unixtime(ibs, enc_gids)
+        min_imgs_per_enc = cfgdict.get('min_imgs_per_enc', 1)
+        enc_labels, enc_gids = filter_and_relabel(labels, label_gids,
+                                                  min_imgs_per_enc,
+                                                  enc_unixtimes)
+        print('[enc] Found %d clusters.' % len(enc_labels))
+        if len(label_gids) > 0:
+            print('Cluster size stats:')
+            ut.print_dict(ut.get_stats(list(map(len, enc_gids)), use_median=True, use_sum=True))
+    return enc_labels, enc_gids
+
+
+def compute_encounter_unixtime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
+    # TODO: account for -1
     from ibeis import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
     time_arrs = list(map(np.array, unixtimes))
@@ -72,12 +136,12 @@ def _compute_encounter_unixtime(ibs, enc_gids):
 def _compute_encounter_datetime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
     #from ibeis import ibsfuncs
-    enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
-    enc_datetimes = list(map(utool.unixtime_to_datetimestr, enc_unixtimes))
+    enc_unixtimes = compute_encounter_unixtime(ibs, enc_gids)
+    enc_datetimes = list(map(ut.unixtime_to_datetimestr, enc_unixtimes))
     return enc_datetimes
 
 
-def _prepare_X_data(ibs, gid_list, use_gps=False):
+def prepare_X_data(ibs, gid_list, use_gps=False):
     """
     FIXME: use ut.haversine formula on gps dimensions
     fix weighting between seconds and gps
@@ -99,7 +163,7 @@ def _prepare_X_data(ibs, gid_list, use_gps=False):
     return X_data, gid_arr
 
 
-def _agglomerative_cluster_encounters(X_data, seconds_thresh):
+def agglomerative_cluster_encounters(X_data, seconds_thresh):
     """ Agglomerative encounter clustering algorithm
     Input:  Length N array of data to cluster
     Output: Length N array of cluster indexes
@@ -108,7 +172,7 @@ def _agglomerative_cluster_encounters(X_data, seconds_thresh):
     return label_arr
 
 
-def _meanshift_cluster_encounters(X_data, quantile):
+def meanshift_cluster_encounters(X_data, quantile):
     """ Meanshift encounter clustering algorithm
     Input: Length N array of data to cluster
     Output: Length N array of labels
@@ -116,15 +180,20 @@ def _meanshift_cluster_encounters(X_data, quantile):
     # quantile should be between [0, 1]
     # e.g: quantile=.5 represents the median of all pairwise distances
     try:
-        bandwidth = estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
-        if bandwidth == 0:
-            raise AssertionError('[WARNING!] bandwidth is 0. Cannot cluster')
+        bandwidth = sklearn.cluster.estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
+        assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
         # bandwidth is with respect to the RBF used in clustering
-        ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
+        #ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
+        ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=False)
         ms.fit(X_data)
         label_arr = ms.labels_
+
+        unique_labels = np.unique(label_arr)
+        max_label = max(0, unique_labels.max())
+        num_orphans = (label_arr == -1).sum()
+        label_arr[label_arr == -1] = np.arange(max_label + 1, max_label + 1 + num_orphans)
     except Exception as ex:
-        utool.printex(ex, 'error computing meanshift',
+        ut.printex(ex, 'error computing meanshift',
                       key_list=['X_data', 'quantile'],
                       iswarning=True)
         # Fallback to all from same encounter
@@ -132,37 +201,39 @@ def _meanshift_cluster_encounters(X_data, quantile):
     return label_arr
 
 
-def _group_images_by_label(labels_arr, gid_arr):
+def group_images_by_label(label_arr, gid_arr):
     """
     Input: Length N list of labels and ids
     Output: Length M list of unique labels, and lenth M list of lists of ids
     """
     # Reverse the image to cluster index mapping
-    label2_gids = utool.build_reverse_mapping(gid_arr, labels_arr)
-    # Unpack dict, sort encounters by images-per-encounter
-    labels, label_gids = utool.unpack_items_sorted_by_lenvalue(label2_gids)
-    labels     = np.array(labels)
-    label_gids = np.array(label_gids)
+    import vtool as vt
+    labels_, groupxs_ = vt.group_indices(label_arr)
+    sortx = np.array(list(map(len, groupxs_))).argsort()[::-1]
+    labels  = labels_.take(sortx, axis=0)
+    groupxs = ut.list_take(groupxs_, sortx)
+    label_gids = vt.apply_grouping(gid_arr, groupxs)
     return labels, label_gids
 
 
-def _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None):
+def filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None):
     """
     Removes clusters with too few members.
     Relabels clusters-labels such that label 0 has the most members
     """
     label_nGids = np.array(list(map(len, label_gids)))
     label_isvalid = label_nGids >= min_imgs_per_enc
-    if enc_unixtimes is None:
+    enc_gids = ut.list_compress(label_gids, label_isvalid)
+    if enc_unixtimes is not None:
+        enc_unixtimes = ut.list_compress(enc_unixtimes, label_isvalid)
         # Rebase ids so encounter0 has the most images
-        enc_ids  = range(label_isvalid.sum())
-        enc_gids = label_gids[label_isvalid]
-    else:
+        #enc_ids  = list(range(label_isvalid.sum()))
+        #else:
         # sort by time instead
         unixtime_arr = np.array(enc_unixtimes)
         # Reorder encounters so the oldest has the lowest number
-        enc_gids = label_gids[unixtime_arr.argsort()]
-        enc_ids = range(len(enc_gids))
+        enc_gids = ut.list_take(label_gids, unixtime_arr.argsort())
+    enc_ids = list(range(len(enc_gids)))
     return enc_ids, enc_gids
 
 
@@ -192,6 +263,25 @@ def cluster_timespace(X_data, thresh):
 
 
 def testdata_gps():
+    r"""
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_encounter --exec-testdata_gps --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> X_data, linkage_mat = testdata_gps()
+        >>> ut.quit_if_noshow()
+        >>> # plot
+        >>> import plottool as pt
+        >>> fnum = pt.ensure_fnum(None)
+        >>> fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        >>> hier.dendrogram(linkage_mat, orientation='top')
+        >>> #fig.show()
+        >>> plot_annotaiton_gps(X_data)
+        >>> ut.show_if_requested()
+
+    """
     lon = np.array([4.54, 104.0, -14.9, 56.26, 103.46, 103.37, 54.22, 23.3,
                     25.53, 23.31, 118.0, 103.53, 54.40, 103.48, 6.14, 7.25,
                     2.38, 18.18, 103.54, 103.40, 28.59, 25.21, 29.35, 25.20, ])
@@ -255,26 +345,31 @@ def testdata_gps():
     X_labels = fcluster(linkage_mat, thresh, criterion='inconsistent',
                         depth=depth, R=R, monocrit=monocrit)
 
-    # plot
-    from plottool import draw_func2 as df2
-    fig = df2.figure(fnum=1, doclf=True, docla=True)
-    hier.dendrogram(linkage_mat, orientation='top')
-    fig.show()
-
     print(X_labels)
+    return X_data, linkage_mat
 
 
-def plot_annotaiton_gps(X_Data):
-    """ Plots gps coordinates on a map projection """
+def plot_annotaiton_gps(X_data):
+    """ Plots gps coordinates on a map projection
+
+    InstallBasemap:
+        sudo apt-get install libgeos-dev
+        pip install git+https://github.com/matplotlib/basemap
+
+    Ignore:
+        pip install git+git://github.com/myuser/foo.git@v123
+
+    """
     import plottool as pt
     from mpl_toolkits.basemap import Basemap
     #lat = X_data[1:5, 1]
     #lon = X_data[1:5, 2]
     lat = X_data[:, 1]  # NOQA
     lon = X_data[:, 2]  # NOQA
-    fig = pt.figure(fnum=1, doclf=True, docla=True)  # NOQA
+    fnum = pt.ensure_fnum(None)
+    fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA
     pt.close_figure(fig)
-    fig = pt.figure(fnum=1, doclf=True, docla=True)
+    fig = pt.figure(fnum=fnum, doclf=True, docla=True)
     # setup Lambert Conformal basemap.
     m = Basemap(llcrnrlon=lon.min(),
                 urcrnrlon=lon.max(),

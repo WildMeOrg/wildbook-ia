@@ -84,7 +84,7 @@ def _get_all_image_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
-def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
+def get_valid_gids(ibs, eid=None, require_unixtime=False, require_gps=None, reviewed=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -127,11 +127,14 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         # Remove images without timestamps
         unixtime_list = ibs.get_image_unixtime(gid_list)
         isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
-        gid_list = ut.filter_items(gid_list, isvalid_list)
+        gid_list = ut.list_compress(gid_list, isvalid_list)
+    if require_gps:
+        isvalid_gps = [lat != -1 and lon != -1 for lat, lon in ibs.get_image_gps(gid_list)]
+        gid_list = ut.list_compress(gid_list, isvalid_gps)
     if reviewed is not None:
         reviewed_list = ibs.get_image_reviewed(gid_list)
         isvalid_list = [reviewed == flag for flag in reviewed_list]
-        gid_list = ut.filter_items(gid_list, isvalid_list)
+        gid_list = ut.list_compress(gid_list, isvalid_list)
     return gid_list
 
 
@@ -1349,7 +1352,7 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
     def _filter(aid_list):
         species_list = ibs.get_annot_species(aid_list)
         isvalid_list = [ species_ == species for species_ in species_list ]
-        aid_list = ut.filter_items(aid_list, isvalid_list)
+        aid_list = ut.list_compress(aid_list, isvalid_list)
         return aid_list
     # Get and filter aids_list
     aids_list = ibs.get_image_aids(gid_list)

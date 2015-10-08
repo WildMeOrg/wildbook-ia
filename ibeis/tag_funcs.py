@@ -193,28 +193,64 @@ def get_cate_categories():
     return standard, other
 
 
-def export_tagged_chips(ibs, aid_list):
+def export_tagged_chips(ibs, aid_list, dpath='.'):
     """
     CommandLine:
-        python -m ibeis.tag_funcs --exec-export_tagged_chips  --tags Hard interesting --db PZ_Master1
+        python -m ibeis.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
+        python -m ibeis.tag_funcs --exec-export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
+        python -m ibeis.tag_funcs --exec-export_tagged_chips --db GZ_Master1 --min_num=1  --dpath /media/raid
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.tag_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> has_any = ut.get_argval('--tags', type_=list, default=None)
-        >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
-        >>> aid_pairs = filter_aidpairs_by_tags(ibs, has_any=has_any, min_num=1)
-        >>> aid_list = np.unique(aid_pairs.flatten())
-        >>> print(aid_list)
+        >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=ut.ddict(list, logic=str))
+        >>> ut.print_dict(kwargs, 'filter args')
+        >>> aid_list = ibs.filter_annots_by_tags(**kwargs)
         >>> print('len(aid_list) = %r' % (len(aid_list),))
-        >>> export_tagged_chips(ibs, aid_list)
+        >>> dpath = ut.get_argval('--dpath', default='')
+        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> filtered_tag_hist = ut.dict_hist(all_tags)
+        >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
+        >>> export_tagged_chips(ibs, aid_list, dpath)
     """
     visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list, _new=True)
-    zip_fpath = 'exported_chips' +  visual_uuid_hashid + '.zip'
+    zip_fpath = ut.unixjoin(dpath, 'exported_chips2_' + ibs.get_dbname() +  visual_uuid_hashid + '.zip')
     chip_fpath = ibs.get_annot_chip_fpath(aid_list)
-    ut.archive_files(zip_fpath, chip_fpath)
+    ut.archive_files(zip_fpath, chip_fpath, common_prefix=True)
+
+
+@register_ibs_method
+def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
+    """
+    CommandLine:
+        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1
+        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --min_num=1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=ut.ddict(list, logic=str))
+        >>> ut.print_dict(kwargs, 'filter args')
+        >>> aid_list = ibs.filter_annots_by_tags(aid_list, **kwargs)
+        >>> print(len(aid_list))
+        >>> # print results
+        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> filtered_tag_hist = ut.dict_hist(all_tags)
+        >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
+        >>> print('len(aid_list) = %r' % (len(aid_list),))
+        >>> print('sum(tags) = %r' % (sum(filtered_tag_hist.values()),))
+    """
+    if aid_list is None:
+        aid_list = ibs._get_all_aids()
+    tags_list = ibs.get_annot_all_tags(aid_list)
+    flags = filterflags_general_tags(tags_list, **kwargs)
+    aid_list = ut.list_compress(aid_list, flags)
+    return aid_list
 
 
 def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
@@ -307,6 +343,8 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SceneryMatch
         python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags Photobomb
 
+        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db GZ_Master1 --tags needswork
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.tag_funcs import *  # NOQA
@@ -358,7 +396,8 @@ def filterflags_general_tags(tags_list,
                              any_startswith=None,
                              any_endswith=None,
                              any_match=None,
-                             none_match=None):
+                             none_match=None,
+                             logic='and'):
     r"""
     Args:
         tags_list (list):
@@ -417,39 +456,48 @@ def filterflags_general_tags(tags_list,
         result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
     import re
+    import operator
     from ibeis import constants as const
 
     def fix_tags(tags):
         from ibeis import constants as const
         return {const.__STR__(t.lower()) for t in tags}
 
+    logic_func = {
+        'and': np.logical_and,
+        'or': np.logical_or,
+    }[logic]
+
+    default_func = {
+        'and': np.ones,
+        'or': np.zeros,
+    }[logic]
+
     tags_list_ = [fix_tags(tags_) for tags_ in tags_list]
-    flags = np.ones(len(tags_list_), dtype=np.bool)
+    flags = default_func(len(tags_list_), dtype=np.bool)
 
     if min_num is not None:
         flags_ = [len(tags_) >= min_num for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+        logic_func(flags, flags_, out=flags)
 
     if max_num is not None:
         flags_ = [len(tags_) <= max_num for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+        logic_func(flags, flags_, out=flags)
 
     if has_any is not None:
         has_any = fix_tags(set(ut.ensure_iterable(has_any)))
         flags_ = [len(has_any.intersection(tags_)) > 0 for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+        logic_func(flags, flags_, out=flags)
 
     if has_none is not None:
         has_none = fix_tags(set(ut.ensure_iterable(has_none)))
         flags_ = [len(has_none.intersection(tags_)) == 0 for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
+        logic_func(flags, flags_, out=flags)
 
     if has_all is not None:
         has_all = fix_tags(set(ut.ensure_iterable(has_all)))
         flags_ = [len(has_all.intersection(tags_)) == len(has_all) for tags_ in tags_list_]
-        np.logical_and(flags, flags_, out=flags)
-
-    import operator
+        logic_func(flags, flags_, out=flags)
 
     def test_item(tags_, fields, op, compare):
         t_flags = [any([compare(t, f) for f in fields]) for t in tags_]
@@ -465,7 +513,7 @@ def filterflags_general_tags(tags_list,
         if fields is not None:
             fields = ut.ensure_iterable(fields)
             flags_ = flag_tags(tags_list, fields, op, compare)
-            np.logical_and(flags, flags_, out=flags)
+            logic_func(flags, flags_, out=flags)
         return flags
 
     flags = execute_filter(
@@ -483,29 +531,6 @@ def filterflags_general_tags(tags_list,
     flags = execute_filter(
         flags, tags_list, none_match,
         operator.eq, lambda t, f: re.match(f, t))
-
-    #if any_startswith is not None:
-    #    any_startswith = fix_tags(set(ut.ensure_iterable(any_startswith)))
-    #    #flags_ = [len([t for t in tags_ if any([t.startswith(sw) for sw in any_startswith])]) > 0 for tags_ in tags_list_]
-    #    flags_ = flag_tags(tags_list, str.startswith, any_startswith, operator.gt)
-    #    np.logical_and(flags, flags_, out=flags)
-
-    #if any_endswith is not None:
-    #    any_startswith = ut.ensure_iterable(any_endswith)
-    #    #flags_ = [len([t for t in tags_ if any([t.startswith(ew) for ew in any_endswith])]) > 0 for tags_ in tags_list_]
-    #    flags_ = flag_tags(tags_list, str.endswith, any_endswith, operator.gt)
-    #    np.logical_and(flags, flags_, out=flags)
-
-    #if any_match is not None:
-    #    any_match = ut.ensure_iterable(any_match)
-    #    #flags_ = [len([t for t in tags_ if re.match(any_match, t)]) > 0 for tags_ in tags_list_]
-    #    flags_ = flag_tags(tags_list, lambda t, f: re.match(f, t), any_match, operator.gt)
-    #    np.logical_and(flags, flags_, out=flags)
-
-    #if none_match is not None:
-    #    #flags_ = [len([t for t in tags_ if re.match(none_match, t)]) == 0 for tags_ in tags_list_]
-    #    flags_ = flag_tags(tags_list, lambda t, f: re.match(f, t), none_match, operator.eq)
-    #    np.logical_and(flags, flags_, out=flags)
     return flags
 
 
@@ -777,6 +802,7 @@ def get_annot_case_tags(ibs, aid_list):
         >>> print(result)
 
     Ignore:
+        # FIXME incorrporate old tag notes
         aid_list = ibs.get_valid_aids()
         notes_list = ibs.get_annot_notes(aid_list)
         flags = [len(notes) > 0 for notes in notes_list]
@@ -840,6 +866,27 @@ def get_annot_case_tags(ibs, aid_list):
 @register_ibs_method
 @profile
 def get_annot_annotmatch_tags(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    Returns:
+        list: annotmatch_tags_list
+
+    CommandLine:
+        python -m ibeis.tag_funcs --exec-get_annot_annotmatch_tags --db GZ_Master1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> all_tags = ut.flatten(get_annot_annotmatch_tags(ibs, aid_list))
+        >>> tag_hist = ut.dict_hist(all_tags)
+        >>> ut.print_dict(tag_hist)
+    """
     annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
     unflat_tags_list = ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowids)
     annotmatch_tags_list = [list(set(ut.flatten(_unflat_tags))) for _unflat_tags in unflat_tags_list]
@@ -849,6 +896,20 @@ def get_annot_annotmatch_tags(ibs, aid_list):
 @register_ibs_method
 @profile
 def get_annot_all_tags(ibs, aid_list):
+    """
+    CommandLine:
+        python -m ibeis.tag_funcs --exec-get_annot_all_tags --db GZ_Master1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tag_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> tag_hist = ut.dict_hist(all_tags)
+        >>> ut.print_dict(tag_hist)
+    """
     annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
     annot_tags_list = ibs.get_annot_case_tags(aid_list)
     both_tags_list = list(map(ut.unique_keep_order2, map(ut.flatten, zip(annot_tags_list, annotmatch_tags_list))))

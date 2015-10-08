@@ -115,6 +115,17 @@ def get_name_rowid_edges_from_nids(ibs, nids):
     return aids1, aids2
 
 
+def get_name_rowid_edges_from_aids2(ibs, aids_list):
+    # grouped version
+    import itertools
+    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
+    #if full:
+    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+    aids1 = ut.get_list_column(aid_pairs, 0)
+    aids2 = ut.get_list_column(aid_pairs, 1)
+    return aids1, aids2
+
+
 def get_name_rowid_edges_from_aids(ibs, aid_list):
     aids_list, nids = ibs.group_annots_by_name(aid_list)
     #aids_list = ibs.get_name_aids(nids)
@@ -131,7 +142,22 @@ def make_netx_graph_from_nids(ibs, nids, full=False):
     aids_list = ibs.get_name_aids(nids)
     unique_aids = list(ut.flatten(aids_list))
 
-    aids1, aids2 = get_name_rowid_edges_from_nids(ibs, nids)
+    aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
+
+    if not full:
+        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
+        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+
+    return make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
+
+
+def make_netx_graph_from_aids(ibs, aid_list, full=False):
+    aids_list, nid_list = ibs.group_annots_by_name(aid_list)
+    unique_aids = list(ut.flatten(aids_list))
+
+    aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
 
     if not full:
         annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
@@ -425,7 +451,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
     return pos
 
 
-def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[]):
+def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoom=.4):
     """
     CommandLine:
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 --show
@@ -470,6 +496,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[]):
             nids_list += [ibs.get_annot_nids(self._aids)]
             nids_list += [self._nids]
             nids = list(set(ut.flatten(nids_list)))
+            # TODO: allow for a subset of grouped aids to be shown
             self.netx_graph = make_netx_graph_from_nids(ibs, nids)
             self._aids2 = self.netx_graph.nodes()
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
@@ -479,7 +506,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[]):
             self.update_netx_graph()
             self.pos = viz_netx_chipgraph(self.ibs, self.netx_graph,
                                           fnum=self.fnum, with_images=True,
-                                          zoom=.4)
+                                          zoom=zoom)
             self.ax = pt.gca()
 
             for aid in self.selected_aids:
