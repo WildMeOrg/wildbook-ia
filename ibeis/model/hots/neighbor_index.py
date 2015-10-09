@@ -809,34 +809,41 @@ class NeighborIndex(object):
             nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE_SQRD
         else:
             # FIXME: hacky way to support siam128 descriptors.
-            #raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
+            #raise AssertionError(
+            #'NNindexer should get uint8s right now unless the algorithm has changed')
             nnindexer.max_distance_sqrd = None
 
     @ut.tracefunc_xml
-    def add_ibeis_support(nnindexer, qreq_, new_daid_list):
+    def add_ibeis_support(nnindexer, qreq_, new_daid_list, verbose=ut.NOT_QUIET):
         # TODO: ensure that the memcache changes appropriately
         clear_memcache()
-        print('[nnindex] request add %d annots to single-indexer' % (len(new_daid_list)))
+        if verbose:
+            print('[nnindex] request add %d annots to single-indexer' % (len(new_daid_list)))
         duplicate_aids = set(new_daid_list).intersection(nnindexer.get_indexed_aids())
         if len(duplicate_aids) > 0:
-            print('[nnindex] request has %d annots that are already indexed. ignore those' % (len(duplicate_aids),))
+            if verbose:
+                print('[nnindex] request has %d annots that are already indexed. ignore those'
+                      % (len(duplicate_aids),))
             new_daid_list_ = np.array(sorted(list(set(new_daid_list) - duplicate_aids)))
         else:
             new_daid_list_ = new_daid_list
         if len(new_daid_list_) == 0:
-            print('[nnindex] Nothing to do')
+            if verbose:
+                print('[nnindex] Nothing to do')
         else:
             new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list_)
-            nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list)
+            nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list, verbose=verbose)
 
     @ut.tracefunc_xml
-    def remove_ibeis_support(nnindexer, qreq_, remove_daid_list):
+    def remove_ibeis_support(nnindexer, qreq_, remove_daid_list, verbose=ut.NOT_QUIET):
         # TODO: ensure that the memcache changes appropriately
-        print('[nnindex] request remove %d annots from single-indexer' % (len(remove_daid_list)))
+        if verbose:
+            print('[nnindex] request remove %d annots from single-indexer' %
+                  (len(remove_daid_list)))
         clear_memcache()
-        nnindexer.remove_support(remove_daid_list)
+        nnindexer.remove_support(remove_daid_list, verbose=verbose)
 
-    def remove_support(nnindexer, remove_daid_list):
+    def remove_support(nnindexer, remove_daid_list, verbose=ut.NOT_QUIET):
         """
         CommandLine:
             python -m ibeis.model.hots.neighbor_index --test-remove_support
@@ -869,8 +876,10 @@ class NeighborIndex(object):
         remove_ax_list = np.nonzero(ax2_remove_flag)[0]
         idx2_remove_flag = np.in1d(nnindexer.idx2_ax, remove_ax_list)
         remove_idx_list = np.nonzero(idx2_remove_flag)[0]
-        print('[nnindex] Found %d / %d annots that need removing' % (len(remove_ax_list), len(remove_daid_list)))
-        print('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
+        if verbose:
+            print('[nnindex] Found %d / %d annots that need removing' %
+                  (len(remove_ax_list), len(remove_daid_list)))
+            print('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
         # FIXME: indicies may need adjustment after remove points
         # Currently this is not being done and the data is just being left alone
         # This should be ok temporarilly because removed ids should not
@@ -894,7 +903,7 @@ class NeighborIndex(object):
 
     #@profile
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
-                    verbose=True):
+                    verbose=ut.NOT_QUIET):
         """
         adds support data (aka data to be indexed)
 
@@ -929,10 +938,11 @@ class NeighborIndex(object):
         nNewAnnots = len(new_daid_list)
         new_ax_list = np.arange(nAnnots, nAnnots + nNewAnnots)
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
-                invert_index(new_vecs_list, new_ax_list)
+                invert_index(new_vecs_list, new_ax_list, verbose=verbose)
         nNewVecs = len(new_idx2_vec)
         if verbose or ut.VERYVERBOSE:
-            print('[nnindex] Adding %d vecs from %d annots to nnindex with %d vecs and %d annots' %
+            print(('[nnindex] Adding %d vecs from %d annots to nnindex '
+                   'with %d vecs and %d annots') %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
         if ut.DEBUG2:
             print('STACKING')
@@ -1244,15 +1254,23 @@ class NeighborIndex(object):
         return (qfx2_idx, qfx2_dist)
 
     def num_indexed_vecs(nnindexer):
+        #invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
         return nnindexer.idx2_vec.shape[0]
         #return len(nnindexer.idx2_vec)
 
     def num_indexed_annots(nnindexer):
-        return nnindexer.ax2_aid.shape[0]
+        #invalid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)
+        return (nnindexer.ax2_aid != -1).sum()
+        #nnindexer.ax2_aid.shape[0]
         #return len(nnindexer.ax2_aid)
 
     def get_indexed_aids(nnindexer):
         return nnindexer.ax2_aid[nnindexer.ax2_aid != -1]
+
+    def get_indexed_vecs(nnindexer):
+        valid_idxs = (nnindexer.ax2_aid[nnindexer.idx2_ax] != -1)
+        valid_idx2_vec = nnindexer.idx2_vec.compress(valid_idxs, axis=0)
+        return valid_idx2_vec
 
     def get_nn_vecs(nnindexer, qfx2_nnidx):
         """ gets matching vectors """

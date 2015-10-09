@@ -227,19 +227,36 @@ ut.init_catch_ctrl_c()
 
 print('[super_setup] Checking third-party-libraries')
 
+FORCE_GUI = not ut.get_argflag('--nogui')
+
+
 TPL_MODULES_AND_REPOS = [
     #('cv2',     'https://github.com/Erotemic/opencv.git'),
     #('cv2',     'https://github.com/Itseez/opencv.git'),
-    ('pyflann', 'https://github.com/Erotemic/flann.git'),
+    ('pyflann', 'https://github.com/Erotemic/flann.git', True),
     #('yael',    'https://github.com/Erotemic/yael.git'),
-    (('PyQt5', 'PyQt4'),   None)
+    (('PyQt5', 'PyQt4'),   None, FORCE_GUI)
 ]
 
-custom_cv2_buildscript = """
+custom_cv2_buildscript = r"""
+cd $CODE_DIR
+
+git clone https://github.com/Itseez/opencv.git
+
 cd opencv
 
 mkdir build27
 cd build27
+
+if [[ "$VIRTUAL_ENV" == ""  ]]; then
+    export LOCAL_PREFIX=/usr/local
+else
+    export LOCAL_PREFIX=$VIRTUAL_ENV/local
+fi
+export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
+
+echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
 
 # use dist packages on ubuntu. may need to change for other platforms
 cmake -G "Unix Makefiles" \
@@ -283,7 +300,7 @@ install_extras()
 
 TPL_REPO_URLS = []
 # Test to see if opencv and pyflann have been built
-for nametup, repo_url in TPL_MODULES_AND_REPOS:
+for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
     try:
         # Allow for multiple module aliases
         if isinstance(nametup, str):
@@ -298,7 +315,8 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
             raise ex
         print('found %s=%r' % (nametup, module,))
     except ImportError:
-        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % (nametup, ) )
+        if repo_url is None and required:
+            raise AssertionError('FATAL ERROR: Need to manually install %s' % (nametup, ) )
         print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
         TPL_REPO_URLS.append(repo_url)
 

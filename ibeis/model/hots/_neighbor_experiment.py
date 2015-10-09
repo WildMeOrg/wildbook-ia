@@ -438,7 +438,7 @@ def test_multiple_add_removes():
     """
     from ibeis.model.hots.neighbor_index import test_nnindexer
     K = 4
-    nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
+    nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
     print('\n\n --- got nnindex testdata --- ')
     print('')
 
@@ -488,23 +488,190 @@ def test_multiple_add_removes():
     aids3 = set(nnindexer.get_nn_aids(qfx2_idx3).ravel())
     assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(remove_daid_list)
 
-    if False:
-        print('testing duplicate add')
-        new_daid_list = [8, 10]
-        nnindexer.add_ibeis_support(qreq_, new_daid_list)
-        # test after modification
-        (qfx2_idx3_, qfx2_dist3_) = nnindexer.knn(qfx2_vec, K)
-        qfx2_aid3_ = nnindexer.get_nn_aids(qfx2_idx3_)
-        assert np.all(qfx2_aid3 == qfx2_aid3_)
-        pass
+    print('testing duplicate add')
+    new_daid_list = [8, 10]
+    nnindexer.add_ibeis_support(qreq_, new_daid_list)
+    # test after modification
+    print_nnindexer(nnindexer)
+    (qfx2_idx3_, qfx2_dist3_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid3_ = nnindexer.get_nn_aids(qfx2_idx3_)
+    assert np.all(qfx2_aid3 == qfx2_aid3_)
 
-    # Add query annot
+    print('testing add query to database')
     add_daid_list1 = [qaid]
     nnindexer.add_ibeis_support(qreq_, add_daid_list1)
+    print_nnindexer(nnindexer)
+    (qfx2_idx4_, qfx2_dist4_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid4_ = nnindexer.get_nn_aids(qfx2_idx4_)
+    qfx2_fx4_ = nnindexer.get_nn_featxs(qfx2_idx4_)
+    assert np.all(qfx2_aid4_.T[0] == qaid), 'should find self'
+    assert ut.issorted(qfx2_fx4_.T[0]), 'should be in order'
+
+    print('testing remove query points')
+    add_daid_list1 = [qaid]
+    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+    print_nnindexer(nnindexer)
+    (qfx2_idx5_, qfx2_dist5_) = nnindexer.knn(qfx2_vec, K)
+    issame = (qfx2_idx5_ == qfx2_idx3_)
+    percentsame = issame.sum() / issame.size
+    print('percentsame = %r' % (percentsame,))
+    assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+
+    print_nnindexer(nnindexer)
+
+    # Do this multiple times
+    for _ in range(10):
+        add_daid_list1 = [qaid]
+        nnindexer.add_ibeis_support(qreq_, add_daid_list1, verbose=False)
+        nnindexer.remove_ibeis_support(qreq_, add_daid_list1, verbose=False)
+        (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
+        issame = (qfx2_idxX_ == qfx2_idx3_)
+        percentsame = issame.sum() / issame.size
+        print('percentsame = %r' % (percentsame,))
+        assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+
+    # Test again with more data
+    print('testing remove query points with more data')
+    nnindexer.add_ibeis_support(qreq_, ibs.get_valid_aids())
+    (qfx2_idx6_, qfx2_dist6_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid6_ = nnindexer.get_nn_aids(qfx2_idx6_)
+    assert np.all(qfx2_aid6_.T[0] == qaid), 'should be same'
+
+    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+    print_nnindexer(nnindexer)
+    (qfx2_idx7_, qfx2_dist6_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid7_ = nnindexer.get_nn_aids(qfx2_idx7_)
+    assert np.all(qfx2_aid7_.T[0] != qaid), 'should not be same'
+
+    # Do this multiple times
+    for _ in range(10):
+        add_daid_list1 = [qaid]
+        nnindexer.add_ibeis_support(qreq_, add_daid_list1, verbose=True)
+        nnindexer.remove_ibeis_support(qreq_, add_daid_list1, verbose=True)
+        # weird that all seem to work here
+        (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
+        issame = (qfx2_idxX_ == qfx2_idx7_)
+        percentsame = issame.sum() / issame.size
+        print('percentsame = %r' % (percentsame,))
+        print_nnindexer(nnindexer)
+        assert percentsame > .85, 'a large majority of the feature idxs should remain the same'
+
+    nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
+    big_set = ibs.get_valid_aids()[5:]
+    remove_later = big_set[10:14]
+    nnindexer.add_ibeis_support(qreq_, big_set)
+
+    # Try again where remove is not the last operation
+    print('testing remove query points with more op')
+    extra_data = np.setdiff1d(ibs.get_valid_aids()[0:5], add_daid_list1)
+    nnindexer.remove_ibeis_support(qreq_, extra_data)
+
+    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.add_ibeis_support(qreq_, extra_data)
+
+    (qfx2_idx8_, qfx2_dist8_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid8_ = nnindexer.get_nn_aids(qfx2_idx8_)
+    assert np.all(qfx2_aid8_.T[0] == qaid), 'should be same'
+
+    nnindexer.remove_ibeis_support(qreq_, extra_data)
+    (qfx2_idx9_, qfx2_dist9_) = nnindexer.knn(qfx2_vec, K)
+    qfx2_aid9_ = nnindexer.get_nn_aids(qfx2_idx9_)
+    assert np.all(qfx2_aid9_.T[0] == qaid), 'should be same'
+    nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
+
+    nnindexer.add_ibeis_support(qreq_, add_daid_list1)
+    nnindexer.add_ibeis_support(qreq_, extra_data)
+    nnindexer.remove_ibeis_support(qreq_, remove_later)
+    print(nnindexer.ax2_aid)
+
+    aid_list = nnindexer.get_indexed_aids()  # NOQA
+    nnindexer.flann.save_index('test.flann')
+
+    idx2_vec_masked = nnindexer.idx2_vec
+    idx2_vec_compressed = nnindexer.get_indexed_vecs()
+
+    import pyflann
+    flann1 = pyflann.FLANN()
+    flann1.load_index('test.flann', idx2_vec_masked)
+
+    import pyflann
+    flann2 = pyflann.FLANN()
+    flann2.load_index('test.flann', idx2_vec_compressed)
+
+    # NOW WE NEED TO TEST THAT WE CAN SAVE AND LOAD THIS DATA
 
     #
     #ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
     pass
+
+
+def pyflann_remove_and_save():
+    import pyflann
+    import numpy as np
+    rng = np.random.RandomState(0)
+    vecs = (rng.rand(1000, 128) * 255).astype(np.uint8)
+    vecs2 = (rng.rand(100, 128) * 255).astype(np.uint8)
+    qvecs = (rng.rand(10, 128) * 255).astype(np.uint8)
+
+    ut.delete('test1.flann')
+
+    print('Test initial save load')
+    flann_params = {}
+    flann_params['random_seed'] = 42
+
+    flann1 = pyflann.FLANN()
+    params1 = flann1.build_index(vecs, **flann_params)  # NOQA
+    idx1, dist = flann1.nn_index(qvecs, 3)
+    flann1.save_index('test1.flann')
+
+    flann1_ = pyflann.FLANN()
+    flann1_.load_index('test1.flann', vecs)
+    idx1_, dist = flann1.nn_index(qvecs, 3)
+    assert np.all(idx1 == idx1_), 'initial save load fail'
+
+    print('Test add save load')
+    flann1.add_points(vecs2)
+    flann2 = flann1
+    idx2, dist = flann2.nn_index(qvecs, 3)
+    assert np.any(idx2 != idx1), 'something should change'
+    flann2.save_index('test2.flann')
+
+    # Load saved data with added vecs
+    tmp = flann2.get_indexed_data()
+    vecs_combined = np.vstack([tmp[0]] + tmp[1])
+
+    flann2_ = pyflann.FLANN()
+    flann2_.load_index('test2.flann', vecs_combined)
+    idx2_, dist = flann2_.nn_index(qvecs, 3)
+    assert np.all(idx2_ == idx2), 'loading saved added data fails'
+
+    # Load saved data with remoed vecs
+    print('Test remove save load')
+    flann1 = pyflann.FLANN()  # rebuild flann1
+    _params1 = flann1.build_index(vecs, **flann_params)  # NOQA
+    _idx1, dist = flann1.nn_index(qvecs, 3)
+    idx1 = _idx1
+
+    remove_idx_list = np.unique(idx1.T[0][0:10])
+    flann1.remove_points(remove_idx_list)
+    flann3 = flann1
+    idx3, dist = flann3.nn_index(qvecs, 3)
+    assert len(np.intersect1d(idx3.ravel(), remove_idx_list)) == 0, 'points were not removed'
+    flann3.save_index('test3.flann')
+
+    flann4 = pyflann.FLANN()
+    flann4.load_index('test3.flann', vecs)
+    idx4, dist = flann4.nn_index(qvecs, 3)
+    assert np.all(idx4 == idx3), 'load failed'
+    print('loaded succesfully (BUT NEED TO MAINTAIN BAD DATA')
+
+    #if False:
+    # Segfaults
+    clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
+    flann4 = pyflann.FLANN()
+    flann4.load_index('test3.flann', clean_vecs)
+
+    #assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'
 
 
 if __name__ == '__main__':
