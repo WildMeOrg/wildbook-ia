@@ -262,11 +262,13 @@ echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
 cmake -G "Unix Makefiles" \
     -D WITH_OPENMP=ON \
     -D CMAKE_BUILD_TYPE=RELEASE \
-    -D PYTHON2_PACKAGES_PATH=/usr/local/lib/python2.7/dist-packages\
-    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
+    -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
     ..
 
-make -j5
+export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+
+make -j$NCPUS
 sudo make install
 
 python -c "import numpy; print(numpy.__file__)"
