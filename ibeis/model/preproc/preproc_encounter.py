@@ -45,14 +45,15 @@ def ibeis_compute_encounters(ibs, gid_list):
     enc_cfgstr       = ibs.cfg.enc_cfg.get_cfgstr()
     print('[enc] enc_cfgstr = %r' % enc_cfgstr)
     cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
-    enc_labels, enc_gids = compute_encounter_groups(ibs, gid_list)
     cfgdict = dict(
         min_imgs_per_enc=ibs.cfg.enc_cfg.min_imgs_per_encounter,
         seconds_thresh=ibs.cfg.enc_cfg.seconds_thresh,
         quantile=ibs.cfg.enc_cfg.quantile,
     )
+    # TODO: use gps
+    enc_labels, enc_gids = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict)
     # Flatten gids list by enounter
-    flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids, cluster_algo, cfgdict)
+    flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids)
     return flat_eids, flat_gids
 
 
