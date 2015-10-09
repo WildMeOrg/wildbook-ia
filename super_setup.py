@@ -315,10 +315,12 @@ for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
             raise ex
         print('found %s=%r' % (nametup, module,))
     except ImportError:
-        if repo_url is None and required:
-            raise AssertionError('FATAL ERROR: Need to manually install %s' % (nametup, ) )
-        print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
-        TPL_REPO_URLS.append(repo_url)
+        if repo_url is None:
+            if not required:
+                raise AssertionError('FATAL ERROR: Need to manually install %s' % (nametup, ) )
+        else:
+            print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
+            TPL_REPO_URLS.append(repo_url)
 
 
 (TPL_REPO_URLS, TPL_REPO_DIRS) = ut.repo_list(TPL_REPO_URLS, CODE_DIR)
