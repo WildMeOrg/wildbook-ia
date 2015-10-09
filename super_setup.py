@@ -229,12 +229,12 @@ print('[super_setup] Checking third-party-libraries')
 
 TPL_MODULES_AND_REPOS = [
     #('cv2',     'https://github.com/Erotemic/opencv.git'),
-    ('cv2',     'https://github.com/Itseez/opencv.git'),
+    #('cv2',     'https://github.com/Itseez/opencv.git'),
     ('pyflann', 'https://github.com/Erotemic/flann.git'),
     #('yael',    'https://github.com/Erotemic/yael.git'),
     (('PyQt5', 'PyQt4'),   None)
 ]
- 
+
 custom_cv2_buildscript = """
 cd opencv
 
@@ -264,10 +264,10 @@ python -c "import cv2; print(cv2.xfeatures2d)"
 
 install_extras()
 {
-    code 
+    code
     cd opencv
     git clone https://github.com/Itseez/opencv_contrib.git
-    code 
+    code
     cd opencv
     cd build
     cmake -G "Unix Makefiles" \

@@ -35,8 +35,11 @@ except ImportError as ex:
 #import itertools
 
 
+ZOOM = ut.get_argval('--zoom', type_=float, default=.4)
+
+
 def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
-    """
+    r"""
 
     CommandLine:
         python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:0 --show
@@ -138,23 +141,23 @@ def get_name_rowid_edges_from_aids(ibs, aid_list):
     return aids1, aids2
 
 
-def make_netx_graph_from_nids(ibs, nids, full=False):
-    aids_list = ibs.get_name_aids(nids)
-    unique_aids = list(ut.flatten(aids_list))
+#def make_netx_graph_from_nids(ibs, nids, full=False):
+#    aids_list = ibs.get_name_aids(nids)
+#    unique_aids = list(ut.flatten(aids_list))
 
-    aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
+#    aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
 
-    if not full:
-        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
-        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
-        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
-        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+#    if not full:
+#        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+#        annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
+#        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+#        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
 
-    return make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
+#    return make_netx_graph_from_aidpairs(ibs, aids1, aids2, unique_aids=unique_aids)
 
 
-def make_netx_graph_from_aids(ibs, aid_list, full=False):
-    aids_list, nid_list = ibs.group_annots_by_name(aid_list)
+def make_netx_graph_from_aids(ibs, aids_list, full=False):
+    #aids_list, nid_list = ibs.group_annots_by_name(aid_list)
     unique_aids = list(ut.flatten(aids_list))
 
     aids1, aids2 = get_name_rowid_edges_from_aids2(ibs, aids_list)
@@ -308,7 +311,7 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4):
     return artist_list
 
 
-def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
+def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=ZOOM):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -332,7 +335,6 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
         >>> fnum = None
         >>> with_images = True
         >>> zoom = 0.4
-        >>> #netx_graph = make_netx_graph_from_nids(ibs, nid_list)
         >>> #pos = viz_netx_chipgraph(ibs, netx_graph, fnum, with_images, zoom)
         >>> make_name_graph_interaction(ibs, None, ibs.get_valid_aids()[0:1])
         >>> #make_name_graph_interaction(ibs, nid_list)
@@ -340,6 +342,8 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
     """
     if fnum is None:
         fnum = pt.next_fnum()
+
+    #zoom = .8
     print('[encounter] drawing chip graph')
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
@@ -348,6 +352,8 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
     aid_list = netx_graph.nodes()
 
     IMPLICIT_LAYOUT = len(set(ibs.get_annot_nids(aid_list))) != 1
+    # FIXME
+    print('zoom = %r' % (zoom,))
 
     if IMPLICIT_LAYOUT:
         # HACK:
@@ -451,7 +457,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
     return pos
 
 
-def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoom=.4):
+def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoom=ZOOM, with_all=True):
     """
     CommandLine:
         python -m ibeis.viz.viz_graph --exec-make_name_graph_interaction --db PZ_Master1 --aids 2068 1003 --show
@@ -490,14 +496,21 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
 
         def update_netx_graph(self):
             nids_list = []
+
             if self._aids2 is not None:
                 nids2 = ibs.get_annot_nids(self._aids2)
                 nids_list += [nids2]
-            nids_list += [ibs.get_annot_nids(self._aids)]
-            nids_list += [self._nids]
-            nids = list(set(ut.flatten(nids_list)))
+
+            if with_all:
+                nids_list += [ibs.get_annot_nids(self._aids)]
+                nids_list += [self._nids]
+                nids = list(set(ut.flatten(nids_list)))
+                aids_list = ibs.get_name_aids(nids)
+            else:
+                aids_list = ibs.group_annots_by_name(self._aids)[0]
+            self.netx_graph = make_netx_graph_from_aids(ibs, aids_list)
             # TODO: allow for a subset of grouped aids to be shown
-            self.netx_graph = make_netx_graph_from_nids(ibs, nids)
+            #self.netx_graph = make_netx_graph_from_nids(ibs, nids)
             self._aids2 = self.netx_graph.nodes()
             self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 

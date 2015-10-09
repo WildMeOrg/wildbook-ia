@@ -67,7 +67,8 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis.model.preproc.preproc_encounter --exec-ibeis_compute_encounter_groups
+        python -m ibeis.model.preproc.preproc_encounter --exec-compute_encounter_groups
+        python -m ibeis.model.preproc.preproc_encounter --exec-compute_encounter_groups --show --zoom=.3
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -80,6 +81,27 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> cluster_algo = 'meanshift'
         >>> cfgdict = dict(quantile=.005, min_imgs_per_enc=2)
         >>> (enc_labels, enc_gids) = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict, use_gps=use_gps)
+        >>> aidsgroups_list = ibs.unflat_map(ibs.get_image_aids, enc_gids)
+        >>> aids_list = list(map(ut.flatten, aidsgroups_list))
+        >>> nids_list = list(map(np.array, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)))
+        >>> metric = [len(np.unique(nids[nids > -1])) for nids in nids_list]
+        >>> metric = [ut.safe_max(np.array(ut.dict_hist(nids).values())) for nids in nids_list]
+        >>> #metric = list(map(len, aids_list))
+        >>> sortx = ut.list_argsort(metric)[::-1]
+        >>> index = sortx[20]
+        >>> #gids = enc_gids[index]
+        >>> aids = aids_list[index]
+        >>> aids = ibs.filter_annots_general(aids, min_qual='ok', is_known=True)
+        >>> gids = list(set(ibs.get_annot_gids(aids)))
+        >>> print('len(aids) = %r' % (len(aids),))
+        >>> img_list = ibs.get_images(gids)
+        >>> ut.quit_if_noshow()
+        >>> from ibeis.viz import viz_graph
+        >>> import plottool as pt
+        >>> #pt.imshow(bigimg)
+        >>> #bigimg = vt.stack_image_recurse(img_list)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+        >>> ut.show_if_requested()
     """
     # Config info
 

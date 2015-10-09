@@ -47,7 +47,7 @@ def get_default_annot_filter_form():
 
 
 @register_ibs_method
-def filter_annots_general(ibs, aid_list, filter_kw={}):
+def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -96,6 +96,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}):
         >>> aid_list_ = filter_annots_general(ibs, aid_list, filter_kw)
         >>> ibs.get_annot_all_tags(aid_list_)
     """
+    filter_kw.update(kwargs)
     aid_list_ = aid_list
     filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
