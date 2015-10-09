@@ -316,7 +316,7 @@ for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
         print('found %s=%r' % (nametup, module,))
     except ImportError:
         if repo_url is None:
-            if not required:
+            if required:
                 raise AssertionError('FATAL ERROR: Need to manually install %s' % (nametup, ) )
         else:
             print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
