@@ -144,8 +144,9 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             #'libjpeg-dev',
             #'zlib1g-dev',
             'python-dev',
-            'libopencv-dev',  # Do we need these?
-            'python-opencv',  # Do we really need these~these?
+            #'libopencv-dev',  # Do we need these?
+            #'python-opencv',  # Do we really need these~these?
+            # FIXME: Ensure there is a way to install opencv
         ])
 
     if util_cplat_packages.FEDORA_FAMILY:
