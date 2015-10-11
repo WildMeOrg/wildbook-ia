@@ -606,6 +606,28 @@ def test_multiple_add_removes():
 
 
 def pyflann_remove_and_save():
+    """
+    References:
+        # Logic goes here
+        ~/code/flann/src/cpp/flann/algorithms/kdtree_index.h
+
+        ~/code/flann/src/cpp/flann/util/serialization.h
+        ~/code/flann/src/cpp/flann/util/dynamic_bitset.h
+
+        # Bindings go here
+        ~/code/flann/src/cpp/flann/flann.cpp
+        ~/code/flann/src/cpp/flann/flann.h
+
+        # Contains stuff for the flann namespace like flann::log_level
+        # Also has Index with
+        # Matrix<ElementType> features; SEEMS USEFUL
+        ~/code/flann/src/cpp/flann/flann.hpp
+
+
+        # Wrappers go here
+        ~/code/flann/src/python/pyflann/flann_ctypes.py
+        ~/code/flann/src/python/pyflann/index.py
+    """
     import pyflann
     import numpy as np
     rng = np.random.RandomState(0)
@@ -616,10 +638,16 @@ def pyflann_remove_and_save():
     ut.delete('test1.flann')
 
     print('Test initial save load')
-    flann_params = {}
-    flann_params['random_seed'] = 42
+    flann_params = {
+        'random_seed': 42,
+        #'log_level': 'debug', 'info',
+        #'log_level': 4,
+        'log_level': 5,
+    }
 
-    flann1 = pyflann.FLANN()
+    pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+
+    flann1 = pyflann.FLANN(log_level=4)
     params1 = flann1.build_index(vecs, **flann_params)  # NOQA
     idx1, dist = flann1.nn_index(qvecs, 3)
     flann1.save_index('test1.flann')
