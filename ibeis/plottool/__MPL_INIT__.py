@@ -39,7 +39,7 @@ def get_target_backend():
                 from guitool import __PYQT__  # NOQA
                 target_backend = 'Qt4Agg'
             except ImportError:
-                print('[!plotttool] WARNING guitool does not have __PYQT__')
+                print('[!plotttool] WARNING backend fallback to PDF')
                 target_backend = 'PDF'
     return target_backend
 
