@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function
 #print('__pyqt5__1')
 # Wrapper around PyQt4/5
 
+#raise ImportError('Cannot Import Qt')
+
 import utool as ut
 ut.noinject(__name__, '[guitool.__PYQT__]')
 
