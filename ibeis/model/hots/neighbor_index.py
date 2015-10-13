@@ -1272,6 +1272,15 @@ class NeighborIndex(object):
         valid_idx2_vec = nnindexer.idx2_vec.compress(valid_idxs, axis=0)
         return valid_idx2_vec
 
+    def get_removed_idxs(nnindexer):
+        """
+        __removed_ids = nnindexer.flann._FLANN__removed_ids
+        invalid_idxs = nnindexer.get_removed_idxs()
+        assert len(np.intersect1d(invalid_idxs, __removed_ids)) == len(__removed_ids)
+        """
+        invalid_idxs = np.nonzero(nnindexer.ax2_aid[nnindexer.idx2_ax] == -1)[0]
+        return invalid_idxs
+
     def get_nn_vecs(nnindexer, qfx2_nnidx):
         """ gets matching vectors """
         return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)

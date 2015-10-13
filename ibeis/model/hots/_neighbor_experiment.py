@@ -439,14 +439,18 @@ def test_multiple_add_removes():
     from ibeis.model.hots.neighbor_index import test_nnindexer
     K = 4
     nnindexer, qreq_, ibs = test_nnindexer('PZ_MTEST', use_memcache=False)
+
+    assert len(nnindexer.get_removed_idxs()) == 0
     print('\n\n --- got nnindex testdata --- ')
     print('')
 
-    nnindexer.get_indexed_aids()
+    @ut.tracefunc_xml
     def print_nnindexer(nnindexer):
         print('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
         print('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
+        print('nnindexer.get_removed_idxs().shape = %r' % (nnindexer.get_removed_idxs().shape,))
 
+    print('INITIALIZE TEST')
     print_nnindexer(nnindexer)
 
     config2_ = qreq_.get_internal_query_config2()
@@ -456,9 +460,19 @@ def test_multiple_add_removes():
     aids1 = set(nnindexer.get_nn_aids(qfx2_idx1).ravel())
     print('aids1 = %r' % (aids1,))
 
+    print('')
+    print('TESTING ADD')
+    add_first_daids = [17, 22]
+    nnindexer.add_ibeis_support(qreq_, add_first_daids)
+    print_nnindexer(nnindexer)
+    (qfx2_idx0, qfx2_dist0) = nnindexer.knn(qfx2_vec, K)
+    assert np.any(qfx2_idx0 != qfx2_idx1), 'some should change'
+    aids0 = set(nnindexer.get_nn_aids(qfx2_idx0).ravel())
+    print('aids0 = %r' % (aids0,))
+
     # execute test function
     print('')
-    print('testing remove')
+    print('TESTING REMOVE')
     remove_daid_list = [8, 10, 11]
     nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
@@ -468,8 +482,12 @@ def test_multiple_add_removes():
     print('aids2 = %r' % (aids2,))
     assert len(aids2.intersection(remove_daid_list)) == 0
 
+    __removed_ids = nnindexer.flann._FLANN__removed_ids
+    invalid_idxs = nnindexer.get_removed_idxs()
+    assert len(np.intersect1d(invalid_idxs, __removed_ids)) == len(__removed_ids)
+
     print('')
-    print('testing duplicate remove')
+    print('TESTING DUPLICATE REMOVE')
     nnindexer.remove_ibeis_support(qreq_, remove_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
@@ -478,17 +496,24 @@ def test_multiple_add_removes():
     assert np.all(qfx2_dist2_ == qfx2_dist2)
 
     print('')
-    print('testing add')
+    print('TESTING ADD AFTER REMOVE')
+    # Is the error here happening because added points seem to
+    # get the ids of the removed points?
     new_daid_list = [8, 10]
     nnindexer.add_ibeis_support(qreq_, new_daid_list)
     print_nnindexer(nnindexer)
     # test after modification
     (qfx2_idx3, qfx2_dist3) = nnindexer.knn(qfx2_vec, K)
     qfx2_aid3 = nnindexer.get_nn_aids(qfx2_idx3)
-    aids3 = set(nnindexer.get_nn_aids(qfx2_idx3).ravel())
+    found_removed_idxs = np.intersect1d(qfx2_idx3, nnindexer.get_removed_idxs())
+    if len(found_removed_idxs) != 0:
+        print('found_removed_idxs.max() = %r' % (found_removed_idxs.max(),))
+        print('found_removed_idxs.min() = %r' % (found_removed_idxs.min(),))
+        raise AssertionError('found_removed_idxs.shape = %r' % (found_removed_idxs.shape,))
+    aids3 = set(qfx2_aid3.ravel())
     assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(remove_daid_list)
 
-    print('testing duplicate add')
+    print('TESTING DUPLICATE ADD')
     new_daid_list = [8, 10]
     nnindexer.add_ibeis_support(qreq_, new_daid_list)
     # test after modification
@@ -497,7 +522,7 @@ def test_multiple_add_removes():
     qfx2_aid3_ = nnindexer.get_nn_aids(qfx2_idx3_)
     assert np.all(qfx2_aid3 == qfx2_aid3_)
 
-    print('testing add query to database')
+    print('TESTING ADD QUERY TO DATABASE')
     add_daid_list1 = [qaid]
     nnindexer.add_ibeis_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
@@ -507,7 +532,7 @@ def test_multiple_add_removes():
     assert np.all(qfx2_aid4_.T[0] == qaid), 'should find self'
     assert ut.issorted(qfx2_fx4_.T[0]), 'should be in order'
 
-    print('testing remove query points')
+    print('TESTING REMOVE QUERY POINTS')
     add_daid_list1 = [qaid]
     nnindexer.remove_ibeis_support(qreq_, add_daid_list1)
     print_nnindexer(nnindexer)
@@ -605,6 +630,96 @@ def test_multiple_add_removes():
     pass
 
 
+def pyflann_test_remove_add():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_test_remove_add
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
+        >>> pyflann_test_remove_add()
+    """
+    import pyflann
+    import numpy as np
+    rng = np.random.RandomState(0)
+
+    print('Test initial save load')
+    flann_params = {
+        'random_seed': 42,
+        #'log_level': 'debug', 'info',
+    }
+
+    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+
+    print('Test remove and then add disjoint points')
+    flann = pyflann.FLANN()
+    vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
+    flann.build_index(vecs, **flann_params)  # NOQA
+
+    remove_idxs = np.arange(0, len(vecs), 2)
+    flann.remove_points(remove_idxs)
+
+    vecs2 = (rng.rand(100, 128) * 255).astype(np.uint8)
+    flann.add_points(vecs2)
+
+    all_vecs = flann._get_stacked_data()
+    idx_all, dist_all = flann.nn_index(all_vecs, 3)
+
+    nonzero_idxs = np.nonzero(dist_all.T[0] != 0)[0]
+    removed_idxs = flann.get_removed_ids()
+    assert np.all(nonzero_idxs == removed_idxs)
+    print('removed correctly indexes has nonzero dists')
+    nonself_idxs = np.nonzero(np.arange(len(idx_all)) != idx_all.T[0])[0]
+    assert np.all(nonself_idxs == removed_idxs)
+    print('removed indexexes were only ones whos nearest neighbor was not self')
+
+
+def pyflann_test_remove_add2():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_test_remove_add2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
+        >>> pyflann_test_remove_add2()
+    """
+    import pyflann
+    import numpy as np
+    rng = np.random.RandomState(0)
+    vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
+
+    print('Test initial save load')
+    flann_params = {
+        'random_seed': 42,
+        #'log_level': 'debug', 'info',
+    }
+
+    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+
+    print('Test remove and then add THE SAME points')
+    flann = pyflann.FLANN()
+    flann.build_index(vecs, **flann_params)  # NOQA
+
+    remove_idxs = np.arange(0, len(vecs), 2)
+    flann.remove_points(remove_idxs)
+
+    vecs2 = vecs[remove_idxs[0:100]]
+    flann.add_points(vecs2)
+
+    all_vecs = flann._get_stacked_data()
+    idx_all, dist_all = flann.nn_index(all_vecs, 3)
+
+    removed_idxs = flann.get_removed_ids()
+    nonself_idxs = np.nonzero(np.arange(len(idx_all)) != idx_all.T[0])[0]
+    assert np.all(nonself_idxs == removed_idxs)
+    print('removed indexexes were only ones whos nearest neighbor was not self')
+    assert np.all(idx_all.T[0][-len(vecs2):] == np.arange(len(vecs), len(vecs) + len(vecs2)))
+    print('added vecs correctly got their padded index')
+    assert idx_all.T[0].max() == 499
+
+
 def pyflann_remove_and_save():
     """
     References:
@@ -627,25 +742,34 @@ def pyflann_remove_and_save():
         # Wrappers go here
         ~/code/flann/src/python/pyflann/flann_ctypes.py
         ~/code/flann/src/python/pyflann/index.py
+
+    CommandLine:
+        python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_remove_and_save
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
+        >>> pyflann_remove_and_save()
     """
     import pyflann
     import numpy as np
     rng = np.random.RandomState(0)
-    vecs = (rng.rand(1000, 128) * 255).astype(np.uint8)
+    vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
     vecs2 = (rng.rand(100, 128) * 255).astype(np.uint8)
     qvecs = (rng.rand(10, 128) * 255).astype(np.uint8)
 
     ut.delete('test1.flann')
+    ut.delete('test2.flann')
 
     print('Test initial save load')
     flann_params = {
         'random_seed': 42,
         #'log_level': 'debug', 'info',
         #'log_level': 4,
-        'log_level': 5,
+        #'log_level': 5,
     }
 
-    pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
+    #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
     flann1 = pyflann.FLANN(log_level=4)
     params1 = flann1.build_index(vecs, **flann_params)  # NOQA
@@ -658,8 +782,8 @@ def pyflann_remove_and_save():
     assert np.all(idx1 == idx1_), 'initial save load fail'
 
     print('Test add save load')
-    flann1.add_points(vecs2)
     flann2 = flann1
+    flann2.add_points(vecs2)
     idx2, dist = flann2.nn_index(qvecs, 3)
     assert np.any(idx2 != idx1), 'something should change'
     flann2.save_index('test2.flann')

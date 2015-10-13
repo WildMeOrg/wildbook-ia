@@ -73,7 +73,7 @@ INSTALL_REQUIRES = [
     'Pillow >= 2.4.0',
     'psutil',
     'requests >= 0.8.2',
-    'setproctitle >= 1.1.8',
+    #'setproctitle >= 1.1.8',
     'scikit-learn >= 0.15.2',
     #'decorator',
     'lockfile >= 0.10.2',

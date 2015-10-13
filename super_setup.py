@@ -245,15 +245,19 @@ git clone https://github.com/Itseez/opencv.git
 
 cd opencv
 
+# Get Extras
+git clone https://github.com/Itseez/opencv_contrib.git
+
 mkdir build27
 cd build27
 
 if [[ "$VIRTUAL_ENV" == ""  ]]; then
     export LOCAL_PREFIX=/usr/local
+    export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
 else
     export LOCAL_PREFIX=$VIRTUAL_ENV/local
+    export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
 fi
-export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
 
 echo "LOCAL_PREFIX = $LOCAL_PREFIX"
 echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
@@ -264,6 +268,7 @@ cmake -G "Unix Makefiles" \
     -D CMAKE_BUILD_TYPE=RELEASE \
     -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
     -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+    -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
     ..
 
 export NCPUS=$(grep -c ^processor /proc/cpuinfo)
@@ -271,33 +276,18 @@ export NCPUS=$(grep -c ^processor /proc/cpuinfo)
 make -j$NCPUS
 sudo make install
 
+# Hack because cv2 does not want to be installed for some reason
+cp lib/cv2.so $PYTHON2_PACKAGES_PATH
+
 python -c "import numpy; print(numpy.__file__)"
 python -c "import numpy; print(numpy.__version__)"
 python -c "import cv2; print(cv2.__version__)"
 python -c "import cv2; print(cv2.__file__)"
-python -c "import cv2; print(cv2.__file__)"
-python -c "import vtool"
+#python -c "import vtool"
 
 # Check if we have contrib modules
 python -c "import cv2; print(cv2.xfeatures2d)"
 
-install_extras()
-{
-    code
-    cd opencv
-    git clone https://github.com/Itseez/opencv_contrib.git
-    code
-    cd opencv
-    cd build
-    cmake -G "Unix Makefiles" \
-        -D WITH_OPENMP=ON \
-        -D CMAKE_BUILD_TYPE=RELEASE \
-        -D PYTHON2_PACKAGES_PATH=/usr/local/lib/python2.7/dist-packages\
-        -D CMAKE_INSTALL_PREFIX=/usr/local \
-        -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
-        ..
-    make -j9
-}
 """
 
 TPL_REPO_URLS = []
