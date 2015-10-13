@@ -11,7 +11,7 @@ __WHO_INITIALIZED__ = None
 
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
-TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default='Qt4Agg')
+TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
 
 
 def print_all_backends():
@@ -33,6 +33,14 @@ def get_target_backend():
         target_backend = 'PDF'
     else:
         target_backend = TARGET_BACKEND
+        if target_backend is None:
+            try:
+                # This might be the cause of some issues
+                from guitool import __PYQT__  # NOQA
+                target_backend = 'Qt4Agg'
+            except ImportError:
+                print('[!plotttool] WARNING guitool does not have __PYQT__')
+                target_backend = 'PDF'
     return target_backend
 
 
