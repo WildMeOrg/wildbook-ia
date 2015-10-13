@@ -3,7 +3,7 @@ from six.moves import reduce
 import fractions
 import ibeis
 import numpy as np
-import plottool as pt
+#import plottool as pt
 import random
 import scipy as sp
 import utool as ut
@@ -247,6 +247,7 @@ def minimize_compute_K_params(known_nd_data, known_target_points, given_data_dim
 
 
 def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt_model_params=None):
+    import plottool as pt
     pt.figure(2, doclf=True)
 
     # Interpolate uniform grid positions
