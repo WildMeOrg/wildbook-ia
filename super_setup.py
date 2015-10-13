@@ -320,9 +320,7 @@ for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
 #-----------
 # IBEIS project repos
 #-----------
-
-# Non local project repos
-(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
+_repo_list = [
     'https://github.com/Erotemic/utool.git',
     'https://github.com/Erotemic/vtool.git',
     'https://github.com/Erotemic/guitool.git',
@@ -330,12 +328,23 @@ for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
     'https://github.com/bluemellophone/detecttools.git',
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/Erotemic/hesaff.git',
+]
+
+if ut.get_argflag('--cnn'):
+    _repo_list += [
+        'https://github.com/bluemellophone/ibeis_cnn',
+    ]
+
+_repo_list += [
     #'https://github.com/bluemellophone/ibeis_cnn',
     #'https://github.com/bluemellophone/pybing.git',
     'https://github.com/Erotemic/ibeis.git',
     #'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
-], CODE_DIR, forcessh=False)
+]
+
+# Non local project repos
+(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list(_repo_list, CODE_DIR, forcessh=False)
 
 
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
