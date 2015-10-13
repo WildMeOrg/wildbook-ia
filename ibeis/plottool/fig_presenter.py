@@ -9,9 +9,6 @@ import matplotlib as mpl
 #import matplotlib.pyplot as plt
 # Science
 from plottool.custom_figure import get_fig
-from plottool import screeninfo
-from guitool.__PYQT__ import QtGui
-from guitool.__PYQT__.QtCore import Qt
 
 #from .custom_constants import golden_wh
 
@@ -119,6 +116,7 @@ def get_main_win_base():
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
+            #from guitool.__PYQT__ import QtGui
             QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
@@ -162,6 +160,8 @@ def all_figures_tile(max_rows=None,
     if num_wins == 0:
         return
 
+    from plottool import screeninfo
+
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
                                                          adaptive=True)
@@ -169,6 +169,7 @@ def all_figures_tile(max_rows=None,
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
+        from guitool.__PYQT__ import QtGui
         isqt4_back = isinstance(win, QtGui.QMainWindow)
         isqt4_widget = isinstance(win, QtGui.QWidget)
         (x, y, w, h) = valid_positions[ix]
@@ -216,6 +217,7 @@ def bring_to_front(fig):
     #if not ut.WIN32:
     # NOT sure on the correct order of these
     # can cause the figure geometry to be unset
+    from guitool.__PYQT__.QtCore import Qt
     qtwin.activateWindow()
     qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
     qtwin.setWindowFlags(Qt.WindowFlags(0))

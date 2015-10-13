@@ -26,7 +26,6 @@ def print_all_backends():
 
 
 def get_target_backend():
-
     if (not sys.platform.startswith('win32') and
         not sys.platform.startswith('darwin') and
          os.environ.get('DISPLAY', None) is None):
