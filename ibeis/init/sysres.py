@@ -109,7 +109,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
             except ImportError:
                 allow_gui = False
         if not allow_gui:
-            work_dir = input('specify a workdir: ')
+            work_dir = ut.truepath(input('specify a workdir: '))
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
     _ibeis_cache_write(WORKDIR_CACHEID, work_dir)
