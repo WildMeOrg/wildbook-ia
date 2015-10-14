@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 import six
 from PIL.ExifTags import TAGS, GPSTAGS
+import PIL.ExifTags  # NOQA
 from PIL import Image
 #from utool import util_progress
 import utool as ut
@@ -187,11 +188,17 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         >>> from vtool.exif import *  # NOQA
         >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
-        >>> exif_dict = get_exif_dict(Image.open(image_fpath))
+        >>> pil_img = Image.open(image_fpath)
+        >>> exif_dict = get_exif_dict(pil_img)
         >>> latlon = get_lat_lon(exif_dict)
         >>> result = np.array_str(np.array(latlon), precision=3)
         >>> print(result)
         [ 41.89   12.486]
+
+    Ignore:
+        ut.dict_take(PIL.ExifTags.TAGS, exif_dict.keys(), None)
+        exif_dict[GPSINFO_CODE]
+        PIL.ExifTags.TAGS[GPSINFO_CODE]
     """
     if GPSINFO_CODE in exif_dict:
         gps_info = exif_dict[GPSINFO_CODE]
@@ -223,6 +230,9 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
 
 def get_unixtime(exif_dict, default=-1):
     exiftime  = exif_dict.get(DATETIMEORIGINAL_TAGID, default)
+    if isinstance(exiftime, tuple) and len(exiftime) == 1:
+        # hack, idk why
+        exiftime = exiftime[0]
     unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     return unixtime
 

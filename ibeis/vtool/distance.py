@@ -541,7 +541,7 @@ def _assert_siftvec(sift):
     #assert np.all(isvalid), norm[np.logical_not(isvalid)]
 
 
-def emd(hist1, hist2):
+def emd(hist1, hist2, cost_matrix='sift'):
     """
     earth mover's distance by robjects(lpSovle::lp.transport)
     require: lpsolve55-5.5.0.9.win32-py2.7.exe
@@ -567,51 +567,77 @@ def emd(hist1, hist2):
         >>> from vtool.distance import *  # NOQA
         >>> hist1, hist2 = testdata_hist()
         >>> emd_dists = emd(hist1, hist2)
-        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> result = ut.numpy_str(emd_dists, precision=2)
         >>> print(result)
+        np.array([ 2063.99,  2078.02,  2109.03,  2011.99,  2130.99,  2089.01,
+                   2030.99,  2294.98,  2026.02,  2426.01], dtype=np.float64)
 
     References:
+        pip install pyemd
         https://github.com/andreasjansson/python-emd
+        http://www.cs.huji.ac.il/~werman/Papers/ECCV2008.pdf
         http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
         http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
         http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
     """
-    import cv2
-    try:
-        from cv2 import cv
-    except ImportError as ex:
-        #cv2.histComparse(
-        print(repr(ex))
-        print('Cannot import cv. Is opencv 2.4.9?. cv2.__version__=%r' % (cv2.__version__,))
-        raise
-        #return -1
+    import pyemd
+    if cost_matrix == 'sift':
+        # Build cost matrix where bin-to-bin cost is 0,
+        # neighbor cost is 1, and other cost is 2
+        N = 8
+        cost_matrix = np.full((128, 128), 2)
+        i, j = np.meshgrid(np.arange(128), np.arange(128))
+        cost_matrix[i == j] = 0
+        absdiff = np.abs(i - j)
+        is_neighbor = np.abs(np.minimum(absdiff, N - absdiff)) == 1
+        cost_matrix[is_neighbor] = 1.0
+        #print(cost_matrix[0:16, 0:16])
 
-    # Stack weights into the first column
-    def add_weight(hist):
-        weights = np.ones(len(hist))
-        stacked = np.ascontiguousarray(np.vstack([weights, hist]).T)
-        return stacked
-
-    def convertCV32(stacked):
-        hist64 = cv.fromarray(stacked)
-        hist32 = cv.CreateMat(hist64.rows, hist64.cols, cv.CV_32FC1)
-        cv.Convert(hist64, hist32)
-        return hist32
-
-    def emd_(a32, b32):
-        return cv.CalcEMD2(a32, b32, cv.CV_DIST_L2)
-
-    # HACK
-    if len(hist1.shape) == 1 and len(hist2.shape) == 1:
-        a, b = add_weight(hist1), add_weight(hist2)
-        a32, b32 = convertCV32(a), convertCV32(b)
-        emd_dist = emd_(a32, b32)
-        return emd_dist
+    if len(hist1.shape) == 2:
+        dist = np.array([
+            pyemd.emd(hist1_.astype(np.float), hist2_.astype(np.float), cost_matrix)
+            for hist1_, hist2_ in zip(hist1, hist2)])
     else:
-        ab_list   = [(add_weight(a), add_weight(b)) for a, b in zip(hist1, hist2)]
-        ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
-        emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
-        return emd_dists
+        dist = pyemd.emd(hist1.astype(np.float), hist2.astype(np.float), cost_matrix)
+    return dist
+
+    if False:
+        import cv2
+        try:
+            from cv2 import cv
+        except ImportError as ex:
+            #cv2.histComparse(
+            print(repr(ex))
+            print('Cannot import cv. Is opencv 2.4.9?. cv2.__version__=%r' % (cv2.__version__,))
+            raise
+            #return -1
+
+        # Stack weights into the first column
+        def add_weight(hist):
+            weights = np.ones(len(hist))
+            stacked = np.ascontiguousarray(np.vstack([weights, hist]).T)
+            return stacked
+
+        def convertCV32(stacked):
+            hist64 = cv.fromarray(stacked)
+            hist32 = cv.CreateMat(hist64.rows, hist64.cols, cv.CV_32FC1)
+            cv.Convert(hist64, hist32)
+            return hist32
+
+        def emd_(a32, b32):
+            return cv.CalcEMD2(a32, b32, cv.CV_DIST_L2)
+
+        # HACK
+        if len(hist1.shape) == 1 and len(hist2.shape) == 1:
+            a, b = add_weight(hist1), add_weight(hist2)
+            a32, b32 = convertCV32(a), convertCV32(b)
+            emd_dist = emd_(a32, b32)
+            return emd_dist
+        else:
+            ab_list   = [(add_weight(a), add_weight(b)) for a, b in zip(hist1, hist2)]
+            ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
+            emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
+            return emd_dists
 
 
 def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):

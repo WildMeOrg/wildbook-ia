@@ -566,11 +566,12 @@ class ScoreNormalizer(object):
         import plottool as pt
         default_kw = dict(
             with_scores=True,
-            #with_roc=True,
-            with_roc=False,
+            with_roc=True,
+            #with_roc=False,
             #with_precision_recall=True,
             with_precision_recall=False,
-            with_hist=False,
+            #with_hist=False,
+            with_hist=True,
             fnum=None,
             figtitle=None,
             #interactive=None,
