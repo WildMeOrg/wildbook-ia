@@ -120,6 +120,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'atlas',
         'libgeos-dev',  # for shapely
         'python-qt4',
+        'python-tk'  # for %paste in IPython
         #'jasper',  # hyrule cannot handle this
         #'zmq',
         #libgeos-dev

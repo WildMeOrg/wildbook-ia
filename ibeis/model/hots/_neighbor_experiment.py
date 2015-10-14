@@ -693,7 +693,7 @@ def pyflann_test_remove_add2():
     print('Test initial save load')
     flann_params = {
         'random_seed': 42,
-        #'log_level': 'debug', 'info',
+        'log_level': 'debug',
     }
 
     #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
@@ -743,6 +743,14 @@ def pyflann_remove_and_save():
         ~/code/flann/src/python/pyflann/flann_ctypes.py
         ~/code/flann/src/python/pyflann/index.py
 
+        ~/local/build_scripts/flannscripts/autogen_bindings.py
+
+    Greping:
+        fl
+        cd src
+        grep -ER cleanRemovedPoints *
+        grep -ER removed_points_ *
+
     CommandLine:
         python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_remove_and_save
 
@@ -760,18 +768,21 @@ def pyflann_remove_and_save():
 
     ut.delete('test1.flann')
     ut.delete('test2.flann')
+    ut.delete('test3.flann')
+    ut.delete('test4.flann')
 
-    print('Test initial save load')
+    print('\nTest initial save load')
     flann_params = {
         'random_seed': 42,
         #'log_level': 'debug', 'info',
         #'log_level': 4,
-        #'log_level': 5,
+        'cores': 1,
+        'log_level': 'debug',
     }
 
     #pyflann.flann_ctypes.flannlib.flann_log_verbosity(4)
 
-    flann1 = pyflann.FLANN(log_level=4)
+    flann1 = pyflann.FLANN(**flann_params)
     params1 = flann1.build_index(vecs, **flann_params)  # NOQA
     idx1, dist = flann1.nn_index(qvecs, 3)
     flann1.save_index('test1.flann')
@@ -781,7 +792,7 @@ def pyflann_remove_and_save():
     idx1_, dist = flann1.nn_index(qvecs, 3)
     assert np.all(idx1 == idx1_), 'initial save load fail'
 
-    print('Test add save load')
+    print('\nTEST ADD SAVE LOAD')
     flann2 = flann1
     flann2.add_points(vecs2)
     idx2, dist = flann2.nn_index(qvecs, 3)
@@ -798,30 +809,47 @@ def pyflann_remove_and_save():
     assert np.all(idx2_ == idx2), 'loading saved added data fails'
 
     # Load saved data with remoed vecs
-    print('Test remove save load')
+    print('\n\n---TEST REMOVE SAVE LOAD')
     flann1 = pyflann.FLANN()  # rebuild flann1
     _params1 = flann1.build_index(vecs, **flann_params)  # NOQA
+    print('\n * CHECK NN')
     _idx1, dist = flann1.nn_index(qvecs, 3)
     idx1 = _idx1
 
+    print('\n * REMOVE POINTS')
     remove_idx_list = np.unique(idx1.T[0][0:10])
     flann1.remove_points(remove_idx_list)
     flann3 = flann1
+    print('\n * CHECK NN')
     idx3, dist = flann3.nn_index(qvecs, 3)
     assert len(np.intersect1d(idx3.ravel(), remove_idx_list)) == 0, 'points were not removed'
+    print('\n * SAVE')
     flann3.save_index('test3.flann')
 
-    flann4 = pyflann.FLANN()
+    print('\n\n---TEST LOAD SAVED INDEX 0 (with removed points)')
+    clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
+    flann3.clean_removed_points()
+    flann3.save_index('test4.flann')
+    flann4 = pyflann.FLANN(**flann_params)
+    # THIS CAUSES A SEGFAULT
+    flann4.load_index('test4.flann', clean_vecs)
+    idx4, dist = flann4.nn_index(qvecs, 3)
+    assert np.all(idx4 == idx3), 'load failed'
+    print('\nloaded succesfully (WITHOUT THE BAD DATA)')
+
+    print('\n\n---TEST LOAD SAVED INDEX 1 (with removed points)')
+    flann4 = pyflann.FLANN(**flann_params)
     flann4.load_index('test3.flann', vecs)
     idx4, dist = flann4.nn_index(qvecs, 3)
     assert np.all(idx4 == idx3), 'load failed'
-    print('loaded succesfully (BUT NEED TO MAINTAIN BAD DATA')
+    print('\nloaded succesfully (BUT NEED TO MAINTAIN BAD DATA)')
 
-    #if False:
-    # Segfaults
-    clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
-    flann4 = pyflann.FLANN()
-    flann4.load_index('test3.flann', clean_vecs)
+    if False:
+        print('\n\n---TEST LOAD SAVED INDEX 2 (with removed points)')
+        clean_vecs = np.delete(vecs, remove_idx_list, axis=0)
+        flann4 = pyflann.FLANN(**flann_params)
+        print('\n * CALL LOAD')
+        flann4.load_index('test3.flann', clean_vecs)
 
     #assert np.all(idx1 == _idx1), 'rebuild is not determenistic!'
 

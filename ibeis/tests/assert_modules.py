@@ -56,9 +56,20 @@ def check_alternate_installs():
     pass
 
 
+def version_ge_target(version, target=None):
+    if target is None:
+        passed = True
+    elif version is None:
+        passed = False
+    else:
+        _version = version.replace('.dev1', '')
+        passed = parse_version(_version) >= parse_version(target)
+    return passed
+
+
 def checkinfo(target=None, pipname=None):
     """
-    checkinfo functions return info_dict
+    checkinfo functions return info_dict containing __version__
     """
     def wrapper1(func):
         """
@@ -86,11 +97,13 @@ def checkinfo(target=None, pipname=None):
                 infodict = module_stdinfo_dict(None, name=pipname_)
                 return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
+            # Build status text
             msg = ut.dict_str(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
-            passed = target is None or (current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target))
-
+            # Check if passed
+            passed = version_ge_target(current_version, target)
+            # Suggest possible fix
             if not passed:
                 suggested_fix = 'pip install ' + infodict['__name__'] + ' --upgrade'
                 if not sys.platform.startswith('win32'):
@@ -219,6 +232,18 @@ def numpy_version():
     return module_stdinfo_dict(numpy)
 
 
+#@checkinfo()
+def theano_version():
+    import theano
+    return module_stdinfo_dict(theano)
+
+
+#@checkinfo()
+def lasagne_version():
+    import lasagne
+    return module_stdinfo_dict(lasagne)
+
+
 @checkinfo('4.9.1')  # 4.10.1 on windows
 def PyQt4_version():
     from PyQt4 import QtCore
@@ -288,6 +313,7 @@ def check_modules_exists():
 def assert_modules():
     """
     checkinfo functions return info_dict
+    checkinfo_func
 
     CommandLine:
         python -m ibeis.tests.assert_modules --test-assert_modules
@@ -311,23 +337,29 @@ def assert_modules():
     machine_info_text = '\n'.join(machine_info_lines)
     print(machine_info_text)
 
-    line_list = []
+    statustext_list = []
     failed_list = []
     fix_list = []
-    for func in ASSERT_FUNCS:
-        passed, current_version, target, infodict, statustext, suggested_fix = func()
-        line_list.append(statustext)
-        try:
-            assert passed, infodict['__name__'] + ' did not pass'
-        except AssertionError as ex:
-            failed_list.append(get_funcname(func) + ' FAILED!!!')
-            fix_list.append(suggested_fix)
-            #line_list.append(get_funcname(func) + ' FAILED!!!')
-            line_list.append(ut.formatex(ex))
+
+    SHOW_STATUS = not ut.get_argflag(('--nostatus', '--nostat'))
+
+    for checkinfo_wrapper in ASSERT_FUNCS:
+        passed, current_version, target, infodict, statustext, suggested_fix = checkinfo_wrapper()
+        funcname = get_funcname(checkinfo_wrapper)
+        if SHOW_STATUS:
+            statustext_list.append(statustext)
+        if passed:
+            statustext_list.append(funcname + ' ' + str(infodict['__version__']) + ' passed')
+            #statustext_list.append('')
         else:
-            line_list.append(get_funcname(func) + ' passed\n')
-            line_list.append('')
-    output_text = '\n'.join(line_list)
+            failed_list.append(funcname + ' FAILED!!!')
+            fix_list.append(suggested_fix)
+            statustext_list.append(funcname + ' FAILED!!!')
+        if SHOW_STATUS:
+            statustext_list.append('')
+
+    output_text = '\n'.join(statustext_list)
+
     failed_text = '\n'.join(failed_list)
     print(output_text)
     print(failed_text)
@@ -365,7 +397,8 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     print('in assert module main')
-    if len(sys.argv) == 1:
+    #if len(sys.argv) == 1:
+    if not any(argv.startswith('--test-') or argv.startswith('--exec') for argv in sys.argv):
         assert_modules()
     else:
         ut.doctest_funcs()
