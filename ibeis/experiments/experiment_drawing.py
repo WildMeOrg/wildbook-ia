@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview
+./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
@@ -106,7 +106,9 @@ def annotationmatch_scores(ibs, test_result, f=None):
     def attr_callback(qaid):
         print('callback qaid = %r' % (qaid,))
         test_result.interact_individual_result(qaid)
-        reconstruct_str = 'python -m ibeis.dev -e cases ' + test_result.reconstruct_test_flags() + ' --qaid ' + str(qaid) + ' --show'
+        reconstruct_str = ('python -m ibeis.dev -e cases ' +
+                           test_result.reconstruct_test_flags() +
+                           ' --qaid ' + str(qaid) + ' --show')
         print('Independent reconstruct')
         print(reconstruct_str)
 
@@ -148,7 +150,8 @@ def annotationmatch_scores(ibs, test_result, f=None):
     return locals_
 
 
-def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argflag('--no-wordcloud')):
+def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
+                      ut.get_argflag('--no-wordcloud')):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -203,7 +206,9 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not ut.get_argfla
         other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
         #ut.embed()
 
-        zipmask = lambda _tags, _flags : [[item if flag else [] for item, flag in zip(list_, flags)] for list_, flags in zip(_tags, _flags)]
+        zipmask = lambda _tags, _flags : [[item if flag else [] for item, flag
+                                           in zip(list_, flags)] for list_,
+                                          flags in zip(_tags, _flags)]
         def combinetags(tags1, tags2):
             import utool as ut
             return [ut.list_zipflatten(t1, t2) for t1, t2 in zip(tags1, tags2)]
@@ -387,7 +392,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         ut.ensuredir(blind_results_figdir)
 
     qaids = test_result.get_common_qaids()
-    ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))  # Ensure semantic uuids are in the APP cache.
+    # Ensure semantic uuids are in the APP cache.
+    ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))
     #samplekw = dict(per_group=5)
     #case_pos_list = test_result.get_case_positions('failure', samplekw=samplekw)
     #failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
@@ -407,7 +413,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
         ('toggle_annot_mode', ['a'], 'toggle_annot_mode', toggle_annot_mode),
-        ('toggle_fast_mode', ['f'], 'toggle_fast_mode', toggle_fast_mode, 'Fast mode lowers drwaing quality'),
+        ('toggle_fast_mode', ['f'], 'toggle_fast_mode', toggle_fast_mode,
+         'Fast mode lowers drwaing quality'),
     ]
 
     analysis_fpath_list = []
@@ -437,7 +444,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(test_result.cfgx2_qreq_))
 
-    for count, qx in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW, custom_actions=custom_actions)):
+    for count, qx in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW,
+                                                  custom_actions=custom_actions)):
         if SHOW:
             try:
                 case_labels = flat_case_labels[count]
@@ -485,7 +493,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                     if show_in_notebook:
                         # hack to show vertical line in notebook
                         if len(cfg_colors) > 0:
-                            bar = np.zeros((1, 400, 3), dtype=np.uint8) + (np.array(cfg_colors[cfgx]) * 255)
+                            bar = (np.zeros((1, 400, 3), dtype=np.uint8) +
+                                   (np.array(cfg_colors[cfgx]) * 255))
                             fnum = fnum + 1
                             pt.imshow(bar, fnum=fnum)
                     for annot_mode in annot_modes:
@@ -494,9 +503,13 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                             # hack to show vertical line
                             fnum = fnum + 1
                         if SHOW:
-                            qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
+                            qres.ishow_analysis(ibs, figtitle=query_lbl,
+                                                fnum=fnum, qreq_=qreq_,
+                                                **show_kwargs)
                         else:
-                            qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, qreq_=qreq_, **show_kwargs)
+                            qres.show_analysis(ibs, figtitle=query_lbl,
+                                               fnum=fnum, qreq_=qreq_,
+                                               **show_kwargs)
                     cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
                     if cmdaug is not None:
                         # Hack for candidacy
@@ -520,7 +533,8 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
                 if metadata is not None:
                     metadata.set_global_data(cfgstr, qres.qaid, 'analysis_fpath', analysis_fpath)
 
-            # BLIND CASES - draws results without labels to see if we can determine what happened using doubleblind methods
+            # BLIND CASES - draws results without labels to see if we can
+            # determine what happened using doubleblind methods
             if DRAW_BLIND:
                 pt.clf()
                 best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
@@ -543,19 +557,22 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
             #extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
             #if DRAW_QUERY_CHIP:
             #    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
-            #    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_CXT_', in_image=True, **extra_kw)
+            #    _show_chip(ibs, qres.qaid, individual_results_figdir,
+            #    'QUERY_CXT_', in_image=True, **extra_kw)
 
             #if DRAW_QUERY_GROUNDTRUTH:
             #    gtaids = ibs.get_annot_groundtruth(qres.qaid)
             #    for aid in gtaids:
             #        rank = qres.get_aid_ranks(aid)
-            #        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_', rank=rank, in_image=True, **extra_kw)
+            #        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_',
+            #        rank=rank, in_image=True, **extra_kw)
 
             #if DRAW_QUERY_RESULT_CONTEXT:
             #    topids = qres.get_top_aids(num=3)
             #    for aid in topids:
             #        rank = qres.get_aid_ranks(aid)
-            #        _show_chip(ibs, aid, individual_results_figdir, 'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
+            #        _show_chip(ibs, aid, individual_results_figdir,
+            #        'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
 
         # if some condition of of batch sizes
         flush_freq = 4
@@ -565,11 +582,15 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     # Copy summary images to query_analysis folder
     cpq.flush_copy_tasks()
 
-    make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list)
+    make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
+                                  cfgx2_shortlbl, case_figdir,
+                                  analysis_fpath_list)
     return analysis_fpath_list
 
 
-def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list):
+def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
+                                  cfgx2_shortlbl, case_figdir,
+                                  analysis_fpath_list):
     # HACK MAKE LATEX CONVINENCE STUFF
     #print('LATEX HACK')
     if len(fpaths_list) == 0:
@@ -603,7 +624,9 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
         cmdname = ut.latex_sanatize_command_name(_cmdname)
         label_str = cmdname
         if len(caption_prefix) == 0:
-            caption_str = ut.escape_latex('Casetags: ' + ut.list_str(labels, nl=False, strvals=True) + ', db=' + ibs.get_dbname() + '. ')
+            caption_str = ut.escape_latex('Casetags: ' +
+                                          ut.list_str(labels, nl=False, strvals=True) +
+                                          ', db=' + ibs.get_dbname() + '. ')
         else:
             caption_str = ''
 
@@ -612,7 +635,8 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
             caption_str += ut.escape_latex('Each figure shows a different configuration: ')
             sublbls = ['(' + chr(97 + count) + ') ' for count in range(len(cfgx2_shortlbl))]
         else:
-            #caption_str += ut.escape_latex('This figure depicts correct and incorrect matches from configuration: ')
+            #caption_str += ut.escape_latex('This figure depicts correct and
+            #incorrect matches from configuration: ')
             sublbls = [''] * len(cfgx2_shortlbl)
         def wrap_tt(text):
             return r'{\tt ' + text + '}'
@@ -624,10 +648,13 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels, cfgx2_shor
         # Remove query specific config flags in individual results
         _shortlbls = [re.sub('\\bq[^,]*,?', '', shortlbl) for shortlbl in _shortlbls]
         # Let config strings be broken over newlines
-        _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
-        _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl) for shortlbl in _shortlbls]
+        _shortlbls = [re.sub('\\+', tex_small_space + '+' + tex_small_space, shortlbl)
+                      for shortlbl in _shortlbls]
+        _shortlbls = [re.sub(', *', ',' + tex_small_space, shortlbl)
+                      for shortlbl in _shortlbls]
         _shortlbls = list(map(wrap_tt, _shortlbls))
-        cfgx2_texshortlbl = ['\n    ' + lbl + shortlbl for lbl, shortlbl in zip(sublbls, _shortlbls)]
+        cfgx2_texshortlbl = ['\n    ' + lbl + shortlbl
+                             for lbl, shortlbl in zip(sublbls, _shortlbls)]
 
         caption_str += ut.conj_phrase(cfgx2_texshortlbl, 'and') + '.\n    '
         caption_str = '\n    ' + caption_prefix + caption_str + caption_suffix
@@ -771,7 +798,9 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         qx_list = ut.unique_keep_order2(np.array(case_pos_list).T[0])
         ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
         if case_labels_list is not None:
-            grouped_labels = ut.dict_take(ut.group_items(case_labels_list, case_pos_list.T[0]), qx_list)
+            grouped_labels = ut.dict_take(
+                ut.group_items(case_labels_list, case_pos_list.T[0]),
+                qx_list)
             flat_case_labels = list(map(ut.unique_keep_order2, map(ut.flatten, grouped_labels)))
         else:
             flat_case_labels = None
@@ -781,14 +810,17 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     if view_differ_cases:
         # Cases that passed on config but failed another
-        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=True, min_success_diff=1)
-        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, case_labels_list)
+        case_pos_list, case_labels_list = test_result.case_type_sample(
+            1, with_success=True, min_success_diff=1)
+        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
+            case_pos_list, case_labels_list)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)
 
     if view_cases:
         case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
-        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, case_labels_list)
+        new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
+            case_pos_list, case_labels_list)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)
 
@@ -915,7 +947,8 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
         agree_param_vals = dict([
-            (key, [test_result.get_param_val_from_cfgx(cfgx, key) for cfgx in const_basis_cfgx_list])
+            (key, [test_result.get_param_val_from_cfgx(cfgx, key)
+                   for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
 
         from ibeis.experiments import annotation_configs
@@ -924,7 +957,8 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         target_label = annotation_configs.shorten_to_alias_labels(key)
 
         #target_label = 'num rank ≤ 1'
-        #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for percent, label in zip(cdf_list.T[0], label_list)]
+        #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for
+        #percent, label in zip(cdf_list.T[0], label_list)]
         #target_label = '% groundtrue matches = rank 1'
         target_label = 'accuracy (%)'
         known_nd_data = np.array(list(agree_param_vals.values())).T
@@ -933,12 +967,18 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         ymin = 30 if known_target_points.min() > 30 and False else 0
         num_yticks = 8 if ymin == 30 else 11
 
-        #title = ('% Ranks = 1 when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
-        title = ('accuracy when ' + annotation_configs.shorten_to_alias_labels(const_key) + '=%r' % (const_val,))
+        #title = ('% Ranks = 1 when ' +
+        #annotation_configs.shorten_to_alias_labels(const_key) + '=%r' %
+        #(const_val,))
+        title = ('accuracy when ' +
+                 annotation_configs.shorten_to_alias_labels(const_key) +
+                 '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
         if PLOT3D:
-            pt.plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, title=title, fnum=fnum, pnum=pnum_())
+            pt.plot_search_surface(known_nd_data, known_target_points,
+                                   nd_labels, target_label, title=title,
+                                   fnum=fnum, pnum=pnum_())
         else:
             nonconst_basis_vals = np.unique(known_nd_data.T[1])
             # Find which colors will not be used
@@ -949,7 +989,8 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list, fnum=fnum,
-                                    pnum=pnum_(), num_yticks=num_yticks, ymin=ymin, ymax=100, ypad=.5,
+                                    pnum=pnum_(), num_yticks=num_yticks,
+                                    ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
 
     plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
@@ -962,7 +1003,9 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
 
     #if test_result.has_constant_daids():
     #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
-    #    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, test_result.cfgx2_daids[0])
+    #    annotconfig_stats_strs, locals_ =
+    #    ibs.get_annotconfig_stats(test_result.qaids,
+    #    test_result.cfgx2_daids[0])
 
     pt.set_figtitle(figtitle, size=14)
 
@@ -1013,7 +1056,8 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
-    test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset', default=test_cfgx_slice)
+    test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset',
+                                    default=test_cfgx_slice)
     if test_cfgx_slice is not None:
         print('test_cfgx_slice = %r' % (test_cfgx_slice,))
         cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent,
@@ -1233,7 +1277,8 @@ def make_test_result_custom_api(ibs, test_result):
     return wgt
 
 
-def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
+def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None,
+               in_image=False, seen=set([]), config2_=None, **dumpkw):
     print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
     import plottool as pt
     from ibeis import viz
@@ -1360,7 +1405,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         plotkw['marker_list'] += pt.distinct_markers(1, style='polygon',
                                                      offset=cfgx,
                                                      total=len(cfgx2_shortlbl))
-        #plotkw['marker_list'] += pt.distinct_markers(1, style='astrisk', offset=cfgx, total=len(cfgx2_shortlbl))
+        #plotkw['marker_list'] += pt.distinct_markers(1, style='astrisk',
+        #offset=cfgx, total=len(cfgx2_shortlbl))
 
     # TODO WRAP IN VTOOL
     # LEARN MULTI PDF
@@ -1403,7 +1449,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
     # HISTOGRAM
     #if False:
     freq_list = [np.histogram(xdata, bins)[0] for xdata in xdata_list]
-    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True) for b in bins]
+    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b),
+                                           exclude_zeros=True) for b in bins]
     bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
     bin_labels[-1] = '> 1 year'
     bin_labels[0] = '< 1 minute'
@@ -1423,7 +1470,9 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         pt.figure(fnum=fnum)
         pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(freq_list)))
         bin_labels[0]
-        # python -m ibeis.dev -e timedelta_hist -t baseline -a ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db GZ_ALL  --show
+        # python -m ibeis.dev -e timedelta_hist -t baseline -a
+        # ctrl:force_const_size=True uncontrolled:force_const_size=True
+        # --consistent --db GZ_ALL  --show
 
         colors = pt.distinct_colors(len(bin_labels))
         if WITH_NAN:
@@ -1438,7 +1487,8 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
             explode = [0] * len(masked_freq)
             size = masked_freq.sum()
             masked_percent = (masked_freq * 100 / size)
-            pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
+            pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%',
+                       labels=masked_lbls, colors=masked_colors)
             ax = pt.gca()
             ax.set_xlabel(X_label_list[count] + '\nsize=%d' % (size,))
             ax.set_aspect('equal')
