@@ -210,13 +210,14 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
         >>> aid_list = ibs.filter_annots_by_tags(**kwargs)
         >>> print('len(aid_list) = %r' % (len(aid_list),))
         >>> dpath = ut.get_argval('--dpath', default='')
-        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> all_tags = ut.flatten(ibs.get_annot_all_tags(aid_list))
         >>> filtered_tag_hist = ut.dict_hist(all_tags)
         >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
         >>> export_tagged_chips(ibs, aid_list, dpath)
     """
     visual_uuid_hashid = ibs.get_annot_hashid_visual_uuid(aid_list, _new=True)
-    zip_fpath = ut.unixjoin(dpath, 'exported_chips2_' + ibs.get_dbname() +  visual_uuid_hashid + '.zip')
+    zip_fpath = ut.unixjoin(dpath, 'exported_chips2_' + ibs.get_dbname() +
+                            visual_uuid_hashid + '.zip')
     chip_fpath = ibs.get_annot_chip_fpath(aid_list)
     ut.archive_files(zip_fpath, chip_fpath, common_prefix=True)
 
@@ -224,9 +225,16 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
 @register_ibs_method
 def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
     """
+    Filter / Find / Search for annotations with particular tags
+
     CommandLine:
+        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --helpx
         python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1
         python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --min_num=1
+        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --has_any=lighting --has_all=lighting:underexposed --show
+
+    SeeAlso:
+        python -m ibeis.init.filter_annots --exec-filter_annots_general
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -237,13 +245,17 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
         >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=ut.ddict(list, logic=str))
         >>> ut.print_dict(kwargs, 'filter args')
         >>> aid_list = ibs.filter_annots_by_tags(aid_list, **kwargs)
-        >>> print(len(aid_list))
+        >>> print('len(aid_list) = %r' % (len(aid_list),))
         >>> # print results
-        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> all_tags = ut.flatten(ibs.get_annot_all_tags(aid_list))
         >>> filtered_tag_hist = ut.dict_hist(all_tags)
         >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
         >>> print('len(aid_list) = %r' % (len(aid_list),))
         >>> print('sum(tags) = %r' % (sum(filtered_tag_hist.values()),))
+        >>> ut.quit_if_noshow()
+        >>> import ibeis.viz.interact
+        >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list)
+        >>> ut.show_if_requested()
     """
     if aid_list is None:
         aid_list = ibs._get_all_aids()
@@ -288,7 +300,8 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
     else:
         expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
-        expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
+        expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+            expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
         expanded_edgeids = vt.get_undirected_edge_ids(expanded_aid_pairs)
         unique_edgeids, groupxs = vt.group_indices(expanded_edgeids)
         expanded_tags_list = ibs.get_annotmatch_case_tags(expanded_annotmatch_rowid)
@@ -571,11 +584,14 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
         # hack for faster tag parsing
         from ibeis.control import _autogen_annotmatch_funcs as _aaf
         import itertools
-        colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH, _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)
+        colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,
+                    _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)
         id_iter = annotmatch_rowids
         annotmatch_is_col = ibs.db.get(
-            ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid', eager=True, nInput=None, unpack_scalars=True)
-        annotmatch_is_col = [col if col is not None else [None] * len(colnames) for col in annotmatch_is_col]
+            ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid',
+            eager=True, nInput=None, unpack_scalars=True)
+        annotmatch_is_col = [col if col is not None else [None] * len(colnames)
+                             for col in annotmatch_is_col]
         standardtags = [x[len('annotmatch_is_'):] for x in colnames]
         standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)
         tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]
@@ -584,6 +600,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
             flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
             for tags in ut.list_compress(tags_list, flag_list):
                 tags.append(case)
+    tags_list = [[ibs.const.__STR__(t) for t in tags] for tags in tags_list]
     #if ut.get_argval('--consol') or True:
     #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
@@ -893,7 +910,8 @@ def get_annot_annotmatch_tags(ibs, aid_list):
     """
     annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
     unflat_tags_list = ibs.unflat_map(ibs.get_annotmatch_case_tags, annotmatch_rowids)
-    annotmatch_tags_list = [list(set(ut.flatten(_unflat_tags))) for _unflat_tags in unflat_tags_list]
+    annotmatch_tags_list = [list(set(ut.flatten(_unflat_tags))) for
+                            _unflat_tags in unflat_tags_list]
     return annotmatch_tags_list
 
 
@@ -910,13 +928,15 @@ def get_annot_all_tags(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> all_tags = ut.flatten(get_annot_all_tags(ibs, aid_list))
+        >>> all_tags = ut.flatten(ibs.get_annot_all_tags(aid_list))
         >>> tag_hist = ut.dict_hist(all_tags)
         >>> ut.print_dict(tag_hist)
     """
     annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
     annot_tags_list = ibs.get_annot_case_tags(aid_list)
-    both_tags_list = list(map(ut.unique_keep_order2, map(ut.flatten, zip(annot_tags_list, annotmatch_tags_list))))
+    both_tags_list = list(map(ut.unique_keep_order2, map(ut.flatten,
+                                                         zip(annot_tags_list,
+                                                             annotmatch_tags_list))))
     return both_tags_list
 
 

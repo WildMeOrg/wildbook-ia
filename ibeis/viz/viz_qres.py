@@ -278,7 +278,8 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
             max_nCols = 4
 
     try:
-        assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, 'gts should be missed.  not in top'
+        assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, (
+            'gts should be missed.  not in top')
     except AssertionError as ex:
         ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
@@ -395,7 +396,8 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
                 data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
                 #_kwshow['draw_border'] = kwargs.get('draw_border', True)
                 #_kwshow['notitle'] = ut.get_argflag(('--no-title', '--notitle'))
-                viz_chip.show_chip(ibs, aid, annote=False, notitle=True, data_config2_=data_config2_, **_kwshow)
+                viz_chip.show_chip(ibs, aid, annote=False, notitle=True,
+                                   data_config2_=data_config2_, **_kwshow)
                 #viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
 
         if DEBUG_SHOW_QRES:

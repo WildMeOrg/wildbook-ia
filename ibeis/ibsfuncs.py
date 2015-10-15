@@ -41,10 +41,13 @@ from ibeis import annotmatch_funcs  # NOQA
 
 
 # Try to work around circular import
-#from ibeis.control.IBEISControl import IBEISController  # Must import class before injection
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+#from ibeis.control.IBEISControl import IBEISController
+# Must import class before injection
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
 #CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
-#register_ibs_method = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
+#register_ibs_method = ut.make_class_method_decorator(CLASS_INJECT_KEY,
+#__name__)
 
 
 def fix_zero_features(ibs):
@@ -149,7 +152,9 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
             _image = vt.resize(_image, (width, height))
             vt.imwrite(dst_img, _image)
 
-            annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img, source=image_uri, **information)
+            annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img,
+                                                     source=image_uri,
+                                                     **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
             for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
@@ -167,7 +172,8 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
                 xmax = int(max(x_points) * decrease)
                 ymin = int(min(y_points) * decrease)
                 ymax = int(max(y_points) * decrease)
-                #TODO: Change species_name to getter in IBEISControl once implemented
+                #TODO: Change species_name to getter in IBEISControl once
+                #implemented
                 #species_name = 'grevys_zebra'
                 species_name = ibs.get_annot_species_texts(aid)
                 yaw = ibs.get_annot_yaws(aid)
@@ -177,11 +183,13 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
                 else:
                     yawed = False
                     print("UNVIEWPOINTED: %d " % gid)
-                annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
+                annotation.add_object(
+                    species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
             # Write XML
             if not enforce_yaw or yawed:
-                print("Copying:\n%r\n%r\n%r\n\n" % (image_path, dst_img, (width, height), ))
+                print("Copying:\n%r\n%r\n%r\n\n" % (
+                    image_path, dst_img, (width, height), ))
                 xml_data = open(dst_annot, 'w')
                 xml_data.write(annotation.xml())
                 xml_data.close()
@@ -200,7 +208,8 @@ def export_to_hotspotter(ibs):
 #    dst_fpath = ut.truepath('~')
 #    #gid_list = [692, 693, 680, 781, 751, 753, 754, 755, 756]
 #    gpath_list = ibs.get_image_paths(gid_list)
-#    gname_list = [join(dst_fpath, gname) for gname in ibs.get_image_gnames(gid_list)]
+#    gname_list = [join(dst_fpath, gname) for gname in
+#    ibs.get_image_gnames(gid_list)]
 #    ut.copy_files_to(gpath_list, dst_fpath_list=gname_list)
 
 
@@ -316,7 +325,8 @@ def recompute_fgweights(ibs, aid_list=None):
 
 
 @register_ibs_method
-def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=False):
+def ensure_annotation_data(ibs, aid_list, chips=True, feats=True,
+                           featweights=False):
     if chips or feats or featweights:
         cid_list = ibs.add_annot_chips(aid_list)
     if feats or featweights:
@@ -349,7 +359,8 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                   for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in range(len(gsize_list))]
     aid_list = ibs.add_annots(gid_list, bbox_list, theta_list,
-                                   name_list=name_list, nid_list=nid_list, notes_list=notes_list)
+                              name_list=name_list, nid_list=nid_list,
+                              notes_list=notes_list)
     return aid_list
 
 
@@ -363,7 +374,8 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             for species in species_list
         ]
         assert all(isvalid_list), 'invalid species found in %r: %r' % (
-            ut.get_caller_name(range(1, 3)), ut.filterfalse_items(species_list, isvalid_list),)
+            ut.get_caller_name(range(1, 3)), ut.filterfalse_items(
+                species_list, isvalid_list),)
     except AssertionError as ex:
         ut.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -375,11 +387,12 @@ def assert_singleton_relationship(ibs, alrids_list):
     if ut.NO_ASSERTS:
         return
     try:
-        assert all([len(alrids) == 1 for alrids in alrids_list]),\
-            'must only have one relationship of a type'
+        assert all([len(alrids) == 1 for alrids in alrids_list]), (
+            'must only have one relationship of a type')
     except AssertionError as ex:
         parent_locals = ut.get_parent_locals()
-        ut.printex(ex, 'parent_locals=' + ut.dict_str(parent_locals), key_list=['alrids_list', ])
+        ut.printex(ex, 'parent_locals=' + ut.dict_str(parent_locals),
+                   key_list=['alrids_list', ])
         raise
 
 
@@ -389,9 +402,12 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     """
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
-        assert not any(isinvalid_list), 'invalid gids: %r' % (ut.filter_items(gid_list, isinvalid_list),)
-        isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES) for gid in gid_list]
-        assert not any(isinvalid_list), 'invalidly typed gids: %r' % (ut.filter_items(gid_list, isinvalid_list),)
+        assert not any(isinvalid_list), 'invalid gids: %r' % (
+            ut.filter_items(gid_list, isinvalid_list),)
+        isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES)
+                          for gid in gid_list]
+        assert not any(isinvalid_list), 'invalidly typed gids: %r' % (
+            ut.filter_items(gid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -438,9 +454,12 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     isinvalid_list = [aid is None for aid in ibs.get_annot_aid(aid_list)]
     #isinvalid_list = [aid not in valid_aids for aid in aid_list]
     try:
-        assert not any(isinvalid_list), 'invalid aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
-        isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]
-        assert not any(isinvalid_list), 'invalidly typed aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
+        assert not any(isinvalid_list), 'invalid aids: %r' % (
+            ut.filter_items(aid_list, isinvalid_list),)
+        isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES)
+                          for aid in aid_list]
+        assert not any(isinvalid_list), 'invalidly typed aids: %r' % (
+            ut.filter_items(aid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -502,13 +521,15 @@ def assert_valid_names(name_list):
         return
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, const.UNKNOWN) for name in name_list]
+    valid_namecheck = [not isconflict(name, const.UNKNOWN)
+                       for name in name_list]
     assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
                                   'cannot start a name with four underscores')
 
 
 @ut.on_exception_report_input
-def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
+def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,
+                                    valid_lbltype_rowid):
     if ut.NO_ASSERTS:
         return
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
@@ -520,14 +541,19 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         ut.assert_scalar_list(lblannot_rowid_list)
         validtype_list = [
             (lbltype_rowid == valid_lbltype_rowid) or
-            (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
+            (lbltype_rowid is None and
+             lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
             for lbltype_rowid, lblannot_rowid in
-            zip(lbltype_rowid_list, lblannot_rowid_list)]
+            zip(lbltype_rowid_list, lblannot_rowid_list)
+        ]
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
-        tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
-        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list))
-        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+        tup_list = list(map(str, list(
+            zip(lbltype_rowid_list, lblannot_rowid_list))))
+        print('[!!!] (lbltype_rowid, lblannot_rowid) = : '
+              + ut.indentjoin(tup_list))
+        print('[!!!] valid_lbltype_rowid: %r' %
+              (valid_lbltype_rowid,))
 
         ut.printex(ex, 'not all types match valid type',
                       keys=['valid_lbltype_rowid', 'lblannot_rowid_list'])
@@ -682,11 +708,13 @@ def check_name_consistency(ibs, nid_list):
     error_list = []
     for aids, sids in zip(aids_list, species_rowids_list):
         if not ut.list_allsame(sids):
-            error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
+            error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (
+                aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
             print(error_msg)
             error_list.append(error_msg)
     if len(error_list) > 0:
-        raise AssertionError('A total of %d names failed check_name_consistency' % (len(error_list)))
+        raise AssertionError('A total of %d names failed check_name_consistency' % (
+            len(error_list)))
 
 
 @register_ibs_method
@@ -1006,7 +1034,8 @@ def fix_invalid_name_texts(ibs):
         invalid_nids = ut.filter_items(nid_list, is_invalid_name_text_list)
         invalid_texts = ut.filter_items(name_text_list, is_invalid_name_text_list)
         for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
-            conflict_set = invalid_name_set.union(set(ibs.get_name_texts(nid_list, apply_fix=False)))
+            conflict_set = invalid_name_set.union(
+                set(ibs.get_name_texts(nid_list, apply_fix=False)))
             base_str = 'fixedname%d' + invalid_text
             new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
             print('Fixing name %r -> %r' % (invalid_text, new_text))
@@ -1320,7 +1349,9 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
         else:
             raise AssertionError('impossible state')
 
-    new_notes_list = [hack_notes(notes, is_hard, flag) for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
+    new_notes_list = [
+        hack_notes(notes, is_hard, flag)
+        for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
     ibs.set_annot_notes(aid_list, new_notes_list)
     return is_hard_list
 
@@ -1747,7 +1778,8 @@ def update_ungrouped_special_encounter(ibs):
 #@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
-    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr('use_more_special_encounters', False)
+    USE_MORE_SPECIAL_ENCOUNTERS = ibs.cfg.other_cfg.ensure_attr(
+        'use_more_special_encounters', False)
     if USE_MORE_SPECIAL_ENCOUNTERS:
         #ibs.update_reviewed_unreviewed_image_special_encounter()
         ibs.update_exemplar_special_encounter()
@@ -2111,7 +2143,9 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     unique_species_rowids_list = list(map(ut.unique_keep_order2, species_rowids_list))
     # TODO: ibs.duplicate_map
     unique_species_texts_list = ibs.unflat_map(ibs.get_species_texts, unique_species_rowids_list)
-    species_codes = [list(map(const.get_species_code, texts)) for texts in unique_species_texts_list]
+    species_codes = [
+        list(map(const.get_species_code, texts))
+        for texts in unique_species_texts_list]
     code_list = ['_'.join(codes) for codes in species_codes]
 
     _code2_count = ut.ddict(lambda: 0)
@@ -2123,9 +2157,13 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     if eid is not None:
         enc_text = ibs.get_encounter_text(eid)
         enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
-        new_name_list = ['%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
+        new_name_list = [
+            '%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code))
+            for code in code_list]
     else:
-        new_name_list = ['%s_%s_%04d' % (location_text, code, get_next_index(code)) for code in code_list]
+        new_name_list = [
+            '%s_%s_%04d' % (location_text, code, get_next_index(code))
+            for code in code_list]
     new_nid_list = nid_list
     return new_nid_list, new_name_list
 
@@ -2421,7 +2459,9 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
         [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
     import vtool as vt
-    nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
+    nid_list = np.array(
+        ibs.get_annot_name_rowids(
+            aid_list, distinguish_unknowns=distinguish_unknowns))
     unique_nids, groupxs_list = vt.group_indices(nid_list)
     grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
     return grouped_aids_, unique_nids
@@ -2533,8 +2573,11 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     dbsamplesize_list = ut.sample_domain(samp_min, samp_max, num_samp)
     #
     # Sample true and false matches for every query annotation
-    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt, isexemplar=None)
-    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_gf)
+    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list,
+                                                       per_name=clamp_gt,
+                                                       isexemplar=None)
+    qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list,
+                                                        per_name=clamp_gf)
     #
     # Vary the size of the falses
     def generate_varied_falses():
@@ -2616,7 +2659,9 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
     nid_list = ibs.get_annot_name_rowids(aid_list)
     def _sample(nid_):
         aids_iter = (aids for nid, aids in six.iteritems(nid2_aids) if nid != nid_)
-        sample_gf_aids = np.hstack([np.random.choice(aids, per_name, replace=False) for aids in aids_iter])
+        sample_gf_aids = np.hstack([np.random.choice(aids, per_name,
+                                                     replace=False) for aids in
+                                    aids_iter])
         return sample_gf_aids.tolist()
     gf_aids_list = [_sample(nid_) for nid_ in nid_list]
     return gf_aids_list
@@ -2717,8 +2762,9 @@ def get_one_annot_per_name(ibs, col='rand'):
 
 @register_ibs_method
 def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
-                           method='random', seed=0,
-                           offset=0, stagger_names=False, distinguish_unknowns=True, grouped_aids=None):
+                           method='random', seed=0, offset=0,
+                           stagger_names=False, distinguish_unknowns=True,
+                           grouped_aids=None):
     r"""
     Gets a sampling of annotations
 
@@ -2756,7 +2802,8 @@ def get_annot_rowid_sample(ibs, aid_list=None, per_name=1, min_gt=1,
     if grouped_aids is None:
         if aid_list is None:
             aid_list = np.array(ibs.get_valid_aids(minqual='poor'))
-        grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
+        grouped_aids_, unique_nids = ibs.group_annots_by_name(
+            aid_list, distinguish_unknowns=distinguish_unknowns)
         if min_gt is None:
             grouped_aids = grouped_aids_
         else:
@@ -2817,7 +2864,9 @@ def get_primary_species_viewpoint(species, plus=0):
         primary_viewpoint = 'left'
     if plus != 0:
         # return an augmented primary viewpoint
-        primary_viewpoint = get_extended_viewpoints(primary_viewpoint, num1=1, num2=0, include_base=False)[0]
+        primary_viewpoint = get_extended_viewpoints(primary_viewpoint, num1=1,
+                                                    num2=0,
+                                                    include_base=False)[0]
     return primary_viewpoint
 
 
@@ -2855,8 +2904,12 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, i
     assert num2 >= 0, 'must specify positive num'
     yawtext_list = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
     index = yawtext_list.index(base_yaw_text)
-    other_index_list1 = [int((index + (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num1 + 1)]
-    other_index_list2 = [int((index - (np.sign(yawdist) * count)) % len(yawtext_list)) for count in range(1, num2 + 1)]
+    other_index_list1 = [int((index + (np.sign(yawdist) * count)) %
+                             len(yawtext_list))
+                         for count in range(1, num1 + 1)]
+    other_index_list2 = [int((index - (np.sign(yawdist) * count)) %
+                             len(yawtext_list))
+                         for count in range(1, num2 + 1)]
     if include_base:
         extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
     else:
@@ -3060,8 +3113,11 @@ def get_yaw_viewtexts(yaw_list):
     else:
         #with ut.Timer('fdsa'):
         stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
-        textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
-        index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
+        textdists_list = [None if yaw is None else
+                          vt.ori_distance(stdyaw_list, yaw)
+                          for yaw in yaw_list]
+        index_list = [None if dists is None else dists.argmin()
+                      for dists in textdists_list]
         text_list = [None if index is None else stdlbl_list[index] for index in index_list]
         #yaw_list_ / binsize
     #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
@@ -3434,7 +3490,9 @@ def detect_false_positives(ibs):
 
 
 @register_ibs_method
-def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, eid=None, dry_run=False, verbose=False):
+def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
+                                             exemplars_per_view=None, eid=None,
+                                             dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -3613,7 +3671,8 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_v
     ## this correctly using group_indicies instead of group_items
     #new_aid_list = []
     #new_flag_list = []
-    #_iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
+    #_iter = ut.ProgressIter(zip(aids_list, unique_nids),
+    #nTotal=len(aids_list), lbl='Optimizing name exemplars')
     #for aids_, nid in _iter:
     #    if ibs.is_nid_unknown(nid):
     #        # do not change unknown animals
@@ -3870,7 +3929,9 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     # for final settings because I'm too lazy to write
     new_aid_list = []
     new_flag_list = []
-    _iter = ut.ProgressIter(zip(grouped_aids_, unique_nids), nTotal=len(unique_nids), lbl='Picking best annots per viewpoint')
+    _iter = ut.ProgressIter(zip(grouped_aids_, unique_nids),
+                            nTotal=len(unique_nids),
+                            lbl='Picking best annots per viewpoint')
     for aids_, nid in _iter:
         if ibs.is_nid_unknown(nid):
             # do not change unknown animals
@@ -4042,8 +4103,12 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         for unixtime in unixtime_list
     ]
     datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-    date_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-    time_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    date_list      = [
+        datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
+        for datetime_split in datetime_split_list ]
+    time_list      = [
+        datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN'
+        for datetime_split in datetime_split_list ]
     lat_list       = ibs.get_image_lat(gid_list)
     lon_list       = ibs.get_image_lon(gid_list)
     marked_list    = ibs.flag_aids_count(aid_list)
@@ -4085,8 +4150,12 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
             for unixtime in unixtime_list
         ]
         datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-        time_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        date_list      = [
+            datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN'
+            for datetime_split in datetime_split_list ]
+        time_list      = [
+            datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN'
+            for datetime_split in datetime_split_list ]
         lat_list       = ibs.get_image_lat(missing_gid_list)
         lon_list       = ibs.get_image_lon(missing_gid_list)
         seen_list      = filler
@@ -4397,9 +4466,12 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
     gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
 
-    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss] for gpss in gpss_list]
-    gps_track_list = [ut.list_compress(gpss, isvalids) for gpss, isvalids in zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.list_compress(aids, isvalids) for aids, isvalids in zip(aids_list, isvalids_list)]
+    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
+                     for gpss in gpss_list]
+    gps_track_list = [ut.list_compress(gpss, isvalids) for gpss, isvalids in
+                      zip(gpss_list, isvalids_list)]
+    aid_track_list  = [ut.list_compress(aids, isvalids) for aids, isvalids in
+                       zip(aids_list, isvalids_list)]
     return nid_list, gps_track_list, aid_track_list
 
 
@@ -4428,7 +4500,8 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff) for unixtime_arr in unixtime_arrs]
+    hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff)
+                       for unixtime_arr in unixtime_arrs]
     return hour_dists_list
 
 
@@ -4448,7 +4521,8 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    timedelta_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for unixtime_arr in unixtime_arrs]
+    timedelta_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for
+                      unixtime_arr in unixtime_arrs]
     return timedelta_list
 
 
@@ -4456,7 +4530,9 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
 def get_unflat_annots_speeds_list(ibs, aids_list):
     km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
-    speeds_list     = [ut.safe_div(km_dists, hours_dists) for km_dists, hours_dists in zip(km_dists_list, hour_dists_list)]
+    speeds_list     = [ut.safe_div(km_dists, hours_dists)
+                       for km_dists, hours_dists in
+                       zip(km_dists_list, hour_dists_list)]
     return speeds_list
 
 
@@ -4468,7 +4544,8 @@ def testdata_ibs(defaultdb='testdb1'):
 
 def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
-    ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1 for aids in ibs.get_name_aids(nid_list_)]
+    ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1
+                       for aids in ibs.get_name_aids(nid_list_)]
     nid_list = ut.list_compress(nid_list_, ismultiton_list)
     return nid_list
 
@@ -4842,7 +4919,8 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     filtered_aids = ut.flatten(filtered_groups)
     if ut.DEBUG2:
         timedeltas = ibs.get_unflat_annots_timedelta_list(filtered_groups)
-        min_timedeltas = np.array([np.nan if dists is None else np.nanmin(dists) for dists in timedeltas])
+        min_timedeltas = np.array([np.nan if dists is None else
+                                   np.nanmin(dists) for dists in timedeltas])
         min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
         print('min_name_timedelta_stats = %s' % (ut.dict_str(min_name_timedelta_stats),))
     return filtered_aids
@@ -4951,7 +5029,8 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     """
     grouped_aids1 = [aids.tolist() for aids in ibs.group_annots_by_name(aid_list1)[0]]
     # Get the group of available aids that a reference aid could match
-    gropued_aids2 = ibs.get_annot_groundtruth(ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2)
+    gropued_aids2 = ibs.get_annot_groundtruth(
+        ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2)
 
     # Flag if there is a correspondence
     flag_list = [x > 0 for x in map(len, gropued_aids2)]
@@ -4981,14 +5060,27 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
 
     positive_list = [
         aid
-        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
-        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() in ['MALE', 'FEMALE'] and start != -1 and end != -1
+        for aid, yaw, qua, sex, (start, end) in
+        zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        if (
+            yaw.upper() == 'LEFT' and
+            qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and
+            sex.upper() in ['MALE', 'FEMALE'] and
+            start != -1 and end != -1
+        )
     ]
 
     negative_list = [
         aid
-        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
-        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() == 'UNKNOWN SEX' and start == -1 and end == -1
+        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list,
+                                                    qua_list, sex_list,
+                                                    age_list)
+        if (
+            yaw.upper() == 'LEFT' and
+            qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and
+            sex.upper() == 'UNKNOWN SEX' and
+            start == -1 and end == -1
+        )
     ]
 
     shuffle(positive_list)
@@ -5044,7 +5136,8 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
     if multi is True:
         str_ = ut.dict_str(dict_, precision=precision, nl=2, strvals=True)
     else:
-        str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision, exclude_keys=exclude_keys, **kwargs)
+        str_ =  ut.get_stats_str(stat_dict=dict_, precision=precision,
+                                 exclude_keys=exclude_keys, **kwargs)
     str_ = str_.replace('\'', '')
     str_ = str_.replace('num_nan: 0, ', '')
     return str_
@@ -5056,7 +5149,8 @@ def get_annot_qual_stats(ibs, aid_list):
     annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
     qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
     qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
-    assert set(qual_keys) >= set(qualtext2_aids), 'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys))
+    assert set(qual_keys) >= set(qualtext2_aids), (
+        'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
     qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
     # Filter 0's
     qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
@@ -5069,10 +5163,15 @@ def get_annot_yaw_stats(ibs, aid_list):
     yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
     # Order keys
     yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-    assert set(yaw_keys) >= set(annot_yawtext_list), 'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys))
-    yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+    assert set(yaw_keys) >= set(annot_yawtext_list), (
+        'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
+    yawtext2_nAnnots = ut.odict(
+        [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
     # Filter 0's
-    yawtext2_nAnnots = {const.YAWALIAS.get(key, key): val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
+    yawtext2_nAnnots = {
+        const.YAWALIAS.get(key, key): val
+        for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
+    }
     #yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
     return yawtext2_nAnnots
 
@@ -5086,8 +5185,10 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     getter_func = ibs.get_annot_yaw_texts
     prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
 
-    group_annots_by_view_and_name = functools.partial(ibs.group_annots_by_prop_and_name, getter_func=getter_func)
-    group_annots_by_view = functools.partial(ibs.group_annots_by_prop, getter_func=getter_func)
+    group_annots_by_view_and_name = functools.partial(
+        ibs.group_annots_by_prop_and_name, getter_func=getter_func)
+    group_annots_by_view = functools.partial(ibs.group_annots_by_prop,
+                                             getter_func=getter_func)
 
     prop2_nid2_aids = group_annots_by_view_and_name(aids)
 
@@ -5097,17 +5198,20 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     edge2_grouped_aids = ut.map_dict_vals(lambda dict_: list(dict_.values()), edge2_nid2_aids)
     edge2_aids = ut.map_dict_vals(ut.flatten, edge2_grouped_aids)
     # Num annots of each type of viewpoint
-    #yawtext_edge_aidyawtext_hist = ut.map_dict_vals(ut.dict_hist, ut.map_dict_vals(getter_func, yawtext_edge_aid))
+    #yawtext_edge_aidyawtext_hist = ut.map_dict_vals(ut.dict_hist,
+    #ut.map_dict_vals(getter_func, yawtext_edge_aid))
 
     # Regroup by view and name
     edge2_vp2_pername_stats = {}
     edge2_vp2_aids = ut.map_dict_vals(group_annots_by_view, edge2_aids)
     for edge, vp2_aids in edge2_vp2_aids.items():
-        vp2_pernam_stats = ut.map_dict_vals(functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids)
+        vp2_pernam_stats = ut.map_dict_vals(
+            functools.partial(ibs.get_annots_per_name_stats, use_sum=True), vp2_aids)
         edge2_vp2_pername_stats[edge] = vp2_pernam_stats
 
     #yawtext_edge_numaids_hist = ut.map_dict_vals(len, yawtext_edge_aid)
-    #yawtext_edge_aid_viewpoint_stats_hist = ut.map_dict_vals(ibs.get_annot_yaw_stats, yawtext_edge_aid)
+    #yawtext_edge_aid_viewpoint_stats_hist =
+    #ut.map_dict_vals(ibs.get_annot_yaw_stats, yawtext_edge_aid)
     return edge2_vp2_pername_stats
 
 
@@ -5200,7 +5304,9 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
 
     for edge in prop_edges:
         edge_nid2_aids_list = [prop2_nid2_aids.get(prop, {}) for prop in edge]
-        isect_nid2_aids = reduce(functools.partial(ut.dict_intersection, combine=True), edge_nid2_aids_list)
+        isect_nid2_aids = reduce(
+            functools.partial(ut.dict_intersection, combine=True),
+            edge_nid2_aids_list)
         edge2_nid2_aids[edge] = isect_nid2_aids
         #common_nids = list(isect_nid2_aids.keys())
         #common_num_prop1 = np.array([len(prop2_nid2_aids[prop1][nid]) for nid in common_nids])
@@ -5259,34 +5365,49 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         ('num_' + prefix + 'aids', len(aids)),
     ]
     if kwargs.pop('hashid', True):
-        keyval_list += [(prefix + 'hashid', ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
+        keyval_list += [
+            (prefix + 'hashid',
+             ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
 
     if kwargs.pop('per_name', True):
-        keyval_list += [(prefix + 'per_name', _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0], use_nan=True, use_median=True)))]
+        keyval_list += [
+            (prefix + 'per_name',
+             _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
+                                    use_nan=True, use_median=True)))]
 
     if kwargs.pop('per_qual', False):
-        keyval_list += [(prefix + 'per_qual', _stat_str(ibs.get_annot_qual_stats(aids)))]
+        keyval_list += [(prefix + 'per_qual',
+                         _stat_str(ibs.get_annot_qual_stats(aids)))]
 
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True):
-        keyval_list += [(prefix + 'per_vp', _stat_str(ibs.get_annot_yaw_stats(aids)))]
+        keyval_list += [(prefix + 'per_vp',
+                         _stat_str(ibs.get_annot_yaw_stats(aids)))]
 
     # information about overlapping viewpoints
     if kwargs.pop('per_name_vpedge', False):
-        keyval_list += [(prefix + 'per_name_vpedge', _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
+        keyval_list += [
+            (prefix + 'per_name_vpedge',
+             _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
 
     if kwargs.pop('per_image', False):
-        keyval_list += [(prefix + 'aid_per_image', _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+        keyval_list += [
+            (prefix + 'aid_per_image',
+             _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
 
     if kwargs.pop('min_name_hourdist', False):
         grouped_aids = ibs.group_annots_by_name(aids)[0]
         #ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
         timedeltas = ibs.get_unflat_annots_timedelta_list(grouped_aids)
-        #timedeltas = [dists for dists in timedeltas if dists is not np.nan and dists is not None]
+        #timedeltas = [dists for dists in timedeltas if dists is not np.nan and
+        #dists is not None]
         #timedeltas = [np.nan if dists is None else dists for dists in timedeltas]
-        #min_timedelta_list = [np.nan if dists is None else dists.min() / (60 * 60 * 24) for dists in timedeltas]
+        #min_timedelta_list = [np.nan if dists is None else dists.min() / (60 *
+        #60 * 24) for dists in timedeltas]
         # convert to hours
-        min_timedelta_list = [np.nan if dists is None else dists.min() / (60 * 60) for dists in timedeltas]
+        min_timedelta_list = [
+            np.nan if dists is None else dists.min() / (60 * 60)
+            for dists in timedeltas]
         #min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
         min_name_timedelta_stats = ut.get_stats(min_timedelta_list, use_nan=True)
         keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats))]
@@ -5302,7 +5423,9 @@ def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
 
 
 # Compares properties of query vs database annotations
-def compare_correct_match_properties(ibs, grouped_qaids, grouped_groundtruth_list, getter_func, cmp_func):
+def compare_correct_match_properties(ibs, grouped_qaids,
+                                     grouped_groundtruth_list, getter_func,
+                                     cmp_func):
     """
     getter_func = ibs.get_annot_yaws
     cmp_func = vt.ori_distance
@@ -5320,7 +5443,9 @@ def compare_correct_match_properties(ibs, grouped_qaids, grouped_groundtruth_lis
     match_props = ibs.unflat_map(getter_func, grouped_groundtruth_list)
     match_props = ibs.unflat_map(replace_none_with_nan, match_props)
     # Compare the query yaws to the yaws of its correct matches in the database
-    gt_propdists_list = [cmp_func(np.array(qprops), np.array(gt_props)[:, None]) for qprops, gt_props in zip(query_props, match_props)]
+    gt_propdists_list = [
+        cmp_func(np.array(qprops), np.array(gt_props)[:, None])
+        for qprops, gt_props in zip(query_props, match_props)]
     return gt_propdists_list
 
 
@@ -5374,7 +5499,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
 
         # The aids that should be matched by a query
         grouped_qaids = ibs.group_annots_by_name(qaids)[0]
-        grouped_groundtruth_list = ibs.get_annot_groundtruth(ut.get_list_column(grouped_qaids, 0), daid_list=daids)
+        grouped_groundtruth_list = ibs.get_annot_groundtruth(
+            ut.get_list_column(grouped_qaids, 0), daid_list=daids)
         groundtruth_daids = ut.unique_unordered(ut.flatten(grouped_groundtruth_list))
         hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
         # The aids that should not match any query
@@ -5388,8 +5514,12 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)
         genuine_daid_per_name_stats  = ibs.get_annot_per_name_stats(groundtruth_daids)
         all_daid_per_name_stats = ibs.get_annot_per_name_stats(daids)
-        #imposter_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0], use_nan=True)
-        #genuine_daid_per_name_stats  = ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0], use_nan=True)
+        #imposter_daid_per_name_stats =
+        #ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0],
+        #             use_nan=True)
+        #genuine_daid_per_name_stats  =
+        #ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0],
+        #             use_nan=True)
         #all_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(daids)[0], use_nan=True)
 
         # Compare the query yaws to the yaws of its correct matches in the database
@@ -5403,7 +5533,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
 
         # Compare timedelta differences
         gt_hourdelta_list = compare_correct_match_properties(
-            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
+            ibs, grouped_qaids, grouped_groundtruth_list,
+            ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
 
         def super_flatten(arr_list):
             import utool as ut
@@ -5451,7 +5582,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
             combined_aids = np.unique((np.hstack((qaids, daids))))
             combined_aids.sort()
             annotconfig_stats_strs_list1 += [
-                ('combined_aids', ibs.get_annot_stats_dict(combined_aids, **kwargs)),
+                ('combined_aids', ibs.get_annot_stats_dict(combined_aids,
+                                                           **kwargs)),
             ]
 
         annotconfig_stats_strs_list1 += [
@@ -5480,11 +5612,16 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
 
-        annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() + annotconfig_stats_strs2.items())
-        stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True, newlines=False, explicit=True, nobraces=True)
-        stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True, newlines=True, explicit=True, nobraces=True)
+        annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() +
+                                          annotconfig_stats_strs2.items())
+        stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True,
+                                newlines=False, explicit=True, nobraces=True)
+        stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True,
+                                         newlines=True, explicit=True,
+                                         nobraces=True)
         #stats_str = ut.align(stats_str, ':')
-        stats_str2 = ut.dict_str(annotconfig_stats_strs, strvals=True, newlines=True, explicit=False, nobraces=False)
+        stats_str2 = ut.dict_str(annotconfig_stats_strs, strvals=True,
+                                 newlines=True, explicit=False, nobraces=False)
         if verbose:
             print('annot_config_stats = ' + stats_str2)
 

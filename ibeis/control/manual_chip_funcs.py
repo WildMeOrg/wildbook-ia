@@ -290,7 +290,7 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, ea
     """
     ut.assert_all_not_None(aid_list, 'aid_list')
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chip_list = ibs.get_chips(cid_list, ensure=ensure, verbose=verbose, eager=eager)
+    chip_list = ibs.get_chips(cid_list, ensure=ensure, verbose=verbose, eager=eager, config2_=config2_)
     return chip_list
 
 
@@ -768,6 +768,8 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False, eager=True, config2_=No
     Returns:
         list: chip_list
     """
+    # FIXME: HACK: this should not have to read in config2
+    # (unless it needs to compute the chips?)
     from ibeis.model.preproc import preproc_chip
     if ensure:
         try:

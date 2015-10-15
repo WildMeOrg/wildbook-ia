@@ -61,7 +61,8 @@ def get_chips(ibs, aid_list, in_image=False, config2_=None):
 
 
 @getter_vector_output
-def get_kpts(ibs, aid_list, in_image=False, config2_=None, ensure=True, kpts_subset=None, kpts=None):
+def get_kpts(ibs, aid_list, in_image=False, config2_=None, ensure=True,
+             kpts_subset=None, kpts=None):
     if kpts is not None:
         return [kpts]
     if in_image:

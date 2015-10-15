@@ -8,7 +8,8 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function
 from functools import partial
-from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
+from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
+                     ChangeLayoutContext)
 from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
 from ibeis.experiments import results_organizer
@@ -24,7 +25,8 @@ import utool
 #from ibeis import constants as const
 import utool as ut
 from ibeis.gui import guiexcept
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+                                                       '[inspect_gui]')
 
 
 MATCHED_STATUS_TEXT  = 'Matched'
@@ -76,11 +78,14 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
     #assert qreq_ is not None, 'must specify qreq_'
 
     if qres is not None:
-        show_chip_match_features_option = ('Show chip feature matches', partial(qres.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
+        show_chip_match_features_option = (
+            'Show chip feature matches',
+            partial(qres.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
         if aid_list is not None:
             # Give a subcontext menu for multiple options
             def partial_show_chip_matches_to(aid_):
-                return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
+                return lambda: qres.ishow_matches(ibs, aid_, mode=0,
+                                                  qreq_=qreq_)
             show_chip_match_features_option = (
                 'Show chip feature matches',
                 [
@@ -90,7 +95,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
             )
         options += [
             show_chip_match_features_option,
-            ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+            ('Show name feature matches', lambda: qres.show_name_matches(
+                ibs, aid2, mode=0, qreq_=qreq_)),
         ]
 
     with_interact_chips = True
@@ -102,22 +108,30 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
         if qreq_ is None:
             config2_list_ = [None, None]
         else:
-            config2_list_ = [qreq_.get_external_query_config2(), qreq_.get_external_data_config2()]
+            config2_list_ = [qreq_.get_external_query_config2(),
+                             qreq_.get_external_data_config2()]
 
         interact_chip_options = []
-        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
+        for count, (aid, config2_) in enumerate(zip(aid_list2,
+                                                    config2_list_),
+                                                start=1):
             interact_chip_options += [
-                ('Interact Annot&%d' % (count,), partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_, fnum=None, **kwargs)),
+                ('Interact Annot&%d' % (count,),
+                 partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,
+                         fnum=None, **kwargs)),
             ]
         interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
         interact_chip_options.append(
-            ('Interact &All Annots', lambda: [func() for func in interact_chip_actions]),
+            ('Interact &All Annots', lambda: [func() for func in
+                                              interact_chip_actions]),
         )
 
         chip_contex_options = []
-        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
+        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_),
+                                                start=1):
             chip_contex_options += [
-                ('Annot&%d Options (aid=%r)' % (count, aid,), interact_chip.build_annot_context_options(
+                ('Annot&%d Options (aid=%r)' % (count, aid,),
+                 interact_chip.build_annot_context_options(
                     ibs, aid, refresh_func=None, config2_=config2_))
             ]
 
@@ -137,11 +151,20 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
     from ibeis.viz import viz_graph
     if with_review_options:
         options += [
-            ('Mark as &Reviewed', lambda: ibs.set_annot_pair_as_reviewed(aid1, aid2)),
-            ('Mark as &True Match.', lambda: set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-            ('Mark as &False Match.', lambda:  set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
-            ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
-            ('Interact Name Graph', partial(viz_graph.make_name_graph_interaction, ibs, aids=aid_list2, selected_aids=aid_list2))
+            ('Mark as &Reviewed', lambda: ibs.set_annot_pair_as_reviewed(aid1,
+                                                                         aid2)),
+            ('Mark as &True Match.',
+             lambda: set_annot_pair_as_positive_match_(
+                 ibs, aid1, aid2, qres, qreq_, **kwargs)),
+            ('Mark as &False Match.',
+             lambda:  set_annot_pair_as_negative_match_(
+                 ibs, aid1, aid2, qres, qreq_, **kwargs)),
+            ('Inspect Match Candidates',
+             lambda: review_match(
+                 ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
+            ('Inferact Name Graph',
+             partial(viz_graph.make_name_graph_interaction,
+                     ibs, aids=aid_list2, selected_aids=aid_list2))
         ]
 
     with_vsone = True
@@ -150,12 +173,14 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
 
         #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
         options += [
-            ('Run Vsone', partial(vsone_pipeline.vsone_independant_pair_hack, ibs, aid1, aid2, qreq_=qreq_))
+            ('Run Vsone', partial(vsone_pipeline.vsone_independant_pair_hack,
+                                  ibs, aid1, aid2, qreq_=qreq_))
         ]
 
     with_match_tags = True
     if with_match_tags:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+            [aid1], [aid2])[0]
 
         if annotmatch_rowid is None:
             tags = []
@@ -175,11 +200,13 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
             print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
             print('[inspect_gui] tags = %r' % (tags,))
         if ut.VERBOSE:
-            print('[inspect_gui] Making case hotlist: ' + ut.list_str(case_hotlink_list))
+            print('[inspect_gui] Making case hotlist: ' +
+                  ut.list_str(case_hotlink_list))
 
         def _wrap_set_annotmatch_prop(prop, toggle_val):
             if ut.VERBOSE:
-                print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+                print('[SETTING] Clicked set prop=%r to val=%r' %
+                      (prop, toggle_val,))
             am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
             if ut.VERBOSE:
                 print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
@@ -195,19 +222,27 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
                     tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
                     tags = [_.lower() for _ in tags]
                 print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-                print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+                print('[inspect_gui] annotmatch_rowid = %r' %
+                      (annotmatch_rowid,))
                 print('[inspect_gui] tags = %r' % (tags,))
 
         for case, case_hotlink in zip(case_list, case_hotlink_list):
             toggle_val = case.lower() not in tags
             fmtstr = 'Flag %s case' if toggle_val else 'Unflag %s case'
             case_options += [
-                #(fmtstr % (case_hotlink,), lambda: ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(), [toggle_val])),
-                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
-                (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop, case, toggle_val)),
+                #(fmtstr % (case_hotlink,), lambda:
+                #ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(),
+                #                        [toggle_val])),
+                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop,
+                #case, [annotmatch_rowid], [toggle_val])),
+                (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop,
+                                                   case, toggle_val)),
             ]
         if ut.VERBOSE:
-            print('Partial tag funcs:' + ut.list_str([ut.func_str(func, func.args, func.keywords) for func in ut.get_list_column(case_options, 1)]))
+            print('Partial tag funcs:' +
+                  ut.list_str(
+                      [ut.func_str(func, func.args, func.keywords)
+                       for func in ut.get_list_column(case_options, 1)]))
         options += [
             ('Match Ta&gs', case_options)
         ]
@@ -264,7 +299,10 @@ class QueryResultsWidget(APIItemWidget):
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
 
-        #qres_wgt.altkey_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt, qres_wgt.on_alt_pressed, context=QtCore..Qt.WidgetShortcut)
+        #qres_wgt.altkey_shortcut =
+        #QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
+        #                qres_wgt.on_alt_pressed,
+        #                context=QtCore..Qt.WidgetShortcut)
         qres_wgt.button_list = None
         qres_wgt.show_new = True
         qres_wgt.show_join = True
@@ -272,17 +310,21 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.tt = utool.tic()
         # Set results data
         if USE_FILTER_PROXY:
-            qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
-        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
+            qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
+                                    qres_wgt.show_split)
+        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring,
+                                   qreq_=qreq_, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
             callback = lambda: None
         qres_wgt.callback = callback
         qres_wgt.view.setColumnHidden(0, False)
         qres_wgt.view.setColumnHidden(1, False)
-        #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT, qres_wgt.on_alt_pressed)
+        #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT,
+        #qres_wgt.on_alt_pressed)
         ALT_KEY = 16777251
-        qres_wgt.view.connect_single_key_to_slot(ALT_KEY, qres_wgt.on_alt_pressed)
+        qres_wgt.view.connect_single_key_to_slot(ALT_KEY,
+                                                 qres_wgt.on_alt_pressed)
         qres_wgt.view.connect_keypress_to_slot(qres_wgt.on_special_key_pressed)
         if parent is None:
             # Register parentless QWidgets
@@ -341,7 +383,8 @@ class QueryResultsWidget(APIItemWidget):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
 
-    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False, qreq_=None, **kwargs):
+    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False,
+                          qreq_=None, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         tblnice = 'Query Results: ' + kwargs.get('query_title', '')
         ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
@@ -349,14 +392,18 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
         qres_wgt.qreq_ = qreq_
-        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
+        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres,
+                                          name_scoring=name_scoring,
+                                          qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
 
-        headers = qres_wgt.qres_api.make_headers(tblname='qres_api', tblnice=tblnice)
+        headers = qres_wgt.qres_api.make_headers(tblname='qres_api',
+                                                 tblnice=tblnice)
 
         # HACK IN ROW SIZE
         vertical_header = qres_wgt.view.verticalHeader()
-        vertical_header.setDefaultSectionSize(qres_wgt.qres_api.get_thumb_size())
+        vertical_header.setDefaultSectionSize(
+            qres_wgt.qres_api.get_thumb_size())
 
         # super call
         APIItemWidget.change_headers(qres_wgt, headers)
@@ -385,7 +432,8 @@ class QueryResultsWidget(APIItemWidget):
 
         if colname == MATCHED_STATUS_TEXT:
             #qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)
-            #review_match_at_qtindex(qres_wgt, qtindex, qres_callback=qres_callback)
+            #review_match_at_qtindex(qres_wgt, qtindex,
+            #qres_callback=qres_callback)
             review_match_at_qtindex(qres_wgt, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex)
@@ -448,9 +496,14 @@ class QueryResultsWidget(APIItemWidget):
             qtindex = selected_qtindex_list[0]
             ibs = qres_wgt.ibs
             aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
-            ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
-            options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=qreq_, update_callback=update_callback, backend_callback=backend_callback)
-            option_dict = {key[key.find('&') + 1]: val for key, val in options if key.find('&') > -1}
+            _tup = get_widget_review_vars(qres_wgt, aid1)
+            ibs, qres, qreq_, update_callback, backend_callback = _tup
+            options = get_aidpair_context_menu_options(
+                ibs, aid1, aid2, qres, qreq_=qreq_,
+                update_callback=update_callback,
+                backend_callback=backend_callback)
+            option_dict = {key[key.find('&') + 1]: val for key, val in options
+                           if key.find('&') > -1}
 
             event_key = event.key()
             if event_key == QtCore.Qt.Key_R:
@@ -481,11 +534,11 @@ class QueryResultsWidget(APIItemWidget):
         """
         qwin = qres_wgt
         aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
-        ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
+        tup = get_widget_review_vars(qres_wgt, aid1)
+        ibs, qres, qreq_, update_callback, backend_callback = tup
         show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres,
-                                     qreq_=qreq_,
-                                     update_callback=update_callback,
-                                     backend_callback=backend_callback)
+                                  qreq_=qreq_, update_callback=update_callback,
+                                  backend_callback=backend_callback)
 
 
 def get_widget_review_vars(qres_wgt, qaid):
@@ -515,9 +568,12 @@ def show_match_at_qtindex(qres_wgt, qtindex):
     print('interact')
     qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     qreq_ = qres_wgt.qreq_
-    #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
-    #match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)
-    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, daid, mode=0, qreq_=qreq_)
+    #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid,
+    #mode=1)
+    #match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs,
+    #aid, mode=1, qreq_=qreq_)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(
+        qres_wgt.ibs, daid, mode=0, qreq_=qreq_)
     fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
@@ -533,7 +589,8 @@ def review_match_at_qtindex(qres_wgt, qtindex):
     #update_callback = None  # hack (checking if necessary)
     #backend_callback = qres_wgt.callback
     qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
-    ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, qaid)
+    tup = get_widget_review_vars(qres_wgt, qaid)
+    ibs, qres, qreq_, update_callback, backend_callback = tup
     review_match(ibs, qaid, daid, update_callback=update_callback,
                  backend_callback=backend_callback, qres=qres, qreq_=qreq_)
 
@@ -541,11 +598,13 @@ def review_match_at_qtindex(qres_wgt, qtindex):
 # ______
 
 
-def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, **kwargs):
+def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None,
+                              **kwargs):
     """
     kwargs are used for callbacks like qres_callback and query_callback
     """
-    options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=qreq_, **kwargs)
+    options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres,
+                                               qreq_=qreq_, **kwargs)
     guitool.popup_menu(qwin, qpoint, options)
 
 
@@ -570,7 +629,8 @@ def set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
             if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
                 raise guiexcept.UserCancel('canceled merge')
     try:
-        status = ibs.set_annot_pair_as_positive_match(aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
+        status = ibs.set_annot_pair_as_positive_match(
+            aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
@@ -581,10 +641,12 @@ def set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
 def set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
     def on_nontrivial_split(ibs, aid1, aid2):
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
-        print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
+        print('There are %d annots in this name. Need more sophisticated split'
+              % (len(aid1_groundtruth)))
         raise guiexcept.NeedsUserInput('non-trivial split')
     try:
-        status = ibs.set_annot_pair_as_negative_match(aid1, aid2, on_nontrivial_split=on_nontrivial_split)
+        status = ibs.set_annot_pair_as_negative_match(
+            aid1, aid2, on_nontrivial_split=on_nontrivial_split)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
@@ -592,7 +654,8 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
         print('user canceled negative match')
 
 
-def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, qreq_=None, qres=None, **kwargs):
+def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None,
+                 qreq_=None, qres=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
@@ -603,168 +666,6 @@ def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, q
         backend_callback=backend_callback, **kwargs)
     return mvinteract
     #ih.register_interaction(mvinteract)
-
-
-#class CustomAPI(object):
-#    """
-#    Allows list of lists to be represented as an abstract api table
-
-#    # TODO: Rename CustomAPI
-#    API wrapper around a list of lists, each containing column data
-#    Defines a single table
-#    """
-#    def __init__(self, col_name_list, col_types_dict, col_getter_dict,
-#                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-#                 editable_colnames, sortby, get_thumb_size=None,
-#                 sort_reverse=True, col_width_dict={}):
-#        if ut.VERBOSE:
-#            print('[CustomAPI] <__init__>')
-#        self.col_width_dict = col_width_dict
-#        self.col_name_list = []
-#        self.col_type_list = []
-#        self.col_getter_list = []
-#        self.col_setter_list = []
-#        self.nCols = 0
-#        self.nRows = 0
-#        if get_thumb_size is None:
-#            self.get_thumb_size = lambda: 128
-#        else:
-#            self.get_thumb_size = get_thumb_size
-
-#        self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
-#                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-#                                 editable_colnames, sortby, sort_reverse)
-#        if ut.VERBOSE:
-#            print('[CustomAPI] </__init__>')
-
-#    def parse_column_tuples(self,
-#                            col_name_list,
-#                            col_types_dict,
-#                            col_getter_dict,
-#                            col_bgrole_dict,
-#                            col_ider_dict,
-#                            col_setter_dict,
-#                            editable_colnames,
-#                            sortby,
-#                            sort_reverse=True):
-#        """
-#        parses simple lists into information suitable for making guitool headers
-#        """
-#        # Unpack the column tuples into names, getters, and types
-#        self.col_name_list = col_name_list
-#        self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
-#        self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
-#        # Get number of rows / columns
-#        self.nCols = len(self.col_getter_list)
-#        self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
-#        # Init iders to default and then overwite based on dict inputs
-#        self.col_ider_list = utool.alloc_nones(self.nCols)
-#        for colname, ider_colnames in six.iteritems(col_ider_dict):
-#            try:
-#                col = self.col_name_list.index(colname)
-#                # Col iders might have tuple input
-#                ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
-#                col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
-#                self.col_ider_list[col] = col_ider
-#                del col_ider
-#                del ider_cols
-#                del col
-#                del colname
-#            except Exception as ex:
-#                ut.printex(ex, keys=['colname', 'ider_colnames', 'col', 'col_ider', 'ider_cols'])
-#                raise
-#        # Init setters to data, and then overwrite based on dict inputs
-#        self.col_setter_list = list(self.col_getter_list)
-#        for colname, col_setter in six.iteritems(col_setter_dict):
-#            col = self.col_name_list.index(colname)
-#            self.col_setter_list[col] = col_setter
-#        # Init bgrole_getters to None, and then overwrite based on dict inputs
-#        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
-#        # Mark edtiable columns
-#        self.col_edit_list = [name in editable_colnames for name in col_name_list]
-#        # Mark the sort column index
-#        if utool.is_str(sortby):
-#            self.col_sort_index = self.col_name_list.index(sortby)
-#        else:
-#            self.col_sort_index = sortby
-#        self.col_sort_reverse = sort_reverse
-
-#    def _infer_index(self, column, row):
-#        """
-#        returns the row based on the columns iders.
-#        This is the identity for the default ider
-#        """
-#        ider_ = self.col_ider_list[column]
-#        if ider_ is None:
-#            return row
-#        iderfunc = lambda func_: func_(row)
-#        return utool.uinput_1to1(iderfunc, ider_)
-
-#    def get(self, column, row, **kwargs):
-#        """
-#        getters always receive primary rowids, rectify if col_ider is
-#        specified (row might be a row_pair)
-#        """
-#        index = self._infer_index(column, row)
-#        column_getter = self.col_getter_list[column]
-#        # Columns might be getter funcs indexable read/write arrays
-#        try:
-#            return utool.general_get(column_getter, index, **kwargs)
-#        except Exception:
-#            # FIXME: There may be an issue on tuple-key getters when row input is
-#            # vectorized. Hack it away
-#            if utool.isiterable(row):
-#                row_list = row
-#                return [self.get(column, row_, **kwargs) for row_ in row_list]
-#            else:
-#                raise
-
-#    def set(self, column, row, val):
-#        index = self._infer_index(column, row)
-#        column_setter = self.col_setter_list[column]
-#        # Columns might be setter funcs or indexable read/write arrays
-#        utool.general_set(column_setter, index, val)
-
-#    def get_bgrole(self, column, row):
-#        bgrole_getter = self.col_bgrole_getter_list[column]
-#        if bgrole_getter is None:
-#            return None
-#        index = self._infer_index(column, row)
-#        return utool.general_get(bgrole_getter, index)
-
-#    def ider(self):
-#        return list(range(self.nRows))
-
-#    def make_headers(self, tblname='qres_api', tblnice='Query Results'):
-#        """
-#        Builds headers for APIItemModel
-#        """
-#        headers = {
-#            'name': tblname,
-#            'nice': tblname if tblnice is None else tblnice,
-#            'iders': [self.ider],
-#            'col_name_list'    : self.col_name_list,
-#            'col_type_list'    : self.col_type_list,
-#            'col_nice_list'    : self.col_name_list,
-#            'col_edit_list'    : self.col_edit_list,
-#            'col_sort_index'   : self.col_sort_index,
-#            'col_sort_reverse' : self.col_sort_reverse,
-#            'col_getter_list'  : self._make_getter_list(),
-#            'col_setter_list'  : self._make_setter_list(),
-#            'col_setter_list'  : self._make_setter_list(),
-#            'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
-#            'get_thumb_size'   : self.get_thumb_size,
-#        }
-#        return headers
-
-#    def _make_bgrole_getter_list(self):
-#        return [partial(self.get_bgrole, column) for column in range(self.nCols)]
-
-#    def _make_getter_list(self):
-#        return [partial(self.get, column) for column in range(self.nCols)]
-
-#    def _make_setter_list(self):
-#        return [partial(self.set, column) for column in range(self.nCols)]
 
 
 def get_match_status(ibs, aid_pair):
@@ -818,7 +719,8 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     lighten_amount = .35 if annotmach_reviewed else .9
-    truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=lighten_amount)
+    truth_color = vh.get_truth_color(truth, base255=True,
+                                     lighten_amount=lighten_amount)
     #truth = ibs.get_match_truth(aid1, aid2)
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     #truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
@@ -837,7 +739,8 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
 #                                        lighten_amount=0.35)
 #    truth_text = ibs.get_match_text(aid1, aid2)
 #    callback = partial(review_match, ibs, aid1, aid2)
-#    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
+#    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2,
+#    row, truth))
 #    buttontup = (truth_text, callback, truth_color)
 #    return buttontup
 
@@ -879,7 +782,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     from ibeis.viz.interact import interact_qres2  # NOQA
     from ibeis.gui import inspect_gui
     from ibeis.experiments import results_all
-    allres = results_all.get_allres(ibs, qaid_list, cfgdict={'augment_queryside_hack': True})
+    allres = results_all.get_allres(ibs, qaid_list, cfgdict={
+        'augment_queryside_hack': True})
     tblname = 'qres'
     qreq_ = allres.qreq_
     qaid2_qres = allres.qaid2_qres
@@ -890,18 +794,19 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     # This is where you create the result widigt
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
-    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
+    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+    #ranks_lt=ranks_lt, qreq_=qreq_)
     #ut.view_directory(ibs.get_match_thumbdir())
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                              ranks_lt=ranks_lt, qreq_=qreq_,
-                                              filter_reviewed=False,
-                                              filter_duplicate_namepair_matches=True)
+    qres_wgt = inspect_gui.QueryResultsWidget(
+        ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
+        filter_duplicate_namepair_matches=True)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
     qres_wgt.raise_()
     #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres,
+    #ranks_lt=ranks_lt)
     print('</inspect_matches>')
     # simulate double click
     #qres_wgt._on_click(qres_wgt.model.index(2, 2))
@@ -933,7 +838,8 @@ def get_match_thumb_fname(qres, daid):
     # Make thumbnail name
     config_hash = ut.hashstr(qres.cfgstr)
     qaid = qres.qaid
-    match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s.jpg' % ((qaid, daid, config_hash))
+    match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s.jpg' % ((qaid, daid,
+                                                             config_hash))
     return match_thumb_fname
 
 
@@ -981,13 +887,16 @@ def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
     return fpath
 
 
-def get_match_thumbtup(ibs, qaid2_qres, qaids, daids, index, qreq_=None, thumbsize=(128, 128), match_thumbtup_cache={}):
+def get_match_thumbtup(ibs, qaid2_qres, qaids, daids, index, qreq_=None,
+                       thumbsize=(128, 128), match_thumbtup_cache={}):
     qaid, daid = qaids[index], daids[index]
     qres = qaid2_qres[qaid]
-    fpath = ensure_match_img(ibs, qres, daid, qreq_=qreq_, match_thumbtup_cache=match_thumbtup_cache)
+    fpath = ensure_match_img(ibs, qres, daid, qreq_=qreq_,
+                             match_thumbtup_cache=match_thumbtup_cache)
     if isinstance(thumbsize, int):
         thumbsize = (thumbsize, thumbsize)
-    thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize, [], [])
+    thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize,
+                [], [])
     return thumbtup
 
 
@@ -1118,7 +1027,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
 
     USE_MATCH_THUMBS = True
     if USE_MATCH_THUMBS:
-        col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1, MATCH_THUMB_TEXT)
+        col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
+                             MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
         get_match_thumbtup_ = partial(get_match_thumbtup, ibs, qaid2_qres,
                                       qaids, daids, qreq_=qreq_,
@@ -1197,8 +1107,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
             #col_ider_dict[colname] = annotmatch_rowid_list
             col_ider_dict[colname] = ('qaid', 'aid')
             col_types_dict[colname] = bool
-            col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(ibs, colname)
-            col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(ibs, colname)
+            col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(
+                ibs, colname)
+            col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(
+                ibs, colname)
             col_width_dict[colname] = 70
             editable_colnames.append(colname)
 
@@ -1209,9 +1121,11 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     sortby = 'score'
     get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
     # Insert info into dict
-    qres_api = guitool.CustomAPI(col_name_list, col_types_dict, col_getter_dict,
-                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+    qres_api = guitool.CustomAPI(col_name_list, col_types_dict,
+                                 col_getter_dict, col_bgrole_dict,
+                                 col_ider_dict, col_setter_dict,
+                                 editable_colnames, sortby, get_thumb_size,
+                                 True, col_width_dict)
     return qres_api
 
 
@@ -1223,7 +1137,8 @@ def launch_review_matches_interface(ibs, qres_list, dodraw=False):
     #backend_callback = back.front.update_tables
     backend_callback = None
     qaid2_qres = {qres.qaid: qres for qres in qres_list}
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                              callback=backend_callback)
     if dodraw:
         qres_wgt.show()
         qres_wgt.raise_()
@@ -1236,7 +1151,7 @@ def inspect_orphaned_qres_bigcache(ibs, bc_fpath, cfgdict={}):
 
     import ibeis
     ibs = ibeis.opendb('PZ_Master0')
-    fname = 'PZ_Master0_QRESMAP_QSUUIDS((187)85k!tqcpgtb8k%rj)_DSUUIDS((200)4%t0tenxktstb676)2m8fp@nto!s@@0f+_a@2duauqcb4r18g7.cPkl'
+    fname = 'PZ_Master0_QRESMAP_QSUUIDS((187)85k!tqcpgtb8k%rj)_DSUUIDS((200)4%t0tenxktstb676)2m8fp@nto!s@@0f+_a@2duauqcb4r18g7.cPkl'  # NOQA
     bc_dpath = ibs.get_big_cachedir()
     from os.path import join
     bc_fpath = join(bc_dpath, fname)

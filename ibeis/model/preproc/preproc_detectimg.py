@@ -80,7 +80,8 @@ def compute_and_write_detectimg(ibs, gid_list):
         >>> print(ut.list_str(new_gfpath_list))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(new_gfpath_list[0])
+        >>> #pt.imshow(new_gfpath_list[0])
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(new_gfpath_list, nPerPage=4)
         >>> pt.show_if_requested()
     """
     utool.ensuredir(ibs.get_detectimg_cachedir())

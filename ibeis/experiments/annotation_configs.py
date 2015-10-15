@@ -45,6 +45,8 @@ INDEPENDENT_DEFAULTS = {
     'view_pername'        : None,   # formatted string filtering the viewpoints
     'is_known'            : None,
     'min_pername'         : None,  # minimum number of aids for each name in sample
+    'min_numfeat'         : None,  # maximum number of features detected by default config
+    'max_numfeat'         : None,  # minimum number of features detected by default config
 }
 
 SUBINDEX_DEFAULTS = {
@@ -70,7 +72,9 @@ SAMPLE_REF_DEFAULTS = {
 
 # Base common settings, but some default settings will be different
 # for query and database annotations
-DEFAULT_AIDCFG = ut.merge_dicts(OTHER_DEFAULTS, INDEPENDENT_DEFAULTS, SAMPLE_DEFAULTS, SAMPLE_REF_DEFAULTS, SUBINDEX_DEFAULTS)
+DEFAULT_AIDCFG = ut.merge_dicts(OTHER_DEFAULTS, INDEPENDENT_DEFAULTS,
+                                SAMPLE_DEFAULTS, SAMPLE_REF_DEFAULTS,
+                                SUBINDEX_DEFAULTS)
 __default_aidcfg = DEFAULT_AIDCFG
 #'default_aids'        : 'all',  # initial set to choose from
 # Databse size
@@ -145,7 +149,8 @@ def partition_acfg_list(acfg_list):
     _acfg_list = [compress_aidcfg(acfg) for acfg in acfg_list]
 
     flat_acfg_list = flatten_acfg_list(_acfg_list)
-    flat_nonvaried_dict, flat_varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
+    flat_nonvaried_dict, flat_varied_acfg_list = cfghelpers.partition_varied_cfg_list(
+        flat_acfg_list)
     nonvaried_dict = unflatten_acfgdict(flat_nonvaried_dict)
     varied_acfg_list = [unflatten_acfgdict(acfg) for acfg in flat_varied_acfg_list]
     return nonvaried_dict, varied_acfg_list
@@ -237,7 +242,8 @@ def compress_acfg_list_for_printing(acfg_list):
     """
     flat_acfg_list = flatten_acfg_list(acfg_list)
     nonvaried_dict, varied_acfg_list = cfghelpers.partition_varied_cfg_list(flat_acfg_list)
-    nonvaried_compressed_dict = compress_aidcfg(unflatten_acfgdict(nonvaried_dict), filter_nones=True)
+    nonvaried_compressed_dict = compress_aidcfg(
+        unflatten_acfgdict(nonvaried_dict), filter_nones=True)
     varied_compressed_dict_list = [
         compress_aidcfg(unflatten_acfgdict(cfg), filter_empty=True)
         for cfg in varied_acfg_list]
@@ -682,7 +688,9 @@ viewpoint_compare = {
         controlled['qcfg'], {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
             'sample_size': None,
-            'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
+            # To be a query you must have at least two primary1 views and at
+            # least one primary view
+            'view_pername': '#primary>0&#primary1>1',
             'force_const_size': True,
             'view': 'primary1',
             'sample_per_name': 1,
@@ -693,14 +701,21 @@ viewpoint_compare = {
         controlled['dcfg'], {
             'view': ['primary1', 'primary'],
             'force_const_size': True,
-            'view_pername': '#primary>0&#primary1>1',  # To be a query you must have at least two primary1 views and at least one primary view
-            #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
+            # To be a query you must have at least two primary1 views and at
+            # least one primary view
+            'view_pername': '#primary>0&#primary1>1',
+            # daids are not the same here. there is a nondetermenism (ordering
+            # problem)
+            #'view': ['primary1', 'primary1'],
             #'view': ['primary'],
             #'sample_per_name': 1,
             #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
-            'sample_per_name': 1,  # None this seems to produce odd results where the per_ref is still more then 1
-            'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
+            # None this seems to produce odd results where the per_ref is still
+            # more then 1
+            'sample_per_name': 1,
+            # TODO: need to make this consistent accross both experiment modes
+            'sample_size': None,
         }),
 }
 
@@ -710,7 +725,9 @@ viewdiff = vp = viewpoint_compare = {
         controlled['qcfg'], {
             #'view_pername': 'len(primary) > 2 and len(primary1) > 2',
             'sample_size': None,
-            'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
+            # To be a query you must have at least two primary1 views and at
+            # least one primary view
+            'view_pername': '#primary>0&#primary1>0',
             'force_const_size': True,
             'view': 'primary1',
             'sample_per_name': 1,
@@ -721,13 +738,15 @@ viewdiff = vp = viewpoint_compare = {
         controlled['dcfg'], {
             'view': ['primary'],
             'force_const_size': True,
-            #'view_pername': '#primary>0&#primary1>0',  # To be a query you must have at least two primary1 views and at least one primary view
+            #'view_pername': '#primary>0&#primary1>0',  # To be a query you
+            #must have at least two primary1 views and at least one primary view
             #'view': ['primary1', 'primary1'],  # daids are not the same here. there is a nondetermenism (ordering problem)
             #'view': ['primary'],
             #'sample_per_name': 1,
             #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
-            'sample_per_name': 1,  # None this seems to produce odd results where the per_ref is still more then 1
+            'sample_per_name': 1,  # None this seems to produce odd results
+                                   # where the per_ref is still more then 1
             'sample_size': None,  # TODO: need to make this consistent accross both experiment modes
         }),
 }

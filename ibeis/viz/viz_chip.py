@@ -11,18 +11,21 @@ from ibeis.viz import viz_image
 def testdata_showchip():
     import ibeis
     ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-    aid_list = ut.get_argval('--aids', type_=list, default=None)
+    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
     if aid_list is None:
         aid_list = ibs.get_valid_aids()[0:4]
     weight_label = ut.get_argval('--weight_label', type_=str, default='fg_weights')
     annote = not ut.get_argflag('--no-annote')
     kwargs = dict(ori=False, weight_label=weight_label, annote=annote)
     ut.print_dict(kwargs)
+    default_config = dict(ibeis.model.Config.FeatureWeightConfig().parse_items())
+    cfgdict = ut.argparse_dict(default_config)
+    config2_ = ibs.new_query_params(cfgdict=cfgdict)
     print(aid_list)
-    return ibs, aid_list, kwargs
+    return ibs, aid_list, kwargs, config2_
 
 
-def show_many_chips(ibs, aid_list):
+def show_many_chips(ibs, aid_list, config2_=None):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_many_chips
@@ -33,14 +36,13 @@ def show_many_chips(ibs, aid_list):
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
         >>> in_image = False
-        >>> ibs, aid_list, kwargs = testdata_showchip()
+        >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> # execute function
-        >>> show_many_chips(ibs, aid_list)
+        >>> show_many_chips(ibs, aid_list, config2_)
         >>> ut.show_if_requested()
     """
     if ut.VERBOSE:
         print('[viz] show_many_chips')
-    config2_ = None
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
     import vtool as vt
@@ -73,16 +75,16 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
         >>> in_image = False
-        >>> ibs, aid_list, kwargs = testdata_showchip()
+        >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
-        >>> config2_ = None
-        >>> show_chip(ibs, aid, in_image=in_image, **kwargs)
+        >>> show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)
         >>> pt.show_if_requested()
     """
     if ut.VERBOSE:
         print('[viz] show_chip(aid=%r)' % (aid,))
     #ibs.assert_valid_aids((aid,))
     # Get chip
+    print('in_image = %r' % (in_image,))
     chip = vh.get_chips(ibs, aid, in_image=in_image, config2_=config2_)
     # Create chip title
     chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
@@ -129,7 +131,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     if in_image:
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
-        annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True))
+        annotekw = viz_image.get_annot_annotations(
+            ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True))
         # Put annotation centers in the axis
         ph.set_plotdat(ax, 'annotation_bbox_list', annotekw['bbox_list'])
         ph.set_plotdat(ax, 'aid_list', aid_list)

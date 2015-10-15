@@ -55,16 +55,19 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
 
-def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False, eager=True):
+def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None,
+                                     verbose=False, eager=True):
     r"""
     SUPER HACY FUNCTION. NEED TO DEPRICATE
 
     ----------------------
     Found 1 line(s) in 'ibeis/model/preproc/preproc_chip.py':
-    preproc_chip.py :  25 |def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
+    preproc_chip.py :  25 |def compute_or_read_annotation_chips(ibs, aid_list,
+    ensure=True):
     ----------------------
     Found 1 line(s) in 'ibeis/control/manual_chip_funcs.py':
-    manual_chip_funcs.py : 313 |    chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)
+    manual_chip_funcs.py : 313 |    chip_list =
+    preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)
 
     """
     if ensure:
@@ -75,7 +78,8 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
             raise
     nTotal = len(aid_list)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
-    mk_cpath_iter = functools.partial(ut.ProgressIter, cfpath_list, nTotal=nTotal, enabled=verbose, freq=100)
+    mk_cpath_iter = functools.partial(ut.ProgressIter, cfpath_list,
+                                      nTotal=nTotal, enabled=verbose, freq=100)
     try:
         if ensure:
             cfpath_iter = mk_cpath_iter(lbl='reading ensured chips')
@@ -398,17 +402,25 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
                             newsize_list, filtlist_iter)
     arg_list = list(arg_iter)
     #ut.embed()
-    # We have to force serial here until we can figure out why parallel chip generation causes a freeze
-    # utool has a unstable test that reproduces this reliably (BECAUSE OF CV2.WARP_AFFINE WITH BIG OUTPUT)
+    # We have to force serial here until we can figure out why parallel chip
+    # generation causes a freeze
+    # utool has a unstable test that reproduces this reliably (BECAUSE OF
+    # CV2.WARP_AFFINE WITH BIG OUTPUT)
 
     DO_IMWRITE_IN_WORKER = False
     if DO_IMWRITE_IN_WORKER:
         # Compute and write chips in asychronous process
-        chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True, force_serial=True, freq=10)
+        chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list,
+                                                     ordered=True,
+                                                     force_serial=True,
+                                                     freq=10)
         chip_result_list = list(chip_result_iter)
     else:
         # Compute chips in asychronous process. Write here
-        chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list, ordered=True, force_serial=True, freq=10)
+        chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list,
+                                                     ordered=True,
+                                                     force_serial=True,
+                                                     freq=10)
         chip_result_list = []
         for chipBGR, cfpath, width, height in chip_result_iter:
             vt.imwrite(cfpath, chipBGR)
@@ -494,7 +506,8 @@ def make_annot_chip_uri_list(ibs, aid_list, config2_=None):
     #chipdir = ibs.get_chipdir()
     #cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
-    #cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for avuuid in annot_visual_uuid_list]
+    #cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for
+    #avuuid in annot_visual_uuid_list]
     cfpath_list = [cfname_fmt.format(avuuid=avuuid) for avuuid in annot_visual_uuid_list]
     return cfpath_list
 
@@ -570,7 +583,8 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
     annot_gid_list   = ibs.get_annot_gids(aid_list)
     try:
         annot_bboxstr_list = list([ut.bbox_str(bbox, pad=0, sep=',') for bbox in annot_bbox_list])
-        annot_thetastr_list = list([ut.theta_str(theta, taustr='tau') for theta in annot_theta_list])
+        annot_thetastr_list = list([ut.theta_str(theta, taustr='tau')
+                                    for theta in annot_theta_list])
     except Exception as ex:
         ut.printex(ex, 'problem in chip_fname', keys=[
             'aid_list',

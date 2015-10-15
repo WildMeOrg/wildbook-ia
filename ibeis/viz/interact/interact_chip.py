@@ -10,7 +10,7 @@ from ibeis import viz
 import utool as ut
 import vtool as vt
 import plottool as pt  # NOQA
-import functools
+from functools import partial
 import six
 from ibeis import constants as const
 from plottool import draw_func2 as df2
@@ -20,6 +20,44 @@ from plottool import interact_helpers as ih
 
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[interact_chip]', DEBUG=False)
+
+
+def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    Returns:
+        MultiImageInteraction: iteract_obj
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_chip --exec-interact_multichips --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> iteract_obj = interact_multichips(ibs, aid_list)
+        >>> result = ('iteract_obj = %s' % (str(iteract_obj),))
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    # FIXME: needs to be flushed out a little
+    import plottool as pt
+    show_chip_list = [
+        partial(viz.show_chip, ibs, aid, ell=0, pts=0, config2_=config2_)
+        for aid in aid_list
+    ]
+    context_option_funcs = [
+        partial(build_annot_context_options, ibs, aid, config2_=config2_)
+        for aid in aid_list
+    ]
+    iteract_obj = pt.interact_multi_image.MultiImageInteraction(
+        show_chip_list, context_option_funcs=context_option_funcs, **kwargs)
+    return iteract_obj
 
 
 def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
@@ -34,12 +72,11 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
 
     """
     import guitool
-    callback_list = build_annot_context_options(ibs, aid,
-                                                refresh_func=refresh_func,
-                                                with_interact_name=with_interact_name,
-                                                with_interact_chip=with_interact_chip,
-                                                with_interact_image=with_interact_image,
-                                                config2_=config2_)
+    callback_list = build_annot_context_options(
+        ibs, aid, refresh_func=refresh_func,
+        with_interact_name=with_interact_name,
+        with_interact_chip=with_interact_chip,
+        with_interact_image=with_interact_image, config2_=config2_)
     guitool.popup_menu(qwin, qpoint, callback_list)
 
 
@@ -74,7 +111,11 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>> with_interact_chip = True
         >>> with_interact_image = True
         >>> config2_ = None
-        >>> callback_list = build_annot_context_options(ibs, aid, refresh_func, with_interact_name, with_interact_chip, with_interact_image, config2_)
+        >>> callback_list = build_annot_context_options(ibs, aid, refresh_func,
+        >>>                                             with_interact_name,
+        >>>                                             with_interact_chip,
+        >>>                                             with_interact_image,
+        >>>                                             config2_)
         >>> result = ('callback_list = %s' % (ut.list_str(callback_list, nl=4),))
         >>> print(result)
     """
@@ -119,30 +160,39 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     if with_interact_chip:
         callback_list += [
-            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None, config2_=config2_))
+            ('Interact chip',
+             partial(
+                 ishow_chip, ibs, aid, fnum=None, config2_=config2_))
         ]
 
     if with_interact_name and not ibs.is_nid_unknown(nid):
         from ibeis.viz.interact import interact_name
         callback_list.append(
-            ('Interact name', functools.partial(interact_name.ishow_name, ibs, nid, fnum=None))
+            ('Interact name', partial(interact_name.ishow_name, ibs,
+                                                nid, fnum=None))
         )
         from ibeis.viz import viz_graph
         callback_list.append(
-            ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=None, aids=[aid])),
+            ('Interact name graph',
+             partial(viz_graph.make_name_graph_interaction,
+                               ibs, nids=None, aids=[aid])),
         )
 
     if with_interact_image:
         gid = ibs.get_annot_gids(aid)
         from ibeis.viz.interact import interact_annotations2
         callback_list.append(
-            ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
+            ('Interact image',
+             partial(
+                 interact_annotations2.ishow_image2, ibs, gid, fnum=None))
         )
 
     if True:
         from ibeis import viz
         callback_list.append(
-            ('View detection chip (probability) [dev]', refresh_wrp(lambda: viz.show_probability_chip(ibs, aid, config2_=config2_))),
+            ('View detection chip (probability) [dev]',
+             refresh_wrp(lambda: viz.show_probability_chip(
+                 ibs, aid, config2_=config2_))),
         )
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
@@ -151,16 +201,22 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     callback_list += [
         #('Set Viewpoint: ' + key, set_yaw_func(key))
         ('Set &Viewpoint: ',  [
-            ('&' + str(count) + ' ' + ('*' if current_yawtext == key else '') + key, set_yaw_func(key))
-            for count, key in enumerate(six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS), start=1)
+            ('&' + str(count) + ' ' +
+             ('*' if current_yawtext == key else '') + key,
+             set_yaw_func(key))
+            for count, key in
+            enumerate(six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS), start=1)
         ]),
     ]
     # Nested qualities
     callback_list += [
         #('Set Quality: ' + key, set_quality_func(key))
         ('Set &Quality: ',  [
-            ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '') + '&' + key, set_quality_func(key))
-            for count, key in enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
+            ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '')
+             + '&' + key,
+             set_quality_func(key))
+            for count, key in
+            enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
         ]),
     ]
 
@@ -171,25 +227,29 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         tags = ibs.get_annot_case_tags([aid])[0]
         tags = [_.lower() for _ in tags]
 
-        case_hotlink_list = guitool.make_word_hotlinks(case_list, after_colon=True)
+        case_hotlink_list = guitool.make_word_hotlinks(case_list,
+                                                       after_colon=True)
 
         def _wrap_set_annot_prop(prop, toggle_val):
             if ut.VERBOSE:
-                print('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val,))
+                print('[SETTING] Clicked set prop=%r to val=%r' %
+                      (prop, toggle_val,))
             ibs.set_annot_prop(prop, [aid], [toggle_val])
             if ut.VERBOSE:
                 print('[SETTING] done')
-
-        from functools import partial
 
         annot_tag_options = []
         for case, case_hotlink in zip(case_list, case_hotlink_list):
             toggle_val = case.lower() not in tags
             fmtstr = 'Mark %s case' if toggle_val else 'Untag %s'
             annot_tag_options += [
-                #(fmtstr % (case_hotlink,), lambda: ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(), [toggle_val])),
-                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop, case, [annotmatch_rowid], [toggle_val])),
-                (fmtstr % (case_hotlink,), partial(_wrap_set_annot_prop, case, toggle_val)),
+                #(fmtstr % (case_hotlink,), lambda:
+                #ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(),
+                #                        [toggle_val])),
+                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop,
+                #case, [annotmatch_rowid], [toggle_val])),
+                (fmtstr % (case_hotlink,), partial(_wrap_set_annot_prop, case,
+                                                   toggle_val)),
             ]
 
         callback_list += [
@@ -197,14 +257,44 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ]
 
     callback_list += [
-        ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
+        ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar',
+         toggle_exemplar_func),
     ]
+
+    print('Annotation Info = ' + ut.obj_str(
+        ibs.get_annot_info(aid, default=True, gname=False, name=False,
+                           notes=False, exemplar=False), nl=4))
     return callback_list
 
 
+#def custom_chip_click(event):
+#    ax = event.inaxes
+#    if ih.clicked_outside_axis(event):
+#        pass
+#    else:
+#        viztype = vh.get_ibsdat(ax, 'viztype')
+#        print_('[ic] viztype=%r' % viztype)
+#        if viztype == 'chip':
+#            if event.button == 3:   # right-click
+#                import guitool
+#                from ibeis.viz.interact import interact_chip
+#                height = fig.canvas.geometry().height()
+#                qpoint = guitool.newQPoint(event.x, height - event.y)
+#                refresh_func = partial(_chip_view, **kwargs)
+#                interact_chip.show_annot_context_menu(
+#                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
+#                    with_interact_chip=False, config2_=config2_)
+
+
 # CHIP INTERACTION 2
-def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
+def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
+               ischild=False, **kwargs):
     r"""
+
+    # TODO:
+        split into two interactions
+        interact chip and interact chip features
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid (int):  annotation id
@@ -231,12 +321,16 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
         >>> pt.show_if_requested()
         >>> print(result)
     """
-    if fnum is None:
-        fnum = pt.next_fnum()
+    fnum = pt.ensure_fnum(fnum)
     vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
-    fig = ih.begin_interaction('chip', fnum)
+    if not ischild:
+        fig = ih.begin_interaction('chip', fnum)
+    else:
+        fig = pt.gcf()
+        #fig = pt.figure(fnum=fnum, pnum=pnum)
+
     # Get chip info (make sure get_chips is called first)
     #mode_ptr = [1]
     mode_ptr = [0]
@@ -248,6 +342,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
         sift = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
+        #ishow_chip(ibs, aid, fnum=None, fx=fx, config2_=config2_, **kwargs)
         # Draw the selected feature plots
         nRows, nCols, px = (2, 3, 3)
         draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, None)
@@ -256,25 +351,29 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
         print('... _chip_view mode=%r' % mode_ptr[0])
         kwargs['ell'] = mode_ptr[0] == 1
         kwargs['pts'] = mode_ptr[0]  == 2
-        df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
+
+        if not ischild:
+            df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, config2_=config2_, **kwargs)
+        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, config2_=config2_,
+                      **kwargs)
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
         print_('[inter] clicked chip')
         ax, x, y = event.inaxes, event.xdata, event.ydata
         if ih.clicked_outside_axis(event):
-            print('... out of axis')
-            mode_ptr[0] = (mode_ptr[0] + 1) % 3
-            _chip_view(**kwargs)
+            if not ischild:
+                print('... out of axis')
+                mode_ptr[0] = (mode_ptr[0] + 1) % 3
+                _chip_view(**kwargs)
         else:
             if event.button == 3:   # right-click
                 import guitool
                 from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = guitool.newQPoint(event.x, height - event.y)
-                refresh_func = functools.partial(_chip_view, **kwargs)
+                refresh_func = partial(_chip_view, **kwargs)
                 interact_chip.show_annot_context_menu(
                     ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
                     with_interact_chip=False, config2_=config2_)
@@ -287,7 +386,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
                 elif viztype == 'chip':
                     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
                     if len(kpts) > 0:
-                        fx = vt.nearest_point(x, y, kpts, conflict_mode='next')[0]
+                        fx = vt.nearest_point(
+                            x, y, kpts, conflict_mode='next')[0]
                         print('... clicked fx=%r' % fx)
                         _select_fxth_kpt(fx)
                     else:
@@ -295,7 +395,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
                 elif viztype in ['warped', 'unwarped']:
                     fx = vh.get_ibsdat(ax, 'fx')
                     if fx is not None and viztype == 'warped':
-                        viz.show_keypoint_gradient_orientations(ibs, aid, fx, fnum=df2.next_fnum())
+                        viz.show_keypoint_gradient_orientations(
+                            ibs, aid, fx, fnum=df2.next_fnum())
                 else:
                     print('...Unknown viztype: %r' % viztype)
 
@@ -308,7 +409,9 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
         _chip_view(**kwargs)
     if dodraw:
         viz.draw()
-    ih.connect_callback(fig, 'button_press_event', _on_chip_click)
+
+    if not ischild:
+        ih.connect_callback(fig, 'button_press_event', _on_chip_click)
 
 
 if __name__ == '__main__':
@@ -316,7 +419,6 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.viz.interact.interact_chip
         python -m ibeis.viz.interact.interact_chip --allexamples
-        python -m ibeis.viz.interact.interact_chip --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
