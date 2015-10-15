@@ -99,6 +99,8 @@ def best(metadata):
                 return apply_param(Ell, K=1)
             if dbname in ['NNP_MasterGIRM_core', 'GIRM_Master1']:
                 return apply_param(Ell, K=2)
+            if dbname in ['WS_Hard']:
+                return apply_param(default)
     return default
 
 

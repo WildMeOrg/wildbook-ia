@@ -6,7 +6,7 @@ single place.
 CommandLine Help for manual controller functions
 
 # Cross platform alias helper
-python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"
+python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"  # NOQA
 
 Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 Tgen.sh --tbls annotations --Tcfg with_getters:True with_native:True strip_docstr:True

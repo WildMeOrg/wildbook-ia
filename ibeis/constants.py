@@ -64,7 +64,9 @@ QUALITY_INT_TO_TEXT = OrderedDict([
 QUALITY_TEXT_TO_INT       = ut.invert_dict(QUALITY_INT_TO_TEXT)
 QUALITY_INT_TO_TEXT[1]    = QUAL_JUNK
 #QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)
-QUALITY_TEXT_TO_INTS = ut.group_items(list(QUALITY_INT_TO_TEXT.keys()), list(QUALITY_INT_TO_TEXT.values()))
+QUALITY_TEXT_TO_INTS = ut.group_items(
+    list(QUALITY_INT_TO_TEXT.keys()),
+    list(QUALITY_INT_TO_TEXT.values()))
 QUALITY_TEXT_TO_INTS[QUAL_UNKNOWN] = -1
 QUALITY_INT_TO_TEXT[None] = QUALITY_INT_TO_TEXT[-1]
 
@@ -342,9 +344,11 @@ INTRA_ENC_KEY = 'intra_encounter'
 HARD_NOTE_TAG = '<HARDCASE>'
 
 if ut.get_computer_name() == 'ibeis.cs.uic.edu':
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='prod', help_='specify the Wildbook target deployment')
+    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='prod',
+                                    help_='specify the Wildbook target deployment')
 else:
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='ibeis', help_='specify the Wildbook target deployment')
+    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='ibeis',
+                                    help_='specify the Wildbook target deployment')
 
 
 def get_species_code(species_text_):

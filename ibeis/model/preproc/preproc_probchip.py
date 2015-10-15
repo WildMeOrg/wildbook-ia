@@ -57,7 +57,7 @@ def postprocess_dev():
     import cv2
     import numpy as np  # NOQA
 
-    #fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
+    #fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'  # NOQA
     import ibeis
     ibs = ibeis.opendb(defaultdb='PZ_MTEST')
     aid_list = ibs.get_valid_aids()
@@ -254,7 +254,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:1
         python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:2 --show --cnn
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
@@ -270,7 +270,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4)
         >>> ut.show_if_requested()
 
-    Example:
+    Example1:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
@@ -304,10 +304,13 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
     """
     # Get probchip dest information (output path)
     # TODO; properly ungroup output
-    grouped_aids, unique_species, groupxs = group_aids_by_featweight_species(ibs, aid_list, config2_)
+    grouped_aids, unique_species, groupxs = group_aids_by_featweight_species(
+        ibs, aid_list, config2_)
     nSpecies = len(unique_species)
     nTasks = len(aid_list)
-    print('[preproc_probchip.compute_and_write_probchip] Preparing to compute %d probchips of %d species' % (nTasks, nSpecies))
+    print(('[preproc_probchip.compute_and_write_probchip] '
+          'Preparing to compute %d probchips of %d species')
+          % (nTasks, nSpecies))
     cachedir = ibs.get_probchip_dir()
     ut.ensuredir(cachedir)
 
@@ -320,7 +323,9 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
             print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
-        probchip_fpaths = get_annot_probchip_fpath_list(ibs, aids, config2_=config2_, species=species)
+        probchip_fpaths = get_annot_probchip_fpath_list(ibs, aids,
+                                                        config2_=config2_,
+                                                        species=species)
 
         if lazy:
             # Filter out probchips that are already on disk
@@ -330,7 +335,8 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
             isdirty_list = ut.not_list(map(exists, probchip_fpaths))
             dirty_aids = ut.filter_items(aids, isdirty_list)
             dirty_probchip_fpath_list = ut.filter_items(probchip_fpaths, isdirty_list)
-            print('[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute %d/%d of species=%s' %
+            print(('[preproc_probchip.compute_and_write_probchip]'
+                  ' Lazy compute of to compute %d/%d of species=%s') %
                   (len(dirty_aids), len(aids), species))
         else:
             # No filtering
@@ -345,7 +351,8 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
 
-    probchip_fpath_list = vt.invert_apply_grouping2(grouped_probchip_fpath_list, groupxs, dtype=object)
+    probchip_fpath_list = vt.invert_apply_grouping2(
+        grouped_probchip_fpath_list, groupxs, dtype=object)
     return probchip_fpath_list
 
 
@@ -359,7 +366,8 @@ def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, speci
         (extramargin_fpath_list,
          probchip_extramargin_fpath_list,
          halfoffset_cs_list,
-         ) = compute_extramargin_detectchip(ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
+         ) = compute_extramargin_detectchip(
+             ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
         #dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)
 
         config = {
@@ -367,11 +375,13 @@ def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, speci
             'output_gpath_list': probchip_extramargin_fpath_list,
             'mode': 1,
         }
-        probchip_generator = randomforest.detect_gpath_list_with_species(ibs, extramargin_fpath_list, species, **config)
+        probchip_generator = randomforest.detect_gpath_list_with_species(
+            ibs, extramargin_fpath_list, species, **config)
         # Evalutate genrator until completion
         ut.evaluate_generator(probchip_generator)
-        extramargin_mask_gen = (vt.imread(fpath, grayscale=True) for fpath in probchip_extramargin_fpath_list)
-
+        extramargin_mask_gen = (
+            vt.imread(fpath, grayscale=True) for fpath in probchip_extramargin_fpath_list
+        )
         # Crop the extra margin off of the new probchips
         _iter = zip(dirty_probchip_fpath_list,
                     extramargin_mask_gen,
@@ -401,6 +411,11 @@ def postprocess_mask(mask):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show
+        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
+        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True
+
+    SeeAlso:
+        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -410,9 +425,14 @@ def postprocess_mask(mask):
         >>> import plottool as pt
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> chip_fpath = ibs.get_annot_chip_fpath([10])[0]
+        >>> aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=[10])
+        >>> default_config = dict(ibs.cfg.chip_cfg.parse_items())
+        >>> cfgdict = ut.argparse_dict(default_config)
+        >>> config2_ = ibs.new_query_params(cfgdict=cfgdict)
+        >>> chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]
         >>> chip = vt.imread(chip_fpath)
-        >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath]))
+        >>> species = ibs.const.Species.ZEB_PLAIN
+        >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))
         >>> mask = mask_list[0]
         >>> mask2 = postprocess_mask(mask)
         >>> ut.quit_if_noshow()
@@ -448,10 +468,13 @@ def gen_detectchip(tup):
 def compute_extramargin_detectchip(ibs, aid_list, config2_=None, species=None, FACTOR=4):
     #from vtool import chip as ctool
     #from vtool import image as gtool
-    arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, config2_=config2_, species=species, FACTOR=FACTOR)
+    arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(
+        ibs, aid_list, config2_=config2_, species=species, FACTOR=FACTOR)
     # Again, it seems we cannot use warpAffine in parallel loops
-    extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True, force_serial=True))
-    probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in extramargin_fpath_list]
+    extramargin_fpath_list = list(ut.generate(
+        gen_detectchip, arg_list, ordered=True, force_serial=True))
+    probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip')
+                                         for fpath in extramargin_fpath_list]
     return extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
     #probchip_extramargin_fpath_list = []
     #chipBGR = vt.imread(fpath)
@@ -489,7 +512,9 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
     bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
-    newsize_list = list(map(lambda size: ctool.get_scaled_size_with_width(target_width, *size), bbox_size_list))
+    newsize_list = list(map(
+        lambda size: ctool.get_scaled_size_with_width(target_width, *size),
+        bbox_size_list))
     invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]
     if len(invalid_aids) > 0:
         msg = ("REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS")
@@ -532,8 +557,11 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
     ]
 
     # TODO: make this work
-    probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list, config2_=config2_, species=species)
-    #probchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin') for fpath in probchip_fpath_list]
+    probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list,
+                                                        config2_=config2_,
+                                                        species=species)
+    #probchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin') for
+    #fpath in probchip_fpath_list]
     extramargin_fpath_list = [ut.augpath(fpath, '_extramargin').replace('probchip', 'detectchip')
                               for fpath in probchip_fpath_list]
     # # filter by species and add a suffix for the probchip_input
@@ -570,10 +598,14 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     print('newsize_list[index] = %r' % (newsize_list[index],))
 
     fnum = 1
-    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 1), fnum=fnum, annote=False, in_image=True , title_suffix='\noriginal image')
-    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 2), fnum=fnum, annote=False, title_suffix='\noriginal chip')
-    bboxed_chip = vt.draw_verts(chipBGR, vt.scaled_verts_from_bbox(bbox_pcs, theta, 1, 1))
-    pt.imshow(bboxed_chip, pnum=(1, 3, 3), fnum=fnum, title='scaled chip with expanded margin.\n(orig margin drawn in orange)')
+    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 1), fnum=fnum, annote=False, in_image=True ,
+                       title_suffix='\noriginal image')
+    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 2), fnum=fnum, annote=False,
+                       title_suffix='\noriginal chip')
+    bboxed_chip = vt.draw_verts(chipBGR,
+                                vt.scaled_verts_from_bbox(bbox_pcs, theta, 1, 1))
+    pt.imshow(bboxed_chip, pnum=(1, 3, 3), fnum=fnum,
+              title='scaled chip with expanded margin.\n(orig margin drawn in orange)')
 
     pt.show_if_requested()
     #pt.imshow(chipBGR)

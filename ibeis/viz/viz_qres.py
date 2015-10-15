@@ -253,12 +253,13 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
 
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
-    print('query_info = ' + ut.obj_str(
-        ibs.get_annot_info(qres.qaid, default=True, gname=False, name=False, notes=False,
-                           exemplar=False), nl=4))
-    print('top_aids_info = ' + ut.obj_str(
-        ibs.get_annot_info(top_aids, default=True, gname=False, name=False, notes=False,
-                           exemplar=False, reference_aid=qres.qaid), nl=4))
+    if ut.NOT_QUIET:
+        print('query_info = ' + ut.obj_str(
+            ibs.get_annot_info(qres.qaid, default=True, gname=False, name=False, notes=False,
+                               exemplar=False), nl=4))
+        print('top_aids_info = ' + ut.obj_str(
+            ibs.get_annot_info(top_aids, default=True, gname=False, name=False, notes=False,
+                               exemplar=False, reference_aid=qres.qaid), nl=4))
 
     if make_figtitle is True:
         figtitle = qres.make_title(pack=True)
