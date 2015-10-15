@@ -9,7 +9,8 @@ from plottool import fig_presenter
 import matplotlib as mpl
 ut.noinject(__name__, '[abstract_iteract]')
 
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[abstract_iteract]')
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+#'[abstract_iteract]')
 
 
 # for scoping
@@ -97,6 +98,7 @@ class AbstractInteraction(object):
     # def make_hud(self):
 
     # def prepare_page(self, pagenum):
+    #    self.clean_scope()
 
     def show_page(self, *args):
         """
