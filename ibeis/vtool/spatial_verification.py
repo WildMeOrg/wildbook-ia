@@ -18,6 +18,7 @@ FIXME:
 
 References:
     http://ags.cs.uni-kl.de/fileadmin/inf_ags/3dcv-ws11-12/3DCV_WS11-12_lec04.pdf
+    http://www.imgfsr.com/CVPR2011/Tutorial6/RANSAC_CVPR2011.pdf
 
 Notes:
     Invariants of affine transforms - parallel lines, ratios of parallel lengths, ratios of areas
@@ -417,7 +418,8 @@ def testdata_matching_affine_inliers():
 
 
 def testdata_matching_affine_inliers_normalized():
-    kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
+    tup = testdata_matching_affine_inliers()
+    kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = tup
     kpts1_ma = kpts1.take(fm.T[0].take(aff_inliers), axis=0)
     kpts2_ma = kpts2.take(fm.T[1].take(aff_inliers), axis=0)
     #kpts1_ma, kpts2_ma, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
@@ -723,7 +725,8 @@ def unnormalize_transform(M_prime, T1, T2):
     return M
 
 
-def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks=True):
+def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
+                      ori_thresh, full_homog_checks=True):
     r"""
     Test to see which keypoints the homography correctly maps
 
@@ -913,7 +916,9 @@ def estimate_final_transform(kpts1, kpts2, fm, aff_inliers):
 
 
 @profile
-def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh=2.0, ori_thresh=1.57, full_homog_checks=True):
+def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
+                           scale_thresh=2.0, ori_thresh=1.57,
+                           full_homog_checks=True):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
     returned homography maps image1 space into image2 space
@@ -961,7 +966,8 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_
 
     """
     H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
-    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks)
+    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
+                                   scale_thresh, ori_thresh, full_homog_checks)
     return homog_tup1
 
 
@@ -999,7 +1005,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         kpts1 (ndarray[ndim=2]): all keypoints in image 1
         kpts2 (ndarray[ndim=2]): all keypoints in image 2
         fm (ndarray[ndim=2]): matching keypoint indexes [..., (kp1x, kp2x), ...]
-        xy_thresh (float): spatial distance threshold under affine transform to be considered a match
+        xy_thresh (float): spatial distance threshold under affine transform to
+                           be considered a match
         scale_thresh (float):
         ori_thresh (float):
         dlen_sqrd2 (float): diagonal length squared of image/chip 2
@@ -1011,7 +1018,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
 
     CommandLine:
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show
-        python -m vtool.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
         python -m vtool.spatial_verification --test-spatially_verify_kpts
 
     Example:
