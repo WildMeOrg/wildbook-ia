@@ -190,8 +190,10 @@ def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True,
                     check_chip_external_storage(ibs, chip_rowid_list)
             except controller_inject.ExternalStorageException as ex:
                 try_again = try_num < extra_tries
-                msg = ('WILL TRY AT MOST %d MORE TIME(S)'  % (extra_tries - try_num,) if try_again else
-                       'EXCEDED MAXIMUM NUMBER OF TRIES extra_tries=%d. RAISING ERROR' % (extra_tries,))
+                msg = ('WILL TRY AT MOST %d MORE TIME(S)'  % (extra_tries - try_num,)
+                       if try_again else
+                       ('EXCEDED MAXIMUM NUMBER OF TRIES '
+                       'extra_tries=%d. RAISING ERROR') % (extra_tries,))
                 ut.printex(ex, msg, iswarning=try_again)
                 if not try_again:
                     raise
