@@ -16,7 +16,8 @@ ut.noinject(__name__, '[plots]')
 
 def is_default_dark_bg():
     #return True
-    return not ut.get_argflag('--save')
+    lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
+    return not lightbg
 
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
@@ -79,7 +80,10 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         label_list = [
             '%.2f%% %s=%r%s - %s=%r'
             % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
-            for val, max_nd0, max_score, marker in zip(nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
+            for val, max_nd0, max_score, marker in zip(nd_basis[1],
+                                                       max_nd0_list,
+                                                       max_score_list,
+                                                       multiple_max_markers)
         ]
     else:
         label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
@@ -220,7 +224,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
             plot_list_kw['marker'] = pt.distinct_markers(num_lines)
     if kind == 'bar':
         # Remove non-bar kwargs
-        ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker', 'markersize', 'linestyle'])
+        ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
+                                      'markersize', 'linestyle'])
         width = kwargs.get('width', .9) / num_lines
         if transpose:
             #plot_list_kw['orientation'] = ['horizontal'] * num_lines
@@ -296,7 +301,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     xlabel          = kwargs.get('xlabel', '')
     ylabel          = kwargs.get('ylabel', '')
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=kwargs.get('labelsize', 8))
     }
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
@@ -454,8 +460,8 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
     plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
     OLD = False
     if OLD:
-        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))            # Draw hist
-        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))            # Draw hist
+        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))
+        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))
         plt.plot(centers, hist, 'bo-')            # Draw hist
     else:
         #bin_colors = None
@@ -559,7 +565,9 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
 # Interface to LineCollection:
 
 
-def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.0), linewidth=1, alpha=1.0):
+def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
+              norm=plt.Normalize(0.0, 1.0),
+              linewidth=1, alpha=1.0):
     """
     Plot a colored line with coordinates x and y
     Optionally specify colors in the array z
@@ -712,7 +720,8 @@ def plot_score_histograms(scores_list,
     dmin = agg_scores.min()
     dmax = agg_scores.max()
 
-    # References: http://stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
+    # References:
+    # http://stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
     #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
 
     if fnum is None:
@@ -776,7 +785,8 @@ def plot_score_histograms(scores_list,
 
     import matplotlib as mpl
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=kwargs.get('labelsize', 8))
     }
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
     ax = df2.gca()
@@ -833,7 +843,7 @@ def plot_probabilities(prob_list,
         fill (bool): (default = False)
 
     CommandLine:
-        python -m plottool.plots --exec-plot_probabilities --show
+        python -m plottool.plots --exec-plot_probabilities --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -890,10 +900,12 @@ def plot_probabilities(prob_list,
         ydata_min = min([_ydata.min() for _ydata in prob_list])
         ydata_max = max([_ydata.max() for _ydata in prob_list])
         ydomain = np.linspace(ydata_min, ydata_max, 10)
-        df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
+        df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-',
+                     label='score thresh=%.2f' % (score_thresh,))
     import matplotlib as mpl
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=kwargs.get('labelsize', 8))
     }
 
     ax = df2.gca()
@@ -1031,7 +1043,8 @@ def plot_sorted_scores(scores_list,
     if thresh is not None:
         indicies = np.arange(len(sorted_labelx))
         #print('indicies.shape = %r' % (indicies.shape,))
-        df2.plot(indicies, [thresh] * len(indicies), 'g-', label=score_label + ' thresh=%.2f' % (thresh,))
+        df2.plot(indicies, [thresh] * len(indicies), 'g-',
+                 label=score_label + ' thresh=%.2f' % (thresh,))
 
     if logscale:
         # DEPRICATE
@@ -1043,7 +1056,8 @@ def plot_sorted_scores(scores_list,
 
     import matplotlib as mpl
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=kwargs.get('labelsize', 8))
     }
 
     ax.set_xlabel('sorted individual ' +  score_label + ' indices', **labelkw)
@@ -1263,10 +1277,12 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
     ax = plt.gca()
     # Plot max and mins
-    ax.fill_between(x_data_sort, y_data_min_sort, y_data_max_sort, alpha=.2, color='g', label='range')
+    ax.fill_between(x_data_sort, y_data_min_sort, y_data_max_sort, alpha=.2,
+                    color='g', label='range')
     df2.append_phantom_legend_label('range', 'g', alpha=.2)
     # Plot standard deviations
-    ax.fill_between(x_data_sort, y_data_stdlow_sort, y_data_stdhigh_sort, alpha=.4, color='b', label='std')
+    ax.fill_between(x_data_sort, y_data_stdlow_sort, y_data_stdhigh_sort,
+                    alpha=.4, color='b', label='std')
     df2.append_phantom_legend_label('std', 'b', alpha=.4)
     # Plot means
     ax.plot(x_data_sort, y_data_mean_sort, 'o-', color='b', label='mean')
@@ -1280,7 +1296,8 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     #plt.show()
 
 
-def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=None, marker='o', linestyle='-'):
+def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0],
+                       label=None, marker='o', linestyle='-'):
     r"""
     Args:
         xdata (?):
@@ -1311,7 +1328,8 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=Non
     return
 
 
-def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum=None, pnum=None, title=None):
+def plot_search_surface(known_nd_data, known_target_points, nd_labels,
+                        target_label, fnum=None, pnum=None, title=None):
     r"""
     3D Function
 
@@ -1371,7 +1389,10 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
         #method = 'cubic'  # {'linear', 'nearest', 'cubic'}
         method = 'linear'  # {'linear', 'nearest', 'cubic'}
         import scipy as sp
-        interpolated_targets = sp.interpolate.griddata(known_nd_data, known_target_points, unknown_nd_data, method=method)
+        interpolated_targets = sp.interpolate.griddata(known_nd_data,
+                                                       known_target_points,
+                                                       unknown_nd_data,
+                                                       method=method)
         #interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.max() * 2
         interpolated_targets[np.isnan(interpolated_targets)] = known_target_points.min()
         return interpolated_targets
@@ -1383,7 +1404,8 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels, target_la
         pt.plot(xdata, ydata)
         ax = pt.gca()
         if len(known_nd_data.T) == 2:
-            ax.set_xlabel(nd_labels[0] + ' (const:' + nd_labels[1] + '=%r)' % (known_nd_data.T[1][0],))
+            ax.set_xlabel(
+                nd_labels[0] + ' (const:' + nd_labels[1] + '=%r)' % (known_nd_data.T[1][0],))
         else:
             ax.set_xlabel(nd_labels[0])
         ax.set_ylabel(target_label)
@@ -1494,7 +1516,8 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
         ]
 
     freq = np.histogram(xdata, bins)[0]
-    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True) for b in bins]
+    timedelta_strs = [ut.get_timedelta_str(datetime.timedelta(seconds=b), exclude_zeros=True)
+                      for b in bins]
     bin_labels = [l + ' - ' + h for l, h in ut.iter_window(timedelta_strs)]
     bin_labels[-1] = '> 1 year'
     bin_labels[0] = '< 1 minute'
@@ -1525,7 +1548,8 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     masked_colors = ut.list_compress(colors, mask)
     explode = [0] * len(masked_freq)
     masked_percent = (masked_freq * 100 / size)
-    pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%', labels=masked_lbls, colors=masked_colors)
+    pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%',
+               labels=masked_lbls, colors=masked_colors)
     #ax = pt.gca()
     pt.set_xlabel(label + '\nsize=%d' % (size,))
     pt.gca().set_aspect('equal')

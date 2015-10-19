@@ -15,7 +15,9 @@ import matplotlib.pyplot as plt
 try:
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 except ImportError as ex:
-    ut.printex(ex,  'try pip install mpl_toolkits.axes_grid1 or something.  idk yet', iswarning=False)
+    ut.printex(ex,
+               'try pip install mpl_toolkits.axes_grid1 or something.  idk yet',
+               iswarning=False)
     raise
 #import colorsys
 import pylab
@@ -52,7 +54,8 @@ distinct_colors = color_fns.distinct_colors
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
-DARKEN = ut.get_argval('--darken', type_=float, default=(.3 if ut.get_argflag('--darken') else None))
+DARKEN = ut.get_argval(
+    '--darken', type_=float, default=(.3 if ut.get_argflag('--darken') else None))
 
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
@@ -118,7 +121,9 @@ def show_was_requested():
     returns True if --show is specified on the commandline or you are in
     IPython (and presumably want some sort of interaction
     """
-    return not ut.get_argflag(('--noshow')) and (ut.get_argflag(('--show', '--save')) or ut.inIPython())
+    return (
+        not ut.get_argflag(('--noshow')) and
+        (ut.get_argflag(('--show', '--save')) or ut.inIPython()))
     #return ut.show_was_requested()
 
 
@@ -144,7 +149,9 @@ def show_if_requested(N=1):
         elif len(adjust_list) == 6:
             vals = adjust_list
         else:
-            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r. Expectts keys=%r' % (len(adjust_list), adjust_list, keys))
+            raise NotImplementedError(
+                ('vals must be len (1, 3, or 6) not %d, adjust_list=%r. '
+                 'Expectts keys=%r') % (len(adjust_list), adjust_list, keys))
         adjust_kw = dict(zip(keys, vals))
         adjust_subplots(**adjust_kw)
 
@@ -174,7 +181,11 @@ def show_if_requested(N=1):
         #print(sys.argv)
         #ut.print_dict(arg_dict)
         # HACK
-        arg_dict = {key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']') if isinstance(val, list) else val for key, val in arg_dict.items()}
+        arg_dict = {
+            key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']')
+            if isinstance(val, list) else val
+            for key, val in arg_dict.items()
+        }
         fpath_ = fpath_.format(**arg_dict)
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         #dpath = ut.get_argval('--dpath', type_=str, default=None)
@@ -200,12 +211,14 @@ def show_if_requested(N=1):
             #vt.imwrite(absfpath_, cropped_img)
 
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
-        caption_list = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        caption_list = ut.get_argval('--caption', type_=str,
+                                     default=basename(fpath).replace('_', ' '))
         if isinstance(caption_list, six.string_types):
             caption_str = caption_list
         else:
             caption_str = ' '.join(caption_list)
-        #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        #caption_str = ut.get_argval('--caption', type_=str,
+        #default=basename(fpath).replace('_', ' '))
         label_str   = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
@@ -218,7 +231,9 @@ def show_if_requested(N=1):
         fpath_list = [fpath_]
 
         if len(fpath_list) == 1 and ut.is_developer():
-            latex_block = '\ImageCommandII{' + ''.join(fpath_list) + '}{' + width_str + '}{\n' + caption_str + '\n}{' + label_str + '}'
+            latex_block = (
+                '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
+                width_str + '}{\n' + caption_str + '\n}{' + label_str + '}')
             # HACK
         else:
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
@@ -690,7 +705,8 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
 
         use_darkbackground = dark
         if use_darkbackground is None:
-            use_darkbackground = not ut.get_argflag('--save')
+            import plottool as pt
+            use_darkbackground = pt.is_default_dark_bg()
         if use_darkbackground:
             dark_background(ax)
     else:
@@ -712,7 +728,8 @@ def pad_axes(pad, xlim=None, ylim=None):
     ax.set_ylim(min_y - pad, max_y + pad)
 
 
-def presetup_axes(x_label='x', y_label='y', title_pref='', title=None, equal_aspect=False, ax=None, **kwargs):
+def presetup_axes(x_label='x', y_label='y', title_pref='', title=None,
+                  equal_aspect=False, ax=None, **kwargs):
     if ax is None:
         ax = gca()
     set_xlabel(x_label, **kwargs)
@@ -1014,7 +1031,8 @@ def show_signature(sig, **kwargs):
     fig.show()
 
 
-def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=None, bottom=None, marker=None, linestyle='-'):
+def draw_stems(x_data=None, y_data=None, setlims=True, color=None,
+               markersize=None, bottom=None, marker=None, linestyle='-'):
     """
     Draws stem plot
 
@@ -1079,7 +1097,8 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
         ax.plot(x_segments, y_segments, linestyle, color=color, marker=marker)
     else:
         with ut.Timer('old stem'):
-            markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
+            markerline, stemlines, baseline = pylab.stem(
+                x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
             if markersize is not None:
                 markerline.set_markersize(markersize)
 
@@ -1349,7 +1368,8 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    assert loc in LEGEND_LOCATION or loc == 'best', 'invalid loc. try one of %r' % (LEGEND_LOCATION,)
+    assert loc in LEGEND_LOCATION or loc == 'best', (
+        'invalid loc. try one of %r' % (LEGEND_LOCATION,))
     ax = gca()
     if fontproperties is None:
         fontproperties = custom_constants.FONTS.legend
@@ -1444,7 +1464,10 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         return [cmap(.5) for fx in range(len(score_list))]
     else:
         if logscale:
-            score2_01 = lambda score: np.log2(1 + scale_min + scale_max * (float(score) - min_) / (range_))
+            score2_01 = lambda score: (
+                np.log2(
+                    1 + scale_min + scale_max *
+                    (float(score) - min_) / (range_)))
             score_list = np.array(score_list)
             #rank_multiplier = score_list.argsort() / len(score_list)
             #normscore = np.array(list(map(score2_01, score_list))) * rank_multiplier
@@ -1454,7 +1477,9 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
             score2_01 = lambda score: scale_min + scale_max * (float(score) - min_) / (range_)
         colors = [cmap(score2_01(score)) for score in score_list]
         if val2_customcolor is not None:
-            colors = [np.array(val2_customcolor.get(score, color)) for color, score in zip(colors, score_list)]
+            colors = [
+                np.array(val2_customcolor.get(score, color))
+                for color, score in zip(colors, score_list)]
         return colors
 
 
@@ -1505,7 +1530,8 @@ def unique_rows(arr):
     References:
         http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
     """
-    rowblocks = np.ascontiguousarray(arr).view(np.dtype((np.void, arr.dtype.itemsize * arr.shape[1])))
+    rowblocks = np.ascontiguousarray(arr).view(
+        np.dtype((np.void, arr.dtype.itemsize * arr.shape[1])))
     _, idx = np.unique(rowblocks, return_index=True)
     unique_arr = arr[idx]
     return unique_arr
@@ -1559,7 +1585,8 @@ def reverse_colormap(cmap):
                 data.append((1 - t[0], t[1], t[2]))
             k.append(key)
             reverse.append(sorted(data))
-        cmap_reversed = mpl.colors.LinearSegmentedColormap(cmap.name + '_reversed', dict(zip(k, reverse)))
+        cmap_reversed = mpl.colors.LinearSegmentedColormap(
+            cmap.name + '_reversed', dict(zip(k, reverse)))
         return cmap_reversed
 
 
@@ -1617,7 +1644,8 @@ def show_all_colormaps():
         ax.set_yticks([])
         pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m))  # , origin="lower")
         if TRANSPOSE:
-            ax.set_ylabel(m, rotation=0, fontsize=10, horizontalalignment='right', verticalalignment='center')
+            ax.set_ylabel(m, rotation=0, fontsize=10,
+                          horizontalalignment='right', verticalalignment='center')
         else:
             pylab.title(m, rotation=90, fontsize=10)
     #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
@@ -1755,7 +1783,9 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     if H2 is not None:
         xy2_m = vt.transform_points_with_homography(H2, xy2_m)
     xy1_m = xy1_m * scale_factor * np.array(scale_factor1)[:, None]
-    xy2_m = (xy2_m * scale_factor * np.array(scale_factor2)[:, None]) + np.array([woff, hoff])[:, None]
+    xy2_m = (
+        (xy2_m * scale_factor * np.array(scale_factor2)[:, None]) +
+        np.array([woff, hoff])[:, None])
     if color_list is None:
         if fs is None:  # Draw with solid color
             color_list    = [RED for fx in range(len(fm))]
@@ -2103,7 +2133,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 cmap = plt.get_cmap(cmap)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
-            raise AssertionError('unknown image format. img.dtype=%r, img.shape=%r' % (img.dtype, img.shape))
+            raise AssertionError(
+                'unknown image format. img.dtype=%r, img.shape=%r' %
+                (img.dtype, img.shape))
     except TypeError as te:
         print('[df2] imshow ERROR %r' % (te,))
         raise
@@ -2342,8 +2374,11 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
             fxs1 = fm.T[0]
             fxs2 = fm.T[1]
             if kpts1 is not None:
-                draw_kpts2(kpts1[fxs1], offset=offset1, scale_factor=scale_factor1, rect=rect, H=H1, **_kwargs)
-            draw_kpts2(kpts2[fxs2], offset=offset2, scale_factor=scale_factor2, rect=rect, H=H2, **_kwargs)
+                draw_kpts2(kpts1[fxs1], offset=offset1,
+                           scale_factor=scale_factor1, rect=rect, H=H1,
+                           **_kwargs)
+            draw_kpts2(kpts2[fxs2], offset=offset2, scale_factor=scale_factor2,
+                       rect=rect, H=H2, **_kwargs)
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
@@ -2596,8 +2631,10 @@ def make_ori_legend_img():
         #print(col)
         #print(color_rgb)
         #print(text)
-        cv2.putText(img_BGR, text, org, fontFace, fontScale, textcolor, thickness, bottomLeftOrigin=False)
-        #img_BGR[row, col, :] = ((old_data * old_data_weight[:, None] + new_data) / total_weight[:, None])
+        cv2.putText(img_BGR, text, org, fontFace, fontScale, textcolor,
+                    thickness, bottomLeftOrigin=False)
+        #img_BGR[row, col, :] = ((old_data * old_data_weight[:, None] +
+        #new_data) / total_weight[:, None])
     #print(img_BGR)
     return img_BGR
 
@@ -2722,10 +2759,13 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         mode = 'wire' if wire else 'surface'
 
     if mode == 'wire':
-        ax.plot_wireframe(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
-        #ax.contour(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, extend3d=True, *args, **kwargs)
+        ax.plot_wireframe(xgrid, ygrid, zdata, rstride=rstride,
+                          cstride=cstride, *args, **kwargs)
+        #ax.contour(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride,
+        #extend3d=True, *args, **kwargs)
     elif mode == 'surface' :
-        ax.plot_surface(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, linewidth=.1, *args, **kwargs)
+        ax.plot_surface(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride,
+                        linewidth=.1, *args, **kwargs)
     else:
         raise NotImplementedError('mode=%r' % (mode,))
     if contour:

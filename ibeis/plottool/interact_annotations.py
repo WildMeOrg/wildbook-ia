@@ -128,7 +128,8 @@ def verts_to_bbox(verts):
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
-        print('[interact_annot] verts[i][0][0]: ' + str(verts[i][0][0]) + ' verts[i][0][1]: ' + str(verts[i][0][1]))
+        print('[interact_annot] verts[i][0][0]: ' + str(verts[i][0][0]) +
+              ' verts[i][0][1]: ' + str(verts[i][0][1]))
         x = verts[i][0][0]
         y = verts[i][0][1]
         w = verts[i][2][0] - x
@@ -178,7 +179,8 @@ def rotate_points_around(points, theta, ax, ay):
     augpts = array([array((x, y, 1)) for (x, y) in points])
     ct = cos(theta)
     st = sin(theta)
-    # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
+    # correct matrix obtained from
+    # http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
     rot_mat = array(
         [(ct, -st, ax - ct * ax + st * ay),
          (st,  ct, ay - st * ax - ct * ay),
@@ -210,7 +212,8 @@ def is_within_distance(dist, p1, p2):
     dy2 = dy * dy
     d2 = dist * dist
     rv = d2 > (dx2 + dy2)
-    #print('is_within_distance(%r, (%r, %r), (%r, %r)) = %r' % (dist, p1[0], p1[1], p2[0], p2[1], rv))
+    #print('is_within_distance(%r, (%r, %r), (%r, %r)) = %r' % (dist, p1[0],
+    #p1[1], p2[0], p2[1], rv))
     return rv
 
 
@@ -222,11 +225,13 @@ def is_within_distance_from_line(dist, pt, line):
     x2, y2 = p2
     dx = x2 - x1
     dy = y2 - y1
-    # # This doesn't work due to being for lines, not line segments, leading to potentially confusing behavior
+    # # This doesn't work due to being for lines, not line segments, leading to
+    # potentially confusing behavior
     # numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
     # denom = math.sqrt((dx ** 2) + (dy ** 2))
     # distance = numer / denom
-    # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+    # adapted from
+    # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
     squared_mag_of_delta = (dx * dx) + (dy * dy)
     interpolation_factor = ((x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
     interpolation_factor = max(0, min(1, interpolation_factor))  # clamp to [0, 1]
@@ -453,31 +458,38 @@ class ANNOTATIONInteraction(object):
 
     def add_action_buttons(self):
         self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width, self.but_height])
-        self.add_but = Button(self.add_ax, 'Add Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
+        self.add_but = Button(self.add_ax, 'Add Annotation\n' +
+                              pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
         self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width, self.but_height])
-        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
+        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' +
+                               pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
         self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
 
         self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width, self.but_height])
-        self.del_but = Button(self.del_ax, 'Delete Annotation\n' + pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
+        self.del_but = Button(self.del_ax, 'Delete Annotation\n' +
+                              pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
         self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width, self.but_height])
-        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' + pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
+        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' +
+                                 pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
         self.prev_callback = prev_callback
         self.next_callback = next_callback
         if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width, self.next_prev_but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Image\n' + pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
+            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width,
+                                              self.next_prev_but_height])
+            self.prev_but = Button(self.prev_ax, 'Previous Image\n' +
+                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
             self.prev_but.on_clicked(self.prev_image)
 
         if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width, self.next_prev_but_height])
+            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width,
+                                              self.next_prev_but_height])
             self.next_but = Button(self.next_ax, 'Next Image\n' +
                                    pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
             self.next_but.on_clicked(self.next_image)
@@ -575,7 +587,8 @@ class ANNOTATIONInteraction(object):
         if len(self.polys) == 0:
             return (None, None)
         else:
-            poly_ind = max(list(self.polys.keys()))  # most recently added polygon has the highest index
+            # most recently added polygon has the highest index
+            poly_ind = max(list(self.polys.keys()))
             return poly_ind, self.polys[poly_ind]
 
     def button_press_callback(self, event):
@@ -592,7 +605,9 @@ class ANNOTATIONInteraction(object):
 
         if event.button == 1:  # leftclick
             for poly in six.itervalues(self.polys):
-                if is_within_distance_from_line(self.max_ds, (event.xdata, event.ydata), calc_handle_coords(poly)):
+                if is_within_distance_from_line(self.max_ds, (event.xdata,
+                                                              event.ydata),
+                                                calc_handle_coords(poly)):
                     self.currently_rotating_poly = poly
                     break
 
@@ -709,14 +724,16 @@ class ANNOTATIONInteraction(object):
             coords = ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
         else:
             if self._currently_selected_poly is not None:
-                defaultshape_polys = {self._currently_selected_poly.num: self._currently_selected_poly}
+                defaultshape_polys = {self._currently_selected_poly.num:
+                                      self._currently_selected_poly}
             else:
                 defaultshape_polys = self.polys
             coords = default_vertices(self.img, defaultshape_polys, self.mouseX, self.mouseY)
 
         poly = self.new_polygon(coords, 0, self.species_tag)
 
-        #<hack reason="brittle resizing algorithm that doesn't work unless the points are in the right order, see resize_rectangle">
+        #<hack reason="brittle resizing algorithm that doesn't work unless the
+        #points are in the right order, see resize_rectangle">
         poly.basecoords = bbox_to_verts(basecoords_to_bbox(poly.basecoords))
         set_display_coords(poly)
         #</hack>
@@ -741,7 +758,8 @@ class ANNOTATIONInteraction(object):
             return
         poly = self._currently_selected_poly
         lineNumber = poly.num
-        ###print('poly list: ', len(self.poly_list), 'list size ', len(self.line), 'index of poly ', lineNumber)
+        ###print('poly list: ', len(self.poly_list), 'list size ',
+        #len(self.line), 'index of poly ', lineNumber)
 
         #line deletion
         print('[interact_annot] length: ', len(self.polys), 'number: ', lineNumber)
@@ -786,12 +804,14 @@ class ANNOTATIONInteraction(object):
                 self._currently_selected_poly.tctext += keychar
                 # TODO: Something better like greying out the tab suggestion
                 # instead of just deleting it
-                self._currently_selected_poly.species_tag.set_text(self._currently_selected_poly.tctext)
+                self._currently_selected_poly.species_tag.set_text(
+                    self._currently_selected_poly.tctext)
                 regen_tc()
 
         def regen_tc():
             # Setup tab completion
-            # Yes this will redo the tab completion list every time a user types. This should be improved if we move to having more species
+            # Yes this will redo the tab completion list every time a user
+            # types. This should be improved if we move to having more species
             self._currently_selected_poly.tab_list = [
                 spec
                 for spec in self.valid_species
@@ -876,7 +896,8 @@ class ANNOTATIONInteraction(object):
             lastX = self.mouseX or None
             lastY = self.mouseY or None
             self.mouseX, self.mouseY = event.xdata, event.ydata
-            #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX, self.mouseY, lastX, lastY))
+            #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX,
+            #self.mouseY, lastX, lastY))
             deltaX = lastX is not None and self.mouseX - lastX
             deltaY = lastY is not None and self.mouseY - lastY
 
@@ -887,7 +908,8 @@ class ANNOTATIONInteraction(object):
 
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
-            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, self._ind)
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX,
+                                  self.mouseY, self._ind)
             self.update_UI()
             return
 
@@ -1016,7 +1038,8 @@ class ANNOTATIONInteraction(object):
         def rad2deg(t):
             return t * 360 / TAU
 
-        # the minus one is because the last coordinate is duplicated (by matplotlib) to get a closed polygon
+        # the minus one is because the last coordinate is duplicated (by
+        # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
         #tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
         #tmpcoords = list(poly.basecoords[:-1])
@@ -1088,7 +1111,8 @@ class ANNOTATIONInteraction(object):
             #print('w, h = (%r, %r)' % (width1, height1))
             return (MIN_W < width1) and (MIN_H < height1)
 
-        if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and meets_minimum_width_and_height(tmpcoords):
+        if (self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and
+             meets_minimum_width_and_height(tmpcoords)):
             poly.basecoords = tmpcoords
 
         set_display_coords(poly)
@@ -1123,7 +1147,8 @@ class ANNOTATIONInteraction(object):
         #for poly in self.poly_list:
         #    if poly is not None:
         #        ind_dist_list.append(get_ind_and_dist(poly))
-        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly) in six.iteritems(self.polys)]
+        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly)
+                         in six.iteritems(self.polys)]
         min_dist = None
         min_ind  = None
         sel_polyind = None
@@ -1158,7 +1183,9 @@ class ANNOTATIONInteraction(object):
         poly.lines = self.make_lines(poly, line_color, line_width)
         poly.handle = make_handle_line(poly)
         tagpos = calc_tag_position(poly)
-        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
+        poly.species_tag = self.fig.ax.text(
+            tagpos[0], tagpos[1], species,
+            bbox={'facecolor': 'white', 'alpha': 1})
         poly.species_tag.remove()  # eliminate "leftover" copies
         # put in previous text and tabcomplete list for autocompletion
         poly.tctext = ''
@@ -1220,7 +1247,9 @@ class ANNOTATIONInteraction(object):
                         changed_indices.append(index)
                     else:
                         unchanged_indices.append(index)
-            self.commit_callback(unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups)
+            self.commit_callback(unchanged_indices, deleted_indices,
+                                 changed_indices, changed_annottups,
+                                 new_annottups)
 
         if self.commit_callback is not None:
             send_back_annotations()
@@ -1293,7 +1322,8 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
 
 
 # def update_lists(self, img_ind, new_verts_list, new_thetas_list, new_indices_list):
-#         """for each image: know if any bboxes changed, if any have been deleted, know if any new bboxes
+#         """for each image: know if any bboxes changed, if any have been
+#         deleted, know if any new bboxes
 #         pass all of this information to a function callback, so Jon can use the information"""
 #         print("[interact_annot] before: ",self.aids_list[img_ind])
 #         self.aids_list[img_ind] = new_aids

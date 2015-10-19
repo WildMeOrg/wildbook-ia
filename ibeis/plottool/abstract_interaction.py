@@ -45,6 +45,8 @@ class AbstractInteraction(object):
         self.scope = []  # for keeping those widgets alive!
         register_interaction(self)
 
+        self.leftbutton_is_down = None
+
     def clear_parent_axes(self, ax):
         """ for clearing axes that we appended anything to """
         child_axes = ph.get_plotdat(ax, 'child_axes', [])
@@ -113,8 +115,9 @@ class AbstractInteraction(object):
         else:
             self.static_plot(self.fnum, (1, 1, 1))
         ih.connect_callback(fig, 'button_press_event', self.on_click)
+        ih.connect_callback(fig, 'button_release_event', self.on_click_release)
         ih.connect_callback(fig, 'key_press_event', self.on_key_press)
-        #ih.connect_callback(fig, 'motion_notify_event', self.on_motion)
+        ih.connect_callback(fig, 'motion_notify_event', self.on_motion)
 
     def bring_to_front(self):
         fig_presenter.bring_to_front(self.fig)
@@ -136,21 +139,34 @@ class AbstractInteraction(object):
         print('[pt] handling close')
         unregister_interaction(self)
 
-    #def on_motion(self, event):
-    #    print('event = %r' % (event.__dict__,))
-    #    pass
+    def on_motion(self, event):
+        if self.leftbutton_is_down:
+            self.on_drag(event)
+        #print('event = %r' % (event.__dict__,))
+        pass
+
+    def on_drag(self, event=None):
+        # Make sure BLIT (bit block transfer) is used for updates
+        #self.fig.canvas.blit(self.fig.ax.bbox)
+        pass
 
     def on_key_press(self, event):
         pass
 
     def on_click(self, event):
         #raise NotImplementedError('implement yourself')
+        if event.button == 1:  # left
+            self.leftbutton_is_down = True
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
             self.on_click_inside(event, ax)
             #pass
         else:
             self.on_click_outside(event)
+
+    def on_click_release(self, event):
+        if event.button == 1:  # left
+            self.leftbutton_is_down = False
 
     def on_click_inside(self, event, ax):
         pass
