@@ -1,8 +1,9 @@
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
-sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=age_m
-sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_
-sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff
+Autogen:
+    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
+    sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=age_m  # NOQA
+    sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA
+    sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
@@ -48,7 +49,9 @@ GAR_ROWID                = 'gar_rowid'
 
 
 from collections import namedtuple
-SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts', 'theta', 'yaw', 'name', 'species'))
+SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts',
+                                                 'theta', 'yaw', 'name',
+                                                 'species'))
 
 
 # ==========
@@ -168,7 +171,8 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     if eid is None:
         if is_exemplar is not None:
             # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
+            aid_list = ibs.db.get_all_rowids_where(
+                const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
         else:
             aid_list = ibs._get_all_aids()
     else:
@@ -384,7 +388,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     # Prepare the SQL input
     assert name_list is None or nid_list is None, 'cannot specify both names and nids'
     # For import only, we can specify both by setting import_override to True
-    assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
+    assert bool(bbox_list is None) != bool(vert_list is None), (
+        'must specify exactly one of bbox_list or vert_list')
     ut.assert_all_not_None(gid_list, 'gid_list')
 
     if theta_list is None:
@@ -732,7 +737,9 @@ def get_annot_detect_confidence(ibs, aid_list):
         Method: GET
         URL:    /api/annot/detect_confidence/
     """
-    annot_detect_confidence_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
+    annot_detect_confidence_list = ibs.db.get(const.ANNOTATION_TABLE,
+                                              ('annot_detect_confidence',),
+                                              aid_list)
     return annot_detect_confidence_list
 
 
@@ -770,7 +777,8 @@ def get_annot_exemplar_flags(ibs, aid_list):
         >>> result = str(gid_list)
         >>> print(result)
     """
-    annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
+    annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE,
+                                          ('annot_exemplar_flag',), aid_list)
     return annot_exemplar_flag_list
 
 
@@ -941,9 +949,12 @@ def get_annot_contact_aids(ibs, aid_list):
         verts_list = ibs.get_annot_verts(aid_list)
         other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
         poly_list = [shapely.geometry.Polygon(verts) for verts in verts_list]
-        other_polys_list = [[shapely.geometry.Polygon(verts) for verts in _] for _ in other_verts_list]
-        flags_list = [[p1.intersects(p2) for p2 in p2_list] for p1, p2_list in zip(poly_list, other_polys_list)]
-        contact_aids = [ut.list_compress(other_aids, flags) for other_aids, flags in zip(other_aids_list, flags_list)]
+        other_polys_list = [[shapely.geometry.Polygon(verts) for verts in _]
+                            for _ in other_verts_list]
+        flags_list = [[p1.intersects(p2) for p2 in p2_list]
+                      for p1, p2_list in zip(poly_list, other_polys_list)]
+        contact_aids = [ut.list_compress(other_aids, flags)
+                        for other_aids, flags in zip(other_aids_list, flags_list)]
 
     else:
         contact_aids = other_aids_list
@@ -1042,7 +1053,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
+        python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
 
     RESTful:
         Method: GET
@@ -1714,7 +1725,8 @@ def get_annot_name_texts(ibs, aid_list):
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     name_list = ibs.get_name_texts(nid_list)
-    #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list, const.INDIVIDUAL_KEY, ibs.get_name_texts)
+    #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list,
+    #const.INDIVIDUAL_KEY, ibs.get_name_texts)
     return name_list
 
 
@@ -2099,7 +2111,8 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     yaw_list        = ibs.get_annot_yaws(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
     species_list    = ibs.get_annot_species_texts(aid_list)
-    semantic_infotup = SemanticInfoTup(image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
+    semantic_infotup = SemanticInfoTup(image_uuid_list, verts_list, theta_list,
+                                       yaw_list, name_list, species_list)
     return semantic_infotup
 
 
@@ -2121,7 +2134,8 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE,
+                                   [ANNOT_VISUAL_UUID, ANNOT_SEMANTIC_UUID], rowidx=0)
 @register_api('/api/annot/visual_uuids/', methods=['PUT'])
 def update_annot_visual_uuids(ibs, aid_list):
     r"""
@@ -2241,7 +2255,8 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
     """
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list,
+    #ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     id_iter = aid_list
     colnames = (NAME_ROWID,)
     # WE NEED TO PERFORM A SPECIAL CHECK. ANY ANIMAL WHICH IS GIVEN AN UNKONWN
@@ -2337,7 +2352,8 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
         URL:    /api/annot/species_rowids/
     """
     #ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, const.SPECIES_KEY)
-    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list, ibs.lbltype_ids[const.SPECIES_KEY])
+    #ibsfuncs.assert_lblannot_rowids_are_type(ibs, species_rowid_list,
+    #ibs.lbltype_ids[const.SPECIES_KEY])
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
@@ -2448,7 +2464,9 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     # FIXME: this is implemented very poorly. Caches not robust. IE they are
     # never invalidated. Not all config information is passed through
     from ibeis.model.preproc import preproc_probchip
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, config2_=config2_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs,
+                                                                      aid_list,
+                                                                      config2_=config2_)
     return probchip_fpath_list
 
 
@@ -2870,7 +2888,8 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @register_api('/api/annot/age_months_est_min/', methods=['PUT'])
-def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error'):
+def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list,
+                                 duplicate_behavior='error'):
     r"""
     annot_age_months_est_min_list -> annot.annot_age_months_est_min[aid_list]
 
@@ -2895,7 +2914,8 @@ def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, d
 
 @register_ibs_method
 @register_api('/api/annot/age_months_est_max/', methods=['PUT'])
-def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error'):
+def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list,
+                                 duplicate_behavior='error'):
     r"""
     annot_age_months_est_max_list -> annot.annot_age_months_est_max[aid_list]
 
