@@ -90,6 +90,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     else:
         init_color = color_list[init_label]
 
+    print('color_list = %r' % (color_list,))
     print('init_color=%r' % (init_color,))
 
     title = 'masking image'
@@ -101,6 +102,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     cv2.namedWindow(title)
     cv2.setMouseCallback(title, mouse_callback)
 
+    print('Valid Keys: r,c,t,l,q')
     while(1):
         # Blend images
         transparency = globals_['transparency']
