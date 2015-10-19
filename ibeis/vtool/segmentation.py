@@ -78,6 +78,8 @@ def demo_grabcut(bgr_img):
     CommandLine:
         python -m vtool.segmentation --test-demo_grabcut --show
 
+    SeeAlso:
+        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -89,11 +91,12 @@ def demo_grabcut(bgr_img):
         >>> img_fpath = ut.grab_test_imgpath('easy1.png')
         >>> bgr_img = vt.imread(img_fpath)
         >>> # execute function
+        >>> print(bgr_img.shape)
         >>> result = demo_grabcut(bgr_img)
         >>> # verify results
         >>> print(result)
-        >>> if ut.show_was_requested():
-        >>>     pt.show_if_requested()
+        >>> #ut.quit_if_noshow()
+        >>> pt.show_if_requested()
     """
     import plottool as pt
     from plottool import interact_impaint
@@ -102,15 +105,24 @@ def demo_grabcut(bgr_img):
     h, w = bgr_img.shape[0:2]
     init_mask = np.zeros((h, w), dtype=np.float32)  # Initialize: mask
     # Set inside to cv2.GC_PR_FGD (probably forground)
-    init_mask[ :, :] = cv2.GC_PR_BGD * label_colors[label_values.index(cv2.GC_PR_BGD)]
+    init_mask[ :, :] = label_colors[label_values.index(cv2.GC_PR_BGD)]
     # Set border to cv2.GC_BGD (definitely background)
-    init_mask[ 0, :] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
-    init_mask[-1, :] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
-    init_mask[:,  0] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
-    init_mask[:, -1] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[ 0, :] = label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[-1, :] = label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[:,  0] = label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[:, -1] = label_colors[label_values.index(cv2.GC_BGD)]
     #import vtool as vt
     cached_mask_fpath = 'tmp_mask.png'
-    custom_mask = interact_impaint.cached_impaint(bgr_img, cached_mask_fpath, label_colors=None)
+    if ut.get_argflag('--nocache'):
+        ut.delete(cached_mask_fpath)
+    print('unique init mask colors')
+    print(np.unique(init_mask))
+    custom_mask = interact_impaint.cached_impaint(bgr_img, cached_mask_fpath,
+                                                  label_colors=label_colors,
+                                                  init_mask=init_mask)
+    print('unique custom mask colors')
+    print(np.unique(custom_mask))
+    print('delete tmp_mask.png to redo')
     #if ut.checkpath(cached_mask_fpath):
     #    custom_mask = vt.imread(cached_mask_fpath, grayscale=True)
     #else:
@@ -124,8 +136,14 @@ def demo_grabcut(bgr_img):
     # Put user labels in there
     for label_loc, value in zip(label_locs, label_values):
         prior_mask[label_loc] = value
+    prior_mask = prior_mask.astype(np.uint8)
     print('running grabcut')
-    post_mask = grabcut(bgr_img, prior_mask)
+    #print('prior_mask.dtype = %r' % (prior_mask.dtype,))
+    #print('bgr_img.dtype = %r' % (bgr_img.dtype,))
+    with ut.Timer('grabcut'):
+        post_mask = grabcut(bgr_img, prior_mask)
+    if post_mask.dtype == np.uint8:
+        post_mask = post_mask.astype(np.float) / 255.0
     seg_chip = mask_colored_img(bgr_img, post_mask, 'bgr')
     print('finished running grabcut')
     pt.imshow(post_mask * 255, pnum=(1, 2, 1))
@@ -171,7 +189,7 @@ from_hsv_flags = {
 
 def mask_colored_img(img_rgb, mask, encoding='bgr'):
     if mask.dtype == np.uint8:
-        mask /= 255.0
+        mask = mask.astype(np.float) / 255.0
     into_hsv_flag = into_hsv_flags[encoding]
     from_hsv_flag = from_hsv_flags[encoding]
     # Mask out value component

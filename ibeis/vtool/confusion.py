@@ -530,7 +530,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
         show_operating_point (bool): (default = False)
 
     CommandLine:
-        python -m vtool.confusion --exec-draw_roc_curve --show
+        python -m vtool.confusion --exec-draw_roc_curve --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
