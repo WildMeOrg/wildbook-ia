@@ -91,7 +91,8 @@ def augment_nnindexer_experiment():
     nnindexer_list = []
     addition_lbl = 'Addition'
     _addition_iter = list(range(initial + 1, max_num, addition_stride))
-    addition_iter = iter(ut.ProgressIter(_addition_iter, lbl=addition_lbl, freq=1, autoadjust=False))
+    addition_iter = iter(ut.ProgressIter(_addition_iter, lbl=addition_lbl,
+                                         freq=1, autoadjust=False))
     time_list_addition = []
     #time_list_reindex = []
     addition_count_list = []
@@ -123,7 +124,8 @@ def augment_nnindexer_experiment():
         if IS_SMALL:
             nnindexer_list = []
         reindex_label = 'Reindex'
-        _reindex_iter = list(range(initial + 1, max_num, addition_stride))[::-1]  # go backwards for reindex
+        # go backwards for reindex
+        _reindex_iter = list(range(initial + 1, max_num, addition_stride))[::-1]
         reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
         time_list_reindex = []
         #time_list_reindex = []
@@ -139,12 +141,16 @@ def augment_nnindexer_experiment():
             # Call the same code, but force rebuilds
             memtrack.report('BEFORE REINDEX')
             with ut.Timer(verbose=False) as t:
-                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
+                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(
+                    qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
             memtrack.report('AFTER REINDEX')
             ibs.print_cachestats_str()
-            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(neighbor_index.NEIGHBOR_CACHE.items()),))
-            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (len(neighbor_index.NEIGHBOR_CACHE.items()),))
-            print('[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s' % (ut.get_object_size_str(neighbor_index.UUID_MAP_CACHE),))
+            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (
+                ut.get_object_size_str(neighbor_index.NEIGHBOR_CACHE.items()),))
+            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (
+                len(neighbor_index.NEIGHBOR_CACHE.items()),))
+            print('[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s' % (
+                ut.get_object_size_str(neighbor_index.UUID_MAP_CACHE),))
             print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
             memtrack.report_type(neighbor_index.NeighborIndex)
             ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
@@ -431,7 +437,7 @@ def test_multiple_add_removes():
         python -m ibeis.model.hots._neighbor_experiment --exec-test_multiple_add_removes
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> result = test_multiple_add_removes()
         >>> print(result)
@@ -636,7 +642,7 @@ def pyflann_test_remove_add():
         python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_test_remove_add
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add()
     """
@@ -681,7 +687,7 @@ def pyflann_test_remove_add2():
         python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_test_remove_add2
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add2()
     """
@@ -755,7 +761,7 @@ def pyflann_remove_and_save():
         python -m ibeis.model.hots._neighbor_experiment --exec-pyflann_remove_and_save
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_remove_and_save()
     """

@@ -76,11 +76,13 @@ def run_ibeis():
 
     #if ut.get_argflag('-e'):
     #    import ibeis
-    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment), prefix_list=['--', '-'])
+    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),
+    #    prefix_list=['--', '-'])
     #    ibeis.run_experiment(**expt_kw)
     #    sys.exit(0)
 
     # Attempt to run a test using the funciton name alone
+    # with the --tf flag
     import ibeis.tests.run_tests
     import ibeis.tests.reset_testdbs
     ignore_prefix = [
@@ -100,7 +102,7 @@ def run_ibeis():
         python -m ibeis --tmod utool.util_str --test-align:0
         python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
         python -m ibeis --tf request_ibeis_query_L0:0 --show
-        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
