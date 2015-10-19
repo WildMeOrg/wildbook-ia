@@ -26,8 +26,41 @@ def interpolate_replbounds(xdata, ydata, pt):
     ydata = np.array([.1, .2, .3, .4, .5])
     pt = .35
 
-    # FIXME: if duplicate xdata is given bad things happen.
+    FIXME:
+        if duplicate xdata is given bad things happen.
+    BUG:
+        in scipy.interpolate.interp1d
+        If there is a duplicate xdata, then assume_sorted=False will
+        sort ydata by xdata, but xdata should retain its initial ordering
+        in places of ambuguity. Currently it does not.
+    Args:
+        xdata (ndarray):
+        ydata (ndarray):
+        pt (ndarray):
+
+    Returns:
+        float: interp_vals
+
+    CommandLine:
+        python -m vtool.confusion --exec-interpolate_replbounds
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.confusion import *  # NOQA
+        >>> xdata = np.array([0.7,  0.8,  0.8,  0.9,  0.9, 0.9])
+        >>> ydata = np.array([34,    26,   23,   22,   19,  17])
+        >>> pt = np.array([.85, 1.0, -1.0])
+        >>> interp_vals = interpolate_replbounds(xdata, ydata, pt)
+        >>> result = ('interp_vals = %s' % (str(interp_vals),))
+        >>> print(result)
+        interp_vals = [ 22.5  17.   34. ]
     """
+    if not ut.issorted(xdata):
+        raise AssertionError('need to sort xdata and ydata in function')
+        sortx = np.lexsort(np.vstack([np.arange(len(xdata)), xdata]))
+        xdata = xdata.take(sortx, axis=0)
+        ydata = ydata.take(sortx, axis=0)
+
     is_scalar = not ut.isiterable(pt)
     #print('----')
     #print('xdata = %r' % (xdata,))
@@ -35,23 +68,27 @@ def interpolate_replbounds(xdata, ydata, pt):
     if is_scalar:
         pt = np.array([pt])
     #ut.ensure_iterable(pt)
-    argx_min = xdata.argmin()
-    argx_max = xdata.argmax()
+    minval = xdata.min()
+    maxval = xdata.max()
+    argx_min_list = np.argwhere(xdata == minval)
+    argx_max_list = np.argwhere(xdata == maxval)
+    argx_min = argx_min_list.min()
+    argx_max = argx_max_list.max()
     lower_mask = pt < xdata[argx_min]
     upper_mask = pt > xdata[argx_max]
     interp_mask = ~np.logical_or(lower_mask, upper_mask)
     #if isinstance(pt, np.ndarray):
-    interp_vals = np.empty(pt.shape, dtype=ydata.dtype)
+    dtype = np.result_type(np.float32, ydata.dtype)
+    interp_vals = np.empty(pt.shape, dtype=dtype)
     interp_vals[lower_mask] = ydata[argx_min]
     interp_vals[upper_mask] = ydata[argx_max]
     if np.any(interp_mask):
-        func = scipy.interpolate.interp1d(xdata, ydata, kind='linear', assume_sorted=False)
-        #func = scipy.interpolate.interp1d(xdata, ydata, kind='nearest', assume_sorted=False)
+        # FIXME: allow assume_sorted = False
+        func = scipy.interpolate.interp1d(xdata, ydata, kind='linear', assume_sorted=True)
         interp_vals[interp_mask] = func(pt[interp_mask])
     if is_scalar:
         interp_vals = interp_vals[0]
-    return interp_vals
-    ## interpolate to target recall
+    # interpolate to target recall
     #right_index  = indicies[0]
     #right_recall = self.recall[right_index]
     #left_index   = right_index - 1
@@ -61,6 +98,7 @@ def interpolate_replbounds(xdata, ydata, pt):
     #left_fpr   = self.fpr[left_index]
     #right_fpr  = self.fpr[right_index]
     #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
+    return interp_vals
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -88,6 +126,11 @@ class ConfusionMetrics(object):
 
     @classmethod
     def from_scores_and_labels(cls, scores, labels, verbose=False):
+        self = get_confusion_metrics(scores, labels, verbose=verbose)
+        return self
+
+    @classmethod
+    def get_confusion_metrics(cls, scores, labels, verbose=False):
         self = get_confusion_metrics(scores, labels, verbose=verbose)
         return self
 
@@ -151,26 +194,54 @@ class ConfusionMetrics(object):
         return interp_tpr
 
     def get_threshold_at_metric(self, metric, value):
+        r"""
+        Gets a threshold for a binary classifier using a target metric and value
+
+        Args:
+            metric (str): tpr or fpr
+            value (float): corresponding numeric value
+
+        Returns:
+            float: thresh
+
+        CommandLine:
+            python -m vtool.confusion --exec-get_threshold_at_metric
+            python -m vtool.confusion --exec-interact_roc_factory --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.confusion import *  # NOQA
+            >>> scores, labels = testdata_scores_labels()
+            >>> self = get_confusion_metrics(scores, labels)
+            >>> metric = 'tpr'
+            >>> value = .85
+            >>> thresh = self.get_threshold_at_metric(metric, value)
+            >>> print('%s = %r' % (metric, value,))
+            >>> result = ('thresh = %s' % (str(thresh),))
+            >>> print(result)
+            thresh = 22.5
+        """
         # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
-        try:
-            metric_values = self.__dict__[metric]
-            if metric_values[0] > metric_values[-1]:
-                index = np.nonzero(metric_values <= value)[0][0]
-            else:
-                index = np.nonzero(metric_values >= value)[0][0]
-        except IndexError:
-            index = len(self.thresholds) - 1
-        thresh = self.thresholds[index]
+        metric_values = getattr(self, metric)
+        thresh = interpolate_replbounds(metric_values, self.thresholds, value)
+        #try:
+        #    if metric_values[0] > metric_values[-1]:
+        #        index = np.nonzero(metric_values <= value)[0][0]
+        #    else:
+        #        index = np.nonzero(metric_values >= value)[0][0]
+        #except IndexError:
+        #    index = len(self.thresholds) - 1
+        #thresh = self.thresholds[index]
         return thresh
 
     def get_metric_at_threshold(self, metric, thresh):
         r"""
         Args:
-            metric (?):
-            thresh (?):
+            metric (str):
+            thresh (float):
 
         Returns:
-            tuple: (None, None)
+            float : value
 
         CommandLine:
             python -m vtool.confusion --exec-get_metric_at_threshold
@@ -258,7 +329,9 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
     recall_domain = np.linspace(0, 1, nSamples)
     if False:
         # normal interpolation
-        func = scipy.interpolate.interp1d(recall, precision, bounds_error=False, fill_value=precision.max())
+        func = scipy.interpolate.interp1d(recall, precision,
+                                          bounds_error=False,
+                                          fill_value=precision.max())
         p_interp = func(recall_domain)
     else:
         # Pascal interpolation
@@ -288,11 +361,15 @@ def get_confusion_metrics(scores, labels, verbose=False):
         http://en.wikipedia.org/wiki/Precision_and_recall
         http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#sklearn.metrics.roc_curve
 
+    SeeAlso:
+        sklearn.metrics.ranking._binary_clf_curve
+
     Notes:
         From oxford:
-        Precision is defined as the ratio of retrieved positive images to the total number retrieved.
-        Recall is defined as the ratio of the number of retrieved positive images to the total
-        number of positive images in the corpus.
+        Precision is defined as the ratio of retrieved positive images to the
+          total number retrieved.
+        Recall is defined as the ratio of the number of retrieved positive
+          images to the total number of positive images in the corpus.
 
     CommandLine:
         python -m vtool.confusion --exec-get_confusion_metrics --show
@@ -314,69 +391,36 @@ def get_confusion_metrics(scores, labels, verbose=False):
     labels = labels.astype(np.bool)
     if verbose:
         print('[confusion] building confusion metrics.')
-        print('[confusion]  * scores.shape=%r, scores.dtype=%r' % (scores.shape, scores.dtype))
-        print('[confusion]  * labels.shape=%r, labels.dtype=%r' % (labels.shape, labels.dtype))
+        print('[confusion]  * scores.shape=%r, scores.dtype=%r' %
+              (scores.shape, scores.dtype))
+        print('[confusion]  * labels.shape=%r, labels.dtype=%r' %
+              (labels.shape, labels.dtype))
         print('[confusion]  * size(scores) = %r' % (ut.get_object_size_str(scores),))
         print('[confusion]  * size(labels) = %r' % (ut.get_object_size_str(labels),))
-    #memtrack = ut.MemoryTracker(disable=False)
-    #memtrack.report('[CONFUSION]')
 
-    #ut.embed()
-    #memtrack.report('[SKLEARN]')
     # TODO
     #sklearn.metrics.precision_recall_curve(labels, probs)
     #sklearn.metrics.classification_report
 
-    #if False:
-    #    max_rank =  max(true_ranks.max(), false_ranks.max())
-    #    if max_rank is None:
-    #        max_rank = 0
-    #    thresholds = np.arange(max_rank + 1)
+    # sklearn has much faster implementation
+    # fp - count the number of false positives with score >= threshold[i]
+    # tp - count the number of true positives with score >= threshold[i]
+    fp, tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
+        labels, scores, pos_label=1)
+    nGroundTruth = labels.sum()
+    fn = nGroundTruth - tp
+    tn = nGroundTruth - fp
 
-    if False:
-        # Hey this is n**2 in memory!
-        #"""
-        #s = np.array([.3, .9, .4, .2])
-        #t = np.array([1.0, .5, .6, .1])
-        #s[:, None] >= t
-        #(s[:, None] >= t).sum(axis=0)
-        #"""
-        pass
-        #false_positive_rate, true_positive_rate = fpr, tpr
-        # True positive rate (sensitivity)
-        # TPR = TP / (TP + FN)
-        #true_ranks = np.where(labels)[0]
-        #false_ranks = np.where(np.logical_not(labels))[0]
-        #true_scores = scores.compress(labels)
-        #false_scores = scores.compress(np.logical_not(labels))
-        #nGroundTruth = len(true_scores)
-        #nGroundFalse = len(false_scores)
-        # Count the number of true positives at each threshold position
-        # the number of documents we got right
-        #truepos_curve = (true_scores[:, None] >= thresholds).sum(axis=0)
-        # Count the number of false positives at each threshold position
-        # the number of documents we should not have retrieved
-        #falsepos_curve = (false_scores[:, None] >= thresholds).sum(axis=0)
-        # Count the number of documents we should have retrieved but did not
-        #falseneg_curve = nGroundTruth - truepos_curve
-        #trueneg_curve  = nGroundFalse - falsepos_curve
-        #tp = truepos_curve
-        #fp = falsepos_curve
-        #fn = falseneg_curve
-        #tn = trueneg_curve
-    else:
-        #tp_ = np.array([(true_scores >= t).sum() for t in thresholds])
-        #fp_ = np.array([(false_scores >= t).sum() for t in thresholds])
-        # sklearn has much faster implementation
-        fp, tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(labels, scores, pos_label=1)
-        nGroundTruth = labels.sum()
-        fn = nGroundTruth - tp
-        tn = nGroundTruth - fp
+    fpr = fp / fp[-1]
+    tpr = tp / tp[-1]
 
+    debug = False
+    if debug:
         # TODO: if this breaks check implmentation in
-        #fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(labels, scores, pos_label=1)
-        fpr = fp / fp[-1]
-        tpr = tp / tp[-1]
+        fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(
+            labels, scores, pos_label=1)
+        assert np.all(fpr_curve == fpr)
+        assert np.all(tpr_curve == tpr)
 
     def get_precision(tp, fp):
         """ precision -- positive predictive value (PPV) """
@@ -384,39 +428,18 @@ def get_confusion_metrics(scores, labels, verbose=False):
         #precision = np.nan_to_num(precision)
         return precision
 
-    def get_recall(tp, fn):
-        """ recall, true positive rate, sensitivity, hit rate """
-        recall = tp / (tp + fn)
-        #recall = np.nan_to_num(recall)
-        return recall
-
     ppv = precision = get_precision(tp, fp)
     precision[np.isnan(precision)] = 1.0
-    #precision = np.nan_to_num(precision)
-    #recall    = get_recall(tp, fn)
-    # False positive rate (fall-out)
-    #fall_out = fp / (fp + tn)
-
-    #memtrack.report('[SUPERFLOUS]')
-    #fpr = fpr_curve
-    #tpr = tpr_curve
-
-    #assert np.allclose(tpr_curve, recall)
-    #assert np.allclose(fpr_curve, fall_out)
-    #memtrack.report('[MAKE]')
 
     confusions = ConfusionMetrics(thresholds, tp, fp, fn, tn, fpr, tpr, ppv)
-    #memtrack.report('[RETURN]')
 
-    #print(tpr_curve)
-    #print(recall)
     return confusions
 
 
-def interact_roc_factory(confusions, target_tpr=None):
+def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False):
     r"""
     Args:
-        confusions (?):
+        confusions (Confusions):
 
     CommandLine:
         python -m vtool.confusion --exec-interact_roc_factory --show
@@ -425,11 +448,17 @@ def interact_roc_factory(confusions, target_tpr=None):
         >>> # DISABLE_DOCTEST
         >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
+        >>> print('scores = %r' % (scores,))
         >>> confusions = get_confusion_metrics(scores, labels)
+        >>> print(ut.make_csv_table(
+        >>>   [confusions.fpr, confusions.tpr, confusions.thresholds],
+        >>>   ['fpr', 'tpr', 'thresh']))
         >>> ut.quit_if_noshow()
-        >>> ROCInteraction = interact_roc_factory(confusions, target_tpr=.92)
+        >>> ROCInteraction = interact_roc_factory(confusions, target_tpr=.4, show_operating_point=True)
         >>> inter = ROCInteraction()
         >>> inter.show_page()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
         >>> ut.show_if_requested()
     """
     from plottool.abstract_interaction import AbstractInteraction
@@ -448,28 +477,80 @@ def interact_roc_factory(confusions, target_tpr=None):
             super(ROCInteraction, self).__init__(**kwargs)
             self.confusions = confusions
             self.target_fpr = None
+            self.show_operating_point = show_operating_point
 
         @staticmethod
         def static_plot(fnum, pnum, **kwargs):
             #print('ROC Interact2')
             kwargs['thresholds'] = kwargs.get('thresholds', confusions.thresholds)
+            kwargs['show_operating_point'] = kwargs.get('show_operating_point',
+                                                        show_operating_point)
             #ut.embed()
-            confusions.draw_roc_curve(fnum=fnum, pnum=pnum, target_tpr=target_tpr, **kwargs)
+            confusions.draw_roc_curve(fnum=fnum, pnum=pnum,
+                                      target_tpr=target_tpr, **kwargs)
 
         def plot(self, fnum, pnum):
             #print('ROC Interact3')
-            self.static_plot(fnum, pnum, target_fpr=self.target_fpr)
+            self.static_plot(fnum, pnum, target_fpr=self.target_fpr,
+                             show_operating_point=self.show_operating_point)
 
         def on_click_inside(self, event, ex):
             self.target_fpr = event.xdata
             self.show_page()
             self.draw()
 
+        def on_drag(self, event):
+            # FIXME: blit
+            if False:
+                #print('Dragging ' + str(event.x) + ' ' + str(event.y))
+                self.target_fpr = event.xdata
+                self.show_page()
+                #self.draw()
+                if event.inaxes is not None:
+                    self.fig.canvas.blit(event.inaxes.bbox)
+                    #[blit(ax) event.canvas.figure.axes]
+
     return ROCInteraction
 
 
 def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
-                   target_fpr=None, thresholds=None, color=None):
+                   target_fpr=None, thresholds=None, color=None,
+                   show_operating_point=False):
+    r"""
+    Args:
+        fpr (?):
+        tpr (?):
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+        marker (str): (default = '-x')
+        target_tpr (None): (default = None)
+        target_fpr (None): (default = None)
+        thresholds (None): (default = None)
+        color (None): (default = None)
+        show_operating_point (bool): (default = False)
+
+    CommandLine:
+        python -m vtool.confusion --exec-draw_roc_curve --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.confusion import *  # NOQA
+        >>> scores, labels = testdata_scores_labels()
+        >>> confusions = get_confusion_metrics(scores, labels)
+        >>> fpr = confusions.fpr
+        >>> tpr = confusions.tpr
+        >>> thresholds = confusions.thresholds
+        >>> fnum = None
+        >>> pnum = None
+        >>> marker = '-x'
+        >>> target_tpr = .85
+        >>> target_fpr = None
+        >>> color = None
+        >>> show_operating_point = True
+        >>> draw_roc_curve(fpr, tpr, fnum, pnum, marker, target_tpr, target_fpr,
+        >>>   thresholds, color, show_operating_point)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
@@ -482,6 +563,9 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
     title_suffix = ''
 
     if target_fpr is not None:
+        #func = scipy.interpolate.interp1d(fpr, tpr, kind='linear', assume_sorted=False)
+        #func = scipy.interpolate.interp1d(xdata, ydata, kind='nearest', assume_sorted=False)
+        #interp_vals[interp_mask] = func(pt[interp_mask])
         target_fpr = np.clip(target_fpr, 0, 1)
         interp_tpr = interpolate_replbounds(fpr, tpr, target_fpr)
         choice_tpr = interp_tpr
@@ -499,14 +583,14 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
         choice_thresh = 0
         if thresholds is not None:
             try:
-                index = np.nonzero(tpr > choice_tpr)[0][0]
+                index = np.nonzero(tpr >= choice_tpr)[0][0]
             except IndexError:
                 index = len(thresholds) - 1
             choice_thresh = thresholds[index]
         #percent = ut.scalar_str(choice_tpr * 100).split('.')[0]
         #title_suffix = ', FPR%s=%05.2f%%' % (percent, choice_fpr)
         title_suffix = ''
-        if False:
+        if show_operating_point:
             title_suffix = ', fpr=%.2f, tpr=%.2f, thresh=%.2f' % (
                 choice_fpr, choice_tpr, choice_thresh)
     else:
@@ -536,12 +620,11 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
 
         pt.plt.plot(
             line_,
-            interpolate_replbounds(fpr[unique_fpr_idxs], tpr[unique_fpr_idxs], line_),
-            'b-x')
+            interpolate_replbounds(fpr[unique_fpr_idxs], tpr[unique_fpr_idxs],
+                                   line_), 'b-x')
         pt.plt.plot(
-            interpolate_replbounds(tpr[unique_tpr_idxs], fpr[unique_tpr_idxs], line_),
-            line_,
-            'r-x')
+            interpolate_replbounds(tpr[unique_tpr_idxs], fpr[unique_tpr_idxs],
+                                   line_), line_, 'r-x')
     if choice_fpr is not None:
         pt.plot(choice_fpr, choice_tpr, 'o', color=pt.PINK)
 
@@ -555,7 +638,6 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
     if recall_domain is None:
         recall_domain = np.array([])
         p_interp = np.array([])
-
     if recall_domain is None:
         ave_p = -1.0  # np.nan
     else:

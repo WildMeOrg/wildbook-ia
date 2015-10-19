@@ -68,7 +68,8 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
     for scores in scores_list_:
         scores[np.isnan(scores)] = replval
     # The last column is sorted by first with lexsort
-    scorebreaker_list = [np.array((breakers, scores)) for scores, breakers in zip(scores_list_, breakers_list)]
+    scorebreaker_list = [np.array((breakers, scores))
+                         for scores, breakers in zip(scores_list_, breakers_list)]
     if reverse:
         idxs_list = [np.lexsort(scorebreaker)[::-1] for scorebreaker in  scorebreaker_list]
     else:
@@ -82,7 +83,8 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     """
     if lbl is None:
         lbl = ut.get_varname_from_stack(sift_uint8, N=1)
-    print('[checksift] Checking valididty of %d SIFT descriptors. lbl=%s' % (sift_uint8.shape[0], lbl))
+    print('[checksift] Checking valididty of %d SIFT descriptors. lbl=%s' % (
+        sift_uint8.shape[0], lbl))
     is_correct_shape = len(sift_uint8.shape) == 2 and sift_uint8.shape[1] == 128
     is_correct_dtype = sift_uint8.dtype == np.uint8
     if not is_correct_shape:
@@ -115,7 +117,8 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     #if len(bad_locs_thresh) > 0:
     #    above_thresh = sift_float01[(sift_float01 > .2)]
     #    print('[checksift]  * components under thresh = %d' % (sift_float01 <= 2).sum())
-    #    print('[checksift]  * components above thresh stats = ' + ut.get_stats_str(above_thresh, precision=2))
+    #    print('[checksift]  * components above thresh stats = ' +
+    #    ut.get_stats_str(above_thresh, precision=2))
 
     isok = len(bad_locs_norm) == 0 and is_correct_shape and is_correct_dtype
     if not isok:
@@ -149,7 +152,8 @@ def pdist_argsort(x):
         sortx_2d = [(2, 3), (1, 4), (1, 2), (1, 3), (0, 3), (0, 2), (2, 4), (3, 4), (0, 1), (0, 4)]
     """
     OLD = True
-    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2), range(len(x) / 2)) if (c > r)]
+    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2),
+    #range(len(x) / 2)) if (c > r)]
     if OLD:
         import scipy.spatial.distance as spdist
         mat = spdist.squareform(x)
@@ -159,7 +163,8 @@ def pdist_argsort(x):
         sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
     else:
         num_rows = len(x) // 2
-        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)] for r in range(num_rows)])
+        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)]
+                                   for r in range(num_rows)])
         sortx = x.argsort()
         sortx_2d = ut.list_take(compare_idxs, sortx)
     return sortx_2d
@@ -454,7 +459,12 @@ def compute_unique_integer_data_ids(data):
     # get the number of decimal places to shift
     exp_step = np.ceil(np.log10(data.max()))
     offsets = [int(10 ** (ix * exp_step)) for ix in reversed(range(0, ncols))]
-    dataid_list = np.array([sum([item * offset for item, offset in zip(row, offsets)]) for row in data])
+    dataid_list = np.array([
+        sum([
+            item * offset
+            for item, offset in zip(row, offsets)
+        ])
+        for row in data])
     return dataid_list
 
 

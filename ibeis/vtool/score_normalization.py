@@ -190,7 +190,8 @@ class ScoreNormalizer(object):
                 tpr=None,
                 fpr=None,
             ), kwargs)
-        assert not any(key.startswith('target_') for key in kwargs), 'old interface of target_<metric> used just use <metric>'
+        assert not any(key.startswith('target_') for key in kwargs), (
+            'old interface of target_<metric> used just use <metric>')
         if not any(encoder.thresh_kw.values()):
             encoder.thresh_kw['tpr'] = .90
         # Support data
@@ -337,10 +338,12 @@ class ScoreNormalizer(object):
             #pt.plot(xdata[maxima_x], tn1[maxima_x], 'rx')
             #pt.plot(xdata[maxima_x], encoder.interp_fn(x_submax), 'rx')
 
-            _interp_sgtp = scipy.interpolate.interp1d(xdata, tn1, kind='linear', copy=False, assume_sorted=False)
+            _interp_sgtp = scipy.interpolate.interp1d(
+                xdata, tn1, kind='linear', copy=False, assume_sorted=False)
             pt.plot(x_submax, _interp_sgtp(x_submax), 'go')
 
-            _interp_sgtp = scipy.interpolate.interp1d(xdata, tp1, kind='linear', copy=False, assume_sorted=False)
+            _interp_sgtp = scipy.interpolate.interp1d(
+                xdata, tp1, kind='linear', copy=False, assume_sorted=False)
             pt.plot(x_submax, _interp_sgtp(x_submax), 'bx')
             pt.iup()
 
@@ -359,31 +362,52 @@ class ScoreNormalizer(object):
         #print('x_submax = %r' % (x_submax,))
         return score_thresh
 
-    def learn_threshold(encoder, verbose=False):
+    def learn_threshold(encoder, verbose=False, **thresh_kw):
         """
         Learns cutoff threshold that achieves the target confusion metric
         Typically a desired false positive rate (recall) is specified
         """
+        import vtool as vt
         # select a cutoff threshold
         #import sklearn.metrics
-        import vtool as vt
-        X, y, attrs = encoder.get_support()
-        probs = encoder.normalize_scores(X)
-        #fpr_, tpr_, t = sklearn.metrics.roc_curve(y, probs, pos_label=True)
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(
-            probs, y, verbose=verbose)
+        if len(thresh_kw) > 0:
+            _thresh_kw = ut.map_dict_keys(lambda x: x.replace('target_', ''), thresh_kw)
+        else:
+            _thresh_kw = encoder.thresh_kw
         # Select threshold that gives target confusion
-        _selected_items = [item for item in encoder.thresh_kw.items()
+        _selected_items = [item for item in _thresh_kw.items()
                            if item[1] is not None]
         assert len(_selected_items) == 1, (
             'Can only specify one desired confusion metric')
-        # choosing how to optimize the threshold
+        # choose how to optimize the threshold
         metric, value = _selected_items[0]
+        # Get classifier confusions (maybe dont need probs here)
+        X, y, attrs = encoder.get_support()
+        probs = encoder.normalize_scores(X)
+
+        if False:
+            confusions_score = vt.ConfusionMetrics.from_scores_and_labels(
+                -X, y, verbose=verbose)
+
+            confusions_prob = vt.ConfusionMetrics.from_scores_and_labels(
+                probs, y, verbose=verbose)
+
+            _score_thresh = confusions_score.get_threshold_at_metric(metric, value)
+            _prob_thresh = confusions_prob.get_threshold_at_metric(metric, value)
+            _inv_score = encoder.inverse_normalize(_prob_thresh)
+            _inv_prob = encoder.normalize_scores(-_score_thresh)
+
+            _inv_prob - _prob_thresh
+            _inv_score - (-_score_thresh)
+
+        confusions = vt.ConfusionMetrics.from_scores_and_labels(
+            probs, y, verbose=verbose)
+
         prob_thresh = confusions.get_threshold_at_metric(metric, value)
+
         #target_value = confusions.get_metric_at_threshold(metric, prob_thresh)
         #check_thresh = confusions.get_threshold_at_metric(metric, target_value)
         score_thresh = encoder.inverse_normalize(prob_thresh)
-        encoder.learned_thresh = prob_thresh
         if verbose:
             print('[scorenorm] Learning threshold to achieve %s=%.5f' % (
                 metric.upper(), value,))
@@ -397,6 +421,9 @@ class ScoreNormalizer(object):
             elif metric == 'fpr':
                 print('[scorenorm]   * tpr = %r' % (
                     confusions.get_recall_at_fpr(value),))
+
+        # TODO: maybe do not change state?
+        encoder.learned_thresh = prob_thresh
         return score_thresh
 
     def inverse_normalize(encoder, probs):
@@ -410,8 +437,9 @@ class ScoreNormalizer(object):
         is_iterable = ut.isiterable(X)
         if not is_iterable:
             X = np.array([X])
-        prob = normalize_scores(encoder.score_domain, encoder.p_tp_given_score,
-                                X, interp_fn=encoder.interp_fn)
+        prob = normalize_scores(
+            encoder.score_domain, encoder.p_tp_given_score,
+            X, interp_fn=encoder.interp_fn)
         if not is_iterable:
             prob = prob[0]
         return prob
@@ -535,7 +563,7 @@ class ScoreNormalizer(object):
         return indicies
 
     def visualize(encoder, **kwargs):
-        """
+        r"""
         shows details about the score normalizer
 
         Kwargs:
@@ -547,9 +575,10 @@ class ScoreNormalizer(object):
             with_precision_recall
 
         CommandLine:
-            python -m vtool.score_normalization --exec-ScoreNormalizer.visualize --show
+            python -m vtool.score_normalization --exec-ScoreNormalizer.visualize:0 --show
+            python -m vtool.score_normalization --exec-ScoreNormalizer.visualize:1 --show
 
-        Example:
+        Example0:
             >>> # UNSTABLE_DOCTEST
             >>> from vtool.score_normalization import *  # NOQA
             >>> import vtool as vt
@@ -560,6 +589,19 @@ class ScoreNormalizer(object):
             >>>     with_pr=True, interactive=True, with_roc=True,
             >>>     with_hist=True)
             >>> encoder.visualize(**kwargs)
+            >>> ut.show_if_requested()
+
+        Example1:
+            >>> # UNSTABLE_DOCTEST
+            >>> from vtool.score_normalization import *  # NOQA
+            >>> import vtool as vt
+            >>> encoder = ScoreNormalizer()
+            >>> X, y = vt.tests.dummy.testdata_binary_scores()
+            >>> encoder.fit(X, y)
+            >>> kwargs = dict(
+            >>>     with_pr=True, interactive=True, with_roc=True, with_hist=True,
+            >>>     with_scores=False, with_prebayes=False, with_postbayes=False)
+            >>> encoder.visualize(target_tpr=.95, **kwargs)
             >>> ut.show_if_requested()
 
         """
@@ -584,11 +626,17 @@ class ScoreNormalizer(object):
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
+        other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
 
-        #prob_thresh = encoder.learned_thresh
-        #score_thresh = encoder.inverse_normalize(prob_thresh)
-        score_thresh = encoder.learn_threshold2()
-        prob_thresh = encoder.normalize_scores(score_thresh)
+        if 'target_tpr' in other_kw:
+            score_thresh = encoder.learn_threshold(verbose=True, **other_kw)
+            prob_thresh = encoder.learned_thresh
+            #prob_thresh = encoder.normalize_scores(score_thresh)
+        else:
+            #prob_thresh = encoder.learned_thresh
+            #score_thresh = encoder.inverse_normalize(prob_thresh)
+            score_thresh = encoder.learn_threshold2()
+            prob_thresh = encoder.normalize_scores(score_thresh)
 
         tup = encoder.get_partitioned_support()
         tp_support, tn_support, part_attrs = tup
@@ -1022,7 +1070,6 @@ def inspect_pdfs(tn_support, tp_support,
     scores = np.hstack([tn_support, tp_support])
     labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
 
-    #c
     # probs = encoder.normalize_scores(scores)
     probs = normalize_scores(score_domain, p_tp_given_score, scores)
 
@@ -1030,6 +1077,7 @@ def inspect_pdfs(tn_support, tp_support,
         probs, labels)
     # Hack change confusion prob thresholds to score thresholds
     if False:
+        # Fixme: assume sorted
         inverse_interp = scipy.interpolate.interp1d(
             p_tp_given_score, score_domain, kind='linear',
             copy=False, assume_sorted=False)
@@ -1121,7 +1169,8 @@ def inspect_pdfs(tn_support, tp_support,
     #target_tpr = None
     target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
     #print('target_tpr = %r' % (target_tpr,))
-    ROCInteraction = vt.interact_roc_factory(confusions, target_tpr)
+    ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
+                                             show_operating_point=True)
 
     def _score_support_hist(fnum, pnum):
         pt.plot_score_histograms(
