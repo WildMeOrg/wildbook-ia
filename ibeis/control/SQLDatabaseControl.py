@@ -21,7 +21,8 @@ VERYVERBOSE    = ut.VERYVERBOSE
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 
 import collections
-SQLColumnRichInfo = collections.namedtuple('SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
+SQLColumnRichInfo = collections.namedtuple(
+    'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
 __STR__ = str if six.PY3 else unicode
@@ -172,7 +173,8 @@ class SQLDatabaseController(object):
             version = const.BASE_DATABASE_VERSION
             colnames = ['metadata_key', 'metadata_value']
             params_iter = zip(['database_version'], [version])
-            get_rowid_from_superkey = (lambda x : [None] * len(x))  # We don't care to find any, because we know there is no version
+            # We don't care to find any, because we know there is no version
+            get_rowid_from_superkey = (lambda x : [None] * len(x))
             db.add_cleanly(const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
 
@@ -243,7 +245,7 @@ class SQLDatabaseController(object):
     #==============
 
     @default_decor
-    def get_all_rowids(db, tblname):
+    def get_all_rowids(db, tblname, **kwargs):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'tblname': tblname, }
         operation_fmt = '''
@@ -251,7 +253,7 @@ class SQLDatabaseController(object):
         FROM {tblname}
         ORDER BY rowid ASC
         '''
-        return db._executeone_operation_fmt(operation_fmt, fmtdict)
+        return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
     @default_decor
     def get_all_col_rows(db, tblname, colname):
@@ -266,8 +268,10 @@ class SQLDatabaseController(object):
 
     @default_decor
     def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
-        """ returns a list of rowids from a table in ascending order satisfying
-        a condition """
+        """
+        returns a list of rowids from a table in ascending order satisfying a
+        condition
+        """
         fmtdict = {'tblname': tblname, 'where_clause': where_clause, }
         operation_fmt = '''
         SELECT rowid
@@ -300,7 +304,8 @@ class SQLDatabaseController(object):
         return rowid_list
 
     @default_decor
-    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx=(0,)):
+    def add_cleanly(db, tblname, colnames, params_iter,
+                    get_rowid_from_superkey, superkey_paramx=(0,)):
         """
         ADDER Extra input:
         the first item of params_iter must be a superkey (like a uuid),
@@ -464,7 +469,8 @@ class SQLDatabaseController(object):
             unpack_scalars (bool): default True
         """
         if VERBOSE_SQL:
-            print(ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' % (tblname, colnames,))
+            print(ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' %
+                  (tblname, colnames,))
         assert isinstance(colnames, tuple), 'must specify column names to get from'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -502,7 +508,8 @@ class SQLDatabaseController(object):
                 assert not ut.duplicates_exist(id_list), "Passing a not-unique list of ids"
             except Exception as ex:
                 ut.debug_duplicate_items(id_list)
-                ut.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' % (len(id_list), len(set(id_list))))
+                ut.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' %
+                           (len(id_list), len(set(id_list))))
                 raise
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
@@ -510,7 +517,10 @@ class SQLDatabaseController(object):
             id_list  = ut.filter_items(id_list, isunique_list)
             val_list = ut.filter_items(val_list, isunique_list)
         else:
-            raise AssertionError('unknown duplicate_behavior=%r. known behaviors are: error and filter' % (duplicate_behavior,))
+            raise AssertionError(
+                ('unknown duplicate_behavior=%r. '
+                 'known behaviors are: error and filter')
+                % (duplicate_behavior,))
 
         try:
             num_val = len(val_list)
@@ -595,7 +605,10 @@ class SQLDatabaseController(object):
     @default_decor
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
                    verbose=VERBOSE_SQL):
-        with SQLExecutionContext(db, operation, nInput=1) as context:
+        contextkw = dict(
+            nInput=1, verbose=verbose
+        )
+        with SQLExecutionContext(db, operation, **contextkw) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
                 result_list = list(result_iter)
@@ -651,11 +664,13 @@ class SQLDatabaseController(object):
                     #    (context.execute_and_generate_results(params) for params in params_iter)
                     #)
                 #)  # list of iterators
-                results_iter = [list(context.execute_and_generate_results(params)) for params in params_iter]
+                results_iter = [list(context.execute_and_generate_results(params))
+                                for params in params_iter]
                 if unpack_scalars:
                     results_iter = list(map(_unpacker, results_iter))  # list of iterators
                     #try:
-                    #    results_iter = [_unpacker(results_) for resultx, results_ in enumerate(results_iter)]
+                    #    results_iter = [_unpacker(results_) for resultx,
+                    #    results_ in enumerate(results_iter)]
                     #except AssertionError:
                     #    print('resultx = %r' % (resultx,))
                     #    if isinstance(params_iter, list):
@@ -754,7 +769,9 @@ class SQLDatabaseController(object):
             >>> print(result)
         """
         metadata_rowids = db.get_all_rowids(const.METADATA_TABLE)
-        metadata_items = db.get(const.METADATA_TABLE, ('metadata_key', 'metadata_value'), metadata_rowids)
+        metadata_items = db.get(const.METADATA_TABLE,
+                                ('metadata_key', 'metadata_value'),
+                                metadata_rowids)
         return metadata_items
 
     @default_decor
@@ -829,7 +846,8 @@ class SQLDatabaseController(object):
             coldef_list (list):
             constraint (list or None):
             docstr (str):
-            superkeys (list or None): list of tuples of column names which uniquely identifies a rowid
+            superkeys (list or None): list of tuples of column names which
+                uniquely identifies a rowid
         """
         # TODO: **metadata_keyval
         #constraint=None, docstr='',
@@ -837,7 +855,8 @@ class SQLDatabaseController(object):
         #shortname=None, extern_tables=None, dependsmap=None,
         #primary_superkey=None):
         bad_kwargs = set(metadata_keyval.keys()) - set(db.table_metadata_keys)
-        assert len(bad_kwargs) == 0, 'keyword args specified that are not metadata keys=%r' % (bad_kwargs,)
+        assert len(bad_kwargs) == 0, 'keyword args specified that are not metadata keys=%r' % (
+            bad_kwargs,)
         assert tablename is not None, 'tablename must be given'
         assert coldef_list is not None, 'tablename must be given'
         if ut.DEBUG2:
@@ -912,41 +931,45 @@ class SQLDatabaseController(object):
                      #constraint=None, docstr=None, superkeys=None,
                      **metadata_keyval):
         """
-        function to modify the schema - only columns that are being added, removed or changed need to be enumerated
+        function to modify the schema - only columns that are being added,
+        removed or changed need to be enumerated
 
         Args:
            tablename (str): tablename
            colmap_list (list): of tuples (orig_colname, new_colname, new_coltype, convert_func)
+               orig_colname - the original name of the column, None to append, int for index
+               new_colname - the new column name ('' for same, None to delete)
+               new_coltype - New Column Type. None to use data unmodified
+               convert_func - Function to convert data from old to new
            constraint (str):
            superkeys (list)
            docstr (str)
            tablename_new (?)
 
         Example:
-            >>> def contributor_location_zip_map(x):
+            >>> def loc_zip_map(x):
             ...     return x
             >>> ibs = None
             >>> ibs.db.modify_table(const.CONTRIBUTOR_TABLE, (
-            ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new
-            ... #   [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
-            ...    # a non-needed, but correct mapping (identity function)
-            ...    ('contributor_rowid',             '',                              '',               None),
-            ...    # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
-            ...    (None,                            'contributor__location_address', 'TEXT',           None),
-            ...    # adding a new column at index 4 (if index is invalid, None is used)
-            ...    (4,                               'contributor__location_address', 'TEXT',           None),
-            ...    # for deleted columns, type and function are ignored
-            ...    ('contributor__location_city',    None,                            '',               None),
-            ...    # for renamed columns, type and function are ignored
-            ...    ('contributor__location_city',    'contributor__location_town',    '',               None),
-            ...    ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
-            ...    # type not changing, only NOT NULL provision
-            ...    ('contributor__location_country', '',                              'TEXT NOT NULL',  None),
-            ...    ),
-            ...    superkeys=[('contributor_rowid',)],
-            ...    constraint=[],
-            ...    docstr='Used to store the contributors to the project'
-            ... )
+            >>>         # orig_colname,             new_colname,      new_coltype, convert_func
+            >>>         # a non-needed, but correct mapping (identity function)
+            >>>         ('contrib_rowid',      '',                    '',               None),
+            >>>         # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+            >>>         (None,                 'contrib_loc_address', 'TEXT',           None),
+            >>>         # adding a new column at index 4 (if index is invalid, None is used)
+            >>>         (4,                    'contrib_loc_address', 'TEXT',           None),
+            >>>         # for deleted columns, type and function are ignored
+            >>>         ('contrib_loc_city',    None,                 '',               None),
+            >>>         # for renamed columns, type and function are ignored
+            >>>         ('contrib_loc_city',   'contrib_loc_town',    '',       None),
+            >>>         ('contrib_loc_zip',    'contrib_loc_zip',     'TEXT',   loc_zip_map),
+            >>>         # type not changing, only NOT NULL provision
+            >>>         ('contrib_loc_country', '',                   'TEXT NOT NULL',  None),
+            >>>     ),
+            >>>     superkeys=[('contributor_rowid',)],
+            >>>     constraint=[],
+            >>>     docstr='Used to store the contributors to the project'
+            >>>  )
         """
         #assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'tablename must be given'
@@ -1081,7 +1104,8 @@ class SQLDatabaseController(object):
         colname_list = db.get_column_names(tablename)
         coltype_list = db.get_column_types(tablename)
         assert len(colname_list) == len(coltype_list) and len(colname_list) == len(order_list)
-        assert all([ i in order_list for i in range(len(colname_list)) ]), 'Order index list invalid'
+        assert all([ i in order_list for i in range(len(colname_list)) ]), (
+            'Order index list invalid')
         # Reorder column definitions
         combined = sorted(list(zip(order_list, colname_list, coltype_list)))
         coldef_list = [ (name, type_) for i, name, type_ in combined ]
@@ -1105,7 +1129,8 @@ class SQLDatabaseController(object):
     @default_decor
     def duplicate_table(db, tablename, tablename_duplicate):
         if VERBOSE_SQL:
-            print('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+            print('[sql] schema duplicating tablename=%r into tablename=%r' %
+                  (tablename, tablename_duplicate))
         db.modify_table(tablename, [], tablename_new=tablename_duplicate)
 
     @default_decor
@@ -1239,7 +1264,8 @@ class SQLDatabaseController(object):
         tab1 = ' ' * 4
         tab2 = ' ' * 8
         line_list = []
-        #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema'
+        #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema
+        #--force-incremental-db-update --dump-autogen-schema'
         # File Header
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
         line_list.append('AUTOGENERATED ON ' + ut.timestamp('printable'))
@@ -1302,7 +1328,8 @@ class SQLDatabaseController(object):
                 return quoted_docstr
             line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
             line_list.append(tab2 + 'superkeys=%r,' % (superkeys, ))
-            #line_list.append(tab2 + 'constraint=%r,' % (db.get_metadata_val(tablename + '_constraint'),))
+            #line_list.append(tab2 + 'constraint=%r,' %
+            #(db.get_metadata_val(tablename + '_constraint'),))
             # Hack out docstr and superkeys for now
             for suffix in db.table_metadata_keys:
                 if suffix in specially_handled_table_metakeys:
@@ -1314,8 +1341,10 @@ class SQLDatabaseController(object):
                     line_list.append(tab2 + '%s=%r,' % (suffix, val))
             dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
             if dependsmap is not None:
-                depends_map_dictstr = ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':')
-                depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')  # hack for formatting
+                _dictstr = ut.indent(ut.dict_str(dependsmap), tab2)
+                depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
+                # hack for formatting
+                depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')
                 line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
             line_list.append(tab1 + ')')
 
@@ -1383,9 +1412,9 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_superkey_colnames
-            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --tablename=contributors
-            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
-            python -m ibeis.control.SQLDatabaseControl --exec-get_table_superkey_colnames --db PZ_Master0 --tablename=contributors
+            python -m ibeis --tf get_table_superkey_colnames --tablename=contributors
+            python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
+            python -m ibeis --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
 
         Example0:
             >>> # ENABLE_DOCTEST
@@ -1396,15 +1425,18 @@ class SQLDatabaseController(object):
             >>> print(result)
             [('lbltype_rowid', 'lblimage_value')]
         """
-        assert tablename in db.get_table_names(), 'tablename=%r is not a part of this database' % (tablename,)
+        assert tablename in db.get_table_names(), (
+            'tablename=%r is not a part of this database' % (tablename,))
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
         #data = [(tablename + '_superkeys',)]
-        #superkey_colnames_list_repr = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)[0]
+        #superkey_colnames_list_repr = db.get_where(const.METADATA_TABLE,
+        #colnames, data, where_clause)[0]
         superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys', default=None)
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
-        #assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
+        #assert len(superkeys) == 1, 'INVALID DEVELOPER ASSUMPTION IN
+        #SQLCONTROLLER. MORE THAN 1 SUPERKEY'
         if superkey_colnames_list_repr is None:
             superkeys = []
             pass
@@ -1428,13 +1460,18 @@ class SQLDatabaseController(object):
     @default_decor
     def get_table_primarykey_colnames(db, tablename):
         columns = db.get_columns(tablename)
-        primarykey_colnames = tuple([name for (column_id, name, type_, notnull, dflt_value, pk,) in columns if pk])
+        primarykey_colnames = tuple([
+            name
+            for (column_id, name, type_, notnull, dflt_value, pk,) in columns
+            if pk
+        ])
         return primarykey_colnames
 
     @default_decor
     def get_table_otherkey_colnames(db, tablename):
         flat_superkey_colnames_list = ut.flatten(db.get_table_superkey_colnames(tablename))
-        #superkeys = set((lambda x: x if x is not None else [])(db.get_table_superkey_colnames(tablename)))
+        #superkeys = set((lambda x: x if x is not None else
+        #[])(db.get_table_superkey_colnames(tablename)))
         columns = db.get_columns(tablename)
         otherkey_colnames = [name
                              for (column_id, name, type_, notnull, dflt_value, pk,) in columns
@@ -1571,7 +1608,8 @@ class SQLDatabaseController(object):
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
         column_names = ut.filter_items(all_column_names, isvalid_list)
-        column_list = [db.get_column(tablename, name) for name in column_names if name not in exclude_columns]
+        column_list = [db.get_column(tablename, name)
+                       for name in column_names if name not in exclude_columns]
         return column_list, column_names
 
     @default_decor
@@ -1602,7 +1640,8 @@ class SQLDatabaseController(object):
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
         column_names = ut.filter_items(all_column_names, isvalid_list)
-        column_list = [db.get_column(tablename, name) for name in column_names if name not in exclude_columns]
+        column_list = [db.get_column(tablename, name)
+                       for name in column_names if name not in exclude_columns]
 
         extern_colx_list = []
         extern_tablename_list  = []
@@ -1624,13 +1663,19 @@ class SQLDatabaseController(object):
                             # FIXME: Rectify duplicate code
                             superkeys = db.get_table_superkey_colnames(tablename_)
                             if len(superkeys) > 1:
-                                #primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
-                                primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
+                                #primary_superkey =
+                                #db.get_metadata_val(tablename_ +
+                                #                    '_primary_superkey',
+                                #                    eval_=True)
+                                primary_superkey = db.get_metadata_val(
+                                    tablename_ + '_primary_superkey', eval_=True)
                                 db.get_table_superkey_colnames('contributors')
                                 if primary_superkey is None:
                                     raise AssertionError(
-                                        ('tablename_=%r has multiple superkeys=%r, but no primary superkey.'
-                                         ' A primary superkey is required') % (tablename_, superkeys))
+                                        ('tablename_=%r has multiple superkeys=%r, '
+                                         'but no primary superkey.'
+                                         ' A primary superkey is required') % (
+                                             tablename_, superkeys))
                                 else:
                                     index = superkeys.index(primary_superkey)
                                     superkey_colnames = superkeys[index]
@@ -1644,13 +1689,19 @@ class SQLDatabaseController(object):
                                     # hack to fix contributors table
                                     import parse
                                     constraint_str = db.get_metadata_val(tablename_ + '_constraint')
-                                    parse_result = parse.parse('CONSTRAINT superkey UNIQUE ({superkey})', constraint_str)
+                                    parse_result = parse.parse(
+                                        'CONSTRAINT superkey UNIQUE ({superkey})',
+                                        constraint_str)
                                     superkey = parse_result['superkey']
                                     assert superkey == 'contributor_tag', 'hack failed1'
-                                    assert None is db.get_metadata_val('contributors_superkey'), 'hack failed2'
+                                    assert None is db.get_metadata_val('contributors_superkey'), (
+                                        'hack failed2')
                                     if True:
-                                        db.set_metadata_val('contributors_superkeys', "[('" + superkey + "',)]")
-                                raise NotImplementedError('Cannot Handle: len(superkeys) == 0. Probably a degenerate case')
+                                        db.set_metadata_val('contributors_superkeys',
+                                                            "[('" + superkey + "',)]")
+                                raise NotImplementedError(
+                                    'Cannot Handle: len(superkeys) == 0. '
+                                    'Probably a degenerate case')
                         except Exception as ex:
                             ut.printex(ex, 'Error Getting superkey colnames',
                                        keys=['tablename_', 'superkeys'])
@@ -1764,10 +1815,14 @@ class SQLDatabaseController(object):
         if ignore_tables is None:
             ignore_tables = []
         ignore_tables_ += ignore_tables
-        tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables_]
+        tablename_list = [tablename for tablename in all_tablename_list
+                          if tablename not in ignore_tables_]
         # Reorder tablenames based on dependencies.
         # the tables with dependencies are merged after the tables they depend on
-        dependsmap_list = [db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None) for tablename in tablename_list]
+        dependsmap_list = [
+            db.get_metadata_val(tablename + '_dependsmap', eval_=True,
+                                default=None)
+            for tablename in tablename_list]
         dependency_digraph = {
             tablename: [] if dependsmap is None else ut.get_list_column(dependsmap.values(), 0)
             for dependsmap, tablename in zip(dependsmap_list, tablename_list)
@@ -1815,7 +1870,9 @@ class SQLDatabaseController(object):
             will break if a true cycle exists
             """
             depth_list = [
-                find_depth(depends_tablename, dependency_digraph) if depends_tablename != tablename else 0
+                find_depth(depends_tablename, dependency_digraph)
+                if depends_tablename != tablename else
+                0
                 for depends_tablename in dependency_digraph[tablename]
             ]
             depth = 0 if len(depth_list) == 0 else max(depth_list) + 1
@@ -1853,8 +1910,10 @@ class SQLDatabaseController(object):
                 isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
                 valid_old_rowid_list = ut.filter_items(old_rowid_list, isvalid_list)
                 valid_column_list_ = [ut.filter_items(col, isvalid_list) for col in column_list_]
-                valid_extern_superkey_colval_list =  [ut.filter_items(col, isvalid_list) for col in extern_superkey_colval_list]
-                print(' * filtered number of rows from %d to %d.' % (len(valid_rowids), len(valid_old_rowid_list)))
+                valid_extern_superkey_colval_list =  [ut.filter_items(col, isvalid_list)
+                                                      for col in extern_superkey_colval_list]
+                print(' * filtered number of rows from %d to %d.' % (
+                    len(valid_rowids), len(valid_old_rowid_list)))
             else:
                 print(' * no filtering requested')
                 valid_extern_superkey_colval_list = extern_superkey_colval_list
@@ -1869,7 +1928,8 @@ class SQLDatabaseController(object):
             # ================================
             if len(extern_colx_list) > 0:
                 if verbose:
-                    print('[sqlmerge] %s has %d externaly dependant columns to resolve' % (tablename, len(extern_colx_list)))
+                    print('[sqlmerge] %s has %d externaly dependant columns to resolve' % (
+                        tablename, len(extern_colx_list)))
                 modified_column_list_ = valid_column_list_[:]
                 new_extern_rowid_list = []
 
@@ -1878,7 +1938,8 @@ class SQLDatabaseController(object):
                                valid_extern_superkey_colval_list,
                                extern_tablename_list,
                                extern_primarycolnames_list):
-                    colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname = tup
+                    (colx, extern_superkey_colname, extern_superkey_colval,
+                     extern_tablename, extern_primarycolname) = tup
                     source_colname = column_names_[colx - 1]
                     if veryverbose or verbose:
                         if veryverbose:
@@ -1886,10 +1947,12 @@ class SQLDatabaseController(object):
                             print(('[sqlmerge] * resolving source_colname=%r \n'
                                    '                 via extern_superkey_colname=%r ...\n'
                                    '                 -> extern_primarycolname=%r. colx=%r')
-                                  % (source_colname, extern_superkey_colname, extern_primarycolname, colx))
+                                  % (source_colname, extern_superkey_colname,
+                                     extern_primarycolname, colx))
                         elif verbose:
                             print('[sqlmerge] * resolving %r via %r -> %r'
-                                  % (source_colname, extern_superkey_colname, extern_primarycolname))
+                                  % (source_colname, extern_superkey_colname,
+                                     extern_primarycolname))
                     _params_iter = list(zip(extern_superkey_colval))
                     new_extern_rowids = db.get_rowid_from_superkey(
                         extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
@@ -1918,11 +1981,13 @@ class SQLDatabaseController(object):
                 raise
             if len(superkey_colnames_list) > 1:
                 # FIXME: Rectify duplicate code
-                primary_superkey = db.get_metadata_val(tablename + '_primary_superkey', eval_=True, default=None)
+                primary_superkey = db.get_metadata_val(
+                    tablename + '_primary_superkey', eval_=True, default=None)
                 if primary_superkey is None:
                     raise AssertionError(
-                        ('tablename=%r has multiple superkey_colnames_list=%r, but no primary superkey.'
-                         ' A primary superkey is required') % (tablename, superkey_colnames_list))
+                        ('tablename=%r has multiple superkey_colnames_list=%r, '
+                         'but no primary superkey. '
+                         'A primary superkey is required') % (tablename, superkey_colnames_list))
                 else:
                     superkey_index = superkey_colnames_list.index(primary_superkey)
                     superkey_paramx = superkey_paramxs_list[superkey_index]
@@ -2021,7 +2086,9 @@ class SQLDatabaseController(object):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_rowid_list = db.get_where(const.METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        metadata_rowid_list = db.get_where(const.METADATA_TABLE,
+                                           ('metadata_rowid',), params_iter,
+                                           where_clause, unpack_scalars=True)
         assert len(metadata_rowid_list) == 1, 'duplicate database_version keys in database'
         id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
         val_list = ((_,) for _ in [version])

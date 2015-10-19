@@ -7,6 +7,8 @@ AutogenCommandLine:
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 
+## Put constants here?
+
 
 # =======================
 # Schema Version Current

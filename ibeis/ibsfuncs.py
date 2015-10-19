@@ -1864,7 +1864,7 @@ def print_infostr(ibs, **kwargs):
 
 
 @register_ibs_method
-def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
+def print_annotation_table(ibs, verbosity=1, exclude_columns=[], include_columns=[]):
     """
     Dumps annotation table to stdout
 
@@ -1888,6 +1888,11 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
             'annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',
             'annot_theta', 'annot_yaw', 'annot_detect_confidence',
             'annot_note', 'annot_parent_rowid']
+    for x in include_columns:
+        try:
+            exclude_columns.remove(x)
+        except ValueError:
+            pass
     print('\n')
     print(ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns))
 

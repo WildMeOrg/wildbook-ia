@@ -156,7 +156,6 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> from ibeis import constants as const
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> # execute function
@@ -166,6 +165,29 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> ut.assert_eq(len(aid_list1), 9)
         >>> ut.assert_eq(len(aid_list2), 4)
         >>> ut.assert_eq(len(intersect_aids), 0)
+
+    Ignore:
+        import utool as ut
+        setup = ut.codeblock(
+            '''
+            import ibeis
+            ibs = ibeis.opendb('PZ_Master1')
+            '''
+        )
+        stmt_list = [
+            ut.codeblock(
+                '''
+                ibs.db.get_all_rowids_where(ibs.const.ANNOTATION_TABLE, ibeis.control.DB_SCHEMA.ANNOT_PARENT_ROWID + " IS NULL", tuple())
+                '''),
+            ut.codeblock(
+                '''
+                ibs.db.get_all_rowids(ibs.const.ANNOTATION_TABLE)
+                '''),
+        ]
+        iterations = 100
+        verbose = True
+        _ = ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
+
     """
     # getting encounter aid
     if eid is None:
