@@ -39,6 +39,7 @@ def postprocess_dev():
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
+        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev --aids=2,3 --show
         python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev --db Elephants_drop1_ears
 
     CommandLine:
@@ -60,7 +61,11 @@ def postprocess_dev():
     #fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'  # NOQA
     import ibeis
     ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-    aid_list = ibs.get_valid_aids()
+    aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    else:
+        ibs.assert_valid_aids(aid_list)
 
     def test_grabcut_on_aid(aid):
         chip_fpath = ibs.get_annot_chip_fpath(aid)
@@ -101,7 +106,8 @@ def postprocess_dev():
             label_mask_ = label_mask.copy()
             print(label_values)
             print(np.unique(label_mask_))
-            cv2.grabCut(chip_img, label_mask_, rect, bgd_model, fgd_model, num_iters, mode=mode)
+            with ut.Timer('grabcut'):
+                cv2.grabCut(chip_img, label_mask_, rect, bgd_model, fgd_model, num_iters, mode=mode)
             #is_foreground = (label_mask == cv2.GC_FGD) + (label_mask == cv2.GC_PR_FGD)
             #is_foreground = (label_mask_ == cv2.GC_FGD)  # + (label_mask == cv2.GC_PR_FGD)
             return label_mask_
