@@ -35,13 +35,17 @@ def test_featweight_worker():
     #aid_list = ibs.get_valid_aids()[0:30]
     kpts_list           = ibs.get_annot_kpts(aid_list)
     chipsize_list       = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, lazy=lazy, config2_=config2_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs,
+                                                                      aid_list,
+                                                                      lazy=lazy,
+                                                                      config2_=config2_)
     print('probchip_fpath_list = %r' % (probchip_fpath_list,))
     probchip_list       = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
                            for fpath in probchip_fpath_list]
 
     _iter = list(zip(aid_list, kpts_list, probchip_list, chipsize_list))
-    for aid, kpts, probchip, chipsize in ut.InteractiveIter(_iter, enabled=ut.get_argflag('--show')):
+    _iter = ut.InteractiveIter(_iter, enabled=ut.get_argflag('--show'))
+    for aid, kpts, probchip, chipsize in _iter:
         #kpts     = kpts_list[0]
         #aid      = aid_list[0]
         #probchip = probchip_list[0]
@@ -165,7 +169,8 @@ def gen_featweight_worker(tup):
         sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
         kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
         #vtpatch.get_warped_patches()
-        patch_list  = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts_]
+        patch_list  = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0
+                       for kp in kpts_]
         weight_list = [vtpatch.gaussian_average_patch(patch) for patch in patch_list]
         #weight_list = [patch.sum() / (patch.size) for patch in patch_list]
         weights = np.array(weight_list, dtype=np.float32)
@@ -190,7 +195,9 @@ def compute_fgweights(ibs, aid_list, config2_=None):
     """
     nTasks = len(aid_list)
     print('[preproc_featweight.compute_fgweights] Preparing to compute %d fgweights' % (nTasks,))
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, config2_=config2_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs,
+                                                                      aid_list,
+                                                                      config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
 
     #if ut.DEBUG2:
@@ -207,10 +214,12 @@ def compute_fgweights(ibs, aid_list, config2_=None):
 
     print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
     arg_iter = zip(aid_list, kpts_list, probchip_list, chipsize_list)
-    featweight_gen = utool.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)
+    featweight_gen = utool.generate(gen_featweight_worker, arg_iter,
+                                    nTasks=nTasks, ordered=True, freq=10)
     featweight_param_list = list(featweight_gen)
     #arg_iter = zip(aid_list, kpts_list, probchip_list)
-    #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]
+    #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for
+    #aid, kpts, probchip in arg_iter]
     #featweight_aids = ut.get_list_column(featweight_param_list, 0)
     featweight_list = ut.get_list_column(featweight_param_list, 1)
     print('[preproc_featweight.compute_fgweights] Done computing %d fgweights' % (nTasks,))

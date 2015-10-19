@@ -73,14 +73,15 @@ def postprocess_dev():
 
         def probchip_to_grabcut_labels(probchip_img, w, h):
             scaled_probchip = cv2.resize(probchip_img, dsize=(w, h))
-            mask = (len(label_values) * (scaled_probchip / 255)).astype(np.uint8)
-            # No certainty
-            mask[mask == 3] = 2
+            mask = ((len(label_values) - 1) * (scaled_probchip / 255)).astype(np.uint8)
             # Except for one center pixel
             #mask[mask.shape[0] // 2, mask.shape[1] // 2] = 3
             label_mask = mask.copy()
             for index, value in enumerate(label_values):
                 label_mask[mask == index] = value
+            # No certainty
+            label_mask[label_mask == cv2.GC_FGD] = cv2.GC_PR_FGD
+            label_mask[label_mask == cv2.GC_BGD] = cv2.GC_PR_BGD
             return label_mask
 
         def grabcut_labels_to_probchip(label_mask):
@@ -98,6 +99,8 @@ def postprocess_dev():
             mode = cv2.GC_INIT_WITH_MASK
             # label_mask is an outvar
             label_mask_ = label_mask.copy()
+            print(label_values)
+            print(np.unique(label_mask_))
             cv2.grabCut(chip_img, label_mask_, rect, bgd_model, fgd_model, num_iters, mode=mode)
             #is_foreground = (label_mask == cv2.GC_FGD) + (label_mask == cv2.GC_PR_FGD)
             #is_foreground = (label_mask_ == cv2.GC_FGD)  # + (label_mask == cv2.GC_PR_FGD)
