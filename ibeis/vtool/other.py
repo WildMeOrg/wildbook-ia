@@ -588,6 +588,22 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
     return new_fs
 
 
+def assert_zipcompress(arr_list, flags_list, axis=None):
+    num_flags = [len(flags) for flags in flags_list]
+    if axis is None:
+        num_arrs = [arr.size for arr in arr_list]
+    else:
+        num_arrs = [arr.shape[axis] for arr in arr_list]
+    assert num_flags == num_arrs, 'not able to zipcompress'
+
+
+def zipcompress_safe(arr_list, flags_list, axis=None):
+    arr_list = list(arr_list)
+    flags_list = list(flags_list)
+    assert_zipcompress(arr_list, flags_list, axis=axis)
+    return zipcompress(arr_list, flags_list, axis)
+
+
 def zipcompress(arr_list, flags_list, axis=None):
     return [np.compress(flags, arr, axis=axis) for arr, flags in zip(arr_list, flags_list)]
 
