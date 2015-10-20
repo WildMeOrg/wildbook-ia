@@ -7,31 +7,39 @@ from ibeis.viz import viz_helpers as vh
     __name__, '[viz_matches]', DEBUG=False)
 
 
-def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches):
-    rchip1, kpts1 = get_query_annot_pair_info(ibs, aid1, qreq_, draw_fmatches)
-    rchip2, kpts2 = ut.get_list_column(
-        get_data_annot_pair_info(ibs, [aid2], qreq_, draw_fmatches), 0)
+def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
+    kpts1 = kwargs.get('kpts1', None)
+    kpts2 = kwargs.get('kpts2', None)
+    kpts2_list = None if kpts2 is None else [kpts2]
+    rchip1, kpts1 = get_query_annot_pair_info(ibs, aid1, qreq_, draw_fmatches,
+                                              kpts1=kpts1)
+    annot2_data_list = get_data_annot_pair_info(ibs, [aid2], qreq_,
+                                                draw_fmatches,
+                                                kpts2_list=kpts2_list)
+    rchip2, kpts2 = ut.get_list_column(annot2_data_list , 0)
     return rchip1, rchip2, kpts1, kpts2
 
 
-def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches):
+def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
     query_config2_ = (None if qreq_ is None
                       else qreq_.get_external_query_config2())
     rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
     if draw_fmatches:
-        kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
+        if kpts1 is None:
+            kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
     else:
         kpts1 = None
     return rchip1, kpts1
 
 
 def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
-                             scale_down=False):
+                             scale_down=False, kpts2_list=None):
     data_config2_ = (None if qreq_ is None else
                      qreq_.get_external_data_config2())
     rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
     if draw_fmatches:
-        kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
+        if kpts2_list is None:
+            kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
     else:
         kpts2_list = [None] * len(aid_list)
     if scale_down:
@@ -259,10 +267,6 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     bbox_list = [(x, y, w, h) for (x, y), (w, h) in zip(offset_list, wh_list)]
     return offset_list, sf_list, bbox_list
 
-    # Show the stacked chips
-    #annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,
-    #                  offset1=offset1, offset2=offset2, **kwargs)
-
 
 def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None,
                       **kwargs):
@@ -278,7 +282,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None,
     # List of annotation scores for each annot in the name
     name_annot_scores = kwargs.get('name_annot_scores', None)
 
-    #printDBG('[viz] annotate_matches2()')
+    #printDBG('[viz] annotate_matches3()')
     #truth = ibs.get_match_truth(aid1, aid2)
     #truth_color = vh.get_truth_color(truth)
     # Build title
@@ -387,11 +391,17 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     """
     if qreq_ is None:
         print('[viz_matches] WARNING: qreq_ is None')
+    kwargs = kwargs.copy()
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     # Read query and result info (chips, names, ...)
     rchip1, rchip2, kpts1, kpts2 = _get_annot_pair_info(ibs, aid1, aid2, qreq_,
-                                                        draw_fmatches)
+                                                        draw_fmatches,  **kwargs)
+    ut.delete_keys(kwargs, ['kpts1', 'kpts2'])
+    if fm is None:
+        assert len(kpts1) == len(kpts2), 'keypoints should be in correspondence'
+        import numpy as np
+        fm = np.vstack((np.arange(len(kpts1)), np.arange(len(kpts1)))).T
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_aidstrs(aid1)
@@ -443,7 +453,6 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     draw_lbl    = kwargs.get('draw_lbl', True)
     notitle     = kwargs.get('notitle', False)
 
-    #printDBG('[viz] annotate_matches2()')
     truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth)
     # Build title
@@ -506,6 +515,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
         if not show_query and xywh1 is None:
             data_config2 = (None if qreq_ is None else
                             qreq_.get_external_data_config2())
+            # FIXME, pass data in
             kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
             #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
             # Draw any selected matches

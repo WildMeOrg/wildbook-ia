@@ -5369,6 +5369,13 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
     keyval_list = [
         ('num_' + prefix + 'aids', len(aids)),
     ]
+
+    if kwargs.pop('bigstr', False):
+        bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
+        keyval_list += [
+            (prefix + 'bigstr',
+             bigstr(str(aids)))]
+
     if kwargs.pop('hashid', True):
         keyval_list += [
             (prefix + 'hashid',
@@ -5480,6 +5487,10 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         ibs (IBEISController):  ibeis controller object
         qaids (list):  query annotation ids
         daids (list):  database annotation ids
+
+    SeeAlso:
+        ibeis.dbinfo.print_qd_info
+        ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST

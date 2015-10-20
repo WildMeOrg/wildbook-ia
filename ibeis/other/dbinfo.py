@@ -18,6 +18,9 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[dbinfo]')
 
 def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
     """
+    SeeAlso:
+        ibs.print_annotconfig_stats(qaid_list, daid_list)
+
     information for a query/database aid configuration
     """
     bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
@@ -145,14 +148,18 @@ def get_dbinfo(ibs, verbose=True,
             acfg_name_list = [aid_list]
             print('Specified custom aids via acfgname %s' % (acfg_name_list,))
             from ibeis.experiments import experiment_helpers
-            acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
+            acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
+                ibs, acfg_name_list)
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))
             #aid_list =
         if verbose:
             print('Specified %d custom aids' % (len(aid_list,)))
         request_annot_subset = True
         valid_aids = aid_list
-        valid_nids = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)) - {ibs.UNKNOWN_NAME_ROWID})
+        valid_nids = list(
+            set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)) -
+            {ibs.UNKNOWN_NAME_ROWID}
+        )
         valid_gids = list(set(ibs.get_annot_gids(aid_list)))
     #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     FILTER_HACK = True
@@ -168,7 +175,9 @@ def get_dbinfo(ibs, verbose=True,
         valid_gids = valid_gids_
         valid_nids = valid_nids_
         valid_aids = valid_aids_
-        #associated_nids = ut.list_compress(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
+        #associated_nids = ut.list_compress(associated_nids, map(any,
+        #ibs.unflat_map(ibs.get_annot_custom_filterflags,
+        #               ibs.get_name_aids(associated_nids))))
 
     # Image info
     if verbose:
@@ -257,7 +266,10 @@ def get_dbinfo(ibs, verbose=True,
                  ('mean', wh_list.mean(0)),
                  ( 'std', wh_list.std(0))])
             arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
-            ret = (',\n    '.join(['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
+            ret = (',\n    '.join([
+                '%s:%s' % (key, arr2str(val))
+                for key, val in stat_dict.items()
+            ]))
             return '{\n    ' + ret + '\n}'
 
         print('reading image sizes')

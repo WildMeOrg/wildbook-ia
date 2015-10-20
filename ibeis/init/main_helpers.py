@@ -18,7 +18,8 @@ VERYVERB_MAIN_HELPERS = VERYVERB_TESTDATA
 VERB_MAIN_HELPERS = VERB_TESTDATA
 
 #VERB_TESTDATA = ut.get_argflag(('--verbose-testdata', '--verbtd')) or VERYVERB_TESTDATA
-#VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp')) or ut.VERBOSE or VERB_TESTDATA
+#VERB_MAIN_HELPERS = ut.get_argflag(('--verbose-main-helpers', '--verbmhelp'))
+#or ut.VERBOSE or VERB_TESTDATA
 
 
 def testdata_pipecfg(t=['default']):
@@ -110,7 +111,8 @@ def testdata_expts(defaultdb='testdb1',
 
     #from ibeis.experiments import experiment_helpers
     ibs = ibeis.opendb(defaultdb=defaultdb)
-    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstr_name_list)
+    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
+                                   default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
     test_result_list = experiment_harness.run_test_configurations2(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
@@ -119,7 +121,8 @@ def testdata_expts(defaultdb='testdb1',
     #return ibs, test_result_list
 
 
-def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', ibs=None, verbose=False, return_annot_info=False):
+def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
+                   ibs=None, verbose=False, return_annot_info=False):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -170,12 +173,17 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
         ibs = ibeis.opendb(defaultdb=defaultdb)
     # TODO: rectify command line with function arguments
     from ibeis.experiments import experiment_helpers
-    aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['default'], return_specified=True)
+    aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'),
+                                                 type_=list,
+                                                 default=['default'],
+                                                 return_specified=True)
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
-    assert len(acfg_list) == 1, 'multiple acfgs specified, but this function is built to return only 1. len(acfg_list)=%r' % (len(acfg_list),)
+    assert len(acfg_list) == 1, (
+        'multiple acfgs specified, but this function is built to return only 1. len(acfg_list)=%r' %
+        (len(acfg_list),))
     aidcfg = acfg_list[0]
 
     qaid_list, daid_list = expanded_aids_list[0]
@@ -187,7 +195,8 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1', 
     #ibs.get_annotconfig_stats(qaid_list, daid_list)
 
     if ut.VERYVERBOSE:
-        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
+        ibs.print_annotconfig_stats(qaid_list, daid_list)
+        #ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)
     if return_annot_info:
         return ibs, qaid_list, daid_list, aidcfg
     else:
