@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """ Lots of functions for drawing and plotting visiony things """
 # TODO: New naming scheme
-# viz_<funcname> will clear everything. The current axes and fig: clf, cla.  # Will add annotations
-# interact_<funcname> will clear everything and start user interactions.
-# show_<funcname> will always clear the current axes, but not fig: cla # Might # add annotates?
-# plot_<funcname> will not clear the axes or figure. More useful for graphs
-# draw_<funcname> same as plot for now. More useful for images
+# viz_<funcname> should clear everything. The current axes and fig: clf, cla.
+# # Will add annotations
+# interact_<funcname> should clear everything and start user interactions.
+# show_<funcname> should always clear the current axes, but not fig: cla #
+# Might # add annotates?  plot_<funcname> should not clear the axes or figure.
+# More useful for graphs draw_<funcname> same as plot for now. More useful for
+# images
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map
 import six
@@ -32,9 +34,6 @@ from plottool import fig_presenter
 #from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 #from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDSTO BE PARTITIONED
 #from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-import vtool.patch as ptool
-import vtool.image as gtool
-import vtool as vt
 #import operator
 
 DEBUG = False
@@ -142,10 +141,12 @@ def show_if_requested(N=1):
             vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
         elif len(adjust_list) == 3:
             # [left, bottom, wspace]
-            vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
+            vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1],
+                                  adjust_list[2]]
         elif len(adjust_list) == 4:
             # [left, bottom, wspace, hspace]
-            vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[3]]
+            vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1],
+                                       adjust_list[3]]
         elif len(adjust_list) == 6:
             vals = adjust_list
         else:
@@ -159,7 +160,8 @@ def show_if_requested(N=1):
     if figsize is not None:
         # Enforce inches and DPI
         fig = gcf()
-        figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
+        figsize = [eval(term) if isinstance(term, str) else term
+                   for term in figsize]
         figw, figh = figsize[0], figsize[1]
         #print('get_size_inches = %r' % (fig.get_size_inches(),))
         #print('fig w,h (inches) = %r, %r' % (figw, figh))
@@ -172,7 +174,8 @@ def show_if_requested(N=1):
 
     if fpath_ is not None:
         print('Figure save was requested')
-        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'], type_hints={'t': list, 'a': list})
+        arg_dict = ut.get_arg_dict(prefix_list=['--', '-'],
+                                   type_hints={'t': list, 'a': list})
         #import sys
         from os.path import basename, splitext, join
         import plottool as pt
@@ -196,7 +199,8 @@ def show_if_requested(N=1):
 
         dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
-        absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath), figsize=False, dpi=dpi)
+        absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
+                                   figsize=False, dpi=dpi)
 
         CLIP_WHITE = ut.get_argflag('--clipwhite')
         if CLIP_WHITE:
@@ -261,7 +265,9 @@ def show_if_requested(N=1):
             # TODO: replace home with ~
             proc = psutil.Process(pid=os.getpid())
             home = os.path.expanduser('~')
-            cmdline_str = ' '.join([pipes.quote(_).replace(home, '~') for _ in proc.cmdline()])
+            cmdline_str = ' '.join([
+                pipes.quote(_).replace(home, '~')
+                for _ in proc.cmdline()])
             latex_block = ut.codeblock(
                 r'''
                 \begin{comment}
@@ -570,6 +576,7 @@ def rotate_plot(theta=TAU / 8, ax=None):
         >>> print(result)
         >>> show_if_requested()
     """
+    import vtool as vt
     if ax is None:
         ax = gca()
     #import vtool as vt
@@ -1762,6 +1769,7 @@ def colorbar(scalars, colors, custom=False, lbl=None):
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
                 H1=None, H2=None, scale_factor1=None, scale_factor2=None, **kwargs):
+    import vtool as vt
     if scale_factor1 is None:
         scale_factor1 = 1.0, 1.0
     if scale_factor2 is None:
@@ -1975,9 +1983,10 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
     it with respect to the current mode.
 
     """
-    wpatch, wkp  = ptool.get_warped_patch(rchip, kpt, gray=True)
+    import vtool as vt
+    wpatch, wkp  = vt.get_warped_patch(rchip, kpt, gray=True)
     try:
-        gradx, grady = ptool.patch_gradient(wpatch)
+        gradx, grady = vt.patch_gradient(wpatch)
     except Exception as ex:
         print('!!!!!!!!!!!!')
         print('[df2!] Exception = ' + str(ex))
@@ -1990,8 +1999,8 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
         draw_vector_field(gradx, grady, **kwargs)
     elif mode == 'col' or mode == 'colors':
         import plottool
-        gmag = ptool.patch_mag(gradx, grady)
-        gori = ptool.patch_ori(gradx, grady)
+        gmag = vt.patch_mag(gradx, grady)
+        gori = vt.patch_ori(gradx, grady)
         gorimag = plottool.color_orimag(gori, gmag)
         imshow(gorimag, **kwargs)
     wkpts = np.array([wkp])
@@ -2029,12 +2038,13 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         >>> print(result)
         >>> ut.show_if_requested()
     """
+    import vtool as vt
     #print('--------------------')
     kpts = np.array([kp])
     if warped:
-        patches, subkpts = ptool.get_warped_patches(rchip, kpts)
+        patches, subkpts = vt.get_warped_patches(rchip, kpts)
     else:
-        patches, subkpts = ptool.get_unwarped_patches(rchip, kpts)
+        patches, subkpts = vt.get_unwarped_patches(rchip, kpts)
     #print('[df2] kpts[0]    = %r' % (kpts[0]))
     #print('[df2] subkpts[0] = %r' % (subkpts[0]))
     #print('[df2] patches[0].shape = %r' % (patches[0].shape,))
@@ -2274,16 +2284,16 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     """
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
-    wh1 = gtool.get_size(rchip1)
-    wh2 = gtool.get_size(rchip2)
+    import vtool as vt
+    wh1 = vt.get_size(rchip1)
+    wh2 = vt.get_size(rchip2)
     # Warp if homography is specified
-    rchip1_ = gtool.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
-    rchip2_ = gtool.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
+    rchip1_ = vt.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
+    rchip2_ = vt.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
     # get matching keypoints + offset
     (h1, w1) = rchip1_.shape[0:2]  # get chip (h, w) dimensions
     (h2, w2) = rchip2_.shape[0:2]
     # Stack the compared chips
-    import vtool as vt
     match_img, offset_tup, sf_tup = vt.stack_images(rchip1_, rchip2_, vert, return_sf=True)
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)

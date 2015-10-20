@@ -21,7 +21,8 @@ def get_blended_chip(chip1, chip2, M):
 
 #@ut.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
-            mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1, **kwargs):
+            mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1,
+            refine_method=None, **kwargs):
     """ Visualizes spatial verification
 
     CommandLine:
@@ -99,7 +100,9 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
             draw_inlier_kpts(kpts2_m, inliers, color2)
         if kpts2_m is not None and kpts1_m is not None and show_lines:
             __fm = np.vstack((inliers, inliers)).T
-            df2.draw_lines2(kpts1_m, kpts2_m, __fm, color_list=[custom_constants.ORANGE], lw=2, line_alpha=1,
+            df2.draw_lines2(kpts1_m, kpts2_m, __fm,
+                            color_list=[custom_constants.ORANGE], lw=2,
+                            line_alpha=1,
                             H1=H1)
         return px + 1
     #
@@ -110,9 +113,14 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         # Draw the Assigned -> Affine -> Homography matches
         px = _draw_matches(px, '%d Assigned matches  ' % len(fm), np.arange(len(fm)))
         if show_aff:
-            px = _draw_matches(px, '%d Affine inliers    ' % len(aff_inliers), aff_inliers)
+            px = _draw_matches(px, '%d Initial inliers    ' % len(aff_inliers), aff_inliers)
         if show_homog:
-            px = _draw_matches(px, '%d Homography inliers' % len(hom_inliers),  hom_inliers)
+            if refine_method is None:
+                refine_method = ''
+            px = _draw_matches(
+                px,
+                '%d Refined (%s) inliers' % (len(hom_inliers), refine_method),
+                hom_inliers)
     #
     # Draw the Affine Transformations
     px = nCols2 * show_assign
@@ -121,8 +129,8 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     if show_aff:
         #px = _draw_chip(px, 'Source',    chip1,        aff_inliers,   kpts1_m, None)
         #px = _draw_chip(px, 'Dest',      chip2,        aff_inliers,   None, kpts2_m)
-        px = _draw_chip(px, 'Affine Warped',  chip1_At,     aff_inliers, kpts1_m, None, H1=Aff)
-        px = _draw_chip(px, 'Aff Blend', chip2_blendA, aff_inliers, kpts1_m, kpts2_m, H1=Aff)
+        px = _draw_chip(px, 'Initial Warped',  chip1_At,     aff_inliers, kpts1_m, None, H1=Aff)
+        px = _draw_chip(px, 'Initial Blend', chip2_blendA, aff_inliers, kpts1_m, kpts2_m, H1=Aff)
         #px = _draw_chip(px, 'Affine',    chip1_At,     aff_inliers, kpts1_mAt, None)
         #px = _draw_chip(px, 'Aff Blend', chip2_blendA, aff_inliers, kpts1_mAt, kpts2_m)
         pass
@@ -133,8 +141,8 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         #px = _draw_chip(px, 'Dest',        chip2,        hom_inliers,   None, kpts2_m)
         #px = _draw_chip(px, 'Homog',       chip1_Ht,     hom_inliers, kpts1_mHt, None)
         #px = _draw_chip(px, 'Homog Blend', chip2_blendH, hom_inliers, kpts1_mHt, kpts2_m)
-        px = _draw_chip(px, 'Homog Warped',  chip1_Ht,     hom_inliers, kpts1_m, None, H1=H)
-        px = _draw_chip(px, 'Homog Blend', chip2_blendH, hom_inliers, kpts1_m, kpts2_m, H1=H)
+        px = _draw_chip(px, 'Refined Warped',  chip1_Ht,     hom_inliers, kpts1_m, None, H1=H)
+        px = _draw_chip(px, 'Refined Blend', chip2_blendH, hom_inliers, kpts1_m, kpts2_m, H1=H)
     #
     # Adjust subplots
     #df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)

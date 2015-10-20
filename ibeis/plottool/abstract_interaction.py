@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Known Interactions that use AbstractInteraction:
+    pt.MatchInteraction2
+    pt.MultiImageInteraction
+    ibeis.NameInteraction
+"""
 from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
@@ -39,6 +45,7 @@ class AbstractInteraction(object):
         self.fnum = kwargs.get('fnum', None)
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
+        self.interaction_name = kwargs.get('interaction_name', 'AbstractInteraction')
         self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
         ih.connect_callback(self.fig, 'close_event', self.on_close)
         # Careful this might cause memory leaks
@@ -109,7 +116,7 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
-        fig = ih.begin_interaction('HackyInteraction', self.fnum)
+        fig = ih.begin_interaction(self.interaction_name, self.fnum)
         if hasattr(self, 'plot'):
             self.plot(self.fnum, (1, 1, 1))
         else:
@@ -160,7 +167,6 @@ class AbstractInteraction(object):
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
             self.on_click_inside(event, ax)
-            #pass
         else:
             self.on_click_outside(event)
 
