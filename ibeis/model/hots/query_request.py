@@ -593,6 +593,14 @@ class QueryRequest(object):
     def qaids(qreq_):
         return qreq_.get_external_qaids()
 
+    @property
+    def extern_data_config2(qreq_):
+        return qreq_.get_external_data_config2()
+
+    @property
+    def extern_query_config2(qreq_):
+        return qreq_.get_external_query_config2()
+
     @profile
     def get_external_daids(qreq_):
         """ These are the users daids in vsone mode """

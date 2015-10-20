@@ -1,7 +1,7 @@
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
-sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs
-sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
+sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs  # NOQA
+sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex  # NOQA
 
 """
 from __future__ import absolute_import, division, print_function
@@ -451,10 +451,16 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
             valid_aids = np.array(ibs._get_all_aids())
             valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))
             #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]
+            aids_list = [
+                valid_aids.take(np.flatnonzero(
+                    np.equal(valid_nids, nid))).tolist()
+                for nid in nid_list_
+            ]
         else:
             # SQL IMPL
-            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                   nid_list_, id_colname=NAME_ROWID,
+                                   unpack_scalars=False)
     if enable_unknown_fix:
         #enable_unknown_fix == distinguish_unknowns
         # negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid
@@ -887,7 +893,8 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
         [None, 1, None, 0, None, None, 3]
     """
     name_text_list_ = ibs.sanitize_name_texts(name_text_list)
-    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,), name_text_list_, id_colname=NAME_TEXT)
+    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
+                                 name_text_list_, id_colname=NAME_TEXT)
     name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
                            for rowid, text in zip(name_rowid_list, name_text_list_)]
     return name_rowid_list
@@ -896,7 +903,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/name/', methods=['GET'])
-def get_valid_nids(ibs, eid=None, filter_empty=False):
+def get_valid_nids(ibs, eid=None, filter_empty=False, min_pername=None):
     r"""
     Returns:
         list_ (list): all valid names with at least one animal
@@ -910,12 +917,15 @@ def get_valid_nids(ibs, eid=None, filter_empty=False):
         _nid_list = ibs._get_all_known_name_rowids()
     else:
         _nid_list = ibs.get_encounter_nids(eid)
+    nid_list = _nid_list
+
     if filter_empty:
-        nRois_list = ibs.get_name_num_annotations(_nid_list)
-        nonempty_list = (nRois > 0 for nRois in nRois_list)
-        nid_list = list(ut.ifilter_items(_nid_list, nonempty_list))
-    else:
-        nid_list = _nid_list
+        min_pername = 1 if min_pername is None else max(min_pername, 1)
+
+    if min_pername is not None:
+        nAnnot_list = ibs.get_name_num_annotations(nid_list)
+        flag_list = np.array(nAnnot_list) >= min_pername
+        nid_list = ut.list_compress(nid_list, flag_list)
     return nid_list
 
 
@@ -1122,7 +1132,6 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.control.manual_name_funcs
         python -m ibeis.control.manual_name_funcs --allexamples
-        python -c "import utool, ibeis; utool.doctest_funcs(ibeis.control.manual_annot_funcs); utool.doctest_funcs(ibeis.control.manual_name_funcs) " --allexamples
 
         python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc
 

@@ -137,7 +137,9 @@ def request_IBEISController(
         # Convert hold hotspotter dirs if necessary
         from ibeis.dbio import ingest_hsdb
         if ingest_hsdb.check_unconverted_hsdb(dbdir):
-            ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
+            ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
+                                                    wbaddr=wbaddr,
+                                                    verbose=verbose)
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
@@ -879,8 +881,10 @@ class IBEISController(object):
         element = './/%swaypoints' % (namespace, )
         waypoint_list = patrol_tree.findall(element)
         if len(waypoint_list) == 0:
-            # raise IOError('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
-            print('There are no observations (waypoints) in this Patrol XML file: %r' % (xml_path, ))
+            # raise IOError('There are no observations (waypoints) in this
+            # Patrol XML file: %r' % (xml_path, ))
+            print('There are no observations (waypoints) in this Patrol XML file: %r' %
+                  (xml_path, ))
         for waypoint in waypoint_list:
             # Get the relevant information about the waypoint
             waypoint_id   = int(waypoint.get('id'))
@@ -894,53 +898,76 @@ class IBEISController(object):
                 waypoint_time,
             ]
             if None in waypoint_info:
-                raise IOError('The observation (waypoint) is missing information: %r' % (waypoint_info, ))
+                raise IOError(
+                    'The observation (waypoint) is missing information: %r' %
+                    (waypoint_info, ))
             # Get all of the waypoint's observations (we expect only one
             # normally)
             element = './/%sobservations' % (namespace, )
             observation_list = waypoint.findall(element)
             # if len(observation_list) == 0:
-            #     raise IOError('There are no observations in this waypoint, waypoint_id: %r' % (waypoint_id, ))
+            #     raise IOError('There are no observations in this waypoint,
+            #     waypoint_id: %r' % (waypoint_id, ))
             for observation in observation_list:
                 # Filter the observations based on type, we only care
                 # about certain types
                 categoryKey = observation.attrib['categoryKey']
-                if categoryKey.startswith('animals.liveanimals') or categoryKey.startswith('animals.problemanimal'):
+                if (categoryKey.startswith('animals.liveanimals') or
+                      categoryKey.startswith('animals.problemanimal')):
                     # Get the photonumber attribute for the waypoint's
                     # observation
-                    element = './/%sattributes[@attributeKey="photonumber"]' % (namespace, )
+                    element = './/%sattributes[@attributeKey="photonumber"]' % (
+                        namespace, )
                     photonumber = observation.find(element)
                     if photonumber is not None:
                         element = './/%ssValue' % (namespace, )
                         # Get the value for photonumber
                         sValue  = photonumber.find(element)
                         if sValue is None:
-                            raise IOError('The photonumber sValue is missing from photonumber, waypoint_id: %r' % (waypoint_id, ))
+                            raise IOError(
+                                ('The photonumber sValue is missing from '
+                                 'photonumber, waypoint_id: %r') %
+                                (waypoint_id, ))
                         # Python cast the value
                         try:
                             photo_number = int(float(sValue.text)) - offset
                         except ValueError:
-                            # raise IOError('The photonumber sValue is invalid, waypoint_id: %r' % (waypoint_id, ))
-                            print('[ibs]     Skipped Invalid Observation with photonumber: %r, waypoint_id: %r' % (sValue.text, waypoint_id, ))
+                            # raise IOError('The photonumber sValue is invalid,
+                            # waypoint_id: %r' % (waypoint_id, ))
+                            print(('[ibs]     '
+                                   'Skipped Invalid Observation with '
+                                   'photonumber: %r, waypoint_id: %r')
+                                  % (sValue.text, waypoint_id, ))
                             continue
                         # Check that the photo_number is within the acceptable bounds
                         if photo_number >= nTotal:
-                            raise IOError('The Patrol XML file is looking for images that do not exist (too few images given)')
+                            raise IOError(
+                                'The Patrol XML file is looking for images '
+                                'that do not exist (too few images given)')
                         # Keep track of the last waypoint that was processed
                         # becuase we only have photono, which indicates start
                         # indices and doesn't specify the end index.  The
                         # ending index is extracted as the next waypoint's
                         # photonum minus 1.
-                        if last_photo_number is not None and last_encounter_info is not None:
-                            encounter_info = last_encounter_info + [(last_photo_number, photo_number)]
+                        if (last_photo_number is not None and
+                             last_encounter_info is not None):
+                            encounter_info = (
+                                last_encounter_info + [(last_photo_number,
+                                                        photo_number)])
                             encounter_info_list.append(encounter_info)
                         last_photo_number = photo_number
                         last_encounter_info = waypoint_info
                     else:
-                        # raise IOError('The photonumber value is missing from waypoint, waypoint_id: %r' % (waypoint_id, ))
-                        print('[ibs]     Skipped Empty Observation with "categoryKey": %r, waypoint_id: %r' % (categoryKey, waypoint_id, ))
+                        # raise IOError('The photonumber value is missing from
+                        # waypoint, waypoint_id: %r' % (waypoint_id, ))
+                        print(('[ibs]     Skipped Empty Observation with'
+                               '"categoryKey": %r, waypoint_id: %r') %
+                              (categoryKey, waypoint_id, ))
                 else:
-                    print('[ibs]     Skipped Incompatible Observation with "categoryKey": %r, waypoint_id: %r' % (categoryKey, waypoint_id, ))
+                    print(('[ibs]     '
+                           'Skipped Incompatible Observation with '
+                           '"categoryKey": %r, waypoint_id: %r') %
+                          (categoryKey, waypoint_id, ))
         # Append the last photo_number
         if last_photo_number is not None and last_encounter_info is not None:
             encounter_info = last_encounter_info + [(last_photo_number, nTotal)]
@@ -962,12 +989,15 @@ class IBEISController(object):
             encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
         except Exception as e:
             ibs.delete_images(gid_list)
-            print('[ibs] ERROR: Parsing Patrol XML file failed, rolling back by deleting %d images...' % (len(gid_list, )))
+            print(('[ibs] ERROR: Parsing Patrol XML file failed, '
+                   'rolling back by deleting %d images...') %
+                  (len(gid_list, )))
             raise e
         if len(gid_list) > 0:
             # Sanity check
             assert len(encounter_info_list) > 0, (
-                'Trying to added %d images, but the Patrol  XML file has no observations' % (len(gid_list), ))
+                ('Trying to added %d images, but the Patrol  '
+                 'XML file has no observations') % (len(gid_list), ))
         # Display the patrol encounters
         for index, encounter_info in enumerate(encounter_info_list):
             smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info

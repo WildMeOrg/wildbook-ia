@@ -87,7 +87,8 @@ class QueryParams(collections.Mapping):
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         # TODO; Find better way to specify config strings
-        qparams.probchip_cfgstr   = query_cfg._featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
+        qparams.probchip_cfgstr   = query_cfg._featweight_cfg.get_cfgstr(
+            use_feat=False, use_chip=False)
         qparams.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()
         qparams.chip_cfgstr       = query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
         qparams.feat_cfgstr       = query_cfg._featweight_cfg._feat_cfg.get_cfgstr()

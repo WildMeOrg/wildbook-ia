@@ -29,12 +29,13 @@ def testdata_pipecfg(t=['default']):
 
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_pipecfg
+        python -m ibeis.init.main_helpers --exec-testdata_pipecfg -t default:AI=False
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> pcfgdict = testdata_pipecfg()
-        >>> result = ('pcfgdict = %s' % (str(pcfgdict),))
+        >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
         >>> print(result)
     """
     from ibeis.experiments import experiment_helpers

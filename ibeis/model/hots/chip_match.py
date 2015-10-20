@@ -22,7 +22,8 @@ DEBUG_CHIPMATCH = False
 def testdata_qres():
     import ibeis
     ibs = ibeis.opendb(defaultdb='testdb1')
-    qres, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], cfgdict=dict(), verbose=True, return_request=True)
+    qres, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], cfgdict=dict(),
+                                  verbose=True, return_request=True)
     return qres, qreq_
 
 
@@ -57,20 +58,19 @@ def testdata_cm():
 
 def timing_vsmany_match_tup():
     """
+    CommandLine:
+        python -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup
+        utprof.py -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup --verbose
 
-        CommandLine:
-            python -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup
-            utprof.py -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup --verbose
+    Timeit::
+        %timeit np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
+        %timeit np.ascontiguousarray(np.vstack((valid_qfx, valid_dfx)).T)
 
-        Timeit::
-            %timeit np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
-            %timeit np.ascontiguousarray(np.vstack((valid_qfx, valid_dfx)).T)
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> cm = timing_vsmany_match_tup()
-            >>> print(cm)
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> cm = timing_vsmany_match_tup()
+        >>> print(cm)
     """
     import numpy as np
     # build test data
@@ -132,7 +132,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #    fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
         #else:
         if True:
-            fs_list = ut.dict_take(qres.aid2_fs, cm.daid_list, np.empty((0,), dtype=hstypes.FS_DTYPE))
+            fs_list = ut.dict_take(qres.aid2_fs, cm.daid_list,
+                                   np.empty((0,), dtype=hstypes.FS_DTYPE))
         cm.fs_list = fs_list
         return cm
 
@@ -180,7 +181,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     @classmethod
     @profile
-    def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None, qaid=None, fsv_col_lbls=None):
+    def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None,
+                             qaid=None, fsv_col_lbls=None):
         assert all(list(map(ut.list_allsame, ut.get_list_column(valid_match_tup_list, 0)))),\
             'internal daids should not have different daids for vsone'
         qfx_list = ut.get_list_column(valid_match_tup_list, 1)
@@ -226,9 +228,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if len(other_keys) > 0:
                 print('Not unserializing extra attributes: %s' % (ut.list_str(other_keys)))
         dict_subset = ut.dict_subset(class_dict, key_list)
-        dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'], hstypes.FM_DTYPE)
-        dict_subset['fsv_list'] = convert_numpy_lists(dict_subset['fsv_list'], hstypes.FS_DTYPE)
-        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'], hstypes.FS_DTYPE)
+        dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],
+                                                     hstypes.FM_DTYPE)
+        dict_subset['fsv_list'] = convert_numpy_lists(dict_subset['fsv_list'],
+                                                      hstypes.FS_DTYPE)
+        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
+                                                  hstypes.FS_DTYPE)
         cm = cls(**dict_subset)
         return cm
 
@@ -301,9 +306,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         score_sortx = [fs.argsort()[::-1] for fs in fs_list]
         if use_random:
             # keep jagedness
-            score_sortx_filt = [sortx[0:min(rng.randint(num // 2, num), len(sortx))] for sortx in score_sortx]
+            score_sortx_filt = [
+                sortx[0:min(rng.randint(num // 2, num), len(sortx))]
+                for sortx in score_sortx]
         else:
-            score_sortx_filt = [sortx[0:min(num, len(sortx))] for sortx in score_sortx]
+            score_sortx_filt = [sortx[0:min(num, len(sortx))]
+                                for sortx in score_sortx]
         cm.fsv_list = vt.ziptake(cm.fsv_list, score_sortx_filt, axis=0)
         cm.fm_list = vt.ziptake(cm.fm_list, score_sortx_filt, axis=0)
         cm.fk_list = vt.ziptake(cm.fk_list, score_sortx_filt, axis=0)
@@ -369,7 +377,11 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             def check_arrs_eq(arr1, arr2):
                 if arr1 is None and arr2 is None:
                     return True
-                return len(arr1) == len(arr2) and all([np.all(x == y) for x, y in zip(arr1, arr2)])
+                elif len(arr1) != len(arr2):
+                    return False
+                elif all(np.all(x == y)
+                         for x, y in zip(arr1, arr2)):
+                    return True
             flag &= cm.qaid == other.qaid
             flag &= cm.qnid == other.qnid
             flag &= check_arrs_eq(cm.fm_list, other.fm_list)
@@ -426,7 +438,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         dnid_list    = vt.trytake(cm.dnid_list, idx_list)
         fsv_col_lbls = cm.fsv_col_lbls
         cm_subset = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list,
-                               score_list, H_list, fsv_col_lbls, dnid_list, qnid)
+                               score_list, H_list, fsv_col_lbls, dnid_list,
+                               qnid)
         return cm_subset
 
     #------------------
@@ -499,9 +512,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> top_daids = cm.get_name_shortlist_aids(5, 2)
             >>> assert cm.qnid in ibs.get_annot_name_rowids(top_daids)
         """
-        top_daids = scoring.get_name_shortlist_aids(cm.daid_list, cm.dnid_list,
-                                                    cm.annot_score_list, cm.name_score_list,
-                                                    cm.nid2_nidx, nNameShortList, nAnnotPerName)
+        top_daids = scoring.get_name_shortlist_aids(
+            cm.daid_list, cm.dnid_list, cm.annot_score_list,
+            cm.name_score_list, cm.nid2_nidx, nNameShortList, nAnnotPerName)
         return top_daids
 
     def get_chip_shortlist_aids(cm, num_shortlist):
@@ -536,7 +549,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.name_score_list  = name_score_list
         # align with score_list
         cm.score_list = name_scoring.align_name_scores_with_annots(
-            cm.annot_score_list, cm.daid_list, cm.daid2_idx, cm.name_groupxs, cm.name_score_list)
+            cm.annot_score_list, cm.daid_list, cm.daid2_idx, cm.name_groupxs,
+            cm.name_score_list)
 
     # ChipSum Score
 
@@ -598,7 +612,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     # ChipCoverage Score
 
     def evaluate_acov_score(cm, qreq_):
-        daid_list, acov_score_list = scoring.compute_annot_coverage_score(qreq_, cm, qreq_.qparams)
+        daid_list, acov_score_list = scoring.compute_annot_coverage_score(
+            qreq_, cm, qreq_.qparams)
         assert np.all(daid_list == np.array(cm.daid_list)), 'daids out of alignment'
         cm.acov_score_list = acov_score_list
 
@@ -626,7 +641,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def evaluate_ncov_score(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
-        ncov_nid_list, ncov_score_list = scoring.compute_name_coverage_score(qreq_, cm, qreq_.qparams)
+        ncov_nid_list, ncov_score_list = scoring.compute_name_coverage_score(
+            qreq_, cm, qreq_.qparams)
         assert np.all(cm.unique_nids == ncov_nid_list)
         cm.ncov_score_list = ncov_score_list
 
@@ -783,7 +799,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             qnid = cm.qnid
             dnid_list = cm.dnid_list
         # Build columns for the csv, filtering out unavailable information
-        column_lbls_ = ['daid', 'dnid', 'score', 'num_matches', 'annot_scores', 'fm_depth', 'fsv_depth']
+        column_lbls_ = ['daid', 'dnid', 'score', 'num_matches', 'annot_scores',
+                        'fm_depth', 'fsv_depth']
         column_list_ = [
             vt.list_take_(cm.daid_list,  sortx),
             None if dnid_list is None else vt.list_take_(dnid_list, sortx),
@@ -835,7 +852,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             print('[cm] score mappings are ok')
 
         if strict or cm.unique_nids is not None:
-            assert np.all(cm.unique_nids[ut.dict_take(cm.nid2_nidx, cm.unique_nids)] == cm.unique_nids)
+            assert np.all(
+                cm.unique_nids[ut.dict_take(cm.nid2_nidx, cm.unique_nids)] ==
+                cm.unique_nids)
             print('[cm] unique nid alignment is ok')
 
         if strict or qreq_ is not None and cm.dnid_list is not None:
@@ -858,16 +877,22 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if qreq_.qparams.pipeline_root == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'
                 if strict or qreq_.indexer is not None:
-                    nExternalQVecs = qreq_.ibs.get_annot_vecs(external_qaids[0], config2_=qreq_.get_external_query_config2()).shape[0]
+                    nExternalQVecs = qreq_.ibs.get_annot_vecs(
+                        external_qaids[0],
+                        config2_=qreq_.get_external_query_config2()).shape[0]
                     assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
                         'did not index query descriptors properly')
                 if verbose:
                     print('[cm] vsone daids are ok are ok')
 
-            nFeats1 = qreq_.ibs.get_annot_num_feats(cm.qaid, config2_=qreq_.get_external_query_config2())
-            nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(cm.daid_list, config2_=qreq_.get_external_data_config2()))
+            nFeats1 = qreq_.ibs.get_annot_num_feats(
+                cm.qaid, config2_=qreq_.get_external_query_config2())
+            nFeats2_list = np.array(
+                qreq_.ibs.get_annot_num_feats(
+                    cm.daid_list, config2_=qreq_.get_external_data_config2()))
             try:
-                assert ut.list_issubset(cm.daid_list, external_daids), 'cmtup_old must be subset of daids'
+                assert ut.list_issubset(cm.daid_list, external_daids), (
+                    'cmtup_old must be subset of daids')
             except AssertionError as ex:
                 ut.printex(ex, keys=['daid_list', 'external_daids'])
                 raise
@@ -875,10 +900,16 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                 fm_list = cm.fm_list
                 fx2s_list = [fm_.T[1] for fm_ in fm_list]
                 fx1s_list = [fm_.T[0] for fm_ in fm_list]
-                max_fx1_list = np.array([-1 if len(fx1s) == 0 else fx1s.max() for fx1s in fx1s_list])
-                max_fx2_list = np.array([-1 if len(fx2s) == 0 else fx2s.max() for fx2s in fx2s_list])
-                ut.assert_lessthan(max_fx2_list, nFeats2_list, 'max feat index must be less than num feats')
-                ut.assert_lessthan(max_fx1_list, nFeats1, 'max feat index must be less than num feats')
+                max_fx1_list = np.array([
+                    -1 if len(fx1s) == 0 else fx1s.max()
+                    for fx1s in fx1s_list])
+                max_fx2_list = np.array([
+                    -1 if len(fx2s) == 0 else fx2s.max()
+                    for fx2s in fx2s_list])
+                ut.assert_lessthan(max_fx2_list, nFeats2_list,
+                                   'max feat index must be less than num feats')
+                ut.assert_lessthan(max_fx1_list, nFeats1,
+                                   'max feat index must be less than num feats')
             except AssertionError as ex:
                 ut.printex(ex, keys=['qaid', 'daid_list', 'nFeats1',
                                      'nFeats2_list', 'max_fx1_list',
@@ -887,7 +918,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if verbose:
                 print('[cm] nFeats are ok in fm')
 
-    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
+    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
+                              homog=ut.get_argflag('--homog'), **kwargs):
         """
 
         CommandLine:
@@ -932,12 +964,16 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
             sorted_groupxs = sorted_groupxs.compress(isvalid_list)
 
-        name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
-        name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
-        name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        name_H1_list   = (None if not homog or cm.H_list is None else
+                          ut.list_take(cm.H_list, sorted_groupxs))
+        name_fsv_list  = (None if cm.fsv_list is None else
+                          ut.list_take(cm.fsv_list, sorted_groupxs))
+        name_fs_list   = (None if name_fsv_list is None else
+                          [fsv.prod(axis=1) for fsv in name_fsv_list])
         name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
         # find features marked as invalid by name scoring
-        featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
+        featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(
+            cm, qreq_=qreq_)
         name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
         # Get the scores for names and chips
         name_score = cm.name_score_list[nidx]
@@ -952,7 +988,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
             pnum=pnum, **kwargs)
 
-    def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
+    def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None,
+                               homog=ut.get_argflag('--homog'), **kwargs):
         """
         Example:
             >>> # ENABLE_DOCTEST
@@ -1004,7 +1041,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         idx_list = ut.dict_take(cm.daid2_idx, daids)
         cm.show_index_matches(qreq_, idx_list, *args, **kwargs)
 
-    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None, plottype='annotmatch', **kwargs):
+    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None,
+                           plottype='annotmatch', **kwargs):
         import plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
@@ -1044,6 +1082,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         }
         kwshow.update(kwargs)
         return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
+
+    #def ishow_matches():
+    #    pass
 
 if __name__ == '__main__':
     """

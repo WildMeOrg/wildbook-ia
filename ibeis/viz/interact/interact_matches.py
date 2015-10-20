@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Single VsOne Chip Match Interface
 For VsMany Interaction
@@ -48,7 +49,9 @@ def testdata_match_interact(**kwargs):
     import ibeis
     ibs = ibeis.opendb('testdb1')
     cfgdict = {}
-    ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, defaultdb='testdb1', cmdline_ok=True)
+    ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict,
+                                           defaultdb='testdb1',
+                                           cmdline_ok=True)
     qres = ibs.query_chips(qreq_=qreq_)[0]
     aid2 = None
     self = MatchInteraction(ibs, qres, aid2, annot_mode=1, dodraw=False, **kwargs)
@@ -59,6 +62,9 @@ def testdata_match_interact(**kwargs):
 class MatchInteraction(object):
     """
     TODO: replace functional version with this class
+
+    SeeAlso:
+        plottool.interact_matches.MatchInteraction2
 
     Plots a chip result and sets up callbacks for interaction.
 
@@ -79,7 +85,9 @@ class MatchInteraction(object):
             self.qres = qres
         self.init_new(ibs, cm, *args, **kwargs)
 
-    def init_new(self, ibs, cm, aid2=None, fnum=None, figtitle='Inspect Query Result', same_fig=True, qreq_=None, **kwargs):
+    def init_new(self, ibs, cm, aid2=None, fnum=None,
+                 figtitle='Inspect Query Result',
+                 same_fig=True, qreq_=None, **kwargs):
         r"""
         new init function for use with ChipMatch2 class
         """
@@ -117,8 +125,10 @@ class MatchInteraction(object):
             self.H1    = None
 
         # Read properties
-        self.query_config2_ = None if self.qreq_ is None else self.qreq_.get_external_query_config2()
-        self.data_config2_ = None if self.qreq_ is None else self.qreq_.get_external_data_config2()
+        self.query_config2_ = (None if self.qreq_ is None else
+                               self.qreq_.get_external_query_config2())
+        self.data_config2_ = (None if self.qreq_ is None else
+                              self.qreq_.get_external_data_config2())
         self.rchip1 = vh.get_chips(ibs, [self.qaid], config2_=self.query_config2_)[0]
         self.rchip2 = vh.get_chips(ibs, [self.daid], config2_=self.data_config2_)[0]
         # Begin Interaction
@@ -236,7 +246,8 @@ class MatchInteraction(object):
                 if hs_aid is not None and viztype == 'unwarped':
                     ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
                 elif hs_aid is not None and viztype == 'warped':
-                    viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=df2.next_fnum())
+                    viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx,
+                                                            fnum=df2.next_fnum())
             else:
                 print('...Unknown viztype: %r' % viztype)
             viz.draw()
@@ -281,13 +292,18 @@ class MatchInteraction(object):
         OLD = False
         if OLD:
             qres = self.qres
-            tup = viz.viz_matches.show_matches(ibs, qres, aid, qreq_=self.qreq_, **show_matches_kw)
+            tup = viz.viz_matches.show_matches(ibs, qres, aid,
+                                               qreq_=self.qreq_,
+                                               **show_matches_kw)
         else:
             #show_matches_kw['score'] = self.score
             show_matches_kw['rawscore'] = self.score
             #ut.embed()
             show_matches_kw['aid2_raw_rank'] = self.rank
-            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid, self.fm, self.fs, qreq_=self.qreq_, **show_matches_kw)
+            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
+                                                self.fm, self.fs,
+                                                qreq_=self.qreq_,
+                                                **show_matches_kw)
 
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
@@ -444,8 +460,10 @@ class MatchInteraction(object):
         viz.draw()
 
     def show_each_fgweight_chip(self):
-        viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum(), weight_label='fg_weights')
-        viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum(), weight_label='fg_weights')
+        viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum(),
+                           weight_label='fg_weights')
+        viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum(),
+                           weight_label='fg_weights')
         viz.draw()
 
     def show_each_dstncvs_chip(self, dodraw=True):
@@ -460,13 +478,17 @@ class MatchInteraction(object):
             >>> self.show_each_dstncvs_chip(dodraw=False)
             >>> pt.show_if_requested()
         """
-        dstncvs1, dstncvs2 = scoring.get_kpts_distinctiveness(self.ibs, [self.qaid, self.daid])
+        dstncvs1, dstncvs2 = scoring.get_kpts_distinctiveness(self.ibs,
+                                                              [self.qaid,
+                                                               self.daid])
         print('dstncvs1_stats = ' + ut.get_stats_str(dstncvs1))
         print('dstncvs2_stats = ' + ut.get_stats_str(dstncvs2))
         weight_label = 'dstncvs'
         showkw = dict(weight_label=weight_label, ell=False, pts=True)
-        viz_chip.show_chip(self.ibs, self.qaid, weights=dstncvs1, fnum=pt.next_fnum(), **showkw)
-        viz_chip.show_chip(self.ibs, self.daid, weights=dstncvs2, fnum=pt.next_fnum(), **showkw)
+        viz_chip.show_chip(self.ibs, self.qaid, weights=dstncvs1,
+                           fnum=pt.next_fnum(), **showkw)
+        viz_chip.show_chip(self.ibs, self.daid, weights=dstncvs2,
+                           fnum=pt.next_fnum(), **showkw)
         if dodraw:
             viz.draw()
 

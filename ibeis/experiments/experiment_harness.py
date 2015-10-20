@@ -21,13 +21,16 @@ print, print_, printDBG, rrr, profile = ut.inject(
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
 NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
-USE_BIG_TEST_CACHE = not ut.get_argflag(('--no-use-testcache', '--nocache-test')) and ut.USE_CACHE and not NOCACHE_TESTRES
+USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
+                                          '--nocache-test')) and ut.USE_CACHE
+                      and not NOCACHE_TESTRES)
 TEST_INFO = True
 
 DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff
 
 
-def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=None, qaid_override=None):
+def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
+                             use_cache=None, qaid_override=None):
     """
     Loops over annot configs.
 
@@ -55,7 +58,8 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache=
     if len(acfg_name_list) == 0:
         raise ValueError('must give acfg name list')
 
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list, qaid_override=qaid_override)
+    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
+        ibs, acfg_name_list, qaid_override=qaid_override)
     # Generate list of query pipeline param configs
     cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
