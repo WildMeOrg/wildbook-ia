@@ -40,7 +40,8 @@ EXIF_TAG_DATETIME = 'DateTimeOriginal'
 IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
 
 
-# References: http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_image_display/py_image_display.html
+# References:
+# http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_image_display/py_image_display.html
 #cv2.IMREAD_COLOR
 #cv2.IMREAD_GRAYSCALE
 #cv2.IMREAD_UNCHANGED
@@ -89,8 +90,14 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
         #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
         #print('cv2error args = ' + repr(cv2ex.args))
         #print('cv2error message = ' + repr(cv2ex.message))
-        #cv2error args = ('c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error: (-4) Failed to allocate 22311168 bytes in function OutOfMemoryError\n',)
-#cv2error message = 'c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error: (-4) Failed to allocate 22311168 bytes in function OutOfMemoryError\n'
+        #cv2error args =
+        #('c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
+        # (-4) Failed to allocate 22311168 bytes in function
+        # OutOfMemoryError\n',)
+        #cv2error message =
+        #'c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
+        #(-4) #Failed to allocate 22311168 bytes in function
+        #OutOfMemoryError\n'
         imgBGR = None
         #ismem_error = cv2ex.message.find('error: (-4)') > -1
         ismem_error = cv2ex.message.find('OutOfMemoryError') > -1
@@ -359,9 +366,11 @@ def resize(img, dsize, interpolation=cv2.INTER_LANCZOS4):
     return cv2.resize(img, dsize, interpolation=interpolation)
 
 
-def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0, borderType=cv2.BORDER_CONSTANT, **kwargs):
+def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0,
+                      borderType=cv2.BORDER_CONSTANT, **kwargs):
     imgBGR = imread(img_fpath)
-    imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_, borderType=cv2.BORDER_CONSTANT, value=value)
+    imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_,
+                                 borderType=cv2.BORDER_CONSTANT, value=value)
     imgBGR2[:pad_, :] = value
     imgBGR2[-pad_:, :] = value
     imgBGR2[:, :pad_] = value
@@ -369,6 +378,59 @@ def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0, borderType=cv2.B
     out_fpath_ = ut.augpath(img_fpath, '_pad=%r' % (pad_)) if out_fpath is None else out_fpath
     imwrite(out_fpath_, imgBGR2)
     return out_fpath_
+
+
+def crop_out_imgfill(img, fillval=None, thresh=0):
+    r"""
+    Crops image to remove fillval
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        fillval (None): (default = None)
+        thresh (int): (default = 0)
+
+    Returns:
+        ndarray: cropped_img
+
+    CommandLine:
+        python -m vtool.image --exec-crop_out_imgfill
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img = vt.get_stripe_patch()
+        >>> img = (img * 255).astype(np.uint8)
+        >>> print(img)
+        >>> img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        >>> fillval = np.array([25, 25, 25])
+        >>> thresh = 0
+        >>> cropped_img = crop_out_imgfill(img, fillval, thresh)
+        >>> cropped_img2 = cv2.cvtColor(cropped_img, cv2.COLOR_RGB2GRAY)
+        >>> result = ('cropped_img2 = \n%s' % (str(cropped_img2),))
+        >>> print(result)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img = vt.get_stripe_patch()
+        >>> img = (img * 255).astype(np.uint8)
+        >>> print(img)
+        >>> fillval = 25
+        >>> thresh = 0
+        >>> cropped_img = crop_out_imgfill(img, fillval, thresh)
+        >>> result = ('cropped_img = \n%s' % (str(cropped_img),))
+        >>> print(result)
+    """
+    import vtool as vt
+    if fillval is None:
+        fillval = np.array([255] * get_num_channels(img))
+    # for colored images
+    isfill = get_pixel_dist(img, fillval) <= thresh
+    rowslice, colslice = vt.get_crop_slices(isfill)
+    cropped_img = img[rowslice, colslice]
+    return cropped_img
 
 
 def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
@@ -380,7 +442,7 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     img = vt.imread(fpath_in)
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
-    cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
     if verbose:
         print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
     vt.imwrite(fpath_out, cropped_img)
@@ -415,7 +477,9 @@ def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
     """
     img = imread(img_fpath)
     imgR = rotate_image(img, theta, **kwargs)
-    out_fpath_ = ut.augpath(img_fpath, augsuf='_theta=%r' % (theta)) if out_fpath is None else out_fpath
+    out_fpath_ = (
+        ut.augpath(img_fpath, augsuf='_theta=%r' % (theta))
+        if out_fpath is None else out_fpath)
     imwrite(out_fpath_, imgR)
     return out_fpath_
 
@@ -539,7 +603,8 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     tr2_ = ltool.translation_mat3x3(x2, y2)
     # combine transformations
     Aff = tr2_.dot(Aff_).dot(tr1_)
-    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize), borderMode=borderMode, flags=flags, **kwargs)
+    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize),
+                                borderMode=borderMode, flags=flags, **kwargs)
     # Fix grayscale channel issues
     if len(img.shape) == 3 and len(img_warped.shape) == 2:
         img_warped.shape = img_warped.shape + (1,)
@@ -620,7 +685,9 @@ def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
     if colorspace == src_colorspace:
         return image_list
     prefix = 'COLOR_' + src_colorspace + '2'
-    valid_dst_colorspaces = [key.replace(prefix, '') for key in cv2.__dict__.keys() if key.startswith(prefix)]
+    valid_dst_colorspaces = [
+        key.replace(prefix, '')
+        for key in cv2.__dict__.keys() if key.startswith(prefix)]
     if colorspace not in valid_dst_colorspaces:
         raise NotImplementedError('unknown colorspace = %r' % (colorspace,))
     else:
@@ -910,7 +977,7 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
     return new_gpath_list
 
 
-def find_pixel_value(img, pixel):
+def find_pixel_value_index(img, pixel):
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
@@ -943,9 +1010,18 @@ def find_pixel_value(img, pixel):
          [2 3]
          [5 5]]
     """
-    mask2d = np.all(img == pixel[None, None, :], axis=2)
+    mask2d = get_pixel_dist(img, pixel) == 0
     pixel_locs = np.column_stack(np.where(mask2d))
     return pixel_locs
+
+
+def get_pixel_dist(img, pixel):
+    if not isinstance(pixel, np.ndarray) and not isinstance(pixel, (list, tuple)):
+        pixel = np.array([pixel])
+    mask2d = np.abs(img - pixel[None, None, :])
+    if len(img.shape) > 2:
+        mask2d = np.sum(mask2d, axis=2)
+    return mask2d
 
 
 try:
@@ -954,7 +1030,9 @@ except AttributeError:
     LINE_AA = cv2.CV_AA
 
 
-def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2, fontFace=cv2.FONT_HERSHEY_SIMPLEX, lineType=LINE_AA, bottomLeftOrigin=False):
+def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1,
+              thickness=2, fontFace=cv2.FONT_HERSHEY_SIMPLEX, lineType=LINE_AA,
+              bottomLeftOrigin=False):
     """
 
     CommandLine:
@@ -1021,7 +1099,8 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2,
     textcolor_bgr = textcolor_rgb[::-1]
     text_pt, text_sz = cv2.getTextSize(text, fontFace, fontScale, thickness)
     text_w, text_h = text_pt
-    out = cv2.putText(img, text, org, fontFace, fontScale, textcolor_bgr, thickness, lineType, bottomLeftOrigin)
+    out = cv2.putText(img, text, org, fontFace, fontScale, textcolor_bgr,
+                      thickness, lineType, bottomLeftOrigin)
     return out
 
 
@@ -1110,7 +1189,8 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
             rng.shuffle(self.P)
 
-            self.idx_ar = np.indices(2 * np.ones(self.order), dtype=np.int8).reshape(self.order, -1).T
+            self.idx_ar = np.indices(2 * np.ones(self.order),
+                                     dtype=np.int8).reshape(self.order, -1).T
             self.drop = np.poly1d((-6, 15, -10, 0, 0, 1.0))
 
         def noise(self, coords):
@@ -1127,7 +1207,8 @@ def perlin_noise(size, scale=32.0, rng=np.random):
             gradiens = self.G[indexes % len(self.G)]
             #gradiens = self.G[(ijk[:,:, 0] + indexes) % len(self.G)]
 
-            res = (self.drop(np.abs(uvw)).prod(axis=2) * np.prod([gradiens, uvw], axis=0).sum(axis=2)).sum(axis=1)
+            res = (self.drop(np.abs(uvw)).prod(axis=2) *
+                   np.prod([gradiens, uvw], axis=0).sum(axis=2)).sum(axis=1)
 
             res[res > 1.0] = 1.0
             res[res < -1.0] = -1.0
@@ -1167,7 +1248,9 @@ def testdata_imglist():
     return img_list
 
 
-def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True, initial_sf=None, interpolation=cv2.INTER_LANCZOS4):
+def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True,
+                             initial_sf=None,
+                             interpolation=cv2.INTER_LANCZOS4):
     r"""
     # TODO: add initial scale down factor?
 
@@ -1235,15 +1318,24 @@ def stack_image_list_special(img1, img_list, num=1, vert=True, use_larger=True, 
         img1_ = cv2.resize(img1, dsize, interpolation=interpolation)
 
     # stack the bottom images
-    img_stack2, offset_list2, sf_list2 = stack_image_list(img_list2, vert=not vert, return_offset=True, **stack_kw)
+    img_stack2, offset_list2, sf_list2 = stack_image_list(img_list2, vert=not
+                                                          vert,
+                                                          return_offset=True,
+                                                          **stack_kw)
     # stack the top images
-    img_stack3, offset_list3, sf_list3 = stack_image_list(img_list3, vert=vert, return_offset=True, **stack_kw)
+    img_stack3, offset_list3, sf_list3 = stack_image_list(img_list3, vert=vert,
+                                                          return_offset=True,
+                                                          **stack_kw)
 
     # stack img1_ and the first stack
     imgL, offset_listL, sf_listL = stack_multi_images(
-        img1_, img_stack2, offset_list1, sf_list1, offset_list2, sf_list2, vert=vert, interpolation=interpolation)
+        img1_, img_stack2, offset_list1, sf_list1, offset_list2, sf_list2,
+        vert=vert, interpolation=interpolation)
     # stack the output and the second stack
-    img, offset_list, sf_list = stack_multi_images(imgL, img_stack3, offset_listL, sf_listL, offset_list3, sf_list3, vert=not vert)
+    img, offset_list, sf_list = stack_multi_images(imgL, img_stack3,
+                                                   offset_listL, sf_listL,
+                                                   offset_list3, sf_list3,
+                                                   vert=not vert)
 
     return img, offset_list, sf_list
 
@@ -1275,7 +1367,8 @@ def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2,
 
     offset_listB = offset_list1_ + offset_list2_
     sf_listB     = sf_list1_ + sf_list2_
-    #offset_listB, sf_listB = combine_offset_lists([offset_list1, offset_list2], [sf_list1, sf_list2], offset_tup, sf_tup)
+    #offset_listB, sf_listB = combine_offset_lists([offset_list1,
+    #offset_list2], [sf_list1, sf_list2], offset_tup, sf_tup)
     return imgB, offset_listB, sf_listB
 
 
@@ -1321,8 +1414,12 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True):
          [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 250., 762., 1389., 1789. ]], dtype=np.float64)
 
     """
-    stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list, return_sf=True, return_offset=True, vert=vert)
-    stacked_offsets, stacked_sfs = combine_offset_lists(offsets_list, sfs_list, offset_tups, sf_tups)
+    stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list,
+                                                         return_sf=True,
+                                                         return_offset=True,
+                                                         vert=vert)
+    stacked_offsets, stacked_sfs = combine_offset_lists(offsets_list, sfs_list,
+                                                        offset_tups, sf_tups)
     return stacked_img, stacked_offsets, stacked_sfs
 
 
@@ -1385,7 +1482,9 @@ def stack_square_images(img_list, return_info=False, **kwargs):
         for imgs in list(ut.ichunks(img_list, num_horiz))
     ]
     vert_patches = ut.get_list_column(stacked_info_list, 0)
-    bigpatch, bigoffsets, bigsfs = stack_image_list(vert_patches, vert=False, return_offset=True, return_sf=True, **kwargs)
+    bigpatch, bigoffsets, bigsfs = stack_image_list(vert_patches, vert=False,
+                                                    return_offset=True,
+                                                    return_sf=True, **kwargs)
     if return_info:
         sfs_list = ut.get_list_column(stacked_info_list, 2)
         offsets_list = ut.get_list_column(stacked_info_list, 1)
@@ -1693,7 +1792,8 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
                                    interpolation=interpolation)
     if return_offsets:
         raise NotImplementedError('finishme')
-        #imgB, offset_list, sf_list = stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list2, vert=vert)
+        #imgB, offset_list, sf_list = stack_multi_images(img1, img2,
+        #offset_list1, sf_list1, offset_list2, sf_list2, vert=vert)
     else:
         imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert,
                                                 return_sf=True,

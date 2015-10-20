@@ -37,7 +37,7 @@ from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import vtool.distance as dtool
-import cv2
+import cv2  # NOQA
 
 try:
     #if ut.WIN32:
@@ -509,15 +509,6 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
 
     # Get projection components
-    #_xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-    #_det1_mt  = ktool.get_invVR_mats_sqrd_scale_cyth(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
-    #_ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
-    # Check for projection errors
-    #xy_err    = ltool.L2_sqrd_cyth(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
-    #scale_err = ltool.det_distance_cyth(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
-    #ori_err   = ltool.ori_distance_cyth(_ori1_mt, ori2_m)
-
-    # Get projection components
     _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
@@ -725,6 +716,42 @@ def unnormalize_transform(M_prime, T1, T2):
     return M
 
 
+def estimate_refined_transform(kpts1, kpts2, fm, aff_inliers, refine_method='homog'):
+    """ estimates final transformation using normalized affine inliers """
+    xy1_man, xy2_man, T1, T2 = get_normalized_affine_inliers(kpts1, kpts2, fm, aff_inliers)
+    # Compute homgraphy transform from chip1 -> chip2 using affine inliers
+    if refine_method == 'homog':
+        H_prime = compute_homog(xy1_man, xy2_man)
+    elif refine_method == 'affine':
+        H_prime = compute_affine(xy1_man, xy2_man)
+    #elif refine_method == 'cv2-homog':
+    #    # homographys assume the two images are planar, or the camera is
+    #    # rotating around the subject
+    #    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=0)[0]
+    #    H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=cv2.LMEDS)[0]
+    #elif refine_method == 'fund':
+    #    # the fundamental matrix only implies: x'.T.dot(F).dot(x) == 0
+    #    # it maps a point from one image onto a line in the second image.
+    #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_LMEDS)[0]
+    #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_8POINT)[0]
+    else:
+        raise NotImplementedError('Unknown refine_method=%r' % (refine_method,))
+
+    #H_prime /= H_prime[2, 2]
+    # Different methods?
+    #H_prime = compute_affine(xy1_man, xy2_man)
+    #import cv2
+    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T)[0]
+    #H = compute_affine(xy1_ma, xy2_ma)
+    #print(H)
+    H = unnormalize_transform(H_prime, T1, T2)
+    rank = npl.matrix_rank(H)
+    #print(rank)
+    if rank != 3:
+        raise npl.LinAlgError('Rank defficient homography ')
+    return H
+
+
 def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                       ori_thresh, full_homog_checks=True):
     r"""
@@ -762,7 +789,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import plottool as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
-        >>> H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
+        >>> H = estimate_refined_transform(kpts1, kpts2, fm, aff_inliers)
         >>> scale_thresh, ori_thresh = 2.0, 1.57
         >>> full_homog_checks = not ut.get_argflag('--no-full-homog-checks')
         >>> homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks)
@@ -776,7 +803,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import plottool as pt
         >>> kpts1, kpts2, fm_, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
-        >>> H = estimate_final_transform(kpts1, kpts2, fm_, aff_inliers)
+        >>> H = estimate_refined_transform(kpts1, kpts2, fm_, aff_inliers)
         >>> scale_thresh, ori_thresh = 2.0, 1.57
         >>> full_homog_checks = not ut.get_argflag('--no-full-homog-checks')
         >>> # ----------------
@@ -874,59 +901,45 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
         #other.iter_reduce_ufunc(np.logical_and
         #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
-        homog_inliers = np.where(hypo_inliers_flag)[0].astype(INDEX_DTYPE)
-        homog_errors = (xy_err, ori_err, scale_err)
+        refined_inliers = np.where(hypo_inliers_flag)[0].astype(INDEX_DTYPE)
+        refined_errors = (xy_err, ori_err, scale_err)
     else:
-        homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
-        homog_errors = (xy_err, None, None)
-    homog_tup1 = (homog_inliers, homog_errors, H)
+        refined_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
+        refined_errors = (xy_err, None, None)
+    homog_tup1 = (refined_inliers, refined_errors, H)
     return homog_tup1
 
 
-def estimate_final_transform(kpts1, kpts2, fm, aff_inliers):
-    """ estimates final transformation using normalized affine inliers """
-    xy1_man, xy2_man, T1, T2 = get_normalized_affine_inliers(kpts1, kpts2, fm, aff_inliers)
-    # Compute homgraphy transform from chip1 -> chip2 using affine inliers
-    if True:
-        H_prime = compute_homog(xy1_man, xy2_man)
-    elif False:
-        # homographys assume the two images are planar, or the camera is rotating around the subject
-        H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=0)[0]
-        H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=cv2.LMEDS)[0]
-    elif False:
-        # the fundamental matrix only implies: x'.T.dot(F).dot(x) == 0
-        # it maps a point from one image onto a line in the second image.
-        H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_LMEDS)[0]
-        H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_8POINT)[0]
-    elif False:
-        H_prime = compute_affine(xy1_man, xy2_man)
-    #H_prime /= H_prime[2, 2]
-    # Different methods?
-    #H_prime = compute_affine(xy1_man, xy2_man)
-    #import cv2
-    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T)[0]
-    #H = compute_affine(xy1_ma, xy2_ma)
-    #print(H)
-    H = unnormalize_transform(H_prime, T1, T2)
-    rank = npl.matrix_rank(H)
-    #print(rank)
-    if rank != 3:
-        raise npl.LinAlgError('Rank defficient homography ')
-    return H
+def test_affine_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd,
+                       ori_thresh):
+    """
+    used for refinement as opposed to initial estimation
+    """
+    kpts1_m = kpts1.take(fm.T[0], axis=0)
+    kpts2_m = kpts2.take(fm.T[1], axis=0)
+    invVR1s_m = ktool.get_invVR_mats3x3(kpts1_m)
+    xy2_m  = ktool.get_xys(kpts2_m)
+    det2_m = ktool.get_sqrd_scales(kpts2_m)
+    ori2_m = ktool.get_oris(kpts2_m)
+    refined_inliers, refined_errors = _test_hypothesis_inliers(
+        H, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd,
+        ori_thresh)
+    refined_tup1 = (refined_inliers, refined_errors, H)
+    return refined_tup1
 
 
 @profile
-def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
-                           scale_thresh=2.0, ori_thresh=1.57,
-                           full_homog_checks=True):
+def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
+                   scale_thresh=2.0, ori_thresh=1.57, full_homog_checks=True,
+                   refine_method='homog'):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
     returned homography maps image1 space into image2 space
 
     CommandLine:
-        python -m vtool.spatial_verification --test-get_homography_inliers
-        python -m vtool.spatial_verification --test-get_homography_inliers:0
-        python -m vtool.spatial_verification --test-get_homography_inliers:1 --show
+        python -m vtool.spatial_verification --test-refine_inliers
+        python -m vtool.spatial_verification --test-refine_inliers:0
+        python -m vtool.spatial_verification --test-refine_inliers:1 --show
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -937,12 +950,12 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
         >>> aff_inliers = np.arange(len(fm))
         >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
-        >>> homogtup = get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
-        >>> homog_inliers, homog_errors, H = homogtup
-        >>> result = ut.list_str(homogtup, precision=2, nl=True, suppress_small=True, label_list=['homog_inliers', 'homog_errors', 'H'])
+        >>> homogtup = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        >>> refined_inliers, refined_errors, H = homogtup
+        >>> result = ut.list_str(homogtup, precision=2, nl=True, suppress_small=True, label_list=['refined_inliers', 'refined_errors', 'H'])
         >>> print(result)
-        homog_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-        homog_errors = (
+        refined_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
+        refined_errors = (
                            np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
                                        25.83,    3.82], dtype=np.float32),
                            np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
@@ -958,16 +971,21 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> import vtool.keypoint as ktool
         >>> import plottool as pt
         >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
-        >>> homog_tup1 = get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        >>> homog_tup1 = refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> homog_tup = (homog_tup1[0], homog_tup1[2])
         >>> ut.quit_if_noshow()
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
         >>> ut.show_if_requested()
 
     """
-    H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
-    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
-                                   scale_thresh, ori_thresh, full_homog_checks)
+    H = estimate_refined_transform(kpts1, kpts2, fm, aff_inliers,
+                                   refine_method=refine_method)
+    if refine_method == 'homog':
+        homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
+                                       scale_thresh, ori_thresh, full_homog_checks)
+    elif refine_method == 'affine':
+        homog_tup1 = test_affine_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
+                                        scale_thresh, ori_thresh)
     return homog_tup1
 
 
@@ -992,7 +1010,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                           min_nInliers=4,
                           match_weights=None,
                           returnAff=False,
-                          full_homog_checks=True):
+                          full_homog_checks=True,
+                          refine_method='homog'):
     """
     Driver function
     Spatially validates feature matches
@@ -1014,18 +1033,35 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         returnAff (bool): returns best affine hypothesis as well
 
     Returns:
-        tuple : (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) if success else None
+        tuple : (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff) if success else None
 
     CommandLine:
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --show --refine-method='affine'
         python -m vtool.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg  # NOQA
         python -m vtool.spatial_verification --test-spatially_verify_kpts
+
+    Ignore:
+        cd /media/raid/work/PZ_FlankHack/_ibsdb/_ibeis_cache/chips/
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --show --refine-method='affine' --affine-invariance=False\
+                --fname1 "chip_avuuid=3f4efb94-54cb-244e-0ed3-8993c09528b9_CHIP(sz450).png" \
+                --fname2 "chip_avuuid=3a65c7bc-273b-f0f3-7ae1-c3228c797299_CHIP(sz450).png"
+
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --show --refine-method='homog' --affine-invariance=False\
+                --fname1 "chip_avuuid=3f4efb94-54cb-244e-0ed3-8993c09528b9_CHIP(sz450).png" \
+                --fname2 "chip_avuuid=3a65c7bc-273b-f0f3-7ae1-c3228c797299_CHIP(sz450).png"
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *
         >>> import vtool.tests.dummy as dummy
-        >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches()
+        >>> import vtool as vt
+        >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
+        >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
+        >>> default_dict = vt.get_extract_features_default_params()
+        >>> default_dict['ratio_thresh'] = .625
+        >>> kwargs = ut.argparse_dict(default_dict)
+        >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches(fname1, fname2, **kwargs)
         >>> xy_thresh = .01
         >>> dlen_sqrd2 = 447271.015
         >>> ori_thresh = 1.57
@@ -1033,23 +1069,27 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> returnAff = True
         >>> scale_thresh = 2.0
         >>> match_weights = np.ones(len(fm), dtype=np.float64)
-        >>> svtup = spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2, min_nInliers, match_weights, returnAff)
+        >>> refine_method = ut.get_argval('--refine-method', default='homog')
+        >>> svtup = spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh,
+        >>>                               scale_thresh, ori_thresh, dlen_sqrd2,
+        >>>                               min_nInliers, match_weights, returnAff,
+        >>>                               refine_method=refine_method)
         >>> assert svtup is not None and len(svtup) == 6, 'sver failed'
-        >>> homog_inliers, homog_errors, H = svtup[0:3]
+        >>> refined_inliers, refined_errors, H = svtup[0:3]
         >>> aff_inliers, aff_errors, Aff = svtup[3:6]
         >>> #print('aff_errors = %r' % (aff_errors,))
         >>> print('aff_inliers = %r' % (aff_inliers,))
-        >>> print('homog_inliers = %r' % (homog_inliers,))
-        >>> #print('homog_errors = %r' % (homog_errors,))
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     homog_tup = (homog_inliers, H)
-        >>>     aff_tup = (aff_inliers, Aff)
-        >>>     pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup)
-        >>>     pt.show_if_requested()
+        >>> print('refined_inliers = %r' % (refined_inliers,))
+        >>> #print('refined_errors = %r' % (refined_errors,))
         >>> result = ut.list_type_profile(svtup)
         >>> #result = ut.list_str(svtup, precision=3)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> homog_tup = (refined_inliers, H)
+        >>> aff_tup = (aff_inliers, Aff)
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
+        >>> pt.show_if_requested()
         tuple(numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray, numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray)
 
     """
@@ -1083,10 +1123,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         return svtup
     # Refine inliers using a projective transformation (homography)
     try:
-        homog_inliers, homog_errors, H = get_homography_inliers(
+        refined_inliers, refined_errors, H = refine_inliers(
             kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh,
-            ori_thresh, full_homog_checks)
-        #print(homog_inliers)
+            ori_thresh, full_homog_checks, refine_method=refine_method)
+        #print(refined_inliers)
     except npl.LinAlgError as ex:
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
@@ -1103,13 +1143,15 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
+    else:
+        print('Unknown refine_method=%r' % (refine_method,))
     if VERBOSE_SVER:
         print('[sver] Succesfully finished spatial verification.')
     if returnAff:
-        svtup = (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff)
+        svtup = (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff)
         return svtup
     else:
-        svtup = (homog_inliers, homog_errors, H, None, None, None)
+        svtup = (refined_inliers, refined_errors, H, None, None, None)
         return svtup
 
 #try:

@@ -68,7 +68,8 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
     def pack_errors(xy_err, scale_err, ori_err):
         """ makes human readable errors """
         def _pack(bits, errs, thresh):
-            return utool.indentjoin(['%5s %f < %f' % (bit, err, thresh) for (bit, err) in zip(bits, errs)])
+            return utool.indentjoin(['%5s %f < %f' % (bit, err, thresh) for
+                                     (bit, err) in zip(bits, errs)])
         xy_flag = xy_err < xy_thresh_sqrd
         scale_flag = scale_err < scale_thresh_sqrd
         ori_flag = ori_err < ori_thresh
@@ -82,7 +83,8 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
     # Test each affine hypothesis
     #assert kpts1.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts1.dtype=%r' % (kpts1.dtype)
     #assert kpts2.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts2.dtype=%r' % (kpts2.dtype)
-    #assert xy_thresh_sqrd.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere xy_thresh_sqrd.dtype=%r' % (xy_thresh_sqrd.dtype)
+    #assert xy_thresh_sqrd.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere
+    #xy_thresh_sqrd.dtype=%r' % (xy_thresh_sqrd.dtype)
     aff_hypo_tups = sver.get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd,
                                             scale_thresh_sqrd, ori_thresh)
     inliers_list, errors_list, Aff_mats = aff_hypo_tups
@@ -98,7 +100,10 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
             errors = pack_errors(*errors_list[mx])  # NOQA
             print(utool.dict_str(errors, strvals=True))
 
-        homog_inliers, homog_errors, H = sver.get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        homog_inliers, homog_errors, H = sver.get_homography_inliers(kpts1,
+                                                                     kpts2, fm,
+                                                                     aff_inliers,
+                                                                     xy_thresh_sqrd)
 
         kpts1_At = ktool.transform_kpts(kpts1, Aff)
         kpts1_Ht = ktool.transform_kpts(kpts1, H)

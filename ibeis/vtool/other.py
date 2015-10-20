@@ -170,20 +170,6 @@ def pdist_argsort(x):
     return sortx_2d
 
 
-def crop_out_imgfill(img, fillval=None, thresh=0):
-    if fillval is None:
-        fillval = [255, 255, 255]
-    # for colored images
-    if thresh == 0:
-        isfill = np.all((img[:, :] == fillval), axis=2)
-    else:
-        threshdist = np.sum(np.abs(img - fillval), axis=2)
-        isfill = threshdist <= thresh
-    rowslice, colslice = get_crop_slices(isfill)
-    cropped_img = img[rowslice, colslice]
-    return cropped_img
-
-
 def get_consec_endpoint(consec_index_list, endpoint):
     """
     consec_index_list = consec_cols_list

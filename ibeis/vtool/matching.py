@@ -13,23 +13,41 @@ PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
-def show_matching_dict(matches, metadata):
+def show_matching_dict(matches, metadata, **kwargs):
+    import plottool.interact_matches
     #import plottool as pt
     fm, fs = matches['RAT+SV'][0:2]
+    H1 = metadata['H_RAT']
     #fm, fs = matches['RAT'][0:2]
-    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(metadata, ['rchip1', 'rchip2', 'kpts1', 'kpts2'])
+    rchip1 = metadata['rchip1']
+    rchip2 = metadata['rchip2']
+    kpts1 = metadata['kpts1']
+    kpts2 = metadata['kpts2']
+
+    vecs1 = metadata['vecs1']
+    vecs2 = metadata['vecs2']
 
     #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
 
-    import plottool.interact_matches
     vecs1, vecs2 = ut.dict_take(metadata, ['vecs1', 'vecs2'])
     fsv = fs[:, None]
-    plottool.interact_matches.MatchInteraction2(rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2)
+    interact = plottool.interact_matches.MatchInteraction2(
+        rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1, **kwargs)
+    interact.show_page()
 
     #MatchInteraction2
 
 
-def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
+def get_meta(metadata, key):
+    """ lazy evaluation of metadata """
+    value = metadata[key]
+    if ut.is_funclike(value):
+        value = value()
+        metadata[key] = value
+    return value
+
+
+def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_=None):
     r"""
     Args:
         rchip_fpath1 (str):
@@ -37,12 +55,12 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
         cfgdict (dict): (default = {})
 
     CommandLine:
-        python -m vtool.matching --test-vsone_image_fpath_matching --show
-        python -m vtool.matching --test-vsone_image_fpath_matching --show --helpx
-        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+siam128
-        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
-        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
-        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
+        python -m vtool --tf vsone_image_fpath_matching --show
+        python -m vtool --tf vsone_image_fpath_matching --show --helpx
+        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128
+        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
+        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
+        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -51,41 +69,106 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
         >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
         >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
         >>> import pyhesaff
-        >>> default_cfgdict = dict(feat_type='hesaff+sift', ratio_thresh=.625, **pyhesaff.get_hesaff_default_params())
+        >>> metadata_ = None
+        >>> default_cfgdict = dict(feat_type='hesaff+sift', ratio_thresh=.625,
+        >>>                        **pyhesaff.get_hesaff_default_params())
         >>> cfgdict = ut.parse_dict_from_argv(default_cfgdict)
-        >>> matches, metadata = vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict)
+        >>> matches, metadata = vsone_image_fpath_matching(rchip_fpath1,
+        >>>                                                rchip_fpath2, cfgdict)
         >>> ut.quit_if_noshow()
-        >>> show_matching_dict(matches, metadata)
+        >>> show_matching_dict(matches, metadata, mode=1)
         >>> ut.show_if_requested()
     """
-    import vtool as vt
-    rchip1 = vt.imread(rchip_fpath1)
-    rchip2 = vt.imread(rchip_fpath2)
-    matches, metadata = vsone_image_matching(rchip1, rchip2, cfgdict=cfgdict)
-    metadata.update({
-        'rchip1': rchip1,
-        'rchip2': rchip2,
-    })
-    return matches, metadata
+    metadata = ut.LazyDict()
+    if metadata_ is not None:
+        metadata.update(metadata_)
+    metadata['rchip_fpath1'] = rchip_fpath1
+    metadata['rchip_fpath2'] = rchip_fpath2
+    matches, metdata =  vsone_matching(metadata, cfgdict)
+    return matches, metdata
 
 
-def vsone_image_matching(rchip1, rchip2, cfgdict={}):
+def vsone_matching(metadata, cfgdict={}):
+    """
+    Metadata is a dictionary that contains either computed information
+    necessary for matching or the dependenceis of those computations.
+    """
     import vtool as vt
-    dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
-    kpts1, vecs1 = vt.extract_features(rchip1, **cfgdict)
-    kpts2, vecs2 = vt.extract_features(rchip2, **cfgdict)
-    matches, metadata = vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict)
-    metadata.update({
-        'kpts1': kpts1,
-        'kpts2': kpts2,
-        'vecs1': vecs1,
-        'vecs2': vecs2,
-    })
+    assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
+
+    if 'rchip1' not in metadata:
+        def eval_rchip1():
+            rchip_fpath1 = metadata['rchip_fpath1']
+            return vt.imread(rchip_fpath1)
+        metadata['rchip1'] = eval_rchip1
+
+    if 'rchip2' not in metadata:
+        def eval_rchip2():
+            rchip_fpath2 = metadata['rchip_fpath2']
+            return vt.imread(rchip_fpath2)
+        metadata['rchip2'] = eval_rchip2
+
+    if 'dlen_sqrd2' not in metadata:
+        def eval_dlen_sqrd2():
+            rchip2 = metadata['rchip2']
+            dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
+            return dlen_sqrd2
+        metadata['dlen_sqrd2'] = eval_dlen_sqrd2
+
+    if 'kpts1' not in metadata or 'vecs1' not in metadata:
+        def eval_feats1():
+            rchip1 = metadata['rchip1']
+            _feats1 = vt.extract_features(rchip1, **cfgdict)
+            return _feats1
+
+        def eval_kpts1():
+            _feats1 = metadata['_feats1']
+            kpts1 = _feats1[0]
+            return kpts1
+
+        def eval_vecs1():
+            _feats1 = metadata['_feats1']
+            vecs1 = _feats1[1]
+            return vecs1
+        metadata['_feats1'] = eval_feats1
+        metadata['kpts1'] = eval_kpts1
+        metadata['vecs1'] = eval_vecs1
+
+    if 'kpts2' not in metadata or 'vecs2' not in metadata:
+        def eval_feats2():
+            rchip2 = metadata['rchip2']
+            _feats2 = vt.extract_features(rchip2, **cfgdict)
+            return _feats2
+
+        def eval_kpts2():
+            _feats2 = metadata['_feats2']
+            kpts2 = _feats2[0]
+            return kpts2
+
+        def eval_vecs2():
+            _feats2 = metadata['_feats2']
+            vecs2 = _feats2[1]
+            return vecs2
+        metadata['_feats2'] = eval_feats2
+        metadata['kpts2'] = eval_kpts2
+        metadata['vecs2'] = eval_vecs2
+
+    # Exceute relevant dependencies
+    kpts1 = metadata['kpts1']
+    vecs1 = metadata['vecs1']
+    kpts2 = metadata['kpts2']
+    vecs2 = metadata['vecs2']
+    dlen_sqrd2 = metadata['dlen_sqrd2']
+
+    matches, output_metdata = vsone_feature_matching(
+        kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict)
+    metadata.update(output_metdata)
     return matches, metadata
 
 
 def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
     r"""
+    Actual logic for matching
     Args:
         vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
         vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
@@ -101,16 +184,17 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
         pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     """
+    import vtool as vt
+    import pyflann
+    from vtool import spatial_verification as sver
     #import vtool as vt
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
     ratio_thresh =  cfgdict.get('ratio_thresh', .625)
+    refine_method =  cfgdict.get('refine_method', 'homog')
     K =  cfgdict.get('K', 1)
     Knorm =  cfgdict.get('Knorm', 1)
     #ratio_thresh =  .99
     # GET NEAREST NEIGHBORS
-    import vtool as vt
-    import pyflann
-    from vtool import spatial_verification as sver
     checks = 800
     flann_params = {
         'algorithm': 'kdtree',
@@ -134,11 +218,15 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
     fm_ORIG = np.vstack((fx1_match, fx2_match)).T
     fs_ORIG = 1 - np.divide(match_dist, norm_dist)
     # APPLY RATIO TEST
-    fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
+    fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_match, fx1_match, fx1_norm,
+                                             match_dist, norm_dist,
+                                             ratio_thresh)
     # SPATIAL VERIFICATION FILTER
     #with ut.EmbedOnException():
     match_weights = np.ones(len(fm_RAT))
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2, match_weights=match_weights)
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh,
+                                       dlen_sqrd2, match_weights=match_weights,
+                                       refine_method=refine_method)
     if svtup is not None:
         (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
     else:
@@ -153,10 +241,10 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
         'RAT': (fm_RAT, fs_RAT, fm_norm_RAT),
         'RAT+SV': (fm_SV, fs_SV, fm_norm_SV),
     }
-    metadata = {
+    output_metdata = {
         'H_RAT': H_RAT,
     }
-    return matches, metadata
+    return matches, output_metdata
 
 
 def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
@@ -165,8 +253,10 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     between 0 and 1 using sifts uint8 trick
     """
     fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
-    fx2_to_dist = np.divide(np.sqrt(_fx2_to_dist.astype(np.float64)), PSEUDO_MAX_DIST)  # normalized dist
-    #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64), PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
+    fx2_to_dist = np.divide(np.sqrt(_fx2_to_dist.astype(np.float64)),
+                            PSEUDO_MAX_DIST)  # normalized dist
+    #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64),
+    #PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
     return fx2_to_fx1, fx2_to_dist
 
 
@@ -318,7 +408,8 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist):
     return assigntup
 
 
-def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625, fm_dtype=np.int32, fs_dtype=np.float32):
+def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625,
+                              fm_dtype=np.int32, fs_dtype=np.float32):
     """ Lowes ratio matching
 
     fs_dtype = kwargs.get('fs_dtype', np.float32)

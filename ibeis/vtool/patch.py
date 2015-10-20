@@ -465,7 +465,8 @@ def get_unwarped_patches(img, kpts):
         img (ndarray): array representing an image
         kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
     Returns:
-        tuple : (patches, subkpts) - the unnormalized patches from the img corresonding to the keypoint
+        tuple : (patches, subkpts) - the unnormalized patches from the img
+            corresonding to the keypoint
 
     """
     _xs, _ys = ktool.get_xys(kpts)
@@ -719,7 +720,9 @@ def get_warped_patch(imgBGR, kp, gray=False,
         tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
     """
     kpts = np.array([kp])
-    wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags, borderMode=borderMode, patch_size=patch_size)
+    wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags,
+                                         borderMode=borderMode,
+                                         patch_size=patch_size)
     wpatch = wpatches[0]
     wkp = wkpts[0]
     if gray and len(wpatch.shape) > 2:
