@@ -268,7 +268,6 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=True):
     SeeAlso:
         python -m ibeis.model.hots.vsone_pipeline --exec-extract_aligned_parts:1 --show  -t default:AI=False  # see x 11
 
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA

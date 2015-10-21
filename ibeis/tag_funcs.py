@@ -412,6 +412,8 @@ def filterflags_general_tags(tags_list,
                              none_match=None,
                              logic='and'):
     r"""
+    maybe integrate into utool? Seems pretty general
+
     Args:
         tags_list (list):
         has_any (None): (default = None)

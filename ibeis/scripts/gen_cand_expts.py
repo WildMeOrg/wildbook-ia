@@ -11,9 +11,9 @@ CommandLine:
     python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
 
     # Info about configs for a test
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db PZ_MTEST --acfginfo
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline:sample_size=None -a controlled --db PZ_Master0 --acfginfo
-    python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2 -t candidacy_baseline -a controlled --db NNP_Master3 --acfginfo
+    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db PZ_MTEST --acfginfo
+    python -m ibeis --tf run_test_configurations2 -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA
+    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db NNP_Master3 --acfginfo
 
     # Regen Figures
     python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
@@ -34,7 +34,8 @@ import utool as ut
 TEST_GEN_FUNCS = []
 
 
-#def pick_sample_size(popsize, confidence=.99, expected_std=.5, margin_of_error=.05, is_finite=True):
+#def pick_sample_size(popsize, confidence=.99, expected_std=.5,
+#margin_of_error=.05, is_finite=True):
 #    """
 #    Determine a statistically significant sample size
 
@@ -76,7 +77,8 @@ def generate_all():
     #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
     script_lines = ut.flatten([
         ['\n\n### ' + ut.get_funcname(func),
-         '# python -m ibeis.scripts.gen_cand_expts --exec-' + ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
+         '# python -m ibeis.scripts.gen_cand_expts --exec-' +
+         ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
         for func in TEST_GEN_FUNCS])
     fname, script, line_list = write_script_lines(script_lines, 'experiments_overnight.sh')
     if ut.get_argflag('--vim'):
@@ -87,30 +89,30 @@ def generate_all():
 def test_database_intersection():
     """
     # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA
 
     # PZ_MTEST is also a subset of PZ_Master0 with minor changes
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
 
     # NNP_Master3 and PZ_Master0 are disjoint
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0
+    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA
     """
     pass
 
 
 def generate_dbinfo_table():
     """
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
 
     FIXME: Old database should not be converted to left
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
     python -m ibeis.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
     """
     pass
@@ -213,7 +215,8 @@ def precompute_data():
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(precompute_data())
     """
-    #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    #basecmd = 'python -m ibeis.experiments.experiment_printres
+    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('preload_flags', [
             #'--preload-chip',
@@ -291,7 +294,7 @@ def experiments_namescore():
         ./experiment_namescore.sh
 
         python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1
+        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
@@ -340,7 +343,8 @@ def experiments_viewpoint():
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_viewpoint())
     """
-    #basecmd = 'python -m ibeis.experiments.experiment_printres --exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    #basecmd = 'python -m ibeis.experiments.experiment_printres
+    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('acfg_name', ['viewpoint_compare']),
         ('cfg_name', ['default']),
@@ -493,7 +497,8 @@ def gen_dbranks_tables():
         ''')
 
     #gen_table_line =
-    #sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db GZ_ALL --rank-lt-list=1,5,10,100
+    #sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db
+    #GZ_ALL --rank-lt-list=1,5,10,100
     pass
 
 
