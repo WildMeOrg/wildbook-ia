@@ -386,6 +386,7 @@ class ANNOTATIONInteraction(object):
         #ax = plt.subplot(111)
         ax = df2.gca()
         self.fig.ax = ax
+        self.ax = ax
         df2.remove_patches(self.fig.ax)
         df2.imshow(self.img, fnum=fnum)
 
@@ -604,12 +605,17 @@ class ANNOTATIONInteraction(object):
             return
 
         if event.button == 1:  # leftclick
-            for poly in six.itervalues(self.polys):
-                if is_within_distance_from_line(self.max_ds, (event.xdata,
-                                                              event.ydata),
-                                                calc_handle_coords(poly)):
-                    self.currently_rotating_poly = poly
-                    break
+            if event.key == 'shift':
+                self._currently_selected_poly
+                self.currently_rotating_poly = self._currently_selected_poly
+            else:
+                for poly in six.itervalues(self.polys):
+                    near_line = is_within_distance_from_line(
+                        self.max_ds, (event.xdata, event.ydata),
+                        calc_handle_coords(poly))
+                    if near_line:
+                        self.currently_rotating_poly = poly
+                        break
 
         if self._currently_selected_poly is None:
             print('[interact_annot] WARNING: Polygon unknown. Using last placed poly.')
@@ -890,16 +896,22 @@ class ANNOTATIONInteraction(object):
         Called on mouse movement
         """
         #print('motion_notify_callback')
-        ignore = (not self.showverts or event.inaxes is None)
+        #ignore = (not self.showverts or event.inaxes is None)
+        ignore = (not self.showverts)
+        # uses boolean punning for terseness
+        lastX = self.mouseX or None
+        lastY = self.mouseY or None
         if not (event.xdata is None or event.ydata is None):
-            # uses boolean punning for terseness
-            lastX = self.mouseX or None
-            lastY = self.mouseY or None
             self.mouseX, self.mouseY = event.xdata, event.ydata
             #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX,
             #self.mouseY, lastX, lastY))
-            deltaX = lastX is not None and self.mouseX - lastX
-            deltaY = lastY is not None and self.mouseY - lastY
+        else:
+            # Allow for getting coordinates outside the axes
+            ax = self.ax
+            self.mouseX, self.mouseY = ax.transAxes.inverted().transform([event.x, event.y])
+            self.mouseX, self.mouseY = ax.transData.inverted().transform([event.x, event.y])
+        deltaX = lastX is not None and self.mouseX - lastX
+        deltaY = lastY is not None and self.mouseY - lastY
 
         if ignore:
             return
@@ -954,21 +966,26 @@ class ANNOTATIONInteraction(object):
         self._currently_selected_poly = None
 
     def check_dims(self, coords, margin=0.5):
+        # Allow the bounding box to go off the image
+        # so orientations can be done correctly
+        #return True
+        num_out = 0
         xlim = self.fig.ax.get_xlim()
         ylim = self.fig.ax.get_ylim()
         if coords[0] < xlim[0] + margin:
-            return False
+            num_out += 1
             #coords[0] = xlim[0]
         if coords[0] > xlim[1] - margin:
-            return False
+            num_out += 1
             #coords[0] = xlim[1]
         if coords[1] < ylim[1] + margin:
-            return False
+            num_out += 1
             #coords[1] = ylim[1]
         if coords[1] > ylim[0] - margin:
-            return False
+            num_out += 1
             #coords[1] = ylim[0]
-        return True
+        return num_out <= 3
+        #return True
 
     # ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield arbitrary polygons
     def enforce_dims(self, coords, margin=0.5):
@@ -1260,7 +1277,7 @@ class ANNOTATIONInteraction(object):
         # Make mask from selection
         if self.do_mask is True:
             plt.clf()
-            ax = plt.subplot(111)
+            self.ax = ax = plt.subplot(111)
             img = self.img
             mask = self.get_mask(img.shape)
             # User must close previous figure
@@ -1388,7 +1405,7 @@ def test_interact_annots():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_annotations --test-test_interact_annots --show
+        python -m plottool.interact_annotations --exec-test_interact_annots --show
     CommandLine:
         python -m plottool.interact_annotations
         python -m plottool.interact_annotations --allexamples
