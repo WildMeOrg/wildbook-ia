@@ -364,6 +364,35 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
     return aid_list
 
 
+def get_annot_been_adjusted(ibs, aid_list):
+    """
+    Returns if a bounding box has been adjusted from defaults set in
+    use_images_as_annotations Very hacky very heurstic.
+    """
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    ori_list = np.array(ibs.get_annot_thetas(aid_list))
+    size_list = ibs.get_image_sizes(ibs.get_annot_gids(aid_list))
+
+    been_ori_adjusted = ori_list != 0
+
+    adjusted_list = [
+        (bbox[0] / gw,
+         bbox[1] / gh,
+         (1 - (bbox[2] / gw)) / 2,
+         (1 - (bbox[3] / gh)) / 2,)
+        for bbox, (gw, gh) in zip(bbox_list, size_list)
+    ]
+
+    # Has the bounding box been moved past the default value?
+    been_bbox_adjusted = np.array([
+        np.abs(np.diff(np.array(list(ut.iprod(pcts, pcts))), axis=1)).max() > 1e-2
+        for pcts in adjusted_list
+    ])
+
+    been_adjusted = np.logical_or(been_ori_adjusted, been_bbox_adjusted)
+    return been_adjusted
+
+
 @register_ibs_method
 def assert_valid_species_texts(ibs, species_list, iswarning=True):
     if ut.NO_ASSERTS:

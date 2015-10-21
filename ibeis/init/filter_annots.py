@@ -669,6 +669,12 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
             avail_aids = sorted(avail_aids)
 
+    # HACK
+    if aidcfg.get('been_adjusted', False):
+        flag_list = ibs.get_annot_been_adjusted(avail_aids)
+        with VerbosityContext('been_adjusted'):
+            avail_aids = ut.list_compress(avail_aids, flag_list)
+
     if aidcfg['minqual'] is not None or aidcfg['require_quality']:
         # Resolve quality
         if aidcfg['minqual'] is None:

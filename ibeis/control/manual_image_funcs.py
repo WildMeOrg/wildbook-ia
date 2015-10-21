@@ -8,9 +8,9 @@ CommandLine:
     # key should be the table name
     # the write flag makes a file, but dont use that
     python -m ibeis.templates.template_generator --key image --onlyfn
-    python -m ibeis.templates.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs
-    python -m ibeis.templates.template_generator --key image --fnfilt location --modfname manual_image_funcs
-    python -m ibeis.templates.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs
+    python -m ibeis.templates.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs  # NOQA
+    python -m ibeis.templates.template_generator --key image --fnfilt location --modfname manual_image_funcs  # NOQA
+    python -m ibeis.templates.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs  # NOQA
 
     image_timedelta_posix
 
@@ -285,7 +285,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
-    gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
+    gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
+                                  ibs.get_image_gids_from_uuid)
 
     if ut.duplicates_exist(gid_list):
         gpath_list = ibs.get_image_paths(gid_list)
@@ -486,7 +487,8 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
     """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((unixtime,) for unixtime in unixtime_list)
-    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TIME_POSIX,), val_list, id_iter, duplicate_behavior=duplicate_behavior)
+    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TIME_POSIX,), val_list, id_iter,
+               duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method
@@ -1327,7 +1329,11 @@ def get_image_aids(ibs, gid_list):
             valid_aids = np.array(ibs._get_all_aids())
             valid_gids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, IMAGE_ROWID))
             #np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))
-            aids_list = [valid_aids.take(np.flatnonzero(np.equal(valid_gids, gid))).tolist() for gid in gid_list]
+            aids_list = [
+                valid_aids.take(
+                    np.flatnonzero(np.equal(valid_gids, gid))).tolist()
+                for gid in gid_list
+            ]
         else:
             # SQL IMPL
             aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
@@ -1413,7 +1419,9 @@ def delete_images(ibs, gid_list, trash_images=True):
     # Delete annotations first
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     ibs.delete_annots(aid_list)
-    ibs.delete_image_thumbs(gid_list)  # delete thumbs in case an annot doesnt delete them TODO: pass flag to not delete them in delete_annots
+    # delete thumbs in case an annot doesnt delete them
+    # TODO: pass flag to not delete them in delete_annots
+    ibs.delete_image_thumbs(gid_list)
     ibs.db.delete_rowids(const.IMAGE_TABLE, gid_list)
     #egrid_list = ut.flatten(ibs.get_image_egrids(gid_list))
     #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
@@ -1481,7 +1489,9 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
 
 @register_ibs_method
 @register_api('/api/image/timedelta_posix/', methods=['PUT'])
-def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list, duplicate_behavior='error'):
+def set_image_timedelta_posix(ibs, image_rowid_list,
+                              image_timedelta_posix_list,
+                              duplicate_behavior='error'):
     r"""
     image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
 
@@ -1546,7 +1556,8 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
 
 @register_ibs_method
 @register_api('/api/image/location_codes/', methods=['PUT'])
-def set_image_location_codes(ibs, image_rowid_list, image_location_code_list, duplicate_behavior='error'):
+def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
+                             duplicate_behavior='error'):
     r"""
     image_location_code_list -> image.image_location_code[image_rowid_list]
 

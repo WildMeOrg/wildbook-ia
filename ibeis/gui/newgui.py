@@ -273,22 +273,28 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # ADD IMAGE TABLE
         if True:
             ibswgt.tblname_list.append(IMAGE_TABLE)
-            ibswgt.modelview_defs.append((IMAGE_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView))
+            ibswgt.modelview_defs.append((IMAGE_TABLE, IBEISTableWidget,
+                                          IBEISItemModel, IBEISTableView))
         # ADD IMAGE GRID
         if not ut.get_argflag('--onlyimgtbl'):
             ibswgt.tblname_list.append(IMAGE_GRID)
-            ibswgt.modelview_defs.append((IMAGE_GRID, IBEISTableWidget, IBEISStripeModel, IBEISTableView))
+            ibswgt.modelview_defs.append((IMAGE_GRID, IBEISTableWidget,
+                                          IBEISStripeModel, IBEISTableView))
         # ADD ANNOT GRID
         if not (ut.get_argflag('--noannottbl') or ut.get_argflag('--onlyimgtbl')):
             ibswgt.tblname_list.append(gh.ANNOTATION_TABLE)
-            ibswgt.modelview_defs.append((gh.ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView))
+            ibswgt.modelview_defs.append((gh.ANNOTATION_TABLE,
+                                          IBEISTableWidget, IBEISItemModel,
+                                          IBEISTableView))
         # ADD NAME TREE
         if not (ut.get_argflag('--nonametree') or ut.get_argflag('--onlyimgtbl')):
             ibswgt.tblname_list.append(NAMES_TREE)
-            ibswgt.modelview_defs.append((NAMES_TREE, IBEISTreeWidget, IBEISItemModel, IBEISTreeView))
+            ibswgt.modelview_defs.append((NAMES_TREE, IBEISTreeWidget,
+                                          IBEISItemModel, IBEISTreeView))
         # ADD ENCOUNTER TABLE
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
-        ibswgt.modelview_defs.append((ENCOUNTER_TABLE,  EncTableWidget,  EncTableModel, EncTableView))
+        ibswgt.modelview_defs.append((ENCOUNTER_TABLE,  EncTableWidget,
+                                      EncTableModel, EncTableView))
 
         # DO INITALIZATION
         # Create and layout components
@@ -346,19 +352,27 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             model_index_list = [qtindex for qtindex in model_index_list_ if qtindex.isValid()]
             model_list       = [qtindex.model() for qtindex in model_index_list]
             tablename_list   = [model.name for model in model_list]
-            level_list       = [model._get_level(qtindex) for model, qtindex in zip(model_list, model_index_list)]
-            rowid_list       = [model._get_row_id(qtindex) for model, qtindex in zip(model_list, model_index_list)]
+            level_list       = [model._get_level(qtindex)
+                                for model, qtindex in zip(model_list, model_index_list)]
+            rowid_list       = [model._get_row_id(qtindex)
+                                for model, qtindex in zip(model_list, model_index_list)]
             table_key_list = list(zip(tablename_list, level_list))
             return table_key_list, rowid_list
 
-        select_table_key_list, select_rowid_list = get_selection_info(selected_model_index_list_)
-        deselect_table_key_list, deselect_rowid_list = get_selection_info(deselected_model_index_list_)
+        select_table_key_list, select_rowid_list = get_selection_info(
+            selected_model_index_list_)
+        deselect_table_key_list, deselect_rowid_list = get_selection_info(
+            deselected_model_index_list_)
 
-        table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list, select_table_key_list))
-        table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list, deselect_table_key_list))
+        table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list,
+                                                           select_table_key_list))
+        table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list,
+                                                           deselect_table_key_list))
 
-        table_key2_selected_rowids   = {key: list(set(val)) for key, val in six.iteritems(table_key2_selected_rowids)}
-        table_key2_deselected_rowids = {key: list(set(val)) for key, val in six.iteritems(table_key2_deselected_rowids)}
+        table_key2_selected_rowids   = {key: list(set(val))
+                                        for key, val in six.iteritems(table_key2_selected_rowids)}
+        table_key2_deselected_rowids = {key: list(set(val))
+                                        for key, val in six.iteritems(table_key2_deselected_rowids)}
         if ut.VERBOSE:
             print('table_key2_selected_rowids = ' + ut.dict_str(table_key2_selected_rowids))
             print('table_key2_deselected_rowids = ' + ut.dict_str(table_key2_deselected_rowids))
@@ -581,7 +595,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         tblnames = ibswgt.super_tblname_list if tblnames is None else tblnames
         print('[newgui] changing_models_gen(tblnames=%r)' % (tblnames,))
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
-        #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
+        #model_list = [ibswgt.models[tblname] for tblname in tblnames if
+        #ibswgt.views[tblname].isVisible()]
         with ChangeLayoutContext(model_list):
             for tblname in tblnames:
                 yield tblname
@@ -684,7 +699,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
-        print('[newgui] _change_enc(eid=%r, uuid=%r)' % (eid, ibswgt.back.ibs.get_encounter_uuid(eid)))
+        print('[newgui] _change_enc(eid=%r, uuid=%r)' %
+              (eid, ibswgt.back.ibs.get_encounter_uuid(eid)))
         for tblname in ibswgt.tblname_list:
             view = ibswgt.views[tblname]
             view.clearSelection()
@@ -710,8 +726,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.query_button
             #ibswgt.querydb_combo.setOptionText(text_list)
             #ibswgt.query_
-            #ibswgt.control_widget_lists[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            #ibswgt.control_widget_lists[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
+            #ibswgt.control_widget_lists[1][0].setText('Identify
+            #(intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            #ibswgt.control_widget_lists[1][1].setText('Identify (vs exemplar
+            #database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
         ibswgt.set_table_tab(IMAGE_TABLE)
@@ -758,7 +776,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             prefix = ''
         print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
-        enctext = ibswgt.ibs.get_encounter_text(eid)
+        if isinstance(eid, six.string_types):
+            # Hack
+            enctext = eid
+        else:
+            enctext = ibswgt.ibs.get_encounter_text(eid)
         #ibswgt.back.select_eid(eid)
         ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
 
@@ -805,7 +827,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             'prev_callback': prevcb,
         }
         assert current_gid == gid, 'problem in next/prev updater'
-        ibswgt.annot_interact = interact_annotations2.ANNOTATION_Interaction2(ibs, gid, **iannot2_kw)
+        ibswgt.annot_interact = interact_annotations2.ANNOTATION_Interaction2(
+            ibs, gid, **iannot2_kw)
         # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
         _, row = model.view.get_row_and_qtindex_from_id(gid)
         pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
@@ -883,7 +906,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 # call this function again with next index
                 nextcb, prevcb, new_gid1 = ibswgt._interactannot2_callbacks(model, next_qtindex)
                 print('[newgui] next_callback: new_gid1=%r' % (new_gid1))
-                ibswgt.annot_interact.update_image_and_callbacks(new_gid1, nextcb, prevcb, do_save=True)
+                ibswgt.annot_interact.update_image_and_callbacks(new_gid1,
+                                                                 nextcb,
+                                                                 prevcb,
+                                                                 do_save=True)
                 # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
                 _, row = model.view.get_row_and_qtindex_from_id(new_gid1)
                 pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
@@ -896,7 +922,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 # call this function again with previous index
                 nextcb, prevcb, new_gid2 = ibswgt._interactannot2_callbacks(model, prev_qtindex)
                 print('[newgui] prev_callback: new_gid2=%r' % (new_gid2))
-                ibswgt.annot_interact.update_image_and_callbacks(new_gid2, nextcb, prevcb, do_save=True)
+                ibswgt.annot_interact.update_image_and_callbacks(new_gid2,
+                                                                 nextcb,
+                                                                 prevcb,
+                                                                 do_save=True)
                 # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
                 _, row = model.view.get_row_and_qtindex_from_id(new_gid2)
                 pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
@@ -927,7 +956,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         text = ibswgt.status_widget_list[index].text()
         ibswgt.select_table_indicies_from_text(tablename, text)
 
-    def select_table_indicies_from_text(ibswgt, tblname, text):
+    def select_table_indicies_from_text(ibswgt, tblname, text, allow_table_change=False):
         """
         Args:
             tblname - tablename of the id to parse from text
@@ -991,21 +1020,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             id_list = ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
         # Select the index if we are in the right table tab
-        if len(id_list) == 1 and ibswgt._table_tab_wgt.current_tblname == tblname:
+        if len(id_list) == 1 and (
+           allow_table_change or ibswgt._table_tab_wgt.current_tblname == tblname):
             if not ut.QUIET:
                 print('[newgui]  * attempting to select from rowid')
             #view = ibswgt.views[tblname]
             #view.select_row_from_id(id_list[0])
             ibswgt.goto_table_id(tblname, id_list[0])
-
-            pass
         else:
             # TODO: convert the id into the ids corresponding with this tablename and move
             # to the first one
             pass
 
-        #if goto_table_id:
-        #    pass
         ibswgt.back.update_selection_texts()
         #pass
 
@@ -1040,21 +1066,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         Right click anywhere in the GUI
         Context menus on right click of a table
+
+        CommandLine:
+            python -m ibeis --db WS_ALL --eid 2 --select-name=A-003
         """
         if not qtindex.isValid():
             return
-
-        def _goto_image(gid):
-            ibswgt.goto_table_id(IMAGE_TABLE, gid)
-
-        def _goto_annot_image(aid):
-            _goto_image(ibswgt.back.ibs.get_annot_gids(aid))
-
-        def _goto_annot(aid):
-            ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)
-
-        def _goto_annot_name(aid):
-            ibswgt.goto_table_id(NAMES_TREE, ibswgt.back.ibs.get_annot_nids(aid))
 
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
@@ -1064,62 +1081,168 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_list      = [model._get_row_id(_qtindex) for _qtindex in qtindex_list]
         level_list   = [model._get_level(_qtindex) for _qtindex in qtindex_list]
         level2_ids_ = ut.group_items(id_list, level_list)
-        level2_ids = {level: ut.unique_keep_order2(ids) for level, ids in six.iteritems(level2_ids_)}
+        level2_ids = {level: ut.unique_keep_order2(ids)
+                      for level, ids in six.iteritems(level2_ids_)}
 
         ibs = ibswgt.back.ibs
         back = ibswgt.back
 
-        # ---- ENCOUNTER CONTEXT ----
-        if model.name == ENCOUNTER_TABLE:
-            merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
-            enctext = ibswgt.back.ibs.get_encounter_text(merge_destination_id)
-            eid_list = level2_ids[0]
-            # Conditional context menu
-            # TODO: remove duplicate code
-            if len(eid_list) == 1:
+        def build_annot_context_options(ibswgt, ibs, aid_list, eid, **kwargs):
+            context_options = []
+            if len(aid_list) == 1:
+                aid = aid_list[0]
+                if kwargs.get('goto_image', True):
+                    context_options += [
+                        ('Go to image',
+                         lambda: ibswgt.goto_table_id(IMAGE_TABLE,
+                                                      ibswgt.back.ibs.get_annot_gids(aid)),)
+                    ]
+                if kwargs.get('goto_annot', True):
+                    context_options += [
+                        ('Go to annot',
+                         lambda: ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid))
+                    ]
+                if kwargs.get('goto_name', True):
+                    context_options += [
+                        ('Go to name',
+                         lambda: ibswgt.goto_table_id(NAMES_TREE,
+                                                      ibswgt.back.ibs.get_annot_nids(aid))),
+                    ]
+                if kwargs.get('canedit', True):
+                    context_options += [
+                        ('Edit Annotation in Image',
+                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
+                    ]
+
                 context_options += [
-                    ('View encounter in Web', lambda: ibswgt.back.show_eid_list_in_web(eid_list)),
                     ('----', lambda: None),
-                    ('Run detection on encounter (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
-                    ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
-                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
-                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
+                    ('View annotation in Web',
+                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        lambda: ibswgt.back.show_annotation(aid, web=True)),
+                    ('View image in Web',
+                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
+                    #('View annotation in Matplotlib',
+                    #    #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    #    lambda: ibswgt.back.show_annotation(aid, web=False)),
+                    #('View image in Matplotlib',
+                    #    lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                    #('View detection chip (probability) [dev]',
+                    #    lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),
-                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('Remove annotation\'s name',
+                        lambda: ibswgt.back.unset_names([aid])),
+                    ('Delete annotation',
+                        lambda: ibswgt.back.delete_annot(aid_list)),
                     ('----', lambda: None),
-                    ('Delete encounter AND images', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
                 ]
+                from ibeis.viz.interact import interact_chip
+                from ibeis import viz
+                context_options += interact_chip.build_annot_context_options(
+                    ibswgt.back.ibs, aid, refresh_func=viz.draw,
+                    with_interact_image=False)
             else:
                 context_options += [
-                    ('Run detection on encounters (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
-                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
-                    ('Merge %d encounters into %s' %  (len(eid_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
-                    ('----', lambda: None),
-                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(eid_list)),
-                    ('----', lambda: None),
-                    ('Delete encounters AND images', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
-                    # ('export encounters', lambda: ibswgt.back.export_encounters(eid_list)),
+                    ('View annotations in Web',
+                        lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
+                    ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
+                    ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
-        # ---- IMAGE CONTEXT ----
-        elif model.name == IMAGE_TABLE:
-            current_enctext = ibswgt.back.ibs.get_encounter_text(ibswgt.back.get_selected_eid())
-            gid_list = level2_ids[0]
+            return context_options
+
+        def name_context_options(ibswgt, ibs, nid_list, aid_list, eid, **kwargs):
+            context_options = []
+            if len(aid_list) == 1:
+                aid = aid_list[0]
+                context_options += build_annot_context_options(ibswgt, ibs, [aid], eid)
+                #[
+                #    ('Go to image',
+                #     lambda: ibswgt.goto_table_id(IMAGE_TABLE,
+                #                                  ibswgt.back.ibs.get_annot_gids(aid))),
+                #    ('Go to annotation',
+                #     lambda: ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)),
+                #    ('----', lambda: None),
+                #    ('View annotation in Matplotlib',
+                #     lambda: ibswgt.back.select_aid(aid, eid, show=False)),
+                #    ('View annotation in Web',
+                #     lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                #    ('View image in Matplotlib',
+                #     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
+                #    ('View image in Web',
+                #     lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
+                #]
+            if len(aid_list) > 0:
+                def set_annot_names_to_same_new_name(ibswgt, aid_list):
+                    ibswgt.back.ibs.set_annot_names_to_same_new_name(aid_list)
+                    ibswgt.update_tables(tblnames=[gh.NAMES_TREE])
+                context_options += [
+                    ('Rename annots (%s) to new name' % ut.list_str_summarized(
+                        aid_list, 'aid_list'),
+                        lambda: set_annot_names_to_same_new_name(ibswgt, aid_list)),
+                ]
+            if len(nid_list) > 0:
+                def run_splits(ibs, nid_list):
+                    print('Checking for splits')
+                    aids_list = ibs.get_name_aids(nid_list)
+                    aid_list = sorted(list(set(ut.flatten(aids_list))))
+                    back.run_annot_splits(aid_list)
+
+                def export_nids(ibs, nid_list):
+                    from ibeis.dbio import export_subset
+                    if not back.are_you_sure('Confirm export of nid_list=%r' % (nid_list,)):
+                        return
+                    export_subset.export_names(ibs, nid_list)
+
+                def create_new_encounter_from_names_(ibs, nid_list):
+                    ibs.create_new_encounter_from_names(nid_list)
+                    ibswgt.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=False)
+
+                context_options += [
+                    ('View name(s) in Web', lambda: ibswgt.back.show_nid_list_in_web(nid_list)),
+                    ('----', lambda: None),
+                    ('Check for splits', lambda: run_splits(ibs, nid_list)),
+                    ('Export names', lambda: export_nids(ibs, nid_list)),
+                    ('Create Encounter From Name(s)',
+                     lambda: create_new_encounter_from_names_(ibs, nid_list)),
+                ]
+
+                from ibeis.viz.interact import interact_name
+                context_options += interact_name.build_name_context_options(
+                    ibswgt.back.ibs, nid_list)
+            else:
+                from ibeis.viz.interact import interact_name
+                context_options += interact_name.build_name_context_options(
+                    ibswgt.back.ibs, nid_list)
+                #print('nutin')
+                pass
+            return context_options
+
+        def build_image_context_options(ibswgt, ibs, gid_list, eid, **kwargs):
+            current_enctext = ibswgt.back.ibs.get_encounter_text(eid)
+            context_options = []
             # Conditional context menu
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 eid = model.eid
-                view_aid_options1 = [
-                    ('View aid=%r in Matplotlib' % (aid,), lambda: ibswgt.back.show_annotation(aid, web=False))
-                    for aid in ibs.get_image_aids(gid)
+                aid_list = ibs.get_image_aids(gid)
+
+                annot_options = [
+                    ('Options aid=%r' % (aid,),
+                     build_annot_context_options(ibswgt, ibs, [aid], eid, goto_image=False))
+                    for aid in aid_list
                 ]
-                view_aid_options2 = [
-                    ('View aid=%r in Web' % (aid,), lambda: ibswgt.back.show_annotation(aid, web=True))
-                    for aid in ibs.get_image_aids(gid)
-                ]
+                if len(aid_list) == 1:
+                    annot_option_item = (
+                        'Annot Options (aid=%r)' % (aid_list[0],),
+                        annot_options[0][1]
+                    )
+                else:
+                    annot_option_item = ('Annot Options', annot_options)
+                if kwargs.get('goto_image_in_imgtbl', False):
+                    context_options += [
+                        ('Go to image in Images Table',
+                            lambda: ibswgt.goto_table_id(IMAGE_TABLE, gid)),
+                    ]
+
                 context_options += [
                     ('View image in Matplotlib',
                         lambda: ibswgt.back.select_gid(gid, eid, show=True, web=False)),
@@ -1127,10 +1250,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.select_gid(gid, eid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image(gid)),
-                    ('View annotation in Matplotlib:',
-                       view_aid_options1),
-                    ('View annotation in Web:',
-                       view_aid_options2),
+                    annot_option_item,
+                    #('View annotation in Matplotlib:',
+                    #   view_aid_options1),
+                    #('View annotation in Web:',
+                    #   view_aid_options2),
                     ('Add annotation from entire image',
                         lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)',
@@ -1179,112 +1303,66 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Delete images',
                         lambda: ibswgt.back.delete_image(gid_list)),
                 ]
-        # ---- IMAGE GRID CONTEXT ----
-        elif model.name == IMAGE_GRID:
-            current_enctext = ibswgt.back.ibs.get_encounter_text(ibswgt.back.get_selected_eid())
+            return context_options
+
+        # ---- ENCOUNTER CONTEXT ----
+        if model.name == ENCOUNTER_TABLE:
+            # This is for the benefit of merge encounters
+            merge_destination_id = model._get_row_id(qtindex)
+            enctext = ibswgt.back.ibs.get_encounter_text(merge_destination_id)
+            eid_list = level2_ids[0]
             # Conditional context menu
-            gid_list = level2_ids[0]
-            if len(gid_list) == 1:
-                gid = gid_list[0]
-                eid = model.eid
+            # TODO: remove duplicate code
+            if len(eid_list) == 1:
                 context_options += [
-                    ('Go to image in Images Table',
-                        lambda: ibswgt.goto_table_id(IMAGE_TABLE, gid)),
+                    ('View encounter in Web', lambda: ibswgt.back.show_eid_list_in_web(eid_list)),
                     ('----', lambda: None),
-                    ('View image in Matplotlib',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=False)),
-                    ('View image in Web',
-                        lambda: ibswgt.back.select_gid(gid, eid, show=True, web=True)),
-                    ('View detection image (Hough) [dev]',
-                        lambda: ibswgt.back.show_hough_image(gid)),
-                    ('Add annotation from entire image',
-                        lambda: ibswgt.back.add_annotation_from_image([gid])),
-                    ('Run detection on image (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images([gid])),
+                    ('Run detection on encounter (can cause duplicates)',
+                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
+                    ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
+                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
+                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
+                    ('----', lambda: None),
+                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('----', lambda: None),
+                    ('Delete encounter AND images',
+                     lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
                 ]
             else:
                 context_options += [
-                    ('View images in Web',
-                        lambda: ibswgt.back.show_gid_list_in_web(gid_list)),
+                    ('Run detection on encounters (can cause duplicates)',
+                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
+                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
+                    ('Merge %d encounters into %s' %  (len(eid_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('Add annotation from entire images',
-                        lambda: ibswgt.back.add_annotation_from_image(gid_list)),
-                    ('Run detection on images (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images(gid_list)),
-                ]
-
-            # Special condition for encounters
-            if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
-                context_options += [
+                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(eid_list)),
                     ('----', lambda: None),
-                    ('Move to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='move')),
-                    ('Copy to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='copy')),
+                    ('Delete encounters AND images',
+                     lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    # ('export encounters', lambda: ibswgt.back.export_encounters(eid_list)),
                 ]
-            if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
-                context_options += [
-                    ('----', lambda: None),
-                    ('Remove from encounter',
-                        lambda: ibswgt.back.remove_from_encounter(gid_list)),
-                ]
-            # Continue the conditional context menu
-            if len(gid_list) == 1:
-                # We get gid from above
-                context_options += [
-                    ('----', lambda: None),
-                    ('Delete image\'s annotations',
-                        lambda: ibswgt.back.delete_image_annotations([gid])),
-                    ('Delete image',
-                        lambda: ibswgt.back.delete_image(gid)),
-                ]
+        # ---- IMAGE CONTEXT ----
+        elif model.name == IMAGE_TABLE:
+            gid_list = level2_ids[0]
+            eid = ibswgt.back.get_selected_eid()
+            context_options += build_image_context_options(ibswgt, ibs,
+                                                           gid_list, eid)
+        # ---- IMAGE GRID CONTEXT ----
+        elif model.name == IMAGE_GRID:
+            gid_list = level2_ids[0]
+            eid = ibswgt.back.get_selected_eid()
+            context_options += build_image_context_options(ibswgt, ibs,
+                                                           gid_list, eid,
+                                                           goto_image_in_imgtbl=True)
         # ---- ANNOTATION CONTEXT ----
         elif model.name == gh.ANNOTATION_TABLE:
             aid_list = level2_ids[0]
             # Conditional context menu
             # TODO: UNIFY COMMMON CONTEXT MENUS
-            if len(aid_list) == 1:
-                aid = aid_list[0]
-                eid = model.eid
-                context_options += [
-                    ('Go to image',
-                        lambda: _goto_annot_image(aid)),
-                    ('Go to name',
-                        lambda: _goto_annot_name(aid)),
-                    ('Edit Annotation in Image',
-                        lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
-                    ('----', lambda: None),
-                    ('View annotation in Web',
-                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                        lambda: ibswgt.back.show_annotation(aid, web=True)),
-                    ('View image in Web',
-                        lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
-                    #('View annotation in Matplotlib',
-                    #    #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    #    lambda: ibswgt.back.show_annotation(aid, web=False)),
-                    #('View image in Matplotlib',
-                    #    lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
-                    #('View detection chip (probability) [dev]',
-                    #    lambda: ibswgt.back.show_probability_chip(aid)),
-                    ('----', lambda: None),
-                    ('Remove annotation\'s name',
-                        lambda: ibswgt.back.unset_names([aid])),
-                    ('Delete annotation',
-                        lambda: ibswgt.back.delete_annot(aid_list)),
-                    ('----', lambda: None),
-                ]
-                from ibeis.viz.interact import interact_chip
-                from ibeis import viz
-                context_options += interact_chip.build_annot_context_options(
-                    ibswgt.back.ibs, aid, refresh_func=viz.draw,
-                    with_interact_image=False)
-            else:
-                context_options += [
-                    ('View annotations in Web',
-                        lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
-                    ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
-                    ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
-                ]
+            context_options += build_annot_context_options(
+                ibswgt, ibs, aid_list, model.eid, goto_annot=False)
         # ---- NAMES TREE CONTEXT ----
         elif model.name == NAMES_TREE:
             # TODO: map level list to tablename more reliably
@@ -1297,58 +1375,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 print('multiple types of indicies selected')
                 return
             else:
-                if len(aid_list) == 1:
-                    aid = aid_list[0]
-                    eid = model.eid
-                    context_options += [
-                        ('Go to image', lambda: _goto_annot_image(aid)),
-                        ('Go to annotation', lambda: _goto_annot(aid)),
-                        ('----', lambda: None),
-                        ('View annotation in Matplotlib', lambda: ibswgt.back.select_aid(aid, eid, show=False)),
-                        ('View annotation in Web', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                        ('View image in Matplotlib', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=False)),
-                        ('View image in Web', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True, web=True)),
-                    ]
-                if len(aid_list) > 0:
-                    def set_annot_names_to_same_new_name(ibswgt, aid_list):
-                        ibswgt.back.ibs.set_annot_names_to_same_new_name(aid_list)
-                        ibswgt.update_tables(tblnames=[gh.NAMES_TREE])
-                    context_options += [
-                        ('Rename annots (%s) to new name' % ut.list_str_summarized(aid_list, 'aid_list'),
-                            lambda: set_annot_names_to_same_new_name(ibswgt, aid_list)),
-                    ]
-                if len(nid_list) > 0:
-                    def run_splits(ibs, nid_list):
-                        print('Checking for splits')
-                        aids_list = ibs.get_name_aids(nid_list)
-                        aid_list = sorted(list(set(ut.flatten(aids_list))))
-                        back.run_annot_splits(aid_list)
-
-                    def export_nids(ibs, nid_list):
-                        from ibeis.dbio import export_subset
-                        if not back.are_you_sure('Confirm export of nid_list=%r' % (nid_list,)):
-                            return
-                        export_subset.export_names(ibs, nid_list)
-
-                    def create_new_encounter_from_names_(ibs, nid_list):
-                        ibs.create_new_encounter_from_names(nid_list)
-                        ibswgt.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=False)
-
-                    context_options += [
-                        ('View name(s) in Web', lambda: ibswgt.back.show_nid_list_in_web(nid_list)),
-                        ('----', lambda: None),
-                        ('Check for splits', lambda: run_splits(ibs, nid_list)),
-                        ('Export names', lambda: export_nids(ibs, nid_list)),
-                        ('Create Encounter From Name(s)', lambda: create_new_encounter_from_names_(ibs, nid_list)),
-                    ]
-
-                    from ibeis.viz.interact import interact_name
-                    context_options += interact_name.build_name_context_options(ibswgt.back.ibs, nid_list)
-                else:
-                    from ibeis.viz.interact import interact_name
-                    context_options += interact_name.build_name_context_options(ibswgt.back.ibs, nid_list)
-                    #print('nutin')
-                    pass
+                eid = model.eid
+                context_options += name_context_options(ibswgt, ibs, nid_list, aid_list, eid)
         # Show the context menu
         #ut.print_list(context_options, nl=2)
         if len(context_options) > 0:
@@ -1537,7 +1565,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #def get_aids_with_annotmatchprop():
         #    from ibeis import constants as const
         #    from ibeis.control import _autogen_annotmatch_funcs
-        #    colnames = (_autogen_annotmatch_funcs.ANNOT_ROWID1, _autogen_annotmatch_funcs.ANNOT_ROWID2)
+        #    colnames = (_autogen_annotmatch_funcs.ANNOT_ROWID1,
+        #    _autogen_annotmatch_funcs.ANNOT_ROWID2)
         #    tblname = const.ANNOTMATCH_TABLE
         #    wherecol = _autogen_annotmatch_funcs.ANNOTMATCH_IS_SCENERYMATCH
         #    whereclause = wherecol + '=?'

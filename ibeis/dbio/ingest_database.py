@@ -194,24 +194,6 @@ def __standard(dbname):
     return __registerdb
 
 
-@__standard('humpbacks')
-def ingest_humpbacks(dbname):
-    # The original humpbacks data is ROI cropped images in the
-    # named folder format
-    return Ingestable(dbname, ingest_type='named_folders',
-                      adjust_percent=0.00,
-                      species=const.Species.WHALEHUMPBACK,
-                      # this zipfile is only on Zach's machine
-                      fmtkey='name')
-
-
-@__standard('polar_bears')
-def ingest_polar_bears(dbname):
-    return Ingestable(dbname, ingest_type='named_folders',
-                      adjust_percent=0.00,
-                      fmtkey='name')
-
-
 @__standard('testdb1')
 def ingest_testdb1(dbname):
     """
@@ -304,7 +286,6 @@ def ingest_testdb1(dbname):
         new_gps_list[:, 0] = (new_gps_list[:, 0] * valid_lat_range) + valid_lat_min
         new_gps_list[:, 1] = (new_gps_list[:, 1] * valid_lon_range) + valid_lon_min
         new_gps_list[8, :] = [-1, -1]
-        #ut.embed()
         ibs.set_image_gps(gid_list, new_gps_list)
         return None
     return Ingestable(dbname, ingest_type='named_images',
@@ -312,6 +293,37 @@ def ingest_testdb1(dbname):
                       img_dir=grabdata.get_testdata_dir(),
                       adjust_percent=0.00,
                       postingest_func=postingest_tesdb1_func)
+
+
+@__standard('humpbacks')
+def ingest_humpbacks(dbname):
+    # The original humpbacks data is ROI cropped images in the
+    # named folder format
+    return Ingestable(dbname, ingest_type='named_folders',
+                      adjust_percent=0.00,
+                      species=const.Species.WHALEHUMPBACK,
+                      # this zipfile is only on Zach's machine
+                      fmtkey='name')
+
+
+@__standard('polar_bears')
+def ingest_polar_bears(dbname):
+    return Ingestable(dbname, ingest_type='named_folders',
+                      adjust_percent=0.00,
+                      fmtkey='name')
+
+
+@__standard('WS_ALL')
+def ingest_whale_sharks(dbname):
+    """
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+    """
+    return Ingestable(dbname, ingest_type='named_folders',
+                      img_dir='named-left-sharkimages',
+                      adjust_percent=0.01,
+                      species=const.Species.WHALESHARK,
+                      fmtkey='name')
 
 
 @__standard('snails_drop1')
@@ -356,159 +368,11 @@ def ingest_Giraffes1(dbname):
 @__standard('Elephants_drop1')
 def ingest_Elephants_drop1(dbname):
     return Ingestable(dbname,
-                      zipfile='../raw_unprocessed/ID photo front_Elephants_4-29-2015-PeterGranli.zip',
+                      zipfile='../raw_unprocessed/ID photo front_Elephants_4-29-2015-PeterGranli.zip',  # NOQA
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.elephant_fmt,
                       species=const.Species.ELEPHANT_SAV,
                       adjust_percent=0.00)
-
-
-def ingest_serengeti_mamal_cameratrap(species):
-    """
-    Downloads data from Serengeti dryad server
-
-    References:
-        http://datadryad.org/resource/doi:10.5061/dryad.5pt92
-        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. http://dx.doi.org/10.1038/sdata.2015.26
-        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.5pt92
-
-    Args:
-        species (?):
-
-    CommandLine:
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> import ibeis
-        >>> species = ut.get_argval('--species', type_=str, default=ibeis.const.Species.ZEB_PLAIN)
-        >>> #species = ut.get_argval('--species', str, default=ibeis.const.Species.CHEETAH)
-        >>> result = ingest_serengeti_mamal_cameratrap(species)
-        >>> print(result)
-    """
-    'https://snapshotserengeti.s3.msi.umn.edu/'
-    import ibeis
-    from os.path import basename
-
-    if species is None:
-        code = 'ALL'
-    else:
-        code = ibeis.const.SPECIES_TEXT_TO_CODE[species]
-
-    if species == 'zebra_plains':
-        serengeti_sepcies = 'zebra'
-    else:
-        serengeti_sepcies = species
-
-    print('species = %r' % (species,))
-    print('serengeti_sepcies = %r' % (serengeti_sepcies,))
-
-    dbname = code + '_Serengeti'
-    print('dbname = %r' % (dbname,))
-    dbdir = ut.ensuredir(join(ibeis.sysres.get_workdir(), dbname))
-    print('dbdir = %r' % (dbdir,))
-    image_dir = ut.ensuredir(join(dbdir, 'images'))
-
-    base_url = 'http://datadryad.org/bitstream/handle/10255'
-    all_images_url         = base_url + '/dryad.86392/all_images.csv'
-    consensus_metadata_url = base_url + '/dryad.86348/consensus_data.csv'
-    search_effort_url      = base_url + '/dryad.86347/search_effort.csv'
-    gold_standard_url      = base_url + '/dryad.76010/gold_standard_data.csv'
-
-    all_images_fpath         = ut.grab_file_url(all_images_url, download_dir=dbdir)
-    consensus_metadata_fpath = ut.grab_file_url(consensus_metadata_url, download_dir=dbdir)
-    search_effort_fpath      = ut.grab_file_url(search_effort_url, download_dir=dbdir)
-    gold_standard_fpath      = ut.grab_file_url(gold_standard_url, download_dir=dbdir)
-
-    print('all_images_fpath         = %r' % (all_images_fpath,))
-    print('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
-    print('search_effort_fpath      = %r' % (search_effort_fpath,))
-    print('gold_standard_fpath      = %r' % (gold_standard_fpath,))
-
-    def read_csv(csv_fpath):
-        import utool as ut
-        csv_text = ut.read_from(csv_fpath)
-        csv_lines = csv_text.split('\n')
-        print(ut.list_str(csv_lines[0:2]))
-        csv_data = [[field.strip('"').strip('\r') for field in line.split(',')]
-                    for line in csv_lines if len(line) > 0]
-        csv_header = csv_data[0]
-        csv_data = csv_data[1:]
-        return csv_data, csv_header
-
-    def download_image_urls(image_url_info_list):
-        # Find ones that we already have
-        print('Requested %d downloaded images' % (len(image_url_info_list)))
-        full_gpath_list = [join(image_dir, basename(gpath)) for gpath in image_url_info_list]
-        exists_list = [ut.checkpath(gpath) for gpath in full_gpath_list]
-        image_url_info_list_ = ut.list_compress(image_url_info_list, ut.not_list(exists_list))
-        print('Already have %d/%d downloaded images' % (len(image_url_info_list) - len(image_url_info_list_), len(image_url_info_list)))
-        print('Need to download %d images' % (len(image_url_info_list_)))
-        #import sys
-        #sys.exit(0)
-        # Download the rest
-        imgurl_prefix = 'https://snapshotserengeti.s3.msi.umn.edu/'
-        image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list_]
-        for img_url in ut.ProgressIter(image_url_list, lbl='Downloading Image'):
-            ut.grab_file_url(img_url, download_dir=image_dir)
-        return full_gpath_list
-
-    # Data contains information about which events have which animals
-    if False:
-        species_class_csv_data, species_class_header = read_csv(gold_standard_fpath)
-        species_class_eventid_list    = ut.get_list_column(species_class_csv_data, 0)
-        #gold_num_species_annots_list = ut.get_list_column(gold_standard_csv_data, 2)
-        species_class_species_list    = ut.get_list_column(species_class_csv_data, 2)
-        #gold_count_list              = ut.get_list_column(gold_standard_csv_data, 3)
-    else:
-        species_class_csv_data, species_class_header = read_csv(consensus_metadata_fpath)
-        species_class_eventid_list    = ut.get_list_column(species_class_csv_data, 0)
-        species_class_species_list    = ut.get_list_column(species_class_csv_data, 7)
-
-    # Find the zebra events
-    serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
-    print('serengeti_sepcies_hist = %s' % ut.dict_str(ut.dict_hist(species_class_species_list), key_order_metric='val'))
-    #print('serengeti_sepcies_set = %s' % (ut.list_str(serengeti_sepcies_set),))
-
-    assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
-    species_class_chosen_idx_list = ut.list_where([serengeti_sepcies == species_ for species_ in species_class_species_list])
-    chosen_eventid_list = ut.list_take(species_class_eventid_list, species_class_chosen_idx_list)
-
-    print('Number of chosen species:')
-    print(' * len(species_class_chosen_idx_list) = %r' % (len(species_class_chosen_idx_list),))
-    print(' * len(chosen_eventid_list) = %r' % (len(chosen_eventid_list),))
-
-    # Read info about which events have which images
-    images_csv_data, image_csv_header = read_csv(all_images_fpath)
-    capture_event_id_list = ut.get_list_column(images_csv_data, 0)
-    image_url_info_list = ut.get_list_column(images_csv_data, 1)
-    # Group photos by eventid
-    eventid_to_photos = ut.group_items(image_url_info_list, capture_event_id_list)
-
-    # Filter to only chosens
-    unflat_chosen_url_infos = ut.dict_take(eventid_to_photos, chosen_eventid_list)
-    chosen_url_infos = ut.flatten(unflat_chosen_url_infos)
-    image_url_info_list = chosen_url_infos
-    chosen_path_list = download_image_urls(chosen_url_infos)
-
-    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
-    gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)  # NOQA
-
-    # Attempt to automatically detect the annotations
-    #aids_list = ibs.detect_random_forest(gid_list_, species)
-    #aids_list
-
-    #if False:
-    #    # remove non-zebra photos
-    #    from os.path import basename
-    #    base_gname_list = list(map(basename, zebra_url_infos))
-    #    all_gname_list = ut.list_images(image_dir)
-    #    nonzebra_gname_list = ut.setdiff_ordered(all_gname_list, base_gname_list)
-    #    nonzebra_gpath_list = ut.fnames_to_fpaths(nonzebra_gname_list, image_dir)
-    #    ut.remove_fpaths(nonzebra_gpath_list)
-    return ibs
 
 
 def get_standard_ingestable(dbname):
@@ -577,6 +441,9 @@ class Ingestable(object):
                 self.dbname, extra_workdirs=[rawdir], allow_newdir=True)
         msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (self.dbname, self.img_dir)
         assert self.img_dir is not None, msg
+        #from os.path import isabs
+        #if not isabs(self.img_dir):
+        #    self.img_dir = join(dbdir, self.img_dir)
         assert exists(self.img_dir), msg
         if self.ingest_type == 'named_folders':
             assert self.fmtkey == 'name'
@@ -632,7 +499,6 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>> result = ('aid_list = %s' % (str(aid_list),))
         >>> print(result)
     """
-
     print('[ingest_rawdata] Ingestable' + str(ingestable))
 
     if ingestable.zipfile is not None:
@@ -648,26 +514,31 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
 
-    def extract_zipfile_images():
+    def extract_zipfile_images(ibs, ingestable):
+        import utool as ut  # NOQA
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
-        unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
-        for zipfile in zipfile_list:
-            ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-        gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+        if len(zipfile_list) > 0:
+            unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
+            for zipfile in zipfile_list:
+                ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
+            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+        else:
+            gpath_list = []
         return gpath_list
 
     def list_images(img_dir):
         """ lists images that are not in an internal cache """
+        import utool as ut  # NOQA
         ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
         gpath_list = ut.list_images(img_dir,
-                                       fullpath=True,
-                                       recursive=True,
-                                       ignore_list=ignore_list)
+                                    fullpath=True,
+                                    recursive=True,
+                                    ignore_list=ignore_list)
         return gpath_list
 
     gpath_list = []
     gpath_list += list_images(img_dir)
-    gpath_list += extract_zipfile_images()
+    gpath_list += extract_zipfile_images(ibs, ingestable)
     # Parse structure for image names
     if ingest_type == 'named_folders':
         name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
@@ -881,12 +752,165 @@ def ingest_oxford_style_db(dbdir):
     unote_list = ['distractor'] * len(ugid_list)
 
     # TODO Annotation consistency in terms of duplicate bounding boxes
-    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list, name_list=qname_list, notes_list=qnote_list)
-    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list, name_list=dname_list, notes_list=dnote_list)
+    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list,
+                               name_list=qname_list, notes_list=qnote_list)
+    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list,
+                               name_list=dname_list, notes_list=dnote_list)
     uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
     print('Added %d query annototations' % len(qaid_list))
     print('Added %d database annototations' % len(daid_list))
     print('Added %d distractor annototations' % len(uaid_list))
+
+
+def ingest_serengeti_mamal_cameratrap(species):
+    """
+    Downloads data from Serengeti dryad server
+
+    References:
+        http://datadryad.org/resource/doi:10.5061/dryad.5pt92
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. http://dx.doi.org/10.1038/sdata.2015.26
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.5pt92
+
+    Args:
+        species (?):
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
+        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> import ibeis
+        >>> species = ut.get_argval('--species', type_=str, default=ibeis.const.Species.ZEB_PLAIN)
+        >>> #species = ut.get_argval('--species', str, default=ibeis.const.Species.CHEETAH)
+        >>> result = ingest_serengeti_mamal_cameratrap(species)
+        >>> print(result)
+    """
+    'https://snapshotserengeti.s3.msi.umn.edu/'
+    import ibeis
+    from os.path import basename
+
+    if species is None:
+        code = 'ALL'
+    else:
+        code = ibeis.const.SPECIES_TEXT_TO_CODE[species]
+
+    if species == 'zebra_plains':
+        serengeti_sepcies = 'zebra'
+    else:
+        serengeti_sepcies = species
+
+    print('species = %r' % (species,))
+    print('serengeti_sepcies = %r' % (serengeti_sepcies,))
+
+    dbname = code + '_Serengeti'
+    print('dbname = %r' % (dbname,))
+    dbdir = ut.ensuredir(join(ibeis.sysres.get_workdir(), dbname))
+    print('dbdir = %r' % (dbdir,))
+    image_dir = ut.ensuredir(join(dbdir, 'images'))
+
+    base_url = 'http://datadryad.org/bitstream/handle/10255'
+    all_images_url         = base_url + '/dryad.86392/all_images.csv'
+    consensus_metadata_url = base_url + '/dryad.86348/consensus_data.csv'
+    search_effort_url      = base_url + '/dryad.86347/search_effort.csv'
+    gold_standard_url      = base_url + '/dryad.76010/gold_standard_data.csv'
+
+    all_images_fpath         = ut.grab_file_url(all_images_url, download_dir=dbdir)
+    consensus_metadata_fpath = ut.grab_file_url(consensus_metadata_url, download_dir=dbdir)
+    search_effort_fpath      = ut.grab_file_url(search_effort_url, download_dir=dbdir)
+    gold_standard_fpath      = ut.grab_file_url(gold_standard_url, download_dir=dbdir)
+
+    print('all_images_fpath         = %r' % (all_images_fpath,))
+    print('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
+    print('search_effort_fpath      = %r' % (search_effort_fpath,))
+    print('gold_standard_fpath      = %r' % (gold_standard_fpath,))
+
+    def read_csv(csv_fpath):
+        import utool as ut
+        csv_text = ut.read_from(csv_fpath)
+        csv_lines = csv_text.split('\n')
+        print(ut.list_str(csv_lines[0:2]))
+        csv_data = [[field.strip('"').strip('\r') for field in line.split(',')]
+                    for line in csv_lines if len(line) > 0]
+        csv_header = csv_data[0]
+        csv_data = csv_data[1:]
+        return csv_data, csv_header
+
+    def download_image_urls(image_url_info_list):
+        # Find ones that we already have
+        print('Requested %d downloaded images' % (len(image_url_info_list)))
+        full_gpath_list = [join(image_dir, basename(gpath)) for gpath in image_url_info_list]
+        exists_list = [ut.checkpath(gpath) for gpath in full_gpath_list]
+        image_url_info_list_ = ut.list_compress(image_url_info_list, ut.not_list(exists_list))
+        print('Already have %d/%d downloaded images' % (
+            len(image_url_info_list) - len(image_url_info_list_), len(image_url_info_list)))
+        print('Need to download %d images' % (len(image_url_info_list_)))
+        #import sys
+        #sys.exit(0)
+        # Download the rest
+        imgurl_prefix = 'https://snapshotserengeti.s3.msi.umn.edu/'
+        image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list_]
+        for img_url in ut.ProgressIter(image_url_list, lbl='Downloading Image'):
+            ut.grab_file_url(img_url, download_dir=image_dir)
+        return full_gpath_list
+
+    # Data contains information about which events have which animals
+    if False:
+        species_class_csv_data, species_class_header = read_csv(gold_standard_fpath)
+        species_class_eventid_list    = ut.get_list_column(species_class_csv_data, 0)
+        #gold_num_species_annots_list = ut.get_list_column(gold_standard_csv_data, 2)
+        species_class_species_list    = ut.get_list_column(species_class_csv_data, 2)
+        #gold_count_list              = ut.get_list_column(gold_standard_csv_data, 3)
+    else:
+        species_class_csv_data, species_class_header = read_csv(consensus_metadata_fpath)
+        species_class_eventid_list    = ut.get_list_column(species_class_csv_data, 0)
+        species_class_species_list    = ut.get_list_column(species_class_csv_data, 7)
+
+    # Find the zebra events
+    serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
+    print('serengeti_sepcies_hist = %s' %
+          ut.dict_str(ut.dict_hist(species_class_species_list), key_order_metric='val'))
+    #print('serengeti_sepcies_set = %s' % (ut.list_str(serengeti_sepcies_set),))
+
+    assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
+    species_class_chosen_idx_list = ut.list_where(
+        [serengeti_sepcies == species_ for species_ in species_class_species_list])
+    chosen_eventid_list = ut.list_take(species_class_eventid_list, species_class_chosen_idx_list)
+
+    print('Number of chosen species:')
+    print(' * len(species_class_chosen_idx_list) = %r' % (len(species_class_chosen_idx_list),))
+    print(' * len(chosen_eventid_list) = %r' % (len(chosen_eventid_list),))
+
+    # Read info about which events have which images
+    images_csv_data, image_csv_header = read_csv(all_images_fpath)
+    capture_event_id_list = ut.get_list_column(images_csv_data, 0)
+    image_url_info_list = ut.get_list_column(images_csv_data, 1)
+    # Group photos by eventid
+    eventid_to_photos = ut.group_items(image_url_info_list, capture_event_id_list)
+
+    # Filter to only chosens
+    unflat_chosen_url_infos = ut.dict_take(eventid_to_photos, chosen_eventid_list)
+    chosen_url_infos = ut.flatten(unflat_chosen_url_infos)
+    image_url_info_list = chosen_url_infos
+    chosen_path_list = download_image_urls(chosen_url_infos)
+
+    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    gid_list_ = ibs.add_images(chosen_path_list, auto_localize=False)  # NOQA
+
+    # Attempt to automatically detect the annotations
+    #aids_list = ibs.detect_random_forest(gid_list_, species)
+    #aids_list
+
+    #if False:
+    #    # remove non-zebra photos
+    #    from os.path import basename
+    #    base_gname_list = list(map(basename, zebra_url_infos))
+    #    all_gname_list = ut.list_images(image_dir)
+    #    nonzebra_gname_list = ut.setdiff_ordered(all_gname_list, base_gname_list)
+    #    nonzebra_gpath_list = ut.fnames_to_fpaths(nonzebra_gname_list, image_dir)
+    #    ut.remove_fpaths(nonzebra_gpath_list)
+    return ibs
 
 
 def injest_main():
@@ -921,7 +945,7 @@ if __name__ == '__main__':
     """
     CommandLine:
         python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose
-        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict
+        python ibeis/dbio/ingest_database.py --db testdb1 --serial --verbose --very-verbose --super-strict --superstrict  # NOQA
 
 
         python ibeis/dbio/ingest_database.py --db JAG_Kieryn --force-delete

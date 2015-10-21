@@ -100,7 +100,7 @@ def postload_commands(ibs, back):
     if params.args.dump_schema:
         ibs.db.print_schema()
 
-    select_eid = ut.get_argval(('--select-eid', '--eid',), int, None)
+    select_eid = ut.get_argval(('--select-eid', '--eid',), None)
     if select_eid is not None:
         print('\n+ --- CMD SELECT EID=%r ---' % (select_eid,))
         # Whoa: this doesnt work. weird.
@@ -126,7 +126,8 @@ def postload_commands(ibs, back):
     select_name = ut.get_argval('--select-name')
     if select_name is not None:
         import ibeis.gui.guiheaders as gh
-        back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name)
+        back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name,
+                                                    allow_table_change=True)
 
     if params.args.query_aid is not None:
         import ibeis.constants as const

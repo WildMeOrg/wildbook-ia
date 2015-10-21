@@ -20,8 +20,10 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
     Notes (rsync commandline options):
         rsync [OPTION]... SRC [SRC]... DEST
         -v : verbose
-        -r : copies data recursively (but dont preserve timestamps and permission while transferring data
-        -a : archive mode, allows recursive copying and preserves symlinks, permissions, user and group ownerships, and timestamps
+        -r : copies data recursively (but dont preserve timestamps and
+                permission while transferring data
+        -a : archive mode, allows recursive copying and preserves symlinks,
+                permissions, user and group ownerships, and timestamps
         -z : compress file data
         -i, --itemize-changes       output a change-summary for all updates
         -s, --protect-args :        no space-splitting; only wildcard special-chars
@@ -109,6 +111,7 @@ def rsync_ibsdb_main():
         'hyrule': '@hyrule.cs.rpi.edu:/raid/work',
         'pachy': '@pachy.cs.uic.edu:/home/shared_ibeis/data/work',
         'lewa': '@41.203.223.178:/data/ibeis',
+        'lev': '@lev.cs.rpi.edu:/media/hdd/work',
     }
     remote = remote_map.get(remote_key, remote_key)
     remote_uri = user + remote
@@ -141,6 +144,8 @@ if __name__ == '__main__':
         python -m ibeis.scripts.rsync_ibeisdb push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
 
         python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
+
+        python -m ibeis.scripts.rsync_ibeisdb push --db PZ_Master1 --user joncrall --remote lev --dryrun
 
 
         stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo

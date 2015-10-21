@@ -2,16 +2,29 @@
 from __future__ import absolute_import, division, print_function
 import getopt
 import sys
-import urllib
 from xml.dom.minidom import parseString
-from os.path import split, splitext, join, exists
+from os.path import split, splitext, join, exists, dirname
 import utool as ut
+
+
+def shark_misc():
+    import ibeis
+    ibs = ibeis.opendb('WS_ALL')
+    aid_list = ibs.get_valid_aids()
+    flag_list = ibs.get_annot_been_adjusted(aid_list)
+    adjusted_aids = ut.list_compress(aid_list, flag_list)
+    return adjusted_aids
 
 
 def download_sharks(XMLdata, number):
     """
     cd ~/work/WS_ALL
     python -m ibeis.scripts.getshark
+
+    >>> from ibeis.scripts.getshark import *  # NOQA
+    >>> url = 'www.whaleshark.org/listImages.jsp'
+    >>> XMLdata = ut.url_read(url)
+    >>> number = None
     """
     # Prepare the output directory for writing, if it doesn't exist
     output_dir = 'sharkimages'
@@ -25,10 +38,13 @@ def download_sharks(XMLdata, number):
     else:
         maxCount = len(dom.getElementsByTagName('img'))
 
-    img_url_list    = []
-    localid_list    = []
-    orig_fname_list = []
-    new_fname_list  = []
+    parsed_info = dict(
+        img_url_list=[],
+        localid_list=[],
+        nameid_list=[],
+        orig_fname_list=[],
+        new_fname_list=[],
+    )
 
     print('Preparing to fetch %i files...' % maxCount)
 
@@ -43,48 +59,87 @@ def download_sharks(XMLdata, number):
                 ext = splitext(orig_fname)[1].lower()
                 nameid = shark.getAttribute('number')
 
-                img_url_list.append(img_url)
-
                 new_fname = '%s-%i%s' % (
                     nameid, localCount, ext)
-                localid_list.append(localCount)
-                orig_fname_list.append(orig_fname)
-                new_fname_list.append(new_fname)
 
-                print('Parsed %i / %i files.' % (len(orig_fname_list), maxCount))
+                parsed_info['img_url_list'].append(img_url)
+                parsed_info['nameid_list'].append(nameid)
+                parsed_info['localid_list'].append(localCount)
+                parsed_info['orig_fname_list'].append(orig_fname)
+                parsed_info['new_fname_list'].append(new_fname)
 
-                if number is not None and len(orig_fname_list) == number:
+                print('Parsed %i / %i files.' % (len(parsed_info['orig_fname_list']), maxCount))
+
+                if number is not None and len(parsed_info['orig_fname_list']) == number:
                     break
+    parsed_info['new_fpath_list'] = [join(output_dir, _fname)
+                                     for _fname in parsed_info['new_fname_list']]
 
+    print('Filtering parsed images')
+
+    # Filter based on image type (keep only jpgs)
+    ext_flags = [_fname.endswith('.jpg') or _fname.endswith('.jpg')
+                  for _fname in parsed_info['new_fname_list']]
+    parsed_info = {key: ut.list_compress(list_, ext_flags) for key, list_ in parsed_info.items()}
+
+    # Filter to only images matching the appropriate tags
     from ibeis import tag_funcs
-
-    print('Filtering to probably left side good quality images')
-
-    known_img_tag_list = parse_shark_tags(orig_fname_list)
-    flag_list = tag_funcs.filterflags_general_tags(
-        known_img_tag_list,
+    parsed_info['tags_list'] = parse_shark_tags(parsed_info['orig_fname_list'])
+    tag_flags = tag_funcs.filterflags_general_tags(
+        parsed_info['tags_list'],
         has_any=['view-left'],
         none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
     )
+    parsed_info = {key: ut.list_compress(list_, tag_flags) for key, list_ in parsed_info.items()}
+    print('Tags in chosen images:')
+    print(ut.dict_hist(ut.flatten(parsed_info['tags_list'] )))
 
-    subset_tag_list = ut.list_compress(known_img_tag_list, flag_list)
-    print(ut.dict_hist(ut.flatten(subset_tag_list)))
-
-    img_url_list    = ut.list_compress(img_url_list, flag_list)
-    localid_list    = ut.list_compress(localid_list, flag_list)
-    orig_fname_list = ut.list_compress(orig_fname_list, flag_list)
-    new_fname_list  = ut.list_compress(new_fname_list, flag_list)
-
-    _iter = list(zip(img_url_list, new_fname_list))
+    # Download selected subset
+    print('Downloading selected subset')
+    _iter = list(zip(parsed_info['img_url_list'],
+                     parsed_info['new_fpath_list']))
     _iter = ut.ProgressIter(_iter, lbl='downloading sharks')
-    for img_url, new_fname in _iter:
-        new_fpath = join(output_dir, new_fname)
+    for img_url, new_fpath in _iter:
         if not exists(new_fpath):
             ut.download_url(img_url, new_fpath)
-        #with open(new_fpath, 'wb') as localFile:
-        #    webFile = urllib.urlopen(img_url)
-        #    localFile.write(webFile.read())
-        #    webFile.close()
+
+    # Remove corrupted or ill-formatted images
+    print('Checking for corrupted images')
+    import vtool as vt
+    noncorrupt_flags = vt.filterflags_valid_images(parsed_info['new_fpath_list'])
+    parsed_info = {
+        key: ut.list_compress(list_, noncorrupt_flags)
+        for key, list_ in parsed_info.items()
+    }
+
+    print('Removing small images')
+    import numpy as np
+    imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed_info['new_fpath_list']])
+    sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
+    areq_flags_list = sqrt_area_list >= 750
+    parsed_info = {key: ut.list_compress(list_, areq_flags_list)
+                   for key, list_ in parsed_info.items()}
+
+    grouped_idxs = ut.group_items(list(range(len(parsed_info['nameid_list']))),
+                                  parsed_info['nameid_list'])
+    keep_idxs = sorted(ut.flatten([idxs for key, idxs in grouped_idxs.items() if len(idxs) >= 2]))
+    parsed_info = {key: ut.list_take(list_, keep_idxs) for key, list_ in parsed_info.items()}
+
+    print('Moving imagse to secondary directory')
+    named_outputdir = 'named-left-sharkimages'
+    # Build names
+    parsed_info['namedir_fpath_list'] = [
+        join(named_outputdir, _nameid, _fname)
+        for _fname, _nameid in zip(parsed_info['new_fname_list'],
+                                   parsed_info['nameid_list'])]
+    # Create directories
+    ut.ensuredir(named_outputdir)
+    named_dirs = ut.unique_keep_order2(list(map(dirname, parsed_info['namedir_fpath_list'])))
+    for dir_ in named_dirs:
+        ut.ensuredir(dir_)
+    # Copy
+    ut.copy_files_to(src_fpath_list=parsed_info['new_fpath_list'],
+                     dst_fpath_list=parsed_info['namedir_fpath_list'])
 
 
 def parse_shark_tags(orig_fname_list):
@@ -267,17 +322,7 @@ def main():
     if filename:
         XMLdata = ut.readfrom(filename)
     else:
-        if url.find('://') == -1:
-            url = 'http://' + url
-        print('Read from url %r' % (url,))
-        try:
-            file_ = urllib.urlopen(url)
-        except IOError:
-            print('An invalid URL was encountered.')
-            raise
-        XMLdata = file_.read()
-        file_.close()
-
+        XMLdata = ut.url_read(url)
         #with open('XMLData.xml', 'w') as file_:
         #    file_.write(XMLdata)
     print('Downloading')
