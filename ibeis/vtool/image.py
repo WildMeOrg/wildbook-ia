@@ -1806,6 +1806,62 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
 # /STACK IMAGES STUFF
 
 
+def filterflags_valid_images(gpath_list, valid_formats=None,
+                             invalid_formats=None, verbose=True):
+    from PIL import Image
+    from os.path import splitext
+    import operator
+    import itertools
+    img_format_alias_dict = {
+        'JPG': 'JPEG',
+        'TIF': 'TIFF',
+    }
+    def get_image_format_from_extension(gpath):
+        gname, ext = splitext(gpath)
+        ext_format = ext[1:].upper()
+        ext_format = img_format_alias_dict.get(ext_format, ext_format)
+        return ext_format
+
+    def get_image_format_from_pil(gpath):
+        try:
+            return Image.open(gpath).format
+        except IOError:
+            return None
+
+    def check_image_format(gpath, verbose=True):
+        pil_foramt = get_image_format_from_pil(gpath)
+        ext_format = get_image_format_from_extension(gpath)
+        if verbose:
+            if ext_format != pil_foramt:
+                msg = ('gpath has %r extension but is encoded as %r' % (ext_format, pil_foramt))
+                print(msg)
+        return ext_format != pil_foramt
+
+    pil_foramt_list = list(map(get_image_format_from_pil, gpath_list))
+    ext_format_list = list(map(get_image_format_from_extension, gpath_list))
+    isvalid_list = list(itertools.starmap(operator.eq,
+                                          zip(ext_format_list, pil_foramt_list)))
+    if valid_formats is not None:
+        isvalid_list = ut.and_lists(
+            isvalid_list,
+            [format_ in valid_formats for format_ in ext_format_list],
+            [format_ in valid_formats for format_ in pil_foramt_list],
+        )
+    if invalid_formats is not None:
+        isvalid_list = ut.and_lists(
+            isvalid_list,
+            [format_ not in invalid_formats for format_ in ext_format_list],
+            [format_ not in invalid_formats for format_ in pil_foramt_list],
+        )
+    if verbose:
+        fmt_list  = list(zip(ext_format_list, pil_foramt_list))
+        invalid_format_list = ut.list_compress(fmt_list, ut.not_list(isvalid_list))
+        invalid_format_hist = ut.dict_hist(invalid_format_list)
+        print('The following (ext,pil): count formats were marked as invalid')
+        print(ut.dict_str(invalid_format_hist))
+    return isvalid_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

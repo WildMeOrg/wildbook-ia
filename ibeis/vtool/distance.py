@@ -355,7 +355,8 @@ def understanding_pseudomax_props(mode=2):
     assert np.all(dist_sqrd_256 / const_sqrd == dist_sqrd_01)
     print('Conversions work')
 
-    print('Maximal L2 distance between any two NON-NEGATIVE L2-NORMALIZED vectors should always be sqrt(2)')
+    print('Maximal L2 distance between any two NON-NEGATIVE L2-NORMALIZED'
+          ' vectors should always be sqrt(2)')
 
 
 def L2(hist1, hist2):
@@ -531,6 +532,10 @@ def cos_sift(hist1, hist2):
     #import utool as ut
     #ut.embed()
     return (sift1 * sift2).sum(-1)
+
+
+def cosine_dist(hist1, hist2):
+    return (hist1 * hist2).sum(-1)
 
 
 def _assert_siftvec(sift):
