@@ -182,8 +182,8 @@ class MultiImageInteraction(BASE_CLASS):
         self.make_hud()
         self.draw()
 
-    def draw(self):
-        self.fig.canvas.draw()
+    #def draw(self):
+    #    self.fig.canvas.draw()
 
     def plot_image(self, index):
         px = index - self.start_index

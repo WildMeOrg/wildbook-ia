@@ -40,6 +40,8 @@ def unregister_interaction(self):
 class AbstractInteraction(object):
     """
     An interaction is meant to take up an entire figure
+
+    overwrite either self.plot(fnum, pnum) or self.staic_plot(fnum, pnum) or show_page
     """
     def __init__(self, **kwargs):
         self.fnum = kwargs.get('fnum', None)
@@ -186,3 +188,56 @@ class AbstractInteraction(object):
         qpoint = guitool.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
         guitool.popup_menu(qwin, qpoint, options)
+
+
+class AbstractPagedInteraction(AbstractInteraction):
+
+    def __init__(self, nPages=None, **kwargs):
+        self.current_pagenum = 0
+        assert nPages is not None
+        self.nPages = nPages
+        super(AbstractPagedInteraction, self).__init__(**kwargs)
+
+    def next_page(self, event):
+        print('next')
+        self.show_page(self.current_pagenum + 1)
+        pass
+
+    def prev_page(self, event):
+        print('prev')
+        self.show_page(self.current_pagenum - 1)
+        pass
+
+    def make_hud(self):
+        """ Creates heads up display """
+        # Button positioning
+        import plottool as pt
+        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=.08, h=.04,
+                                                    xpad=.05, startx=0,
+                                                    stopx=1)
+        prev_rect = hl_slot(0)
+        next_rect = hr_slot(0)
+
+        # Create buttons
+        if self.current_pagenum != 0:
+            self.append_button('prev', callback=self.prev_page, rect=prev_rect)
+        if self.current_pagenum != self.nPages - 1:
+            self.append_button('next', callback=self.next_page, rect=next_rect)
+
+    def prepare_page(self, fulldraw=True):
+        import plottool as pt
+        ih.disconnect_callback(self.fig, 'button_press_event')
+        ih.disconnect_callback(self.fig, 'button_release_event')
+        ih.disconnect_callback(self.fig, 'key_press_event')
+        ih.disconnect_callback(self.fig, 'motion_notify_event')
+
+        figkw = {'fnum': self.fnum,
+                 'doclf': fulldraw,
+                 'docla': fulldraw, }
+        if fulldraw:
+            self.fig = pt.figure(**figkw)
+        self.make_hud()
+        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
+        ih.connect_callback(self.fig, 'button_release_event', self.on_click_release)
+        ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
+        ih.connect_callback(self.fig, 'motion_notify_event', self.on_motion)
