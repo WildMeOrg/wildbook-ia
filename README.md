@@ -1,6 +1,11 @@
 # IBEIS - Image Analysis
 ## I.B.E.I.S. = Image Based Ecological Information System
 
+![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
+```bash
+python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+```
+
 =====
 
 ## Self Installing Executabes:
@@ -38,25 +43,18 @@ A quick visual demo that demonstrates a match.
 These tests can be run with the following commandline after downloading the
 PZ_MTEST dataset using the ./reset_dbs.py script.
 
-# Name Scoring
-```bash
-python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
-```
-![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
-
-
 # Match Ranking 
+![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 ```bash
 python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
 ```
-![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 
 
 # Spatial Verification
+![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 ```bash
 python -m vtool.spatial_verification --test-spatially_verify_kpts
 ```
-![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 
 
 # Internal Modules
