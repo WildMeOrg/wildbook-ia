@@ -25,30 +25,37 @@ description, LNBNN identification using approximate nearest neighbors.
 Algorithms in development are SMK (selective match kernel) for identifiaction
 and deep neural networks for detection and localization. 
 
-The core of IBEIS is the IBEISController class. It provides an API into IBEIS data management and algorithms. The IBEIS API Documentation can be found here:
+The core of IBEIS is the IBEISController class. It provides an API into IBEIS
+data management and algorithms. The IBEIS API Documentation can be found here:
  http://erotemic.github.io/ibeis
 
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
 
-#---------------
 # Visual Demo
-#---------------
-These tests require downloading the PZ_MTEST dataset using the ./reset_dbs.py script
+A quick visual demo that demonstrates a match. 
+These tests can be run with the following commandline after downloading the
+PZ_MTEST dataset using the ./reset_dbs.py script.
 
 # Name Scoring
+```bash
 python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+```
 ![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
 
 
 # Match Ranking 
+```bash
 python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+```
 ![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 
 
 # Spatial Verification
+```bash
 python -m vtool.spatial_verification --test-spatially_verify_kpts
+```
 ![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 
 
