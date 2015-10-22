@@ -1,10 +1,11 @@
 # IBEIS - Image Analysis
-## I.B.E.I.S. = Image Based Ecological Information System
 
 ![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
 ```bash
 python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
 ```
+
+## I.B.E.I.S. = Image Based Ecological Information System
 
 =====
 
