@@ -735,7 +735,7 @@ def estimate_refined_transform(kpts1, kpts2, fm, aff_inliers, refine_method='hom
     #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_LMEDS)[0]
     #    H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_8POINT)[0]
     else:
-        raise NotImplementedError('Unknown refine_method=%r' % (refine_method,))
+        raise NotImplementedError('[vtool] Unknown refine_method=%r' % (refine_method,))
 
     #H_prime /= H_prime[2, 2]
     # Different methods?
@@ -1143,8 +1143,6 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
-    else:
-        print('Unknown refine_method=%r' % (refine_method,))
     if VERBOSE_SVER:
         print('[sver] Succesfully finished spatial verification.')
     if returnAff:

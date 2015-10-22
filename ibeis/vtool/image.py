@@ -427,6 +427,7 @@ def crop_out_imgfill(img, fillval=None, thresh=0):
     if fillval is None:
         fillval = np.array([255] * get_num_channels(img))
     # for colored images
+    #with ut.embed_on_exception_context:
     isfill = get_pixel_dist(img, fillval) <= thresh
     rowslice, colslice = vt.get_crop_slices(isfill)
     cropped_img = img[rowslice, colslice]
@@ -1016,8 +1017,11 @@ def find_pixel_value_index(img, pixel):
 
 
 def get_pixel_dist(img, pixel):
-    if not isinstance(pixel, np.ndarray) and not isinstance(pixel, (list, tuple)):
-        pixel = np.array([pixel])
+    if not isinstance(pixel, np.ndarray):
+        if not isinstance(pixel, (list, tuple)):
+            pixel = np.array(pixel)
+        else:
+            pixel = np.array([pixel])
     mask2d = np.abs(img - pixel[None, None, :])
     if len(img.shape) > 2:
         mask2d = np.sum(mask2d, axis=2)

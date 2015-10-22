@@ -303,7 +303,7 @@ class ScoreNormalizer(object):
         values = encoder.score_domain
         mean = np.average(values, weights=weights)
         std = np.sqrt(np.average((values - mean) ** 2, weights=weights))
-        score_cutoff = mean + (2 * std)
+        score_cutoff = mean + (2.5 * std)
         cutx = np.sum(encoder.score_domain < score_cutoff)
 
         xdata = encoder.score_domain[:cutx]
@@ -315,7 +315,15 @@ class ScoreNormalizer(object):
         curve = curve - curve.min()
         import vtool as vt
         maxpos = np.array([curve.argmax()])
-        x_submax, y_submax = vt.interpolate_submaxima(maxpos, curve, xdata)
+
+        if maxpos == len(curve) - 1:
+            y_submax = curve[-2:-1]
+            x_submax = xdata[-2:-1]
+        elif maxpos == 0:
+            y_submax = curve[0:1]
+            x_submax = xdata[0:1]
+        else:
+            x_submax, y_submax = vt.interpolate_submaxima(maxpos, curve, xdata)
         #x_submax = curve[maxpos[0]]
         score_thresh = x_submax[0]
         # Find intersection point

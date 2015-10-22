@@ -39,8 +39,10 @@ def show_ori_image_ondisk():
     #    img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
     #    img_fpath = ut.get_argval('--fpath', type_=str, default=ut.grab_test_imgpath('star.png'))
     #    img = vt.imread(img_fpath)
-    #    ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default=ut.augpath(img_fpath, '_ori'))
-    #    weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default=ut.augpath(img_fpath, '_mag'))
+    #    ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str,
+    #    default=ut.augpath(img_fpath, '_ori'))
+    #    weights_img_fpath = ut.get_argval('--fpath-weight', type_=str,
+    #    default=ut.augpath(img_fpath, '_mag'))
     #    vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
     #    vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
     import vtool as vt
@@ -96,7 +98,10 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     legend = pt.make_ori_legend_img()
     #gorimag_, woff, hoff = vt.stack_images(bgr_ori, legend, vert=False, modifysize=True)
     import vtool as vt
-    gorimag_, offsets, sftup = vt.stack_images(bgr_ori, legend, vert=False, modifysize=True, return_offset=True, return_sf=True)
+    gorimag_, offsets, sftup = vt.stack_images(bgr_ori, legend, vert=False,
+                                               modifysize=True,
+                                               return_offset=True,
+                                               return_sf=True)
     (woff, hoff) = offsets[1]
     if patch is None:
         pt.imshow(gorimag_, fnum=fnum)
@@ -519,7 +524,8 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=.8):
 
     """
     # FIXME: Not handling general cases
-    argmaxima_ = scipy.signal.argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
+    # [0] index because argrelmaxima returns a tuple
+    argmaxima_ = scipy.signal.argrelextrema(hist, np.greater)[0]
     if len(argmaxima_) == 0:
         argmaxima_ = hist.argmax()  # Hack for no maxima
     # threshold maxima to be within a factor of the maximum
@@ -544,6 +550,9 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
     r"""
     CommandLine:
         python -m vtool.histogram --test-interpolate_submaxima --show
+
+    FIXME:
+        what happens when argmaxima[i] == len(hist)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -571,6 +580,8 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
         %timeit readable_interpolate_submaxima(argmaxima, hist, centers)
 
     """
+    #if np.any(argmaxima == 0 + argmaxima == (len(hist) - 1)):
+    #    pass
     # ~~~TODO Use np.polyfit here instead for readability
     # This turns out to just be faster. Other function is written under
     x123, y123 = maxima_neighbors(argmaxima, hist, centers)

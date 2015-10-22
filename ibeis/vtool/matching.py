@@ -38,15 +38,6 @@ def show_matching_dict(matches, metadata, **kwargs):
     #MatchInteraction2
 
 
-def get_meta(metadata, key):
-    """ lazy evaluation of metadata """
-    value = metadata[key]
-    if ut.is_funclike(value):
-        value = value()
-        metadata[key] = value
-    return value
-
-
 def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_=None):
     r"""
     Args:
@@ -100,20 +91,20 @@ def vsone_matching(metadata, cfgdict={}):
         def eval_rchip1():
             rchip_fpath1 = metadata['rchip_fpath1']
             return vt.imread(rchip_fpath1)
-        metadata['rchip1'] = eval_rchip1
+        metadata.set_lazy_func('rchip1', eval_rchip1)
 
     if 'rchip2' not in metadata:
         def eval_rchip2():
             rchip_fpath2 = metadata['rchip_fpath2']
             return vt.imread(rchip_fpath2)
-        metadata['rchip2'] = eval_rchip2
+        metadata.set_lazy_func('rchip2', eval_rchip2)
 
     if 'dlen_sqrd2' not in metadata:
         def eval_dlen_sqrd2():
             rchip2 = metadata['rchip2']
             dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
             return dlen_sqrd2
-        metadata['dlen_sqrd2'] = eval_dlen_sqrd2
+        metadata.set_lazy_func('dlen_sqrd2', eval_dlen_sqrd2)
 
     if 'kpts1' not in metadata or 'vecs1' not in metadata:
         def eval_feats1():
@@ -130,9 +121,9 @@ def vsone_matching(metadata, cfgdict={}):
             _feats1 = metadata['_feats1']
             vecs1 = _feats1[1]
             return vecs1
-        metadata['_feats1'] = eval_feats1
-        metadata['kpts1'] = eval_kpts1
-        metadata['vecs1'] = eval_vecs1
+        metadata.set_lazy_func('_feats1', eval_feats1)
+        metadata.set_lazy_func('kpts1', eval_kpts1)
+        metadata.set_lazy_func('vecs1', eval_vecs1)
 
     if 'kpts2' not in metadata or 'vecs2' not in metadata:
         def eval_feats2():
@@ -149,9 +140,9 @@ def vsone_matching(metadata, cfgdict={}):
             _feats2 = metadata['_feats2']
             vecs2 = _feats2[1]
             return vecs2
-        metadata['_feats2'] = eval_feats2
-        metadata['kpts2'] = eval_kpts2
-        metadata['vecs2'] = eval_vecs2
+        metadata.set_lazy_func('_feats2', eval_feats2)
+        metadata.set_lazy_func('kpts2', eval_kpts2)
+        metadata.set_lazy_func('vecs2', eval_vecs2)
 
     # Exceute relevant dependencies
     kpts1 = metadata['kpts1']

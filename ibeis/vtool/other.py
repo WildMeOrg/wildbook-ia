@@ -314,6 +314,19 @@ def argsort_multiarray(arrays, reverse=False):
     return sortx
 
 
+def unique_rows(arr, directed=True):
+    """
+    Order or columns does not matter if directed = False
+    """
+    if directed:
+        idx_list = compute_unique_data_ids(arr)
+    else:
+        idx_list = get_undirected_edge_ids(arr)
+    _, unique_rowx = np.unique(idx_list, return_index=True)
+    unique_arr = arr.take(unique_rowx, axis=0)
+    return unique_arr
+
+
 def unique_row_indexes(arr):
     """ np.unique on rows
 
