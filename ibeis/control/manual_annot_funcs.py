@@ -14,6 +14,7 @@ from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
+from collections import namedtuple
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_annot]')
 
 
@@ -47,8 +48,6 @@ ANNOT_QUALITY            = 'annot_quality'
 ANNOT_ROWIDS             = 'annot_rowids'
 GAR_ROWID                = 'gar_rowid'
 
-
-from collections import namedtuple
 SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts',
                                                  'theta', 'yaw', 'name',
                                                  'species'))
@@ -1508,6 +1507,17 @@ def get_annot_yaws(ibs, aid_list):
     #from ibeis.model.preproc import preproc_annot
     yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
     yaw_list = [yaw if yaw >= 0.0 else None for yaw in yaw_list]
+    return yaw_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_yaws_asfloat(ibs, aid_list):
+    r"""
+    Ensures that Nones are returned as nans
+    """
+    yaw_list = ibs.get_annot_yaws(aid_list)
+    yaw_list = np.array(ut.replace_nones(yaw_list, np.nan))
     return yaw_list
 
 

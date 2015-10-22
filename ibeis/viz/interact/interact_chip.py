@@ -212,8 +212,8 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     callback_list += [
         #('Set Quality: ' + key, set_quality_func(key))
         ('Set &Quality: ',  [
-            ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '')
-             + '&' + key,
+            ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '') +
+             '&' + key,
              set_quality_func(key))
             for count, key in
             enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
@@ -261,9 +261,11 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
          toggle_exemplar_func),
     ]
 
-    print('Annotation Info = ' + ut.obj_str(
-        ibs.get_annot_info(aid, default=True, gname=False, name=False,
-                           notes=False, exemplar=False), nl=4))
+    annot_info = ibs.get_annot_info(
+        aid, default=True, gname=False, name=False, notes=False,
+        exemplar=False)
+
+    print('[interact_chip] Annotation Info = ' + ut.obj_str(annot_info, nl=4))
     return callback_list
 
 

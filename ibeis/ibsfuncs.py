@@ -5066,11 +5066,11 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         gt_grouped_aids1 = [[10, 11], [17, 18], [22, 23]]
         gt_grouped_aids2 = [[12, 13, 14, 15], [19, 20, 21], [24, 25, 26]]
         gf_grouped_aids1 = [[2], [5, 6]]
-        gf_gropued_aids2 = [[32, 29, 30, 31], [49]]
+        gf_gropued_aids2 = [[29, 30, 31, 32], [49]]
     """
     #ibs.
-    #import ibeis.control.IBEISControl.IBEISController
-    #ibs = ibeis.control.IBEISControl.IBEISController()
+    import ibeis.control.IBEISControl
+    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
     #ibs
     #ibs.get_ann
 
@@ -5080,7 +5080,7 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     # Get the group of available aids that a reference aid could match
     gropued_aids2 = ibs.get_annot_groundtruth(
         ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2,
-        include_self=True)
+        noself=False)
 
     # Flag if there is a correspondence
     flag_list = [x > 0 for x in map(len, gropued_aids2)]
@@ -5093,7 +5093,13 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     gf_grouped_aids1 = ut.list_compress(grouped_aids1, ut.not_list(flag_list))
     #gf_aids1 = ut.flatten(gf_grouped_aids1)
     gf_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
-    gf_grouped_aids2 = [aids.tolist() for aids in ibs.group_annots_by_name(gf_aids2)[0]]
+    gf_grouped_aids2 = [aids.tolist() for aids in
+                        ibs.group_annots_by_name(gf_aids2)[0]]
+
+    gt_grouped_aids1 = list(map(sorted, gt_grouped_aids1))
+    gt_grouped_aids2 = list(map(sorted, gt_grouped_aids2))
+    gf_grouped_aids1 = list(map(sorted, gf_grouped_aids1))
+    gf_grouped_aids2 = list(map(sorted, gf_grouped_aids2))
 
     return gt_grouped_aids1, gt_grouped_aids2, gf_grouped_aids1, gf_grouped_aids2
 
@@ -5479,31 +5485,41 @@ def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
     print(label + ut.dict_str(aid_stats_dict, strvals=True))
 
 
-# Compares properties of query vs database annotations
-def compare_correct_match_properties(ibs, grouped_qaids,
-                                     grouped_groundtruth_list, getter_func,
-                                     cmp_func):
+@register_ibs_method
+def compare_nested_props(ibs, aids1_list,
+                         aids2_list, getter_func,
+                         cmp_func):
     """
+    Compares properties of query vs database annotations
+
+    grouped_qaids = aids1_list
+    grouped_groundtruth_list = aids2_list
+
     getter_func = ibs.get_annot_yaws
     cmp_func = vt.ori_distance
 
     getter_func = ibs.get_annot_image_unixtimes_asfloat
     cmp_func = ut.unixtime_hourdiff
+
+    ExpandNestedComparisions:
+        import itertools
+        list(map(list, itertools.starmap(ut.iprod, zip(aids1_list, aids2_list))))
     """
     def replace_none_with_nan(x):
         import utool as ut
         return np.array(ut.replace_nones(x, np.nan))
 
-    query_props = ibs.unflat_map(getter_func, grouped_qaids)
-    query_props = ibs.unflat_map(replace_none_with_nan, query_props)
+    props1_list = ibs.unflat_map(getter_func, aids1_list)
+    props1_list = ibs.unflat_map(replace_none_with_nan, props1_list)
 
-    match_props = ibs.unflat_map(getter_func, grouped_groundtruth_list)
-    match_props = ibs.unflat_map(replace_none_with_nan, match_props)
+    props2_list = ibs.unflat_map(getter_func, aids2_list)
+    props2_list = ibs.unflat_map(replace_none_with_nan, props2_list)
     # Compare the query yaws to the yaws of its correct matches in the database
-    gt_propdists_list = [
+    propdist_list = [
         cmp_func(np.array(qprops), np.array(gt_props)[:, None])
-        for qprops, gt_props in zip(query_props, match_props)]
-    return gt_propdists_list
+        for qprops, gt_props in zip(props1_list, props2_list)
+    ]
+    return propdist_list
 
 
 def viewpoint_diff(ori1, ori2):
@@ -5585,15 +5601,15 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
 
         # Compare the query yaws to the yaws of its correct matches in the database
         # For each name there will be nQaids:nid x nDaids:nid comparisons
-        gt_viewdist_list = compare_correct_match_properties(
+        gt_viewdist_list = compare_nested_props(
             ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_yaws, viewpoint_diff)
 
         # Compare the query qualities to the qualities of its correct matches in the database
-        gt_qualdists_list = compare_correct_match_properties(
+        gt_qualdists_list = compare_nested_props(
             ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_qualities, ut.absdiff)
 
         # Compare timedelta differences
-        gt_hourdelta_list = compare_correct_match_properties(
+        gt_hourdelta_list = compare_nested_props(
             ibs, grouped_qaids, grouped_groundtruth_list,
             ibs.get_annot_image_unixtimes_asfloat, ut.unixtime_hourdiff)
 

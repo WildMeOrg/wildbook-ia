@@ -25,8 +25,7 @@ import utool
 #from ibeis import constants as const
 import utool as ut
 from ibeis.gui import guiexcept
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[inspect_gui]')
+(print, rrr, profile) = utool.inject2(__name__, '[inspect_gui]')
 
 
 MATCHED_STATUS_TEXT  = 'Matched'
@@ -162,7 +161,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
             ('Inspect Match Candidates',
              lambda: review_match(
                  ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
-            ('Inferact Name Graph',
+            ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2))
         ]
@@ -316,7 +315,7 @@ class QueryResultsWidget(APIItemWidget):
                                    qreq_=qreq_, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
-            callback = lambda: None
+            callback = partial(ut.identity, None)
         qres_wgt.callback = callback
         qres_wgt.view.setColumnHidden(0, False)
         qres_wgt.view.setColumnHidden(1, False)
@@ -1119,7 +1118,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
             pass
 
     sortby = 'score'
-    get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
+
+    def get_thumb_size():
+        return ibs.cfg.other_cfg.thumb_size
+
     # Insert info into dict
     qres_api = guitool.CustomAPI(col_name_list, col_types_dict,
                                  col_getter_dict, col_bgrole_dict,

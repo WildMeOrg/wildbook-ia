@@ -8,11 +8,10 @@ import utool as ut
 import numpy as np
 import functools
 import six
+from ibeis.control import controller_inject
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[main_helpers]')
 
-
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
-
 
 # TODO: Make these configurable
 SEED1 = 0
@@ -24,8 +23,6 @@ if ut.is_developer():
 else:
     USE_ACFG_CACHE = False
 
-
-from ibeis.control import controller_inject
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
@@ -673,6 +670,14 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     if aidcfg.get('been_adjusted', None):
         flag_list = ibs.get_annot_been_adjusted(avail_aids)
         with VerbosityContext('been_adjusted'):
+            avail_aids = ut.list_compress(avail_aids, flag_list)
+
+    if aidcfg.get('contrib_contains', None):
+        contrib_contains = aidcfg['contrib_contains']
+        gid_list = ibs.get_annot_gids(avail_aids)
+        tag_list = ibs.get_image_contributor_tag(gid_list)
+        flag_list = [contrib_contains in tag for tag in tag_list]
+        with VerbosityContext('contrib_contains'):
             avail_aids = ut.list_compress(avail_aids, flag_list)
 
     if aidcfg['minqual'] is not None or aidcfg['require_quality']:

@@ -1689,6 +1689,8 @@ def check_database_overlap(ibs1, ibs2):
         python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
         python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
 
+        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
+
 
     Example:
         >>> # SCRIPT
@@ -1829,6 +1831,7 @@ def check_database_overlap(ibs1, ibs2):
             changed_sinfo1._fields.__getitem__, colx2_rowids)
         print('changed_value_counts = ' +
               ut.dict_str(ut.map_dict_vals(len, prop2_rowids)))
+        ut.embed()
         yawx = changed_sinfo1._fields.index('yaw')
 
         # Show change in viewpoints

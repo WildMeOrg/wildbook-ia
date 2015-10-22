@@ -690,6 +690,25 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         top_aids = ut.listclip(_top_aids, ntop)
         return top_aids
 
+    def get_top_truth_aids(cm, ibs, truth, ntop=None):
+        """
+        """
+        sortx = cm.score_list.argsort()[::-1]
+        _top_aids = vt.list_take_(cm.daid_list, sortx)
+        truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
+        flag_list = truth_list == truth
+        _top_aids = _top_aids.compress(flag_list, axis=0)
+        top_truth_aids = ut.listclip(_top_aids, ntop)
+        return top_truth_aids
+
+    def get_top_gf_aids(cm, ibs, ntop=None):
+        import ibeis
+        return cm.get_top_truth_aids(ibs, ibeis.const.TRUTH_NOT_MATCH, ntop)
+
+    def get_top_gt_aids(cm, ibs, ntop=None):
+        import ibeis
+        return cm.get_top_truth_aids(ibs, ibeis.const.TRUTH_MATCH, ntop)
+
     def get_annot_scores(cm, daids):
         #ut.dict_take(cm.daid2_idx, daids)
         idx_list = [cm.daid2_idx.get(daid, None) for daid in daids]

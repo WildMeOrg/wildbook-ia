@@ -175,10 +175,15 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
                     update_callback = _refresh
                     backend_callback = None
                     print('qreq_ = %r' % (self.qreq_,))
-                    inspect_gui.show_aidpair_context_menu(
-                        ibs, qwin, qpoint, qres.qaid, aid2, qres, qreq_=self.qreq_,
+                    options = inspect_gui.get_aidpair_context_menu_options(
+                        ibs, qres.qaid, aid2, qres, qreq_=qreq_,
                         update_callback=update_callback,
                         backend_callback=backend_callback, aid_list=aid_list)
+                    guitool.popup_menu(qwin, qpoint, options)
+                    #inspect_gui.show_aidpair_context_menu(
+                    #    ibs, qwin, qpoint, qres.qaid, aid2, qres, qreq_=self.qreq_,
+                    #    update_callback=update_callback,
+                    #    backend_callback=backend_callback, aid_list=aid_list)
                     #callback_list = [
                     #]
                     #guitool.popup_menu(qwin, qpoint, callback_list)
