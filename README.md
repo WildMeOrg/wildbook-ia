@@ -40,8 +40,10 @@ However there are old HotSpotter (the software which IBEIS is based on)
 binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
 
 # Visual Demo
-A quick visual demo that demonstrates a match. 
-These tests can be run with the following commandline after downloading the
+
+![alt text](http://i.imgur.com/QWrzf9O.png "Feature Extraction")
+
+The following tests can be run with the following commandline after downloading the
 PZ_MTEST dataset using the ./reset_dbs.py script.
 
 ### Match Ranking 
