@@ -43,7 +43,8 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]
 #INJECTED_MODULES = []
 UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
-GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING and not ut.get_argflag('--no-flask') and HAS_FLASK
+GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
+                      not ut.get_argflag('--no-flask') and HAS_FLASK)
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
@@ -77,7 +78,9 @@ def get_flask_app():
             print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
             print('[get_flask_app] static_dpath = %r' % (static_dpath,))
             print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
-        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
+        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
+                                 template_folder=tempalte_dpath,
+                                 static_folder=static_dpath)
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
     return GLOBAL_APP
@@ -154,7 +157,8 @@ def _as_python_object(value, verbose=False, **kwargs):
     return value
 
 
-def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, jQuery_callback=None, cache=None):
+def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
+                              jQuery_callback=None, cache=None):
     if code is None:
         code = ''
     if message is None:
@@ -200,7 +204,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 else:
                     converted = [converted]
             # Allow JSON formatted strings to be placed into note fields
-            if (arg.endswith('note_list') or arg.endswith('notes_list')) and isinstance(converted, (list, tuple)):
+            if ((arg.endswith('note_list') or arg.endswith('notes_list')) and
+               isinstance(converted, (list, tuple))):
                 type_ = type(converted)
                 temp_list = []
                 for _ in converted:
@@ -437,7 +442,9 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                                 'into a list) or encapsualte the input with '
                                 '[].')
                         jQuery_callback = None
-                    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
+                    webreturn = translate_ibeis_webreturn(rawreturn, success,
+                                                          code, message,
+                                                          jQuery_callback)
                     return flask.make_response(webreturn, code)
                 # return the original unmodified function
                 if REMOTE_PROXY_URL is None:
@@ -473,7 +480,9 @@ def get_ibeis_flask_route(__name__):
                         code = 400
                         message = 'Route error, Python Exception thrown: %r' % (str(ex), )
                         jQuery_callback = None
-                        result = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
+                        result = translate_ibeis_webreturn(rawreturn, success,
+                                                           code, message,
+                                                           jQuery_callback)
                     return result
                 #wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
                 # return the original unmodified function
@@ -568,7 +577,8 @@ def dev_autogen_explicit_injects():
     """
     import ibeis  # NOQA
     classname = CONTROLLER_CLASSNAME
-    source_block = ut.autogen_explicit_injectable_metaclass(classname)
+    regen_command = 'python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects'
+    source_block = ut.autogen_explicit_injectable_metaclass(classname, regen_command=regen_command)
     import ibeis.control.IBEISControl
     dpath = ut.get_module_dir(ibeis.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
@@ -654,7 +664,8 @@ def sort_module_functions():
         match = re.search(funcname_regex, block)
         return match.group('funcname')
 
-    funcnameblock_list = [findfuncname(block) if isfunc else None for isfunc, block in zip(isfunc_list, block_list)]
+    funcnameblock_list = [findfuncname(block) if isfunc else None
+                          for isfunc, block in zip(isfunc_list, block_list)]
 
     funcblock_list = ut.filter_items(block_list, isfunc_list)
     funcname_list = ut.filter_items(funcnameblock_list, isfunc_list)
@@ -662,7 +673,8 @@ def sort_module_functions():
     nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
 
     nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
-    ismain_list = [re.search('^if __name__ == ["\']__main__["\']', nonfunc) is not None for nonfunc in nonfunc_list]
+    ismain_list = [re.search('^if __name__ == ["\']__main__["\']', nonfunc) is not None
+                   for nonfunc in nonfunc_list]
 
     mainblock_list = ut.filter_items(nonfunc_list, ismain_list)
     nonfunc_list = ut.filterfalse_items(nonfunc_list, ismain_list)
@@ -748,7 +760,9 @@ def find_unregistered_methods():
 
     def print_mutliline_matches(tup):
         found_fpath_list, found_matchtexts_list, found_linenos_list = tup
-        for fpath, found_matchtexts, found_linenos in zip(found_fpath_list, found_matchtexts_list, found_linenos_list):
+        for fpath, found_matchtexts, found_linenos in zip(found_fpath_list,
+                                                          found_matchtexts_list,
+                                                          found_linenos_list):
             print('+======')
             print(fpath)
             for matchtext, lineno in zip(found_matchtexts, found_linenos):
@@ -767,7 +781,8 @@ def find_unregistered_methods():
     regex = '^' + ut.REGEX_VARNAME + ' = ' + ut.REGEX_VARNAME
     tup = multiline_grep(regex, fpath_list)
     print_mutliline_matches(tup)
-    #ut.grep('aaa\rdef', modfpath, include_patterns=['manual_*_funcs.py', '_autogen_*_funcs.py'], reflags=re.MULTILINE)
+    #ut.grep('aaa\rdef', modfpath, include_patterns=['manual_*_funcs.py',
+    #'_autogen_*_funcs.py'], reflags=re.MULTILINE)
 
 
 class ExternalStorageException(Exception):

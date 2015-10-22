@@ -36,6 +36,7 @@ def run_tests():
     if False:
         ut.change_term_title('RUN IBEIS TESTS')
     exclude_doctests_fnames = set([
+        '_autogen_explicit_controller',
         'template_definitions.py',
         'autogen_test_script.py',
     ])

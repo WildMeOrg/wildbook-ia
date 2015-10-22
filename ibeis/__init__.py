@@ -120,14 +120,14 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         print('Equivalent Command Line:')
         print(command_line_str)
         return command_line_str
-    command_line_str = build_commandline()
+    command_line_str = build_commandline(**kwargs)
 
 
     def draw_cases(test_result, **kwargs):
         e_ = 'draw_cases'
         func = find_expt_func(e_)
         ibs = test_result.ibs
-        build_commandline(e=e_)
+        build_commandline(e=e_, **kwargs)
         lazy_func = functools.partial(func, ibs, test_result, show_in_notebook=True, **kwargs)
         return lazy_func
 
@@ -135,7 +135,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         e_ = 'taghist'
         func = find_expt_func(e_)
         ibs = test_result.ibs
-        build_commandline(e=e_)
+        build_commandline(e=e_, **kwargs)
         lazy_func = functools.partial(func, ibs, test_result, **kwargs)
         return lazy_func
 

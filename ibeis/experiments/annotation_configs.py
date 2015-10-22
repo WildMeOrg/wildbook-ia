@@ -36,6 +36,7 @@ INDEPENDENT_DEFAULTS = {
     # Quality Params
     'require_quality'     : None,  # if True unknown qualities are removed
     'minqual'             : 'poor',
+    'been_adjusted'       : None,
     # Viewpoint params
     'require_viewpoint'   : None,
     'view'                : None,

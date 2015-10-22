@@ -406,8 +406,34 @@ python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
 
 
 #---------------
+# Visual Demo
+#---------------
+These tests require downloading the PZ_MTEST dataset using the ./reset_dbs.py script
+
+# Name Scoring
+python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+![namematch](http://i.imgur.com/IDUnxu2.jpg)
+
+
+# Match Ranking 
+python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+![rankedmatches](http://i.imgur.com/BlajchI.jpg)
+
+
+#---------------
 # Technical Demo
 #---------------
+
+# Spatial Verification
+python -m vtool.spatial_verification --test-spatially_verify_kpts
+![sver](http://i.imgur.com/VCz0j9C.jpg)
+
+
+# Plus more not seen here... (applogies for the mess of a README)
+
+
+# FIXME THIS PART IS BROKEN
+
 python dev.py --db PZ_MTEST --setdb
 
 # See a list of tests

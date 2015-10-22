@@ -364,6 +364,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
     return aid_list
 
 
+@register_ibs_method
 def get_annot_been_adjusted(ibs, aid_list):
     """
     Returns if a bounding box has been adjusted from defaults set in
@@ -579,8 +580,8 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,
     except AssertionError as ex:
         tup_list = list(map(str, list(
             zip(lbltype_rowid_list, lblannot_rowid_list))))
-        print('[!!!] (lbltype_rowid, lblannot_rowid) = : '
-              + ut.indentjoin(tup_list))
+        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' +
+              ut.indentjoin(tup_list))
         print('[!!!] valid_lbltype_rowid: %r' %
               (valid_lbltype_rowid,))
 
@@ -921,7 +922,8 @@ def fix_and_clean_database(ibs):
         run_fixit_scripts
 
     CONSITENCY CHECKS TODO:
-        * check that annotmatches marked as False do not have the same name for similar viewpoints.
+        * check that annotmatches marked as False do not have the
+          same name for similar viewpoints.
         * check that photobombs are have different names
         * warn if scenery matches have the same name
 
@@ -2531,7 +2533,8 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = ut.group_items(aid_list, nid_list)
-    aid_gen = lambda: six.itervalues(nid2_aids)
+    def aid_gen():
+        return six.itervalues(nid2_aids)
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(ut.iflatten(ut.ifilter_items(aid_gen(), isunknown_list)))
@@ -5023,14 +5026,18 @@ def partition_annots_into_singleton_multiton(ibs, aid_list):
 @register_ibs_method
 def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     """
-    Returns 4 lists of lists. In the first two each list is a list of aids
-    grouped by names and the names correspond with each other. In the last two
-    are the annots that did not correspond with anything in the other list.
+    Used for grouping one-vs-one training pairs and corerspondence filtering
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.control.IBEISControl.IBEISController):  ibeis controller object
         aid_list1 (int):  list of annotation ids
         aid_list2 (int):  list of annotation ids
+
+    Returns:
+        tuple: 4 lists of lists. In the first two each list is a list of aids
+            grouped by names and the names correspond with each other. In the
+            last two are the annots that did not correspond with anything in
+            the other list.
 
     CommandLine:
         python -m ibeis.ibsfuncs --exec-partition_annots_into_corresponding_groups
@@ -5061,10 +5068,19 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
         gf_grouped_aids1 = [[2], [5, 6]]
         gf_gropued_aids2 = [[32, 29, 30, 31], [49]]
     """
-    grouped_aids1 = [aids.tolist() for aids in ibs.group_annots_by_name(aid_list1)[0]]
+    #ibs.
+    #import ibeis.control.IBEISControl.IBEISController
+    #ibs = ibeis.control.IBEISControl.IBEISController()
+    #ibs
+    #ibs.get_ann
+
+    grouped_aids1 = ibs.group_annots_by_name(aid_list1)[0]
+    grouped_aids1 = [aids.tolist() for aids in grouped_aids1]
+
     # Get the group of available aids that a reference aid could match
     gropued_aids2 = ibs.get_annot_groundtruth(
-        ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2)
+        ut.get_list_column(grouped_aids1, 0), daid_list=aid_list2,
+        include_self=True)
 
     # Flag if there is a correspondence
     flag_list = [x > 0 for x in map(len, gropued_aids2)]

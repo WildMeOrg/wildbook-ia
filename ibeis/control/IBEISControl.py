@@ -44,6 +44,7 @@ from ibeis.model.hots import pipeline
 # <Pyinstaller hacks>
 from ibeis import annotmatch_funcs  # NOQA
 from ibeis import tag_funcs  # NOQA
+import sys
 
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import _autogen_party_funcs  # NOQA
@@ -68,12 +69,22 @@ from ibeis.control import manual_feat_funcs  # NOQA
 # </Pyinstaller hacks>
 
 
+# Explicit Inject Subclass
+if True:
+    """
+    python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+    """
+    from ibeis.control import _autogen_explicit_controller
+    BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
+else:
+    BASE_CLASS = object
+
+
 # Shiny new way to inject external functions
 #WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
 WITH_CNN = not ut.get_argflag(('--no-cnn', '--nocnn'))
 
 # HACK, don't include cnn unless its already there due to theano stuff
-import sys
 if 'ibeis_cnn' in sys.modules or WITH_CNN:
     try:
         from ibeis_cnn import _plugin  # NOQA
@@ -168,7 +179,7 @@ def __cleanup():
 #-----------------
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class IBEISController(object):
+class IBEISController(BASE_CLASS):
     """
     IBEISController docstring
 
@@ -196,7 +207,8 @@ class IBEISController(object):
         print('\n[ibs.__init__] new IBEISController')
         # an dict to hack in temporary state
         ibs.const = const
-        ibs.allow_override = 'override+warn'
+        #ibs.allow_override = 'override+warn'
+        ibs.allow_override = True
         # observer_weakref_list keeps track of the guibacks connected to this controller
         ibs.observer_weakref_list = []
         # not completely working decorator cache

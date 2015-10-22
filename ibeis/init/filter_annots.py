@@ -670,7 +670,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = sorted(avail_aids)
 
     # HACK
-    if aidcfg.get('been_adjusted', False):
+    if aidcfg.get('been_adjusted', None):
         flag_list = ibs.get_annot_been_adjusted(avail_aids)
         with VerbosityContext('been_adjusted'):
             avail_aids = ut.list_compress(avail_aids, flag_list)

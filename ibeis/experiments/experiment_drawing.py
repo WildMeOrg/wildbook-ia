@@ -83,6 +83,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     from ibeis.init import main_helpers
 
     filt_cfg = main_helpers.testdata_filtcfg(default=f)
+    print('filt_cfg = %r' % (filt_cfg,))
 
     assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
     cfgx = 0
@@ -127,6 +128,8 @@ def annotationmatch_scores(ibs, test_result, f=None):
 
     plotname = ''
     figtitle = test_result.make_figtitle(plotname, filt_cfg=filt_cfg)
+
+    #ut.embed()
 
     encoder.visualize(
         figtitle=figtitle,
