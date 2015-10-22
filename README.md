@@ -412,12 +412,12 @@ These tests require downloading the PZ_MTEST dataset using the ./reset_dbs.py sc
 
 # Name Scoring
 python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
-![namematch](http://i.imgur.com/IDUnxu2.jpg)
+![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
 
 
 # Match Ranking 
 python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
-![rankedmatches](http://i.imgur.com/BlajchI.jpg)
+![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 
 
 #---------------
@@ -426,7 +426,7 @@ python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 8
 
 # Spatial Verification
 python -m vtool.spatial_verification --test-spatially_verify_kpts
-![sver](http://i.imgur.com/VCz0j9C.jpg)
+![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 
 
 # Plus more not seen here... (applogies for the mess of a README)
