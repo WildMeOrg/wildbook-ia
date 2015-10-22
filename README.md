@@ -1,13 +1,10 @@
 # IBEIS - Image Analysis
 
-![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
-```bash
-python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
-```
-
 ## I.B.E.I.S. = Image Based Ecological Information System
 
 =====
+
+![alt text](http://i.imgur.com/TNCiEBe.png "(Note: the rhino and wildebeest mathces may be dubious. Other species do work well though")
 
 # Program Description
 
@@ -42,9 +39,19 @@ binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
 # Visual Demo
 
 ![alt text](http://i.imgur.com/QWrzf9O.png "Feature Extraction")
+![alt text](http://i.imgur.com/iMHKEDZ.png "Nearest Neighbors")
+![alt text](http://imgur.com/Hj43Xxy.png "Match Inspection")
+
 
 The following tests can be run with the following commandline after downloading the
 PZ_MTEST dataset using the ./reset_dbs.py script.
+
+### Name Scoring
+
+![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
+```bash
+python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+```
 
 ### Match Ranking 
 ![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
