@@ -31,23 +31,6 @@ data management and algorithms. The IBEIS API Documentation can be found here:
 The IBEIS GUI (graphical user interface) is built on top of the API. 
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
-# Visual Demo
-A quick visual demo that demonstrates a match. 
-These tests can be run with the following commandline after downloading the
-PZ_MTEST dataset using the ./reset_dbs.py script.
-
-# Match Ranking 
-![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
-```bash
-python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
-```
-
-# Spatial Verification
-![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
-```bash
-python -m vtool.spatial_verification --test-spatially_verify_kpts
-```
-
 ## Self Installing Executabes:
 
 Unfortunately we have not released self-installing-executables for IBEIS yet. 
@@ -55,6 +38,23 @@ We plan to release these "soon".
 
 However there are old HotSpotter (the software which IBEIS is based on)
 binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
+
+# Visual Demo
+A quick visual demo that demonstrates a match. 
+These tests can be run with the following commandline after downloading the
+PZ_MTEST dataset using the ./reset_dbs.py script.
+
+### Match Ranking 
+![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
+```bash
+python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+```
+
+### Spatial Verification
+![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
+```bash
+python -m vtool.spatial_verification --test-spatially_verify_kpts
+```
 
 
 # Internal Modules
