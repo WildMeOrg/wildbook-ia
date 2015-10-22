@@ -32,6 +32,26 @@ The IBEIS GUI (graphical user interface) is built on top of the API.
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
 
+#---------------
+# Visual Demo
+#---------------
+These tests require downloading the PZ_MTEST dataset using the ./reset_dbs.py script
+
+# Name Scoring
+python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
+
+
+# Match Ranking 
+python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
+
+
+# Spatial Verification
+python -m vtool.spatial_verification --test-spatially_verify_kpts
+![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
+
+
 # Internal Modules
 
 In the interest of modular code we are actively developing several different modules. 
@@ -406,31 +426,8 @@ python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
 
 
 #---------------
-# Visual Demo
-#---------------
-These tests require downloading the PZ_MTEST dataset using the ./reset_dbs.py script
-
-# Name Scoring
-python -m ibeis.model.hots.chip_match --exec-show_single_namematch --qaid 1 --show
-![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
-
-
-# Match Ranking 
-python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 86
-![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
-
-
-#---------------
 # Technical Demo
 #---------------
-
-# Spatial Verification
-python -m vtool.spatial_verification --test-spatially_verify_kpts
-![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
-
-
-# Plus more not seen here... (applogies for the mess of a README)
-
 
 # FIXME THIS PART IS BROKEN
 
