@@ -89,9 +89,27 @@ class AbstractInteraction(object):
             divider = df2.ensure_divider(ax)
         if divider is not None:
             new_ax = divider.append_axes(location, size=size, pad=.05)
-        new_but = mpl.widgets.Button(new_ax, text)
+        if callback is not None:
+            color, hovercolor = u'.85', u'.95'
+        else:
+            color, hovercolor = u'.88', u'.88'
+            #color, hovercolor = u'.45', u'.45'
+        new_but = mpl.widgets.Button(
+            new_ax, text, color=color, hovercolor=hovercolor)
         if callback is not None:
             new_but.on_clicked(callback)
+        else:
+            button_text = new_but.ax.texts[0]
+            button_text.set_color('.6')
+            #button_text.set_color('r')
+            #ut.embed()
+            #print('new_but.color = %r' % (new_but.color,))
+        #else:
+        # TODO: figure ou how to gray out these buttons
+        #    new_but.color = u'.1'
+        #    new_but.hovercolor = u'.1'
+        #    new_but.active = False
+        #    print('new_but.color = %r' % (new_but.color,))
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
         #ph.set_plotdat(new_ax, 'parent_axes', ax)
@@ -148,7 +166,7 @@ class AbstractInteraction(object):
         fig_presenter.close_figure(self.fig)
 
     def on_close(self, event=None):
-        print('[pt] handling close')
+        print('[pt] handling interaction close')
         unregister_interaction(self)
 
     def on_motion(self, event):

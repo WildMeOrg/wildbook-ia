@@ -2,6 +2,8 @@
 Interactive tool to draw mask on an image or image-like array.
 
 TODO:
+    * need concept of subannotation
+    * need to take options on a right click of an annotation
     * add support for arbitrary polygons back in .
     * rename species_list to label_list or category_list
 
@@ -25,7 +27,6 @@ from __future__ import absolute_import, division, print_function
 import six
 import matplotlib
 from matplotlib.patches import Polygon
-from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import math as math
@@ -62,12 +63,6 @@ if HACK_OFF_SPECIES_TYPING:
 
 NEXT_IMAGE_HOTKEYS  = ['right', 'pagedown']
 PREV_IMAGE_HOTKEYS  = ['left', 'pageup']
-
-
-RIGHT_CLICK = 3
-MIDDLE_CLICK = 2
-
-SCALE_INPLACE_BUTTON = RIGHT_CLICK  # middle click
 
 
 def pretty_hotkey_map(hotkeys):
@@ -251,6 +246,39 @@ def make_handle_line(poly):
     return lines
 
 
+def within_epsilon(x, y):
+    return x - y < .000001
+
+
+def meets_minimum_width_and_height(coords):
+    """
+    Depends on hardcoded indices, which is inelegant, but
+    we're already depending on those for the FUDGE_FACTORS
+    array above
+    1----2
+    |    |
+    0----3
+    """
+    MIN_W = 5
+    MIN_H = 5
+    # the seperate 1 and 2 variables are not strictly necessary, but
+    # provide a sanity check to ensure that we're dealing with the
+    # right
+    # shape
+    width1 = coords[3][0] - coords[0][0]
+    width2 = coords[2][0] - coords[1][0]
+    assert within_epsilon(width1, width2), (
+        'w1: %r, w2: %r' % (width1, width2))
+    height1 = coords[0][1] - coords[1][1]
+    height2 = coords[3][1] - coords[2][1]
+    assert within_epsilon(height1, height2), (
+        'h1: %r, h2: %r' % (height1, height2))
+    #print('w, h = (%r, %r)' % (width1, height1))
+    return (MIN_W < width1) and (MIN_H < height1)
+
+
+# TODO: incorporate this
+AbstractInteraction = abstract_interaction.AbstractInteraction
 #BASE_CLASS = abstract_interaction.AbstractInteraction
 BASE_CLASS = object
 
@@ -258,6 +286,10 @@ BASE_CLASS = object
 class ANNOTATIONInteraction(BASE_CLASS):
     """
     An interactive polygon editor.
+
+    SeeAlso:
+        ibeis.viz.interact.interact_annotations2
+        (ensure that any updates here are propogated there)
 
     Args:
         verts_list (list) : list of lists of (float, float)
@@ -292,6 +324,10 @@ class ANNOTATIONInteraction(BASE_CLASS):
             if fnum is None:
                 fnum = df2.next_fnum()
             abstract_interaction.register_interaction(self)
+            append_button = AbstractInteraction.append_button.im_func
+            ut.inject_func_as_method(self, append_button)
+            self.scope = []
+
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
@@ -301,12 +337,12 @@ class ANNOTATIONInteraction(BASE_CLASS):
         self.callback_funcs = dict([
             ('close_event', self.on_close),
             ('draw_event', self.draw_callback),
-            ('button_press_event', self.button_press_callback),
-            ('button_release_event', self.button_release_callback),
-            ('key_press_event', self.key_press_callback),
-            ('motion_notify_event', self.motion_notify_callback),
+            ('button_press_event', self.on_click),
+            ('button_release_event', self.on_click_release),
+            ('key_press_event', self.on_key_press),
+            ('motion_notify_event', self.on_motion),
             ('pick_event', self.onpick),
-            ('resize_event', self.on_resize),
+            #('resize_event', self.on_resize),
         ])
         self.mpl_callback_ids = {}
         self.img = img
@@ -383,29 +419,26 @@ class ANNOTATIONInteraction(BASE_CLASS):
         ])))
 
     def add_action_buttons(self):
-        self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width,
-                                          self.but_height])
-        self.add_but = Button(self.add_ax, 'Add Annotation\n' +
-                              pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
-        self.add_but.on_clicked(self.draw_new_poly)
-
-        self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width,
-                                           self.but_height])
-        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' +
-                               pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
-        self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
-
-        self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width,
-                                          self.but_height])
-        self.del_but = Button(self.del_ax, 'Delete Annotation\n' +
-                              pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
-        self.del_but.on_clicked(self.delete_current_poly)
-
-        self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width,
-                                             self.but_height])
-        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' +
-                                 pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
-        self.accept_but.on_clicked(self.accept_new_annotations)
+        self.append_button(
+            'Add Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_HOTKEY),
+            rect=[0.18, 0.015, self.but_width, self.but_height],
+            callback=self.add_new_annot
+        )
+        self.append_button(
+            'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY),
+            rect=[0.34, 0.015, self.but_width, self.but_height],
+            callback=partial(self.add_new_annot, full=True)
+        )
+        self.append_button(
+            'Delete Annotation\n' + pretty_hotkey_map(DEL_RECTANGLE_HOTKEY),
+            rect=[0.50, 0.015, self.but_width, self.but_height],
+            callback=self.delete_current_annot
+        )
+        self.append_button(
+            'Save and Exit\n' + pretty_hotkey_map(ACCEPT_SAVE_HOTKEY),
+            rect=[0.66, 0.015, self.but_width, self.but_height],
+            callback=self.save_and_exit
+        )
 
     def disconnect_mpl_callbacks(self, canvas):
         """ disconnects all connected matplotlib callbacks """
@@ -430,19 +463,19 @@ class ANNOTATIONInteraction(BASE_CLASS):
     def update_callbacks(self, next_callback, prev_callback):
         self.prev_callback = prev_callback
         self.next_callback = next_callback
-        if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width,
-                                              self.next_prev_but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Image\n' +
-                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
-            self.prev_but.on_clicked(self.prev_image)
-
-        if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width,
-                                              self.next_prev_but_height])
-            self.next_but = Button(self.next_ax, 'Next Image\n' +
-                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
-            self.next_but.on_clicked(self.next_image)
+        # Hack because the callbacks actually need to be wrapped
+        _next_callback = None if self.next_callback is None else self.next_image
+        _prev_callback = None if self.prev_callback is None else self.prev_image
+        self.append_button(
+            'Previous Image\n' + pretty_hotkey_map(PREV_IMAGE_HOTKEYS),
+            rect=[0.02, 0.01, self.but_width, self.next_prev_but_height],
+            callback=_prev_callback,
+        )
+        self.append_button(
+            'Next Image\n' + pretty_hotkey_map(NEXT_IMAGE_HOTKEYS),
+            rect=[0.82, 0.01, self.but_width, self.next_prev_but_height],
+            callback=_next_callback,
+        )
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
                                    species_list, next_callback, prev_callback):
@@ -690,20 +723,19 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
     # --- Actions
 
-    def delete_current_poly(self, event=None):
-        """ Removes an annotation """
+    def delete_current_annot(self, event=None):
+        """
+        Removes an annotation
+        """
         if self._currently_selected_poly is None:
             print('[interact_annot] No polygon selected to delete')
             return
         poly = self._currently_selected_poly
         lineNumber = poly.num
-        #line deletion
-        print('[interact_annot] length: ', len(self.polys), 'number: ',
-              lineNumber)
-        #poly deletion
+        print('[interact_annot] delete annot. length=%d num=%d' % (
+            len(self.polys), lineNumber))
         self.polys.pop(lineNumber)
-        #self.poly_list.remove(poly)
-        #remove the poly from the figure itself
+        # remove the poly from the figure itself
         poly.remove()
         #reset anything that has to do with current poly
         _tup = self.get_most_recently_added_poly()
@@ -713,7 +745,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.update_colors(poly_ind)
         plt.draw()
 
-    def draw_new_poly(self, event=None, full=False):
+    def add_new_annot(self, event=None, full=False):
         """ Adds a new annotation to the image """
         if full:
             (h, w) = self.img.shape[0:2]
@@ -735,7 +767,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
         poly = self.new_polygon(coords, 0, self.species_tag)
         #<hack reason="brittle resizing algorithm that doesn't work unless the
-        #points are in the right order, see resize_rectangle">
+        #points are in the right order, see resize_rectangle
+        # and meets_minimum_width_and_height">
         bbox = basecoords_to_bbox(poly.basecoords)
         poly.basecoords = bbox_to_verts(bbox)
         set_display_coords(poly)
@@ -840,35 +873,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
         # point
         tmpcoords = tmpcoords[:] + [tmpcoords[0]]
 
-        def within_epsilon(x, y):
-            return x - y < .000001
-
-        def meets_minimum_width_and_height(coords):
-            MIN_W = 5
-            MIN_H = 5
-            """
-            Depends on hardcoded indices, which is inelegant, but
-            we're already depending on those for the FUDGE_FACTORS
-            array above
-            1----2
-            |    |
-            0----3
-            """
-            # the seperate 1 and 2 variables are not strictly necessary, but
-            # provide a sanity check to ensure that we're dealing with the
-            # right
-            # shape
-            width1 = coords[3][0] - coords[0][0]
-            width2 = coords[2][0] - coords[1][0]
-            assert within_epsilon(width1, width2), (
-                'w1: %r, w2: %r' % (width1, width2))
-            height1 = coords[0][1] - coords[1][1]
-            height2 = coords[3][1] - coords[2][1]
-            assert within_epsilon(height1, height2), (
-                'h1: %r, h2: %r' % (height1, height2))
-            #print('w, h = (%r, %r)' % (width1, height1))
-            return (MIN_W < width1) and (MIN_H < height1)
-
         dispcoords = calc_display_coords(tmpcoords, poly.theta)
 
         if (self.check_valid_coords(dispcoords) and
@@ -890,7 +894,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         if self.prev_callback is not None:
             self.prev_callback()
 
-    def accept_new_annotations(self, event, do_close=True):
+    def save_and_exit(self, event, do_close=True):
         """
         The Save and Exit Button
 
@@ -971,7 +975,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
     def on_close(self, event=None):
         # TODO rectifify with abstract interaction
         # Hack: fake unregistration. does not inherit propertly
-        abstract_interaction.unregister_interaction(self)
+        AbstractInteraction.on_close.im_func(self, event)
+        #abstract_interaction.unregister_interaction(self)
 
     def show(self):
         self.draw()
@@ -1000,11 +1005,11 @@ class ANNOTATIONInteraction(BASE_CLASS):
             if self.show_species_tags:
                 self.fig.ax.draw_artist(poly.species_tag)
 
-    def button_press_callback(self, event):
+    def on_click(self, event):
         """
         Called whenever a mouse button is pressed
         """
-        print('[button_press_callback] key = %r' % (event.key))
+        #print('[on_click] key = %r' % (event.key))
         if self._ind is not None:
             self._ind = None
             return
@@ -1069,13 +1074,13 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
         self.fig.canvas.blit(self.fig.ax.bbox)
 
-    def button_release_callback(self, event):
+    def on_click_release(self, event):
         """
         Called whenever a mouse button is released
         """
         # CONTEXT MENU
         #if True:
-        if False and event.button == RIGHT_CLICK:
+        if False and event.button == 3:
             import guitool
             height = self.fig.canvas.geometry().height()
             qpoint = guitool.newQPoint(event.x, height - event.y)
@@ -1128,24 +1133,17 @@ class ANNOTATIONInteraction(BASE_CLASS):
                  math.fabs(self.indY - currY) < 3):
                 return
 
-        if ((self._ind is None) or
-           (self._polyHeld is False) or
-           (self._ind is not None and self.leftbutton_is_down is True) and
-           self._currently_selected_poly is not None):
-            #self._currently_selected_poly = None
-            #self.update_colors(None)
-            pass
         self._ind = None
         self._polyHeld = False
 
         self.fig.canvas.draw()
 
-    def key_press_callback(self, event):
+    def on_key_press(self, event):
         """
         Callback whenever a key is pressed
         """
         if ut.VERBOSE or True:
-            print('[interact_annot] key_press_callback')
+            print('[interact_annot] on_key_press')
             print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
             return
@@ -1177,13 +1175,13 @@ class ANNOTATIONInteraction(BASE_CLASS):
         # perfect use case for anaphoric if, or assignment in if statements (if
         # python had either)
         if event.key == ACCEPT_SAVE_HOTKEY:
-            self.accept_new_annotations(event)
+            self.save_and_exit(event)
         elif event.key == ADD_RECTANGLE_HOTKEY:
-            self.draw_new_poly()
+            self.add_new_annot()
         elif event.key == ADD_RECTANGLE_FULL_HOTKEY:
-            self.draw_new_poly(full=True)
+            self.add_new_annot(full=True)
         elif event.key == DEL_RECTANGLE_HOTKEY:
-            self.delete_current_poly()
+            self.delete_current_annot()
         elif event.key == TOGGLE_LABEL_HOTKEY:
             self.toggle_species_label()
         elif event.key == 'ctrl+u':
@@ -1244,12 +1242,11 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.next_image(event)
         self.fig.canvas.draw()
 
-    def motion_notify_callback(self, event):
+    def on_motion(self, event):
         """
         CALLBACK FOR MOTION EVENTS
         Called on mouse movement
         """
-        #print('motion_notify_callback')
         #ignore = (not self.showverts or event.inaxes is None)
         ignore = (not self.showverts)
         # uses boolean punning for terseness
@@ -1282,7 +1279,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.update_UI()
             return
 
-        elif self._polyHeld is True and event.button == SCALE_INPLACE_BUTTON:
+        elif self._polyHeld is True and event.button == 3:
             # Resize by right click drag
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
                                   self.mouseY, 0)
@@ -1331,9 +1328,9 @@ class ANNOTATIONInteraction(BASE_CLASS):
         poly.lines.set_visible(vis)
         poly.handle.set_visible(vis)
 
-    def on_resize(self, event):
-        self.fig.canvas.draw()
-        plt.draw()
+    #def on_resize(self, event):
+    #    self.fig.canvas.draw()
+    #    plt.draw()
 
 
 def default_vertices(img, polys=None, mouseX=None, mouseY=None):
