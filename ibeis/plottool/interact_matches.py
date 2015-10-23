@@ -7,9 +7,9 @@ import utool as ut
 import six
 import numpy as np
 
-from plottool.abstract_interaction import AbstractInteraction
+from plottool import abstract_interaction
 
-BASE_CLASS = AbstractInteraction
+BASE_CLASS = abstract_interaction.AbstractInteraction
 #BASE_CLASS = object
 
 

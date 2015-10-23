@@ -6,10 +6,11 @@ TODO:
     * rename species_list to label_list or category_list
 
 Notes:
-    3. Change bounding box and update continuously to the original image the new ANNOTATIONs
+    3. Change bounding box and update continuously to the original image the
+    new ANNOTATIONs
 
-    2. Make new window and frames inside, double click to pull up normal window with editing
-    start with just taking in 6 images and ANNOTATIONs
+    2. Make new window and frames inside, double click to pull up normal window
+    with editing start with just taking in 6 images and ANNOTATIONs
 
     1. ANNOTATION ID number, then list of 4 tuples
 
@@ -115,6 +116,7 @@ def apply_mask(img, mask):
 
 
 def bbox_to_verts(bbox):
+    #return vt.verts_from_bbox(bbox)
     # TODO: Can use vtool for this
     (x, y, w, h) = bbox
     verts = np.array([(x + 0, y + h),
@@ -124,34 +126,17 @@ def bbox_to_verts(bbox):
     return verts
 
 
-def verts_to_bbox(verts):
-    new_bbox_list = []
-    print(verts)
-    for i in range(0, len(verts)):
-        print('[interact_annot] verts[i][0][0]: ' + str(verts[i][0][0]) +
-              ' verts[i][0][1]: ' + str(verts[i][0][1]))
-        x = verts[i][0][0]
-        y = verts[i][0][1]
-        w = verts[i][2][0] - x
-        h = verts[i][2][1] - y
-        bbox = (x, y, w, h)
-        new_bbox_list.append(bbox)
-    return new_bbox_list
-
-
 def basecoords_to_bbox(basecoords):
-    x = min(basecoords[0][0], basecoords[1][0], basecoords[2][0], basecoords[3][0])
-    y = min(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1])
-    w = max(basecoords[0][0], basecoords[1][0], basecoords[2][0], basecoords[3][0]) - x
-    h = max(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1]) - y
+    x = min(basecoords[0][0], basecoords[1][0], basecoords[2][0],
+            basecoords[3][0])
+    y = min(basecoords[0][1], basecoords[1][1], basecoords[2][1],
+            basecoords[3][1])
+    w = max(basecoords[0][0], basecoords[1][0], basecoords[2][0],
+            basecoords[3][0]) - x
+    h = max(basecoords[0][1], basecoords[1][1], basecoords[2][1],
+            basecoords[3][1]) - y
     bbox = (x, y, w, h)
     return bbox
-
-
-def bbox_to_mask(shape, bbox):
-    verts = bbox_to_verts(bbox)
-    mask = verts_to_mask(shape, verts)
-    return mask
 
 
 def points_center(pts):
@@ -174,13 +159,16 @@ def polygon_dims(poly):
 
 
 def rotate_points_around(points, theta, ax, ay):
+    """
+    References:
+        http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
+    """
     # TODO: Can use vtool for this
     sin, cos, array = np.sin, np.cos, np.array
     augpts = array([array((x, y, 1)) for (x, y) in points])
     ct = cos(theta)
     st = sin(theta)
     # correct matrix obtained from
-    # http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
     rot_mat = array(
         [(ct, -st, ax - ct * ax + st * ay),
          (st,  ct, ay - st * ax - ct * ay),
@@ -200,25 +188,20 @@ def set_display_coords(poly):
 
 
 def calc_tag_position(poly):
-    points = [[max(list(zip(*poly.basecoords))[0]), min(list(zip(*poly.basecoords))[1])]]
+    points = [[
+        max(list(zip(*poly.basecoords))[0]),
+        min(list(zip(*poly.basecoords))[1])
+    ]]
     tagpos = rotate_points_around(points, poly.theta, *polygon_center(poly))[0]
     return tagpos
 
 
-def is_within_distance(dist, p1, p2):
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
-    dx2 = dx * dx
-    dy2 = dy * dy
-    d2 = dist * dist
-    rv = d2 > (dx2 + dy2)
-    #print('is_within_distance(%r, (%r, %r), (%r, %r)) = %r' % (dist, p1[0],
-    #p1[1], p2[0], p2[1], rv))
-    return rv
-
-
 def is_within_distance_from_line(dist, pt, line):
-    """ http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line """
+    """
+    References:
+        http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+        http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+    """
     x0, y0 = pt
     p1, p2 = line
     x1, y1 = p1
@@ -231,10 +214,11 @@ def is_within_distance_from_line(dist, pt, line):
     # denom = math.sqrt((dx ** 2) + (dy ** 2))
     # distance = numer / denom
     # adapted from
-    # http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
     squared_mag_of_delta = (dx * dx) + (dy * dy)
-    interpolation_factor = ((x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
-    interpolation_factor = max(0, min(1, interpolation_factor))  # clamp to [0, 1]
+    interpolation_factor = (
+        (x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
+    # clamp to [0, 1]
+    interpolation_factor = max(0, min(1, interpolation_factor))
     nx = x1 + interpolation_factor * dx
     ny = y1 + interpolation_factor * dy
     ndx = nx - x0
@@ -262,11 +246,16 @@ def make_handle_line(poly):
     color = np.array(line_color)
     marker_face_color = line_color
     line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-    lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
+    lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
+                       **line_kwargs)
     return lines
 
 
-class ANNOTATIONInteraction(object):
+#BASE_CLASS = abstract_interaction.AbstractInteraction
+BASE_CLASS = object
+
+
+class ANNOTATIONInteraction(BASE_CLASS):
     """
     An interactive polygon editor.
 
@@ -285,7 +274,10 @@ class ANNOTATIONInteraction(object):
               line connecting two existing vertices
     """
 
-    def __init__(self, img, img_ind=None, commit_callback=None, verts_list=None,
+    # --- Initialization and Figure Widgets
+
+    def __init__(self, img, img_ind=None, commit_callback=None,
+                 verts_list=None,
                  bbox_list=None,
                  theta_list=None,
                  species_list=None,
@@ -293,10 +285,13 @@ class ANNOTATIONInteraction(object):
                  line_width=4, line_color=(1, 1, 1), face_color=(0, 0, 0),
                  fnum=None, default_species=DEFAULT_SPECIES_TAG,
                  next_callback=None, prev_callback=None, do_mask=False,
-                 valid_species=[]):
-        if fnum is None:
-            fnum = df2.next_fnum()
-        abstract_interaction.register_interaction(self)
+                 valid_species=[], **kwargs):
+        if BASE_CLASS is not object:
+            super(ANNOTATIONInteraction, self).__init__(**kwargs)
+        else:
+            if fnum is None:
+                fnum = df2.next_fnum()
+            abstract_interaction.register_interaction(self)
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
@@ -317,8 +312,6 @@ class ANNOTATIONInteraction(object):
         self.img = img
         self.show_species_tags = True
         def reinitialize_variables():
-            #self.next_callback = next_callback
-            #self.prev_callback = prev_callback
             self.do_mask = do_mask
             self.img_ind = img_ind
             self.species_tag = default_species
@@ -336,13 +329,10 @@ class ANNOTATIONInteraction(object):
             self._currently_selected_poly = None  # active polygon
             self.background = None  # Something Jon added
         reinitialize_variables()
-        # hack involving exploting lexical scoping to save defaults for a restore operation
+        # hack involving exploting lexical scoping to save defaults for a
+        # restore operation
         self.reinitialize_variables = reinitialize_variables
         self.handle_matplotlib_initialization(fnum=fnum)
-        # print(verts_list)
-        # test_list = verts_to_bbox(verts_list)
-        # print(test_list)
-        # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         # bbox_list will get converted to verts_list
         if verts_list is not None:
@@ -365,14 +355,9 @@ class ANNOTATIONInteraction(object):
 
         self.add_action_buttons()
         self.update_callbacks(next_callback, prev_callback)
-        # Hack: fake registration
 
-    def on_close(self, event=None):
-        # TODO rectifify with abstract interaction
-        # Hack: fake unregistration. does not inherit propertly
-        abstract_interaction.unregister_interaction(self)
-
-    def handle_matplotlib_initialization(self, fnum=None, instantiate_window=True):
+    def handle_matplotlib_initialization(self, fnum=None,
+                                         instantiate_window=True):
         if instantiate_window:
             self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
             df2.close_figure(self.fig)
@@ -396,10 +381,110 @@ class ANNOTATIONInteraction(object):
             #'Press enter to clear the species tag of the selected ANNOTATION',
             'Type to edit the ANNOTATION species (press tab to autocomplete)'
         ])))
-        #to set the species tag of the selected ANNOTATION', ])))
+
+    def add_action_buttons(self):
+        self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width,
+                                          self.but_height])
+        self.add_but = Button(self.add_ax, 'Add Annotation\n' +
+                              pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
+        self.add_but.on_clicked(self.draw_new_poly)
+
+        self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width,
+                                           self.but_height])
+        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' +
+                               pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
+        self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
+
+        self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width,
+                                          self.but_height])
+        self.del_but = Button(self.del_ax, 'Delete Annotation\n' +
+                              pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
+        self.del_but.on_clicked(self.delete_current_poly)
+
+        self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width,
+                                             self.but_height])
+        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' +
+                                 pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
+        self.accept_but.on_clicked(self.accept_new_annotations)
+
+    def disconnect_mpl_callbacks(self, canvas):
+        """ disconnects all connected matplotlib callbacks """
+        for name, callbackid in six.iteritems(self.mpl_callback_ids):
+            canvas.mpl_disconnect(callbackid)
+        self.mpl_callback_ids = {}
+
+    def connect_mpl_callbacks(self, canvas):
+        """ disconnects matplotlib callbacks specified in the
+        self.mpl_callback_ids dict """
+        #http://matplotlib.org/1.3.1/api/backend_bases_api.html
+        # Create callback ids
+        self.disconnect_mpl_callbacks(canvas)
+        self.mpl_callback_ids = {
+            name: canvas.mpl_connect(name, func)
+            for name, func in six.iteritems(self.callback_funcs)
+        }
+        self.fig.canvas = canvas
+
+    # --- Updates
+
+    def update_callbacks(self, next_callback, prev_callback):
+        self.prev_callback = prev_callback
+        self.next_callback = next_callback
+        if self.prev_callback is not None:
+            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width,
+                                              self.next_prev_but_height])
+            self.prev_but = Button(self.prev_ax, 'Previous Image\n' +
+                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
+            self.prev_but.on_clicked(self.prev_image)
+
+        if self.next_callback is not None:
+            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width,
+                                              self.next_prev_but_height])
+            self.next_but = Button(self.next_ax, 'Next Image\n' +
+                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
+            self.next_but.on_clicked(self.next_image)
+
+    def update_image_and_callbacks(self, img, bbox_list, theta_list,
+                                   species_list, next_callback, prev_callback):
+        self.disconnect_mpl_callbacks(self.fig.canvas)
+        for poly in six.itervalues(self.polys):
+            poly.remove()
+        self.polys = {}
+        self.reinitialize_variables()
+        self.img = img
+        self.handle_matplotlib_initialization(
+            fnum=self.fnum, instantiate_window=False)
+        self.handle_polygon_creation(bbox_list, theta_list, species_list)
+        self.add_action_buttons()
+        self.fig.canvas.draw()
+        self.connect_mpl_callbacks(self.fig.canvas)
+        self.update_callbacks(next_callback, prev_callback)
+        print('[interact_annot] drawing')
+        self.fig.canvas.draw()
+        self.update_UI()
+
+    def update_UI(self):
+        self._update_line()
+        self.fig.canvas.restore_region(self.background)
+        self.draw_artists()
+        self.fig.canvas.blit(self.fig.ax.bbox)
+
+    def update_colors(self, poly_ind):
+        if poly_ind is None or poly_ind < 0:
+            print('[interact_annot] WARNING: poly_ind is %r in update_colors' %
+                  poly_ind)
+            return
+        for poly in six.itervalues(self.polys):
+            line = poly.lines
+            if line.get_color() != 'white':
+                line.set_color('white')
+        self.polys[poly_ind].lines.set_color(df2.ORANGE)
+        plt.draw()
+
+    # --- Data Matainence / Other
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
-        # Maintain original input
+        """ Maintain original input """
         assert bbox_list is not None
         if theta_list is None:
             theta_list = [0.0 for _ in range(len(bbox_list))]
@@ -439,536 +524,8 @@ class ANNOTATIONInteraction(object):
         for poly in six.itervalues(self.polys):
             poly.add_callback(self.poly_changed)
 
-    def disconnect_mpl_callbacks(self, canvas):
-        """ disconnects all connected matplotlib callbacks """
-        for name, callbackid in six.iteritems(self.mpl_callback_ids):
-            canvas.mpl_disconnect(callbackid)
-        self.mpl_callback_ids = {}
-
-    def connect_mpl_callbacks(self, canvas):
-        """ disconnects matplotlib callbacks specified in the
-        self.mpl_callback_ids dict """
-        #http://matplotlib.org/1.3.1/api/backend_bases_api.html
-        # Create callback ids
-        self.disconnect_mpl_callbacks(canvas)
-        self.mpl_callback_ids = {
-            name: canvas.mpl_connect(name, func)
-            for name, func in six.iteritems(self.callback_funcs)
-        }
-        self.fig.canvas = canvas
-
-    def add_action_buttons(self):
-        self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width, self.but_height])
-        self.add_but = Button(self.add_ax, 'Add Annotation\n' +
-                              pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
-        self.add_but.on_clicked(self.draw_new_poly)
-
-        self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width, self.but_height])
-        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' +
-                               pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
-        self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
-
-        self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width, self.but_height])
-        self.del_but = Button(self.del_ax, 'Delete Annotation\n' +
-                              pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
-        self.del_but.on_clicked(self.delete_current_poly)
-
-        self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width, self.but_height])
-        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' +
-                                 pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
-        self.accept_but.on_clicked(self.accept_new_annotations)
-
-    def update_callbacks(self, next_callback, prev_callback):
-        self.prev_callback = prev_callback
-        self.next_callback = next_callback
-        if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width,
-                                              self.next_prev_but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Image\n' +
-                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
-            self.prev_but.on_clicked(self.prev_image)
-
-        if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width,
-                                              self.next_prev_but_height])
-            self.next_but = Button(self.next_ax, 'Next Image\n' +
-                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
-            self.next_but.on_clicked(self.next_image)
-
-    def update_image_and_callbacks(self, img, bbox_list, theta_list,
-                                   species_list, next_callback, prev_callback):
-        self.disconnect_mpl_callbacks(self.fig.canvas)
-        for poly in six.itervalues(self.polys):
-            poly.remove()
-        self.polys = {}
-        self.reinitialize_variables()
-        self.img = img
-        self.handle_matplotlib_initialization(fnum=self.fnum, instantiate_window=False)
-        self.handle_polygon_creation(bbox_list, theta_list, species_list)
-        self.add_action_buttons()
-        self.fig.canvas.draw()
-        self.connect_mpl_callbacks(self.fig.canvas)
-        self.update_callbacks(next_callback, prev_callback)
-        print('[interact_annot] drawing')
-        self.fig.canvas.draw()
-        self.update_UI()
-
-    def next_image(self, event):
-        if self.next_callback is not None:
-            self.next_callback()
-
-    def prev_image(self, event):
-        if self.prev_callback is not None:
-            self.prev_callback()
-
-    def on_resize(self, event):
-        #print(ut.dict_str(event.__dict__))
-        #self.fig.canvas.draw()
-        self.fig.canvas.draw()
-        #self.fig.canvas.update()
-        #self.fig.canvas.update()
-        plt.draw()
-
-    def show(self):
-        self.draw()
-        self.bring_to_front()
-
-    def draw(self):
-        self.fig.canvas.draw()
-
-    def bring_to_front(self):
-        df2.bring_to_front(self.fig)
-
-    def next_polynum(self):
-        num = self._autoinc_polynum
-        self._autoinc_polynum += 1
-        return num
-
-    def update_colors(self, poly_ind):
-        if poly_ind is None or poly_ind < 0:
-            print('[interact_annot] WARNING: poly_ind is %r in update_colors' % poly_ind)
-            return
-        for poly in six.itervalues(self.polys):
-            line = poly.lines
-            if line.get_color() != 'white':
-                line.set_color('white')
-        self.polys[poly_ind].lines.set_color(df2.ORANGE)
-        plt.draw()
-
-    def update_UI(self):
-        self._update_line()
-        self.fig.canvas.restore_region(self.background)
-        self.draw_artists()
-        self.fig.canvas.blit(self.fig.ax.bbox)
-
-    def draw_callback(self, event):
-        self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        self.draw_artists()
-
-    def draw_artists(self):
-        for poly in six.itervalues(self.polys):
-            self.fig.ax.draw_artist(poly)
-            self.fig.ax.draw_artist(poly.lines)
-            self.fig.ax.draw_artist(poly.handle)
-            if self.show_species_tags:
-                self.fig.ax.draw_artist(poly.species_tag)
-
-    def poly_changed(self, poly):
-        """ this method is called whenever the polygon object is called """
-        # only copy the artist props to the line (except visibility)
-        #num = poly.num
-        vis = poly.lines.get_visible()
-        vis = poly.handle.get_visible()
-        #Artist.update_from(poly.lines, poly)
-        poly.lines.set_visible(vis)
-        poly.handle.set_visible(vis)
-        #poly.lines.set_visible(vis)  # don't use the poly visibility state
-
-    def get_most_recently_added_poly(self):
-        if len(self.polys) == 0:
-            return (None, None)
-        else:
-            # most recently added polygon has the highest index
-            poly_ind = max(list(self.polys.keys()))
-            return poly_ind, self.polys[poly_ind]
-
-    def button_press_callback(self, event):
-        """
-        Called whenever a mouse button is pressed
-        """
-        print('[button_press_callback] key = %r' % (event.key))
-        if self._ind is not None:
-            self._ind = None
-            return
-        ignore = not self.showverts or event.inaxes is None
-        if ignore:
-            return
-
-        if event.button == 1:  # leftclick
-            if event.key == 'shift':
-                self._currently_selected_poly
-                self.currently_rotating_poly = self._currently_selected_poly
-            else:
-                for poly in six.itervalues(self.polys):
-                    near_line = is_within_distance_from_line(
-                        self.max_ds, (event.xdata, event.ydata),
-                        calc_handle_coords(poly))
-                    if near_line:
-                        self.currently_rotating_poly = poly
-                        break
-
-        if self._currently_selected_poly is None:
-            print('[interact_annot] WARNING: Polygon unknown. Using last placed poly.')
-            if len(self.polys) == 0:
-                print('[interact_annot] No polygons on screen')
-                return
-            else:
-                poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
-                self.update_colors(poly_ind)
-        polyind, self._ind = self.get_ind_under_cursor(event)
-
-        if self._ind is not None and polyind is not None:
-            self._currently_selected_poly = self.polys[polyind]
-            if self._currently_selected_poly is None:
-                return
-            self.indX, self.indY = self._currently_selected_poly.xy[self._ind]
-            self._polyHeld = True
-            self.update_colors(polyind)
-
-        self.mouseX, self.mouseY = event.xdata, event.ydata
-
-        if self._polyHeld is True or self._ind is not None:
-            self._currently_selected_poly.set_alpha(.2)
-            self.update_colors(self._currently_selected_poly.num)
-            #self._currently_selected_poly.set_facecolor('red')
-            #self._currently_selected_poly.lines.set_color('red')
-        if event.button == 1:  # left
-            self.leftbutton_is_down = True
-        self.canUncolor = False
-        self._update_line()
-        if self.background is not None:
-            self.fig.canvas.restore_region(self.background)
-        else:
-            print('[interact_annot] error: self.background is none. Trying refresh.')
-            self.fig.canvas.restore_region(self.background)
-            self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        for poly in six.itervalues(self.polys):
-            self.fig.ax.draw_artist(poly)
-            self.fig.ax.draw_artist(poly.lines)
-            self.fig.ax.draw_artist(poly.handle)
-
-        self.fig.canvas.blit(self.fig.ax.bbox)
-
-    def button_release_callback(self, event):
-        """
-        Called whenever a mouse button is released
-        """
-        # CONTEXT MENU
-        #if True:
-        if False and event.button == RIGHT_CLICK:
-            import guitool
-            height = self.fig.canvas.geometry().height()
-            qpoint = guitool.newQPoint(event.x, height - event.y)
-            callback_list = [
-                ('Foo: ',  functools.partial(print, 'bar'))
-            ]
-            qwin = self.fig.canvas
-            guitool.popup_menu(qwin, qpoint, callback_list)
-
-        if self._polyHeld is True:
-            self._polyHeld = False
-
-        self.currently_rotating_poly = None
-
-        ignore = not self.showverts or self._currently_selected_poly is None
-        if ignore:
-            return
-        if (self._ind is None) or self._polyHeld is False or \
-           (self._ind is not None and self.leftbutton_is_down is True) and \
-           self._currently_selected_poly is not None and self.canUncolor is True:
-            self._currently_selected_poly.set_alpha(0)
-            #self._currently_selected_poly.set_facecolor('white')
-
-        self.update_UI()
-        if event.button == 1:  # left
-            self.leftbutton_is_down = False
-
-        if self._ind is None:
-            return
-        if self._currently_selected_poly is None:
-            print('[interact_annot] WARNING: Polygon unknown. Using default. (2)')
-            if len(self.polys) == 0:
-                print('[interact_annot] No polygons on screen')
-                return
-            else:
-                poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
-        currX, currY = self._currently_selected_poly.xy[self._ind]
-
-        if self.indX and self.indY:
-            if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
-                return
-
-        if ((self._ind is None) or
-           (self._polyHeld is False) or
-           (self._ind is not None and self.leftbutton_is_down is True) and
-           self._currently_selected_poly is not None):
-            #self._currently_selected_poly = None
-            #self.update_colors(None)
-            pass
-        self._ind = None
-        self._polyHeld = False
-
-        self.fig.canvas.draw()
-
-    def draw_new_poly(self, event=None, full=False):
-        if full:
-            (h, w) = self.img.shape[0:2]
-            x1 = 1
-            y1 = 1
-            x2 = w - 1
-            y2 = h - 1
-            coords = ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
-        else:
-            if self._currently_selected_poly is not None:
-                defaultshape_polys = {self._currently_selected_poly.num:
-                                      self._currently_selected_poly}
-            else:
-                defaultshape_polys = self.polys
-            coords = default_vertices(self.img, defaultshape_polys, self.mouseX, self.mouseY)
-
-        poly = self.new_polygon(coords, 0, self.species_tag)
-
-        #<hack reason="brittle resizing algorithm that doesn't work unless the
-        #points are in the right order, see resize_rectangle">
-        poly.basecoords = bbox_to_verts(basecoords_to_bbox(poly.basecoords))
-        set_display_coords(poly)
-        #</hack>
-
-        self.polys[poly.num] = poly
-        self.fig.ax.add_patch(poly)
-        self._update_line()
-
-        self.fig.ax.add_line(poly.lines)
-        self.fig.ax.add_line(poly.handle)
-
-        poly.add_callback(self.poly_changed)
-        self._ind = None  # the active vert
-        poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
-        assert poly_ind == poly.num, 'ind %r, num %r' % (poly_ind, poly.num)
-        self.update_colors(poly_ind)
-        plt.draw()
-
-    def delete_current_poly(self, event=None):
-        if self._currently_selected_poly is None:
-            print('[interact_annot] No polygon selected to delete')
-            return
-        poly = self._currently_selected_poly
-        lineNumber = poly.num
-        ###print('poly list: ', len(self.poly_list), 'list size ',
-        #len(self.line), 'index of poly ', lineNumber)
-
-        #line deletion
-        print('[interact_annot] length: ', len(self.polys), 'number: ', lineNumber)
-        #self.theta_list[lineNumber] = None
-        #self.line[lineNumber] = None
-        #poly deletion
-        self.polys.pop(lineNumber)
-        #self.poly_list.remove(poly)
-        #remove the poly from the figure itself
-        poly.remove()
-        #reset anything that has to do with current poly
-        poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
-        self._polyHeld = False
-        if poly_ind is not None:
-            self.update_colors(poly_ind)
-        plt.draw()
-
-    def load_points(self):
-        return [poly.xy for poly in six.itervalues(self.polys)]
-
-    def toggle_species_label(self):
-        print('[interact_annot] toggle_species_label()')
-        self.show_species_tags = not self.show_species_tags
-        self.update_UI()
-
-    def key_press_callback(self, event):
-        """
-        Callback whenever a key is pressed
-        """
-        if ut.VERBOSE or True:
-            print('[interact_annot] key_press_callback')
-            print('[interact_annot] Got key: %r' % event.key)
-        if not event.inaxes:
-            return
-
-        def handle_control_command(keychar):
-            print('[interact_annot] got hotkey=%r' % (keychar,))
-
-        def handle_label_typing(keychar):
-            if self._currently_selected_poly:
-                #text = self._currently_selected_poly.species_tag.get_text()
-                self._currently_selected_poly.tctext += keychar
-                # TODO: Something better like greying out the tab suggestion
-                # instead of just deleting it
-                self._currently_selected_poly.species_tag.set_text(
-                    self._currently_selected_poly.tctext)
-                regen_tc()
-
-        def regen_tc():
-            # Setup tab completion
-            # Yes this will redo the tab completion list every time a user
-            # types. This should be improved if we move to having more species
-            self._currently_selected_poly.tab_list = [
-                spec
-                for spec in self.valid_species
-                if spec.startswith(self._currently_selected_poly.tctext)
-            ]
-            self._currently_selected_poly.tcindex = 0
-
-        # perfect use case for anaphoric if, or assignment in if statements (if python had either)
-        if event.key == ACCEPT_SAVE_HOTKEY:
-            self.accept_new_annotations(event)
-        elif event.key == ADD_RECTANGLE_HOTKEY:
-            self.draw_new_poly()
-        elif event.key == ADD_RECTANGLE_FULL_HOTKEY:
-            self.draw_new_poly(full=True)
-        elif event.key == DEL_RECTANGLE_HOTKEY:
-            self.delete_current_poly()
-        elif event.key == TOGGLE_LABEL_HOTKEY:
-            self.toggle_species_label()
-        elif event.key == 'ctrl+u':
-            self.load_points()
-        elif event.key == 'ctrl+p':
-            print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
-
-        # enter clears the species tag, workaround since matplotlib doesn't seem
-        # to trigger 'key_press_event's for backspace (which would be the
-        # preferred interface)
-        #match = re.match('^enter$', event.key)
-        #if match:
-        #    self._currently_selected_poly.species_tag.set_text('')
-        # FIXED, but leaving for posterity
-
-        match = re.match('^backspace$', event.key)
-        if match:
-            # We want backspace to operate on the tctext
-            #text = self._currently_selected_poly.species_tag.get_text()
-            self._currently_selected_poly.tctext = self._currently_selected_poly.tctext[:-1]
-            self._currently_selected_poly.species_tag.set_text(self._currently_selected_poly.tctext)
-            regen_tc()
-
-        match = re.match('^tab$', event.key)
-        if match:
-            if len(self._currently_selected_poly.tab_list) > 0:
-                tci = self._currently_selected_poly.tcindex
-                tci = tci + 1 if tci != len(self._currently_selected_poly.tab_list) - 1 else 0
-                self._currently_selected_poly.tcindex = tci
-                # All tab is going to do is go through the possibilities
-                self._currently_selected_poly.species_tag.set_text(
-                    self._currently_selected_poly.tab_list[
-                        self._currently_selected_poly.tcindex])
-        #TODO: Similar functionality for shift+tab to go backwards
-
-        if not HACK_OFF_SPECIES_TYPING:
-            match = re.match('^.$', event.key)
-            if match:
-                handle_label_typing(match.group(0))
-
-        # NEXT ANND PREV COMMAND
-        print('[interact_annot] Got key: %r' % event.key)
-        def matches_hotkey(key, hotkeys):
-            hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
-            #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
-            flags = [re.match(hk,  key) is not None for hk in hotkeys]
-            print(hotkeys)
-            print(flags)
-            return any(flags)
-
-        if matches_hotkey(event.key, PREV_IMAGE_HOTKEYS):
-            self.prev_image(event)
-        if matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
-            self.next_image(event)
-        self.fig.canvas.draw()
-
-    def motion_notify_callback(self, event):
-        """
-        CALLBACK FOR MOTION EVENTS
-        Called on mouse movement
-        """
-        #print('motion_notify_callback')
-        #ignore = (not self.showverts or event.inaxes is None)
-        ignore = (not self.showverts)
-        # uses boolean punning for terseness
-        lastX = self.mouseX or None
-        lastY = self.mouseY or None
-        if not (event.xdata is None or event.ydata is None):
-            self.mouseX, self.mouseY = event.xdata, event.ydata
-            #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX,
-            #self.mouseY, lastX, lastY))
-        else:
-            # Allow for getting coordinates outside the axes
-            ax = self.ax
-            self.mouseX, self.mouseY = ax.transAxes.inverted().transform([event.x, event.y])
-            self.mouseX, self.mouseY = ax.transData.inverted().transform([event.x, event.y])
-        deltaX = lastX is not None and self.mouseX - lastX
-        deltaY = lastY is not None and self.mouseY - lastY
-
-        if ignore:
-            return
-        if self.leftbutton_is_down is True:
-            self.canUncolor = True
-
-        if self._polyHeld is True and self._ind is not None:
-            # Resize by dragging corner
-            self.resize_rectangle(self._currently_selected_poly, self.mouseX,
-                                  self.mouseY, self._ind)
-            self.update_UI()
-            return
-
-        elif self._polyHeld is True and event.button == SCALE_INPLACE_BUTTON:
-            # Resize by right click drag
-            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, 0)
-            self.update_UI()
-            return
-
-        if self.currently_rotating_poly:
-            poly = self.currently_rotating_poly
-            cx, cy = polygon_center(poly)
-            theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
-            dtheta = theta - poly.theta
-            self.rotate_rectangle(poly, dtheta)
-            self.update_UI()
-            return
-
-        if self._ind is None and event.button == 1:
-            # move all vertices
-            if self._polyHeld is True and not (deltaX is None or deltaY is None):
-                self.move_rectangle(self._currently_selected_poly, deltaX, deltaY)
-            self.update_UI()
-            self._ind = None
-            return
-
-    def onpick(self, event):
-        """ Makes selected polygon translucent """
-        #print('onpick')
-        self._currently_selected_poly = event.artist
-        #x, y = event.mouseevent.xdata, event.mouseevent.xdata
-        self._polyHeld = True
-
-    def mouse_enter(self, event):
-        #print('mouse_enter')
-        self._currently_selected_poly = event.artist
-        self._currently_selected_poly.set_alpha(.2)
-
-    def mouse_leave(self, event):
-        #print('mouse_leave')
-        self._currently_selected_poly.set_alpha(0)
-        self._currently_selected_poly = None
-
     def check_dims(self, coords, margin=0.5):
-        # Allow the bounding box to go off the image
-        # so orientations can be done correctly
-        #return True
+        """ checks if bounding box dims are ok """
         num_out = 0
         xlim = self.fig.ax.get_xlim()
         ylim = self.fig.ax.get_ylim()
@@ -984,11 +541,19 @@ class ANNOTATIONInteraction(object):
         if coords[1] > ylim[0] - margin:
             num_out += 1
             #coords[1] = ylim[0]
+        # Allow the bounding box to go off the image
+        # so orientations can be done correctly
+        #return num_out == 0
         return num_out <= 3
-        #return True
 
-    # ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield arbitrary polygons
+    def load_points(self):
+        return [poly.xy for poly in six.itervalues(self.polys)]
+
     def enforce_dims(self, coords, margin=0.5):
+        """
+        ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield
+        arbitrary polygons
+        """
         xlim = self.fig.ax.get_xlim()
         ylim = self.fig.ax.get_ylim()
         if coords[0] < xlim[0] + margin:
@@ -1015,24 +580,201 @@ class ANNOTATIONInteraction(object):
                 valid = False
         return valid
 
+    def _update_line(self):
+        """
+        save verts because polygon gets deleted when figure is closed
+        """
+        for poly in six.itervalues(self.polys):
+            self.last_vert_ind = len(poly.xy) - 1
+            poly.lines.set_data(list(zip(*poly.xy)))
+            poly.handle.set_data(list(zip(*calc_handle_coords(poly))))
+            pass
+
+    def get_ind_under_cursor(self, event):
+        """
+        get the index of the vertex under cursor if within max_ds tolerance
+        """
+        #print('[interact_annotion] enter get_ind_under_cursor')
+        def get_ind_and_dist(poly):
+            if poly is None:
+                return (None, -1)
+            xy = np.asarray(poly.xy)
+            xyt = poly.get_transform().transform(xy)
+            xt, yt = xyt[:, 0], xyt[:, 1]
+            d = np.sqrt((xt - event.x) ** 2 + (yt - event.y) ** 2)
+            indseq = np.nonzero(np.equal(d, np.amin(d)))[0]
+            ind = indseq[0]
+            mindist = d[ind]
+            if mindist >= self.max_ds:
+                ind = None
+                mindist = None
+            return (ind, mindist)
+        ind_dist_list = []
+        ind_dist_list = [
+            (polyind, get_ind_and_dist(poly))
+            for (polyind, poly) in six.iteritems(self.polys)]
+        min_dist = None
+        min_ind  = None
+        sel_polyind = None
+        for polyind, (ind, dist) in ind_dist_list:
+            if ind is None:
+                continue
+            if min_dist is None:
+                min_dist = dist
+                min_ind = ind
+                sel_polyind = polyind
+            elif dist < min_dist:
+                min_dist = dist
+                min_ind = ind
+                sel_polyind = polyind
+        return (sel_polyind, min_ind)
+
+    def new_polygon(self, verts, theta, species,
+                    face_color=(0, 0, 0),
+                    line_color=(1, 1, 1),
+                    line_width=4,
+                    is_orig=False):
+        """ verts - list of (x, y) tuples """
+        # create new polygon from verts
+        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0,
+                       picker=True)
+        # register this polygon
+        poly.num = self.next_polynum()
+        poly.status = 'orig' if is_orig else 'new'
+        poly.theta = theta
+        poly.basecoords = poly.xy
+        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+        poly.lines = self.make_lines(poly, line_color, line_width)
+        poly.handle = make_handle_line(poly)
+        tagpos = calc_tag_position(poly)
+        poly.species_tag = self.fig.ax.text(
+            tagpos[0], tagpos[1], species,
+            bbox={'facecolor': 'white', 'alpha': 1})
+        poly.species_tag.remove()  # eliminate "leftover" copies
+        # put in previous text and tabcomplete list for autocompletion
+        poly.tctext = ''
+        poly.tab_list = self.valid_species
+        poly.tcindex = 0
+        return poly
+
+    def make_lines(self, poly, line_color, line_width):
+        """ verts - list of (x, y) tuples """
+        _xs, _ys = list(zip(*poly.xy))
+        color = np.array(line_color)
+        marker_face_color = line_color
+        line_kwargs = {'lw': line_width, 'color': color,
+                       'mfc': marker_face_color}
+        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1,
+                           animated=True, **line_kwargs)
+        return lines
+
+    def get_mask(self, shape):
+        """Return image mask given by mask creator"""
+        mask_list = [verts_to_mask(shape, poly.xy)
+                     for poly in six.itervalues(self.polys)]
+        if len(mask_list) == 0:
+            print('[interact_annot] No polygons to make mask out of')
+            return 0
+        mask = mask_list[0]
+        for mask_ in mask_list:
+            mask = np.maximum(mask, mask_)
+        return mask
+
+    def get_most_recently_added_poly(self):
+        if len(self.polys) == 0:
+            return (None, None)
+        else:
+            # most recently added polygon has the highest index
+            poly_ind = max(list(self.polys.keys()))
+            return poly_ind, self.polys[poly_ind]
+
+    # --- Actions
+
+    def delete_current_poly(self, event=None):
+        """ Removes an annotation """
+        if self._currently_selected_poly is None:
+            print('[interact_annot] No polygon selected to delete')
+            return
+        poly = self._currently_selected_poly
+        lineNumber = poly.num
+        #line deletion
+        print('[interact_annot] length: ', len(self.polys), 'number: ',
+              lineNumber)
+        #poly deletion
+        self.polys.pop(lineNumber)
+        #self.poly_list.remove(poly)
+        #remove the poly from the figure itself
+        poly.remove()
+        #reset anything that has to do with current poly
+        _tup = self.get_most_recently_added_poly()
+        poly_ind, self._currently_selected_poly = _tup
+        self._polyHeld = False
+        if poly_ind is not None:
+            self.update_colors(poly_ind)
+        plt.draw()
+
+    def draw_new_poly(self, event=None, full=False):
+        """ Adds a new annotation to the image """
+        if full:
+            (h, w) = self.img.shape[0:2]
+            x1 = 1
+            y1 = 1
+            x2 = w - 1
+            y2 = h - 1
+            coords = ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
+        else:
+            if self._currently_selected_poly is not None:
+                defaultshape_polys = {
+                    self._currently_selected_poly.num:
+                    self._currently_selected_poly
+                }
+            else:
+                defaultshape_polys = self.polys
+            coords = default_vertices(self.img, defaultshape_polys,
+                                      self.mouseX, self.mouseY)
+
+        poly = self.new_polygon(coords, 0, self.species_tag)
+        #<hack reason="brittle resizing algorithm that doesn't work unless the
+        #points are in the right order, see resize_rectangle">
+        bbox = basecoords_to_bbox(poly.basecoords)
+        poly.basecoords = bbox_to_verts(bbox)
+        set_display_coords(poly)
+        #</hack>
+
+        self.polys[poly.num] = poly
+        self.fig.ax.add_patch(poly)
+        self._update_line()
+
+        self.fig.ax.add_line(poly.lines)
+        self.fig.ax.add_line(poly.handle)
+
+        poly.add_callback(self.poly_changed)
+        self._ind = None  # the active vert
+        _tup = self.get_most_recently_added_poly()
+        poly_ind, self._currently_selected_poly = _tup
+        assert poly_ind == poly.num, 'ind %r, num %r' % (poly_ind, poly.num)
+        self.update_colors(poly_ind)
+        plt.draw()
+
     def rotate_rectangle(self, poly, dtheta):
-        #print('rotate_rectangle')
-        if self.check_valid_coords(calc_display_coords(poly.basecoords, poly.theta + dtheta)):
+        coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
+        if self.check_valid_coords(coords_lis):
             poly.theta += dtheta
             set_display_coords(poly)
 
     def move_rectangle(self, poly, dx, dy):
-        #print('move_rectangle')
         new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
-        if self.check_valid_coords(calc_display_coords(new_coords, poly.theta)):
+        coords_list = calc_display_coords(new_coords, poly.theta)
+        if self.check_valid_coords(coords_list):
             poly.basecoords = new_coords
             set_display_coords(poly)
 
     def resize_rectangle(self, poly, x, y, idx):
+        """
+        Resize a rectangle using idx as the given anchor point
+        """
         #print('resize_rectangle')
-        #idx = self._ind
         # TODO: allow resize by middle click to scale from the center
-
         if poly is None:
             return
 
@@ -1058,8 +800,6 @@ class ANNOTATIONInteraction(object):
         # the minus one is because the last coordinate is duplicated (by
         # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
-        #tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
-        #tmpcoords = list(poly.basecoords[:-1])
         def wrapIndex(i):
             return (i % len(tmpcoords))
 
@@ -1070,8 +810,8 @@ class ANNOTATIONInteraction(object):
         tmpcoords = poly.xy[:-1]
 
         # this algorithm worked the best of the ones I tried, but needs
-        # "experimentally determined constants" to work properly, since I failed
-        # to properly derive them in the allotted time
+        # "experimentally determined constants" to work properly, since I
+        # failed to properly derive them in the allotted time
         FUDGE_FACTORS = {0: -(TAU / 4),
                          1: 0,
                          2: (TAU / 4),
@@ -1084,10 +824,6 @@ class ANNOTATIONInteraction(object):
         theta_delta = math.atan2(dy, dx)
         poly_theta = poly.theta + FUDGE_FACTORS.get(idx, 0)
         theta_rot = theta_delta - (poly_theta + TAU / 4)
-        ##print('poly.theta %r' % rad2deg(poly.theta))
-        ##print('poly_theta %r' % rad2deg(poly_theta))
-        ##print('theta_delta %r' % rad2deg(theta_delta))
-        ##print('theta_rot %r' % rad2deg(theta_rot))
         rotx = mag_delta * math.cos(theta_rot)
         roty = mag_delta * math.sin(theta_rot)
         polar_idx2prev[0] -= rotx
@@ -1095,8 +831,10 @@ class ANNOTATIONInteraction(object):
         tmpcoords[previdx] = apply_polarDelta(polar_idx2prev, tmpcoords[idx])
         tmpcoords[nextidx] = apply_polarDelta(polar_idx2next, tmpcoords[idx])
 
-        # rotate the points by -theta to get the "unrotated" points for use as basecoords
-        tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
+        # rotate the points by -theta to get the "unrotated" points for use as
+        # basecoords
+        tmpcoords = rotate_points_around(tmpcoords, -poly.theta,
+                                         *polygon_center(poly))
         # ensure the poly is closed, matplotlib might do this, but I'm not sure
         # if it preserves the ordering we depend on, even if it does add the
         # point
@@ -1117,111 +855,47 @@ class ANNOTATIONInteraction(object):
             0----3
             """
             # the seperate 1 and 2 variables are not strictly necessary, but
-            # provide a sanity check to ensure that we're dealing with the right
+            # provide a sanity check to ensure that we're dealing with the
+            # right
             # shape
             width1 = coords[3][0] - coords[0][0]
             width2 = coords[2][0] - coords[1][0]
-            assert within_epsilon(width1, width2), 'w1: %r, w2: %r' % (width1, width2)
+            assert within_epsilon(width1, width2), (
+                'w1: %r, w2: %r' % (width1, width2))
             height1 = coords[0][1] - coords[1][1]
             height2 = coords[3][1] - coords[2][1]
-            assert within_epsilon(height1, height2), 'h1: %r, h2: %r' % (height1, height2)
+            assert within_epsilon(height1, height2), (
+                'h1: %r, h2: %r' % (height1, height2))
             #print('w, h = (%r, %r)' % (width1, height1))
             return (MIN_W < width1) and (MIN_H < height1)
 
-        if (self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and
+        dispcoords = calc_display_coords(tmpcoords, poly.theta)
+
+        if (self.check_valid_coords(dispcoords) and
              meets_minimum_width_and_height(tmpcoords)):
             poly.basecoords = tmpcoords
 
         set_display_coords(poly)
 
-    def _update_line(self):
-        # save verts because polygon gets deleted when figure is closed
-        for poly in six.itervalues(self.polys):
-            self.last_vert_ind = len(poly.xy) - 1
-            poly.lines.set_data(list(zip(*poly.xy)))
-            poly.handle.set_data(list(zip(*calc_handle_coords(poly))))
-            pass
+    def toggle_species_label(self):
+        print('[interact_annot] toggle_species_label()')
+        self.show_species_tags = not self.show_species_tags
+        self.update_UI()
 
-    def get_ind_under_cursor(self, event):
-        """ get the index of the vertex under cursor if within max_ds tolerance
-        """
-        #print('[interact_annotion] enter get_ind_under_cursor')
-        def get_ind_and_dist(poly):
-            if poly is None:
-                return (None, -1)
-            xy = np.asarray(poly.xy)
-            xyt = poly.get_transform().transform(xy)
-            xt, yt = xyt[:, 0], xyt[:, 1]
-            d = np.sqrt((xt - event.x) ** 2 + (yt - event.y) ** 2)
-            indseq = np.nonzero(np.equal(d, np.amin(d)))[0]
-            ind = indseq[0]
-            mindist = d[ind]
-            if mindist >= self.max_ds:
-                ind = None
-                mindist = None
-            return (ind, mindist)
-        ind_dist_list = []
-        #for poly in self.poly_list:
-        #    if poly is not None:
-        #        ind_dist_list.append(get_ind_and_dist(poly))
-        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly)
-                         in six.iteritems(self.polys)]
-        min_dist = None
-        min_ind  = None
-        sel_polyind = None
-        for polyind, (ind, dist) in ind_dist_list:
-            if ind is None:
-                continue
-            if min_dist is None:
-                min_dist = dist
-                min_ind = ind
-                sel_polyind = polyind
-            elif dist < min_dist:
-                min_dist = dist
-                min_ind = ind
-                sel_polyind = polyind
-        #print('[interact_annotion] exit get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
-        return (sel_polyind, min_ind)
+    def next_image(self, event):
+        if self.next_callback is not None:
+            self.next_callback()
 
-    def new_polygon(self, verts, theta, species,
-                    face_color=(0, 0, 0),
-                    line_color=(1, 1, 1),
-                    line_width=4,
-                    is_orig=False):
-        """ verts - list of (x, y) tuples """
-        # create new polygon from verts
-        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
-        # register this polygon
-        poly.num = self.next_polynum()
-        poly.status = 'orig' if is_orig else 'new'
-        poly.theta = theta
-        poly.basecoords = poly.xy
-        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-        poly.lines = self.make_lines(poly, line_color, line_width)
-        poly.handle = make_handle_line(poly)
-        tagpos = calc_tag_position(poly)
-        poly.species_tag = self.fig.ax.text(
-            tagpos[0], tagpos[1], species,
-            bbox={'facecolor': 'white', 'alpha': 1})
-        poly.species_tag.remove()  # eliminate "leftover" copies
-        # put in previous text and tabcomplete list for autocompletion
-        poly.tctext = ''
-        poly.tab_list = self.valid_species
-        poly.tcindex = 0
-        return poly
-
-    def make_lines(self, poly, line_color, line_width):
-        """ verts - list of (x, y) tuples """
-        _xs, _ys = list(zip(*poly.xy))
-        color = np.array(line_color)
-        marker_face_color = line_color
-        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
-        #print('[interact_annot] make_lines: linetype = %r' % type(lines))
-        return lines
+    def prev_image(self, event):
+        if self.prev_callback is not None:
+            self.prev_callback()
 
     def accept_new_annotations(self, event, do_close=True):
-        """write a callback to redraw viz for bbox_list"""
+        """
+        The Save and Exit Button
+
+        write a callback to redraw viz for bbox_list
+        """
         print('[interact_annot] Pressed Accept Button')
 
         def get_annottup_list():
@@ -1240,13 +914,11 @@ class ANNOTATIONInteraction(object):
             return indices_list, annottup_list
 
         def send_back_annotations():
-            #point_list = self.load_points()
-            #theta_list = self.theta_list
-            #new_bboxes = verts_to_bbox(point_list)
             print('[interact_annot] send_back_annotations')
             indices_list, annottup_list = get_annottup_list()
             # Delete if index is in original_indices but no in indices_list
-            deleted_indices   = list(set(self.original_indices) - set(indices_list))
+            deleted_indices   = list(set(self.original_indices) -
+                                     set(indices_list))
             changed_indices   = []
             unchanged_indices = []  # sanity check
             changed_annottups = []
@@ -1293,19 +965,375 @@ class ANNOTATIONInteraction(object):
         print('[interact_annot] Accept Over')
         if do_close:
             df2.close_figure(self.fig)
-        #plt.close(self.fnum)
-        #plt.draw()
 
-    def get_mask(self, shape):
-        """Return image mask given by mask creator"""
-        mask_list = [verts_to_mask(shape, poly.xy) for poly in six.itervalues(self.polys)]
-        if len(mask_list) == 0:
-            print('[interact_annot] No polygons to make mask out of')
-            return 0
-        mask = mask_list[0]
-        for mask_ in mask_list:
-            mask = np.maximum(mask, mask_)
-        return mask
+    # --- Connected Slots and Callbacks
+
+    def on_close(self, event=None):
+        # TODO rectifify with abstract interaction
+        # Hack: fake unregistration. does not inherit propertly
+        abstract_interaction.unregister_interaction(self)
+
+    def show(self):
+        self.draw()
+        self.bring_to_front()
+
+    def draw(self):
+        self.fig.canvas.draw()
+
+    def bring_to_front(self):
+        df2.bring_to_front(self.fig)
+
+    def next_polynum(self):
+        num = self._autoinc_polynum
+        self._autoinc_polynum += 1
+        return num
+
+    def draw_callback(self, event):
+        self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
+        self.draw_artists()
+
+    def draw_artists(self):
+        for poly in six.itervalues(self.polys):
+            self.fig.ax.draw_artist(poly)
+            self.fig.ax.draw_artist(poly.lines)
+            self.fig.ax.draw_artist(poly.handle)
+            if self.show_species_tags:
+                self.fig.ax.draw_artist(poly.species_tag)
+
+    def button_press_callback(self, event):
+        """
+        Called whenever a mouse button is pressed
+        """
+        print('[button_press_callback] key = %r' % (event.key))
+        if self._ind is not None:
+            self._ind = None
+            return
+        ignore = not self.showverts or event.inaxes is None
+        if ignore:
+            return
+
+        if event.button == 1:  # leftclick
+            if event.key == 'shift':
+                self._currently_selected_poly
+                self.currently_rotating_poly = self._currently_selected_poly
+            else:
+                for poly in six.itervalues(self.polys):
+                    near_line = is_within_distance_from_line(
+                        self.max_ds, (event.xdata, event.ydata),
+                        calc_handle_coords(poly))
+                    if near_line:
+                        self.currently_rotating_poly = poly
+                        break
+
+        if self._currently_selected_poly is None:
+            print('[interact_annot] WARNING: Polygon unknown.'
+                  ' Using last placed poly.')
+            if len(self.polys) == 0:
+                print('[interact_annot] No polygons on screen')
+                return
+            else:
+                poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
+                self.update_colors(poly_ind)
+        polyind, self._ind = self.get_ind_under_cursor(event)
+
+        if self._ind is not None and polyind is not None:
+            self._currently_selected_poly = self.polys[polyind]
+            if self._currently_selected_poly is None:
+                return
+            self.indX, self.indY = self._currently_selected_poly.xy[self._ind]
+            self._polyHeld = True
+            self.update_colors(polyind)
+
+        self.mouseX, self.mouseY = event.xdata, event.ydata
+
+        if self._polyHeld is True or self._ind is not None:
+            self._currently_selected_poly.set_alpha(.2)
+            self.update_colors(self._currently_selected_poly.num)
+            #self._currently_selected_poly.set_facecolor('red')
+            #self._currently_selected_poly.lines.set_color('red')
+        if event.button == 1:  # left
+            self.leftbutton_is_down = True
+        self.canUncolor = False
+        self._update_line()
+        if self.background is not None:
+            self.fig.canvas.restore_region(self.background)
+        else:
+            print('[interact_annot] error: self.background is none.'
+                  ' Trying refresh.')
+            self.fig.canvas.restore_region(self.background)
+            self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
+        for poly in six.itervalues(self.polys):
+            self.fig.ax.draw_artist(poly)
+            self.fig.ax.draw_artist(poly.lines)
+            self.fig.ax.draw_artist(poly.handle)
+
+        self.fig.canvas.blit(self.fig.ax.bbox)
+
+    def button_release_callback(self, event):
+        """
+        Called whenever a mouse button is released
+        """
+        # CONTEXT MENU
+        #if True:
+        if False and event.button == RIGHT_CLICK:
+            import guitool
+            height = self.fig.canvas.geometry().height()
+            qpoint = guitool.newQPoint(event.x, height - event.y)
+            callback_list = [
+                ('Foo: ',  functools.partial(print, 'bar'))
+            ]
+            qwin = self.fig.canvas
+            guitool.popup_menu(qwin, qpoint, callback_list)
+
+        if self._polyHeld is True:
+            self._polyHeld = False
+
+        self.currently_rotating_poly = None
+
+        ignore = not self.showverts or self._currently_selected_poly is None
+        if ignore:
+            return
+
+        _flag = (
+            self._ind is None or
+            self._polyHeld is False or
+            (self._ind is not None and
+             self.leftbutton_is_down is True and
+             self._currently_selected_poly is not None and
+             self.canUncolor is True)
+        )
+        if _flag:
+            self._currently_selected_poly.set_alpha(0)
+            #self._currently_selected_poly.set_facecolor('white')
+
+        self.update_UI()
+        if event.button == 1:  # left
+            self.leftbutton_is_down = False
+
+        if self._ind is None:
+            return
+        if self._currently_selected_poly is None:
+            print('[interact_annot] WARNING: Polygon unknown.'
+                  ' Using default. (2)')
+            if len(self.polys) == 0:
+                print('[interact_annot] No polygons on screen')
+                return
+            else:
+                _tup = self.get_most_recently_added_poly()
+                poly_ind, self._currently_selected_poly = _tup
+        currX, currY = self._currently_selected_poly.xy[self._ind]
+
+        if self.indX and self.indY:
+            if (math.fabs(self.indX - currX) < 3 and
+                 math.fabs(self.indY - currY) < 3):
+                return
+
+        if ((self._ind is None) or
+           (self._polyHeld is False) or
+           (self._ind is not None and self.leftbutton_is_down is True) and
+           self._currently_selected_poly is not None):
+            #self._currently_selected_poly = None
+            #self.update_colors(None)
+            pass
+        self._ind = None
+        self._polyHeld = False
+
+        self.fig.canvas.draw()
+
+    def key_press_callback(self, event):
+        """
+        Callback whenever a key is pressed
+        """
+        if ut.VERBOSE or True:
+            print('[interact_annot] key_press_callback')
+            print('[interact_annot] Got key: %r' % event.key)
+        if not event.inaxes:
+            return
+
+        def handle_control_command(keychar):
+            print('[interact_annot] got hotkey=%r' % (keychar,))
+
+        def handle_label_typing(keychar):
+            if self._currently_selected_poly:
+                #text = self._currently_selected_poly.species_tag.get_text()
+                self._currently_selected_poly.tctext += keychar
+                # TODO: Something better like greying out the tab suggestion
+                # instead of just deleting it
+                self._currently_selected_poly.species_tag.set_text(
+                    self._currently_selected_poly.tctext)
+                regen_tc()
+
+        def regen_tc():
+            # Setup tab completion
+            # Yes this will redo the tab completion list every time a user
+            # types. This should be improved if we move to having more species
+            self._currently_selected_poly.tab_list = [
+                spec
+                for spec in self.valid_species
+                if spec.startswith(self._currently_selected_poly.tctext)
+            ]
+            self._currently_selected_poly.tcindex = 0
+
+        # perfect use case for anaphoric if, or assignment in if statements (if
+        # python had either)
+        if event.key == ACCEPT_SAVE_HOTKEY:
+            self.accept_new_annotations(event)
+        elif event.key == ADD_RECTANGLE_HOTKEY:
+            self.draw_new_poly()
+        elif event.key == ADD_RECTANGLE_FULL_HOTKEY:
+            self.draw_new_poly(full=True)
+        elif event.key == DEL_RECTANGLE_HOTKEY:
+            self.delete_current_poly()
+        elif event.key == TOGGLE_LABEL_HOTKEY:
+            self.toggle_species_label()
+        elif event.key == 'ctrl+u':
+            self.load_points()
+        elif event.key == 'ctrl+p':
+            print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
+
+        # enter clears the species tag, workaround since matplotlib doesn't
+        # seem to trigger 'key_press_event's for backspace (which would be the
+        # preferred interface)
+        #match = re.match('^enter$', event.key)
+        #if match:
+        #    self._currently_selected_poly.species_tag.set_text('')
+        # FIXED, but leaving for posterity
+
+        match = re.match('^backspace$', event.key)
+        if match:
+            # We want backspace to operate on the tctext
+            #text = self._currently_selected_poly.species_tag.get_text()
+            self._currently_selected_poly.tctext = self._currently_selected_poly.tctext[:-1]
+            self._currently_selected_poly.species_tag.set_text(
+                self._currently_selected_poly.tctext)
+            regen_tc()
+
+        match = re.match('^tab$', event.key)
+        if match:
+            if len(self._currently_selected_poly.tab_list) > 0:
+                tci = self._currently_selected_poly.tcindex
+                tci = (
+                    tci + 1
+                    if tci != len(self._currently_selected_poly.tab_list) - 1
+                    else 0)
+                self._currently_selected_poly.tcindex = tci
+                # All tab is going to do is go through the possibilities
+                self._currently_selected_poly.species_tag.set_text(
+                    self._currently_selected_poly.tab_list[
+                        self._currently_selected_poly.tcindex])
+        #TODO: Similar functionality for shift+tab to go backwards
+
+        if not HACK_OFF_SPECIES_TYPING:
+            match = re.match('^.$', event.key)
+            if match:
+                handle_label_typing(match.group(0))
+
+        # NEXT ANND PREV COMMAND
+        print('[interact_annot] Got key: %r' % event.key)
+        def matches_hotkey(key, hotkeys):
+            hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+            #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
+            flags = [re.match(hk,  key) is not None for hk in hotkeys]
+            print(hotkeys)
+            print(flags)
+            return any(flags)
+
+        if matches_hotkey(event.key, PREV_IMAGE_HOTKEYS):
+            self.prev_image(event)
+        if matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
+            self.next_image(event)
+        self.fig.canvas.draw()
+
+    def motion_notify_callback(self, event):
+        """
+        CALLBACK FOR MOTION EVENTS
+        Called on mouse movement
+        """
+        #print('motion_notify_callback')
+        #ignore = (not self.showverts or event.inaxes is None)
+        ignore = (not self.showverts)
+        # uses boolean punning for terseness
+        lastX = self.mouseX or None
+        lastY = self.mouseY or None
+        if not (event.xdata is None or event.ydata is None):
+            self.mouseX, self.mouseY = event.xdata, event.ydata
+            #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX,
+            #self.mouseY, lastX, lastY))
+        else:
+            # Allow for getting coordinates outside the axes
+            ax = self.ax
+            self.mouseX, self.mouseY = ax.transAxes.inverted().transform(
+                [event.x, event.y])
+            self.mouseX, self.mouseY = ax.transData.inverted().transform(
+                [event.x, event.y])
+        deltaX = lastX is not None and self.mouseX - lastX
+        deltaY = lastY is not None and self.mouseY - lastY
+
+        if ignore:
+            return
+
+        if self.leftbutton_is_down is True:
+            self.canUncolor = True
+
+        if self._polyHeld is True and self._ind is not None:
+            # Resize by dragging corner
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX,
+                                  self.mouseY, self._ind)
+            self.update_UI()
+            return
+
+        elif self._polyHeld is True and event.button == SCALE_INPLACE_BUTTON:
+            # Resize by right click drag
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX,
+                                  self.mouseY, 0)
+            self.update_UI()
+            return
+
+        if self.currently_rotating_poly:
+            poly = self.currently_rotating_poly
+            cx, cy = polygon_center(poly)
+            theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
+            dtheta = theta - poly.theta
+            self.rotate_rectangle(poly, dtheta)
+            self.update_UI()
+            return
+
+        if self._ind is None and event.button == 1:
+            # move all vertices
+            if (self._polyHeld is True and
+                 not (deltaX is None or deltaY is None)):
+                self.move_rectangle(self._currently_selected_poly, deltaX,
+                                    deltaY)
+            self.update_UI()
+            self._ind = None
+            return
+
+    def mouse_enter(self, event):
+        self._currently_selected_poly = event.artist
+        self._currently_selected_poly.set_alpha(.2)
+
+    def mouse_leave(self, event):
+        self._currently_selected_poly.set_alpha(0)
+        self._currently_selected_poly = None
+
+    def onpick(self, event):
+        """ Makes selected polygon translucent """
+        #print('onpick')
+        self._currently_selected_poly = event.artist
+        #x, y = event.mouseevent.xdata, event.mouseevent.xdata
+        self._polyHeld = True
+
+    def poly_changed(self, poly):
+        """ this method is called whenever the polygon object is called """
+        # only copy the artist props to the line (except visibility)
+        vis = poly.lines.get_visible()
+        vis = poly.handle.get_visible()
+        poly.lines.set_visible(vis)
+        poly.handle.set_visible(vis)
+
+    def on_resize(self, event):
+        self.fig.canvas.draw()
+        plt.draw()
 
 
 def default_vertices(img, polys=None, mouseX=None, mouseY=None):
@@ -1321,8 +1349,8 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
 
     if polys is not None and len(polys) > 0:
         # Use the largest polygon size as the default verts
-        wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
-                            six.itervalues(polys)])
+        wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4]
+                            for poly in six.itervalues(polys)])
         w_, h_ = wh_list.max(axis=0) // 2
     else:
         # If no poly exists use 1/4 of the image size
@@ -1336,17 +1364,6 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     x2 = min(x2, w - 1)
     y2 = min(y2, h - 1)
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
-
-
-# def update_lists(self, img_ind, new_verts_list, new_thetas_list, new_indices_list):
-#         """for each image: know if any bboxes changed, if any have been
-#         deleted, know if any new bboxes
-#         pass all of this information to a function callback, so Jon can use the information"""
-#         print("[interact_annot] before: ",self.aids_list[img_ind])
-#         self.aids_list[img_ind] = new_aids
-#         print("[interact_annot] after: ", self.aids_list[img_ind])
-
-#         """add function call for redrawing the ANNOTATIONs"""
 
 
 def test_interact_annots():
@@ -1369,14 +1386,6 @@ def test_interact_annots():
                   ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
     print('[interact_annot] *** START DEMO ***')
 
-    #if verts_list is None:
-    #    verts_list = [default_vertices(img)]
-    # else:
-    #     for verts in verts_list:
-    #         if (len(verts) is not 5):
-    #             print("verts list is not of correct length. ", len(verts))
-    #             return
-
     #if img is None:
     try:
         img_url = 'http://i.imgur.com/Vq9CLok.jpg'
@@ -1387,7 +1396,6 @@ def test_interact_annots():
     except Exception as ex:
         print('[interact_annot] cant read zebra: %r' % ex)
         img = np.random.uniform(0, 255, size=(100, 100))
-    #test_bbox = verts_to_bbox(verts_list)
     self = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     #

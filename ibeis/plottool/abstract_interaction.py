@@ -118,15 +118,18 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
-        fig = ih.begin_interaction(self.interaction_name, self.fnum)
+        self.fig = ih.begin_interaction(self.interaction_name, self.fnum)
         if hasattr(self, 'plot'):
             self.plot(self.fnum, (1, 1, 1))
         else:
             self.static_plot(self.fnum, (1, 1, 1))
-        ih.connect_callback(fig, 'button_press_event', self.on_click)
-        ih.connect_callback(fig, 'button_release_event', self.on_click_release)
-        ih.connect_callback(fig, 'key_press_event', self.on_key_press)
-        ih.connect_callback(fig, 'motion_notify_event', self.on_motion)
+        self.connect_callbacks()
+
+    def connect_callbacks(self):
+        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
+        ih.connect_callback(self.fig, 'button_release_event', self.on_click_release)
+        ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
+        ih.connect_callback(self.fig, 'motion_notify_event', self.on_motion)
 
     def bring_to_front(self):
         fig_presenter.bring_to_front(self.fig)
