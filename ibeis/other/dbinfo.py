@@ -265,7 +265,10 @@ def get_dbinfo(ibs, verbose=True,
                  ( 'min', wh_list.min(0)),
                  ('mean', wh_list.mean(0)),
                  ( 'std', wh_list.std(0))])
-            arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
+            def arr2str(var):
+                return ('[' + (
+                    ', '.join(list(map(lambda x: '%.1f' % x, var)))
+                ) + ']')
             ret = (',\n    '.join([
                 '%s:%s' % (key, arr2str(val))
                 for key, val in stat_dict.items()

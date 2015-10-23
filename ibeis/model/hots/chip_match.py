@@ -1102,6 +1102,46 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         kwshow.update(kwargs)
         return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
 
+    def ishow_matches(cm, ibs, aid2, *args, **kwargs):
+        kwargs['aid2'] = aid2
+        #DEPRICQATE
+        return cm.ishow_match(*args, **kwargs)
+
+    def ishow_match(cm, qreq_, aid2=None, **kwargs):
+        r"""
+        Iteract with a match to an individual annotation (or maybe name?)
+
+        Args:
+            qreq_ (QueryRequest):  query request object with hyper-parameters
+            aid2 (int):  annotation id(default = None)
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-ishow_match --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> aid2 = None
+            >>> result = cm.ishow_match(qreq_, aid2)
+            >>> print(result)
+            >>> ut.show_if_requested()
+        """
+        from ibeis.model.hots import pipeline
+        # hack: just make chipmatch the primary result type
+        qres = pipeline.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        kwshow = {
+            'mode': 1,
+        }
+        kwshow.update(**kwargs)
+        #kwshow.update(kwargs)
+        if aid2 is None:
+            aid2 = cm.get_top_aids(ntop=1)[0]
+        return qres.ishow_matches(qreq_.ibs, aid2, qreq_=qreq_, **kwshow)
+        #return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
+
     def qt_inspect_gui(cm, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
         r"""
         Args:

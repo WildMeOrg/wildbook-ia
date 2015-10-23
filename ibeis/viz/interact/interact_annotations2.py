@@ -77,14 +77,16 @@ class ANNOTATION_Interaction2(object):
         if dodraw:
             pt.update()
 
-    def commit_callback(self, unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups):
+    def commit_callback(self, unchanged_indices, deleted_indices,
+                        changed_indices, changed_annottups, new_annottups):
         """
         TODO: Rename to commit_callback
         Callback from interact_annotations to ibs for when data is modified
         """
         print('[interact_annot2] enter commit_callback')
         print('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
-              (len(unchanged_indices), len(deleted_indices), len(changed_indices), len(new_annottups)))
+              (len(unchanged_indices), len(deleted_indices),
+               len(changed_indices), len(new_annottups)))
         rows_updated = False
         # Delete annotations
         if len(deleted_indices) > 0:
@@ -107,7 +109,8 @@ class ANNOTATION_Interaction2(object):
         # Add annotations
         if len(new_annottups) > 0:
             #print("species_list in annotation_interaction2: %r" % list(species_list))
-            #btslist_tup = list(zip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_annottups]))
+            #btslist_tup = list(zip(*[((x, y, w, h), t, s) for (x, y, w, h, t,
+            #s) in new_annottups]))
             #bbox_list, theta_list, species_list = btslist_tup
             # New list returns a list of tuples [(x, y, w, h, theta, species) ...]
             rows_updated = True
@@ -129,7 +132,7 @@ class ANNOTATION_Interaction2(object):
     def update_image_and_callbacks(self, gid, nextcb, prevcb, do_save=True):
         if do_save:
             # save the current changes when pressing next or previous
-            self.interact_ANNOTATIONS.accept_new_annotations(None, do_close=False)
+            self.interact_ANNOTATIONS.save_and_exit(None, do_close=False)
         if DESTROY_OLD_WINDOW:
             ANNOTATION_Interaction2.__init__(self, self.ibs, gid,
                                              next_callback=nextcb,

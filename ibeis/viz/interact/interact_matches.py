@@ -17,7 +17,7 @@ import utool as ut
 import numpy as np
 import plottool as pt
 import six
-import guitool
+#import guitool
 from plottool import draw_func2 as df2
 from plottool import viz_featrow
 from plottool import interact_helpers as ih
@@ -29,9 +29,13 @@ from ibeis.model.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
+from plottool import abstract_interaction  # TODO
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.viz.interact.interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_matches]', DEBUG=False)
+
+
+AbstractInteraction = abstract_interaction.AbstractInteraction
 
 
 def testdata_match_interact(**kwargs):
@@ -53,8 +57,12 @@ def testdata_match_interact(**kwargs):
                                            defaultdb='testdb1',
                                            cmdline_ok=True)
     qres = ibs.query_chips(qreq_=qreq_)[0]
+    cm = chip_match.ChipMatch2.from_qres(qres)
+    cm.score_nsum(qreq_)
+    cm.sortself()
     aid2 = None
-    self = MatchInteraction(ibs, qres, aid2, annot_mode=1, dodraw=False, **kwargs)
+    #self = MatchInteraction(ibs, qres, aid2, mode=1, dodraw=False, **kwargs)
+    self = MatchInteraction(ibs, cm, aid2, mode=1, dodraw=False, **kwargs)
     return self
 
 
@@ -86,7 +94,7 @@ class MatchInteraction(object):
         self.init_new(ibs, cm, *args, **kwargs)
 
     def init_new(self, ibs, cm, aid2=None, fnum=None,
-                 figtitle='Inspect Query Result',
+                 figtitle='Match Interaction',
                  same_fig=True, qreq_=None, **kwargs):
         r"""
         new init function for use with ChipMatch2 class
@@ -134,7 +142,7 @@ class MatchInteraction(object):
         # Begin Interaction
         self.fig = ih.begin_interaction('matches', self.fnum)  # call doclf docla and make figure
         self.xywh2_ptr  = [None]
-        self.annote_ptr = [kwargs.pop('mode', 0)]
+        self.mode = kwargs.pop('mode', 0)
         # New state vars
         self.same_fig = same_fig
         self.use_homog = False
@@ -144,6 +152,11 @@ class MatchInteraction(object):
         self.fnum2 = pt.next_fnum()
         self.figtitle = figtitle
         self.kwargs = kwargs
+
+        abstract_interaction.register_interaction(self)
+        ut.inject_func_as_method(self, AbstractInteraction.append_button.im_func)
+        ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
+        self.scope = []
 
     def begin(self, dodraw=True):
         r"""
@@ -170,30 +183,12 @@ class MatchInteraction(object):
 
     def set_callbacks(self):
         # TODO: view probchip
-        toggle_samefig_key = 'Toggle same_fig'
-        opt2_callback = [
-            (toggle_samefig_key, self.toggle_samefig),
-            ('Toggle vert', self.toggle_vert),
-            ('query last feature', self.query_last_feature),
-            ('show each chip', self.show_each_chip),
-            ('show each distinctiveness chip', self.show_each_dstncvs_chip),
-            ('show each foreground weight chip', self.show_each_fgweight_chip),
-            ('show each probchip', self.show_each_probchip),
-            ('show coverage', self.show_coverage),
-            #('show each probchip', self.query_last_feature),
-        ]
-        opt2_callback.append(('name_interaction', self.name_interaction))
-        if self.H1 is not None:
-            opt2_callback.append(('Toggle homog', self.toggle_homog))
-        if ut.is_developer():
-            opt2_callback.append(('dev_reload', self.dev_reload))
-            opt2_callback.append(('dev_embed', self.dev_embed))
-        opt2_callback.append(('cancel', lambda: print('cancel')))
-        guitool.connect_context_menu(self.fig.canvas, opt2_callback)
-        ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
+
+        #guitool.connect_context_menu(self.fig.canvas, options)
+        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
 
     # Callback
-    def _click_matches_click(self, event):
+    def on_click(self, event):
         aid       = self.daid
         fm        = self.fm
         qaid      = self.qaid
@@ -205,6 +200,37 @@ class MatchInteraction(object):
         button = event.button
         is_right_click = button == 3
         if is_right_click:
+            from ibeis.gui import inspect_gui
+
+            options = []
+
+            options += inspect_gui.get_aidpair_context_menu_options(
+                self.ibs, self.qaid, self.daid, self.qres,
+                qreq_=self.qreq_,
+                #update_callback=self.show_page,
+                #backend_callback=None, aid_list=aid_list)
+            )
+
+            options += [
+                ('Toggle same_fig', self.toggle_samefig),
+                ('Toggle vert', self.toggle_vert),
+                ('query last feature', self.query_last_feature),
+                ('show each chip', self.show_each_chip),
+                ('show each distinctiveness chip', self.show_each_dstncvs_chip),
+                ('show each foreground weight chip', self.show_each_fgweight_chip),
+                ('show each probchip', self.show_each_probchip),
+                ('show coverage', self.show_coverage),
+                #('show each probchip', self.query_last_feature),
+            ]
+
+            #options.append(('name_interaction', self.name_interaction))
+            if self.H1 is not None:
+                options.append(('Toggle homog', self.toggle_homog))
+            if ut.is_developer():
+                options.append(('dev_reload', self.dev_reload))
+                options.append(('dev_embed', self.dev_embed))
+            #options.append(('cancel', lambda: print('cancel')))
+            self.show_popup_menu(options, event)
             return
         (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
         # Out of axes click
@@ -271,13 +297,13 @@ class MatchInteraction(object):
         qaid     = self.qaid
         fnum     = self.fnum
         figtitle = self.figtitle
-        annote_ptr = self.annote_ptr
         xywh2_ptr  = self.xywh2_ptr
 
-        mode = annote_ptr[0]  # drawing mode draw: with/without lines/feats
+        # drawing mode draw: with/without lines/feats
+        mode = self.mode
         draw_ell = mode >= 1
         draw_lines = mode == 2
-        annote_ptr[0] = (annote_ptr[0] + 1) % 3
+        self.mode = (self.mode + 1) % 3
         df2.figure(fnum=fnum, docla=True, doclf=True)
         show_matches_kw = self.kwargs.copy()
         show_matches_kw.update(
@@ -336,7 +362,6 @@ class MatchInteraction(object):
         aid        = self.daid
         fnum       = self.fnum
         figtitle   = self.figtitle
-        annote_ptr = self.annote_ptr
         rchip1     = self.rchip1
         rchip2     = self.rchip2
         aid        = self.daid
@@ -348,14 +373,11 @@ class MatchInteraction(object):
         #print('qres.filtkey_list = %r' % (qres.filtkey_list,))
         #fsv = qres.aid2_fsv[aid]
         #fs  = qres.aid2_fs[aid]
-        fm  = self.fm
-        fsv = self.fsv
-        fk  = self.fk
-        fs  = self.fs
-        print('score stats:')
-        print(ut.get_stats_str(fsv, axis=0, newlines=True))
-        print('fsv[mx] = %r' % (fsv[mx],))
-        print('fs[mx] = %r' % (fs[mx],))
+        if False:
+            print('score stats:')
+            print(ut.get_stats_str(self.fsv, axis=0, newlines=True))
+            print('fsv[mx] = %r' % (self.fsv[mx],))
+            print('fs[mx] = %r' % (self.fs[mx],))
         """
         # test feature weights of actual chips
         fx1, fx2 = fm[mx]
@@ -365,11 +387,11 @@ class MatchInteraction(object):
         """
         #----------------------
         # Get info for the select_ith_match plot
-        annote_ptr[0] = 1
+        self.mode = 1
         # Get the mx-th feature match
-        fx1, fx2 = fm[mx]
-        fscore2  = fs[mx]
-        fk2      = fk[mx]
+        fx1, fx2 = self.fm[mx]
+        fscore2  = self.fs[mx]
+        fk2      = self.fk[mx]
         kpts1 = ibs.get_annot_kpts([self.qaid], config2_=self.query_config2_)[0]
         kpts2 = ibs.get_annot_kpts([self.daid], config2_=self.data_config2_)[0]
         desc1 = ibs.get_annot_vecs([self.qaid], config2_=self.query_config2_)[0]
@@ -420,7 +442,7 @@ class MatchInteraction(object):
                                            prevsift=prevsift, aid=aid, info=info)
             prevsift = sift
         if not same_fig:
-            ih.connect_callback(fig2, 'button_press_event', self._click_matches_click)
+            ih.connect_callback(fig2, 'button_press_event', self.on_click)
             df2.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
 
     def sv_view(self, dodraw=True):
@@ -449,8 +471,8 @@ class MatchInteraction(object):
             >>> self.show_coverage(dodraw=False)
             >>> pt.show_if_requested()
         """
-        masks_list = scoring.get_masks(self.ibs, self.cm)
-        scoring.show_coverage_mask(self.ibs, self.cm, masks_list)
+        masks_list = scoring.get_masks(self.qreq_, self.cm)
+        scoring.show_coverage_mask(self.qreq_, self.cm, masks_list)
         if dodraw:
             viz.draw()
 
@@ -505,12 +527,12 @@ class MatchInteraction(object):
     def dev_embed(self):
         ut.embed()
 
-    def name_interaction(self):
-        from ibeis.viz.interact import interact_name
-        aid1 = self.qaid  # 14
-        aid2 = self.daid  # 5546
-        self = interact_name.MatchVerificationInteraction(self.ibs, aid1, aid2)
-        #ut.embed()
+    #def name_interaction(self):
+    #    from ibeis.viz.interact import interact_name
+    #    aid1 = self.qaid  # 14
+    #    aid2 = self.daid  # 5546
+    #    self = interact_name.MatchVerificationInteraction(self.ibs, aid1, aid2)
+    #    #ut.embed()
 
     def toggle_vert(self):
         self.vert = not self.vert
@@ -532,7 +554,7 @@ class MatchInteraction(object):
         qaid     = self.qaid
         viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum())
         fig3 = df2.gcf()
-        ih.connect_callback(fig3, 'button_press_event', self._click_matches_click)
+        ih.connect_callback(fig3, 'button_press_event', self.on_click)
         viz.draw()
         #df2.update()
 

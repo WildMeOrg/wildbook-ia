@@ -42,6 +42,7 @@ def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
     if True:
         interact = InteractQres(ibs, qres, analysis=True, qreq_=qreq_, **kwargs)
         interact.show_page()
+        interact.show()
         return interact
     else:
         return ishow_qres(ibs, qres, analysis=True, qreq_=qreq_, **kwargs)
