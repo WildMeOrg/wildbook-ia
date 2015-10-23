@@ -332,6 +332,51 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=True):
     return matches, metadata
 
 
+def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
+    """ simple hack convinience func
+    Uses vsmany qreq to build a "similar" vsone qreq
+
+    TODO:
+        in the context menu let me change preferences for running vsone
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> aid1 = 1
+        >>> aid2 = 2
+        >>> qreq_ = None
+        >>> result = vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    cfgdict = dict(codename='vsone', fg_on=False)
+    # FIXME: update this cfgdict a little better
+    if qreq_ is not None:
+        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
+    vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
+    vsone_qres = ibs.query_chips(qreq_=vsone_qreq_)[0]
+    cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
+    cm_vsone.ishow_analysis(vsone_qreq_)
+    #qres_vsone.ishow_analysis(ibs=ibs)
+    #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+    #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+    #vt.matching.show_matching_dict(matches, metadata)
+
+
 def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
     r"""
     Args:
@@ -369,6 +414,7 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     import ibeis.control.IBEISControl
     assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
     metadata = ut.LazyDict({
+        'aid': aid,
         'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
         'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
         'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
@@ -440,51 +486,6 @@ def vsone_independant(qreq_):
 
     for matches, metadata in info_list:
         vt.matching.show_matching_dict(matches, metadata)
-
-
-def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
-    """ simple hack convinience func
-    Uses vsmany qreq to build a "similar" vsone qreq
-
-    TODO:
-        in the context menu let me change preferences for running vsone
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  annotation id
-        aid2 (int):  annotation id
-        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
-
-    CommandLine:
-        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> qaids = ibs.get_valid_aids(species=species)
-        >>> aid1 = 1
-        >>> aid2 = 2
-        >>> qreq_ = None
-        >>> result = vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
-        >>> print(result)
-        >>> ut.show_if_requested()
-    """
-    cfgdict = dict(codename='vsone', fg_on=False)
-    # FIXME: update this cfgdict a little better
-    if qreq_ is not None:
-        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
-    vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-    vsone_qres = ibs.query_chips(qreq_=vsone_qreq_)[0]
-    cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
-    cm_vsone.ishow_analysis(vsone_qreq_)
-    #qres_vsone.ishow_analysis(ibs=ibs)
-    #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
-    #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
-    #vt.matching.show_matching_dict(matches, metadata)
 
 
 def marge_matches_lists(fmfs_A, fmfs_B):

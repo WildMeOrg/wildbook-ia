@@ -1102,6 +1102,49 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         kwshow.update(kwargs)
         return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
 
+    def qt_inspect_gui(cm, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
+        r"""
+        Args:
+            ibs (IBEISController):  ibeis controller object
+            ranks_lt (int): (default = 6)
+            qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+            name_scoring (bool): (default = False)
+
+        Returns:
+            QueryResult: qres_wgt -  object of feature correspondences and scores
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-qt_inspect_gui --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> ranks_lt = 6
+            >>> name_scoring = False
+            >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_lt, qreq_, name_scoring)
+            >>> ut.quit_if_noshow()
+            >>> import guitool
+            >>> guitool.qtapp_loop()
+        """
+        print('[qres] qt_inspect_gui')
+        from ibeis.gui import inspect_gui
+        import guitool
+        guitool.ensure_qapp()
+        qaid2_qres = {cm.qaid: cm}
+        print('[inspect_matches] make_qres_widget')
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                                  ranks_lt=ranks_lt,
+                                                  name_scoring=name_scoring,
+                                                  qreq_=qreq_)
+        print('[inspect_matches] show')
+        qres_wgt.show()
+        print('[inspect_matches] raise')
+        qres_wgt.raise_()
+        return qres_wgt
+
     #def ishow_matches():
     #    pass
 

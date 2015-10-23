@@ -171,9 +171,20 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
         from ibeis.model.hots import vsone_pipeline
 
         #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
+        def vsone_single_hack(ibs, qaid, daid, qreq_):
+            import vtool as vt
+            import plottool as pt
+            qreq_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+            matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq_, use_ibscache=True)
+            interact = vt.matching.show_matching_dict(matches, metadata, mode=1)
+            interact
+            pt.update()
+
         options += [
-            ('Run Vsone', partial(vsone_pipeline.vsone_independant_pair_hack,
-                                  ibs, aid1, aid2, qreq_=qreq_))
+            ('Run Vsone(1)', partial(vsone_pipeline.vsone_independant_pair_hack,
+                                     ibs, aid1, aid2, qreq_=qreq_)),
+            ('Run Vsone(2)', partial(vsone_single_hack,
+                                     ibs, aid1, aid2, qreq_=qreq_)),
         ]
 
     with_match_tags = True

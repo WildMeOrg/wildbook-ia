@@ -854,6 +854,7 @@ class QueryResult(__OBJECT_BASE__):
         try:
             match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, qreq_=qreq_, *args, **kwargs)
             # Keep the interaction alive at least while the qres is alive
+            # (maybe dont need to do this for abstract interactions)
             qres._live_interactions.append(match_interaction)
             return match_interaction
         except Exception as ex:

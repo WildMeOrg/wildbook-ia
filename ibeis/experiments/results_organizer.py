@@ -420,9 +420,16 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     # For each QueryResult, Extract inspectable candidate matches
     for qaid, qres in six.iteritems(qaid2_qres):
         assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
-        (qaids, daids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt,
-                                                               name_scoring=name_scoring,
-                                                               ibs=ibs)
+        from ibeis.model.hots import chip_match
+        if isinstance(qres, chip_match.ChipMatch2):
+            cm = qres
+            daids  = cm.get_top_aids(ntop=ranks_lt)
+            scores = cm.get_top_scores(ntop=ranks_lt)
+            ranks  = np.arange(len(daids))
+            qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
+        else:
+            (qaids, daids, scores, ranks) = qres.get_match_tbldata(
+                ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
         qaids_stack.append(qaids)
         daids_stack.append(daids)
         scores_stack.append(scores)
