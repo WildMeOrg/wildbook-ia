@@ -240,10 +240,10 @@ class AbstractPagedInteraction(AbstractInteraction):
         next_rect = hr_slot(0)
 
         # Create buttons
-        if self.current_pagenum != 0:
-            self.append_button('prev', callback=self.prev_page, rect=prev_rect)
-        if self.current_pagenum != self.nPages - 1:
-            self.append_button('next', callback=self.next_page, rect=next_rect)
+        prev_callback = None if self.current_pagenum == 0 else self.prev_page
+        next_callback = None if self.current_pagenum == self.nPages - 1 else self.next_page
+        self.append_button('prev', callback=prev_callback, rect=prev_rect)
+        self.append_button('next', callback=next_callback, rect=next_rect)
 
     def prepare_page(self, fulldraw=True):
         import plottool as pt

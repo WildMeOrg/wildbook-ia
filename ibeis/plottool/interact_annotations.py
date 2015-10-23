@@ -324,8 +324,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
             if fnum is None:
                 fnum = df2.next_fnum()
             abstract_interaction.register_interaction(self)
-            append_button = AbstractInteraction.append_button.im_func
-            ut.inject_func_as_method(self, append_button)
+            ut.inject_func_as_method(self, AbstractInteraction.append_button.im_func)
+            ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
             self.scope = []
 
         self.valid_species = valid_species
