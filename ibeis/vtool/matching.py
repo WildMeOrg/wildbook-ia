@@ -34,7 +34,7 @@ def show_matching_dict(matches, metadata, **kwargs):
     interact = plottool.interact_matches.MatchInteraction2(
         rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2, H1=H1, **kwargs)
     interact.show_page()
-
+    return interact
     #MatchInteraction2
 
 

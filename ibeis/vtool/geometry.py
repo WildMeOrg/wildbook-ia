@@ -98,7 +98,8 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
     #verts = verts_from_bbox((0, 0, w, h))
     #verts = verts_from_bbox((0, 0, w - 1, h - 1))
     half_thickness = thickness // 2
-    verts = verts_from_bbox((half_thickness, half_thickness, w - thickness, h - thickness))
+    verts = verts_from_bbox((half_thickness, half_thickness,
+                             w - thickness, h - thickness))
     # FIXME: adjust verts and draw lines here to fill in the corners correctly
     img = draw_verts(img_in, verts, color=color, thickness=thickness, out=out)
     return img
