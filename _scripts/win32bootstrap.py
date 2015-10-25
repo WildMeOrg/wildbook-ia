@@ -11,10 +11,13 @@ CommandLine:
     python _scripts\win32bootstrap.py --dl pyperclip --run
 
     python _scripts\win32bootstrap.py --dl pydot --run
-    python _scripts\win32bootstrap.py --dl pydot --run --force
+    python _scripts\win32bootstrap.py --dl pydot --run --nocache
+    python _scripts\win32bootstrap.py --dl numpy --run --upgrade
 
     python _scripts\win32bootstrap.py --dl h5py --run
 
+References:
+    http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 Notes:
     'http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi'
@@ -39,7 +42,7 @@ PY_VERSION = 'cp27'
 #PY_VERSION = 'py3.4'
 
 # force redownload of hrefs
-FORCE = ut.get_argflag('--force')
+FORCE = ut.get_argflag(('--nocache', '--upgrade'))
 
 AMD64 = False
 
@@ -218,7 +221,7 @@ def build_uninstall_script():
 
 def main():
     r"""
-    python win32bootstrap.py --dl numpy --force
+    python win32bootstrap.py --dl numpy --nocache
     python win32bootstrap.py --dl numpy-1.9.2rc1 --force
     python win32bootstrap.py --dl numpy-1.9.2rc1 --run
     python win32bootstrap.py --force
@@ -238,9 +241,8 @@ def main():
         print('specify --all to download all packages')
         print('or specify --dl pkgname to download that package')
     pkg_list.extend(ut.get_argval('--dl', list, []))
-    force = ut.get_argflag('--force')
     dryrun = ut.get_argflag('--dryrun')
-    pkg_exe_list = bootstrap_sysreq(pkg_list, force, dryrun)
+    pkg_exe_list = bootstrap_sysreq(pkg_list, dryrun=dryrun)
     if ut.get_argflag('--run'):
         for pkg_exe in pkg_exe_list:
             if pkg_exe.endswith('.whl'):
@@ -248,7 +250,7 @@ def main():
                 #ut.cmd(pkg_exe)
 
 
-def bootstrap_sysreq(pkg_list='all', force=False, dryrun=False):
+def bootstrap_sysreq(pkg_list='all', nocache=False, dryrun=False):
     """
     pkg_list = ['line_profiler']
     """
@@ -261,7 +263,7 @@ def bootstrap_sysreq(pkg_list='all', force=False, dryrun=False):
     py_version = PY_VERSION
     #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
     #python34_win32_x86_exe = ut.grab_file_url(python34_win32_x64_url)
-    all_href_list, page_str = get_unofficial_package_hrefs(force=force)
+    all_href_list, page_str = get_unofficial_package_hrefs()
     if len(all_href_list) > 0:
         print('all_href_list[0] = ' + str(all_href_list[0]))
     href_list = find_requested_hrefs(all_href_list, py_version, pkg_list_)
@@ -369,8 +371,9 @@ def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
             _candidates = list(filter(func_, _candidates))
         candidates = list(_candidates)
         if len(candidates) > 1:
-            #print('\n\n\n')
-            #print(pkgname)
+            if ut.VERBOSE:
+                print('\n\n\n Found %d candidates for %r' % (len(candidates), pkgname,))
+                print(pkgname)
             # parse out version
             def get_href_version(href):
                 y = basename(href).split('-' + py_version)[0]
@@ -398,16 +401,16 @@ def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
     return candidate_list, missing
 
 
-def get_unofficial_package_hrefs(force=None):
+def get_unofficial_package_hrefs(nocache=None):
     """
     Downloads the entire webpage of available hrefs, or returns a cached copy
     """
-    if force is None:
-        force = FORCE
+    if nocache is None:
+        nocache = FORCE
 
     cachedir = ut.get_app_resource_dir('utool')
     try:
-        if force:
+        if nocache:
             raise Exception('cachemiss')
         all_href_list = ut.load_cache(cachedir, 'win32_hrefs', 'all_href_list')
         page_str      = ut.load_cache(cachedir, 'win32_hrefs', 'page_str')
