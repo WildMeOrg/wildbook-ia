@@ -439,8 +439,8 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
     thresh = 128
-    fillval = [255, 255, 255]
     img = vt.imread(fpath_in)
+    fillval = np.array([255] * get_num_channels(img))
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
     cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
