@@ -250,7 +250,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
     return matches, metadata
 
 
-def vsone_single(qaid, daid, qreq_, use_ibscache=True):
+def vsone_single(qaid, daid, qreq_, use_ibscache=True, verbose=None):
     r"""
     Args:
         qaid (int):  query annotation id
@@ -327,7 +327,7 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=True):
 
                 'dlen_sqrd2': ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0],
             })
-    matches, metadata = vt.vsone_matching(metadata_, cfgdict=cfgdict)
+    matches, metadata = vt.vsone_matching(metadata_, cfgdict=cfgdict, verbose=verbose)
     assert metadata is metadata_
     return matches, metadata
 
