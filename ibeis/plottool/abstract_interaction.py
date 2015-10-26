@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 import six
+import re
 import utool as ut
 import plottool.draw_func2 as df2
 from plottool import fig_presenter
@@ -217,33 +218,44 @@ class AbstractPagedInteraction(AbstractInteraction):
         self.current_pagenum = 0
         assert nPages is not None
         self.nPages = nPages
+        self.NEXT_PAGE_HOTKEYS  = ['right', 'pagedown']
+        self.PREV_PAGE_HOTKEYS  = ['left', 'pageup']
         super(AbstractPagedInteraction, self).__init__(**kwargs)
 
     def next_page(self, event):
-        print('next')
+        #print('next')
         self.show_page(self.current_pagenum + 1)
         pass
 
     def prev_page(self, event):
-        print('prev')
+        if self.current_pagenum == 0:
+            return
+        #print('prev')
         self.show_page(self.current_pagenum - 1)
         pass
 
     def make_hud(self):
         """ Creates heads up display """
-        # Button positioning
         import plottool as pt
-        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=.08, h=.04,
+        # Button positioning
+        #w, h = .08, .04
+        #w, h = .14, .08
+        w, h = .14, .07
+        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=w, h=h,
                                                     xpad=.05, startx=0,
                                                     stopx=1)
         prev_rect = hl_slot(0)
         next_rect = hr_slot(0)
+        #print('prev_rect = %r' % (prev_rect,))
+        #print('next_rect = %r' % (next_rect,))
 
         # Create buttons
         prev_callback = None if self.current_pagenum == 0 else self.prev_page
         next_callback = None if self.current_pagenum == self.nPages - 1 else self.next_page
-        self.append_button('prev', callback=prev_callback, rect=prev_rect)
-        self.append_button('next', callback=next_callback, rect=next_rect)
+        prev_text = 'prev\n' + pretty_hotkey_map(self.PREV_PAGE_HOTKEYS)
+        next_text = 'next\n' + pretty_hotkey_map(self.NEXT_PAGE_HOTKEYS)
+        self.append_button(prev_text, callback=prev_callback, rect=prev_rect)
+        self.append_button(next_text, callback=next_callback, rect=next_rect)
 
     def prepare_page(self, fulldraw=True):
         import plottool as pt
@@ -262,3 +274,32 @@ class AbstractPagedInteraction(AbstractInteraction):
         ih.connect_callback(self.fig, 'button_release_event', self.on_click_release)
         ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
         ih.connect_callback(self.fig, 'motion_notify_event', self.on_motion)
+
+    def on_key_press(self, event):
+        if matches_hotkey(event.key, self.PREV_PAGE_HOTKEYS):
+            if self.current_pagenum != 0:
+                self.prev_page(event)
+        if matches_hotkey(event.key, self.NEXT_PAGE_HOTKEYS):
+            if self.current_pagenum != self.nPages - 1:
+                self.next_page(event)
+        self.draw()
+
+
+def pretty_hotkey_map(hotkeys):
+    if hotkeys is None:
+        return ''
+    hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+    mapping = {
+        #'right': 'right arrow',
+        #'left':  'left arrow',
+    }
+    mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
+    hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'
+    return hotkey_str
+
+
+def matches_hotkey(key, hotkeys):
+    hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+    #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
+    flags = [re.match(hk,  key) is not None for hk in hotkeys]
+    return any(flags)
