@@ -79,7 +79,7 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_
     return matches, metdata
 
 
-def vsone_matching(metadata, cfgdict={}):
+def vsone_matching(metadata, cfgdict={}, verbose=None):
     """
     Metadata is a dictionary that contains either computed information
     necessary for matching or the dependenceis of those computations.
@@ -152,12 +152,14 @@ def vsone_matching(metadata, cfgdict={}):
     dlen_sqrd2 = metadata['dlen_sqrd2']
 
     matches, output_metdata = vsone_feature_matching(
-        kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict)
+        kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
+        verbose=verbose)
     metadata.update(output_metdata)
     return matches, metadata
 
 
-def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
+def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
+                           verbose=None):
     r"""
     Actual logic for matching
     Args:
@@ -193,7 +195,9 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
     }
     #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
     #pseudo_max_dist_sqrd = 2 * (512 ** 2)
-    flann = vt.flann_cache(vecs1, flann_params=flann_params)
+    if verbose is None:
+        verbose = True
+    flann = vt.flann_cache(vecs1, flann_params=flann_params, verbose=verbose)
     try:
         num_neighbors = K + Knorm
         fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, num_neighbors, checks)
