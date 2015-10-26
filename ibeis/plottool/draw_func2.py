@@ -199,13 +199,16 @@ def show_if_requested(N=1):
 
         dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
+        #ut.embed()
+
         absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
                                    figsize=False, dpi=dpi)
 
         CLIP_WHITE = ut.get_argflag('--clipwhite')
         if CLIP_WHITE:
             # remove white borders
-            vt.clipwhite_ondisk(absfpath_, absfpath_)
+            fpath_in = fpath_out = absfpath_
+            vt.clipwhite_ondisk(fpath_in, fpath_out)
             #img = vt.imread(absfpath_)
             #thresh = 128
             #fillval = [255, 255, 255]
@@ -1468,26 +1471,27 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     min_ = score_list.min()
     range_ = score_list.max() - min_
     if range_ == 0:
-        return [cmap(.5) for fx in range(len(score_list))]
+        colors = [cmap(.5) for fx in range(len(score_list))]
     else:
         if logscale:
-            score2_01 = lambda score: (
-                np.log2(
+            def score2_01(score):
+                return np.log2(
                     1 + scale_min + scale_max *
-                    (float(score) - min_) / (range_)))
+                    (float(score) - min_) / (range_))
             score_list = np.array(score_list)
             #rank_multiplier = score_list.argsort() / len(score_list)
             #normscore = np.array(list(map(score2_01, score_list))) * rank_multiplier
             normscore = np.array(list(map(score2_01, score_list)))
             colors =  list(map(cmap, normscore))
         else:
-            score2_01 = lambda score: scale_min + scale_max * (float(score) - min_) / (range_)
+            def score2_01(score):
+                return scale_min + scale_max * (float(score) - min_) / (range_)
         colors = [cmap(score2_01(score)) for score in score_list]
         if val2_customcolor is not None:
             colors = [
                 np.array(val2_customcolor.get(score, color))
                 for color, score in zip(colors, score_list)]
-        return colors
+    return colors
 
 
 def customize_colormap(data, base_colormap):
