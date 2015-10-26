@@ -27,11 +27,9 @@ from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import xml.etree.ElementTree as ET
-# Import modules which define injectable functions
-# Older manual ibeiscontrol functions
-from ibeis import ibsfuncs  # NOQA
 from ibeis.model.hots import pipeline
 
+# Import modules which define injectable functions
 
 # tuples represent conditional imports with the flags in the first part of the
 # tuple and the modname in the second
@@ -89,18 +87,6 @@ if True:
     BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
 else:
     BASE_CLASS = object
-
-# Shiny new way to inject external functions
-#WITH_CNN = not ut.get_argflag()
-
-## HACK, don't include cnn unless its already there due to theano stuff
-#if 'ibeis_cnn' in sys.modules or WITH_CNN:
-#    try:
-#        from ibeis_cnn import _plugin  # NOQA
-#        import ibeis_cnn  # NOQA
-#    except ImportError:
-#        if ut.is_developer():
-#            raise
 
 
 # Inject utool functions

@@ -9,14 +9,13 @@ import os
 from os.path import exists, join, realpath
 import utool
 import utool as ut
-from six.moves import input
+from six.moves import input, zip, map
 from utool import util_cache, util_list
 from ibeis import constants as const
 from ibeis import params
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sysres]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[sysres]')
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
@@ -48,19 +47,16 @@ def _ibeis_cache_read(key, **kwargs):
 def set_default_dbdir(dbdir):
     """
     """
-    printDBG('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
+    if ut.DEBUG2:
+        print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
 
 def get_default_dbdir():
     dbdir = _ibeis_cache_read(DEFAULTDB_CAHCEID, default=None)
-    printDBG('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
+    if ut.DEBUG2:
+        print('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
     return dbdir
-
-
-def get_syncdir():
-    # TODO: Allow dirs in syncdir to count as in workdir
-    secret = 'AFETDAKURTJ6WH3PXYOTJDBO3KBC2KJJP'  # NOQA
 
 
 def get_workdir(allow_gui=True):

@@ -509,6 +509,7 @@ def _get_all_chip_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_chip_rowids()
     """
