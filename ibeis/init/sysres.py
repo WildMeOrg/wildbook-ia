@@ -69,6 +69,23 @@ def get_workdir(allow_gui=True):
     a dialog will ask a user to specify the workdir if it does not exist.
 
     python -c "import ibeis; print(ibeis.get_workdir())"
+
+    Args:
+        allow_gui (bool): (default = True)
+
+    Returns:
+        str: work_dir
+
+    CommandLine:
+        python -m ibeis.init.sysres --exec-get_workdir
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> allow_gui = True
+        >>> work_dir = get_workdir(allow_gui)
+        >>> result = ('work_dir = %s' % (str(work_dir),))
+        >>> print(result)
     """
     work_dir = _ibeis_cache_read(WORKDIR_CACHEID, default='.')
     if work_dir is not '.' and exists(work_dir):
@@ -97,7 +114,8 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.sysres import *  # NOQA
-        >>> work_dir = None
+        >>> print('current_work_dir = %s' % (str(get_workdir(False)),))
+        >>> work_dir = ut.get_argval('--workdir', type_=str, default=None)
         >>> allow_gui = True
         >>> result = set_workdir(work_dir, allow_gui)
         >>> print(result)
