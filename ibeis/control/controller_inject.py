@@ -578,8 +578,13 @@ def dev_autogen_explicit_injects():
     import ibeis  # NOQA
     classname = CONTROLLER_CLASSNAME
     regen_command = 'python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects'
-    source_block = ut.autogen_explicit_injectable_metaclass(classname, regen_command=regen_command)
     import ibeis.control.IBEISControl
+    conditional_imports = [
+        modname for modname in ibeis.control.IBEISControl.inject_modnames
+        if isinstance(modname, tuple)
+    ]
+    source_block = ut.autogen_explicit_injectable_metaclass(
+        classname, regen_command, conditional_imports)
     dpath = ut.get_module_dir(ibeis.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
     ut.writeto(fpath, source_block)

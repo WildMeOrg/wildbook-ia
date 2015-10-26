@@ -109,7 +109,8 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
     CommandLine:
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work2')"
         python -c "import ibeis; ibeis.sysres.set_workdir('/raid/work')"
-        python -m ibeis.init.sysres --exec-set_workdir
+
+        python -m ibeis.init.sysres --exec-set_workdir --workdir
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -118,7 +119,6 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         >>> work_dir = ut.get_argval('--workdir', type_=str, default=None)
         >>> allow_gui = True
         >>> result = set_workdir(work_dir, allow_gui)
-        >>> print(result)
     """
     if work_dir is None:
         if allow_gui:

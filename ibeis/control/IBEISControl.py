@@ -15,6 +15,7 @@ TODO:
 # TODO: make all names consistent
 from __future__ import absolute_import, division, print_function
 import six
+#import sys
 import atexit
 import requests
 import weakref
@@ -31,43 +32,53 @@ import xml.etree.ElementTree as ET
 from ibeis import ibsfuncs  # NOQA
 from ibeis.model.hots import pipeline
 
+
+# tuples represent conditional imports with the flags in the first part of the
+# tuple and the modname in the second
+inject_modnames = [
+    'ibeis.annotmatch_funcs',
+    'ibeis.tag_funcs',
+    'ibeis.ibsfuncs',
+    'ibeis.init.filter_annots',
+    'ibeis.control._autogen_featweight_funcs',
+    'ibeis.control._autogen_party_funcs',
+    'ibeis.control._autogen_annotmatch_funcs',
+    'ibeis.control.manual_ibeiscontrol_funcs',
+    'ibeis.control.manual_wildbook_funcs',
+    'ibeis.control.manual_meta_funcs',
+    'ibeis.control.manual_lbltype_funcs',   # DEPRICATE
+    'ibeis.control.manual_lblannot_funcs',  # DEPRICATE
+    'ibeis.control.manual_lblimage_funcs',  # DEPRICATE
+    'ibeis.control.manual_image_funcs',
+    'ibeis.control.manual_encounter_funcs',
+    'ibeis.control.manual_egrelate_funcs',
+    'ibeis.control.manual_garelate_funcs',
+    'ibeis.control.manual_annot_funcs',
+    'ibeis.control.manual_name_funcs',
+    'ibeis.control.manual_species_funcs',
+    'ibeis.control.manual_annotgroup_funcs',
+    #'ibeis.control.manual_dependant_funcs',
+    'ibeis.control.manual_chip_funcs',
+    'ibeis.control.manual_feat_funcs',
+    (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
+    (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+]
+
+for modname in inject_modnames:
+    if isinstance(modname, tuple):
+        flag, modname = modname
+        if ut.get_argflag(flag):
+            continue
+    ut.import_modname(modname)
+
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.
-
-# THE Long term solution is to get these working
+# THE Long term solution is to get these working (which are partially integrated)
 #     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
 #     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
 
 # Ensure that all injectable modules are imported before constructing the class
 # instance
-
-# <Pyinstaller hacks>
-from ibeis import annotmatch_funcs  # NOQA
-from ibeis import tag_funcs  # NOQA
-import sys
-
-from ibeis.control import _autogen_featweight_funcs  # NOQA
-from ibeis.control import _autogen_party_funcs  # NOQA
-from ibeis.control import _autogen_annotmatch_funcs  # NOQA
-from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
-from ibeis.control import manual_wildbook_funcs  # NOQA
-from ibeis.control import manual_meta_funcs  # NOQA
-from ibeis.control import manual_lbltype_funcs  # NOQA   # DEPRICATE
-from ibeis.control import manual_lblannot_funcs  # NOQA  # DEPRICATE
-from ibeis.control import manual_lblimage_funcs  # NOQA  # DEPRICATE
-from ibeis.control import manual_image_funcs  # NOQA
-from ibeis.control import manual_encounter_funcs  # NOQA
-from ibeis.control import manual_egrelate_funcs  # NOQA
-from ibeis.control import manual_garelate_funcs  # NOQA
-from ibeis.control import manual_annot_funcs  # NOQA
-from ibeis.control import manual_name_funcs  # NOQA
-from ibeis.control import manual_species_funcs  # NOQA
-from ibeis.control import manual_annotgroup_funcs  # NOQA
-#from ibeis.control import manual_dependant_funcs  # NOQA
-from ibeis.control import manual_chip_funcs  # NOQA
-from ibeis.control import manual_feat_funcs  # NOQA
-# </Pyinstaller hacks>
-
 
 # Explicit Inject Subclass
 if True:
@@ -79,19 +90,17 @@ if True:
 else:
     BASE_CLASS = object
 
-
 # Shiny new way to inject external functions
-#WITH_CNN = ut.get_argflag(('--with-cnn', '--withcnn', '--cnn'))
-WITH_CNN = not ut.get_argflag(('--no-cnn', '--nocnn'))
+#WITH_CNN = not ut.get_argflag()
 
-# HACK, don't include cnn unless its already there due to theano stuff
-if 'ibeis_cnn' in sys.modules or WITH_CNN:
-    try:
-        from ibeis_cnn import _plugin  # NOQA
-        import ibeis_cnn  # NOQA
-    except ImportError:
-        if ut.is_developer():
-            raise
+## HACK, don't include cnn unless its already there due to theano stuff
+#if 'ibeis_cnn' in sys.modules or WITH_CNN:
+#    try:
+#        from ibeis_cnn import _plugin  # NOQA
+#        import ibeis_cnn  # NOQA
+#    except ImportError:
+#        if ut.is_developer():
+#            raise
 
 
 # Inject utool functions
