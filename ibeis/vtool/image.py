@@ -1376,7 +1376,7 @@ def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2,
     return imgB, offset_listB, sf_listB
 
 
-def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True):
+def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True, modifysize=True):
     r"""
     Args:
         multiimg_list (list):
@@ -1421,7 +1421,8 @@ def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True):
     stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list,
                                                          return_sf=True,
                                                          return_offset=True,
-                                                         vert=vert)
+                                                         vert=vert,
+                                                         modifysize=modifysize)
     stacked_offsets, stacked_sfs = combine_offset_lists(offsets_list, sfs_list,
                                                         offset_tups, sf_tups)
     return stacked_img, stacked_offsets, stacked_sfs
