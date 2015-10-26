@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Helper module that helps expand parameters for grid search
+
+TODO: move to utool?
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
