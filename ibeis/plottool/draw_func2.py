@@ -152,8 +152,9 @@ def show_if_requested(N=1):
         else:
             raise NotImplementedError(
                 ('vals must be len (1, 3, or 6) not %d, adjust_list=%r. '
-                 'Expectts keys=%r') % (len(adjust_list), adjust_list, keys))
+                 'Expects keys=%r') % (len(adjust_list), adjust_list, keys))
         adjust_kw = dict(zip(keys, vals))
+        print('**adjust_kw = %s' % (ut.dict_str(adjust_kw),))
         adjust_subplots(**adjust_kw)
 
     figsize = ut.get_argval('--figsize', type_=list, default=None)
@@ -800,7 +801,7 @@ def adjust_subplots(left=0.02,  bottom=0.02,
         top = 1 - bottom
     if hspace is None:
         hspace = wspace
-    #print('[df2] adjust_subplots(%r)' % locals())
+    print('[df2] adjust_subplots(**%s)' % ut.dict_str(locals()))
     plt.subplots_adjust(left, bottom, right, top, wspace, hspace)
 
 
