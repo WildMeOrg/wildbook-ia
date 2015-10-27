@@ -174,7 +174,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
 
-    ax.set_xlabel(xlabel)
+    #ax.set_xlabel(xlabel)
+    pt.set_xlabel(xlabel)
 
 
 @profile

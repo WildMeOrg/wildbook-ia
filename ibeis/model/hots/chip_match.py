@@ -1066,6 +1066,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if fnum is None:
             fnum = pt.next_fnum()
         nRows, nCols  = pt.get_square_row_cols(len(idx_list), fix=False)
+        if ut.get_argflag('--vert'):
+            # HACK
+            nRows, nCols = nCols, nRows
         next_pnum     = pt.make_pnum_nextgen(nRows, nCols)
         for idx in idx_list:
             daid  = cm.daid_list[idx]
