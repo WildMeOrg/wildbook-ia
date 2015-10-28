@@ -76,6 +76,7 @@ YELLOW       = custom_constants.YELLOW
 BLACK        = custom_constants.BLACK
 WHITE        = custom_constants.WHITE
 GRAY         = custom_constants.GRAY
+LIGHTGRAY    = custom_constants.LIGHTGRAY
 DEEP_PINK    = custom_constants.DEEP_PINK
 PINK         = custom_constants.PINK
 FALSE_RED    = custom_constants.FALSE_RED
@@ -2243,8 +2244,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     Args:
         rchip1 (ndarray): rotated annotation 1 image data
         rchip2 (ndarray): rotated annotation 2 image data
-        kpts1 (ndarray): keypoints for annotation 1
-        kpts2 (ndarray): keypoints for annotation 2
+        kpts1 (ndarray): keypoints for annotation 1 [x, y, a=1, c=0, d=1, theta=0]
+        kpts2 (ndarray): keypoints for annotation 2 [x, y, a=1, c=0, d=1, theta=0]
         fm (list):  list of feature matches as tuples (qfx, dfx)
         fs (list):  list of feature scores
         title (str):
@@ -2265,27 +2266,47 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
         >>> import ibeis
+        >>> import vtool as vt
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1 = 1
-        >>> aid2 = 3
+        >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
+        >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
+        >>> rchip1 = vt.imread(ut.grab_test_imgpath(fname1))
+        >>> rchip2 = vt.imread(ut.grab_test_imgpath(fname2))
+        >>> kpts1 = np.array([[ 430.84,  124.51,   12.98,   -1.54,    8.51,    0.  ],
+        ...                   [ 355.89,  142.95,   10.46,   -0.63,    8.59,    0.  ],
+        ...                   [ 356.35,  147.  ,    8.38,    1.08,   11.68,    0.  ],
+        ...                   [ 361.4 ,  150.64,    7.44,    3.45,   13.63,    0.  ]], dtype=np.float64)
+        >>> kpts2 = np.array([[ 466.01,   18.15,   13.24,   -3.74,    8.85,    0.  ],
+        ...                   [ 376.98,   50.61,   11.91,   -2.9 ,    9.77,    0.  ],
+        ...                   [ 377.59,   54.89,    9.7 ,   -1.4 ,   13.72,    0.  ],
+        ...                   [ 382.8 ,   58.2 ,    7.87,   -0.31,   15.23,    0.  ]], dtype=np.float64)
+        >>> fm = None
+        >>> fs = None
         >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
         ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
         ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
         >>> H2 = None
-        >>> fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],
-        ...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],
-        ...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],
-        ...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],
-        ...                [ 667, 1071], [1022, 1163], [1135, 1165]])
         >>> H2 = None
-        >>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
-        >>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
         >>> # execute function
-        >>> result = show_chipmatch2(chip1, chip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm)
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
+
+    Ignore:
+        print(ut.doctest_repr(kpts1[fm.T[0]][0:4], precision=2, varname='kpts1'))
+        print(ut.doctest_repr(kpts2[fm.T[1]][0:4], precision=2, varname='kpts2'))
+        print(ut.numpy_str2(kpts2[fm.T[1]][0:4], precision=1))
+        #>>> fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],
+        #...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],
+        #...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],
+        #...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],
+        #...                [ 667, 1071], [1022, 1163], [1135, 1165]])
+        #>>> ibs = ibeis.opendb('testdb1')
+        #>>> aid1 = 1
+        #>>> aid2 = 3
+        #>>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
+        #>>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
     """
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))

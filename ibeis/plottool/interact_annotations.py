@@ -25,12 +25,11 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 import six
-import matplotlib
-from matplotlib.patches import Polygon
+import matplotlib as mpl
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import math as math
-import functools
+#import functools
 from functools import partial
 from plottool import abstract_interaction  # TODO inherit from this
 #from matplotlib import nxutils  # Deprecated
@@ -83,7 +82,7 @@ TAU = np.pi * 2  # References: tauday.com
 
 def _nxutils_points_inside_poly(points, verts):
     """ nxutils is depricated """
-    path = matplotlib.path.Path(verts)
+    path = mpl.path.Path(verts)
     return path.contains_points(points)
 
 
@@ -277,6 +276,81 @@ def meets_minimum_width_and_height(coords):
     return (MIN_W < width1) and (MIN_H < height1)
 
 
+def default_vertices(img, polys=None, mouseX=None, mouseY=None):
+    """Default to rectangle that has a quarter-width/height border."""
+    (h, w) = img.shape[0:2]
+    # Center the new verts around wherever the mouse is
+    if mouseX is not None and mouseY is not None:
+        center_x = mouseX
+        center_h = mouseY
+    else:
+        center_x = w // 2
+        center_h = h // 2
+
+    if polys is not None and len(polys) > 0:
+        # Use the largest polygon size as the default verts
+        wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4]
+                            for poly in six.itervalues(polys)])
+        w_, h_ = wh_list.max(axis=0) // 2
+    else:
+        # If no poly exists use 1/4 of the image size
+        w_, h_ = (w // 4, h // 4)
+    # Get the x/y extents by offseting the centers
+    x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
+    y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
+    # Clip to bounds
+    x1 = max(x1, 1)
+    y1 = max(y1, 1)
+    x2 = min(x2, w - 1)
+    y2 = min(y2, h - 1)
+    return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
+
+
+def test_interact_annots():
+    r"""
+    CommandLine:
+        python -m plottool.interact_annotations --test-test_interact_annots --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.interact_annotations import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> # execute function
+        >>> self = test_interact_annots()
+        >>> # verify results
+        >>> print(self)
+        >>> pt.show_if_requested()
+    """
+    verts_list = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
+                  ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
+    print('[interact_annot] *** START DEMO ***')
+
+    #if img is None:
+    try:
+        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
+        img_fpath = ut.grab_file_url(img_url)
+        #img = mpimg.imread(img_fpath)
+        from vtool import image as gtool
+        img = gtool.imread(img_fpath)
+    except Exception as ex:
+        print('[interact_annot] cant read zebra: %r' % ex)
+        img = np.random.uniform(0, 255, size=(100, 100))
+    self = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
+    return self
+    # Do interaction
+    #
+    # Make mask from selection
+    #mask = self.get_mask(img.shape)
+    # User must close previous figure
+    # Modify the image with the mask
+    #masked_img = apply_mask(img, mask)
+    # show the modified image
+    #plt.imshow(masked_img)
+    #plt.title('Region outside of mask is darkened')
+    #print('show2')
+
+
 # TODO: incorporate this
 AbstractInteraction = abstract_interaction.AbstractInteraction
 #BASE_CLASS = abstract_interaction.AbstractInteraction
@@ -313,6 +387,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
                  bbox_list=None,
                  theta_list=None,
                  species_list=None,
+                 metadata_list=None,
                  max_ds=10,
                  line_width=4, line_color=(1, 1, 1), face_color=(0, 0, 0),
                  fnum=None, default_species=DEFAULT_SPECIES_TAG,
@@ -379,9 +454,11 @@ class ANNOTATIONInteraction(BASE_CLASS):
             theta_list = [0 for verts in verts_list]
         if species_list is None:
             species_list = [self.species_tag for verts in verts_list]
+        if metadata_list is None:
+            metadata_list = [None for verts in verts_list]
 
         # Create the list of polygons
-        self.handle_polygon_creation(bbox_list, theta_list, species_list)
+        self.handle_polygon_creation(bbox_list, theta_list, species_list, metadata_list)
         self._ind = None  # the active vert
         self.currently_rotating_poly = None
 
@@ -413,9 +490,10 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
-            'Click and drag to select/move/resize an ANNOTATION',
+            'Click and drag to select/move/resize/orient an ANNOTATION',
             #'Press enter to clear the species tag of the selected ANNOTATION',
-            'Type to edit the ANNOTATION species (press tab to autocomplete)'
+            'Press tab to cycle through annotation species',
+            #'Type to edit the ANNOTATION species (press tab to autocomplete)'
         ])))
 
     def add_action_buttons(self):
@@ -478,7 +556,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
         )
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
-                                   species_list, next_callback, prev_callback):
+                                   species_list, metadata_list, next_callback,
+                                   prev_callback):
         self.disconnect_mpl_callbacks(self.fig.canvas)
         for poly in six.itervalues(self.polys):
             poly.remove()
@@ -487,7 +566,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
         self.img = img
         self.handle_matplotlib_initialization(
             fnum=self.fnum, instantiate_window=False)
-        self.handle_polygon_creation(bbox_list, theta_list, species_list)
+        self.handle_polygon_creation(bbox_list, theta_list, species_list,
+                                     metadata_list)
         self.add_action_buttons()
         self.fig.canvas.draw()
         self.connect_mpl_callbacks(self.fig.canvas)
@@ -507,16 +587,23 @@ class ANNOTATIONInteraction(BASE_CLASS):
             print('[interact_annot] WARNING: poly_ind is %r in update_colors' %
                   poly_ind)
             return
+        # Remove unselected colors
         for poly in six.itervalues(self.polys):
             line = poly.lines
-            if line.get_color() != 'white':
-                line.set_color('white')
-        self.polys[poly_ind].lines.set_color(df2.ORANGE)
+            line_color = line.get_color()
+            desel_color = df2.WHITE if poly.is_orig else df2.LIGHTGRAY
+            if np.any(line_color != np.array(desel_color)):
+                line.set_color(np.array(desel_color))
+        # Add selected color
+        sel_poly = self.polys[poly_ind]
+        sel_color = df2.ORANGE if sel_poly.is_orig else df2.LIGHT_BLUE
+        sel_poly.lines.set_color(sel_color)
         plt.draw()
 
     # --- Data Matainence / Other
 
-    def handle_polygon_creation(self, bbox_list, theta_list, species_list):
+    def handle_polygon_creation(self, bbox_list, theta_list, species_list,
+                                metadata_list):
         """ Maintain original input """
         assert bbox_list is not None
         if theta_list is None:
@@ -525,19 +612,22 @@ class ANNOTATIONInteraction(BASE_CLASS):
             species_list = ['' for _ in range(len(bbox_list))]
         assert len(bbox_list) == len(theta_list), 'inconconsitent data1'
         assert len(bbox_list) == len(species_list), 'inconconsitent data2'
-        self.original_indices     = list(range(len(bbox_list)))
-        self.original_bbox_list    = bbox_list
-        self.original_theta_list   = theta_list
-        self.original_species_list = species_list
+        assert len(bbox_list) == len(metadata_list), 'inconconsitent data2'
+        self.original_indices       = list(range(len(bbox_list)))
+        self.original_bbox_list     = bbox_list
+        self.original_theta_list    = theta_list
+        self.original_species_list  = species_list
+        self.original_metadata_list = metadata_list
         # Convert bbox to verticies
         verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         for verts in verts_list:
             for vert in verts:
                 self.enforce_dims(vert)
         # Create polygons
-        poly_list = [self.new_polygon(verts, theta, species, is_orig=True)
-                     for (verts, theta, species) in
-                     zip(verts_list, theta_list, species_list)]
+        poly_list = [self.new_polygon(verts, theta, species, is_orig=True,
+                                      metadata=metadata)
+                     for (verts, theta, species, metadata) in
+                     zip(verts_list, theta_list, species_list, metadata_list)]
         self.polys = {poly.num: poly for poly in poly_list}
         if len(self.polys) != 0:
             wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
@@ -666,14 +756,17 @@ class ANNOTATIONInteraction(BASE_CLASS):
                     face_color=(0, 0, 0),
                     line_color=(1, 1, 1),
                     line_width=4,
-                    is_orig=False):
+                    is_orig=False,
+                    metadata=None):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
-        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0,
-                       picker=True)
+        poly = mpl.patches.Polygon(
+            verts, animated=True, fc=face_color, ec='none', alpha=0,
+            picker=True)
         # register this polygon
         poly.num = self.next_polynum()
-        poly.status = 'orig' if is_orig else 'new'
+        #poly.status = 'orig' if is_orig else 'new'
+        poly.is_orig = is_orig
         poly.theta = theta
         poly.basecoords = poly.xy
         poly.xy = calc_display_coords(poly.basecoords, poly.theta)
@@ -684,10 +777,12 @@ class ANNOTATIONInteraction(BASE_CLASS):
             tagpos[0], tagpos[1], species,
             bbox={'facecolor': 'white', 'alpha': 1})
         poly.species_tag.remove()  # eliminate "leftover" copies
+        poly.metadata = metadata
         # put in previous text and tabcomplete list for autocompletion
         poly.tctext = ''
         poly.tab_list = self.valid_species
         poly.tcindex = 0
+        poly.last_idx = 0
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -767,7 +862,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
         poly = self.new_polygon(coords, 0, self.species_tag)
         #<hack reason="brittle resizing algorithm that doesn't work unless the
-        #points are in the right order, see resize_rectangle
+        #points are in the right order, see resize rectangle
         # and meets_minimum_width_and_height">
         bbox = basecoords_to_bbox(poly.basecoords)
         poly.basecoords = bbox_to_verts(bbox)
@@ -805,17 +900,49 @@ class ANNOTATIONInteraction(BASE_CLASS):
     def resize_rectangle(self, poly, x, y, idx):
         """
         Resize a rectangle using idx as the given anchor point
+
+        Args:
+            poly (?):
+            x (?):
+            y (ndarray):  labels
+            idx (?):
+
+        Returns:
+            ?:
+
+        CommandLine:
+            python -m plottool.interact_annotations --exec-resize_rectangle --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from plottool.interact_annotations import *  # NOQA
+            >>> self = test_interact_annots()
+            >>> (h, w) = self.img.shape[0:2]
+            >>> x1, y1 = 10, 10
+            >>> x2, y2 = w - 10,  h - 10
+            >>> coords = ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
+            >>> #poly = self.new_polygon(coords, 0, self.species_tag)
+            >>> poly = self._currently_selected_poly
+            >>> x = 3 * w / 4
+            >>> y = 3 * h / 4
+            >>> idx = 3
+            >>> self.resize_rectangle(poly, x, y, idx)
+            >>> self.update_UI()
+            >>> import plottool as pt
+            >>> pt.show_if_requested()
         """
         #print('resize_rectangle')
         # TODO: allow resize by middle click to scale from the center
         if poly is None:
             return
+        poly.last_idx = idx
 
         def distance(x, y):
             return math.sqrt(x ** 2 + y ** 2)
 
         def polarDelta(p1, p2):
             mag = distance(p2[0] - p1[0], p2[1] - p1[1])
+            #mag = vt.L2(p1, p2)
             theta = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
             return [mag, theta]
 
@@ -878,6 +1005,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
         if (self.check_valid_coords(dispcoords) and
              meets_minimum_width_and_height(tmpcoords)):
             poly.basecoords = tmpcoords
+        #else:
+        #    print('[pt] Invalid resize poly')
 
         set_display_coords(poly)
 
@@ -1008,6 +1137,9 @@ class ANNOTATIONInteraction(BASE_CLASS):
     def on_click(self, event):
         """
         Called whenever a mouse button is pressed
+
+        python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
+
         """
         #print('[on_click] key = %r' % (event.key))
         if self._ind is not None:
@@ -1029,6 +1161,30 @@ class ANNOTATIONInteraction(BASE_CLASS):
                     if near_line:
                         self.currently_rotating_poly = poly
                         break
+        # CONTEXT MENU
+        #if True:
+        if event.button == 3:
+            def make_options():
+                def print_poly_info():
+                    print('self._currently_selected_poly = %r' %
+                          (self._currently_selected_poly,))
+                    print('tag_text = %r' %
+                          (self._currently_selected_poly.species_tag.get_text(),))
+                    print('self._currently_selected_poly.metadata = %r' %
+                          (self._currently_selected_poly.metadata,))
+
+                metadata = self._currently_selected_poly.metadata
+                options = []
+                options += [
+                    #('Foo: ',  functools.partial(print, 'bar')),
+                    ('PolyInfo: ',  print_poly_info),
+                ]
+                if isinstance(metadata, ut.LazyDict):
+                    options += metadata.nocache_eval('annot_context_options')
+
+                return options
+            options = make_options()
+            self.show_popup_menu(options, event)
 
         if self._currently_selected_poly is None:
             print('[interact_annot] WARNING: Polygon unknown.'
@@ -1078,17 +1234,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
         """
         Called whenever a mouse button is released
         """
-        # CONTEXT MENU
-        #if True:
-        if False and event.button == 3:
-            import guitool
-            height = self.fig.canvas.geometry().height()
-            qpoint = guitool.newQPoint(event.x, height - event.y)
-            callback_list = [
-                ('Foo: ',  functools.partial(print, 'bar'))
-            ]
-            qwin = self.fig.canvas
-            guitool.popup_menu(qwin, qpoint, callback_list)
 
         if self._polyHeld is True:
             self._polyHeld = False
@@ -1279,10 +1424,10 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.update_UI()
             return
 
-        elif self._polyHeld is True and event.button == 3:
+        elif self._polyHeld is True and event.button == 2:
             # Resize by right click drag
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
-                                  self.mouseY, 0)
+                                  self.mouseY, self._currently_selected_poly.last_idx)  # 0)
             self.update_UI()
             return
 
@@ -1331,80 +1476,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
     #def on_resize(self, event):
     #    self.fig.canvas.draw()
     #    plt.draw()
-
-
-def default_vertices(img, polys=None, mouseX=None, mouseY=None):
-    """Default to rectangle that has a quarter-width/height border."""
-    (h, w) = img.shape[0:2]
-    # Center the new verts around wherever the mouse is
-    if mouseX is not None and mouseY is not None:
-        center_x = mouseX
-        center_h = mouseY
-    else:
-        center_x = w // 2
-        center_h = h // 2
-
-    if polys is not None and len(polys) > 0:
-        # Use the largest polygon size as the default verts
-        wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4]
-                            for poly in six.itervalues(polys)])
-        w_, h_ = wh_list.max(axis=0) // 2
-    else:
-        # If no poly exists use 1/4 of the image size
-        w_, h_ = (w // 4, h // 4)
-    # Get the x/y extents by offseting the centers
-    x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
-    y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
-    # Clip to bounds
-    x1 = max(x1, 1)
-    y1 = max(y1, 1)
-    x2 = min(x2, w - 1)
-    y2 = min(y2, h - 1)
-    return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
-
-
-def test_interact_annots():
-    r"""
-    CommandLine:
-        python -m plottool.interact_annotations --test-test_interact_annots --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
-        >>> import plottool as pt
-        >>> # build test data
-        >>> # execute function
-        >>> self = test_interact_annots()
-        >>> # verify results
-        >>> print(self)
-        >>> pt.show_if_requested()
-    """
-    verts_list = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
-                  ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
-    print('[interact_annot] *** START DEMO ***')
-
-    #if img is None:
-    try:
-        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
-        img_fpath = ut.grab_file_url(img_url)
-        #img = mpimg.imread(img_fpath)
-        from vtool import image as gtool
-        img = gtool.imread(img_fpath)
-    except Exception as ex:
-        print('[interact_annot] cant read zebra: %r' % ex)
-        img = np.random.uniform(0, 255, size=(100, 100))
-    self = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
-    # Do interaction
-    #
-    # Make mask from selection
-    #mask = self.get_mask(img.shape)
-    # User must close previous figure
-    # Modify the image with the mask
-    #masked_img = apply_mask(img, mask)
-    # show the modified image
-    #plt.imshow(masked_img)
-    #plt.title('Region outside of mask is darkened')
-    #print('show2')
 
 
 if __name__ == '__main__':
