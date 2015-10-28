@@ -66,6 +66,8 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
     CommandLine:
         python -m ibeis.init.filter_annots --exec-filter_annots_general
         python -m ibeis.init.filter_annots --exec-filter_annots_general --max-numfeat=300 --db=GZ_Master1 --show --minqual=junk --species=None
+        python -m ibeis.init.filter_annots --exec-filter_annots_general --been_adjusted=True --db=lynx
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -83,6 +85,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
         >>> all_tags = ut.flatten(ibs.get_annot_all_tags(aid_list_))
         >>> filtered_tag_hist = ut.dict_hist(all_tags)
         >>> ut.print_dict(filtered_tag_hist, key_order_metric='val')
+        >>> ut.print_dict(ibs.get_annot_stats_dict(aid_list_), 'annot_stats')
         >>> ut.quit_if_noshow()
         >>> import ibeis.viz.interact
         >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list_)
