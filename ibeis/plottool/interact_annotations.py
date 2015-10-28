@@ -405,6 +405,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
             ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
             self.scope = []
 
+        #self.CONTEXT_ON = True
+        self.CONTEXT_ON = False
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
@@ -785,7 +787,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         poly.tctext = ''
         poly.tab_list = self.valid_species
         poly.tcindex = 0
-        poly.last_idx = 2
+        poly.anchor_idx = 2
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -1166,7 +1168,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
                         break
         # CONTEXT MENU
         #if True:
-        if event.button == 3:
+        if (self.CONTEXT_ON and event.button == 3) or not self.CONTEXT_ON and event.button == 2:
             def make_options():
                 def print_poly_info():
                     print('self._currently_selected_poly = %r' %
@@ -1207,6 +1209,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.indX, self.indY = self._currently_selected_poly.xy[self._ind]
             self._polyHeld = True
             self.update_colors(polyind)
+            self._currently_selected_poly.anchor_idx = self._ind
 
         self.mouseX, self.mouseY = event.xdata, event.ydata
 
@@ -1431,21 +1434,22 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.canUncolor = True
 
         QUICK_RESIZE = (self._polyHeld is True and (
+            (not self.CONTEXT_ON and event.button == 3) or
             event.button == 2 or
-            event.button == 1 and event.key == 'shift'
+            event.button == 1 and event.key == 'ctrl'
         ))
 
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
                                   self.mouseY, self._ind)
-            self._currently_selected_poly.last_idx = self._ind
+            self._currently_selected_poly.anchor_idx = self._ind
             self.update_UI()
             return
         elif QUICK_RESIZE:
             print('Quick Resize')
             # Quick resize
-            anchor_idx = self._currently_selected_poly.last_idx
+            anchor_idx = self._currently_selected_poly.anchor_idx
             idx = (anchor_idx + 2) % 4
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
                                   self.mouseY, idx)  # 0)
