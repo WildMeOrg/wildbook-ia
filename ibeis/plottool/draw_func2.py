@@ -2265,7 +2265,6 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> # DISABLE_DOCTEST (TODO REMOVE IBEIS DOCTEST)
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
-        >>> import ibeis
         >>> import vtool as vt
         >>> # build test data
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
@@ -2288,7 +2287,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> H2 = None
         >>> H2 = None
         >>> # execute function
-        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm)
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, ell_alpha=.9, ell_linewidth=5)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
