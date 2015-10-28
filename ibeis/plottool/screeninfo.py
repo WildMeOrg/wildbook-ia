@@ -4,8 +4,15 @@ from six.moves import range
 import sys
 import utool
 import numpy as np
-import guitool
-from guitool.__PYQT__ import QtGui
+try:
+    import guitool
+    from guitool.__PYQT__ import QtGui
+except ImportError:
+    try:
+        from PyQt4 import QtGui
+    except ImportError:
+        pass
+    print('Warning: guitool did not import correctly')
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[screeninfo]', DEBUG=True)
 utool.noinject(__name__, '[screeninfo]')
 

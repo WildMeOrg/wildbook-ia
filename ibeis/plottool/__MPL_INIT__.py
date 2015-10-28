@@ -36,7 +36,10 @@ def get_target_backend():
         if target_backend is None:
             try:
                 # This might be the cause of some issues
-                from guitool import __PYQT__  # NOQA
+                try:
+                    from guitool import __PYQT__  # NOQA
+                except ImportError:
+                    import PyQt4  # NOQA
                 target_backend = 'Qt4Agg'
             except ImportError:
                 print('[!plotttool] WARNING backend fallback to PDF')
