@@ -2114,6 +2114,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.control.SQLDatabaseControl
         python -m ibeis.control.SQLDatabaseControl --allexamples
+        python -m ibeis.control.SQLDatabaseControl --allexamples --verbtest
         python -m ibeis.control.SQLDatabaseControl --allexamples --noface --nosrc
     """
     import multiprocessing

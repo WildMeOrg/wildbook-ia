@@ -379,53 +379,6 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     #vt.matching.show_matching_dict(matches, metadata)
 
 
-def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        qaid (int):  query annotation id
-        daid (?):
-        qconfig2_ (dict): (default = None)
-        dconfig2_ (dict): (default = None)
-
-    CommandLine:
-        python -m ibeis.model.hots.vsone_pipeline --exec-get_annot_pair_lazy_dict
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> qaid, daid = ibs.get_valid_aids()[0:2]
-        >>> qconfig2_ = None
-        >>> dconfig2_ = None
-        >>> result = get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_, dconfig2_)
-        >>> print(result)
-    """
-    metadata1 = get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_)
-    metadata2 = get_annot_lazy_dict(ibs, daid, config2_=dconfig2_)
-    metadata1_ = ut.map_dict_keys(lambda x: x + '1',
-                                  metadata1.asdict(is_eager=False))
-    metadata2_ = ut.map_dict_keys(lambda x: x + '2',
-                                  metadata2.asdict(is_eager=False))
-    metadata = ut.LazyDict(ut.merge_dicts(metadata1_, metadata2_))
-    return metadata
-
-
-def get_annot_lazy_dict(ibs, aid, config2_=None):
-    import ibeis.control.IBEISControl
-    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
-    metadata = ut.LazyDict({
-        'aid': aid,
-        'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
-        'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
-        'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
-        'kpts': lambda:  ibs.get_annot_kpts([aid], config2_=config2_)[0],
-        'dlen_sqrd': lambda: ibs.get_annot_chip_dlensqrd([aid], config2_=config2_)[0]
-    })
-    return metadata
-
-
 def vsone_independant(qreq_):
     r"""
     Args:

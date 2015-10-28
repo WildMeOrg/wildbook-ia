@@ -784,7 +784,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #ibswgt.back.select_eid(eid)
         ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
 
-    def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid):
+    def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid, model=None, qtindex=None):
         """
         hack for letting annots spawn image editing
 
@@ -805,9 +805,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>>    guitool.qtapp_loop(qwin=ibswgt)
         """
         gid = ibswgt.back.ibs.get_annot_gids(aid)
-        view = ibswgt.views[IMAGE_TABLE]
-        model = view.model()
-        qtindex, row = view.get_row_and_qtindex_from_id(gid)
+        if model is None:
+            view = ibswgt.views[IMAGE_TABLE]
+            model = view.model()
+            qtindex, row = view.get_row_and_qtindex_from_id(gid)
         ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
 
     def spawn_edit_image_annotation_interaction(ibswgt, model, qtindex, gid, eid):
@@ -830,8 +831,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.annot_interact = interact_annotations2.ANNOTATION_Interaction2(
             ibs, gid, **iannot2_kw)
         # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
-        _, row = model.view.get_row_and_qtindex_from_id(gid)
-        pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
+        # FIXME; this should depend on the model.
+        #_, row = model.view.get_row_and_qtindex_from_id(gid)
+        #pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
+        level_num_rows = model._get_level_row_count(qtindex)
+        level_row = model._get_level_row_index(qtindex)
+        pt.set_figtitle('%d/%d' % (level_row + 1, level_num_rows))
 
     def make_adjacent_qtindex_callbacks(ibswgt, model, qtindex):
         r"""
@@ -891,44 +896,51 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #    # BUG: somewhere qtindex gets invalidated
         #    #return None, None, -1
         # HACK FOR NEXT AND PREVIOUS CLICK CALLBACKS
-        cur_gid = model._get_row_id(qtindex)
+        #print('model.name = %r' % (model.name,))
+        if model.name == gh.IMAGE_TABLE:
+            cur_gid = model._get_row_id(qtindex)
+        if model.name == gh.NAMES_TREE:
+            cur_level = model._get_level(qtindex)
+            if cur_level == 1:
+                cur_aid = model._get_row_id(qtindex)
+                cur_gid = ibswgt.ibs.get_annot_gids(cur_aid)
+            else:
+                raise NotImplementedError('Unknown model.name=%r, cur_level=%r' % (model.name, cur_level))
+        else:
+            raise NotImplementedError('Unknown model.name =%r' % (model.name,))
         next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
         prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
-        next_callback = None
-        prev_callback = None
         numclicks = [0]  # semephore
-        if next_qtindex is not None and next_qtindex.isValid():
-            def next_callback():
+
+        def make_qtindex_callback(qtindex_, type_='nextprev'):
+            def _qtindex_callback():
                 if numclicks[0] != 0:
-                    print('race condition in next_callback %d ' % numclicks[0])
+                    print('race condition in %s_callback %d ' % (type_, numclicks[0]))
                     return
                 numclicks[0] += 1
                 # call this function again with next index
-                nextcb, prevcb, new_gid1 = ibswgt._interactannot2_callbacks(model, next_qtindex)
-                print('[newgui] next_callback: new_gid1=%r' % (new_gid1))
-                ibswgt.annot_interact.update_image_and_callbacks(new_gid1,
-                                                                 nextcb,
-                                                                 prevcb,
-                                                                 do_save=True)
+                nextcb, prevcb, new_gid1 = ibswgt._interactannot2_callbacks(model, qtindex_)
+                print('[newgui] %s_callback: new_gid1=%r' % (type_, new_gid1))
+                ibswgt.annot_interact.update_image_and_callbacks(
+                    new_gid1, nextcb, prevcb, do_save=True)
                 # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
-                _, row = model.view.get_row_and_qtindex_from_id(new_gid1)
-                pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
+                #_, row = model.view.get_row_and_qtindex_from_id(new_gid1)
+                #pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
+                level_num_rows = model._get_level_row_count(qtindex_)
+                level_row = model._get_level_row_index(qtindex_)
+                pt.set_figtitle('%d/%d' % (level_row + 1, level_num_rows))
+            return _qtindex_callback
+
+        if next_qtindex is not None and next_qtindex.isValid():
+            next_callback = make_qtindex_callback(next_qtindex, 'next')
+        else:
+            next_callback = None
+
         if prev_qtindex is not None and prev_qtindex.isValid():
-            def prev_callback():
-                if numclicks[0] != 0:
-                    print('race condition in prev_callback %d ' % numclicks[0])
-                    return
-                numclicks[0] += 1
-                # call this function again with previous index
-                nextcb, prevcb, new_gid2 = ibswgt._interactannot2_callbacks(model, prev_qtindex)
-                print('[newgui] prev_callback: new_gid2=%r' % (new_gid2))
-                ibswgt.annot_interact.update_image_and_callbacks(new_gid2,
-                                                                 nextcb,
-                                                                 prevcb,
-                                                                 do_save=True)
-                # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
-                _, row = model.view.get_row_and_qtindex_from_id(new_gid2)
-                pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
+            prev_callback = make_qtindex_callback(prev_qtindex, 'prev')
+        else:
+            prev_callback = None
+
         return next_callback, prev_callback, cur_gid
 
     #------------
@@ -1386,6 +1398,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_doubleclick(ibswgt, qtindex):
         """
         Double clicking anywhere in the GUI
+
+        CommandLine:
+            python -m ibeis --db lynx --eid 2 --select-name=goku
         """
         print('\n+--- DOUBLE CLICK ---')
         if not qtindex.isValid():
@@ -1415,7 +1430,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.back.select_nid(nid, eid, show=True)
                 elif level == 1:
                     aid = id_
-                    ibswgt.back.select_aid(aid, eid, show=True)
+                    ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid, model, qtindex)
+                    #ibswgt.back.select_aid(aid, eid, show=True)
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):

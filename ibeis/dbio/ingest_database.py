@@ -7,7 +7,7 @@ This module lists known raw databases and how to ingest them.
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
-from os.path import relpath, split, exists, join
+from os.path import relpath, dirname, exists, join, realpath
 from ibeis import ibsfuncs
 from ibeis import constants as const
 import utool as ut  # NOQA:
@@ -15,19 +15,10 @@ import parse
 
 
 def normalize_name(name):
-    """
-    Maps unknonwn names to the standard ____
-    """
+    """ Maps unknonwn names to the standard ____ """
     if name in const.ACCEPTED_UNKNOWN_NAMES:
         name = const.INDIVIDUAL_KEY
     return name
-
-
-def normalize_names(name_list):
-    """
-    Maps unknonwn names to the standard ____
-    """
-    return list(map(normalize_name, name_list))
 
 
 def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
@@ -35,9 +26,13 @@ def get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
     Input: gpath_list
     Output: names based on the parent folder of each image
     """
+
+    #from os.path import commonprefix
     relgpath_list = [relpath(gpath, img_dir) for gpath in gpath_list]
-    _name_list  = [split(relgpath)[0] for relgpath in relgpath_list]
-    name_list = normalize_names(_name_list)
+    #_prefix = commonprefix(gpath_list)
+    #relgpath_list = [relpath(gpath, _prefix) for gpath in gpath_list]
+    _name_list  = [dirname(relgpath) for relgpath in relgpath_list]
+    name_list = list(map(normalize_name, _name_list))
     return name_list
 
 
@@ -148,7 +143,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         raise Exception(msg)
 
     _name_list = [parsed['name'] for parsed in parsed_list]
-    name_list = normalize_names(_name_list)
+    name_list = list(map(normalize_name, _name_list))
     return name_list
 
 
@@ -320,7 +315,7 @@ def ingest_lynx(dbname):
         python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
     """
     return Ingestable(dbname, ingest_type='named_folders',
-                      img_dir='/raid/raw_rsync/iberian-lynx/',
+                      img_dir='/raid/raw_rsync/iberian-lynx/CARPETAS CATALOGO INDIVIDUOS/',
                       adjust_percent=0.01,
                       species=const.Species.LYNX,
                       fmtkey='name')
@@ -518,7 +513,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         zipfile_fpath = ut.truepath(join(ibeis.sysres.get_workdir(), ingestable.zipfile))
         ingestable.img_dir = ut.unarchive_file(zipfile_fpath)
 
-    img_dir         = ingestable.img_dir
+    img_dir         = realpath(ingestable.img_dir)
     ingest_type     = ingestable.ingest_type
     fmtkey          = ingestable.fmtkey
     adjust_percent  = ingestable.adjust_percent
@@ -527,13 +522,18 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
 
+    unzipped_file_base_dir = join(ibs.get_dbdir(), 'unzipped_files')
+
     def extract_zipfile_images(ibs, ingestable):
         import utool as ut  # NOQA
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
         if len(zipfile_list) > 0:
             print('Found zipfile_list = %r' % (zipfile_list,))
-            unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
+            ut.ensuredir(unzipped_file_base_dir)
             for zipfile in zipfile_list:
+                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(ingestable.img_dir))))
+                unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
+                ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
             gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
         else:
@@ -550,20 +550,19 @@ def ingest_rawdata(ibs, ingestable, localize=False):
                                     ignore_list=ignore_list)
         return gpath_list
 
-    gpath_list = []
-    gpath_list += list_images(img_dir)
-    gpath_list += extract_zipfile_images(ibs, ingestable)
-
     # FIXME ensure python3 works with this
-    gpath_list = ut.ensure_unicode_strlist(gpath_list)
+    gpath_list1 = ut.ensure_unicode_strlist(list_images(img_dir))
+    gpath_list2 = ut.ensure_unicode_strlist(extract_zipfile_images(ibs, ingestable))
+    gpath_list = gpath_list1 + gpath_list2
 
     #__STR__ = const.__STR__
     #map(__STR__, gpath_list)
     #ut.embed()
-
     # Parse structure for image names
     if ingest_type == 'named_folders':
-        name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
+        name_list1 = get_name_texts_from_parent_folder(gpath_list1, img_dir, fmtkey)
+        name_list2 = get_name_texts_from_parent_folder(gpath_list2, unzipped_file_base_dir, fmtkey)
+        name_list = name_list1 + name_list2
         pass
     elif ingest_type == 'named_images':
         name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
@@ -571,6 +570,24 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
     else:
         raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
+
+    # Find names likely to be the same?
+    RECTIFY_NAMES_HUERISTIC = True
+    if RECTIFY_NAMES_HUERISTIC:
+        names = sorted(list(set(name_list)))
+        splitchars = [' ', '/']
+
+        def multisplit(str_, splitchars):
+            import utool as ut
+            n = [str_]
+            for char in splitchars:
+                n = ut.flatten([_.split(char) for _ in n])
+            return n
+
+        groupids = [multisplit(n1, splitchars)[0] for n1 in names]
+        grouped_names = ut.group_items(names, groupids)
+        fixed_names = {newkey: key for key, val in grouped_names.items() if len(val) > 1 for newkey in val}
+        name_list = [fixed_names.get(name, name) for name in name_list]
 
     # Add Images
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]

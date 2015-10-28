@@ -60,11 +60,14 @@ class ANNOTATION_Interaction2(object):
         #valid_species = const.VALID_SPECIES
         valid_species = [tup[1] for tup in
                          species.get_working_species_set()]
+        metadata_list = [ibs.get_annot_lazy_dict(aid) for aid in self.aid_list]
+        #metadata_list =
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
             species_list=species_list,
+            metadata_list=metadata_list,
             commit_callback=self.commit_callback,
             # TODO: get default species in a better way
             default_species=self.ibs.cfg.detect_cfg.species_text,
@@ -108,10 +111,6 @@ class ANNOTATION_Interaction2(object):
             self.ibs.set_annot_bboxes(changed_aid, bbox_list1, delete_thumbs=True)
         # Add annotations
         if len(new_annottups) > 0:
-            #print("species_list in annotation_interaction2: %r" % list(species_list))
-            #btslist_tup = list(zip(*[((x, y, w, h), t, s) for (x, y, w, h, t,
-            #s) in new_annottups]))
-            #bbox_list, theta_list, species_list = btslist_tup
             # New list returns a list of tuples [(x, y, w, h, theta, species) ...]
             rows_updated = True
             bbox_list2    = [bbox for (bbox, t, s) in new_annottups]
@@ -134,11 +133,11 @@ class ANNOTATION_Interaction2(object):
             # save the current changes when pressing next or previous
             self.interact_ANNOTATIONS.save_and_exit(None, do_close=False)
         if DESTROY_OLD_WINDOW:
-            ANNOTATION_Interaction2.__init__(self, self.ibs, gid,
-                                             next_callback=nextcb,
-                                             prev_callback=prevcb,
-                                             rows_updated_callback=self.rows_updated_callback,
-                                             reset_window=False)
+            ANNOTATION_Interaction2.__init__(
+                self, self.ibs, gid, next_callback=nextcb,
+                prev_callback=prevcb,
+                rows_updated_callback=self.rows_updated_callback,
+                reset_window=False)
         else:
             ibs = self.ibs
             self.gid = gid
@@ -156,16 +155,6 @@ class ANNOTATION_Interaction2(object):
                 prev_callback=prevcb,
             )
 
-
-# Removed for pyinstaller?
-#if __name__ == '__main__':
-#    import ibeis
-#    main_locals = ibeis.main(gui=False)
-#    ibs = main_locals['ibs']
-#    gid_list = ibs.get_valid_gids()
-#    gid = gid_list[len(gid_list) - 1]
-#    annotation = ANNOTATION_Interaction2(ibs, gid)
-#    exec(pt.present())
 
 if __name__ == '__main__':
     """

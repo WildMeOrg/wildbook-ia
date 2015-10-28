@@ -30,6 +30,7 @@ def testdata_qres():
 def testdata_cm():
     r"""
     CommandLine:
+        python -m ibeis.model.hots.chip_match --test-testdata_cm
         python -m ibeis.model.hots.chip_match --test-testdata_cm --show
 
     Example:
