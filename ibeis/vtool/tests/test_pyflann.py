@@ -1,9 +1,12 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 import utool
-import pyflann
 import numpy as np
 from numpy.random import randint
+try:
+    import pyflann
+except ImportError:
+    pass
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[test_pyflann]', DEBUG=False)
 

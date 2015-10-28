@@ -7,8 +7,11 @@ import utool as ut
 import sys
 import numpy as np
 import scipy.sparse as spsparse
-import pyflann
 import vtool.nearest_neighbors as nntool
+try:
+    import pyflann
+except ImportError:
+    pass
 
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[clustering2]', DEBUG=False)
 
@@ -708,7 +711,8 @@ def invert_apply_grouping(grouped_items, groupxs):
 
 def invert_apply_grouping2(grouped_items, groupxs, dtype=None):
     """ use only when ungrouping will be complete """
-    max_ = lambda x: np.max(x) if len(x) > 0 else 0
+    def max_(x):
+        return np.max(x) if len(x) > 0 else 0
     maxval = max_(map(max_, groupxs))
     ungrouped_items = np.zeros((maxval + 1,), dtype=dtype)
     for itemgroup, ix_list in zip(grouped_items, groupxs):

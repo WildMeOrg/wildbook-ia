@@ -6,11 +6,15 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import sys
-import pyflann
 import utool
 import utool as ut  # NOQA
 import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
+
+try:
+    import pyflann
+except ImportError:
+    print('Warning: pyflann failed to import')
 
 
 def test_cv2_flann():
