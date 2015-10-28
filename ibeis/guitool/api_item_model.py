@@ -23,6 +23,8 @@ import numpy as np
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemModel]', DEBUG=False)
 ut.noinject(__name__, '[APIItemModel]', DEBUG=False)
 
+#raise ImportError('refused to import guitool')
+
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
@@ -789,6 +791,13 @@ class APIItemModel(API_MODEL_BASE):
                 assert isinstance(parent_node, _atn.TreeNode), type(parent_node)
                 assert isinstance(node, _atn.TreeNode), type(node)
             return model.createIndex(row, column, object=node)
+
+    def _get_level_row_count(model, qtindex):
+        return model.rowCount(qtindex.parent())
+
+    def _get_level_row_index(model, qtindex):
+        node = qtindex.internalPointer()
+        return node.get_row()
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
