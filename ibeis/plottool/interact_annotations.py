@@ -938,7 +938,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
         # TODO: allow resize by middle click to scale from the center
         if poly is None:
             return
-        poly.last_idx = idx
 
         def distance(x, y):
             return math.sqrt(x ** 2 + y ** 2)
@@ -1440,6 +1439,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             # Resize by dragging corner
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
                                   self.mouseY, self._ind)
+            self._currently_selected_poly.last_idx = self._ind
             self.update_UI()
             return
         elif QUICK_RESIZE:
