@@ -363,7 +363,7 @@ class QueryResult(__OBJECT_BASE__):
             python -m ibeis.model.hots.hots_query_result --test-get_nscoretup
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.hots_query_result import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')

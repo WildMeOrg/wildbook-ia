@@ -158,10 +158,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.aid2 = aid2
         self.col_offset_list = [0, 0]
         #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
+        def _nonefn():
+            return None
         if update_callback is None:
-            update_callback = lambda: None
+            update_callback = _nonefn
         if backend_callback is None:
-            backend_callback = lambda: None
+            backend_callback = _nonefn
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
         self.qres_callback = kwargs.get('qres_callback', None)

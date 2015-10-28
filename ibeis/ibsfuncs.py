@@ -2167,7 +2167,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> print(result)
         (
             [4, 5, 6, 7],
-            [u'IBEIS_UNKNOWN_Encounter_1_0001', u'IBEIS_GZ_Encounter_1_0001', u'IBEIS_PB_Encounter_1_0001', u'IBEIS_UNKNOWN_Encounter_1_0002'],
+            ['IBEIS_UNKNOWN_Encounter_1_0001', 'IBEIS_GZ_Encounter_1_0001', 'IBEIS_PB_Encounter_1_0001', 'IBEIS_UNKNOWN_Encounter_1_0002'],
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
@@ -2577,7 +2577,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
         python -m ibeis.ibsfuncs --test-get_upsize_data
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')

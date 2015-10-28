@@ -313,6 +313,19 @@ def ingest_polar_bears(dbname):
                       fmtkey='name')
 
 
+@__standard('lynx')
+def ingest_lynx(dbname):
+    """
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+    """
+    return Ingestable(dbname, ingest_type='named_folders',
+                      img_dir='/raid/raw_rsync/iberian-lynx/',
+                      adjust_percent=0.01,
+                      species=const.Species.LYNX,
+                      fmtkey='name')
+
+
 @__standard('WS_ALL')
 def ingest_whale_sharks(dbname):
     """
@@ -518,6 +531,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         import utool as ut  # NOQA
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
         if len(zipfile_list) > 0:
+            print('Found zipfile_list = %r' % (zipfile_list,))
             unzipped_file_dir = ut.ensuredir(join(ibs.get_dbdir(), 'unzipped_files'))
             for zipfile in zipfile_list:
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
@@ -539,6 +553,14 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list = []
     gpath_list += list_images(img_dir)
     gpath_list += extract_zipfile_images(ibs, ingestable)
+
+    # FIXME ensure python3 works with this
+    gpath_list = ut.ensure_unicode_strlist(gpath_list)
+
+    #__STR__ = const.__STR__
+    #map(__STR__, gpath_list)
+    #ut.embed()
+
     # Parse structure for image names
     if ingest_type == 'named_folders':
         name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
@@ -955,6 +977,7 @@ if __name__ == '__main__':
         python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
 
     """
+    ut.inject_colored_exceptions()
     if ut.doctest_was_requested():
         ut.doctest_funcs()
     else:

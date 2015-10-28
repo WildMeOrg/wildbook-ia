@@ -72,7 +72,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         python -m ibeis.model.hots.multi_index --test-request_ibeis_mindexer:2
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
@@ -218,7 +218,7 @@ class MultiNeighborIndex(object):
     More abstract wrapper around flann
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.multi_index import *  # NOQA
         >>> mxer, qreq_, ibs = testdata_mindexer()
     """
@@ -239,7 +239,7 @@ class MultiNeighborIndex(object):
         returns list of the results
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
@@ -270,7 +270,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-knn:0
 
         Example1:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
@@ -282,7 +282,7 @@ class MultiNeighborIndex(object):
             >>> ut.assert_inbounds(qfx2_imx.shape[0], 1073, 1079)
 
         Example2:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
@@ -319,7 +319,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-get_offsets
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> offset_list = mxer.get_offsets()
@@ -345,7 +345,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-get_nIndexed_list
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> nIndexed_list = mxer.get_nIndexed_list()
@@ -454,7 +454,7 @@ class MultiNeighborIndex(object):
     def num_indexed_vecs(mxer):
         """
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> num_indexed = mxer.num_indexed_vecs()
@@ -466,7 +466,7 @@ class MultiNeighborIndex(object):
     def num_indexed_annots(mxer):
         """
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> result = mxer.num_indexed_annots()
@@ -489,7 +489,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-iter_subindexers
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3, 1028
@@ -539,7 +539,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-get_nn_aids
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
@@ -576,7 +576,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-get_nn_featxs
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
@@ -605,7 +605,7 @@ class MultiNeighborIndex(object):
             python -m ibeis.model.hots.multi_index --test-get_nn_fgws
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
@@ -625,7 +625,7 @@ class MultiNeighborIndex(object):
     def knn2(mxer, qfx2_vec, K):
         """
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3

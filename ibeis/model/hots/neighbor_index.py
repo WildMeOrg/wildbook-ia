@@ -180,7 +180,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
-        _ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
+        .../_ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl
     """
     flann_cachedir = qreq_.ibs.get_flann_cachedir()
     # Have uuid shelf conditioned on the baseline flann and feature parameters
@@ -679,7 +679,7 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
         python -m ibeis.model.hots.neighbor_index --test-new_neighbor_index
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -852,7 +852,8 @@ class NeighborIndex(object):
             ~/code/flann/src/python/pyflann/index.py
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
+            >>> # (IMPORTANT)
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
             >>> remove_daid_list = [8, 9, 10, 11]
@@ -1380,16 +1381,16 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
         tuple: (idx2_vec, idx2_ax, idx2_fx)
 
     CommandLine:
-        python -m ibeis.model.hots.neighbor_index --exec-invert_index
+        python -m ibeis.model.hots.neighbor_index --test-invert_index
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import vtool as vt
-        >>> num = 1000
+        >>> num = 100
         >>> rng = np.random.RandomState(0)
         >>> ax_list = np.arange(num)
-        >>> vecs_list = [vt.tests.dummy.get_dummy_dpts(rng.randint(1000)) for ax in ax_list]
+        >>> vecs_list = [vt.tests.dummy.get_dummy_dpts(rng.randint(100)) for ax in ax_list]
         >>> verbose = True
         >>> (idx2_vec, idx2_ax, idx2_fx) = invert_index(vecs_list, ax_list, verbose)
     """

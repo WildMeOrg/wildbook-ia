@@ -180,7 +180,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
         python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_image import *  # NOQA
         >>> import ibeis

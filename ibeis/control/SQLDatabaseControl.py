@@ -2,12 +2,14 @@
 """
 Interface into SQL for the IBEIS Controller
 """
-from __future__ import absolute_import, division, print_function
+#from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from six.moves import map, zip
 from os.path import join, exists
 import utool as ut
 #import cStringIO
+import collections
 from six.moves import cStringIO
 from ibeis import constants as const
 from ibeis.control._sql_helpers import (_unpacker, sanitize_sql,
@@ -20,12 +22,12 @@ VERYVERBOSE    = ut.VERYVERBOSE
 #AUTODUMP       = ut.get_argflag('--auto-dump')
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 
-import collections
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
-__STR__ = str if six.PY3 else unicode
+__STR__ = const.__STR__
+#__STR__ = str if six.PY3 else unicode
 
 
 def default_decor(func):
@@ -119,7 +121,7 @@ class SQLDatabaseController(object):
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
-        db.fpath    = join(db.dir_, db.fname)
+        db.fpath = join(db.dir_, db.fname)
         db.text_factory = text_factory
         if not exists(db.fpath):
             print('[sql] Initializing new database')
@@ -1084,7 +1086,8 @@ class SQLDatabaseController(object):
             for data in data_list_
         ]
         # Add the data to the database
-        get_rowid_from_superkey = lambda x: [None] * len(x)
+        def get_rowid_from_superkey(x):
+            return [None] * len(x)
         db.add_cleanly(tablename_temp, dst_list, data_list, get_rowid_from_superkey)
         if tablename_new is None:
             # Drop original table
@@ -1382,7 +1385,7 @@ class SQLDatabaseController(object):
         """ Conveinience: """
         db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tablename_list = db.cur.fetchall()
-        return [ str(tablename[0]) for tablename in tablename_list ]
+        return [str(tablename[0]) for tablename in tablename_list]
 
     @default_decor
     def get_table_constraints(db, tablename):
@@ -1421,7 +1424,7 @@ class SQLDatabaseController(object):
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='lblimage')
-            >>> result = ibs.db.get_table_superkey_colnames(tablename)
+            >>> result = ut.list_str(ibs.db.get_table_superkey_colnames(tablename), nl=False)
             >>> print(result)
             [('lbltype_rowid', 'lblimage_value')]
         """
@@ -1546,7 +1549,7 @@ class SQLDatabaseController(object):
     def get_column_names(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
         column_list = db.get_columns(tablename)
-        column_names = [ str(column[1]) for column in column_list]
+        column_names = [str(column[1]) for column in column_list]
         return column_names
 
     @default_decor

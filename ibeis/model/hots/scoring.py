@@ -30,7 +30,8 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         python -m ibeis.model.hots.scoring --test-score_chipmatch_list:0 --show
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
         >>> score_method = qreq_.qparams.prescore_method
@@ -42,7 +43,8 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> ut.show_if_requested()
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
         >>> qaid = qreq_.get_external_qaids()[0]
@@ -354,7 +356,8 @@ def compute_name_coverage_score(qreq_, cm, config={}):
         python -m ibeis.model.hots.scoring --test-compute_name_coverage_score:0
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
         >>> cm.evaluate_dnids(qreq_.ibs)
@@ -396,7 +399,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
         Evaluate output one at a time or it will get clobbered
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
@@ -430,7 +434,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
         Evaluate output one at a time or it will get clobbered
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
@@ -514,7 +519,8 @@ def get_masks(qreq_, cm, config={}):
         python -m ibeis.model.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> import ibeis
         >>> # build test data

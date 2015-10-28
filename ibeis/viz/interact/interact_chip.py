@@ -35,7 +35,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         python -m ibeis.viz.interact.interact_chip --exec-interact_multichips --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.viz.interact.interact_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

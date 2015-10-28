@@ -430,6 +430,7 @@ class SQLExecutionContext(object):
             context.cur.execute(context.operation, params)
             #print(context.cur.rowcount)
         except lite.Error as ex:
+            print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
             #print('[sql.Error] %r' % (type(ex),))
             #print('[sql.Error] params=<%r>' % (params,))

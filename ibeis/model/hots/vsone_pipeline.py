@@ -100,7 +100,8 @@ def prepare_vsmany_chipmatch(qreq_, cm_list_SVER):
     """ gets normalized vsmany priors
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()
         >>> prepare_vsmany_chipmatch(qreq_, cm_list_SVER)
@@ -134,7 +135,8 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         utprof.py -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()
         >>> # cm_list_SVER = ut.dict_subset(cm_list_SVER, [6])
@@ -589,7 +591,8 @@ def refine_matches(qreq_, prior_cm, config={}):
         use_kptscov_scoring
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
         >>> config = qreq_.qparams
@@ -694,7 +697,8 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False --rotation-invariant=True
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> import plottool as pt
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
@@ -768,7 +772,8 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show --shownorm --homog
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams
@@ -818,7 +823,8 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --homog --index 2
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams

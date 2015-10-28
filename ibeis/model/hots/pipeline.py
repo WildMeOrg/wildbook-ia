@@ -1137,7 +1137,8 @@ def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
         python -m ibeis.model.hots.pipeline --test-vsone_reranking --show
 
     Example2:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
+        >>> # (IMPORTANT)
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> cfgdict = dict(prescore_method='nsum', score_method='nsum', vsone_reranking=True)
         >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=[2])

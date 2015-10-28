@@ -476,7 +476,7 @@ class TestResult(object):
             python -m ibeis.experiments.experiment_storage --exec-get_short_cfglbls
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
@@ -887,7 +887,7 @@ class TestResult(object):
             python -m ibeis.experiments.experiment_storage --exec-case_sample2:2 --db PZ_Master1
 
         Example0:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> # The same results is achievable with different filter config settings
             >>> from ibeis.experiments.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers

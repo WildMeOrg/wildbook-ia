@@ -218,11 +218,11 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         >>> result = ut.list_str(annotation_text_list)
         >>> print(result)
         [
-            u'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
-            u'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
-            u'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
-            u'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
-            u'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
+            'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
+            'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
         ]
     """
     # HACK FOR TEST

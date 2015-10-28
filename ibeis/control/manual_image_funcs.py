@@ -267,7 +267,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                 'image_time_posix', 'image_gps_lat',
                 'image_gps_lon', 'image_note',)
     # <DEBUG>
-    if ut.VERBOSE:
+    debug = False
+    if debug:
         uuid_colx = colnames.index('image_uuid')
         uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
@@ -943,19 +944,19 @@ def get_image_gnames(ibs, gid_list):
         >>> result = ut.list_str(gname_list)
         >>> print(result)
         [
-            u'easy1.JPG',
-            u'easy2.JPG',
-            u'easy3.JPG',
-            u'hard1.JPG',
-            u'hard2.JPG',
-            u'hard3.JPG',
-            u'jeff.png',
-            u'lena.jpg',
-            u'occl1.JPG',
-            u'occl2.JPG',
-            u'polar1.jpg',
-            u'polar2.jpg',
-            u'zebra.jpg',
+            'easy1.JPG',
+            'easy2.JPG',
+            'easy3.JPG',
+            'hard1.JPG',
+            'hard2.JPG',
+            'hard3.JPG',
+            'jeff.png',
+            'lena.jpg',
+            'occl1.JPG',
+            'occl2.JPG',
+            'polar1.jpg',
+            'polar2.jpg',
+            'zebra.jpg',
         ]
     """
     gname_list = ibs.db.get(const.IMAGE_TABLE, ('image_original_name',), gid_list)

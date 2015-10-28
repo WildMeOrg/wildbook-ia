@@ -36,8 +36,8 @@ def get_hsdb_image_gpaths(ibs, gid_list):
         >>> result = ut.list_str(gpath_list)
         >>> print(result)
         [
-            u'../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg',
-            u'../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg',
+            '../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg',
+            '../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg',
         ]
     """
     imgdir = join(ibs.get_dbdir(), 'images')
