@@ -108,18 +108,18 @@ class APIItemModel(API_MODEL_BASE):
     Item model for displaying a list of columns
 
     Attributes:
-        iders         : list of functions that return ids for setters and getters
-        col_name_list : list of keys or SQL-like name for column to reference
+        iders         (list) : functions that return ids for setters and getters
+        col_name_list (list) : keys or SQL-like name for column to reference
                         abstracted data storage using getters and setters
-        col_type_list : list of column value (Python) types
-        col_nice_list : list of well-formatted names of the columns
-        col_edit_list : list of booleans for if column should be editable
+        col_type_list (list) : column value (Python) types
+        col_nice_list (list) : well-formatted names of the columns
+        col_edit_list (list) : booleans for if column should be editable
 
-        col_setter_list : list of setter functions
-        col_getter_list : list of getter functions
+        col_setter_list (list) : setter functions
+        col_getter_list (list) : getter functions
 
-        col_sort_index : index into col_name_list for sorting
-        col_sort_reverse : boolean of if to reverse the sort ordering
+        col_sort_index (int) : index into col_name_list for sorting
+        col_sort_reverse (bool) : flag to reverse the sort ordering
     """
     _rows_updated = signal_(str, int)
     EditableItemColor = QtGui.QColor(242, 242, 255)
@@ -1052,7 +1052,8 @@ def simple_thumbnail_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'rowid'
-    get_thumb_size = lambda: 128
+    def get_thumb_size():
+        return 128
     col_width_dict = {}
     col_bgrole_dict = {}
 

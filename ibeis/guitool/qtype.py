@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 #from guitool.__PYQT__.QtCore import Qt
-#import six
+import six
 from guitool.__PYQT__.QtCore import QLocale
 import utool as ut
 import uuid
@@ -12,7 +12,10 @@ from guitool.guitool_decorators import checks_qt_error
 #    from guitool.__PYQT__.QtCore import QVariant
 #elif six.PY3:
 QVariant = None
-QString = str
+
+__STR__ = unicode if six.PY2 else str
+
+QString = __STR__
 
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[qtype]', DEBUG=False)
@@ -59,9 +62,9 @@ QT_DELEGATE_TYPES = set(list(QT_IMAGE_TYPES) + list(QT_BUTTON_TYPES) + list(QT_C
 def qindexinfo(index):
     variant = index.data()
     if SIMPLE_CASTING:
-        item = str(variant)
+        item = __STR__(variant)
     else:
-        item = str(variant.toString())
+        item = __STR__(variant.toString())
     row  = index.row()
     col  = index.column()
     return (item, row, col)
@@ -76,7 +79,7 @@ def qindexinfo(index):
 #    #}
 #    data = 1000000
 #    print(ut.dict_str({
-#        'out1': str(QString.number(float(data), format='g', precision=8))
+#        'out1': __STR__(QString.number(float(data), format='g', precision=8))
 #    }))
 
 #    QLocale(QLocale.English).toString(123456789, 'f', 2)
@@ -112,7 +115,7 @@ def cast_into_qt(data):
     """
     if SIMPLE_CASTING:
         if ut.is_str(data):
-            return str(data)
+            return __STR__(data)
         elif ut.is_float(data):
             #qnumber = QString.number(float(data), format='g', precision=8)
             return locale_float(data)
@@ -121,13 +124,13 @@ def cast_into_qt(data):
         elif  ut.is_int(data):
             return int(data)
         elif isinstance(data, uuid.UUID):
-            return str(data)
+            return __STR__(data)
         elif ut.isiterable(data):
-            return ', '.join(map(str, data))
+            return ', '.join(map(__STR__, data))
         else:
-            return str(data)
+            return __STR__(data)
     if ut.is_str(data):
-        return str(data)
+        return __STR__(data)
     elif ut.is_float(data):
         #qnumber = QString.number(float(data), format='g', precision=8)
         return locale_float(data)
@@ -136,102 +139,26 @@ def cast_into_qt(data):
     elif  ut.is_int(data):
         return int(data)
     elif isinstance(data, uuid.UUID):
-        return str(data)
+        return __STR__(data)
     elif ut.isiterable(data):
-        return ', '.join(map(str, data))
+        return ', '.join(map(__STR__, data))
     elif data is None:
         return 'None'
     else:
         return 'Unknown qtype: %r for data=%r' % (type(data), data)
 
 
-#@profile
-#def __cast_into_qt_py2(data):
-#    """ Casts data to a QVariant """
-#    if ut.is_str(data):
-#        return QVariant(str(data)).toString()
-#    if ut.is_float(data):
-#        #qnumber = QString.number(float(data), format='g', precision=8)
-#        return QVariant(LOCALE.toString(float(data), format='g', precision=8))
-#    elif ut.is_bool(data):
-#        return QVariant(bool(data)).toString()
-#    elif  ut.is_int(data):
-#        return QVariant(int(data)).toString()
-#    elif isinstance(data, uuid.UUID):
-#        return QVariant(str(data)).toString()
-#    elif ut.isiterable(data):
-#        return QVariant(', '.join(map(str, data))).toString()
-#    elif data is None:
-#        return QVariant('None').toString()
-#    else:
-#        return 'Unknown qtype: %r for data=%r' % (type(data), data)
-
-
 @checks_qt_error
-#@profile
 def cast_from_qt(var, type_=None):
     """ Casts a QVariant to data """
     if SIMPLE_CASTING:
         if var is None:
             return None
         if type_ is not None:
-            reprstr = str(var)
+            reprstr = __STR__(var)
             return ut.smart_cast(reprstr, type_)
         return var
-
     # TODO: sip api v2 should take care of this.
-    #
-    #printDBG('Casting var=%r' % (var,))
-    #if var is None:
-    #    return None
-    #if type_ is not None and isinstance(var, QVariant):
-    #    # Most cases will be qvariants
-    #    reprstr = str(var.toString())
-    #    data = ut.smart_cast(reprstr, type_)
-    #elif isinstance(var, QVariant):
-    #    if var.typeName() == 'bool':
-    #        data = bool(var.toBool())
-    #    if var.typeName() in ['QString', 'str']:
-    #        data = str(var.toString())
-    #elif isinstance(var, QString):
-    #    data = str(var)
-    #elif isinstance(var, list):
-    #    data = var
-    ##elif isinstance(var, (int, long, str, float)):
-    #elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
-    #    # comboboxes return ints
-    #    data = var
-    #else:
-    #    raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
-    #                     (type(var), var))
-    #return data
-
-
-#@profile
-#def cast_from_qt__PY2(var, type_=None):
-#    """ Casts a QVariant to data """
-#    #printDBG('Casting var=%r' % (var,))
-#    if var is None:
-#        return None
-#    if type_ is not None and isinstance(var, QVariant):
-#        # Most cases will be qvariants
-#        reprstr = str(var.toString())
-#        data = ut.smart_cast(reprstr, type_)
-#    elif isinstance(var, QVariant):
-#        if var.typeName() == 'bool':
-#            data = bool(var.toBool())
-#        if var.typeName() in ['QString', 'str']:
-#            data = str(var.toString())
-#    elif isinstance(var, QString):
-#        data = str(var)
-#    #elif isinstance(var, (int, long, str, float)):
-#    elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
-#        # comboboxes return ints
-#        data = var
-#    else:
-#        raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
-#                         (type(var), var))
-#    return data
 
 
 def infer_coltype(column_list):
@@ -239,7 +166,7 @@ def infer_coltype(column_list):
     try:
         coltype_list = [type(column_data[0]) for column_data in column_list]
     except Exception:
-        coltype_list = [str] * len(column_list)
+        coltype_list = [__STR__] * len(column_list)
     return coltype_list
 
 
