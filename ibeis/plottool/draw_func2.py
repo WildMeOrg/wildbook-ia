@@ -25,6 +25,7 @@ except ImportError as ex:
 import pylab
 import warnings
 import numpy as np
+import vtool as vt
 import cv2
 from plottool import mpl_keypoint as mpl_kp
 from plottool import color_funcs as color_fns  # NOQA
@@ -1810,12 +1811,20 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
         for (x1, y1), (x2, y2) in zip(xy1_m.T, xy2_m.T)
     ]
     linewidth = [lw for fx in range(len(fm))]
-    line_alpha = line_alpha
+    #line_alpha = line_alpha
+    #line_alpha = np.linspace(0, 1, len(fm))
 
-    line_group = mpl.collections.LineCollection(
-        segments, linewidth, color_list, alpha=line_alpha)
+    if ut.isiterable(line_alpha):
+        # Hack for multiple alphas
+        for segment, alpha, color in zip(segments, line_alpha, color_list):
+            line_group = mpl.collections.LineCollection(
+                [segment], linewidth, color, alpha=alpha)
+            ax.add_collection(line_group)
+    else:
+        line_group = mpl.collections.LineCollection(
+            segments, linewidth, color_list, alpha=line_alpha)
     #plt.colorbar(line_group, ax=ax)
-    ax.add_collection(line_group)
+        ax.add_collection(line_group)
     #figure(100)
     #plt.hexbin(x,y, cmap=plt.cm.YlOrRd_r)
 
@@ -2271,11 +2280,11 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         >>> rchip1 = vt.imread(ut.grab_test_imgpath(fname1))
         >>> rchip2 = vt.imread(ut.grab_test_imgpath(fname2))
-        >>> kpts1 = np.array([[ 430.84,  124.51,   12.98,   -1.54,    8.51,    0.  ],
+        >>> kpts1 = np.array([[10,  10,   30,   0,    30,    0.  ],
         ...                   [ 355.89,  142.95,   10.46,   -0.63,    8.59,    0.  ],
         ...                   [ 356.35,  147.  ,    8.38,    1.08,   11.68,    0.  ],
         ...                   [ 361.4 ,  150.64,    7.44,    3.45,   13.63,    0.  ]], dtype=np.float64)
-        >>> kpts2 = np.array([[ 466.01,   18.15,   13.24,   -3.74,    8.85,    0.  ],
+        >>> kpts2 = np.array([[ 10,   10,   30,   0,    30,    0.  ],
         ...                   [ 376.98,   50.61,   11.91,   -2.9 ,    9.77,    0.  ],
         ...                   [ 377.59,   54.89,    9.7 ,   -1.4 ,   13.72,    0.  ],
         ...                   [ 382.8 ,   58.2 ,    7.87,   -0.31,   15.23,    0.  ]], dtype=np.float64)
@@ -2284,10 +2293,10 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
         ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
         ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
-        >>> H2 = None
+        >>> H1 = None
         >>> H2 = None
         >>> # execute function
-        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, ell_alpha=.9, ell_linewidth=5)
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, line_alpha=[1, .1, .1, .1], lw=10, ell_linewidth=5)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
@@ -2309,7 +2318,6 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     """
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
-    import vtool as vt
     wh1 = vt.get_size(rchip1)
     wh2 = vt.get_size(rchip2)
     # Warp if homography is specified

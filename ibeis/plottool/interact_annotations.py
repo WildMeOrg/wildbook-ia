@@ -42,7 +42,8 @@ import re
 # FIXME: REMOVE IBEIS DEPENDENCY
 from plottool import draw_func2 as df2
 from six.moves import zip
-ut.noinject(__name__, '[interact_annotations]')
+#ut.noinject(__name__, '[interact_annotations]')
+print, rrr, profile = ut.inject2(__name__, '[interact_annotations]')
 
 
 DEFAULT_SPECIES_TAG = '____'
@@ -357,6 +358,7 @@ AbstractInteraction = abstract_interaction.AbstractInteraction
 BASE_CLASS = object
 
 
+@six.add_metaclass(ut.ReloadingMetaclass)
 class ANNOTATIONInteraction(BASE_CLASS):
     """
     An interactive polygon editor.
@@ -414,6 +416,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             ('draw_event', self.draw_callback),
             ('button_press_event', self.on_click),
             ('button_release_event', self.on_click_release),
+            ('figure_leave_event', self.on_figure_leave),
             ('key_press_event', self.on_key_press),
             ('motion_notify_event', self.on_motion),
             ('pick_event', self.onpick),
@@ -782,7 +785,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         poly.tctext = ''
         poly.tab_list = self.valid_species
         poly.tcindex = 0
-        poly.last_idx = 0
+        poly.last_idx = 2
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -1141,7 +1144,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
         python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
 
         """
-        #print('[on_click] key = %r' % (event.key))
+        if ut.VERBOSE:
+            print('[on_click] key = %r' % (event.key))
         if self._ind is not None:
             self._ind = None
             return
@@ -1230,10 +1234,17 @@ class ANNOTATIONInteraction(BASE_CLASS):
 
         self.fig.canvas.blit(self.fig.ax.bbox)
 
+    def on_figure_leave(self, event):
+        if ut.VERBOSE:
+            print('figure leave')
+        self.on_click_release(event)
+
     def on_click_release(self, event):
         """
         Called whenever a mouse button is released
         """
+        if ut.VERBOSE:
+            print('click release')
 
         if self._polyHeld is True:
             self._polyHeld = False
@@ -1257,7 +1268,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             #self._currently_selected_poly.set_facecolor('white')
 
         self.update_UI()
-        if event.button == 1:  # left
+        if event is None or event.button == 1:  # left
             self.leftbutton_is_down = False
 
         if self._ind is None:
@@ -1392,6 +1403,9 @@ class ANNOTATIONInteraction(BASE_CLASS):
         CALLBACK FOR MOTION EVENTS
         Called on mouse movement
         """
+        if ut.VERBOSE or True:
+            print('[interact_annot] on_motion')
+            print('[interact_annot] Got key: %r' % event.key)
         #ignore = (not self.showverts or event.inaxes is None)
         ignore = (not self.showverts)
         # uses boolean punning for terseness
@@ -1417,17 +1431,24 @@ class ANNOTATIONInteraction(BASE_CLASS):
         if self.leftbutton_is_down is True:
             self.canUncolor = True
 
+        QUICK_RESIZE = (self._polyHeld is True and (
+            event.button == 2 or
+            event.button == 1 and event.key == 'shift'
+        ))
+
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
                                   self.mouseY, self._ind)
             self.update_UI()
             return
-
-        elif self._polyHeld is True and event.button == 2:
-            # Resize by right click drag
+        elif QUICK_RESIZE:
+            print('Quick Resize')
+            # Quick resize
+            anchor_idx = self._currently_selected_poly.last_idx
+            idx = (anchor_idx + 2) % 4
             self.resize_rectangle(self._currently_selected_poly, self.mouseX,
-                                  self.mouseY, self._currently_selected_poly.last_idx)  # 0)
+                                  self.mouseY, idx)  # 0)
             self.update_UI()
             return
 
