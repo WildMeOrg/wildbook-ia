@@ -61,7 +61,8 @@ class ANNOTATION_Interaction2(object):
         valid_species = [tup[1] for tup in
                          species.get_working_species_set()]
         metadata_list = [ibs.get_annot_lazy_dict(aid) for aid in self.aid_list]
-        #metadata_list =
+        if True:
+            interact_annotations.rrr()
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
@@ -139,6 +140,8 @@ class ANNOTATION_Interaction2(object):
                 rows_updated_callback=self.rows_updated_callback,
                 reset_window=False)
         else:
+            if True:
+                self.interact_ANNOTATIONS.rrr()
             ibs = self.ibs
             self.gid = gid
             img = ibs.get_images(self.gid)
@@ -146,11 +149,13 @@ class ANNOTATION_Interaction2(object):
             bbox_list = ibs.get_annot_bboxes(self.aid_list)
             theta_list = ibs.get_annot_thetas(self.aid_list)
             species_list = ibs.get_annot_species_texts(self.aid_list)
+            metadata_list = [ibs.get_annot_lazy_dict(aid) for aid in self.aid_list]
             self.interact_ANNOTATIONS.update_image_and_callbacks(
                 img,
                 bbox_list=bbox_list,
                 theta_list=theta_list,
                 species_list=species_list,
+                metadata_list=metadata_list,
                 next_callback=nextcb,
                 prev_callback=prevcb,
             )

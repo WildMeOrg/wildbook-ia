@@ -265,7 +265,13 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         aid, default=True, gname=False, name=False, notes=False,
         exemplar=False)
 
-    print('[interact_chip] Annotation Info = ' + ut.obj_str(annot_info, nl=4))
+    def print_annot_info():
+        print('[interact_chip] Annotation Info = ' + ut.obj_str(annot_info, nl=4))
+
+    callback_list += [
+        ('dev print annot info', print_annot_info),
+        ('dev refresh', pt.update),
+    ]
     return callback_list
 
 
