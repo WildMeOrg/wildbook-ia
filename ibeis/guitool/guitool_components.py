@@ -694,10 +694,55 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 #    #app_style = QtGui.QApplication.style()
 
 
-def newLabel(parent=None, text='', align='center', fontkw={}):
+def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
+    r"""
+    Args:
+        parent (None): (default = None)
+        text (str):  (default = '')
+        align (str): (default = 'center')
+        gpath (None): (default = None)
+        fontkw (dict): (default = {})
+
+    Kwargs:
+        parent, text, align, gpath, fontkw
+
+    Returns:
+        ?: label
+
+    CommandLine:
+        python -m guitool.guitool_components --exec-newLabel --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> parent = None
+        >>> text = ''
+        >>> align = 'center'
+        >>> gpath = ut.grab_test_imgpath('lena.png')
+        >>> fontkw = {}
+        >>> label = newLabel(parent, text, align, gpath, fontkw)
+        >>> ut.quit_if_noshow()
+        >>> label.show()
+        >>> guitool.qtapp_loop(qwin=label, freq=10)
+    """
     label = QtGui.QLabel(text, parent=parent)
     label.setAlignment(ALIGN_DICT[align])
     adjust_font(label, **fontkw)
+    if gpath is not None:
+        # http://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
+        # TODO
+        label._orig_pixmap = QtGui.QPixmap(gpath)
+        label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        label.setScaledContents(True)
+
+        def _on_resize_slot():
+            #print('_on_resize_slot')
+            label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            #label.setPixmap(label._orig_pixmap.scaled(label.size()))
+        label._on_resize_slot = _on_resize_slot
+        #ut.embed()
     return label
 
 

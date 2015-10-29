@@ -195,7 +195,21 @@ class APIItemModel(API_MODEL_BASE):
         if model.ider_filters is None:
             ider_list = model.iders
         else:
-            ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]
+            assert len(model.ider_filters) == len(model.iders), 'bad filters'
+            #ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]
+            #with ut.embed_on_exception_context:
+            def wrap_ider(ider, filtfn):
+                def wrapped_ider(*args, **kwargs):
+                    return filtfn(ider(*args, **kwargs))
+                return wrapped_ider
+
+            ider_list =  [
+                #ider
+                wrap_ider(ider, filtfn)
+                #lambda *args: filtfn(ider(*args))
+                for filtfn, ider in
+                zip(model.ider_filters, model.iders)
+            ]
         return ider_list
 
     #@profile

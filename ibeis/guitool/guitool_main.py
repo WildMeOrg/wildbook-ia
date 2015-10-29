@@ -103,6 +103,8 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420, i
     if enable_activate_qwin and (qwin is not None):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(frequency=frequency)
+    elif qwin is None:
+        print('[guitool] Warning: need to specify qwin for ctrl+c to work')
     if init_signals:
         # allow ctrl+c to exit the program
         _init_signals()
@@ -161,4 +163,5 @@ def _on_ctrl_c(signal, frame):
 
 def _init_signals():
     import signal
+    #print('initializing qt ctrl+c signal')
     signal.signal(signal.SIGINT, _on_ctrl_c)
