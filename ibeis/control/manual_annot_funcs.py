@@ -853,7 +853,7 @@ def get_annot_eids(ibs, aid_list):
         aid_list (list):
 
     Returns:
-        gid_list (list):  image rowids
+        eid_list (list):  encounter rowids
 
     RESTful:
         Method: GET

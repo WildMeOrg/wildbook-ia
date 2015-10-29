@@ -22,8 +22,8 @@ NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
 NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
 USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
-                                          '--nocache-test')) and ut.USE_CACHE
-                      and not NOCACHE_TESTRES)
+                                          '--nocache-test')) and ut.USE_CACHE and
+                      not NOCACHE_TESTRES)
 TEST_INFO = True
 
 DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))  # dont actually query. Just print labels and stuff

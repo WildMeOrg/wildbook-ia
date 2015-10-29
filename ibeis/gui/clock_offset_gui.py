@@ -26,25 +26,34 @@ from time import mktime
 
 class ClockOffsetWidget(QtGui.QWidget):
 
-    def __init__(co_wgt, ibs, gid_list, parent=None):
+    def __init__(co_wgt, ibs, gid_list, parent=None, hack=False):
         print('[co_gui] Initializing')
+        print('[co_gui] gid_list = %r' % (gid_list,))
+
         QtGui.QWidget.__init__(co_wgt, parent=parent)
 
         co_wgt.fnum = next_fnum()
 
         co_wgt.main_layout = QtGui.QVBoxLayout(co_wgt)
 
-        co_wgt.text_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
+        co_wgt.text_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalStretch=10)
         co_wgt.main_layout.addWidget(co_wgt.text_layout)
 
+        co_wgt.control_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalSizePolicy=QtGui.QSizePolicy.MinimumExpanding)
+        co_wgt.main_layout.addWidget(co_wgt.control_layout)
+
         co_wgt.button_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
-        co_wgt.main_layout.addWidget(co_wgt.button_layout)
+        co_wgt.control_layout.addWidget(co_wgt.button_layout)
 
         co_wgt.combo_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
-        co_wgt.main_layout.addWidget(co_wgt.combo_layout)
+        co_wgt.control_layout.addWidget(co_wgt.combo_layout)
+
+        co_wgt.hack = hack  # hack for edting the time of a single image
 
         co_wgt.imfig = None
         co_wgt.imax = None
+
+        co_wgt.dtime = None
 
         co_wgt.ibs = ibs
         co_wgt.gid_list = gid_list
@@ -57,6 +66,14 @@ class ClockOffsetWidget(QtGui.QWidget):
         co_wgt.add_buttons()
         co_wgt.update_ui()
 
+    def resizeEvent(co_wgt, event):
+        super(ClockOffsetWidget, co_wgt).resizeEvent(event)
+        if co_wgt.image_label is not None:
+            # Hack use signals and slots
+            if hasattr(co_wgt.image_label, '_on_resize_slot'):
+                co_wgt.image_label._on_resize_slot()
+        #print('resizeEvent')
+
     def get_image_datetime(co_wgt):
         # Function that extracts the unixtime from an image and stores it
         utime = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list[co_wgt.current_gindex])
@@ -66,17 +83,19 @@ class ClockOffsetWidget(QtGui.QWidget):
         co_wgt.dtime = datetime.fromtimestamp(utime)
 
     def update_ui(co_wgt):
-        if co_wgt.current_gindex == 0:
-            co_wgt.button_list[0].setEnabled(False)
-        else:
-            co_wgt.button_list[0].setEnabled(True)
-        if co_wgt.current_gindex == len(co_wgt.gid_list) - 1:
-            co_wgt.button_list[1].setEnabled(False)
-        else:
-            co_wgt.button_list[1].setEnabled(True)
+        if not co_wgt.hack:
+            if co_wgt.current_gindex == 0:
+                co_wgt.button_list[0].setEnabled(False)
+            else:
+                co_wgt.button_list[0].setEnabled(True)
+            if co_wgt.current_gindex == len(co_wgt.gid_list) - 1:
+                co_wgt.button_list[1].setEnabled(False)
+            else:
+                co_wgt.button_list[1].setEnabled(True)
 
         #TODO Either integrate this into utool or check if it's already there
-        extract_tuple = lambda li, idx: list(zip(*li)[idx])
+        def extract_tuple(li, idx):
+            return list(zip(*li)[idx])
         # Update option setting, assume datetime has been updated
         co_wgt.combo_list[1].setCurrentIndex(extract_tuple(co_wgt.opt_list['year'], 1).index(co_wgt.dtime.year))
         co_wgt.combo_list[3].setCurrentIndex(extract_tuple(co_wgt.opt_list['month'], 1).index(co_wgt.dtime.month))
@@ -86,12 +105,13 @@ class ClockOffsetWidget(QtGui.QWidget):
         co_wgt.combo_list[11].setCurrentIndex(extract_tuple(co_wgt.opt_list['second'], 1).index(co_wgt.dtime.second))
 
         # Redraw image
-        if co_wgt.imfig is not None:
-            close_figure(co_wgt.imfig)
-        image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
-        figtitle = "Time Synchronization Picture"
-        co_wgt.imfig, co_wgt.imax = imshow(image, fnum=co_wgt.fnum, title=figtitle)
-        co_wgt.imfig.show()
+        if not co_wgt.hack:
+            if co_wgt.imfig is not None:
+                close_figure(co_wgt.imfig)
+            image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
+            figtitle = "Time Synchronization Picture"
+            co_wgt.imfig, co_wgt.imax = imshow(image, fnum=co_wgt.fnum, title=figtitle)
+            co_wgt.imfig.show()
 
     def show_helpmsg(co_wgt):
         msg = ut.textblock(
@@ -114,31 +134,50 @@ class ClockOffsetWidget(QtGui.QWidget):
     def add_label(co_wgt):
         # Very simply adds the text
         _LABEL = partial(guitool.newLabel, parent=co_wgt)
-        text = ut.codeblock(
-            '''
-            * Find the image of the clock
-            * Set the sliders to correspond with the clock
-            * Click Set
-            * Skip if time synchonization is not relevant to you
-            '''
-        )
-        main_label = _LABEL(text=text, align='left')
-        co_wgt.text_layout.addWidget(main_label)
+        if not co_wgt.hack:
+            text = ut.codeblock(
+                '''
+                * Find the image of the clock
+                * Set the sliders to correspond with the clock
+                * Click Set
+                * Skip if time synchonization is not relevant to you
+                '''
+            )
+            main_label = _LABEL(text=text, align='left')
+            co_wgt.text_layout.addWidget(main_label)
+        else:
+            text = ut.codeblock(
+                '''
+                * Set the time for image %r
+                ''' % (co_wgt.gid_list,)
+            )
+            gpath = co_wgt.ibs.get_image_paths(co_wgt.gid_list[co_wgt.current_gindex])
+            image_label = _LABEL(text='', gpath=gpath)  # align='left')
+            co_wgt.image_label = image_label
+            co_wgt.text_layout.addWidget(image_label)
+            #main_label = _LABEL(text=text, align='left')
+            #co_wgt.text_layout.addWidget(main_label)
 
     def add_buttons(co_wgt):
         _BUTTON = partial(guitool.newButton, parent=co_wgt)
-        co_wgt.button_list = [
-            _BUTTON(text='Previous Image',
-                    clicked=co_wgt.go_prev),
-            _BUTTON(text='Next Image',
-                    clicked=co_wgt.go_next),
-            _BUTTON(text='Skip',
-                    clicked=co_wgt.cancel),
-            _BUTTON(text='Set',
-                    clicked=co_wgt.accept),
-            _BUTTON(text='Help',
-                    clicked=co_wgt.show_helpmsg),
-        ]
+        if not co_wgt.hack:
+            co_wgt.button_list = [
+                _BUTTON(text='Previous Image',
+                        clicked=co_wgt.go_prev),
+                _BUTTON(text='Next Image',
+                        clicked=co_wgt.go_next),
+                _BUTTON(text='Skip',
+                        clicked=co_wgt.cancel),
+                _BUTTON(text='Set',
+                        clicked=co_wgt.accept),
+                _BUTTON(text='Help',
+                        clicked=co_wgt.show_helpmsg),
+            ]
+        else:
+            co_wgt.button_list = [
+                _BUTTON(text='Accept',
+                        clicked=co_wgt.accept),
+            ]
         # Copying from inspect_gui
 
         for button in co_wgt.button_list:
@@ -147,9 +186,16 @@ class ClockOffsetWidget(QtGui.QWidget):
     def add_combo_boxes(co_wgt):
         _CBOX = partial(guitool.newComboBox, parent=co_wgt)
         _LABEL = partial(guitool.newLabel, parent=co_wgt, align='right')
-        to_opt_list = lambda x: [("%02d" % i, i) for i in x]
+        def to_opt_list(x):
+            return [("%02d" % i, i) for i in x]
+        year_list = [datetime.fromtimestamp(unixtime).year
+                     for unixtime in co_wgt.ibs.get_image_unixtime(co_wgt.gid_list)
+                     if unixtime is not None]
+        max_year = max(year_list + [date.today().year]) + 1
+        min_year = min(year_list + [1970]) - 1
+        #max_year = date.today().year + 1
         co_wgt.opt_list = {
-            'year': to_opt_list(range(1969, date.today().year + 1)),
+            'year': to_opt_list(range(min_year, max_year)),
             'month': to_opt_list(range(1, 13)) ,
             'day': to_opt_list(range(1, 32)),  # yes this will allow invalid dates, but it's not a real issue
             'hour': to_opt_list(range(24)),
@@ -217,7 +263,8 @@ class ClockOffsetWidget(QtGui.QWidget):
         # SHOULD WE BE USING image_timedelta_posix INSTEAD OF THIS?
         co_wgt.ibs.set_image_unixtime(co_wgt.gid_list, new_utimes)
         # Close
-        close_figure(co_wgt.imfig)
+        if not co_wgt.hack:
+            close_figure(co_wgt.imfig)
         co_wgt.close()
 
     @guitool.slot_(str, int, str)
@@ -244,7 +291,7 @@ def test_clock_offset():
     main_locals = ibeis.main(db='testdb1')
     ibs = main_locals['ibs']
     gid_list = ibs.get_valid_gids()
-    co = ClockOffsetWidget(ibs, gid_list)
+    co = ClockOffsetWidget(ibs, gid_list, hack=True)
     co.show()
     ibeis.main_loop(main_locals)
 

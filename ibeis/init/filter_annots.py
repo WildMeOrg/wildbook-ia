@@ -94,6 +94,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
     filter_kw.update(kwargs)
     aid_list_ = aid_list
     filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
+    # TODO GET FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
     aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw)
     return aid_list_
@@ -259,11 +260,12 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
     return aids
 
 
-def expand_acfgs_consistently(ibs, acfg_combo):
+def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
     """
     CommandLine:
         python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize
         python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
+        python -m ibeis --tf get_annotcfg_list --db lynx -a default:hack_encounter=True
         python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
         python -m ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
         python -m ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
@@ -310,7 +312,7 @@ def expand_acfgs_consistently(ibs, acfg_combo):
             dcfg['sample_size'] = tmpmin(dcfg['sample_size'] , min_dsize)
 
         # Expand modified acfgdict
-        expanded_aids = expand_acfgs(ibs, acfg, hack_exclude_keys=hack_exclude_keys)
+        expanded_aids = expand_acfgs(ibs, acfg, use_cache=use_cache, hack_exclude_keys=hack_exclude_keys)
 
         if dcfg.get('hack_extra', None):
             # SUCH HACK to get a larger database
@@ -545,6 +547,8 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None, hack_exclud
         dcfg[key] = None
 
     try:
+        if aidcfg['qcfg']['hack_encounter'] is True:
+            return ibs.get_encounter_expanded_aids()
         # Hack: Make hierarchical filters to supersede this
         initial_aids = ibs._get_all_aids()
 
@@ -604,6 +608,8 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None, hack_exclud
 def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                               verbose=VERB_TESTDATA, withpre=False):
     r""" Filtering that doesn't have to do with a reference set of aids
+
+    TODO make filterflags version
 
     Args:
         ibs (IBEISController):  ibeis controller object

@@ -72,7 +72,8 @@ class APITabWidget(QtGui.QTabWidget):
     def __init__(tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(tabwgt, parent)
         tabwgt.ibswgt = parent
-        tabwgt._sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
+        tabwgt._sizePolicy = guitool.newSizePolicy(
+            tabwgt, horizontalStretch=horizontalStretch)
         tabwgt.setSizePolicy(tabwgt._sizePolicy)
         #tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
         tabwgt.currentChanged.connect(tabwgt._on_tabletab_change)
@@ -889,6 +890,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         callbacks for the edit image annotation (from image table) interaction
 
+        python -m ibeis --db lynx --eid 2
+
         TODO: needs reimplement
         """
         #if not qtindex.isValid():
@@ -899,7 +902,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #print('model.name = %r' % (model.name,))
         if model.name == gh.IMAGE_TABLE:
             cur_gid = model._get_row_id(qtindex)
-        if model.name == gh.NAMES_TREE:
+        elif model.name == gh.NAMES_TREE:
             cur_level = model._get_level(qtindex)
             if cur_level == 1:
                 cur_aid = model._get_row_id(qtindex)
@@ -907,6 +910,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             else:
                 raise NotImplementedError('Unknown model.name=%r, cur_level=%r' % (model.name, cur_level))
         else:
+            print('gh.IMAGE_TABLE = %r' % (gh.IMAGE_TABLE,))
             raise NotImplementedError('Unknown model.name =%r' % (model.name,))
         next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
         prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
@@ -1232,6 +1236,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             current_enctext = ibswgt.back.ibs.get_encounter_text(eid)
             context_options = []
             # Conditional context menu
+            context_options = [
+                ('Edit image ' + ut.pluralize('time', len(gid_list)),
+                 lambda: ibswgt.edit_image_time([gid]))
+            ]
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 eid = model.eid
@@ -1533,12 +1541,34 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         select_func = select_func_dict[(table_key, level)]
         select_func(id_, eid, show=False)
 
+    def edit_image_time(ibswgt, gid_list):
+        """
+
+        CommandLine:
+            python -m ibeis.gui.newgui --exec-edit_image_time --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> #ibs, back, ibswgt, testdata_main_loop = testdata_guifront('testdb3')
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('lynx')
+            >>> ibswgt.edit_image_time([277, 630])
+            >>> testdata_main_loop(globals(), locals())
+        """
+        from ibeis.gui import clock_offset_gui
+        # keep in scope
+        #ibswgt.co_wgt = clock_offset_gui.ClockOffsetWidget(ibswgt.ibs, gid_list, parent=ibswgt, hack=True)
+        ibswgt.co_wgt = clock_offset_gui.ClockOffsetWidget(ibswgt.ibs, gid_list, hack=True)
+        ibswgt.co_wgt.show()
+        #ibswgt.co_wgt.raise_()
+        #return None
+
     def filter_annotation_table(ibswgt):
         r"""
         TODO:  Finish implementation
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-filter_annotation_table --show
+            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --eid 2
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1550,27 +1580,35 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> testdata_main_loop(globals(), locals())
         """
         from functools import partial
-        model = ibswgt.models[gh.ANNOTATION_TABLE]  # NOQA
 
         #ibs.filter_annots_general()
 
         ibs = ibswgt.back.ibs
-        model._ider()
 
         #ibs.filterannots_by_tags(aid_list)
+        print('\n------FILTERING ANNOTS\n\n')
 
         #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         #isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
         #ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
 
         # Applies annotation based filtering to the annotation table
-        filter_kw = dict(any_matches='.*error.*')
+        #filter_kw = dict(any_matches='.*error.*', been_adjusted=True)
+        filter_kw = dict(been_adjusted=True)
+        #filter_kw = dict(require_timestamp=True)
         filter_fn = partial(ibs.filter_annots_general, filter_kw=filter_kw)
 
+        model = ibswgt.models[gh.ANNOTATION_TABLE]  # NOQA
         model.set_ider_filters([filter_fn])
         with ChangeLayoutContext([model]):
-            #model._update_rows(rebuild_structure=True)
-            model._update_rows()
+            model._update_rows(rebuild_structure=True)
+            #model._update_rows()
+
+        #model = ibswgt.models[gh.NAMES_TREE]  # NOQA
+        ##model.set_ider_filters([ut.identity, filter_fn])
+        #model.set_ider_filters([ut.identity, lambda aids_list: [filter_fn(aids) for aids in aids_list]])
+        #with ChangeLayoutContext([model]):
+        #    model._update_rows(rebuild_structure=True)
 
         #def get_error_aids():
         #    # DISABLE_DOCTEST

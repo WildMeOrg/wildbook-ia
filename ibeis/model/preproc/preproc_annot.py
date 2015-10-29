@@ -14,8 +14,8 @@ Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True with_colum
 Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, range, filter  # NOQA
-import utool as ut  # NOQA
+from six.moves import zip, range, filter, map  # NOQA
+import utool as ut
 import uuid
 from vtool import geometry
 from ibeis import constants as const

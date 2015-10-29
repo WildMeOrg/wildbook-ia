@@ -23,7 +23,7 @@ def combine_test_results(ibs, test_result_list):
     combine test results over multiple annot configs
 
     CommandLine:
-        python -m ibeis.experiments.experiment_storage --exec-combine_test_results
+        python -m ibeis --tf combine_test_results
 
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
@@ -173,7 +173,9 @@ class TestResult(object):
 
     def get_infoprop_list(test_result, key, qaids=None):
         _tmp1_cfgx2_infoprop = ut.get_list_column(test_result.cfgx2_cfgresinfo, key)
-        _tmp2_cfgx2_infoprop = list(map(np.array, ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
+        _tmp2_cfgx2_infoprop = list(map(
+            np.array,
+            ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
         if qaids is not None:
             flags_list = [np.in1d(aids_, qaids) for aids_ in test_result.cfgx2_qaids]
             cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
@@ -191,7 +193,8 @@ class TestResult(object):
         key = 'qx2_gt_raw_score'
         """
         cfgx2_infoprop = test_result.get_infoprop_list(key, qaids)
-        infoprop_mat = np.vstack(cfgx2_infoprop).T  # concatenate each query rank across configs
+        # concatenate each query rank across configs
+        infoprop_mat = np.vstack(cfgx2_infoprop).T
         return infoprop_mat
 
     @ut.memoize
@@ -220,7 +223,9 @@ class TestResult(object):
         if jagged:
             assert not asdict
             cfgx2_bestranks = test_result.get_infoprop_list('qx2_bestranks')
-            cfgx2_bestranks = [ut.list_replace(bestranks, -1, test_result.get_worst_possible_rank()) for bestranks in cfgx2_bestranks]
+            cfgx2_bestranks = [
+                ut.list_replace(bestranks, -1, test_result.get_worst_possible_rank())
+                for bestranks in cfgx2_bestranks]
             cfgx2_hist = np.zeros((len(cfgx2_bestranks), len(bins) - 1), dtype=np.int32)
             for cfgx, ranks in enumerate(cfgx2_bestranks):
                 bin_values, bin_edges  = np.histogram(ranks, bins=bins)
@@ -269,8 +274,8 @@ class TestResult(object):
             tuple: (config_cdfs, edges)
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist
-            python -m ibeis.experiments.experiment_storage --exec-get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
+            python -m ibeis --tf TestResult.get_rank_percentage_cumhist
+            python -m ibeis --tf TestResult.get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -357,8 +362,12 @@ class TestResult(object):
 
     def get_all_varied_params(test_result):
         # only for big results
-        varied_cfg_params = list(set(ut.flatten([cfgdict.keys() for cfgdict in test_result.varied_cfg_list])))
-        varied_acfg_params = list(set(ut.flatten([acfg.keys() for acfg in test_result.varied_acfg_list])))
+        varied_cfg_params = list(set(ut.flatten(
+            [cfgdict.keys()
+             for cfgdict in test_result.varied_cfg_list])))
+        varied_acfg_params = list(set(ut.flatten([
+            acfg.keys()
+            for acfg in test_result.varied_acfg_list])))
         varied_params = varied_acfg_params + varied_cfg_params
         return varied_params
 
@@ -374,9 +383,13 @@ class TestResult(object):
         if key == 'len(daids)':
             basis = sorted(list(set([len(daids) for daids in test_result.cfgx2_daids])))
         elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
-            basis = sorted(list(set([cfgdict[key] for cfgdict in test_result.varied_cfg_list])))
+            basis = sorted(list(set([
+                cfgdict[key]
+                for cfgdict in test_result.varied_cfg_list])))
         elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
-            basis = sorted(list(set([acfg[key] for acfg in test_result.varied_acfg_list])))
+            basis = sorted(list(set([
+                acfg[key]
+                for acfg in test_result.varied_acfg_list])))
         else:
             assert False
         return basis
@@ -396,11 +409,14 @@ class TestResult(object):
         Gets configs where the given parameter is held constant
         """
         if key == 'len(daids)':
-            cfgx_list = [cfgx for cfgx, daids in enumerate(test_result.cfgx2_daids) if len(daids) == val]
+            cfgx_list = [cfgx for cfgx, daids in enumerate(test_result.cfgx2_daids)
+                         if len(daids) == val]
         elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
-            cfgx_list = [cfgx for cfgx, cfgdict in enumerate(test_result.varied_cfg_list) if cfgdict[key] == val]
+            cfgx_list = [cfgx for cfgx, cfgdict in enumerate(test_result.varied_cfg_list)
+                         if cfgdict[key] == val]
         elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
-            cfgx_list = [cfgx for cfgx, acfg in enumerate(test_result.varied_acfg_list) if acfg[key] == val]
+            cfgx_list = [cfgx for cfgx, acfg in enumerate(test_result.varied_acfg_list)
+                         if acfg[key] == val]
         else:
             assert False
         return cfgx_list
@@ -473,7 +489,7 @@ class TestResult(object):
         cfg_lbls = ['baseline:nRR=200+default:', 'baseline:+default:']
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_short_cfglbls
+            python -m ibeis --tf TestResult.get_short_cfglbls
 
         Example:
             >>> # SLOW_DOCTEST
@@ -497,7 +513,8 @@ class TestResult(object):
             for groupx in a_groupxs:
                 acfg_list = ut.list_take(test_result.cfgx2_acfg, groupx)
                 #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
-                varied_lbls = annotation_configs.get_varied_acfg_labels(acfg_list, mainkey='_cfgstr')
+                varied_lbls = annotation_configs.get_varied_acfg_labels(
+                    acfg_list, mainkey='_cfgstr')
                 a_label_groups.append(varied_lbls)
             acfg_lbls = vt.invert_apply_grouping(a_label_groups, a_groupxs)
 
@@ -551,8 +568,8 @@ class TestResult(object):
         Helper for consistent figure titles
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
-            python -m ibeis.experiments.experiment_storage --exec-make_figtitle
+            python -m ibeis --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
+            python -m ibeis --tf TestResult.make_figtitle
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -581,7 +598,8 @@ class TestResult(object):
                 figtitle += ' ' + filt_cfgstr
         return figtitle
 
-    def get_title_aug(test_result, with_size=True, with_db=True, with_cfg=True, friendly=False):
+    def get_title_aug(test_result, with_size=True, with_db=True, with_cfg=True,
+                      friendly=False):
         r"""
         Args:
             with_size (bool): (default = True)
@@ -590,7 +608,7 @@ class TestResult(object):
             str: title_aug
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_title_aug --db PZ_Master1 -a timequalctrl::timectrl
+            python -m ibeis --tf TestResult.get_title_aug --db PZ_Master1 -a timequalctrl::timectrl
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -614,7 +632,8 @@ class TestResult(object):
                     except KeyError:
                         annot_cfgname = test_result.common_acfg['common']['_cfgname']
                 else:
-                    cfgname_list = [cfg['dcfg__cfgname'] for cfg in test_result.varied_acfg_list]
+                    cfgname_list = [cfg['dcfg__cfgname']
+                                    for cfg in test_result.varied_acfg_list]
                     cfgname_list = ut.unique_keep_order2(cfgname_list)
                     annot_cfgname = '[' + ','.join(cfgname_list) + ']'
                 try:
@@ -643,10 +662,13 @@ class TestResult(object):
                 daids = test_result.cfgx2_daids[0]
                 title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
                 if test_result.has_constant_qaids():
-                    locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids, verbose=False)[1]
+                    locals_ = ibs.get_annotconfig_stats(
+                        test_result.qaids, daids, verbose=False)[1]
                     all_daid_per_name_stats = locals_['all_daid_per_name_stats']
                     if all_daid_per_name_stats['std'] == 0:
-                        title_aug += ' dper_name=%s' % (ut.scalar_str(all_daid_per_name_stats['mean'], max_precision=2),)
+                        title_aug += ' dper_name=%s' % (
+                            ut.scalar_str(all_daid_per_name_stats['mean'],
+                                          max_precision=2),)
                     else:
                         title_aug += ' dper_name=%s±%s' % (
                             ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),
@@ -683,7 +705,7 @@ class TestResult(object):
     def print_acfg_info(test_result, **kwargs):
         """
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-print_acfg_info
+            python -m ibeis --tf TestResult.print_acfg_info
 
         Kwargs;
             see ibs.get_annot_stats_dict
@@ -715,7 +737,7 @@ class TestResult(object):
             ibs (IBEISController):  ibeis controller object(default = None)
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-print_unique_annot_config_stats
+            python -m ibeis --tf TestResult.print_unique_annot_config_stats
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -728,15 +750,18 @@ class TestResult(object):
         """
         if ibs is None:
             ibs = test_result.ibs
-        cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids) for daids in test_result.cfgx2_daids]
-        unique_daids = ut.list_compress(test_result.cfgx2_daids, ut.flag_unique_items(cfx2_dannot_hashid))
+        cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids)
+                              for daids in test_result.cfgx2_daids]
+        unique_daids = ut.list_compress(test_result.cfgx2_daids,
+                                        ut.flag_unique_items(cfx2_dannot_hashid))
         with ut.Indenter('[acfgstats]'):
             print('+====')
             print('Printing %d unique annotconfig stats' % (len(unique_daids)))
             common_acfg = test_result.common_acfg
             common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
             print('test_result.common_acfg = ' + ut.dict_str(common_acfg))
-            print('param_basis(len(daids)) = %r' % (test_result.get_param_basis('len(daids)'),))
+            print('param_basis(len(daids)) = %r' % (
+                test_result.get_param_basis('len(daids)'),))
             for count, daids in enumerate(unique_daids):
                 print('+---')
                 print('acfgx = %r/%r' % (count, len(unique_daids)))
@@ -749,7 +774,7 @@ class TestResult(object):
     def print_results(test_result):
         r"""
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-print_results
+            python -m ibeis --tf TestResult.print_results
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -792,7 +817,7 @@ class TestResult(object):
             list: case_pos_list
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_gf_tags --db PZ_Master1 --show
+            python -m ibeis --tf TestResult.get_gf_tags --db PZ_Master1 --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -815,9 +840,9 @@ class TestResult(object):
     def get_all_tags(test_result):
         r"""
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :
-            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
-            python -m ibeis.experiments.experiment_storage --exec-get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h,max_gt_rank=5
+            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :
+            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h
+            python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :min_gf_timedelta=24h,max_gt_rank=5
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -867,7 +892,8 @@ class TestResult(object):
     def get_gtquery_annot_tags(test_result):
         gt_annot_tags = test_result.get_gt_annot_tags()
         query_annot_tags = test_result.get_query_annot_tags()
-        both_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(query_annot_tags, gt_annot_tags)]
+        both_tags = [[ut.flatten(t) for t in zip(*item)]
+                     for item in zip(query_annot_tags, gt_annot_tags)]
         return both_tags
 
     def case_sample2(test_result, filt_cfg, return_mask=False, verbose=None):
@@ -879,12 +905,12 @@ class TestResult(object):
             list: case_pos_list (list of (qx, cfgx)) or isvalid mask
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2:0
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2:1 --db PZ_Master1 --filt :min_tags=1
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
+            python -m ibeis --tf TestResult.case_sample2
+            python -m ibeis --tf TestResult.case_sample2:0
+            python -m ibeis --tf TestResult.case_sample2:1 --db PZ_Master1 --filt :min_tags=1
+            python -m ibeis --tf TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
 
-            python -m ibeis.experiments.experiment_storage --exec-case_sample2:2 --db PZ_Master1
+            python -m ibeis --tf TestResult.case_sample2:2 --db PZ_Master1
 
         Example0:
             >>> # SLOW_DOCTEST
@@ -1197,7 +1223,8 @@ class TestResult(object):
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
         return case_pos_list
 
-    def case_type_sample(test_result, num_per_group=1, with_success=True, with_failure=True, min_success_diff=0):
+    def case_type_sample(test_result, num_per_group=1, with_success=True,
+                         with_failure=True, min_success_diff=0):
         category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
         # STRATIFIED SAMPLE OF CASES FROM GROUPS
         #mode = 'failure'
@@ -1234,13 +1261,16 @@ class TestResult(object):
         has_sample = np.array(list(map(len, sample_vals))) > 0
         has_sample_idx = np.nonzero(has_sample)[0]
 
-        print('Unsampled categories = %s' % (ut.list_str(ut.list_compress(sample_keys, ~has_sample))))
-        print('Sampled categories = %s' % (ut.list_str(ut.list_compress(sample_keys, has_sample))))
+        print('Unsampled categories = %s' % (
+            ut.list_str(ut.list_compress(sample_keys, ~has_sample))))
+        print('Sampled categories = %s' % (
+            ut.list_str(ut.list_compress(sample_keys, has_sample))))
 
         sampled_type_list = ut.list_take(sample_keys, has_sample_idx)
         sampled_cases_list = ut.list_take(sample_vals, has_sample_idx)
 
-        sampled_lbl_list = ut.flatten([[lbl] * len(cases) for lbl, cases in zip(sampled_type_list, sampled_cases_list)])
+        sampled_lbl_list = ut.flatten([[lbl] * len(cases)
+                                       for lbl, cases in zip(sampled_type_list, sampled_cases_list)])
         if len(sampled_cases_list) == 0:
             return [], []
         sampled_case_list = np.vstack(sampled_cases_list)
@@ -1331,7 +1361,9 @@ class TestResult(object):
         min_success_ratio = min_success_diff / (test_result.nConfig)
         #qx2_cfgdiffratio = np.array([np.sum(flags) / len(flags) for flags in is_success])
         #qx2_isvalid = np.logical_and((1 - qx2_cfgdiffratio) >= min_success_ratio, min_success_ratio <= min_success_ratio)
-        qx2_cfgdiffratio = np.array([min(np.sum(flags), len(flags) - np.sum(flags)) / len(flags) for flags in is_success])
+        qx2_cfgdiffratio = np.array([
+            min(np.sum(flags), len(flags) - np.sum(flags)) / len(flags)
+            for flags in is_success])
         qx2_isvalid = qx2_cfgdiffratio >= min_success_ratio
         #qx2_configs_differed = np.array([len(np.unique(flags)) > min_success_diff for flags in is_success])
         #qx2_isvalid = qx2_configs_differed
@@ -1354,10 +1386,12 @@ class TestResult(object):
                 funcname = ut.get_funcname(getter_method)
                 key = funcname.replace('get_annotmatch_is_', '')
                 if not (truth == 'gt' and key in ignore_gt_flags):
-                    is_type = ut.accepts_numpy(getter_method.im_func)(ibs, annotmatch_rowid_mat).astype(np.bool)
+                    is_type = ut.accepts_numpy(getter_method.im_func)(
+                        ibs, annotmatch_rowid_mat).astype(np.bool)
                     truth2_is_type[truth][key] = is_type
 
-        truth2_is_type['gt']['cfgxdiffers'] = np.tile((qx2_cfgdiffratio > 0), (test_result.nConfig, 1)).T
+        truth2_is_type['gt']['cfgxdiffers'] = np.tile(
+            (qx2_cfgdiffratio > 0), (test_result.nConfig, 1)).T
         truth2_is_type['gt']['cfgxsame']    = ~truth2_is_type['gt']['cfgxdiffers']
 
         # Make other category information
@@ -1372,7 +1406,9 @@ class TestResult(object):
                 truth2_is_type['gt'][rank_range_key] = truth2_prop['gt']['rank'] >= low
             else:
                 rank_range_key = 'rank_between_' + str(low) + '_' + str(high)
-                truth2_is_type['gt'][rank_range_key] = np.logical_and(truth2_prop['gt']['rank'] >= low, truth2_prop['gt']['rank'] < high)
+                truth2_is_type['gt'][rank_range_key] = np.logical_and(
+                    truth2_prop['gt']['rank'] >= low,
+                    truth2_prop['gt']['rank'] < high)
             gt_rank_range_keys.append(rank_range_key)
 
         # Large timedelta ground false cases
@@ -1405,7 +1441,10 @@ class TestResult(object):
         # Remove categories that dont matter
         for rank_range_key in gt_rank_range_keys:
             if not rank_range_key.startswith('rank_under'):
-                assert len(category_poses['success_gt'][rank_range_key]) == 0, 'category_poses[\'success_gt\'][%s] = %r' % (rank_range_key, category_poses['success_gt'][rank_range_key],)
+                assert len(category_poses['success_gt'][rank_range_key]) == 0, (
+                    'category_poses[\'success_gt\'][%s] = %r' % (
+                        rank_range_key,
+                        category_poses['success_gt'][rank_range_key],))
             del (category_poses['success_gt'][rank_range_key])
 
         # Convert to histogram
@@ -1463,7 +1502,8 @@ class TestResult(object):
         #for key, val in key2_gf_is_type.items():
         #    print(val.sum())
 
-    def get_case_positions(test_result, mode='failure', disagree_first=True, samplekw=None):
+    def get_case_positions(test_result, mode='failure', disagree_first=True,
+                           samplekw=None):
         """
         Helps get failure and success cases
 
@@ -1474,7 +1514,7 @@ class TestResult(object):
             list: new_hard_qx_list
 
         CommandLine:
-            python -m ibeis.experiments.experiment_storage --exec-get_case_positions
+            python -m ibeis --tf TestResult.get_case_positions
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1508,7 +1548,9 @@ class TestResult(object):
                 encoder.fit_partitioned(tp_scores, tn_scores, finite_only=True)
                 encoder.visualize()
 
-        qx_list, cfgx_list = np.unravel_index(hardness_degree_mat.ravel().argsort()[::-1], hardness_degree_mat.shape)
+        qx_list, cfgx_list = np.unravel_index(
+            hardness_degree_mat.ravel().argsort()[::-1],
+            hardness_degree_mat.shape)
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
 
         ONLY_FINITE = True
@@ -1539,7 +1581,8 @@ class TestResult(object):
 
         #talk about convoluted
         _qx2_casegroup = ut.group_items(case_pos_list, case_pos_list.T[0], sorted_=False)
-        qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order2(case_pos_list.T[0]))
+        qx2_casegroup = ut.order_dict_by(
+            _qx2_casegroup, ut.unique_keep_order2(case_pos_list.T[0]))
         grouppos_list = list(qx2_casegroup.values())
         grouppos_len_list = list(map(len, grouppos_list))
         _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
@@ -1595,7 +1638,8 @@ class TestResult(object):
         row_rankcategory_std = np.std(rankcategory, axis=1)
         row_rankcategory_mean = np.mean(rankcategory, axis=1)
         import vtool as vt
-        row_sortx = vt.argsort_multiarray([row_rankcategory_std, row_rankcategory_mean], reverse=True)
+        row_sortx = vt.argsort_multiarray(
+            [row_rankcategory_std, row_rankcategory_mean], reverse=True)
         interesting_qx_list = diff_qxs.take(row_sortx).tolist()
         #print("INTERSETING MEASURE")
         #print(interesting_qx_list)
@@ -1626,18 +1670,23 @@ class TestResult(object):
         for cfgx, qres, qreq_ in zip(cfgx_list, qres_list, qreq_list):
             query_lbl = cfgx2_shortlbl[cfgx]
             fnum = cfgx
-            qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+            qres.ishow_analysis(
+                ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_,
+                **show_kwargs)
 
     def reconstruct_test_flags(test_result):
         if '_cfgstr' in test_result.common_cfgdict:
             pipecfg_args = [test_result.common_cfgdict['_cfgstr']]
         else:
-            pipecfg_args = ut.unique_keep_order2([cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
+            pipecfg_args = ut.unique_keep_order2(
+                [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
 
         if '_cfgstr' in test_result.common_acfg['common']:
             annotcfg_args = [test_result.common_acfg['common']['_cfgstr']]
         else:
-            annotcfg_args = ut.unique_keep_order2([acfg['common']['_cfgstr'] for acfg in test_result.varied_acfg_list])
+            annotcfg_args = ut.unique_keep_order2([
+                acfg['common']['_cfgstr']
+                for acfg in test_result.varied_acfg_list])
         flagstr =  ' '.join([
             '-a ' + ' '.join(annotcfg_args),
             '-t ' + ' ' .join(pipecfg_args),
@@ -1696,6 +1745,29 @@ class TestResult(object):
         #pt.plot(xdata, curve)
         #pt.plot(x_submax, y_submax, 'o')
         return score_thresh
+
+    def print_percent_identification_success(test_result):
+        """
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        """
+        ibs = test_result.ibs
+        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(test_result.qaids))
+        test_result.cfgx2_cfgresinfo[0].keys()
+        #rankmat = test_result.get_rank_mat()
+        qx2_gt_raw_score = test_result.get_infoprop_mat('qx2_gt_raw_score')
+        qx2_gf_raw_score = test_result.get_infoprop_mat('qx2_gf_raw_score')
+        nx2_gt_raw_score = np.array([
+            ut.safe_max(scores)
+            for scores in vt.apply_grouping(qx2_gt_raw_score, groupxs)])
+        nx2_gf_raw_score = np.array([
+            ut.safe_max(scores)
+            for scores in vt.apply_grouping(qx2_gf_raw_score, groupxs)])
+
+        success = nx2_gt_raw_score > nx2_gf_raw_score
+        print('success = %r / %r = %r' % (
+            success.sum(), len(success), success.sum() / len(success)))
 
 
 if __name__ == '__main__':

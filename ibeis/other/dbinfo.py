@@ -601,6 +601,7 @@ def show_image_time_distributions(ibs, gid_list):
 
     CommandLine:
         python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show
+        python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show --db lynx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -644,6 +645,7 @@ def show_time_distributions(ibs, unixtime_list):
         #ax.set_xticks(bins_)
         #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
     else:
+        print('unixtime_list = %r' % (unixtime_list,))
         pt.draw_time_distribution(unixtime_list)
         #pt.draw_histogram()
         ax = pt.gca()

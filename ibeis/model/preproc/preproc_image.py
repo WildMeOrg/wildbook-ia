@@ -2,12 +2,12 @@
 from __future__ import absolute_import, division, print_function
 from PIL import Image
 from os.path import splitext, basename
-#import numpy as np  # NOQA
 import warnings  # NOQA
-#import hashlib
-#import uuid
 import vtool.exif as vtexif
 import utool as ut
+#import numpy as np  # NOQA
+#import hashlib
+#import uuid
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_img]', DEBUG=False)
 
 
@@ -25,6 +25,7 @@ def parse_exif(pil_img):
     """
     exif_dict = vtexif.get_exif_dict(pil_img)
     # TODO: More tags
+    # (mainly the orientation tag)
     lat, lon = vtexif.get_lat_lon(exif_dict)
     time = vtexif.get_unixtime(exif_dict)
     return time, lat, lon
@@ -44,33 +45,31 @@ def get_standard_ext(gpath):
 
 
 @profile
-def parse_imageinfo(tup):
+def parse_imageinfo(gpath):
     """ Worker function: gpath must be in UNIX-PATH format!
 
-    Input:
-        a tuple of arguments (so the function can be parallelized easily)
+    Args:
+        tup (tuple): a tuple or one argument
+            (so the function can be parallelized easily)
+            (here it is just gpath, no tuple, sorry for confusion)
 
     Returns:
-        if successful returns a tuple of image parameters which are values for
-        SQL columns on else returns None
+        tuple: param_tup -
+            if successful returns a tuple of image parameters which are values
+            for SQL columns on else returns None
 
-    Cyth::
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_image --exec-parse_imageinfo
 
-        cdef:
-            str gpath
-            Image pil_img
-            str orig_gname
-            str ext
-            long width
-            long height
-            long time
-            long lat
-            long lon
-            str notes
-
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_image import *  # NOQA
+        >>> gpath = ('/media/raid/work/lynx/_ibsdb/images/f6c84c6d-55ca-fd02-d0b4-1c7c9c27c894.jpg')
+        >>> param_tup = parse_imageinfo(tup)
+        >>> result = ('param_tup = %s' % (str(param_tup),))
+        >>> print(result)
     """
     # Parse arguments from tuple
-    gpath = tup
     #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
     with warnings.catch_warnings(record=True) as w:
@@ -81,8 +80,10 @@ def parse_imageinfo(tup):
             return None
         if len(w) > 0:
             for warn in w:
-                warnings.showwarning(warn.message, warn.category, warn.filename, warn.lineno, warn.file, warn.line)
-                #warnstr = warnings.formatwarning(warn.message, warn.category, warn.filename, warn.lineno, warn.line)
+                warnings.showwarning(warn.message, warn.category,
+                                     warn.filename, warn.lineno, warn.file,
+                                     warn.line)
+                #warnstr = warnings.formatwarning
                 #print(warnstr)
             print('Warnings issued by %r' % (gpath,))
     # Parse out the data
@@ -117,8 +118,18 @@ def add_images_params_gen(gpath_list, **kwargs):
     """
     generates values for add_images sqlcommands asychronously
 
+    Args:
+        gpath_list (list):
+
+    Kwargs:
+        ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
+        adjust
+
+    Returns:
+        generator: params_gen
+
     CommandLine:
-        python -m ibeis.model.preproc.preproc_image --test-add_images_params_gen
+        python -m ibeis.model.preproc.preproc_image --exec-add_images_params_gen
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -129,11 +140,6 @@ def add_images_params_gen(gpath_list, **kwargs):
         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
         >>> assert str(params_list[0][2]) == 'easy1.JPG', 'orig name is different'
         >>> assert params_list[3] is None
-
-    Cyth::
-        cdef:
-            list gpath_list
-            dict kwargs
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))

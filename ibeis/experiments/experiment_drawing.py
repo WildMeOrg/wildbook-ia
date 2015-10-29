@@ -209,9 +209,10 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
         other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
         #ut.embed()
 
-        zipmask = lambda _tags, _flags : [[item if flag else [] for item, flag
-                                           in zip(list_, flags)] for list_,
-                                          flags in zip(_tags, _flags)]
+        def zipmask(_tags, _flags):
+            return [[item if flag else [] for item, flag
+                     in zip(list_, flags)] for list_,
+                    flags in zip(_tags, _flags)]
         def combinetags(tags1, tags2):
             import utool as ut
             return [ut.list_zipflatten(t1, t2) for t1, t2 in zip(tags1, tags2)]
@@ -1053,9 +1054,9 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
     label_list = test_result.get_short_cfglbls(friendly=True)
     label_list = [
-        ('%6.2f%%' % (percent,))
+        ('%6.2f%%' % (percent,)) +
         #ut.scalar_str(percent, precision=2)
-        + ' - ' + label
+        ' - ' + label
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
     color_list = pt.distinct_colors(len(label_list))
     marker_list = pt.distinct_markers(len(label_list))
@@ -1081,15 +1082,6 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     if verbose:
         test_result.print_unique_annot_config_stats(ibs)
 
-    import vtool as vt
-    # Find where the functions no longer change
-    freq_deriv = np.diff(cfgx2_cumhist_percent.T[:-1].T)
-    reverse_deriv_cumsum = freq_deriv[:, ::-1].cumsum(axis=0)
-    reverse_changing_pos = np.array(ut.replace_nones(
-        vt.find_first_true_indices(reverse_deriv_cumsum > 0), np.nan))
-    nonzero_poses = (len(cfgx2_cumhist_percent.T) - 1) - reverse_changing_pos
-    maxrank = np.nanmax(nonzero_poses)
-
     maxrank = 5
     #maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
 
@@ -1102,7 +1094,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
-    target_label = 'accuracy (%)'
+    target_label = 'accuracy (% per annotation)'
     #target_label = '% groundtrue matches ≤ rank'
 
     ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
@@ -1221,7 +1213,8 @@ def make_metadata_custom_api(metadata):
     })
     editable_colnames = []
     sortby = 'qaids'
-    get_thumb_size = lambda: 128
+    def get_thumb_size():
+        return 128
     col_width_dict = {}
     custom_api = guitool.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
@@ -1266,7 +1259,8 @@ def make_test_result_custom_api(ibs, test_result):
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'qaids'
-    get_thumb_size = lambda: 128
+    def get_thumb_size():
+        return 128
     col_width_dict = {}
 
     custom_api = guitool.CustomAPI(

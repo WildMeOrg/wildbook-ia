@@ -1237,18 +1237,26 @@ class IBEISController(BASE_CLASS):
             objects
 
         Args:
-            qaid_list (list): a list of annotation ids to be submitted as queries
-            daid_list (list): a list of annotation ids used as the database that will be searched
-            cfgdict (dict): dictionary of configuration options used to create a new QueryRequest if not already specified
+            qaid_list (list): a list of annotation ids to be submitted as
+                queries
+            daid_list (list): a list of annotation ids used as the database
+                that will be searched
+            cfgdict (dict): dictionary of configuration options used to create
+                a new QueryRequest if not already specified
             use_cache (bool):
             use_bigcache (bool):
-            qreq_ (QueryRequest): optional, a QueryRequest object that overrides all previous settings
-            return_request (bool): returns the request which will be created if one is not already specified
+            qreq_ (QueryRequest): optional, a QueryRequest object that
+                overrides all previous settings
+            return_request (bool): returns the request which will be created if
+                one is not already specified
             verbose (bool): default=False, turns on verbose printing
-            return_cm (bool): default=False, if true converts QueryResult objects into serializable ChipMatch2 objects (in the future this will be defaulted to True)
+            return_cm (bool): default=False, if true converts QueryResult
+                objects into serializable ChipMatch2 objects (in the future
+                this will be defaulted to True)
 
         Returns:
-            list: a list of QueryResult objects containing the matching annotations, scores, and feature matches
+            list: a list of QueryResult objects containing the matching
+                annotations, scores, and feature matches
 
         Returns(2):
             tuple: (qres_list, qreq_) - a list of query results and optionally the QueryRequest object used

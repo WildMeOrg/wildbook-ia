@@ -24,7 +24,8 @@ ALIAS_KEYS = {
 
 OTHER_DEFAULTS = {
     'force_const_size'    : None,  # forces a consistnet sample size across combinations
-    'hack_extra' : None,  # hack param to make bigger db sizes
+    #'hack_extra' : None,  # hack param to make bigger db sizes
+    'hack_encounter': None,
 }
 
 # Defaults for the independent filter
@@ -37,7 +38,7 @@ INDEPENDENT_DEFAULTS = {
     # Quality Params
     'require_quality'     : None,  # if True unknown qualities are removed
     'minqual'             : 'poor',
-    'been_adjusted'       : None,
+    'been_adjusted'       : None,  # HACK PARAM
     # Viewpoint params
     'require_viewpoint'   : None,
     'view'                : None,

@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import six
 import utool as ut
-from ibeis import ibsfuncs
+#from ibeis import ibsfuncs
 #from ibeis.experiments import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt
@@ -149,7 +149,7 @@ def print_results(ibs, test_result):
     cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
     cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
-    cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
 
     column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
                    for lbl in cfgx2_lbl]
@@ -163,10 +163,10 @@ def print_results(ibs, test_result):
         X_LIST = test_result.get_X_LIST()
         #X_LIST = [1, 5]
 
-        nConfig = len(cfg_list)
+        #nConfig = len(cfg_list)
         #nQuery = len(test_result.qaids)
         cfgx2_nQuery = list(map(len, test_result.cfgx2_qaids))
-        cfgx2_qx2_ranks = test_result.get_infoprop_list('qx2_bestranks')
+        #cfgx2_qx2_ranks = test_result.get_infoprop_list('qx2_bestranks')
         #--------------------
 
         # A positive scorediff indicates the groundtruth was better than the
@@ -428,10 +428,10 @@ def print_results(ibs, test_result):
         for X in X_LIST:
             print('\n[harn] Sorted #ranks < %r scores' % (X))
             sortx = np.array(nLessX_dict[int(X)]).argsort()
-            frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
+            #frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
             #print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
             #print('frac_list = %r' % (frac_list,))
-            print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            #print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)

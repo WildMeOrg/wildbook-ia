@@ -54,7 +54,7 @@ def fix_zero_features(ibs):
     aid_list = ibs.get_valid_aids()
     nfeat_list = ibs.get_annot_num_feats(aid_list, ensure=False)
     haszero_list = [nfeat == 0 for nfeat in nfeat_list]
-    haszero_aids = ut.filter_items(aid_list, haszero_list)
+    haszero_aids = ut.list_compress(aid_list, haszero_list)
     ibs.delete_annot_chips(haszero_aids)
 
 
@@ -219,7 +219,7 @@ def get_image_time_statstr(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     unixtime_list_ = ibs.get_image_unixtime(gid_list)
     utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
+    unixtime_list  = ut.list_compress(unixtime_list_, utvalid_list)
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
     return unixtime_statstr
 
@@ -433,11 +433,11 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
         assert not any(isinvalid_list), 'invalid gids: %r' % (
-            ut.filter_items(gid_list, isinvalid_list),)
+            ut.list_compress(gid_list, isinvalid_list),)
         isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES)
                           for gid in gid_list]
         assert not any(isinvalid_list), 'invalidly typed gids: %r' % (
-            ut.filter_items(gid_list, isinvalid_list),)
+            ut.list_compress(gid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -485,11 +485,11 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     #isinvalid_list = [aid not in valid_aids for aid in aid_list]
     try:
         assert not any(isinvalid_list), 'invalid aids: %r' % (
-            ut.filter_items(aid_list, isinvalid_list),)
+            ut.list_compress(aid_list, isinvalid_list),)
         isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES)
                           for aid in aid_list]
         assert not any(isinvalid_list), 'invalidly typed aids: %r' % (
-            ut.filter_items(aid_list, isinvalid_list),)
+            ut.list_compress(aid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -632,6 +632,7 @@ def check_image_uuid_consistency(ibs, gid_list):
         python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
         python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
         python -m ibeis.ibsfuncs --test-check_image_uuid_consistency
+        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db lynx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -694,7 +695,7 @@ def check_annot_consistency(ibs, aid_list=None):
     cfpath_list = ibs.get_chip_fpath(cid_list)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
-    invalid_cids = ut.filter_items(cid_list, invalid_list)
+    invalid_cids = ut.list_compress(cid_list, invalid_list)
     if len(invalid_cids) > 0:
         print('found %d inconsistent chips attempting to fix' % len(invalid_cids))
         ibs.delete_chips(invalid_cids, verbose=True)
@@ -703,7 +704,7 @@ def check_annot_consistency(ibs, aid_list=None):
     exemplar_flag = ibs.get_annot_exemplar_flags(aid_list)
     is_unknown = ibs.is_aid_unknown(aid_list)
     # Exemplars should all be known
-    unknown_exemplar_flags = ut.filter_items(exemplar_flag, is_unknown)
+    unknown_exemplar_flags = ut.list_compress(exemplar_flag, is_unknown)
     is_error = [not flag for flag in unknown_exemplar_flags]
     assert all(is_error), 'Unknown annotations are set as exemplars'
     ut.debug_duplicate_items(visual_uuid_list)
@@ -796,10 +797,8 @@ def check_exif_data(ibs, gid_list):
     import vtool.exif as exif
     from PIL import Image
     gpath_list = ibs.get_image_paths(gid_list)
-    mark_, end_ = ut.log_progress('checking exif: ', len(gpath_list))
     exif_dict_list = []
-    for ix in range(len(gpath_list)):
-        mark_(ix)
+    for ix in ut.ProgressIter(range(len(gpath_list)), lbl='checking exif: '):
         gpath = gpath_list[ix]
         pil_img = Image.open(gpath, 'r')
         exif_dict = exif.get_exif_dict(pil_img)
@@ -830,8 +829,6 @@ def check_exif_data(ibs, gid_list):
     print('tag frequency')
     print(ut.dict_str(key2_freq))
 
-    end_()
-
 
 @register_ibs_method
 def run_integrity_checks(ibs, embed=False):
@@ -860,7 +857,7 @@ def check_annotmatch_consistency(ibs):
     exists1_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid1_list)
     exists2_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid2_list)
     invalid_list = ut.not_list(ut.and_lists(exists1_list, exists2_list))
-    invalid_annotmatch_rowids = ut.filter_items(annomatch_rowids, invalid_list)
+    invalid_annotmatch_rowids = ut.list_compress(annomatch_rowids, invalid_list)
     print('There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),))
     return invalid_annotmatch_rowids
 
@@ -945,40 +942,103 @@ def fix_and_clean_database(ibs):
 
 @register_ibs_method
 def fix_exif_data(ibs, gid_list):
-    """ TODO CALL SCRIPT """
-    import vtool.exif as exif
+    """ TODO CALL SCRIPT
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): list of image ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-fix_exif_data
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='lynx')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> result = fix_exif_data(ibs, gid_list)
+        >>> print(result)
+    """
+    import vtool as vt
     from PIL import Image
     gpath_list = ibs.get_image_paths(gid_list)
-    mark_, end_ = ut.log_progress('checking exif: ', len(gpath_list))
-    exif_dict_list = []
-    for ix in range(len(gpath_list)):
-        mark_(ix)
-        gpath = gpath_list[ix]
-        pil_img = Image.open(gpath, 'r')
-        exif_dict = exif.get_exif_dict(pil_img)
-        exif_dict_list.append(exif_dict)
-        #if len(exif_dict) > 0:
-        #    break
-    end_()
 
-    latlon_list = [exif.get_lat_lon(_dict, None) for _dict in exif_dict_list]
-    haslatlon_list = [latlon is not None for latlon in latlon_list]
+    pil_img_gen = (Image.open(gpath, 'r') for gpath in gpath_list)
 
-    latlon_list_ = ut.filter_items(latlon_list, haslatlon_list)
-    gid_list_    = ut.filter_items(gid_list, haslatlon_list)
+    exif_dict_list = [
+        vt.get_exif_dict(pil_img)
+        for pil_img in ut.ProgressIter(
+            pil_img_gen, nTotal=len(gpath_list), lbl='reading exif: ',
+            adjust=True)
+    ]
 
-    gps_list = ibs.get_image_gps(gid_list_)
-    needsupdate_list = [gps == (-1, -1) for gps in gps_list]
+    def fix_property(exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname='property'):
+        exif_prop_list = [exif_getter(_dict, None) for _dict in exif_dict_list]
+        hasprop_list = [prop is not None for prop in exif_prop_list]
 
-    print('%d / %d need gps update' % (sum(needsupdate_list),
-                                       len(needsupdate_list)))
+        exif_prop_list_ = ut.list_compress(exif_prop_list, hasprop_list)
+        gid_list_       = ut.list_compress(gid_list, hasprop_list)
+        ibs_prop_list   = ibs_getter(gid_list_)
+        isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
-    if sum(needsupdate_list)  > 0:
-        assert sum(needsupdate_list) == len(needsupdate_list), 'safety. remove and evaluate if hit'
-        #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
-        latlon_list__ = ut.filter_items(latlon_list_, needsupdate_list)
-        gid_list__ = ut.filter_items(gid_list_, needsupdate_list)
-        ibs.set_image_gps(gid_list__, latlon_list__)
+        print('%d / %d need %s update' % (sum(isdirty_list),
+                                          len(isdirty_list), propname))
+
+        if False and sum(isdirty_list)  > 0:
+            assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
+            #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+            new_exif_prop_list = ut.list_compress(exif_prop_list_, isdirty_list)
+            dirty_gid_list = ut.list_compress(gid_list_, isdirty_list)
+            ibs_setter(dirty_gid_list, new_exif_prop_list)
+
+    FIX_GPS = True
+    if FIX_GPS:
+        fix_property(vt.get_lat_lon, ibs.get_image_gps, ibs.set_image_gps, (-1, -1), 'gps')
+        #latlon_list = [vt.get_lat_lon(_dict, None) for _dict in exif_dict_list]
+        #hasprop_list = [latlon is not None for latlon in latlon_list]
+
+        #latlon_list_ = ut.list_compress(latlon_list, hasprop_list)
+        #gid_list_    = ut.list_compress(gid_list, hasprop_list)
+        #gps_list = ibs.get_image_gps(gid_list_)
+        #isdirty_list = [gps == (-1, -1) for gps in gps_list]
+
+        #print('%d / %d need gps update' % (sum(isdirty_list),
+        #                                   len(isdirty_list)))
+
+        #if False and sum(isdirty_list)  > 0:
+        #    assert sum(isdirty_list) == len(isdirty_list), (
+        #        'safety. remove and evaluate if hit')
+        #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        #    latlon_list__ = ut.list_compress(latlon_list_, isdirty_list)
+        #    gid_list__ = ut.list_compress(gid_list_, isdirty_list)
+        #    ibs.set_image_gps(gid_list__, latlon_list__)
+
+    FIX_UNIXTIME = True
+    if FIX_UNIXTIME:
+        dirty_ibs_val = -1
+        propname = 'unixtime'
+        exif_getter = vt.get_unixtime
+        ibs_getter = ibs.get_image_unixtime
+        ibs_setter = ibs.set_image_unixtime
+        fix_property(exif_getter, ibs_getter, ibs_setter, dirty_ibs_val, propname)
+        #exif_prop_list = [vt.get_unixtime(_dict, None) for _dict in exif_dict_list]
+        #hasprop_list = [prop is not None for prop in exif_prop_list]
+
+        #exif_prop_list_ = ut.list_compress(exif_prop_list, hasprop_list)
+        #gid_list_       = ut.list_compress(gid_list, hasprop_list)
+        #ibs_prop_list   = ibs.get_image_unixtime(gid_list_)
+        #isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
+
+        #print('%d / %d need time update' % (sum(isdirty_list),
+        #                                    len(isdirty_list)))
+
+        #if False and sum(isdirty_list)  > 0:
+        #    assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
+        #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        #    new_exif_prop_list = ut.list_compress(exif_prop_list_, isdirty_list)
+        #    dirty_gid_list = ut.list_compress(gid_list_, isdirty_list)
+        #    ibs.set_image_unixtime(dirty_gid_list, new_exif_prop_list)
 
 
 @register_ibs_method
@@ -1014,8 +1074,8 @@ def fix_invalid_nids(ibs):
     name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
     is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
     if any(is_invalid_nid_list):
-        invalid_nids = ut.filter_items(nid_list, is_invalid_nid_list)
-        invalid_texts = ut.filter_items(name_text_list, is_invalid_nid_list)
+        invalid_nids = ut.list_compress(nid_list, is_invalid_nid_list)
+        invalid_texts = ut.list_compress(name_text_list, is_invalid_nid_list)
         if (len(invalid_nids) == 0 and
               invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
               invalid_texts[0] == const.UNKNOWN):
@@ -1062,8 +1122,8 @@ def fix_invalid_name_texts(ibs):
     is_invalid_name_text_list = [name_text in invalid_name_set
                                  for name_text in name_text_list]
     if any(is_invalid_name_text_list):
-        invalid_nids = ut.filter_items(nid_list, is_invalid_name_text_list)
-        invalid_texts = ut.filter_items(name_text_list, is_invalid_name_text_list)
+        invalid_nids = ut.list_compress(nid_list, is_invalid_name_text_list)
+        invalid_texts = ut.list_compress(name_text_list, is_invalid_name_text_list)
         for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
             conflict_set = invalid_name_set.union(
                 set(ibs.get_name_texts(nid_list, apply_fix=False)))
@@ -1132,8 +1192,8 @@ def fix_unknown_exemplars(ibs):
     flag_list = ibs.get_annot_exemplar_flags(aid_list)
     unknown_list = ibs.is_aid_unknown(aid_list)
     # Exemplars should all be known
-    unknown_exemplar_flags = ut.filter_items(flag_list, unknown_list)
-    unknown_aid_list = ut.filter_items(aid_list, unknown_list)
+    unknown_exemplar_flags = ut.list_compress(flag_list, unknown_list)
+    unknown_aid_list = ut.list_compress(aid_list, unknown_list)
     print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
     ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
     #is_error = [not flag for flag in unknown_exemplar_flags]
@@ -1342,7 +1402,7 @@ def get_annot_is_hard(ibs, aid_list):
 @register_ibs_method
 def get_hard_annot_rowids(ibs):
     valid_aids = ibs.get_valid_aids()
-    hard_aids = ut.filter_items(valid_aids, ibs.get_annot_is_hard(valid_aids))
+    hard_aids = ut.list_compress(valid_aids, ibs.get_annot_is_hard(valid_aids))
     return hard_aids
 
 
@@ -1350,7 +1410,7 @@ def get_hard_annot_rowids(ibs):
 def get_easy_annot_rowids(ibs):
     hard_aids = ibs.get_hard_annot_rowids()
     easy_aids = ut.setdiff_ordered(ibs.get_valid_aids(), hard_aids)
-    easy_aids = ut.filter_items(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
+    easy_aids = ut.list_compress(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
     return easy_aids
 
 
@@ -1471,6 +1531,10 @@ def unflat_map(method, unflat_rowids, **kwargs):
             'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
             (len(unflat_vals), len(unflat_rowids),))
     return unflat_vals
+
+
+#def unflat_filter(method, unflat_rowids, **kwargs):
+    # does not seem possible with this input
 
 
 def unflat_dict_map(method, dict_rowids, **kwargs):
@@ -1761,7 +1825,7 @@ def get_ungrouped_gids(ibs):
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
     has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
-    ungrouped_gids = ut.filter_items(gid_list, has_eids)
+    ungrouped_gids = ut.list_compress(gid_list, has_eids)
     return ungrouped_gids
 
 
@@ -3099,7 +3163,7 @@ def get_aids_with_groundtruth(ibs):
     """ returns aids with valid groundtruth """
     valid_aids = ibs.get_valid_aids()
     has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
-    hasgt_aids = ut.filter_items(valid_aids, has_gt_list)
+    hasgt_aids = ut.list_compress(valid_aids, has_gt_list)
     return hasgt_aids
 
 
@@ -3166,7 +3230,7 @@ def get_species_dbs(species_prefix):
     from ibeis.init import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
-    return ut.filter_items(ibs_dblist, isvalid_list)
+    return ut.list_compress(ibs_dblist, isvalid_list)
 
 
 @register_ibs_method
@@ -3495,8 +3559,8 @@ def inspect_nonzero_yaws(ibs):
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
-    aids = ut.filter_items(aids, isnone_list)
-    yaws = ut.filter_items(yaws, isnone_list)
+    aids = ut.list_compress(aids, isnone_list)
+    yaws = ut.list_compress(yaws, isnone_list)
     for aid, yaw in zip(aids, yaws):
         print(yaw)
         # We seem to be storing FULL paths in
@@ -3613,7 +3677,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> eid = None
         >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
         >>> old_flag_list = ibs.get_annot_exemplar_flags(new_aid_list)
-        >>> new_exemplar_aids = ut.filter_items(new_aid_list, new_flag_list)
+        >>> new_exemplar_aids = ut.list_compress(new_aid_list, new_flag_list)
         >>> new_exemplar_qualtexts = ibs.get_annot_quality_texts(new_exemplar_aids)
         >>> assert 'junk' not in new_exemplar_qualtexts, 'should not have junk exemplars'
         >>> assert 'poor' not in new_exemplar_qualtexts, 'should not have poor exemplars'
@@ -3993,7 +4057,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
 #    aid_list = ibs.get_valid_aids(eid=eid)
 #    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
 #        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
-#    qaids = ut.filter_items(new_aid_list, new_flag_list)
+#    qaids = ut.list_compress(new_aid_list, new_flag_list)
 #    daids = ibs.get_valid_aids(is_exemplar=True, minqual='poor')
 #    cfgdict = dict(can_match_samename=False)
 #    #, use_k_padding=True)
@@ -4458,7 +4522,7 @@ def filterflags_unflat_aids_custom(ibs, aids_list):
 def filter_nids_custom(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_nid_list = ut.filter_items(nid_list, isvalid_list)
+    filtered_nid_list = ut.list_compress(nid_list, isvalid_list)
     return filtered_nid_list
 
 
@@ -4466,7 +4530,7 @@ def filter_nids_custom(ibs, nid_list):
 def filter_gids_custom(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_gid_list = ut.filter_items(gid_list, isvalid_list)
+    filtered_gid_list = ut.list_compress(gid_list, isvalid_list)
     return filtered_gid_list
 
 
@@ -5888,6 +5952,67 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     })
     return metadata
 
+
+@register_ibs_method
+def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
+    from ibeis.experiments import experiment_harness, experiment_helpers
+    experiment_helpers
+    testnameid = ibs.get_dbname() + ' ' + str(pipecfg_name_list)
+    lbl = '[harn] TEST_CFG ' + str(pipecfg_name_list)
+
+    # Generate list of query pipeline param configs
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
+        pipecfg_name_list, ibs=ibs)
+
+    cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
+    test_result = experiment_harness.run_test_configurations(
+        ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl,
+        testnameid, use_cache=False)
+    return test_result
+
+
+@register_ibs_method
+def get_encounter_expanded_aids(ibs, aid_list=None):
+    """
+    Example:
+        >>> import ibeis
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='lynx')
+        >>> a = ['default:hack_encounter=True', ]
+        >>> from ibeis.experiments import experiment_helpers
+        >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [a[0]], use_cache=False)
+        >>> aid_list = ibs.get_valid_aids()
+        >>> filter_kw = dict(been_adjusted=True)
+        >>> aid_list = ibs.filter_annots_general(aid_list, filter_kw)
+        >>> qaid_list, daid_list = ibs.get_encounter_expanded_aids()
+        >>> #ibs.query_chips(qaid_list, daid_list)
+        >>> test_result = ibs.execute_pipeline_test(qaid_list, daid_list)
+        >>> test_result.print_perent_identification_success()
+    """
+    if aid_list is None:
+        filter_kw = dict(been_adjusted=True)
+        aid_list = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw)
+    eids_list = ibs.get_annot_eids(aid_list)
+    flags_list = ibs.unflat_map(ibs.is_special_encounter, eids_list)
+    # GET ENCOUNTER QUERY STRUCTURE DATA
+    eids_list = ut.list_zipcompress(eids_list, ibs.unflat_map(ut.not_list, flags_list))
+    eid_list = ut.get_list_column(eids_list, 0)
+    nid_list = ibs.get_annot_nids(aid_list)
+    multiprop2_aids = ut.hierarchical_group_items(aid_list, [nid_list, eid_list])
+    daid_list = []
+    qaid_list = []
+    for eid, nid2_aids in multiprop2_aids.iteritems():
+        if len(nid2_aids) == 1:
+            daid_list.extend(ut.flatten(list(nid2_aids.values())))
+        else:
+            aids_list = list(nid2_aids.values())
+            idx = ut.list_argmax(list(map(len, aids_list)))
+            qaids = aids_list[idx]
+            del aids_list[idx]
+            daids = ut.flatten(aids_list)
+            daid_list.extend(daids)
+            qaid_list.extend(qaids)
+    return qaid_list, daid_list
 
 if __name__ == '__main__':
     """

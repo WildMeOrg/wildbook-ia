@@ -5,7 +5,10 @@ TODO: ideally the ibeis.constants module would not be used here
 and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
 
-TODO: Add a table for original_image_path
+TODO:
+    Add a table for original_image_path
+    Add column for image exif orientation
+
 
 CommandLine:
     python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema

@@ -32,6 +32,34 @@ def ibeis_compute_encounters(ibs, gid_list):
 
         TODO: FIXME: good example of autogen doctest return failure
 
+    Ignore:
+        >>> import ibeis
+        >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='lynx')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> filter_kw = {}
+        >>> filter_kw['been_adjusted'] = True
+        >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
+        >>> gid_list = ibs.get_annot_gids(aid_list_)
+        >>> flat_eids, flat_gids = ibeis_compute_encounters(ibs, gid_list)
+        >>> aids_list = list(ut.group_items(aid_list_, flat_eids).values())
+        >>> metric = list(map(len, aids_list))
+        >>> sortx = ut.list_argsort(metric)[::-1]
+        >>> index = sortx[1]
+        >>> #gids = enc_gids[index]
+        >>> aids = aids_list[index]
+        >>> gids = list(set(ibs.get_annot_gids(aids)))
+        >>> print('len(aids) = %r' % (len(aids),))
+        >>> ut.quit_if_noshow()
+        >>> from ibeis.viz import viz_graph
+        >>> import plottool as pt
+        >>> #pt.imshow(bigimg)
+        >>> #bigimg = vt.stack_image_recurse(img_list)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+        >>> ut.show_if_requested()
+
+    Ignore:
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
@@ -52,8 +80,14 @@ def ibeis_compute_encounters(ibs, gid_list):
     )
     # TODO: use gps
     enc_labels, enc_gids = compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict)
-    # Flatten gids list by enounter
-    flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids)
+    if True:
+        gid2_label = {gid: label for label, gids in zip(enc_labels, enc_gids) for gid in gids}
+        # Assert that each gid only belongs to one encounter
+        flat_eids = ut.dict_take(gid2_label, gid_list)
+        flat_gids = gid_list
+    else:
+        # Flatten gids list by enounter
+        flat_eids, flat_gids = ut.flatten_membership_mapping(enc_labels, enc_gids)
     return flat_eids, flat_gids
 
 
@@ -99,11 +133,11 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> from ibeis.viz import viz_graph
         >>> import plottool as pt
         >>> #pt.imshow(bigimg)
-        >>> #bigimg = vt.stack_image_recurse(img_list)
         >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
         >>> ut.show_if_requested()
     """
     # Config info
+    gid_list = np.unique(gid_list)
 
     print('[enc] Computing %r encounters on %r images.' % (
         cluster_algo, len(gid_list)))
@@ -142,7 +176,10 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         print('[enc] Found %d clusters.' % len(enc_labels))
         if len(label_gids) > 0:
             print('Cluster size stats:')
-            ut.print_dict(ut.get_stats(list(map(len, enc_gids)), use_median=True, use_sum=True))
+            ut.print_dict(
+                ut.get_stats(list(map(len, enc_gids)), use_median=True,
+                             use_sum=True),
+                'enc stats')
     return enc_labels, enc_gids
 
 
