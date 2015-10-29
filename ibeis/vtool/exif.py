@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
 # LICENCE
+"""
+References:
+    http://www.exiv2.org/tags.html
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 import six
@@ -69,7 +74,8 @@ def get_exif_dict2(pil_img):
 
 
 def make_exif_dict_human_readable(exif_dict):
-    exif_dict2 = {TAGS.get(key, key): val for (key, val) in six.iteritems(exif_dict)}
+    exif_dict2 = {TAGS.get(key, key): val
+                  for (key, val) in six.iteritems(exif_dict)}
     return exif_dict2
 
 
@@ -93,9 +99,10 @@ def check_exif_keys(pil_img):
 @profile
 def read_all_exif_tags(pil_img):
     info_ = pil_img._getexif()
-    info_iter = six.iteritems(info_)
-    tag_ = lambda key: TAGS.get(key, key)
-    exif = {} if info_ is None else {tag_(k): v for k, v in info_iter}
+    exif = {} if info_ is None else {
+        TAGS.get(key, key): val
+        for key, val in six.iteritems(info_)
+    }
     return exif
 
 
@@ -229,11 +236,24 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
 
 
 def get_unixtime(exif_dict, default=-1):
+    """
+    TODO: Exif.Image.TimeZoneOffset
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.exif import *  # NOQA
+        >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
+        >>> pil_img = Image.open(image_fpath)
+        >>> exif_dict = get_exif_dict(pil_img)
+    """
     exiftime  = exif_dict.get(DATETIMEORIGINAL_TAGID, default)
     if isinstance(exiftime, tuple) and len(exiftime) == 1:
         # hack, idk why
         exiftime = exiftime[0]
     unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+    timezone_offset = exif_dict.get('TimeZoneOffset', None)
+    if timezone_offset is not None:
+        pass
     return unixtime
 
 
