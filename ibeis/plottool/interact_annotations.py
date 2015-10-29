@@ -1300,7 +1300,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         """
         Callback whenever a key is pressed
         """
-        if ut.VERBOSE or True:
+        if ut.VERBOSE:
             print('[interact_annot] on_key_press')
             print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
@@ -1405,7 +1405,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         CALLBACK FOR MOTION EVENTS
         Called on mouse movement
         """
-        if ut.VERBOSE or True:
+        if ut.VERBOSE:
             print('[interact_annot] on_motion')
             print('[interact_annot] Got key: %r' % event.key)
         #ignore = (not self.showverts or event.inaxes is None)
@@ -1447,7 +1447,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.update_UI()
             return
         elif QUICK_RESIZE:
-            print('Quick Resize')
+            #print('Quick Resize')
             # Quick resize
             anchor_idx = self._currently_selected_poly.anchor_idx
             idx = (anchor_idx + 2) % 4

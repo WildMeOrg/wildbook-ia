@@ -1639,10 +1639,15 @@ def draw_time_histogram(unixtime_list, **kwargs):
 def draw_time_distribution(unixtime_list):
     import vtool as vt
     import plottool as pt
-    unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
-    unixtime_pdf = vt.estimate_pdf(unixtime_list)
-    unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
-    xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+    if len(unixtime_list) > 0:
+        unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
+        unixtime_pdf = vt.estimate_pdf(unixtime_list)
+        unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+        xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+    else:
+        unixtime_prob = []
+        xdata = []
+
     fnum = pt.ensure_fnum(None)
     pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True,
                           use_legend=False, fnum=fnum, remove_yticks=True)
