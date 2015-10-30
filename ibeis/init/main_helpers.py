@@ -99,7 +99,7 @@ def testdata_expts(defaultdb='testdb1',
     """
     import ibeis
     from ibeis.expt import experiment_harness
-    from ibeis.expt import experiment_storage
+    from ibeis.expt import test_result
     if a is not None:
         default_acfgstr_name_list = a
     if t is not None:
@@ -117,7 +117,7 @@ def testdata_expts(defaultdb='testdb1',
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
     testres_list = experiment_harness.run_test_configurations2(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
-    testres = experiment_storage.combine_testres_list(ibs, testres_list)
+    testres = test_result.combine_testres_list(ibs, testres_list)
     return ibs, testres
     #return ibs, testres_list
 

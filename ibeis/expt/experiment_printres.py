@@ -115,7 +115,7 @@ def print_results(ibs, testres):
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        testres (experiment_storage.TestResult):
+        testres (test_result.TestResult):
 
     CommandLine:
         python dev.py -e print --db PZ_MTEST -a default:dpername=1,qpername=[1,2]  -t default:fg_on=False

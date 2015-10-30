@@ -31,7 +31,7 @@ def combine_testres_list(ibs, testres_list):
         python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
 
     >>> # DISABLE_DOCTEST
-    >>> from ibeis.expt.experiment_storage import *  # NOQA
+    >>> from ibeis.expt.test_result import *  # NOQA
     >>> from ibeis.expt import experiment_harness
     >>> ibs, testres_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
     >>> combine_testres_list(ibs, testres_list)
@@ -491,7 +491,7 @@ class TestResult(object):
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
             >>> cfg_lbls = testres.get_short_cfglbls(friendly=True)
@@ -571,7 +571,7 @@ class TestResult(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts('PZ_MTEST')
             >>> plotname = ''
@@ -610,7 +610,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts('PZ_MTEST')
             >>> with_size = True
@@ -712,7 +712,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
             >>> ibs = None
@@ -739,7 +739,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
             >>> ibs = None
@@ -776,7 +776,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.expt import experiment_harness
             >>> ibs, testres = experiment_harness.testdata_expts('PZ_MTEST')
             >>> result = testres.print_results()
@@ -819,7 +819,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -844,7 +844,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -913,7 +913,7 @@ class TestResult(object):
         Example0:
             >>> # SLOW_DOCTEST
             >>> # The same results is achievable with different filter config settings
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
@@ -930,7 +930,7 @@ class TestResult(object):
 
         Example1:
             >>> # SCRIPT
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -944,7 +944,7 @@ class TestResult(object):
 
         Example1:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
@@ -1516,7 +1516,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
             >>> mode = 'failure'
@@ -1771,9 +1771,9 @@ class TestResult(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.expt.experiment_storage
-        python -m ibeis.expt.experiment_storage --allexamples
-        python -m ibeis.expt.experiment_storage --allexamples --noface --nosrc
+        python -m ibeis.expt.test_result
+        python -m ibeis.expt.test_result --allexamples
+        python -m ibeis.expt.test_result --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

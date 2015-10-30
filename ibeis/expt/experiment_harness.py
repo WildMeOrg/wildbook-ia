@@ -12,7 +12,7 @@ from ibeis.expt import experiment_helpers
 #from ibeis.expt import experiment_configs
 #from ibeis.expt import experiment_printres
 #from ibeis.expt import experiment_drawing
-from ibeis.expt import experiment_storage
+from ibeis.expt import test_result
 #from ibeis.expt import annotation_configs
 #from ibeis.expt import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(
@@ -242,7 +242,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
-    testres = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
+    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
     testres.testnameid = testnameid
     testres.lbl = lbl
     testres.cfgdict_list = cfgdict_list

@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 #from ibeis import params
 import utool as ut
-from ibeis.expt import experiment_storage
+from ibeis.expt import test_result
 from ibeis.model.hots import match_chips4 as mc4
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
@@ -1146,7 +1146,7 @@ def make_metadata_custom_api(metadata):
         >>> import guitool
         >>> guitool.ensure_qapp()
         >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
-        >>> metadata = experiment_storage.ResultMetadata(metadata_fpath, autoconnect=True)
+        >>> metadata = test_result.ResultMetadata(metadata_fpath, autoconnect=True)
         >>> wgt = make_metadata_custom_api(metadata)
         >>> ut.quit_if_noshow()
         >>> wgt.show()
@@ -1524,7 +1524,7 @@ def draw_results(ibs, testres):
     Cols store different configurations (algorithm parameters)
 
     Args:
-        testres (experiment_storage.TestResult):
+        testres (test_result.TestResult):
 
     CommandLine:
         python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
@@ -1579,7 +1579,7 @@ def draw_results(ibs, testres):
     #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
 
     metadata_fpath = join(figdir, 'result_metadata.shelf')
-    metadata = experiment_storage.ResultMetadata(metadata_fpath)
+    metadata = test_result.ResultMetadata(metadata_fpath)
     #metadata.rrr()
     metadata.connect()
     metadata.sync_test_results(testres)
