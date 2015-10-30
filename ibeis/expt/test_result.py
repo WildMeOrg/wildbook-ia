@@ -1567,16 +1567,6 @@ class TestResult(object):
         else:
             raise NotImplementedError('Unknown mode')
 
-        # Group by configuration
-        #case_hardness = hardness_degree_mat[tuple(case_pos_list.T)]
-        #case_gt_score = gt_score_mat[tuple(case_pos_list.T)]
-        #case_gf_score = gf_score_mat[tuple(case_pos_list.T)]
-
-        #hard_degree_list = hardness_degree_mat[tuple(case_pos_list.T)]
-        #groupids, groupxs = vt.group_indices(case_pos_list.T[0])
-        #groupid2_score = [
-        #case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
-
         #talk about convoluted
         _qx2_casegroup = ut.group_items(case_pos_list, case_pos_list.T[0], sorted_=False)
         qx2_casegroup = ut.order_dict_by(
@@ -1598,14 +1588,6 @@ class TestResult(object):
                 ]
                 _len2_groupedpos = dict(zip(_len2_groupedpos_keys, _len2_groupedpos_values))
         len2_groupedpos = ut.map_dict_vals(np.vstack, _len2_groupedpos)
-
-        #percentile_stratify
-        #def percentile_stratified_sample(x, num, rng=np.random):
-        #    hardness = hardness_degree_mat[tuple(x.T)]
-        #    percentiles = np.percentile(hardness, [0, 25, 50, 75, 100])
-        #    percentiles[-1] += 1
-        #    groups = [x.compress(np.logical_and(low <= hardness, hardness < high), axis=0) for low, high in ut.iter_window(percentiles)]
-        #    [ut.random_sample(group, num, rng=rng) for group in groups]
 
         #ut.print_dict(len2_groupedpos, nl=2)
         if disagree_first:
