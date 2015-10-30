@@ -111,7 +111,7 @@ def get_default_annot_filter_form():
         >>> filter_kw = get_default_annot_filter_form()
         >>> print(ut.dict_str(filter_kw, align=True))
     """
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     iden_defaults = annotation_configs.INDEPENDENT_DEFAULTS.copy()
     tag_defaults = get_annot_tag_filterflags(None, None, {}, request_defaultkw=True)
     filter_kw = ut.dict_union3(iden_defaults, tag_defaults, combine_op=None)
@@ -219,7 +219,7 @@ def testdata_single_acfg(ibs, default_options=''):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
         >>> default_options = ''
@@ -227,8 +227,8 @@ def testdata_single_acfg(ibs, default_options=''):
         >>> print('\n RESULT:')
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
-    from ibeis.experiments import annotation_configs
-    from ibeis.experiments import cfghelpers
+    from ibeis.expt import annotation_configs
+    from ibeis.expt import cfghelpers
     cfgstr_options = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=default_options)
     base_cfg = annotation_configs.single_default
     aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
@@ -242,7 +242,7 @@ def testdata_single_acfg(ibs, default_options=''):
 
 
 def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     if verbose:
         print('+=== EXPAND_SINGLE_ACFG ===')
         print(' * acfg = %s' %
@@ -263,7 +263,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
 def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
     """
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize
+        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list  -a varysize
         python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
         python -m ibeis --tf get_annotcfg_list --db lynx -a default:hack_encounter=True
         python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
@@ -293,7 +293,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
 
     # HACK: Find out the params being varied and disallow those from being
     # prefiltered due to the lack of heirarchical filters
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     nonvaried_dict, varied_acfg_list = annotation_configs.partition_acfg_list(acfg_combo)
     hack_exclude_keys = list(set(ut.flatten(
         [list(ut.merge_dicts(*acfg.values()).keys()) for acfg in varied_acfg_list])))
@@ -415,7 +415,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
 
 
 def get_acfg_cacheinfo(ibs, aidcfg):
-    from ibeis.experiments import cfghelpers
+    from ibeis.expt import cfghelpers
     # Make loading aids a big faster for experiments
     if ut.is_developer():
         import ibeis
@@ -483,14 +483,14 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None, hack_exclud
         utprof.py -m ibeis.dev -e print -t candk -a varysize  --db PZ_MTEST --acfginfo
         utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo
 
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
     """
 
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     import copy
     aidcfg = copy.deepcopy(aidcfg)
 
@@ -629,7 +629,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = annotation_configs.default['dcfg']
@@ -959,7 +959,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = annotation_configs.default['dcfg']

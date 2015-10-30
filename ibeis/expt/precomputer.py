@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from ibeis.experiments import experiment_helpers
+from ibeis.expt import experiment_helpers
 
 
 def precfg_dbs(db_list):
@@ -12,24 +12,24 @@ def precfg_dbs(db_list):
         db_list (list):
 
     CommandLine:
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache
+        python -m ibeis.expt.precomputer --exec-precfg_dbs
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache
 
-        #python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy --preload
+        #python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy --preload
 
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
-        python -m ibeis.experiments.precomputer --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload
+        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy --delete-nn-cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.precomputer import *  # NOQA
+        >>> from ibeis.expt.precomputer import *  # NOQA
         >>> db_list = ut.get_argval('--dblist', type_=list, default=['testdb1'])
         >>> result = precfg_dbs(db_list)
         >>> print(result)
@@ -37,7 +37,7 @@ def precfg_dbs(db_list):
     import ibeis.init.main_helpers
     import ibeis
     if db_list == ['candidacy']:
-        from ibeis.experiments import experiment_configs
+        from ibeis.expt import experiment_configs
         db_list = experiment_configs.get_candidacy_dbnames()  # HACK
     print('db_list = %s' % (ut.list_str(db_list),))
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
@@ -58,16 +58,16 @@ def precfg(ibs, acfg_name_list, test_cfg_name_list):
         test_cfg_name_list (list):
 
     CommandLine:
-        python -m ibeis.experiments.precomputer --exec-precfg -t custom --expt-preload
+        python -m ibeis.expt.precomputer --exec-precfg -t custom --expt-preload
 
-        python -m ibeis.experiments.precomputer --exec-precfg -t candidacy -a default:qaids=allgt --preload
-        python -m ibeis.experiments.precomputer --exec-precfg -t candidacy_invariance -a default:qaids=allgt --preload
+        python -m ibeis.expt.precomputer --exec-precfg -t candidacy -a default:qaids=allgt --preload
+        python -m ibeis.expt.precomputer --exec-precfg -t candidacy_invariance -a default:qaids=allgt --preload
 
-        python -m ibeis.experiments.precomputer --exec-precfg --delete-nn-cache
+        python -m ibeis.expt.precomputer --exec-precfg --delete-nn-cache
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.precomputer import *  # NOQA
+        >>> from ibeis.expt.precomputer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['default:qaids=allgt']
@@ -134,9 +134,9 @@ def precfg(ibs, acfg_name_list, test_cfg_name_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.precomputer
-        python -m ibeis.experiments.precomputer --allexamples
-        python -m ibeis.experiments.precomputer --allexamples --noface --nosrc
+        python -m ibeis.expt.precomputer
+        python -m ibeis.expt.precomputer --allexamples
+        python -m ibeis.expt.precomputer --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -420,7 +420,7 @@ def group_scores_by_name(ibs, aid_list, score_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *   # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import results_all
+        >>> from ibeis.expt import results_all
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> daid_list = ibs.get_valid_aids()
         >>> qaid_list = daid_list[0:1]

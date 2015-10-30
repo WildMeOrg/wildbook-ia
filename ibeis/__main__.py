@@ -110,7 +110,7 @@ def run_ibeis():
         """
         print('[ibeis] Testing module')
         mod_alias_list = {
-            'exptdraw': 'ibeis.experiments.experiment_drawing'
+            'exptdraw': 'ibeis.expt.experiment_drawing'
         }
         doctest_modname = mod_alias_list.get(doctest_modname, doctest_modname)
         module = ut.import_modname(doctest_modname)

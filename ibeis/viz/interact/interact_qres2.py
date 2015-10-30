@@ -11,7 +11,7 @@ from plottool import plot_helpers as ph
 import matplotlib as mpl
 import plottool.draw_func2 as df2
 from ibeis import ibsfuncs
-from ibeis.experiments import results_organizer
+from ibeis.expt import results_organizer
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_matches
 from ibeis.viz.interact.interact_sver import ishow_sver

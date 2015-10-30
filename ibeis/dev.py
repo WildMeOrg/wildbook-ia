@@ -51,9 +51,9 @@ from ibeis._devcmds_ibeis import *  # NOQA
 # IBEIS
 from ibeis.init import main_helpers
 from ibeis.other import dbinfo
-from ibeis.experiments import experiment_configs
-from ibeis.experiments import experiment_harness
-from ibeis.experiments import results_all
+from ibeis.expt import experiment_configs
+from ibeis.expt import experiment_harness
+from ibeis.expt import results_all
 from ibeis import params, constants
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
@@ -75,21 +75,21 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 """
 # Quick interface into specific registered doctests
 REGISTERED_DOCTEST_EXPERIMENTS = [
-    ('ibeis.experiments.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
-    ('ibeis.experiments.experiment_drawing', 'draw_individual_cases', ['draw_cases', 'cases']),
-    ('ibeis.experiments.experiment_drawing', 'draw_casetag_hist', ['taghist']),
+    ('ibeis.expt.experiment_drawing', 'draw_case_timedeltas', ['timedelta_hist', 'timedelta_pie']),
+    ('ibeis.expt.experiment_drawing', 'draw_individual_cases', ['draw_cases', 'cases']),
+    ('ibeis.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 
-    ('ibeis.experiments.experiment_drawing', 'draw_results'),
-    ('ibeis.experiments.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
+    ('ibeis.expt.experiment_drawing', 'draw_results'),
+    ('ibeis.expt.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.other.dbinfo', 'latex_dbstats'),
     ('ibeis.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),
-    ('ibeis.experiments.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
-    ('ibeis.experiments.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
-    ('ibeis.experiments.experiment_printres', 'print_results', ['printres', 'print']),
-    ('ibeis.experiments.experiment_printres', 'print_latexsum', ['latexsum']),
+    ('ibeis.expt.experiment_drawing', 'draw_rank_surface', ['rank_surface']),
+    ('ibeis.expt.experiment_helpers', 'get_annotcfg_list', ['print_acfg']),
+    ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
+    ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.experiments.experiment_drawing', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.expt.experiment_drawing', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -122,10 +122,10 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     Top false distances distances are spatially verified descriptor matches
 
     SeeAlso:
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
 
 
     CommandLine:
@@ -718,7 +718,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
         >>> qaid_list = [1]
     """
     from ibeis import viz
-    from ibeis.experiments import experiment_configs
+    from ibeis.expt import experiment_configs
     import utool as ut
 
     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
@@ -776,7 +776,7 @@ def devfunc(ibs, qaid_list):
     ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
     kpts = ibs.get_annot_kpts(aid)
     print('len(kpts) = %r' % len(kpts))
-    from ibeis.experiments import experiment_configs
+    from ibeis.expt import experiment_configs
     #varyparams_list = [
     #    #{
     #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0

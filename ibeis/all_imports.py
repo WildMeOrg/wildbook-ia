@@ -143,13 +143,13 @@ from ibeis import ibsfuncs
 from ibeis.init import main_commands
 from ibeis.other import dbinfo
 from ibeis.init import sysres
-from ibeis.experiments import results_organizer
-from ibeis.experiments import results_analyzer
-from ibeis.experiments import results_all
-from ibeis.experiments import experiment_configs
-from ibeis.experiments import experiment_harness
-from ibeis.experiments import experiment_printres
-from ibeis.experiments import experiment_helpers as eh
+from ibeis.expt import results_organizer
+from ibeis.expt import results_analyzer
+from ibeis.expt import results_all
+from ibeis.expt import experiment_configs
+from ibeis.expt import experiment_harness
+from ibeis.expt import experiment_printres
+from ibeis.expt import experiment_helpers as eh
 # IBEIS CONTROl
 from ibeis.control import SQLDatabaseControl
 from ibeis.control import __SQLITE3__ as lite

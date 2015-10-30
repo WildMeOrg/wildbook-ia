@@ -215,7 +215,7 @@ def precompute_data():
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(precompute_data())
     """
-    #basecmd = 'python -m ibeis.experiments.experiment_printres
+    #basecmd = 'python -m ibeis.expt.experiment_printres
     #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('preload_flags', [
@@ -294,7 +294,7 @@ def experiments_namescore():
         ./experiment_namescore.sh
 
         python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
+        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
 
     Example:
         >>> from ibeis.scripts.gen_cand_expts import *
@@ -343,7 +343,7 @@ def experiments_viewpoint():
         >>> from ibeis.scripts.gen_cand_expts import *
         >>> make_standard_test_scripts(experiments_viewpoint())
     """
-    #basecmd = 'python -m ibeis.experiments.experiment_printres
+    #basecmd = 'python -m ibeis.expt.experiment_printres
     #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('acfg_name', ['viewpoint_compare']),
@@ -394,10 +394,10 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.1,.01,.01'
     elif media_name == 'preload':
-        margs = 'ibeis.experiments.precomputer --exec-precfg'
+        margs = 'ibeis.expt.precomputer --exec-precfg'
         dynamic_flags_ = ' {preload_flags}'
     elif media_name == 'inspect_acfg':
-        margs = 'ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0'
+        margs = 'ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0'
         dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
@@ -413,7 +413,7 @@ def get_results_command(expt_name, media_name):
 
 
 def get_dbnames(exclude_list=[]):
-    from ibeis.experiments import experiment_configs
+    from ibeis.expt import experiment_configs
     dbnames = experiment_configs.get_candidacy_dbnames()
     dbnames = ut.setdiff_ordered(dbnames, exclude_list)
     dbnames = ['PZ_Master1']
@@ -491,8 +491,8 @@ def gen_dbranks_tables():
     tex_file = ut.codeblock(  # NOQA
         r'''
         \begin{comment}
-        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.experiments.experiment_printres --exec-print_latexsum')"
-        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf')"
+        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.expt.experiment_printres --exec-print_latexsum')"
+        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf')"
         \end{comment}
         ''')
 

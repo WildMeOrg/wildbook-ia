@@ -143,11 +143,11 @@ def qres2_true_and_false(ibs, qres):
             false_tup (tuple): (false_aids, false_scores, false_ranks)
 
     CommandLine:
-        python -m ibeis.experiments.results_organizer --test-qres2_true_and_false
+        python -m ibeis.expt.results_organizer --test-qres2_true_and_false
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *   # NOQA
+        >>> from ibeis.expt.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
@@ -210,11 +210,11 @@ def organize_results(ibs, qaid2_qres):
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     CommandLine:
-        python -m ibeis.experiments.results_organizer --test-organize_results
+        python -m ibeis.expt.results_organizer --test-organize_results
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *   # NOQA
+        >>> from ibeis.expt.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> daid_list = ibs.get_valid_aids()
@@ -328,11 +328,11 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
 
     CommandLine:
-        python -m ibeis.experiments.results_organizer --test-get_automatch_candidates:2
+        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
 
     Example0:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *  # NOQA
+        >>> from ibeis.expt.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
@@ -346,7 +346,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
     Example1:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *  # NOQA
+        >>> from ibeis.expt.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
@@ -366,7 +366,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
     Example3:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *  # NOQA
+        >>> from ibeis.expt.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:1]
@@ -386,7 +386,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
     Example4:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.experiments.results_organizer import *  # NOQA
+        >>> from ibeis.expt.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:10]
@@ -497,9 +497,9 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.results_organizer
-        python -m ibeis.experiments.results_organizer --allexamples
-        python -m ibeis.experiments.results_organizer --allexamples --noface --nosrc
+        python -m ibeis.expt.results_organizer
+        python -m ibeis.expt.results_organizer --allexamples
+        python -m ibeis.expt.results_organizer --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

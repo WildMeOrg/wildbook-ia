@@ -9,7 +9,7 @@ import numpy as np
 import six
 import utool as ut
 #from ibeis import ibsfuncs
-#from ibeis.experiments import experiment_drawing
+#from ibeis.expt import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_printres]')
@@ -48,15 +48,15 @@ def print_latexsum(ibs, test_result, verbose=True):
         test_result (?):
 
     CommandLine:
-        python -m ibeis.experiments.experiment_printres --exec-print_latexsum
+        python -m ibeis.expt.experiment_printres --exec-print_latexsum
         python -m ibeis.scripts.gen_cand_expts --exec-gen_script
 
-        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
-        python -m ibeis.experiments.experiment_printres --exec-print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
+        python -m ibeis.expt.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
+        python -m ibeis.expt.experiment_printres --exec-print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.expt.experiment_printres import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts()
         >>> tabular_str2 = print_latexsum(ibs, test_result)
@@ -126,12 +126,12 @@ def print_results(ibs, test_result):
         python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
     CommandLine:
-        python -m ibeis.experiments.experiment_printres --test-print_results
-        utprof.py -m ibeis.experiments.experiment_printres --test-print_results
+        python -m ibeis.expt.experiment_printres --test-print_results
+        utprof.py -m ibeis.expt.experiment_printres --test-print_results
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.expt.experiment_printres import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a='default:dpername=1,qpername=[1,2]', t='default:fg_on=False')
         >>> result = print_results(ibs, test_result)
@@ -258,7 +258,7 @@ def print_results(ibs, test_result):
         #    'dinclude_aids2': list(gt_aids_expt2),
         #})
         #annotation_configs.varysize_pzm
-        #from ibeis.experiments import annotation_configs
+        #from ibeis.expt import annotation_configs
 
         acfg = test_result.acfg_list[0]
         import copy
@@ -275,7 +275,7 @@ def print_results(ibs, test_result):
         acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
 
         from ibeis.init import filter_annots
-        from ibeis.experiments import experiment_helpers
+        from ibeis.expt import experiment_helpers
 
         annots1 = filter_annots.expand_acfgs(ibs, acfg1, verbose=True)
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
@@ -713,9 +713,9 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.experiment_printres
-        python -m ibeis.experiments.experiment_printres --allexamples
-        python -m ibeis.experiments.experiment_printres --allexamples --noface --nosrc
+        python -m ibeis.expt.experiment_printres
+        python -m ibeis.expt.experiment_printres --allexamples
+        python -m ibeis.expt.experiment_printres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

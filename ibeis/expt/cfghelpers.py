@@ -50,11 +50,11 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
         list: cfglbl_list
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-get_varied_cfg_lbls
+        python -m ibeis.expt.cfghelpers --exec-get_varied_cfg_lbls
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfg_list = [{'_cfgname': 'test', 'f': 1, 'b': 1},
         >>>             {'_cfgname': 'test', 'f': 2, 'b': 1},
         >>>             {'_cfgname': 'test', 'f': 3, 'b': 1, 'z': 4}]
@@ -77,11 +77,11 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     TODO: partition nested configs
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-partition_varied_cfg_list
+        python -m ibeis.expt.cfghelpers --exec-partition_varied_cfg_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)
         >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
@@ -91,7 +91,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3':1}, 'b2': 1}, 'e1': 1}]
         >>> print(ut.list_str(cfg_list, nl=True))
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
@@ -135,11 +135,11 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
         str: cfg_lbl
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-get_cfg_lbl
+        python -m ibeis.expt.cfghelpers --exec-get_cfg_lbl
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfg = {'_cfgname': 'test', 'var1': 'val1', 'var2': 'val2'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
@@ -150,7 +150,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfg = {'_cfgname': 'test:K=[1,2,3]', 'K': '1'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
@@ -258,11 +258,11 @@ def parse_cfgstr_name_options(cfgstr):
         tuple: (cfgname, cfgopt_strs, subx)
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --test-parse_cfgstr_name_options
+        python -m ibeis.expt.cfghelpers --test-parse_cfgstr_name_options
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
@@ -271,7 +271,7 @@ def parse_cfgstr_name_options(cfgstr):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default[0:1]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
@@ -280,7 +280,7 @@ def parse_cfgstr_name_options(cfgstr):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default[0]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
@@ -371,11 +371,11 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         list: cfg_combos_list
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-parse_cfgstr_list2
+        python -m ibeis.expt.cfghelpers --exec-parse_cfgstr_list2
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr_list = ['name', 'name:f=1', 'name:b=[1,2]', 'name1:f=1::name2:f=1,b=2']
         >>> #cfgstr_list = ['name', 'name1:f=1::name2:f=1,b=2']
         >>> named_defaults_dict = None
@@ -476,12 +476,12 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         list: cfg_list
 
     CommandLine:
-        python -m ibeis.experiments.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
-        python -m ibeis.experiments.cfghelpers --exec-parse_argv_cfg
+        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
+        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.cfghelpers import *  # NOQA
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> argname = '--filt'
         >>> cfg_list = parse_argv_cfg(argname)
         >>> result = ('cfg_list = %s' % (str(cfg_list),))
@@ -505,9 +505,9 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.cfghelpers
-        python -m ibeis.experiments.cfghelpers --allexamples
-        python -m ibeis.experiments.cfghelpers --allexamples --noface --nosrc
+        python -m ibeis.expt.cfghelpers
+        python -m ibeis.expt.cfghelpers --allexamples
+        python -m ibeis.expt.cfghelpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

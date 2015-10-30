@@ -10,12 +10,12 @@ import numpy as np
 from six.moves import zip, range, map  # NOQA
 import vtool as vt
 import utool as ut
-from ibeis.experiments import cfghelpers
-from ibeis.experiments import experiment_helpers  # NOQA
+from ibeis.expt import cfghelpers
+from ibeis.expt import experiment_helpers  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
-from ibeis.experiments.old_storage import ResultMetadata  # NOQA
+from ibeis.expt.old_storage import ResultMetadata  # NOQA
 
 
 def combine_test_results(ibs, test_result_list):
@@ -25,14 +25,14 @@ def combine_test_results(ibs, test_result_list):
     CommandLine:
         python -m ibeis --tf combine_test_results
 
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis.experiments.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
+        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
+        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
 
     >>> # DISABLE_DOCTEST
-    >>> from ibeis.experiments.experiment_storage import *  # NOQA
-    >>> from ibeis.experiments import experiment_harness
+    >>> from ibeis.expt.experiment_storage import *  # NOQA
+    >>> from ibeis.expt import experiment_harness
     >>> ibs, test_result_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
     >>> combine_test_results(ibs, test_result_list)
     """
@@ -42,7 +42,7 @@ def combine_test_results(ibs, test_result_list):
     #    ut.printex(ex)
     #    raise
 
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
 
     acfg_list = [test_result.acfg for test_result in test_result_list]
     acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
@@ -279,7 +279,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.experiment_drawing import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
             >>> bins = u'dense'
@@ -493,7 +493,7 @@ class TestResult(object):
 
         Example:
             >>> # SLOW_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
             >>> cfg_lbls = test_result.get_short_cfglbls(friendly=True)
@@ -509,7 +509,7 @@ class TestResult(object):
             acfg_hashes = np.array(list(map(hash, acfg_names)))
             unique_hashes, a_groupxs = vt.group_indices(acfg_hashes)
             a_label_groups = []
-            from ibeis.experiments import annotation_configs
+            from ibeis.expt import annotation_configs
             for groupx in a_groupxs:
                 acfg_list = ut.list_take(test_result.cfgx2_acfg, groupx)
                 #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
@@ -556,7 +556,7 @@ class TestResult(object):
         #cfg_lbls = [cfghelpers.NAMEVARSEP.join(tup) if len(tup) != 2 else tup[1] if len(tup[1]) > 0 else 'BASELINE' for tup in cfgtups]
         cfg_lbls = cfg_lbls2
 
-        #from ibeis.experiments import annotation_configs
+        #from ibeis.expt import annotation_configs
         #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
 
         #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
@@ -573,7 +573,7 @@ class TestResult(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST')
             >>> plotname = ''
@@ -612,7 +612,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST')
             >>> with_size = True
@@ -714,14 +714,14 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
             >>> ibs = None
             >>> result = test_result.print_acfg_info()
             >>> print(result)
         """
-        from ibeis.experiments import annotation_configs
+        from ibeis.expt import annotation_configs
         ibs = test_result.ibs
         # Get unique annotation configs
         cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(test_result.cfgx2_acfg)
@@ -741,7 +741,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
             >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
             >>> ibs = None
@@ -778,13 +778,13 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
-            >>> from ibeis.experiments import experiment_harness
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
+            >>> from ibeis.expt import experiment_harness
             >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
             >>> result = test_result.print_results()
             >>> print(result)
         """
-        from ibeis.experiments import experiment_printres
+        from ibeis.expt import experiment_printres
         ibs = test_result.ibs
         experiment_printres.print_results(ibs, test_result)
 
@@ -821,7 +821,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -846,7 +846,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -915,7 +915,7 @@ class TestResult(object):
         Example0:
             >>> # SLOW_DOCTEST
             >>> # The same results is achievable with different filter config settings
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
@@ -932,7 +932,7 @@ class TestResult(object):
 
         Example1:
             >>> # SCRIPT
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
@@ -946,7 +946,7 @@ class TestResult(object):
 
         Example1:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
@@ -1518,7 +1518,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_storage import *  # NOQA
+            >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
             >>> mode = 'failure'
@@ -1695,7 +1695,7 @@ class TestResult(object):
         return flagstr
 
     def draw_rank_cdf(test_result):
-        from ibeis.experiments import experiment_drawing
+        from ibeis.expt import experiment_drawing
         experiment_drawing.draw_rank_cdf(test_result.ibs, test_result)
 
     def find_score_thresh_cutoff(test_result):
@@ -1708,7 +1708,7 @@ class TestResult(object):
         import vtool as vt
         if ut.VERBOSE:
             print('[dev] annotationmatch_scores')
-        #from ibeis.experiments import cfghelpers
+        #from ibeis.expt import cfghelpers
 
         assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
         cfgx = 0
@@ -1750,7 +1750,7 @@ class TestResult(object):
         """
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.experiment_drawing import *  # NOQA
         """
         ibs = test_result.ibs
         unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(test_result.qaids))
@@ -1773,9 +1773,9 @@ class TestResult(object):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.experiment_storage
-        python -m ibeis.experiments.experiment_storage --allexamples
-        python -m ibeis.experiments.experiment_storage --allexamples --noface --nosrc
+        python -m ibeis.expt.experiment_storage
+        python -m ibeis.expt.experiment_storage --allexamples
+        python -m ibeis.expt.experiment_storage --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

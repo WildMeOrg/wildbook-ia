@@ -9,7 +9,7 @@ import numpy as np
 import six
 from six.moves import zip
 from ibeis import ibsfuncs
-#from ibeis.experiments import results_organizer
+#from ibeis.expt import results_organizer
 print, rrr, profile = ut.inject2(__name__, '[resorg]')
 
 
@@ -63,27 +63,27 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         Just SIFT distance seems to have a very interesting property
 
     CommandLine:
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
 
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift
 
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=2
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=10
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=1000
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128 --num-top-fs=1
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=2
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=10
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=1000
+        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128 --num-top-fs=1
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.experiments.results_analyzer import *  # NOQA
-        >>> from ibeis.experiments import results_all
+        >>> from ibeis.expt.results_analyzer import *  # NOQA
+        >>> from ibeis.expt import results_all
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids(hasgt=True)
@@ -212,7 +212,7 @@ def get_matching_descriptors(allres, qaid_list, daid_list):
         tuple: (stacked_qvecs, stacked_dvecs)
 
     Example:
-        >>> from ibeis.experiments.results_analyzer import *  # NOQA
+        >>> from ibeis.expt.results_analyzer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> allres = results_all.get_allres(ibs, ibs.get_valid_aids(hasgt=True))
@@ -276,9 +276,9 @@ def get_matching_descriptors(allres, qaid_list, daid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.results_analyzer
-        python -m ibeis.experiments.results_analyzer --allexamples
-        python -m ibeis.experiments.results_analyzer --allexamples --noface --nosrc
+        python -m ibeis.expt.results_analyzer
+        python -m ibeis.expt.results_analyzer --allexamples
+        python -m ibeis.expt.results_analyzer --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

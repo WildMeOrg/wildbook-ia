@@ -6,7 +6,7 @@ Rename to annot_cfgdef
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from ibeis.experiments import cfghelpers
+from ibeis.expt import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 
 
@@ -109,11 +109,11 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         dict: acfg
 
     CommandLine:
-        python -m ibeis.experiments.annotation_configs --exec-compress_aidcfg
+        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> acfg = default
         >>> acfg = compress_aidcfg(acfg)
         >>> result = ('acfg = %s' % (ut.dict_str(acfg),))
@@ -161,7 +161,7 @@ def partition_acfg_list(acfg_list):
 
 def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
     """
-        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> from ibeis.expt.annotation_configs import *  # NOQA
 
     """
     #print(ut.list_str(varied_acfg_list, nl=2))
@@ -232,10 +232,10 @@ def flatten_acfg_list(acfg_list):
 def compress_acfg_list_for_printing(acfg_list):
     r"""
     CommandLine:
-        python -m ibeis.experiments.annotation_configs --exec-compress_acfg_list_for_printing
+        python -m ibeis.expt.annotation_configs --exec-compress_acfg_list_for_printing
 
     Example:
-        >>> from ibeis.experiments.annotation_configs import *  # NOQA
+        >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> qcfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> acfg_list = [{'qcfg': qcfg} for qcfg in qcfg_list]
         >>> nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)
@@ -554,14 +554,14 @@ varypername_tdqual = apply_qualcontrol(varypername_td)
 """
 python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
 python -m ibeis.dev -e get_annotcfg_list --db PZ_Master1 -a varysize_master1
-python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
-python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2]
-python -m ibeis.experiments.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2] --show -t default
-python -m ibeis.experiments.experiment_printres --exec-print_results --db PZ_Master1 -a varysize_pzm -t candidacy_k
+python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
+python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2]
+python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2] --show -t default
+python -m ibeis.expt.experiment_printres --exec-print_results --db PZ_Master1 -a varysize_pzm -t candidacy_k
 ./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --acfginfo
 ./dev.py -e draw_rank_surface  --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
 ./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
@@ -674,9 +674,9 @@ varysize_tdqual = apply_qualcontrol(varysize_td)
 """
 ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
 
-python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
-python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
+python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
 # Check composition of names per viewpoint
 python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
 python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
@@ -773,9 +773,9 @@ TEST_NAMES = set(include_vars) - set(exclude_vars)
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.annotation_configs
-        python -m ibeis.experiments.annotation_configs --allexamples
-        python -m ibeis.experiments.annotation_configs --allexamples --noface --nosrc
+        python -m ibeis.expt.annotation_configs
+        python -m ibeis.expt.annotation_configs --allexamples
+        python -m ibeis.expt.annotation_configs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -8,12 +8,12 @@ def test_configurations(ibs, acfgstr_name_list, test_cfg_name_list):
     Test harness driver function
 
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-test_configurations --verbtd
-        python -m ibeis.experiments.experiment_harness --exec-test_configurations --verbtd --draw-rank-cdf --show
+        python -m ibeis.expt.experiment_harness --exec-test_configurations --verbtd
+        python -m ibeis.expt.experiment_harness --exec-test_configurations --verbtd --draw-rank-cdf --show
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> acfgstr_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=['candidacy:qsize=20,dper_name=1,dsize=10', 'candidacy:qsize=20,dper_name=10,dsize=100'])

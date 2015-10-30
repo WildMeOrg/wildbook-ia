@@ -5955,7 +5955,7 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
 
 @register_ibs_method
 def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
-    from ibeis.experiments import experiment_harness, experiment_helpers
+    from ibeis.expt import experiment_harness, experiment_helpers
     experiment_helpers
     testnameid = ibs.get_dbname() + ' ' + str(pipecfg_name_list)
     lbl = '[harn] TEST_CFG ' + str(pipecfg_name_list)
@@ -5979,7 +5979,7 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='lynx')
         >>> a = ['default:hack_encounter=True', ]
-        >>> from ibeis.experiments import experiment_helpers
+        >>> from ibeis.expt import experiment_helpers
         >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [a[0]], use_cache=False)
         >>> aid_list = ibs.get_valid_aids()
         >>> filter_kw = dict(been_adjusted=True)

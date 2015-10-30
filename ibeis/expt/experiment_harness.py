@@ -8,13 +8,13 @@ import numpy as np
 #import six
 import utool as ut
 from functools import partial
-from ibeis.experiments import experiment_helpers
-#from ibeis.experiments import experiment_configs
-#from ibeis.experiments import experiment_printres
-#from ibeis.experiments import experiment_drawing
-from ibeis.experiments import experiment_storage
-#from ibeis.experiments import annotation_configs
-#from ibeis.experiments import cfghelpers
+from ibeis.expt import experiment_helpers
+#from ibeis.expt import experiment_configs
+#from ibeis.expt import experiment_printres
+#from ibeis.expt import experiment_drawing
+from ibeis.expt import experiment_storage
+#from ibeis.expt import annotation_configs
+#from ibeis.expt import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_harn]')
 
@@ -38,11 +38,11 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
     The code is getting too untenable.
 
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2
+        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['controlled:qsize=20,dpername=1,dsize=10', 'controlled:qsize=20,dpername=10,dsize=100']
@@ -150,7 +150,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     """
 
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --exec-run_test_configurations2
+        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2
 
     """
     cfgslice = None
@@ -342,13 +342,13 @@ def get_query_result_info(qreq_):
         qx2_bestranks
 
     CommandLine:
-        python -m ibeis.experiments.experiment_harness --test-get_query_result_info
-        python -m ibeis.experiments.experiment_harness --test-get_query_result_info:0
-        python -m ibeis.experiments.experiment_harness --test-get_query_result_info:1
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
@@ -359,7 +359,7 @@ def get_query_result_info(qreq_):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> #cfgdict = dict(codename='vsone')
@@ -414,10 +414,10 @@ def get_query_result_info(qreq_):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness, allexamples=True)"
-        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness)"
-        python -m ibeis.experiments.experiment_harness
-        python -m ibeis.experiments.experiment_harness --allexamples
+        python -c "import utool, ibeis.expt.experiment_harness; utool.doctest_funcs(ibeis.expt.experiment_harness, allexamples=True)"
+        python -c "import utool, ibeis.expt.experiment_harness; utool.doctest_funcs(ibeis.expt.experiment_harness)"
+        python -m ibeis.expt.experiment_harness
+        python -m ibeis.expt.experiment_harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

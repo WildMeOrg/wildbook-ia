@@ -7,8 +7,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
 import six
 import itertools
-from ibeis.experiments import experiment_configs
-from ibeis.experiments import cfghelpers
+from ibeis.expt import experiment_configs
+from ibeis.expt import cfghelpers
 from ibeis.model import Config
 from ibeis.init import filter_annots
 print, print_, printDBG, rrr, profile = ut.inject(
@@ -41,12 +41,12 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
                 If there is just one config then nothing is varied
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_pipecfg_list
-        python -m ibeis.experiments.experiment_helpers --exec-get_pipecfg_list
+        python -m ibeis.expt.experiment_helpers --test-get_pipecfg_list
+        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> #test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
@@ -155,14 +155,14 @@ def parse_acfg_combo_list(acfg_name_list):
         list: acfg_combo_list
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list
-        python -m ibeis.experiments.experiment_helpers --exec-parse_acfg_combo_list:1
+        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list
+        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list:1
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> acfg_name_list = testdata_acfg_names(['default', 'uncontrolled'])
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_list = ut.flatten(acfg_combo_list)
@@ -171,9 +171,9 @@ def parse_acfg_combo_list(acfg_name_list):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> # double colon :: means expand consistently and force const size
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'ctrl::unctrl'])
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'varysize', 'ctrl::unctrl'])
@@ -183,7 +183,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
     """
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
                                        annotation_configs.TEST_NAMES)
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
@@ -256,7 +256,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
         ibeis -e print_acfg -a timectrl timectrl:view=left --db PZ_MTEST
 
     """
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     acfg_list_ = []
     expanded_aids_list_ = []
     seen_ = ut.ddict(list)
@@ -301,9 +301,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
         annot_cfg_name_list (list):
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:0
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:1
-        python -m ibeis.experiments.experiment_helpers --exec-get_annotcfg_list:2
+        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0
+        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:1
+        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:2
 
         ibeis -e print_acfg --ainfo
         ibeis -e print_acfg --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
@@ -312,9 +312,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> filter_dups = not ut.get_argflag('--nofilter-dups')
         >>> acfg_name_list = testdata_acfg_names()
@@ -330,7 +330,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
     """
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
@@ -384,9 +384,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers
-        python -m ibeis.experiments.experiment_helpers --allexamples
-        python -m ibeis.experiments.experiment_helpers --allexamples --noface --nosrc
+        python -m ibeis.expt.experiment_helpers
+        python -m ibeis.expt.experiment_helpers --allexamples
+        python -m ibeis.expt.experiment_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

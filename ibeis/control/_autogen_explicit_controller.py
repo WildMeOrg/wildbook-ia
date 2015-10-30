@@ -7570,7 +7570,7 @@ class ExplicitInjectIBEISController(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.init.filter_annots import *  # NOQA
             >>> import ibeis
-            >>> from ibeis.experiments import annotation_configs
+            >>> from ibeis.expt import annotation_configs
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
             >>> avail_aids = input_aids = ibs.get_valid_aids()
             >>> aidcfg = annotation_configs.default['dcfg']

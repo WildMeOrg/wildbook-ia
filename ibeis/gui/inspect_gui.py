@@ -12,7 +12,7 @@ from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
 from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
-from ibeis.experiments import results_organizer
+from ibeis.expt import results_organizer
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
@@ -791,7 +791,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     """
     from ibeis.viz.interact import interact_qres2  # NOQA
     from ibeis.gui import inspect_gui
-    from ibeis.experiments import results_all
+    from ibeis.expt import results_all
     allres = results_all.get_allres(ibs, qaid_list, cfgdict={
         'augment_queryside_hack': True})
     tblname = 'qres'
@@ -831,7 +831,7 @@ def get_match_thumb_fname(qres, daid):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import results_all
+        >>> from ibeis.expt import results_all
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:2]
         >>> daid_list = ibs.get_valid_aids()[0:20]
@@ -929,7 +929,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         >>> import guitool
         >>> from ibeis.viz.interact import interact_qres2  # NOQA
         >>> from ibeis.gui import inspect_gui
-        >>> from ibeis.experiments import results_all
+        >>> from ibeis.expt import results_all
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:2]
         >>> daid_list = ibs.get_valid_aids()[0:20]

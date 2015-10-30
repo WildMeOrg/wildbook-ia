@@ -80,8 +80,8 @@ def get_dbinfo(ibs, verbose=True,
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> # <HACK FOR FILTERING>
-        >>> #from ibeis.experiments import cfghelpers
-        >>> #from ibeis.experiments import annotation_configs
+        >>> #from ibeis.expt import cfghelpers
+        >>> #from ibeis.expt import annotation_configs
         >>> #from ibeis.init import filter_annots
         >>> #named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
         >>> #                                   annotation_configs.TEST_NAMES)
@@ -147,7 +147,7 @@ def get_dbinfo(ibs, verbose=True,
             # Hack to get experiment stats on aids
             acfg_name_list = [aid_list]
             print('Specified custom aids via acfgname %s' % (acfg_name_list,))
-            from ibeis.experiments import experiment_helpers
+            from ibeis.expt import experiment_helpers
             acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
                 ibs, acfg_name_list)
             aid_list = sorted(list(set(ut.flatten(ut.flatten(expanded_aids_list)))))

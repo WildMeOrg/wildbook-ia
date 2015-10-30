@@ -7,7 +7,7 @@ from functools import partial
 from guitool.__PYQT__ import QtGui  # , QtCore
 from guitool.__PYQT__.QtCore import Qt
 #from ibeis import ibsfuncs
-#from ibeis.experiments import results_organizer
+#from ibeis.expt import results_organizer
 #from ibeis.viz import interact
 #from ibeis.viz import viz_helpers as vh
 #from plottool import fig_presenter

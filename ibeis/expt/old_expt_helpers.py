@@ -4,11 +4,11 @@ def get_testcfg_varydicts(test_cfg_name_list):
     recomputes test_cfg_name_list_out in case there are any nested lists specified in it
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_testcfg_varydicts
+        python -m ibeis.expt.experiment_helpers --test-get_testcfg_varydicts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
         >>> vary_dicts, test_cfg_name_list_out = get_testcfg_varydicts(test_cfg_name_list)
         >>> result = ut.list_str(vary_dicts)

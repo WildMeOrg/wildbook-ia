@@ -38,7 +38,7 @@ def testdata_pipecfg(t=['default']):
         >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
         >>> print(result)
     """
-    from ibeis.experiments import experiment_helpers
+    from ibeis.expt import experiment_helpers
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=t)
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
@@ -47,7 +47,7 @@ def testdata_pipecfg(t=['default']):
 
 
 def testdata_filtcfg(default=None):
-    from ibeis.experiments import cfghelpers
+    from ibeis.expt import cfghelpers
     if default is None:
         default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
@@ -98,8 +98,8 @@ def testdata_expts(defaultdb='testdb1',
     Command line interface to quickly get testdata for test_results
     """
     import ibeis
-    from ibeis.experiments import experiment_harness
-    from ibeis.experiments import experiment_storage
+    from ibeis.expt import experiment_harness
+    from ibeis.expt import experiment_storage
     if a is not None:
         default_acfgstr_name_list = a
     if t is not None:
@@ -110,7 +110,7 @@ def testdata_expts(defaultdb='testdb1',
     if isinstance(default_test_cfg_name_list, six.string_types):
         default_test_cfg_name_list = [default_test_cfg_name_list]
 
-    #from ibeis.experiments import experiment_helpers
+    #from ibeis.expt import experiment_helpers
     ibs = ibeis.opendb(defaultdb=defaultdb)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
@@ -152,7 +152,7 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.experiments import annotation_configs
+        >>> from ibeis.expt import annotation_configs
         >>> default_qaids = [1]
         >>> default_daids = 'all'
         >>> defaultdb = 'testdb1'
@@ -173,7 +173,7 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
     if ibs is None:
         ibs = ibeis.opendb(defaultdb=defaultdb)
     # TODO: rectify command line with function arguments
-    from ibeis.experiments import experiment_helpers
+    from ibeis.expt import experiment_helpers
     aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'),
                                                  type_=list,
                                                  default=['default'],

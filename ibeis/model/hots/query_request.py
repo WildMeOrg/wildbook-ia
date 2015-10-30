@@ -119,7 +119,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qcfg = qreq_.get_external_query_config2()
         ut.dict_intersection(qcfg.__dict__, dcfg.__dict__)
 
-        from ibeis.experiments import cfghelpers
+        from ibeis.expt import cfghelpers
         cfg_list = [qcfg.__dict__, dcfg.__dict__]
         nonvaried_cfg, varied_cfg_list = cfghelpers.partition_varied_cfg_list(
             cfg_list, recursive=True)

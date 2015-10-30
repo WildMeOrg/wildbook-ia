@@ -313,9 +313,9 @@ def get_pipeline_testdata2(defaultdb='testdb1', default_aidcfg_name_list=['defau
         qaids = array([1])
     """
     #from ibeis.init import main_helpers
-    from ibeis.experiments import experiment_helpers
+    from ibeis.expt import experiment_helpers
     from ibeis.model.hots import query_request
-    #from ibeis.experiments import experiment_helpers
+    #from ibeis.expt import experiment_helpers
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)

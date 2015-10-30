@@ -5,8 +5,8 @@ most things in here can be depricated
 from __future__ import absolute_import, division, print_function
 import utool
 import utool as ut
-from ibeis.experiments import results_organizer
-from ibeis.experiments import results_analyzer
+from ibeis.expt import results_organizer
+from ibeis.expt import results_analyzer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[results_all]', DEBUG=False)
 
 
@@ -184,10 +184,10 @@ def get_allres(ibs, qaid_list, daid_list=None, cfgdict=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.experiments.results_all; utool.doctest_funcs(ibeis.experiments.results_all, allexamples=True)"
-        python -c "import utool, ibeis.experiments.results_all; utool.doctest_funcs(ibeis.experiments.results_all)"
-        python -m ibeis.experiments.results_all --allexamples
-        python -m ibeis.experiments.results_all --test-learn_score_normalization --enableall
+        python -c "import utool, ibeis.expt.results_all; utool.doctest_funcs(ibeis.expt.results_all, allexamples=True)"
+        python -c "import utool, ibeis.expt.results_all; utool.doctest_funcs(ibeis.expt.results_all)"
+        python -m ibeis.expt.results_all --allexamples
+        python -m ibeis.expt.results_all --test-learn_score_normalization --enableall
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

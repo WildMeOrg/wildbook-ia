@@ -21,7 +21,7 @@ def define_named_aid_cfgs():
     Definitions for common aid configurations
     TODO: potentially move to experiment configs
     """
-    from ibeis.experiments import annotation_configs
+    from ibeis.expt import annotation_configs
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__, annotation_configs.TEST_NAMES)
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'qcfg')))
     named_dcfg_defaults = dict(zip(annotation_configs.TEST_NAMES, ut.get_list_column(named_defaults_dict, 'dcfg')))

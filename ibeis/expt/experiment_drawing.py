@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 #from ibeis import params
 import utool as ut
-from ibeis.experiments import experiment_storage
+from ibeis.expt import experiment_storage
 from ibeis.model.hots import match_chips4 as mc4
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
@@ -69,7 +69,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
 
 
     Example:
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
         >>> annotationmatch_scores(ibs, test_result)
@@ -79,7 +79,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     import vtool as vt
     if ut.VERBOSE:
         print('[dev] annotationmatch_scores')
-    #from ibeis.experiments import cfghelpers
+    #from ibeis.expt import cfghelpers
     from ibeis.init import main_helpers
 
     filt_cfg = main_helpers.testdata_filtcfg(default=f)
@@ -161,10 +161,10 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
         test_result (TestResult):  test result object
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist --show
+        python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist --show
 
         # Experiments I tagged
-        python -m ibeis.experiments.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
+        python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
         ibeis -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
         ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
@@ -181,14 +181,14 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
         >>> draw_casetag_hist(ibs, test_result)
         >>> ut.show_if_requested()
     """
     from ibeis.init import main_helpers
-    #from ibeis.experiments import cfghelpers
+    #from ibeis.expt import cfghelpers
     import plottool as pt
     from ibeis import tag_funcs
 
@@ -285,7 +285,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-draw_individual_cases
+        python -m ibeis.expt.experiment_drawing --exec-draw_individual_cases
 
         python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
         python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
@@ -312,7 +312,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> metadata = None
@@ -725,13 +725,13 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         tuple: (sel_rows, sel_cols, flat_case_labels)
 
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl
-        python -m ibeis.experiments.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
+        python -m ibeis.expt.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl
+        python -m ibeis.expt.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
 
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = {'fail': True, 'success': True, 'min_gtrank': 5, 'max_gtrank': 40}
@@ -739,9 +739,9 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
         >>> print(result)
     """
-    #from ibeis.experiments import cfghelpers
+    #from ibeis.expt import cfghelpers
     #sample_cfgstr_list = ut.get_argval('--filt', type_=list, default=None)
-    #from ibeis.experiments import cfghelpers
+    #from ibeis.expt import cfghelpers
 
     #if sample_cfgstr_list is None:
     if filt_cfg is None or isinstance(filt_cfg, list):
@@ -903,7 +903,7 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_rank_surface(ibs, test_result)
@@ -955,7 +955,7 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
                    for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
 
-        from ibeis.experiments import annotation_configs
+        from ibeis.expt import annotation_configs
         nd_labels = list(agree_param_vals.keys())
         nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
         target_label = annotation_configs.shorten_to_alias_labels(key)
@@ -1042,7 +1042,7 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> result = draw_rank_cdf(ibs, test_result)
@@ -1138,11 +1138,11 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
 def make_metadata_custom_api(metadata):
     r"""
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing --test-make_metadata_custom_api --show
+        python -m ibeis.expt.experiment_drawing --test-make_metadata_custom_api --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> import guitool
         >>> guitool.ensure_qapp()
         >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
@@ -1347,7 +1347,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> draw_case_timedeltas(ibs, test_result)
@@ -1543,13 +1543,13 @@ def draw_results(ibs, test_result):
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
 
 
-        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --vn
-        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
-        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --db PZ_MTEST --draw-rank-cdf
+        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn
+        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.expt.experiment_drawing --test-draw_results --show --db PZ_MTEST --draw-rank-cdf
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_drawing import *  # NOQA
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
         >>> # execute function
@@ -1614,9 +1614,9 @@ def draw_results(ibs, test_result):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.experiments.experiment_drawing
-        python -m ibeis.experiments.experiment_drawing --allexamples
-        python -m ibeis.experiments.experiment_drawing --allexamples --noface --nosrc
+        python -m ibeis.expt.experiment_drawing
+        python -m ibeis.expt.experiment_drawing --allexamples
+        python -m ibeis.expt.experiment_drawing --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
