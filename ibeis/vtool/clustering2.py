@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
 # LICENCE
+"""
+TODO:
+    Does HDBSCAN work on 128 dim vectors?
+    http://nbviewer.jupyter.org/github/lmcinnes/hdbscan/blob/master/notebooks/Comparing%20Clustering%20Algorithms.ipynb
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 import six
@@ -301,14 +307,33 @@ def refine_akmeans(data, centroids, max_iters=5,
     return centroids
 
 
+def test_hdbscan():
+    r"""
+    CommandLine:
+        python -m vtool.clustering2 --exec-test_hdbscan
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import numpy as np
+        >>> rng = np.random.RandomState(42)
+        >>> data = rng.randn(10000, 128)
+        >>> import hdbscan
+        >>> labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
+
+    """
+    pass
+
+
 def akmeans_iterations(data, centroids, max_iters,
                         flann_params, ave_unchanged_thresh, ave_unchanged_iterwin):
     """ Helper function which continues the iterations of akmeans
 
     >>> from vtool.clustering2 import *  # NOQA
     >>> import numpy as np
-    >>> np.random.seed(42)
-    >>> data = np.random.randn(100, 2)
+    >>> rng = np.random.RandomState(42)
+    >>> data = rng.randn(100, 2)
     >>> nCentroids = 5
     >>> flann_params = {}
     >>> max_iters = 100
@@ -367,8 +392,8 @@ def compute_centroids(data, centroids, datax2_centroidx):
 
     >>> from vtool.clustering2 import *  # NOQA
     >>> import numpy as np
-    >>> np.random.seed(42)
-    >>> data = np.random.randn(100, 2)
+    >>> rng = np.random.RandomState(42)
+    >>> data = rng.randn(100, 2)
     >>> nCentroids = 5
     >>> flann_params = {}
     >>> centroids = initialize_centroids(nCentroids, data)
