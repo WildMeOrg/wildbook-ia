@@ -61,7 +61,8 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list, qaid_override=qaid_override)
     # Generate list of query pipeline param configs
-    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
+    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
+        test_cfg_name_list, ibs=ibs)
 
     cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
 
@@ -103,19 +104,21 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
     #    sys.exit(1)
 
     for acfgx, (qaids, daids) in enumerate(expanded_aids_iter):
-        if len(qaids) == 0:
-            raise AssertionError('[harness] No query annotations specified')
-        if len(daids) == 0:
-            raise AssertionError('[harness] No database annotations specified')
+        assert len(qaids) != 0, (
+            '[harness] No query annotations specified')
+        assert len(daids) != 0, (
+            '[harness] No database annotations specified')
         acfg = acfg_list[acfgx]
         if ut.NOT_QUIET:
-            ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
+            ut.colorprint('\n---Annot config testnameid=%r' % (
+                testnameid,), 'turquoise')
         subindexer_partial = partial(ut.ProgressIter, parent_index=acfgx,
                                      parent_nTotal=nAcfg, enabled=ut.NOT_QUIET)
-        testres = run_test_configurations(ibs, qaids, daids, pipecfg_list,
-                                              cfgx2_lbl, cfgdict_list, lbl,
-                                              testnameid, use_cache=use_cache,
-                                              subindexer_partial=subindexer_partial)
+        testres = run_test_configurations(
+            ibs, qaids, daids, pipecfg_list,
+            cfgx2_lbl, cfgdict_list, lbl,
+            testnameid, use_cache=use_cache,
+            subindexer_partial=subindexer_partial)
         if DRY_RUN:
             continue
         testres.acfg = acfg
@@ -137,7 +140,10 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
     else:
         bt_cachedir = './BIG_TEST_CACHE'
     ut.ensuredir(bt_cachedir)
-    bt_cachestr = ut.hashstr_arr27([qreq_.get_cfgstr(with_query=True) for qreq_ in cfgx2_qreq_], ibs.get_dbname() + '_cfgs')
+    bt_cachestr = ut.hashstr_arr27([
+        qreq_.get_cfgstr(with_query=True)
+        for qreq_ in cfgx2_qreq_],
+        ibs.get_dbname() + '_cfgs')
     bt_cachename = 'BIGTESTCACHE'
     return bt_cachedir, bt_cachename, bt_cachestr
 
@@ -161,8 +167,11 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
     if ut.NOT_QUIET:
         print('Constructing query requests')
-    cfgx2_qreq_ = [ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
-                   for pipe_cfg in ut.ProgressIter(pipecfg_list, lbl='Building qreq_', enabled=False)]
+    cfgx2_qreq_ = [
+        ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
+        for pipe_cfg in ut.ProgressIter(pipecfg_list, lbl='Building qreq_',
+                                        enabled=False)
+    ]
 
     if use_cache is None:
         use_cache = USE_BIG_TEST_CACHE
@@ -170,8 +179,8 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     if use_cache:
         get_big_test_cache_info(ibs, cfgx2_qreq_)
         try:
-            bt_cachedir, bt_cachename, bt_cachestr = get_big_test_cache_info(ibs, cfgx2_qreq_)
-            testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
+            cachetup = get_big_test_cache_info(ibs, cfgx2_qreq_)
+            testres = ut.load_cache(*cachetup)
             testres.cfgdict_list = cfgdict_list
             testres.cfgx2_lbl = cfgx2_lbl  # hack override
         except IOError:
@@ -183,32 +192,40 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
     cfgx2_cfgresinfo = []
     #nPipeCfg = len(pipecfg_list)
-    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)), lbl='query config', freq=1, adjust=False, separate=True)
+    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)),
+                                 lbl='query config',
+                                 freq=1, adjust=False,
+                                 separate=True)
     # Run each pipeline configuration
     prev_feat_cfgstr = None
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
 
-        ut.colorprint('testnameid=%r' % (testnameid,), 'green')
-        ut.colorprint('annot_cfgstr = %s' % (qreq_.get_cfgstr(with_query=True, with_pipe=False),), 'yellow')
-        ut.colorprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'turquoise')
-        ut.colorprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashstr(),), 'teal')
+        ut.colorprint('testnameid=%r' % (
+            testnameid,), 'green')
+        ut.colorprint('annot_cfgstr = %s' % (
+            qreq_.get_cfgstr(with_query=True, with_pipe=False),), 'yellow')
+        ut.colorprint('pipe_cfgstr= %s' % (
+            qreq_.get_cfgstr(with_data=False),), 'turquoise')
+        ut.colorprint('pipe_hashstr = %s' % (
+            qreq_.get_pipe_hashstr(),), 'teal')
         if DRY_RUN:
             continue
 
         indent_prefix = '[%s cfg %d/%d]' % (
             dbname,
-            (cfgiter.parent_index * cfgiter.nTotal) + cfgx ,  # cfgiter.count (doesnt work when quiet)
+            # cfgiter.count (doesnt work when quiet)
+            (cfgiter.parent_index * cfgiter.nTotal) + cfgx ,
             cfgiter.nTotal * cfgiter.parent_nTotal
         )
 
-        #with ut.Indenter('[%s cfg %d/%d]' % (dbname, (acfgx * nCfg) + cfgx * + 1, nCfg * nAcfg)):
         with ut.Indenter(indent_prefix):
             # Run the test / read cache
             _need_compute = True
             if use_cache:
                 # smaller cache for individual configuration runs
                 st_cfgstr = qreq_.get_cfgstr(with_query=True)
+                bt_cachedir = cachetup[0]
                 st_cachedir = ut.unixjoin(bt_cachedir, 'small_tests')
                 st_cachename = 'smalltest'
                 ut.ensuredir(st_cachedir)
@@ -224,8 +241,8 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                     ibs.clear_table_cache()
                     #qreq_.ibs.print_cachestats_str()
                 cfgres_info = get_query_result_info(qreq_)
-                prev_feat_cfgstr = qreq_.qparams.feat_cfgstr  # record previous feature configuration
-
+                # record previous feature configuration
+                prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
                 if use_cache:
                     ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cfgres_info)
         if not NOMEMORY:
@@ -248,7 +265,7 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     testres.cfgdict_list = cfgdict_list
     testres.aidcfg = None
     if use_cache:
-        ut.save_cache(bt_cachedir, bt_cachename, bt_cachestr, testres)
+        ut.save_cache(*tuple(list(cachetup) + [testres]))
     return testres
 
 
@@ -272,16 +289,9 @@ def get_qres_name_result_info(ibs, qres):
     gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
 
     if gt_rank is None or gf_rank is None:
-        NEW = True
-        if NEW:
-            # Should a random groundtruth result be chosen if it exists here?
-            gt_aids = qres.get_groundtruth_aids(ibs)
-            if len(gt_aids) > 0:
-                gt_aid = gt_aids[0]
-            else:
-                gt_aid = None
-        else:
-            gt_aid = None
+        # Should a random groundtruth result be chosen if it exists here?
+        gt_aids = qres.get_groundtruth_aids(ibs)
+        gt_aid = gt_aids[0] if len(gt_aids) > 0 else None
         gf_aid = None
         gt_raw_score = None
         gf_raw_score = None
@@ -353,7 +363,7 @@ def get_query_result_info(qreq_):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={}, query_cfg=ibs.cfg.query_cfg)
+        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
         >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
@@ -366,7 +376,7 @@ def get_query_result_info(qreq_):
         >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={}, query_cfg=ibs.cfg.query_cfg)
+        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
         >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
@@ -387,6 +397,8 @@ def get_query_result_info(qreq_):
     #qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
+
+    # TODO: change qres to chipmatch and make multi-chipmatch
     qaids = qreq_.get_external_qaids()
     daids = qreq_.get_external_daids()
     ibs = qreq_.ibs
@@ -414,8 +426,6 @@ def get_query_result_info(qreq_):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.expt.experiment_harness; utool.doctest_funcs(ibeis.expt.experiment_harness, allexamples=True)"
-        python -c "import utool, ibeis.expt.experiment_harness; utool.doctest_funcs(ibeis.expt.experiment_harness)"
         python -m ibeis.expt.experiment_harness
         python -m ibeis.expt.experiment_harness --allexamples
     """
