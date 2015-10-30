@@ -23,12 +23,14 @@ ALIAS_KEYS = {
 }
 
 OTHER_DEFAULTS = {
-    'force_const_size'    : None,  # forces a consistnet sample size across combinations
+    'force_const_size'    : None,
+    # forces a consistnet sample size across combinations
     #'hack_extra' : None,  # hack param to make bigger db sizes
-    'hack_encounter': None,
+    #'hack_encounter': None,
 }
 
 # Defaults for the independent filter
+# THese filters are orderless
 INDEPENDENT_DEFAULTS = {
     'species'             : 'primary',  # specify the species
     # Timedelta Params
@@ -45,14 +47,19 @@ INDEPENDENT_DEFAULTS = {
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2
     'is_known'            : None,
-    'min_numfeat'         : None,  # maximum number of features detected by default config
-    'max_numfeat'         : None,  # minimum number of features detected by default config
+    # maximum number of features detected by default config
+    'min_numfeat'         : None,
+    # minimum number of features detected by default config
+    'max_numfeat'         : None,
 }
 
 INTRAGROUP_DEFAULTS = {
-    'min_timedelta'       : None,
+    # if True all annots must belong to the same encounter
+    'same_encounter'      : None,
     'view_pername'        : None,  # formatted string filtering the viewpoints
-    'min_pername'         : None,  # minimum number of aids for each name in sample
+    'min_timedelta'       : None,
+    # minimum number of aids for each name in sample
+    'min_pername'         : None,
 }
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
@@ -63,7 +70,8 @@ SUBINDEX_DEFAULTS = {
 }
 
 SAMPLE_DEFAULTS = {
-    'sample_size'         : None,  # Gets as close to sample size without removing other props
+    'sample_size'         : None,
+    # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
     'sample_per_name'     : None,  # Choos num_annots to sample from each name.
     'sample_rule'         : 'random',
@@ -71,9 +79,11 @@ SAMPLE_DEFAULTS = {
 }
 
 SAMPLE_REF_DEFAULTS = {
-    'exclude_reference'   : None,  # excludes any aids specified in a reference set (ie qaids)
+    # excludes any aids specified in a reference set (ie qaids)
+    'exclude_reference'   : None,
     'sample_rule_ref'     : 'random',
-    'sample_per_ref_name' : None,  # when sampling daids, choose this many correct matches per query
+    # when sampling daids, choose this many correct matches per query
+    'sample_per_ref_name' : None,
 }
 
 
@@ -94,7 +104,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
         dict: acfg
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg
+        python -m ibeis --tf compress_aidcfg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -221,7 +231,7 @@ def flatten_acfg_list(acfg_list):
 def compress_acfg_list_for_printing(acfg_list):
     r"""
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-compress_acfg_list_for_printing
+        python -m ibeis --tf compress_acfg_list_for_printing
 
     Example:
         >>> from ibeis.expt.annotation_configs import *  # NOQA
@@ -436,7 +446,8 @@ ibeis -e print_acfg --db PZ_Master1 -a timequalctrl
 timequalctrl = timequalcontrolled = apply_qualcontrol(timectrl)
 
 
-# Just vary the samples per name without messing with the number of annots in the database
+# Just vary the samples per name without messing with the number of annots in
+# the database
 varypername = {
     'qcfg': ut.augdict(
         ctrl['qcfg'], {
@@ -503,31 +514,7 @@ varypername_tdqual = apply_qualcontrol(varypername_td)
 
 
 """
-python -m ibeis.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
-python -m ibeis.dev -e get_annotcfg_list --db PZ_Master1 -a varysize_master1
-python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list  -a varysize_master1
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1
-python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --no3dsurf -t candidacy_k -a varysize_master1 --db PZ_Master1
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1 --combo-slice=1:12:6
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2]
-python -m ibeis.expt.experiment_drawing --exec-draw_rank_surface --db PZ_Master1 -a varysize_master1.dsize=1000,dper_name=[1,2] --show -t default
-python -m ibeis.expt.experiment_printres --exec-print_results --db PZ_Master1 -a varysize_pzm -t candidacy_k
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --acfginfo
-./dev.py -e draw_rank_surface  --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
-./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k --show
-./dev.py -e draw_rank_cdf      --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --show
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm -t candidacy_k --acfginfo
-
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=1,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-./dev.py -e print_test_results --db PZ_Master1 -a varysize_pzm:dper_name=2,dsize=1500 -t candidacy_k:K=1 --echo-hardcase
-"""
-
-"""
+python -m ibeis --tf get_num_annots_per_name --db PZ_Master1
 ibeis -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache
 ibeis -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache
 """
@@ -564,23 +551,24 @@ varysize_tdqual = apply_qualcontrol(varysize_td)
 # Compare query of frontleft animals when database has only left sides
 """
 ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
-
-python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list -a viewpoint_compare
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list --db PZ_Master1 -a viewpoint_compare --verbtd
+python -m ibeis --tf parse_acfg_combo_list -a viewpoint_compare
+python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
+        --verbtd
 # Check composition of names per viewpoint
-python -m ibeis.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=yaw_texts,name_rowids --keys1 frontleft
-python -m ibeis.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+python -m ibeis --tf group_annots_by_multi_prop --db PZ_Master1 \
+        --props=yaw_texts,name_rowids --keys1 frontleft
+python -m ibeis --tf get_annot_stats_dict --db PZ_Master1 \
+        --per_name_vpedge=True
 
 
 TODO: Need to explicitly setup the common config I think?
-
 ibeis -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
-ibeis --tf get_annotcfg_list -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid
+ibeis --tf get_annotcfg_list -a viewdiff:min_timedelta=1h --db PZ_Master1 \
+        --verbtd --nocache-aid
 """
 viewpoint_compare = {
     'qcfg': ut.augdict(
-        controlled['qcfg'], {
+        ctrl['qcfg'], {
             'sample_size': None,
             # To be a query you must have at least two primary1 views and at
             # least one primary view
@@ -592,21 +580,13 @@ viewpoint_compare = {
         }),
 
     'dcfg': ut.augdict(
-        controlled['dcfg'], {
+        ctrl['dcfg'], {
             'view': ['primary1', 'primary'],
             'force_const_size': True,
             # To be a query you must have at least two primary1 views and at
             # least one primary view
             'view_pername': '#primary>0&#primary1>1',
-            # daids are not the same here. there is a nondetermenism (ordering
-            # problem)
-            #'view': ['primary1', 'primary1'],
-            #'view': ['primary'],
-            #'sample_per_name': 1,
-            #'sample_rule_ref': 'maxtimedelta',
             'sample_per_ref_name': 1,
-            # None this seems to produce odd results where the per_ref is still
-            # more then 1
             'sample_per_name': 1,
             # TODO: need to make this consistent accross both experiment modes
             'sample_size': None,
@@ -616,25 +596,25 @@ viewpoint_compare = {
 
 viewdiff = vp = viewpoint_compare = {
     'qcfg': ut.augdict(
-        controlled['qcfg'], {
-            'sample_size': None,
+        ctrl['qcfg'], ut.odict([
+            ('sample_size', None),
             # To be a query you must have at least two primary1 views and at
             # least one primary view
-            'view_pername': '#primary>0&#primary1>0',
-            'force_const_size': True,
-            'view': 'primary1',
-            'sample_per_name': 1,
-            #'min_pername': 2,
-        }),
+            ('view_pername', '#primary>0&#primary1>0'),
+            ('force_const_size', True),
+            ('view', 'primary1'),
+            ('sample_per_name', 1),
+        ])),
 
     'dcfg': ut.augdict(
-        controlled['dcfg'], {
+        ctrl['dcfg'], {
             'view': ['primary'],
             'force_const_size': True,
             'sample_per_ref_name': 1,
             'sample_per_name': 1,  # None this seems to produce odd results
                                    # where the per_ref is still more then 1
             'sample_size': None,
+            'view_pername': '#primary>0&#primary1>0',
         }),
 }
 

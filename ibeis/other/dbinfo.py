@@ -644,7 +644,6 @@ def show_time_distributions(ibs, unixtime_list):
         #ax.set_xticks(bins_)
         #l = pt.plt.plot(bins_, y, 'k--', linewidth=1.5)
     else:
-        print('unixtime_list = %r' % (unixtime_list,))
         pt.draw_time_distribution(unixtime_list)
         #pt.draw_histogram()
         ax = pt.gca()

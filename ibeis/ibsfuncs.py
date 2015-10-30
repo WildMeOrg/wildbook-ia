@@ -5992,11 +5992,7 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
     if aid_list is None:
         filter_kw = dict(been_adjusted=True)
         aid_list = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw)
-    eids_list = ibs.get_annot_eids(aid_list)
-    flags_list = ibs.unflat_map(ibs.is_special_encounter, eids_list)
-    # GET ENCOUNTER QUERY STRUCTURE DATA
-    eids_list = ut.list_zipcompress(eids_list, ibs.unflat_map(ut.not_list, flags_list))
-    eid_list = ut.get_list_column(eids_list, 0)
+    eid_list = ibs.get_annot_primary_encounter(aid_list)
     nid_list = ibs.get_annot_nids(aid_list)
     multiprop2_aids = ut.hierarchical_group_items(aid_list, [nid_list, eid_list])
     daid_list = []
@@ -6013,6 +6009,18 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
             daid_list.extend(daids)
             qaid_list.extend(qaids)
     return qaid_list, daid_list
+
+
+@register_ibs_method
+def get_annot_primary_encounter(ibs, aid_list=None):
+    # TODO: make it better
+    eids_list = ibs.get_annot_eids(aid_list)
+    flags_list = ibs.unflat_map(ibs.is_special_encounter, eids_list)
+    # GET ENCOUNTER QUERY STRUCTURE DATA
+    flags_list = ibs.unflat_map(ut.not_list, flags_list)
+    eids_list = ut.list_zipcompress(eids_list, flags_list)
+    eid_list = ut.get_list_column(eids_list, 0)
+    return eid_list
 
 if __name__ == '__main__':
     """

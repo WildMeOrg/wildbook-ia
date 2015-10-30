@@ -13,8 +13,6 @@ from ibeis.control import controller_inject
 
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
 
-NEW_INTRA = True
-
 # TODO: Make these configurable
 SEED1 = 0
 SEED2 = 42
@@ -53,14 +51,15 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
 
     CommandLine:
         python -m ibeis --tf filter_annots_general
-        python -m ibeis --tf filter_annots_general --max-numfeat=300 --db=GZ_Master1 --show --minqual=junk --species=None
-        python -m ibeis --tf filter_annots_general --been_adjusted=True --db=lynx
+        python -m ibeis --tf filter_annots_general --db=GZ_Master1  \
+                --max-numfeat=300 --show --minqual=junk --species=None
+        python -m ibeis --tf filter_annots_general --db=lynx \
+                --been_adjusted=True
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> filter_kw = ut.argparse_dict(get_default_annot_filter_form(), type_hint=ut.ddict(list, logic=str))
         >>> print('filter_kw = %s' % (ut.dict_str(filter_kw),))
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -90,7 +89,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
 def get_default_annot_filter_form():
     """
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-get_default_annot_filter_form
+        python -m ibeis --tf get_default_annot_filter_form
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -177,8 +176,8 @@ def filterannots_by_tags(ibs, aid_list, filter_kw):
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-filterannots_by_tags
-        utprof.py -m ibeis.init.filter_annots --exec-filterannots_by_tags
+        python -m ibeis --tf filterannots_by_tags
+        utprof.py -m ibeis --tf filterannots_by_tags
 
     SeeAlso:
         filter_annotmatch_by_tags
@@ -189,7 +188,8 @@ def filterannots_by_tags(ibs, aid_list, filter_kw):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> has_any = ut.get_argval('--tags', type_=list, default=['SceneryMatch', 'Photobomb'])
+        >>> has_any = ut.get_argval('--tags', type_=list,
+        >>>                         default=['SceneryMatch', 'Photobomb'])
         >>> min_num = ut.get_argval('--min_num', type_=int, default=1)
         >>> filter_kw = dict(has_any=has_any, min_num=1)
         >>> aid_list_ = filterannots_by_tags(ibs, aid_list, filter_kw)
@@ -225,16 +225,19 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
 def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
     """
     CommandLine:
-        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list  -a varysize
-        python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
-        python -m ibeis --tf get_annotcfg_list --db lynx -a default:hack_encounter=True
-        python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
-        python -m ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
-        python -m ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
-        python -m ibeis --tf get_annotcfg_list --db PZ_Master0 --verbtd --nofilter-dups  -a varysize
-        python -m ibeis --tf get_annotcfg_list -a viewpoint_compare --db PZ_Master1 --verbtd --nofilter-dups  # NOQA
-
-        python -m ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd --nofilter-dups
+        python -m ibeis --tf parse_acfg_combo_list  \
+                -a varysize
+        ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize
+        #ibeis --tf get_annotcfg_list --db lynx -a default:hack_encounter=True
+        ibeis --tf get_annotcfg_list --db PZ_Master1 -a varysize:qsize=None
+        ibeis --tf get_annotcfg_list --db PZ_Master0 --nofilter-dups  -a varysize
+        ibeis --tf get_annotcfg_list --db PZ_MTEST -a varysize --nofilter-dups
+        ibeis --tf get_annotcfg_list --db PZ_Master0 --verbtd \
+                --nofilter-dups -a varysize
+        ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \
+                --verbtd --nofilter-dups
+        ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd \
+                --nofilter-dups
 
     """
     from ibeis.expt import annotation_configs
@@ -321,8 +324,8 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
             min_dsize = tmpmin(min_dsize, dsize)
 
         # so hacky
-        # this has to be after sample_size assignment, otherwise the filtering is unstable
-        # Remove queries that have labeling errors in them.
+        # this has to be after sample_size assignment, otherwise the filtering
+        # is unstable Remove queries that have labeling errors in them.
         # TODO: fix errors AND remove labels
         REMOVE_LABEL_ERRORS = True
         if REMOVE_LABEL_ERRORS:
@@ -411,7 +414,8 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
 
     OkNewIdea:
         3 filters:
-            * Common sampling - takes care of things like min time delta, species, quality viewpoint etc.
+            * Common sampling - takes care of things like min time delta,
+            * species, quality viewpoint etc.
             * query sampling
             * database sampling
         Basic idea is
@@ -422,6 +426,9 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
             * partition1 params
             * partition2 params
             * inter partition params?
+
+    TODO:
+        This function very much needs the idea of filter chains
 
     CommandLine:
         python -m ibeis.dev -e print_acfg  -a timectrl:qsize=10,dsize=10  --db PZ_MTEST --veryverbtd --nocache-aid
@@ -440,7 +447,7 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         utprof.py -m ibeis.dev -e print -t candk -a varysize  --db PZ_MTEST --acfginfo
         utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo
 
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -473,9 +480,9 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
     comp_acfg = annotation_configs.compress_aidcfg(aidcfg)
 
     if verbose:
-        print('+=== EXPAND_ACFGS ===')
+        ut.colorprint('+=== EXPAND_ACFGS ===', 'yellow')
         print(' * acfg = %s' % (ut.dict_str(comp_acfg, align=True),))
-        print('+---------------------')
+        ut.colorprint('+---------------------', 'yellow')
 
     # Breakup into common, query, and database configs
     qcfg = aidcfg['qcfg']
@@ -504,8 +511,8 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         dcfg[key] = None
 
     try:
-        if aidcfg['qcfg']['hack_encounter'] is True:
-            return ibs.get_encounter_expanded_aids()
+        #if aidcfg['qcfg']['hack_encounter'] is True:
+        #    return ibs.get_encounter_expanded_aids()
         # Hack: Make hierarchical filters to supersede this
         initial_aids = ibs._get_all_aids()
 
@@ -513,36 +520,100 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         qfiltflags = dict(prefix='q', **verbflags)
         dfiltflags = dict(prefix='d', **verbflags)
 
-        # Prefilter an initial pool of aids
-        default_aids = filter_annots_independent(
-            ibs, initial_aids, idenfilt_cfg_common, prefix='',
-            withpre=True, **verbflags)
-        avail_daids = avail_qaids = default_aids
+        default_aids = initial_aids
 
-        # Sample set of query annotations
-        avail_qaids = filter_annots_independent(
-            ibs, avail_qaids, qcfg, **qfiltflags)
-        if NEW_INTRA:
+        if True:
+            global_filter_chain = [
+                (filter_annots_independent, idenfilt_cfg_common),
+                (filter_annots_intragroup, idenfilt_cfg_common),
+            ]
+
+            partition_chains = [
+                [
+                    (filter_annots_independent, qcfg),
+                    (filter_annots_intragroup, qcfg),
+                    (sample_annots, qcfg),
+                ],
+                [
+                    (filter_annots_independent, dcfg),
+                    (filter_annots_intragroup, dcfg),
+                    #(sample_annots_wrt_ref, dcfg),
+                ]
+            ]
+
+            # TODO: GENERALIZE GLOBAL FILTER CHAIN
+            for filtfn, filtcfg in global_filter_chain:
+                default_aids = filtfn(ibs, default_aids, filtcfg, prefix='',
+                                      withpre=True, **verbflags)
+
+            # TODO: GENERALIZE PARTITION FILTER
+            default_qaids = default_daids = default_aids
+            partition_avail_aids = [default_qaids, default_daids]
+            partition_verbflags  = [qfiltflags, dfiltflags]
+
+            # TODO: PARITION FILTER CHAINS
+            for index in range(len(partition_chains)):
+                filter_chain = partition_chains[index]
+                avail_aids = partition_avail_aids[index]
+                _verbflags = partition_verbflags[index]
+                for filtfn, filtcfg in filter_chain:
+                    avail_aids = filtfn(
+                        ibs, avail_aids, filtcfg, **_verbflags)
+                partition_avail_aids[index] = avail_aids
+
+            # TODO: GENERALIZE PARITION REFERENCE SAMPLE?
+            # HACK:
+            assert len(partition_avail_aids) == 2
+            avail_aids = partition_avail_aids[1]
+            _verbflags = partition_verbflags[1]
+            reference_aids = partition_avail_aids[0]
+            avail_aids = sample_annots_wrt_ref(
+                ibs, avail_aids, dcfg, reference_aids=reference_aids,
+                **_verbflags)
+            partition_avail_aids[1] = avail_aids
+
+            # TODO: GENERALIZE SUBINDEX
+            subindex_cfgs = [qcfg, dcfg]
+            for index in range(len(partition_avail_aids)):
+                avail_aids = partition_avail_aids[index]
+                _verbflags = partition_verbflags[index]
+                filtcfg = subindex_cfgs[index]
+                avail_aids = subindex_annots(
+                    ibs, avail_aids, filtcfg, **_verbflags)
+                partition_avail_aids[index] = avail_aids
+            avail_qaids, avail_daids = partition_avail_aids
+        else:
+            # Prefilter an initial pool of aids
+            default_aids = filter_annots_independent(
+                ibs, default_aids, idenfilt_cfg_common, prefix='',
+                withpre=True, **verbflags)
+            default_aids = filter_annots_intragroup(
+                ibs, default_aids, idenfilt_cfg_common, prefix='',
+                withpre=True, **verbflags)
+            avail_daids = avail_qaids = default_aids
+
+            # Sample set of query annotations
+            avail_qaids = filter_annots_independent(
+                ibs, avail_qaids, qcfg, **qfiltflags)
             avail_qaids = filter_annots_intragroup(
                 ibs, avail_qaids, qcfg, **qfiltflags)
-        avail_qaids = sample_annots(
-            ibs, avail_qaids, qcfg, **qfiltflags)
+            avail_qaids = sample_annots(
+                ibs, avail_qaids, qcfg, **qfiltflags)
 
-        # Sample set of database annotations w.r.t query annots
-        avail_daids = filter_annots_independent(
-            ibs, avail_daids, dcfg, **dfiltflags)
-        if NEW_INTRA:
+            # Sample set of database annotations w.r.t query annots
+            avail_daids = filter_annots_independent(
+                ibs, avail_daids, dcfg, **dfiltflags)
             avail_daids = filter_annots_intragroup(
                 ibs, avail_daids, dcfg, **dfiltflags)
-        avail_daids = sample_annots_wrt_ref(
-            ibs, avail_daids, dcfg, reference_aids=avail_qaids,
-            **dfiltflags)
+            avail_daids = sample_annots_wrt_ref(
+                ibs, avail_daids, dcfg, reference_aids=avail_qaids,
+                **dfiltflags)
 
-        # Subindex if requested (typically not done)
-        avail_qaids = subindex_annots(
-            ibs, avail_qaids, qcfg, **qfiltflags)
-        avail_daids = subindex_annots(
-            ibs, avail_daids, dcfg, **dfiltflags)
+            # Subindex if requested (typically not done)
+            avail_qaids = subindex_annots(
+                ibs, avail_qaids, qcfg, **qfiltflags)
+            avail_daids = subindex_annots(
+                ibs, avail_daids, dcfg, **dfiltflags)
 
     except Exception as ex:
         print('PRINTING ERROR INFO')
@@ -554,8 +625,9 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
     daid_list = sorted(avail_daids)
 
     if verbose:
-        print('L___ EXPAND_ACFGS ___')
+        ut.colorprint('+---------------------', 'yellow')
         ibs.print_annotconfig_stats(qaid_list, daid_list)
+        ut.colorprint('L___ EXPAND_ACFGS ___', 'yellow')
 
     # Save filter to cache
     if save_cache:
@@ -564,6 +636,14 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
                       (qaid_list, daid_list))
 
     return qaid_list, daid_list
+
+
+def expand_species(ibs, species, avail_aids=None):
+    if species == 'primary':
+        species = ibs.get_primary_database_species()
+    if species is None and avail_aids is not None:
+        species = ibs.get_dominant_species(avail_aids)
+    return species
 
 
 @profile
@@ -585,8 +665,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         list: avail_aids
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-filter_annots_independent \
-                --verbtd --veryverbtd
+        python -m ibeis --tf filter_annots_independent --veryverbtd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -598,17 +677,15 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         >>> aidcfg = annotation_configs.default['dcfg']
         >>> aidcfg['require_timestamp'] = True
         >>> aidcfg['require_quality'] = False
-        >>> aidcfg['min_timedelta'] = 60 * 60 * 24
-        >>> aidcfg['min_pername'] = 3
         >>> aidcfg['is_known'] = True
         >>> prefix = ''
         >>> verbose = True
-        >>> avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg, prefix, verbose)
+        >>> avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg,
+        >>>                                        prefix, verbose)
         >>> result = ('avail_aids = %s' % (str(avail_aids),))
         >>> print(result)
     """
     from ibeis import ibsfuncs
-
     if aidcfg is None:
         if verbose:
             print('No annot filter returning')
@@ -629,12 +706,11 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
         avail_aids = sorted(avail_aids)
 
-    species = None
+    metadata = ut.LazyDict(
+        species=lambda: expand_species(ibs, aidcfg['species'], None))
+
     if aidcfg['species'] is not None:
-        if aidcfg['species'] == 'primary':
-            species = ibs.get_primary_database_species()
-        else:
-            species = aidcfg['species']
+        species = metadata['species']
         with VerbosityContext('species', species=species):
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
             avail_aids = sorted(avail_aids)
@@ -676,38 +752,12 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('max_numfeat', 'min_numfeat'):
             avail_aids = ut.list_compress(avail_aids, flags_list)
 
-    # FIXME: This is NOT an independent filter because it depends on pairwise
-    # interactions
-    if aidcfg['view_pername'] is not None:
-        if species is None:
-            # hack
-            species = ibs.get_dominant_species(avail_aids)
-        # This filter removes entire names.  The avaiable aids must be from
-        # names with certain viewpoint frequency properties
-        prop2_nid2_aids = ibs.group_annots_by_prop_and_name(
-            avail_aids, ibs.get_annot_yaw_texts)
-        #ut.embed()
-        countstr = aidcfg['view_pername']
-        primary_viewpoint = ibsfuncs.get_primary_species_viewpoint(species)
-        lhs_dict = {
-            'primary': primary_viewpoint,
-            'primary1': ibsfuncs.get_extended_viewpoints(
-                primary_viewpoint, num1=1, num2=0, include_base=False)[0]
-        }
-        self = CountstrParser(lhs_dict, prop2_nid2_aids)
-        nid2_flag = self.parse_countstr_expr(countstr)
-        nid2_aids = ibs.group_annots_by_name_dict(avail_aids)
-        valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
-        with VerbosityContext('view_pername', countstr=countstr):
-            avail_aids = ut.flatten(ut.dict_take(nid2_aids, valid_nids))
-        avail_aids = sorted(avail_aids)
-
     if aidcfg['view'] is not None or aidcfg['require_viewpoint']:
         # Resolve base viewpoint
         if aidcfg['view'] == 'primary':
-            view = ibsfuncs.get_primary_species_viewpoint(species)
+            view = ibsfuncs.get_primary_species_viewpoint(metadata['species'])
         elif aidcfg['view'] == 'primary1':
-            view = ibsfuncs.get_primary_species_viewpoint(species, 1)
+            view = ibsfuncs.get_primary_species_viewpoint(metadata['species'], 1)
         else:
             view = aidcfg['view']
         view_ext1 = (aidcfg['view_ext']
@@ -734,25 +784,6 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ibs.remove_aids_of_viewpoint(
                 avail_aids, exclude_view)
 
-    # FIXME: This is NOT an independent filter because it depends on pairwise
-    # interactions
-    if aidcfg['min_timedelta'] is not None:
-        min_timedelta = ut.ensure_timedelta(aidcfg['min_timedelta'])
-        with VerbosityContext('min_timedelta', min_timedelta=min_timedelta):
-            avail_aids = ibs.filter_annots_using_minimum_timedelta(
-                avail_aids, min_timedelta)
-        avail_aids = sorted(avail_aids)
-
-    # Each aid must have at least this number of other groundtruth aids
-    min_pername = aidcfg['min_pername']
-    if min_pername is not None:
-        grouped_aids_ = ibs.group_annots_by_name(avail_aids,
-                                                 distinguish_unknowns=True)[0]
-        with VerbosityContext('min_pername'):
-            avail_aids = ut.flatten([
-                aids for aids in grouped_aids_ if len(aids) >= min_pername])
-        avail_aids = sorted(avail_aids)
-
     avail_aids = sorted(avail_aids)
 
     VerbosityContext.endfilter()
@@ -760,13 +791,17 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
 
 
 @profile
-@register_ibs_method
 def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                              verbose=VERB_TESTDATA, withpre=False):
     """ This filters annots using information about the relationships
     between the annotations in the ``avail_aids`` group. This function is not
     independent and a second consecutive call may yield new results.
     Thus, the order in which this filter is applied matters.
+
+    Example:
+
+        >>> aidcfg['min_timedelta'] = 60 * 60 * 24
+        >>> aidcfg['min_pername'] = 3
     """
     from ibeis import ibsfuncs
 
@@ -779,24 +814,38 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         'FILTER_INTRAGROUP', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
 
-    species = None
-    if aidcfg['species'] is not None:
-        if aidcfg['species'] == 'primary':
-            species = ibs.get_primary_database_species()
-        else:
-            species = aidcfg['species']
-    else:
-        species = ibs.get_dominant_species(avail_aids)
+    metadata = ut.LazyDict(species=lambda: expand_species(ibs, aidcfg['species'], avail_aids))
+
+    if aidcfg['same_encounter'] is not None:
+        """
+        ibeis --tf get_annotcfg_list -a default:qsame_encounter=True,been_adjusted=True,excluderef=True --db lynx --veryverbtd --nocache-aid
+        """
+        same_encounter = aidcfg['same_encounter']
+        assert same_encounter is True
+        #ut.embed()
+        eid_list = ibs.get_annot_primary_encounter(avail_aids)
+        nid_list = ibs.get_annot_nids(avail_aids)
+        multiprop2_aids = ut.hierarchical_group_items(avail_aids, [nid_list, eid_list])
+        qaid_list = []
+        # TODO: sampling using different enouncters
+        for eid, nid2_aids in multiprop2_aids.iteritems():
+            if len(nid2_aids) == 1:
+                pass
+            else:
+                aids_list = list(nid2_aids.values())
+                idx = ut.list_argmax(list(map(len, aids_list)))
+                qaids = aids_list[idx]
+                qaid_list.extend(qaids)
+        with VerbosityContext('same_encounter'):
+            avail_aids = qaid_list
+        avail_aids = sorted(avail_aids)
 
     # FIXME: This is NOT an independent filter because it depends on pairwise
     # interactions
     if aidcfg['view_pername'] is not None:
-        if species is None:
-            # hack
-            species = ibs.get_dominant_species(avail_aids)
-        # This filter removes entire names.
-        # The avaiable aids must be from names with certain viewpoint frequency
-        # properties
+        species = metadata['species']
+        # This filter removes entire names.  The avaiable aids must be from
+        # names with certain viewpoint frequency properties
         prop2_nid2_aids = ibs.group_annots_by_prop_and_name(
             avail_aids, ibs.get_annot_yaw_texts)
 
@@ -1013,7 +1062,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     exact values
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-sample_annots --veryverbtd
+        python -m ibeis --tf sample_annots --veryverbtd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1028,8 +1077,10 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> aidcfg['min_pername'] = 2
         >>> prefix = ''
         >>> verbose = True
-        >>> avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg, prefix, verbose)
-        >>> avail_aids = sample_annots(ibs, avail_aids, aidcfg, prefix, avail_aids)
+        >>> avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg,
+        >>>                                        prefix, verbose)
+        >>> avail_aids = sample_annots(ibs, avail_aids, aidcfg,
+        >>>                            prefix, avail_aids)
         >>> result = ('avail_aids = %s' % (str(avail_aids),))
         >>> print(result)
     """
@@ -1275,10 +1326,12 @@ def verbose_context_factory(filtertype, aidcfg, verbose):
                 if len(keys) > 0:
                     subdict = ut.dict_subset(aidcfg, keys)
                     infostr += '' + ut.dict_str(subdict, **dictkw)
-                if len(filterextra) > 0:
-                    infostr += ' : ' + ut.dict_str(filterextra, **dictkw)
-                print('[%s] * Filtering by %s' % (
+                print('[%s] * Filter by %s' % (
                     self.prefix.upper(), infostr.strip()))
+                if verbose > 1 and len(filterextra) > 0:
+                    infostr2 = ut.dict_str(filterextra, nl=False, explicit=False)
+                    print('[%s]      %s' % (
+                        self.prefix.upper(), infostr2))
 
         def __enter__(self):
             aids = ut.get_var_from_stack('avail_aids', verbose=False)
@@ -1290,7 +1343,7 @@ def verbose_context_factory(filtertype, aidcfg, verbose):
                 num_after = len(aids)
                 num_removed = self.num_before - num_after
                 if num_removed > 0 or verbose > 1:
-                    print('[%s]   ... removing %d annots. %d remaning' %
+                    print('[%s]   ... removed %d annots. %d remain' %
                           (self.prefix.upper(), num_removed, num_after))
     return VerbosityContext
 
