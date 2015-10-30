@@ -85,10 +85,7 @@ def testdata_qres(defaultdb='testdb1', t=['default']):
 
 
 def testdata_expts(defaultdb='testdb1',
-                   default_acfgstr_name_list=['default'],
-                   #default_acfgstr_name_list=['controlled:qsize=20,dper_name=1,dsize=10',
-                   #                           'controlled:qsize=20,dper_name=10,dsize=100'],
-                   #default_test_cfg_name_list=['default', 'default:fg_on=False']
+                   default_acfgstr_name_list=['default:qindex=0:10:4,dindex=0:20'],
                    default_test_cfg_name_list=['default'],
                    a=None,
                    t=None,
@@ -137,16 +134,10 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
         ibs, qaid_list, daid_list, annot_info:
 
     CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3
+        python -m ibeis.init.main_helpers --exec-testdata_ibeis
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --acfg default:aids=gt,shuffle,index=0:25 --verbose-testdata
         python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --acfg default:aids=gt,index=0:25 --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 --verbose-testdata -a controlled
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 --verbose-testdata --aidcfg controlled
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 --verbose-testdata --aidcfg default:species=None
-
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db NNP_Master3 --acfg controlled --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_Master0 --acfg controlled --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db GZ_ALL --acfg controlled --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db GZ_ALL --acfg ctrl --verbose-testdata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -183,7 +174,8 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
     assert len(acfg_list) == 1, (
-        'multiple acfgs specified, but this function is built to return only 1. len(acfg_list)=%r' %
+        ('multiple acfgs specified, but this function'
+         'is built to return only 1. len(acfg_list)=%r') %
         (len(acfg_list),))
     aidcfg = acfg_list[0]
 
@@ -204,23 +196,37 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
         return ibs, qaid_list, daid_list
 
 
-#def register_utool_aliases():
-#    """
-#    registers commmon class names with utool so they are printed nicely
-#    """
-#    #print('REGISTER UTOOL ALIASES')
-#    import utool as ut
-#    import matplotlib as mpl
-#    from ibeis.control import IBEISControl, SQLDatabaseControl
-#    from ibeis.gui import guiback
-#    #from ibeis.gui import guifront
-#    ut.extend_global_aliases([
-#        (SQLDatabaseControl.SQLDatabaseController, 'sqldb'),
-#        (IBEISControl.IBEISController, 'ibs'),
-#        (guiback.MainWindowBackend, 'back'),
-#        #(guifront.MainWindowFrontend, 'front'),
-#        (mpl.figure.Figure, 'fig')
-#    ])
+@profile
+def testdata_single_acfg(ibs, default_options=''):
+    r"""
+    CommandLine:
+        python -m ibeis --tf testdata_single_acfg --verbtd --db PZ_ViewPoints
+        python -m ibeis --tf testdata_single_acfg --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from ibeis.expt import annotation_configs
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
+        >>> default_options = ''
+        >>> aidcfg, aids = testdata_single_acfg(ibs, default_options)
+        >>> print('\n RESULT:')
+        >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
+    """
+    from ibeis.init import filter_annots
+    from ibeis.expt import annotation_configs
+    from ibeis.expt import cfghelpers
+    cfgstr_options = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=default_options)
+    base_cfg = annotation_configs.single_default
+    aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
+                                                 base_cfg, 'aids',
+                                                 alias_keys=annotation_configs.ALIAS_KEYS)
+    aidcfg = aidcfg_combo[0]
+    if len(aidcfg_combo) > 1:
+        raise AssertionError('Error: combinations not handled for single cfg setting')
+    aids = filter_annots.expand_single_acfg(ibs, aidcfg)
+    return aidcfg, aids
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+DEPRICATE:
+    Use TestResult instead
 not really used
 most things in here can be depricated
 """
@@ -213,7 +215,7 @@ def organize_results(ibs, qaid2_qres):
         python -m ibeis.expt.results_organizer --test-organize_results
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.expt.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

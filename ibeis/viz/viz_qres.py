@@ -68,8 +68,7 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
         >>> aid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5, 6, 7, 8, 9], cfgdict=dict(), return_request=True)
         >>> qres = aid2_qres[1]
         >>> kwargs = dict(show_query=False, viz_name_score=True, show_timedelta=True, N=3, show_gf=True)
-        >>> result = show_qres_analysis(ibs, qres, qreq_, **kwargs)
-        >>> print(result)
+        >>> show_qres_analysis(ibs, qres, qreq_, **kwargs)
         >>> ut.show_if_requested()
     """
     if ut.NOT_QUIET:

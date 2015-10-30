@@ -1,4 +1,7 @@
 """
+DEPRICATE:
+    use TestResult instead
+
 not really used
 most things in here can be depricated
 """

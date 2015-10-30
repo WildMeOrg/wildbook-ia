@@ -89,7 +89,6 @@ def get_dbinfo(ibs, verbose=True,
         >>> #                               ut.get_list_column(named_defaults_dict, 'qcfg')))
         >>> #acfg = cfghelpers.parse_argv_cfg(('--annot-filter', '-a'), named_defaults_dict=named_qcfg_defaults, default=None)[0]
         >>> aid_list = ibs.get_valid_aids()
-        >>> #aid_list = filter_annots.filter_annots_independent(ibs, aid_list, acfg)
         >>> # </HACK FOR FILTERING>
         >>> kwargs = ut.get_kwdefaults(get_dbinfo)
         >>> kwargs['verbose'] = False
