@@ -5965,10 +5965,10 @@ def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
         pipecfg_name_list, ibs=ibs)
 
     cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
-    test_result = experiment_harness.run_test_configurations(
+    testres = experiment_harness.run_test_configurations(
         ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl,
         testnameid, use_cache=False)
-    return test_result
+    return testres
 
 
 @register_ibs_method
@@ -5986,8 +5986,8 @@ def get_encounter_expanded_aids(ibs, aid_list=None):
         >>> aid_list = ibs.filter_annots_general(aid_list, filter_kw)
         >>> qaid_list, daid_list = ibs.get_encounter_expanded_aids()
         >>> #ibs.query_chips(qaid_list, daid_list)
-        >>> test_result = ibs.execute_pipeline_test(qaid_list, daid_list)
-        >>> test_result.print_perent_identification_success()
+        >>> testres = ibs.execute_pipeline_test(qaid_list, daid_list)
+        >>> testres.print_perent_identification_success()
     """
     if aid_list is None:
         filter_kw = dict(been_adjusted=True)

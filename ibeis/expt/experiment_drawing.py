@@ -32,7 +32,7 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 #@devcmd('scores', 'score', 'namescore_roc')
 #def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, test_result, f=None):
+def annotationmatch_scores(ibs, testres, f=None):
     """
     TODO: plot the difference between the top true score and the next best false score
     CommandLine:
@@ -71,8 +71,8 @@ def annotationmatch_scores(ibs, test_result, f=None):
     Example:
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
-        >>> annotationmatch_scores(ibs, test_result)
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
+        >>> annotationmatch_scores(ibs, testres)
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -85,15 +85,15 @@ def annotationmatch_scores(ibs, test_result, f=None):
     filt_cfg = main_helpers.testdata_filtcfg(default=f)
     print('filt_cfg = %r' % (filt_cfg,))
 
-    assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
+    assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
     cfgx = 0
-    qreq_ = test_result.cfgx2_qreq_[cfgx]
-    common_qaids = test_result.get_common_qaids()
-    gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-    gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+    qreq_ = testres.cfgx2_qreq_[cfgx]
+    common_qaids = testres.get_common_qaids()
+    gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+    gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
     # FIXME: may need to specify which cfg is used in the future
-    isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+    isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
@@ -106,9 +106,9 @@ def annotationmatch_scores(ibs, test_result, f=None):
 
     def attr_callback(qaid):
         print('callback qaid = %r' % (qaid,))
-        test_result.interact_individual_result(qaid)
+        testres.interact_individual_result(qaid)
         reconstruct_str = ('python -m ibeis.dev -e cases ' +
-                           test_result.reconstruct_test_flags() +
+                           testres.reconstruct_test_flags() +
                            ' --qaid ' + str(qaid) + ' --show')
         print('Independent reconstruct')
         print(reconstruct_str)
@@ -127,7 +127,7 @@ def annotationmatch_scores(ibs, test_result, f=None):
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
 
     plotname = ''
-    figtitle = test_result.make_figtitle(plotname, filt_cfg=filt_cfg)
+    figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
 
     #ut.embed()
 
@@ -153,12 +153,12 @@ def annotationmatch_scores(ibs, test_result, f=None):
     return locals_
 
 
-def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
+def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
                       ut.get_argflag('--no-wordcloud')):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        test_result (TestResult):  test result object
+        testres (TestResult):  test result object
 
     CommandLine:
         python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist --show
@@ -183,8 +183,8 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
-        >>> draw_casetag_hist(ibs, test_result)
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
+        >>> draw_casetag_hist(ibs, testres)
         >>> ut.show_if_requested()
     """
     from ibeis.init import main_helpers
@@ -193,15 +193,15 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
     from ibeis import tag_funcs
 
     # All unfiltered tags
-    all_tags = test_result.get_all_tags()
+    all_tags = testres.get_all_tags()
 
     if True:
         # Remove gf tags below a thresh and gt tags above a thresh
-        gt_tags = test_result.get_gt_tags()
-        gf_tags = test_result.get_gf_tags()
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        gt_tags = testres.get_gt_tags()
+        gf_tags = testres.get_gf_tags()
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
 
-        score_thresh = test_result.find_score_thresh_cutoff()
+        score_thresh = testres.find_score_thresh_cutoff()
         print('score_thresh = %r' % (score_thresh,))
         # TODO: I want the point that the prob true is greater than prob false
         gt_is_problem = truth2_prop['gt']['score'] < score_thresh
@@ -228,7 +228,7 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
 
     # Get tags that match the filter
     filt_cfg = main_helpers.testdata_filtcfg(f)
-    case_pos_list = test_result.case_sample2(filt_cfg)
+    case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
     selected_tags = ut.list_take(all_tags, case_qx_list)
 
@@ -264,7 +264,7 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
     if with_wordcloud:
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
 
-    figtitle = test_result.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
     figtitle += ' #cases=%r' % (len(case_qx_list))
 
     pt.set_figtitle(figtitle)
@@ -276,12 +276,12 @@ def draw_casetag_hist(ibs, test_result, f=None, with_wordcloud=not
 
 
 @profile
-def draw_individual_cases(ibs, test_result, metadata=None, f=None,
+def draw_individual_cases(ibs, testres, metadata=None, f=None,
                           show_in_notebook=False, annot_modes=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        test_result (TestResult):
+        testres (TestResult):
         metadata (None): (default = None)
 
     CommandLine:
@@ -314,18 +314,18 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> metadata = None
-        >>> analysis_fpath_list = draw_individual_cases(ibs, test_result, metadata)
+        >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata)
         >>> #ut.show_if_requested()
     """
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
     import plottool as pt
-    cfgx2_qreq_ = test_result.cfgx2_qreq_
+    cfgx2_qreq_ = testres.cfgx2_qreq_
 
     # Get selected rows and columns for individual rank investigation
-    #qaids = test_result.qaids
+    #qaids = testres.qaids
 
     #=================================
     # TODO:
@@ -340,7 +340,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     # Sel rows index into qx_list
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
-    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg=f)
+    sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f)
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
 
@@ -369,7 +369,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
 
     figdir = ibs.get_fig_dir()
     figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
-    #figdir = join(figdir, 'cases_' + test_result.get_fname_aug(withinfo=False))
+    #figdir = join(figdir, 'cases_' + testres.get_fname_aug(withinfo=False))
     case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
     ut.ensuredir(case_figdir)
 
@@ -395,14 +395,14 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
         blind_results_figdir  = join(case_figdir, 'blind_results')
         ut.ensuredir(blind_results_figdir)
 
-    qaids = test_result.get_common_qaids()
+    qaids = testres.get_common_qaids()
     # Ensure semantic uuids are in the APP cache.
     ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))
     #samplekw = dict(per_group=5)
-    #case_pos_list = test_result.get_case_positions('failure', samplekw=samplekw)
+    #case_pos_list = testres.get_case_positions('failure', samplekw=samplekw)
     #failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
     #sel_rows = (np.array(failure_qx_list).tolist())
-    #sel_cols = (list(range(test_result.nConfig)))
+    #sel_cols = (list(range(testres.nConfig)))
 
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
@@ -436,7 +436,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     #overwrite = False
     #overwrite = ut.get_argflag('--overwrite')
 
-    cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
+    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
 
     if ut.NOT_QUIET:
         print('case_figdir = %r' % (case_figdir,))
@@ -446,7 +446,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
     fnum = pt.ensure_fnum(fnum_start)
 
     if show_in_notebook:
-        cfg_colors = pt.distinct_colors(len(test_result.cfgx2_qreq_))
+        cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
     for count, qx in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW,
                                                   custom_actions=custom_actions)):
@@ -477,7 +477,7 @@ def draw_individual_cases(ibs, test_result, metadata=None, f=None,
             else:
                 fnum = cfgx if SHOW else 1
             # Get row and column index
-            cfgstr = test_result.get_cfgstr(cfgx)
+            cfgstr = testres.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
             if False:
                 qres_dpath = qres.get_fname(ext='', hack27=True)
@@ -709,13 +709,13 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
     #    ut.print_code(latex_block, 'latex')
 
 
-def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
+def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
     """
     The selected rows are the query annotation you are interested in viewing
     The selected cols are the parameter configuration you are interested in viewing
 
     Args:
-        test_result (TestResult):  test result object
+        testres (TestResult):  test result object
         filt_cfg (dict): config dict
 
     Kwargs:
@@ -733,9 +733,9 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = {'fail': True, 'success': True, 'min_gtrank': 5, 'max_gtrank': 40}
-        >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(test_result, filt_cfg)
+        >>> sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg)
         >>> result = ('(sel_rows, sel_cols, flat_case_labels) = %s' % (str((sel_rows, sel_cols, flat_case_labels)),))
         >>> print(result)
     """
@@ -749,9 +749,9 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         from ibeis.init import main_helpers
         filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)
 
-    cfg_list = test_result.cfg_list
-    #qaids = test_result.qaids
-    qaids = test_result.get_common_qaids()
+    cfg_list = testres.cfg_list
+    #qaids = testres.qaids
+    qaids = testres.get_common_qaids()
 
     view_all          = kwargs.get('all', ut.get_argflag(('--view-all', '--va')))
     view_hard         = kwargs.get('hard', ut.get_argflag(('--view-hard', '--vh')))
@@ -792,7 +792,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if view_hard:
-        new_hard_qx_list = test_result.get_new_hard_qx_list()
+        new_hard_qx_list = testres.get_new_hard_qx_list()
         sel_rows.extend(np.array(new_hard_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
     # sample-cases
@@ -814,7 +814,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     if view_differ_cases:
         # Cases that passed on config but failed another
-        case_pos_list, case_labels_list = test_result.case_type_sample(
+        case_pos_list, case_labels_list = testres.case_type_sample(
             1, with_success=True, min_success_diff=1)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
             case_pos_list, case_labels_list)
@@ -822,7 +822,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         sel_cols.extend(new_cols)
 
     if view_cases:
-        case_pos_list, case_labels_list = test_result.case_type_sample(1, with_success=False)
+        case_pos_list, case_labels_list = testres.case_type_sample(1, with_success=False)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(
             case_pos_list, case_labels_list)
         sel_rows.extend(new_rows)
@@ -832,25 +832,25 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
         # TODO handle returning case_pos_list
         #samplekw = ut.argparse_dict(dict(per_group=5))
         samplekw = ut.argparse_dict(dict(per_group=None))
-        case_pos_list = test_result.get_case_positions(mode='failure', samplekw=samplekw)
+        case_pos_list = testres.get_case_positions(mode='failure', samplekw=samplekw)
         failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
         sel_rows.extend(np.array(failure_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
 
     if view_easy:
-        new_hard_qx_list = test_result.get_new_hard_qx_list()
+        new_hard_qx_list = testres.get_new_hard_qx_list()
         new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
         sel_rows.extend(new_easy_qx_list)
         sel_cols.extend(list(range(len(cfg_list))))
     if view_interesting:
-        interesting_qx_list = test_result.get_interesting_ranks()
+        interesting_qx_list = testres.get_interesting_ranks()
         sel_rows.extend(interesting_qx_list)
         # TODO: grab the best scoring and most interesting configs
         if len(sel_cols) == 0:
             sel_cols.extend(list(range(len(cfg_list))))
     if hist_sample:
         # Careful if there is more than one config
-        config_rand_bin_qxs = test_result.get_rank_histogram_qx_sample(size=10)
+        config_rand_bin_qxs = testres.get_rank_histogram_qx_sample(size=10)
         sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
         # TODO: grab the best scoring and most interesting configs
         if len(sel_cols) == 0:
@@ -858,7 +858,7 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
 
     if filt_cfg is not None:
         # NEW WAY OF SAMPLING
-        case_pos_list = test_result.case_sample2(filt_cfg)
+        case_pos_list = testres.case_sample2(filt_cfg)
         new_rows, new_cols, flat_case_labels = convert_case_pos_to_cfgx(case_pos_list, None)
         sel_rows.extend(new_rows)
         sel_cols.extend(new_cols)
@@ -887,11 +887,11 @@ def get_individual_result_sample(test_result, filt_cfg=None, **kwargs):
     return sel_rows, sel_cols, flat_case_labels
 
 
-def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
+def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        test_result (TestResult):  test result object
+        testres (TestResult):  test result object
 
     CommandLine:
         python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
@@ -905,27 +905,27 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
-        >>> result = draw_rank_surface(ibs, test_result)
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> result = draw_rank_surface(ibs, testres)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    rank_le1_list = test_result.get_rank_cumhist(bins='dense')[0].T[0]
-    percent_le1_list = 100 * rank_le1_list / len(test_result.qaids)
-    #test_result.cfgx2_lbl
-    #test_result.get_param_basis('dcfg_sample_per_name')
-    #test_result.get_param_basis('dcfg_sample_size')
-    #K_basis = test_result.get_param_basis('K')
-    #K_cfgx_lists = [test_result.get_cfgx_with_param('K', K) for K in K_basis]
+    rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
+    percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
+    #testres.cfgx2_lbl
+    #testres.get_param_basis('dcfg_sample_per_name')
+    #testres.get_param_basis('dcfg_sample_size')
+    #K_basis = testres.get_param_basis('K')
+    #K_cfgx_lists = [testres.get_cfgx_with_param('K', K) for K in K_basis]
 
-    #param_key_list = test_result.get_all_varied_params()
+    #param_key_list = testres.get_all_varied_params()
     param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
     #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
     basis_dict      = {}
     cfgx_lists_dict = {}
     for key in param_key_list:
-        _basis = test_result.get_param_basis(key)
-        _cfgx_list = [test_result.get_cfgx_with_param(key, val) for val in _basis]
+        _basis = testres.get_param_basis(key)
+        _cfgx_list = [testres.get_cfgx_with_param(key, val) for val in _basis]
         cfgx_lists_dict[key] = _cfgx_list
         basis_dict[key] = _basis
     if verbose:
@@ -951,7 +951,7 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
         agree_param_vals = dict([
-            (key, [test_result.get_param_val_from_cfgx(cfgx, key)
+            (key, [testres.get_param_val_from_cfgx(cfgx, key)
                    for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
 
@@ -998,18 +998,18 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
                                     xpad=.05, legend_loc='lower right', **FONTKW)
 
     plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
-    figtitle = test_result.make_figtitle(plotname)
+    figtitle = testres.make_figtitle(plotname)
 
     #if ut.get_argflag('--save'):
     # hack
     if verbose:
-        test_result.print_unique_annot_config_stats()
+        testres.print_unique_annot_config_stats()
 
-    #if test_result.has_constant_daids():
-    #    print('test_result.common_acfg = ' + ut.dict_str(test_result.common_acfg))
+    #if testres.has_constant_daids():
+    #    print('testres.common_acfg = ' + ut.dict_str(testres.common_acfg))
     #    annotconfig_stats_strs, locals_ =
-    #    ibs.get_annotconfig_stats(test_result.qaids,
-    #    test_result.cfgx2_daids[0])
+    #    ibs.get_annotconfig_stats(testres.qaids,
+    #    testres.cfgx2_daids[0])
 
     pt.set_figtitle(figtitle, size=14)
 
@@ -1023,11 +1023,11 @@ def draw_rank_surface(ibs, test_result, verbose=False, fnum=None):
         pt.adjust_subplots2(use_argv=True)
 
 
-def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
+def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        test_result (TestResult):
+        testres (TestResult):
 
     CommandLine:
 
@@ -1044,15 +1044,15 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
-        >>> result = draw_rank_cdf(ibs, test_result)
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> result = draw_rank_cdf(ibs, testres)
         >>> ut.show_if_requested()
         >>> print(result)
     """
     import plottool as pt
-    #cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
-    cfgx2_cumhist_percent, edges = test_result.get_rank_percentage_cumhist(bins='dense')
-    label_list = test_result.get_short_cfglbls(friendly=True)
+    #cdf_list, edges = testres.get_rank_cumhist(bins='dense')
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
+    label_list = testres.get_short_cfglbls(friendly=True)
     label_list = [
         ('%6.2f%%' % (percent,)) +
         #ut.scalar_str(percent, precision=2)
@@ -1077,10 +1077,10 @@ def draw_rank_cdf(ibs, test_result, verbose=False, test_cfgx_slice=None):
     marker_list = ut.list_take(marker_list, sortx)
     #
 
-    figtitle = test_result.make_figtitle('Cumulative Rank Histogram')
+    figtitle = testres.make_figtitle('Cumulative Rank Histogram')
 
     if verbose:
-        test_result.print_unique_annot_config_stats(ibs)
+        testres.print_unique_annot_config_stats(ibs)
 
     maxrank = 5
     #maxrank = ut.get_argval('--maxrank', type_=int, default=maxrank)
@@ -1231,12 +1231,12 @@ def make_metadata_custom_api(metadata):
     return wgt
 
 
-def make_test_result_custom_api(ibs, test_result):
+def make_test_result_custom_api(ibs, testres):
     import guitool
     guitool.ensure_qapp()
     cfgx = 0
-    cfgres_info = test_result.cfgx2_cfgresinfo[cfgx]
-    qaids = test_result.qaids
+    cfgres_info = testres.cfgx2_cfgresinfo[cfgx]
+    qaids = testres.qaids
     gt_aids = cfgres_info['qx2_gt_aid']
     gf_aids = cfgres_info['qx2_gf_aid']
     qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
@@ -1251,7 +1251,7 @@ def make_test_result_custom_api(ibs, test_result):
     col_types_dict = {}
     col_getter_dict = {}
     col_getter_dict.update(**cfgres_info)
-    col_getter_dict['qaids'] = test_result.qaids
+    col_getter_dict['qaids'] = testres.qaids
     col_getter_dict['qx2_gt_timedelta'] = qx2_gt_timedelta
     col_getter_dict['qx2_gf_timedelta'] = qx2_gf_timedelta
     col_bgrole_dict = {}
@@ -1335,7 +1335,7 @@ class IndividualResultsCopyTaskQueue(object):
 
 
 @profile
-def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=False):
+def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=False):
     r"""
 
     CommandLine:
@@ -1349,11 +1349,11 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
-        >>> draw_case_timedeltas(ibs, test_result)
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    #category_poses = test_result.partition_case_types()
+    #category_poses = testres.partition_case_types()
     # TODO: Split up into cfgxs
     plotkw = FONTKW.copy()
     plotkw['markersize'] = 12
@@ -1362,14 +1362,14 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
     import plottool as pt
 
     if verbose:
-        test_result.print_unique_annot_config_stats(ibs)
+        testres.print_unique_annot_config_stats(ibs)
 
-    truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    truth2_prop, prop2_mat = testres.get_truth2_prop()
     is_failure = prop2_mat['is_failure']
     is_success = prop2_mat['is_success']
     X_data_list = []
     X_label_list = []
-    cfgx2_shortlbl = test_result.get_short_cfglbls(friendly=True)
+    cfgx2_shortlbl = testres.get_short_cfglbls(friendly=True)
     if falsepos is None:
         falsepos = ut.get_argflag('--falsepos')
     if truepos is None:
@@ -1507,7 +1507,7 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
         #ax.set_ylabel('% true positives')
 
         #plotname = 'Timedelta histogram of correct matches'
-        #figtitle = test_result.make_figtitle(plotname)
+        #figtitle = testres.make_figtitle(plotname)
         #ax.set_title(figtitle)
         #pt.gcf().autofmt_xdate()
 
@@ -1517,14 +1517,14 @@ def draw_case_timedeltas(ibs, test_result, falsepos=None, truepos=None, verbose=
 
 
 @profile
-def draw_results(ibs, test_result):
+def draw_results(ibs, testres):
     r"""
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
 
     Args:
-        test_result (experiment_storage.TestResult):
+        testres (experiment_storage.TestResult):
 
     CommandLine:
         python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
@@ -1551,9 +1551,9 @@ def draw_results(ibs, test_result):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> # execute function
-        >>> result = draw_results(ibs, test_result)
+        >>> result = draw_results(ibs, testres)
         >>> # verify results
         >>> print(result)
     """
@@ -1582,7 +1582,7 @@ def draw_results(ibs, test_result):
     metadata = experiment_storage.ResultMetadata(metadata_fpath)
     #metadata.rrr()
     metadata.connect()
-    metadata.sync_test_results(test_result)
+    metadata.sync_test_results(testres)
     #cfgstr = qreq_.get_cfgstr()
     #cfg_metadata = ensure_item(metadata, cfgstr, {})
     #avuuids = ibs.get_annot_visual_uuids(qaids)
@@ -1590,17 +1590,17 @@ def draw_results(ibs, test_result):
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
     #import guitool
 
-    ut.argv_flag_dec(draw_rank_cdf)(ibs, test_result)
+    ut.argv_flag_dec(draw_rank_cdf)(ibs, testres)
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
-        draw_individual_cases(ibs, test_result, metadata=metadata)
+        draw_individual_cases(ibs, testres, metadata=metadata)
 
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):
         import guitool
         guitool.ensure_qapp()
-        #wgt = make_test_result_custom_api(ibs, test_result)
+        #wgt = make_test_result_custom_api(ibs, testres)
         wgt = make_metadata_custom_api(metadata)
         wgt.show()
         wgt.raise_()

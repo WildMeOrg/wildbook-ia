@@ -60,7 +60,7 @@ def testdata_qres(defaultdb='testdb1', t=['default']):
         defaultdb (str): (default = 'testdb1')
 
     Returns:
-        tuple: (ibs, test_result)
+        tuple: (ibs, testres)
 
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_qres
@@ -115,11 +115,11 @@ def testdata_expts(defaultdb='testdb1',
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-    test_result_list = experiment_harness.run_test_configurations2(
+    testres_list = experiment_harness.run_test_configurations2(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
-    test_result = experiment_storage.combine_test_results(ibs, test_result_list)
-    return ibs, test_result
-    #return ibs, test_result_list
+    testres = experiment_storage.combine_testres_list(ibs, testres_list)
+    return ibs, testres
+    #return ibs, testres_list
 
 
 def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',

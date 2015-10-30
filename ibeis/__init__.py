@@ -123,20 +123,20 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     command_line_str = build_commandline(**kwargs)
 
 
-    def draw_cases(test_result, **kwargs):
+    def draw_cases(testres, **kwargs):
         e_ = 'draw_cases'
         func = find_expt_func(e_)
-        ibs = test_result.ibs
+        ibs = testres.ibs
         build_commandline(e=e_, **kwargs)
-        lazy_func = functools.partial(func, ibs, test_result, show_in_notebook=True, **kwargs)
+        lazy_func = functools.partial(func, ibs, testres, show_in_notebook=True, **kwargs)
         return lazy_func
 
-    def draw_taghist(test_result, **kwargs):
+    def draw_taghist(testres, **kwargs):
         e_ = 'taghist'
         func = find_expt_func(e_)
-        ibs = test_result.ibs
+        ibs = testres.ibs
         build_commandline(e=e_, **kwargs)
-        lazy_func = functools.partial(func, ibs, test_result, **kwargs)
+        lazy_func = functools.partial(func, ibs, testres, **kwargs)
         return lazy_func
 
     def execute_test():
@@ -144,32 +144,32 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         assert func is not None, 'unknown experiment e=%r' % (e,)
 
         argspec = ut.get_func_argspec(func)
-        if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'test_result':
-            # most experiments need a test_result
+        if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'testres':
+            # most experiments need a testres
             expts_kw = dict(defaultdb=db, a=a, t=t, qaid_override=qaid_override)
             testdata_expts_func = functools.partial(main_helpers.testdata_expts, **expts_kw)
 
-            ibs, test_result = testdata_expts_func()
+            ibs, testres = testdata_expts_func()
             # Build the requested drawing funciton
-            draw_func = functools.partial(func, ibs, test_result, **kwargs)
-            test_result.draw_func = draw_func
-            ut.inject_func_as_method(test_result, draw_cases)
-            ut.inject_func_as_method(test_result, draw_taghist)
-            #test_result.draw_cases = draw_cases
-            return test_result
+            draw_func = functools.partial(func, ibs, testres, **kwargs)
+            testres.draw_func = draw_func
+            ut.inject_func_as_method(testres, draw_cases)
+            ut.inject_func_as_method(testres, draw_taghist)
+            #testres.draw_cases = draw_cases
+            return testres
         else:
             raise AssertionError('Unknown type of function for experiment')
 
     if lazy:
         return execute_test
     else:
-        test_result = execute_test()
-        return test_result
+        testres = execute_test()
+        return testres
 
 
 def testdata_expts(*args, **kwargs):
-    ibs, test_result = main_helpers.testdata_expts(*args, **kwargs)
-    return test_result
+    ibs, testres = main_helpers.testdata_expts(*args, **kwargs)
+    return testres
 
 #import_subs()
 #from ibeis import gui

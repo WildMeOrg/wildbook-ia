@@ -49,7 +49,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
         >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
         >>> use_cache = False
-        >>> test_result_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache)
+        >>> testres_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache)
     """
     testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
@@ -77,7 +77,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         )
         ut.colorprint(msg, 'white')
 
-    test_result_list = []
+    testres_list = []
 
     nAcfg = len(acfg_list)
 
@@ -112,20 +112,20 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
             ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'turquoise')
         subindexer_partial = partial(ut.ProgressIter, parent_index=acfgx,
                                      parent_nTotal=nAcfg, enabled=ut.NOT_QUIET)
-        test_result = run_test_configurations(ibs, qaids, daids, pipecfg_list,
+        testres = run_test_configurations(ibs, qaids, daids, pipecfg_list,
                                               cfgx2_lbl, cfgdict_list, lbl,
                                               testnameid, use_cache=use_cache,
                                               subindexer_partial=subindexer_partial)
         if DRY_RUN:
             continue
-        test_result.acfg = acfg
-        test_result.test_cfg_name_list = test_cfg_name_list
-        test_result_list.append(test_result)
+        testres.acfg = acfg
+        testres.test_cfg_name_list = test_cfg_name_list
+        testres_list.append(testres)
     if DRY_RUN:
         print('DRYRUN: Cannot continue past run_test_configurations2')
         sys.exit(0)
 
-    return test_result_list
+    return testres_list
 
 
 def get_big_test_cache_info(ibs, cfgx2_qreq_):
@@ -171,15 +171,15 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         get_big_test_cache_info(ibs, cfgx2_qreq_)
         try:
             bt_cachedir, bt_cachename, bt_cachestr = get_big_test_cache_info(ibs, cfgx2_qreq_)
-            test_result = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
-            test_result.cfgdict_list = cfgdict_list
-            test_result.cfgx2_lbl = cfgx2_lbl  # hack override
+            testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
+            testres.cfgdict_list = cfgdict_list
+            testres.cfgx2_lbl = cfgx2_lbl  # hack override
         except IOError:
             pass
         else:
             if ut.NOT_QUIET:
                 ut.colorprint('Experiment Harness Cache Hit... Returning', 'turquoise')
-            return test_result
+            return testres
 
     cfgx2_cfgresinfo = []
     #nPipeCfg = len(pipecfg_list)
@@ -242,14 +242,14 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
-    test_result = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
-    test_result.testnameid = testnameid
-    test_result.lbl = lbl
-    test_result.cfgdict_list = cfgdict_list
-    test_result.aidcfg = None
+    testres = experiment_storage.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
+    testres.testnameid = testnameid
+    testres.lbl = lbl
+    testres.cfgdict_list = cfgdict_list
+    testres.aidcfg = None
     if use_cache:
-        ut.save_cache(bt_cachedir, bt_cachename, bt_cachestr, test_result)
-    return test_result
+        ut.save_cache(bt_cachedir, bt_cachename, bt_cachestr, testres)
+    return testres
 
 
 @profile

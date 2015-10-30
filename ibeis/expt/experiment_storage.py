@@ -18,12 +18,12 @@ print, print_, printDBG, rrr, profile = ut.inject(
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
 
 
-def combine_test_results(ibs, test_result_list):
+def combine_testres_list(ibs, testres_list):
     """
     combine test results over multiple annot configs
 
     CommandLine:
-        python -m ibeis --tf combine_test_results
+        python -m ibeis --tf combine_testres_list
 
         python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
@@ -33,18 +33,18 @@ def combine_test_results(ibs, test_result_list):
     >>> # DISABLE_DOCTEST
     >>> from ibeis.expt.experiment_storage import *  # NOQA
     >>> from ibeis.expt import experiment_harness
-    >>> ibs, test_result_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
-    >>> combine_test_results(ibs, test_result_list)
+    >>> ibs, testres_list = experiment_harness.testdata_expts('PZ_MTEST', ['varysize'])
+    >>> combine_testres_list(ibs, testres_list)
     """
     #try:
-    #    assert ut.list_allsame([test_result.qaids for test_result in test_result_list]), ' cannot handle non-same qaids right now'
+    #    assert ut.list_allsame([testres.qaids for testres in testres_list]), ' cannot handle non-same qaids right now'
     #except AssertionError as ex:
     #    ut.printex(ex)
     #    raise
-
+    import copy
     from ibeis.expt import annotation_configs
 
-    acfg_list = [test_result.acfg for test_result in test_result_list]
+    acfg_list = [testres.acfg for testres in testres_list]
     acfg_lbl_list = annotation_configs.get_varied_acfg_labels(acfg_list)
 
     flat_acfg_list = annotation_configs.flatten_acfg_list(acfg_list)
@@ -57,174 +57,172 @@ def combine_test_results(ibs, test_result_list):
             return lbl
         return lbl + '+' + acfg_lbl
 
-    #qaids = test_result.qaids
+    #qaids = testres.qaids
     agg_cfg_list        = ut.flatten(
-        [test_result.cfg_list
-         for test_result in test_result_list])
+        [testres.cfg_list for testres in testres_list])
     agg_cfgx2_cfgreinfo = ut.flatten(
-        [test_result.cfgx2_cfgresinfo
-         for test_result in test_result_list])
+        [testres.cfgx2_cfgresinfo for testres in testres_list])
     agg_cfgx2_qreq_     = ut.flatten(
-        [test_result.cfgx2_qreq_
-         for test_result in test_result_list])
+        [testres.cfgx2_qreq_ for testres in testres_list])
     agg_cfgdict_list    = ut.flatten(
-        [test_result.cfgdict_list
-         for test_result in test_result_list])
+        [testres.cfgdict_list for testres in testres_list])
     agg_varied_acfg_list = ut.flatten([
-        [acfg] * len(test_result.cfg_list)
-        for test_result, acfg in zip(test_result_list, varied_acfg_list)
+        [acfg] * len(testres.cfg_list)
+        for testres, acfg in zip(testres_list, varied_acfg_list)
     ])
     agg_cfgx2_lbls      = ut.flatten(
-        [[combine_lbls(lbl, acfg_lbl) for lbl in test_result.cfgx2_lbl]
-         for test_result, acfg_lbl in zip(test_result_list, acfg_lbl_list)])
-
-    import copy
+        [[combine_lbls(lbl, acfg_lbl) for lbl in testres.cfgx2_lbl]
+         for testres, acfg_lbl in zip(testres_list, acfg_lbl_list)])
 
     agg_cfgx2_acfg = ut.flatten(
-        [[copy.deepcopy(acfg)] * len(test_result.cfg_list) for
-         test_result, acfg in zip(test_result_list, acfg_list)])
+        [[copy.deepcopy(acfg)] * len(testres.cfg_list) for
+         testres, acfg in zip(testres_list, acfg_list)])
 
-    big_test_result = TestResult(agg_cfg_list, agg_cfgx2_lbls,
-                                 agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
+    big_testres = TestResult(agg_cfg_list, agg_cfgx2_lbls,
+                             agg_cfgx2_cfgreinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
-    big_test_result.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
-    big_test_result.cfgdict_list = agg_cfgdict_list  # TODO: depricate
+    big_testres.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
+    big_testres.cfgdict_list = agg_cfgdict_list  # TODO: depricate
 
-    big_test_result.common_acfg = annotation_configs.compress_aidcfg(big_test_result.acfg)
-    big_test_result.common_cfgdict = reduce(ut.dict_intersection, big_test_result.cfgdict_list)
-    big_test_result.varied_acfg_list = agg_varied_acfg_list
-    big_test_result.varied_cfg_list = [ut.delete_dict_keys(cfgdict.copy(), list(big_test_result.common_cfgdict.keys()))
-                                       for cfgdict in big_test_result.cfgdict_list]
-    big_test_result.acfg_list = acfg_list
-    big_test_result.cfgx2_acfg = agg_cfgx2_acfg
-    big_test_result.cfgx2_pcfg = agg_cfgdict_list
+    big_testres.common_acfg = annotation_configs.compress_aidcfg(big_testres.acfg)
+    big_testres.common_cfgdict = reduce(ut.dict_intersection, big_testres.cfgdict_list)
+    big_testres.varied_acfg_list = agg_varied_acfg_list
+    big_testres.varied_cfg_list = [
+        ut.delete_dict_keys(cfgdict.copy(), list(big_testres.common_cfgdict.keys()))
+        for cfgdict in big_testres.cfgdict_list]
+    big_testres.acfg_list = acfg_list
+    big_testres.cfgx2_acfg = agg_cfgx2_acfg
+    big_testres.cfgx2_pcfg = agg_cfgdict_list
 
     assert len(agg_cfgdict_list) == len(agg_cfgx2_acfg)
 
-    #big_test_result.acfg
-    test_result = big_test_result
-    # big_test_result = test_result
-    return test_result
+    #big_testres.acfg
+    testres = big_testres
+    # big_testres = testres
+    return testres
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_):
-        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl))
-        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl))
-        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), 'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl))
-        #test_result._qaids = qaids
-        #test_result.daids = daids
-        test_result.cfg_list         = cfg_list
-        test_result.cfgx2_lbl        = cfgx2_lbl
-        test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
-        test_result.cfgx2_qreq_      = cfgx2_qreq_
-        test_result.lbl              = None
-        test_result.testnameid       = None
+    def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_):
+        assert len(cfg_list) == len(cfgx2_lbl), (
+            'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl)))
+        assert len(cfgx2_qreq_) == len(cfgx2_lbl), (
+            'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl)))
+        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), (
+            'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl)))
+        #testres._qaids = qaids
+        #testres.daids = daids
+        testres.cfg_list         = cfg_list
+        testres.cfgx2_lbl        = cfgx2_lbl
+        testres.cfgx2_cfgresinfo = cfgx2_cfgresinfo
+        testres.cfgx2_qreq_      = cfgx2_qreq_
+        testres.lbl              = None
+        testres.testnameid       = None
 
     @property
-    def ibs(test_result):
-        ibs_list = [qreq_.ibs for qreq_ in test_result.cfgx2_qreq_]
+    def ibs(testres):
+        ibs_list = [qreq_.ibs for qreq_ in testres.cfgx2_qreq_]
         ibs = ibs_list[0]
         for ibs_ in ibs_list:
             assert ibs is ibs_, 'not all query requests are using the same controller'
         return ibs
 
     @property
-    def qaids(test_result):
-        assert test_result.has_constant_qaids(), 'must have constant qaids to use this property'
-        return test_result.cfgx2_qaids[0]
-        #return test_result._qaids
+    def qaids(testres):
+        assert testres.has_constant_qaids(), 'must have constant qaids to use this property'
+        return testres.cfgx2_qaids[0]
+        #return testres._qaids
 
     @property
-    def nConfig(test_result):
-        return len(test_result.cfg_list)
+    def nConfig(testres):
+        return len(testres.cfg_list)
 
     @property
-    def nQuery(test_result):
-        return len(test_result.qaids)
+    def nQuery(testres):
+        return len(testres.qaids)
 
     @property
-    def rank_mat(test_result):
-        return test_result.get_rank_mat()
+    def rank_mat(testres):
+        return testres.get_rank_mat()
 
     @property
-    def cfgx2_daids(test_result):
-        daids_list = [qreq_.get_external_daids() for qreq_ in test_result.cfgx2_qreq_]
+    def cfgx2_daids(testres):
+        daids_list = [qreq_.get_external_daids() for qreq_ in testres.cfgx2_qreq_]
         return daids_list
 
     @property
-    def cfgx2_qaids(test_result):
-        qaids_list = [qreq_.get_external_qaids() for qreq_ in test_result.cfgx2_qreq_]
+    def cfgx2_qaids(testres):
+        qaids_list = [qreq_.get_external_qaids() for qreq_ in testres.cfgx2_qreq_]
         return qaids_list
 
-    def has_constant_daids(test_result):
-        return ut.list_allsame(test_result.cfgx2_daids)
+    def has_constant_daids(testres):
+        return ut.list_allsame(testres.cfgx2_daids)
 
-    def has_constant_qaids(test_result):
-        return ut.list_allsame(test_result.cfgx2_qaids)
+    def has_constant_qaids(testres):
+        return ut.list_allsame(testres.cfgx2_qaids)
 
-    def has_constant_length_daids(test_result):
-        return ut.list_allsame(list(map(len, test_result.cfgx2_daids)))
+    def has_constant_length_daids(testres):
+        return ut.list_allsame(list(map(len, testres.cfgx2_daids)))
 
-    def has_constant_length_qaids(test_result):
-        return ut.list_allsame(list(map(len, test_result.cfgx2_qaids)))
+    def has_constant_length_qaids(testres):
+        return ut.list_allsame(list(map(len, testres.cfgx2_qaids)))
 
-    def get_infoprop_list(test_result, key, qaids=None):
-        _tmp1_cfgx2_infoprop = ut.get_list_column(test_result.cfgx2_cfgresinfo, key)
+    def get_infoprop_list(testres, key, qaids=None):
+        _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cfgresinfo, key)
         _tmp2_cfgx2_infoprop = list(map(
             np.array,
             ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
         if qaids is not None:
-            flags_list = [np.in1d(aids_, qaids) for aids_ in test_result.cfgx2_qaids]
+            flags_list = [np.in1d(aids_, qaids) for aids_ in testres.cfgx2_qaids]
             cfgx2_infoprop = vt.zipcompress(_tmp2_cfgx2_infoprop, flags_list)
         else:
             cfgx2_infoprop = _tmp2_cfgx2_infoprop
         if key == 'qx2_bestranks' or key.endswith('_rank'):
             # hack
             for infoprop in cfgx2_infoprop:
-                infoprop[infoprop == -1] = test_result.get_worst_possible_rank()
+                infoprop[infoprop == -1] = testres.get_worst_possible_rank()
         return cfgx2_infoprop
 
-    def get_infoprop_mat(test_result, key, qaids=None):
+    def get_infoprop_mat(testres, key, qaids=None):
         """
         key = 'qx2_gf_raw_score'
         key = 'qx2_gt_raw_score'
         """
-        cfgx2_infoprop = test_result.get_infoprop_list(key, qaids)
+        cfgx2_infoprop = testres.get_infoprop_list(key, qaids)
         # concatenate each query rank across configs
         infoprop_mat = np.vstack(cfgx2_infoprop).T
         return infoprop_mat
 
     @ut.memoize
-    def get_rank_mat(test_result, qaids=None):
+    def get_rank_mat(testres, qaids=None):
         # Ranks of Best Results
-        #get_infoprop_mat(test_result, 'qx2_bestranks')
-        rank_mat = test_result.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
-        #cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
+        #get_infoprop_mat(testres, 'qx2_bestranks')
+        rank_mat = testres.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
+        #cfgx2_bestranks = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_bestranks')
         #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
         # Set invalid ranks to the worse possible rank
-        #worst_possible_rank = test_result.get_worst_possible_rank()
+        #worst_possible_rank = testres.get_worst_possible_rank()
         #rank_mat[rank_mat == -1] =  worst_possible_rank
         return rank_mat
 
-    def get_worst_possible_rank(test_result):
-        #worst_possible_rank = max(9001, len(test_result.daids) + 1)
-        worst_possible_rank = max([len(qreq_.get_external_daids()) for qreq_ in test_result.cfgx2_qreq_]) + 1
-        #worst_possible_rank = len(test_result.daids) + 1
+    def get_worst_possible_rank(testres):
+        #worst_possible_rank = max(9001, len(testres.daids) + 1)
+        worst_possible_rank = max([len(qreq_.get_external_daids()) for qreq_ in testres.cfgx2_qreq_]) + 1
+        #worst_possible_rank = len(testres.daids) + 1
         return worst_possible_rank
 
-    def get_rank_histograms(test_result, bins=None, asdict=True, jagged=False):
+    def get_rank_histograms(testres, bins=None, asdict=True, jagged=False):
         if bins is None:
-            bins = test_result.get_rank_histogram_bins()
+            bins = testres.get_rank_histogram_bins()
         elif bins == 'dense':
-            bins = np.arange(test_result.get_worst_possible_rank() + 1)
+            bins = np.arange(testres.get_worst_possible_rank() + 1)
         if jagged:
             assert not asdict
-            cfgx2_bestranks = test_result.get_infoprop_list('qx2_bestranks')
+            cfgx2_bestranks = testres.get_infoprop_list('qx2_bestranks')
             cfgx2_bestranks = [
-                ut.list_replace(bestranks, -1, test_result.get_worst_possible_rank())
+                ut.list_replace(bestranks, -1, testres.get_worst_possible_rank())
                 for bestranks in cfgx2_bestranks]
             cfgx2_hist = np.zeros((len(cfgx2_bestranks), len(bins) - 1), dtype=np.int32)
             for cfgx, ranks in enumerate(cfgx2_bestranks):
@@ -233,7 +231,7 @@ class TestResult(object):
                 cfgx2_hist[cfgx] = bin_values
             return cfgx2_hist, bin_edges
 
-        rank_mat = test_result.get_rank_mat()
+        rank_mat = testres.get_rank_mat()
         if not asdict:
             # Use numpy histogram repr
             config_hists = np.zeros((len(rank_mat.T), len(bins) - 1), dtype=np.int32)
@@ -259,13 +257,13 @@ class TestResult(object):
         else:
             return config_hists
 
-    def get_rank_cumhist(test_result, bins='dense'):
-        #test_result.rrr()
-        hist_list, edges = test_result.get_rank_histograms(bins, asdict=False)
+    def get_rank_cumhist(testres, bins='dense'):
+        #testres.rrr()
+        hist_list, edges = testres.get_rank_histograms(bins, asdict=False)
         config_cdfs = np.cumsum(hist_list, axis=1)
         return config_cdfs, edges
 
-    def get_rank_percentage_cumhist(test_result, bins='dense'):
+    def get_rank_percentage_cumhist(testres, bins='dense'):
         r"""
         Args:
             bins (unicode): (default = u'dense')
@@ -281,21 +279,21 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_drawing import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST')
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
             >>> bins = u'dense'
-            >>> (config_cdfs, edges) = test_result.get_rank_percentage_cumhist(bins)
+            >>> (config_cdfs, edges) = testres.get_rank_percentage_cumhist(bins)
             >>> result = ('(config_cdfs, edges) = %s' % (str((config_cdfs, edges)),))
             >>> print(result)
         """
-        #test_result.rrr()
-        cfgx2_hist, edges = test_result.get_rank_histograms(bins, asdict=False, jagged=True)
+        #testres.rrr()
+        cfgx2_hist, edges = testres.get_rank_histograms(bins, asdict=False, jagged=True)
         cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
         cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
         return cfgx2_cumhist_percent, edges
 
-    def get_rank_histogram_bins(test_result):
+    def get_rank_histogram_bins(testres):
         """ easy to see histogram bins """
-        worst_possible_rank = test_result.get_worst_possible_rank()
+        worst_possible_rank = testres.get_worst_possible_rank()
         if worst_possible_rank > 50:
             bins = [0, 1, 5, 50, worst_possible_rank, worst_possible_rank + 1]
         elif worst_possible_rank > 5:
@@ -304,16 +302,16 @@ class TestResult(object):
             bins = [0, 1, 5]
         return bins
 
-    def get_rank_histogram_bin_edges(test_result):
-        bins = test_result.get_rank_histogram_bins()
+    def get_rank_histogram_bin_edges(testres):
+        bins = testres.get_rank_histogram_bins()
         bin_keys = list(zip(bins[:-1], bins[1:]))
         return bin_keys
 
-    def get_rank_histogram_qx_binxs(test_result):
-        rank_mat = test_result.get_rank_mat()
-        config_hists = test_result.get_rank_histograms()
+    def get_rank_histogram_qx_binxs(testres):
+        rank_mat = testres.get_rank_mat()
+        config_hists = testres.get_rank_histograms()
         config_binxs = []
-        bin_keys = test_result.get_rank_histogram_bin_edges()
+        bin_keys = testres.get_rank_histogram_bin_edges()
         for hist_dict, ranks in zip(config_hists, rank_mat.T):
             bin_qxs = [np.where(np.logical_and(low <= ranks, ranks < high))[0]
                        for low, high in bin_keys]
@@ -323,12 +321,12 @@ class TestResult(object):
             config_binxs.append(qx2_binx)
         return config_binxs
 
-    def get_rank_histogram_qx_sample(test_result, size=10):
+    def get_rank_histogram_qx_sample(testres, size=10):
         size = 10
-        rank_mat = test_result.get_rank_mat()
-        config_hists = test_result.get_rank_histograms()
+        rank_mat = testres.get_rank_mat()
+        config_hists = testres.get_rank_histograms()
         config_rand_bin_qxs = []
-        bins = test_result.get_rank_histogram_bins()
+        bins = testres.get_rank_histogram_bins()
         bin_keys = list(zip(bins[:-1], bins[1:]))
         randstate = np.random.RandomState(seed=0)
         for hist_dict, ranks in zip(config_hists, rank_mat.T):
@@ -340,17 +338,17 @@ class TestResult(object):
             config_rand_bin_qxs.append(rand_bin_qxs)
         return config_rand_bin_qxs
 
-    def get_X_LIST(test_result):
+    def get_X_LIST(testres):
         #X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
         X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1, 5])
         return X_LIST
 
-    def get_nLessX_dict(test_result):
+    def get_nLessX_dict(testres):
         # Build a (histogram) dictionary mapping X (as in #ranks < X) to a list of cfg scores
-        X_LIST = test_result.get_X_LIST()
-        nLessX_dict = {int(X): np.zeros(test_result.nConfig) for X in X_LIST}
-        cfgx2_qx2_bestrank = test_result.get_infoprop_list('qx2_bestranks')
-        #rank_mat = test_result.rank_mat  # HACK
+        X_LIST = testres.get_X_LIST()
+        nLessX_dict = {int(X): np.zeros(testres.nConfig) for X in X_LIST}
+        cfgx2_qx2_bestrank = testres.get_infoprop_list('qx2_bestranks')
+        #rank_mat = testres.rank_mat  # HACK
         for X in X_LIST:
             cfgx2_lessX_mask = [
                 np.logical_and(0 <= qx2_ranks, qx2_ranks < X)
@@ -360,79 +358,79 @@ class TestResult(object):
             nLessX_dict[int(X)] = cfgx2_nLessX
         return nLessX_dict
 
-    def get_all_varied_params(test_result):
+    def get_all_varied_params(testres):
         # only for big results
         varied_cfg_params = list(set(ut.flatten(
             [cfgdict.keys()
-             for cfgdict in test_result.varied_cfg_list])))
+             for cfgdict in testres.varied_cfg_list])))
         varied_acfg_params = list(set(ut.flatten([
             acfg.keys()
-            for acfg in test_result.varied_acfg_list])))
+            for acfg in testres.varied_acfg_list])))
         varied_params = varied_acfg_params + varied_cfg_params
         return varied_params
 
-    def get_total_num_varied_params(test_result):
-        return len(test_result.get_all_varied_params())
+    def get_total_num_varied_params(testres):
+        return len(testres.get_all_varied_params())
 
-    def get_param_basis(test_result, key):
+    def get_param_basis(testres, key):
         """
         Returns what a param was varied between over all tests
         key = 'K'
         key = 'dcfg_sample_size'
         """
         if key == 'len(daids)':
-            basis = sorted(list(set([len(daids) for daids in test_result.cfgx2_daids])))
-        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
+            basis = sorted(list(set([len(daids) for daids in testres.cfgx2_daids])))
+        elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
             basis = sorted(list(set([
                 cfgdict[key]
-                for cfgdict in test_result.varied_cfg_list])))
-        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
+                for cfgdict in testres.varied_cfg_list])))
+        elif any([key in cfgdict for cfgdict in testres.varied_acfg_list]):
             basis = sorted(list(set([
                 acfg[key]
-                for acfg in test_result.varied_acfg_list])))
+                for acfg in testres.varied_acfg_list])))
         else:
             assert False
         return basis
 
-    def get_param_val_from_cfgx(test_result, cfgx, key):
+    def get_param_val_from_cfgx(testres, cfgx, key):
         if key == 'len(daids)':
-            return len(test_result.cfgx2_daids[cfgx])
-        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
-            return test_result.varied_cfg_list[cfgx][key]
-        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
-            return test_result.varied_acfg_list[cfgx][key]
+            return len(testres.cfgx2_daids[cfgx])
+        elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
+            return testres.varied_cfg_list[cfgx][key]
+        elif any([key in cfgdict for cfgdict in testres.varied_acfg_list]):
+            return testres.varied_acfg_list[cfgx][key]
         else:
             assert False
 
-    def get_cfgx_with_param(test_result, key, val):
+    def get_cfgx_with_param(testres, key, val):
         """
         Gets configs where the given parameter is held constant
         """
         if key == 'len(daids)':
-            cfgx_list = [cfgx for cfgx, daids in enumerate(test_result.cfgx2_daids)
+            cfgx_list = [cfgx for cfgx, daids in enumerate(testres.cfgx2_daids)
                          if len(daids) == val]
-        elif any([key in cfgdict for cfgdict in test_result.varied_cfg_list]):
-            cfgx_list = [cfgx for cfgx, cfgdict in enumerate(test_result.varied_cfg_list)
+        elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
+            cfgx_list = [cfgx for cfgx, cfgdict in enumerate(testres.varied_cfg_list)
                          if cfgdict[key] == val]
-        elif any([key in cfgdict for cfgdict in test_result.varied_acfg_list]):
-            cfgx_list = [cfgx for cfgx, acfg in enumerate(test_result.varied_acfg_list)
+        elif any([key in cfgdict for cfgdict in testres.varied_acfg_list]):
+            cfgx_list = [cfgx for cfgx, acfg in enumerate(testres.varied_acfg_list)
                          if acfg[key] == val]
         else:
             assert False
         return cfgx_list
 
-    def get_full_cfgstr(test_result, cfgx):
+    def get_full_cfgstr(testres, cfgx):
         """ both qannots and dannots included """
-        full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+        full_cfgstr = testres.cfgx2_qreq_[cfgx].get_full_cfgstr()
         return full_cfgstr
 
     @ut.memoize
-    def get_cfgstr(test_result, cfgx):
+    def get_cfgstr(testres, cfgx):
         """ just dannots and config_str """
-        cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
+        cfgstr = testres.cfgx2_qreq_[cfgx].get_cfgstr()
         return cfgstr
 
-    def _shorten_lbls(test_result, lbl):
+    def _shorten_lbls(testres, lbl):
         import re
         repl_list = [
             ('candidacy_', ''),
@@ -472,7 +470,7 @@ class TestResult(object):
             lbl = re.sub(ser, rep, lbl)
         return lbl
 
-    #def _friendly_shorten_lbls(test_result, lbl):
+    #def _friendly_shorten_lbls(testres, lbl):
     #    import re
     #    repl_list = [
     #        ('dmingt=None,?', ''),
@@ -482,7 +480,7 @@ class TestResult(object):
     #        lbl = re.sub(ser, rep, lbl)
     #    return lbl
 
-    def get_short_cfglbls(test_result, friendly=False):
+    def get_short_cfglbls(testres, friendly=False):
         """
         Labels for published tables
 
@@ -495,15 +493,15 @@ class TestResult(object):
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
-            >>> cfg_lbls = test_result.get_short_cfglbls(friendly=True)
+            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
+            >>> cfg_lbls = testres.get_short_cfglbls(friendly=True)
             >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
             >>> print(result)
         """
 
         if False and friendly :
-            acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in test_result.cfgx2_acfg]
-            pcfg_names = [pcfg['_cfgstr'] for pcfg in test_result.cfgx2_pcfg]
+            acfg_names = [acfg['qcfg']['_cfgstr'] for acfg in testres.cfgx2_acfg]
+            pcfg_names = [pcfg['_cfgstr'] for pcfg in testres.cfgx2_pcfg]
 
             # Only vary the label settings within the cfgname
             acfg_hashes = np.array(list(map(hash, acfg_names)))
@@ -511,7 +509,7 @@ class TestResult(object):
             a_label_groups = []
             from ibeis.expt import annotation_configs
             for groupx in a_groupxs:
-                acfg_list = ut.list_take(test_result.cfgx2_acfg, groupx)
+                acfg_list = ut.list_take(testres.cfgx2_acfg, groupx)
                 #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
                 varied_lbls = annotation_configs.get_varied_acfg_labels(
                     acfg_list, mainkey='_cfgstr')
@@ -522,15 +520,15 @@ class TestResult(object):
             unique_hashes, p_groupxs = vt.group_indices(pcfg_hashes)
             p_label_groups = []
             for groupx in p_groupxs:
-                pcfg_list = ut.list_take(test_result.cfgx2_pcfg, groupx)
+                pcfg_list = ut.list_take(testres.cfgx2_pcfg, groupx)
                 varied_lbls = cfghelpers.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
                 p_label_groups.append(varied_lbls)
             pcfg_lbls = vt.invert_apply_grouping(p_label_groups, p_groupxs)
 
             cfg_lbls = [albl + '+' + plbl for albl, plbl in zip(acfg_lbls, pcfg_lbls)]
         else:
-            cfg_lbls = test_result.cfgx2_lbl[:]
-        cfg_lbls = [test_result._shorten_lbls(lbl) for lbl in cfg_lbls]
+            cfg_lbls = testres.cfgx2_lbl[:]
+        cfg_lbls = [testres._shorten_lbls(lbl) for lbl in cfg_lbls]
         # split configs up by param and annots
         pa_tups = [lbl.split('+') for lbl in cfg_lbls]
         cfg_lbls2 = []
@@ -557,13 +555,13 @@ class TestResult(object):
         cfg_lbls = cfg_lbls2
 
         #from ibeis.expt import annotation_configs
-        #lblaug = annotation_configs.compress_aidcfg(test_result.acfg)['common']['_cfgstr']
+        #lblaug = annotation_configs.compress_aidcfg(testres.acfg)['common']['_cfgstr']
 
         #cfg_lbls = [lbl + cfghelpers.NAMEVARSEP + lblaug for lbl in cfg_lbls]
 
         return cfg_lbls
 
-    def make_figtitle(test_result, plotname='', filt_cfg=None):
+    def make_figtitle(testres, plotname='', filt_cfg=None):
         """
         Helper for consistent figure titles
 
@@ -575,9 +573,9 @@ class TestResult(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> testres = ibeis.testdata_expts('PZ_MTEST')
             >>> plotname = ''
-            >>> figtitle = test_result.make_figtitle(plotname)
+            >>> figtitle = testres.make_figtitle(plotname)
             >>> result = ('figtitle = %r' % (figtitle,))
             >>> print(result)
         """
@@ -589,7 +587,7 @@ class TestResult(object):
         if hasprefix:
             figtitle += '\n'
 
-        title_aug = test_result.get_title_aug(friendly=True, with_cfg=hasprefix)
+        title_aug = testres.get_title_aug(friendly=True, with_cfg=hasprefix)
         figtitle += ' ' + title_aug
 
         if filt_cfg is not None:
@@ -598,7 +596,7 @@ class TestResult(object):
                 figtitle += ' ' + filt_cfgstr
         return figtitle
 
-    def get_title_aug(test_result, with_size=True, with_db=True, with_cfg=True,
+    def get_title_aug(testres, with_size=True, with_db=True, with_cfg=True,
                       friendly=False):
         r"""
         Args:
@@ -614,56 +612,56 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST')
+            >>> testres = ibeis.testdata_expts('PZ_MTEST')
             >>> with_size = True
-            >>> title_aug = test_result.get_title_aug(with_size)
+            >>> title_aug = testres.get_title_aug(with_size)
             >>> res = u'title_aug = %s' % (title_aug,)
             >>> print(res)
         """
-        ibs = test_result.ibs
+        ibs = testres.ibs
         title_aug = ''
         if with_db:
             title_aug += 'db=' + (ibs.get_dbname())
         if with_cfg:
             try:
-                if '_cfgname' in test_result.common_acfg['common']:
+                if '_cfgname' in testres.common_acfg['common']:
                     try:
-                        annot_cfgname = test_result.common_acfg['common']['_cfgstr']
+                        annot_cfgname = testres.common_acfg['common']['_cfgstr']
                     except KeyError:
-                        annot_cfgname = test_result.common_acfg['common']['_cfgname']
+                        annot_cfgname = testres.common_acfg['common']['_cfgname']
                 else:
                     cfgname_list = [cfg['dcfg__cfgname']
-                                    for cfg in test_result.varied_acfg_list]
+                                    for cfg in testres.varied_acfg_list]
                     cfgname_list = ut.unique_keep_order2(cfgname_list)
                     annot_cfgname = '[' + ','.join(cfgname_list) + ']'
                 try:
-                    pipeline_cfgname = test_result.common_cfgdict['_cfgstr']
+                    pipeline_cfgname = testres.common_cfgdict['_cfgstr']
                 except KeyError:
-                    #pipeline_cfgname = test_result.common_cfgdict['_cfgname']
-                    cfgstr_list = [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list]
+                    #pipeline_cfgname = testres.common_cfgdict['_cfgname']
+                    cfgstr_list = [cfg['_cfgstr'] for cfg in testres.varied_cfg_list]
                     uniuqe_cfgstrs = ut.unique_keep_order2(cfgstr_list)
                     pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
 
-                annot_cfgname = test_result._shorten_lbls(annot_cfgname)
-                pipeline_cfgname = test_result._shorten_lbls(pipeline_cfgname)
+                annot_cfgname = testres._shorten_lbls(annot_cfgname)
+                pipeline_cfgname = testres._shorten_lbls(pipeline_cfgname)
                 title_aug += ' a=' + annot_cfgname
                 title_aug += ' t=' + pipeline_cfgname
             except Exception as ex:
-                print(ut.dict_str(test_result.common_acfg))
-                print(ut.dict_str(test_result.common_cfgdict))
+                print(ut.dict_str(testres.common_acfg))
+                print(ut.dict_str(testres.common_cfgdict))
                 ut.printex(ex)
                 raise
         if with_size:
-            if test_result.has_constant_qaids():
-                title_aug += ' #qaids=%r' % (len(test_result.qaids),)
-            elif test_result.has_constant_length_qaids():
-                title_aug += ' #qaids=%r*' % (len(test_result.cfgx2_qaids[0]),)
-            if test_result.has_constant_daids():
-                daids = test_result.cfgx2_daids[0]
-                title_aug += ' #daids=%r' % (len(test_result.cfgx2_daids[0]),)
-                if test_result.has_constant_qaids():
+            if testres.has_constant_qaids():
+                title_aug += ' #qaids=%r' % (len(testres.qaids),)
+            elif testres.has_constant_length_qaids():
+                title_aug += ' #qaids=%r*' % (len(testres.cfgx2_qaids[0]),)
+            if testres.has_constant_daids():
+                daids = testres.cfgx2_daids[0]
+                title_aug += ' #daids=%r' % (len(testres.cfgx2_daids[0]),)
+                if testres.has_constant_qaids():
                     locals_ = ibs.get_annotconfig_stats(
-                        test_result.qaids, daids, verbose=False)[1]
+                        testres.qaids, daids, verbose=False)[1]
                     all_daid_per_name_stats = locals_['all_daid_per_name_stats']
                     if all_daid_per_name_stats['std'] == 0:
                         title_aug += ' dper_name=%s' % (
@@ -673,9 +671,9 @@ class TestResult(object):
                         title_aug += ' dper_name=%s±%s' % (
                             ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),
                             ut.scalar_str(all_daid_per_name_stats['std'], precision=2),)
-            elif test_result.has_constant_length_daids():
-                daids = test_result.cfgx2_daids[0]
-                title_aug += ' #daids=%r*' % (len(test_result.cfgx2_daids[0]),)
+            elif testres.has_constant_length_daids():
+                daids = testres.cfgx2_daids[0]
+                title_aug += ' #daids=%r*' % (len(testres.cfgx2_daids[0]),)
 
         if friendly:
             # Hackiness for friendliness
@@ -691,9 +689,9 @@ class TestResult(object):
             #title_aug = title_aug.replace('db=GZ_ALL', 'Grevy\'s Zebras')
         return title_aug
 
-    def get_fname_aug(test_result, **kwargs):
+    def get_fname_aug(testres, **kwargs):
         import re
-        title_aug = test_result.get_title_aug(**kwargs)
+        title_aug = testres.get_title_aug(**kwargs)
         valid_regex = '-a-zA-Z0-9_.() '
         valid_extra = '=,'
         valid_regex += valid_extra
@@ -702,7 +700,7 @@ class TestResult(object):
         fname_aug = fname_aug.strip('_')
         return fname_aug
 
-    def print_acfg_info(test_result, **kwargs):
+    def print_acfg_info(testres, **kwargs):
         """
         CommandLine:
             python -m ibeis --tf TestResult.print_acfg_info
@@ -716,22 +714,22 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
+            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
             >>> ibs = None
-            >>> result = test_result.print_acfg_info()
+            >>> result = testres.print_acfg_info()
             >>> print(result)
         """
         from ibeis.expt import annotation_configs
-        ibs = test_result.ibs
+        ibs = testres.ibs
         # Get unique annotation configs
-        cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(test_result.cfgx2_acfg)
+        cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(testres.cfgx2_acfg)
         flags = ut.flag_unique_items(cfgx2_acfg_label)
-        qreq_list = ut.list_compress(test_result.cfgx2_qreq_, flags)
-        acfg_list = ut.list_compress(test_result.cfgx2_acfg, flags)
+        qreq_list = ut.list_compress(testres.cfgx2_qreq_, flags)
+        acfg_list = ut.list_compress(testres.cfgx2_acfg, flags)
         expanded_aids_list = [(qreq_.qaids, qreq_.daids) for qreq_ in qreq_list]
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, **kwargs)
 
-    def print_unique_annot_config_stats(test_result, ibs=None):
+    def print_unique_annot_config_stats(testres, ibs=None):
         r"""
         Args:
             ibs (IBEISController):  ibeis controller object(default = None)
@@ -743,35 +741,35 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> import ibeis
-            >>> test_result = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
+            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'])
             >>> ibs = None
-            >>> result = test_result.print_unique_annot_config_stats(ibs)
+            >>> result = testres.print_unique_annot_config_stats(ibs)
             >>> print(result)
         """
         if ibs is None:
-            ibs = test_result.ibs
+            ibs = testres.ibs
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids)
-                              for daids in test_result.cfgx2_daids]
-        unique_daids = ut.list_compress(test_result.cfgx2_daids,
+                              for daids in testres.cfgx2_daids]
+        unique_daids = ut.list_compress(testres.cfgx2_daids,
                                         ut.flag_unique_items(cfx2_dannot_hashid))
         with ut.Indenter('[acfgstats]'):
             print('+====')
             print('Printing %d unique annotconfig stats' % (len(unique_daids)))
-            common_acfg = test_result.common_acfg
+            common_acfg = testres.common_acfg
             common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
-            print('test_result.common_acfg = ' + ut.dict_str(common_acfg))
+            print('testres.common_acfg = ' + ut.dict_str(common_acfg))
             print('param_basis(len(daids)) = %r' % (
-                test_result.get_param_basis('len(daids)'),))
+                testres.get_param_basis('len(daids)'),))
             for count, daids in enumerate(unique_daids):
                 print('+---')
                 print('acfgx = %r/%r' % (count, len(unique_daids)))
-                if test_result.has_constant_qaids():
-                    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(test_result.qaids, daids)
+                if testres.has_constant_qaids():
+                    annotconfig_stats_strs, locals_ = ibs.get_annotconfig_stats(testres.qaids, daids)
                 else:
                     ibs.print_annot_stats(daids, prefix='d')
                 print('L___')
 
-    def print_results(test_result):
+    def print_results(testres):
         r"""
         CommandLine:
             python -m ibeis --tf TestResult.print_results
@@ -780,38 +778,38 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.expt import experiment_harness
-            >>> ibs, test_result = experiment_harness.testdata_expts('PZ_MTEST')
-            >>> result = test_result.print_results()
+            >>> ibs, testres = experiment_harness.testdata_expts('PZ_MTEST')
+            >>> result = testres.print_results()
             >>> print(result)
         """
         from ibeis.expt import experiment_printres
-        ibs = test_result.ibs
-        experiment_printres.print_results(ibs, test_result)
+        ibs = testres.ibs
+        experiment_printres.print_results(ibs, testres)
 
     @ut.memoize
-    def get_new_hard_qx_list(test_result):
+    def get_new_hard_qx_list(testres):
         """ Mark any query as hard if it didnt get everything correct """
-        rank_mat = test_result.get_rank_mat()
+        rank_mat = testres.get_rank_mat()
         is_new_hard_list = rank_mat.max(axis=1) > 0
         new_hard_qx_list = np.where(is_new_hard_list)[0]
         return new_hard_qx_list
 
-    def get_common_qaids(test_result):
-        if not test_result.has_constant_qaids():
+    def get_common_qaids(testres):
+        if not testres.has_constant_qaids():
             # Get only cases the tests share for now
-            common_qaids = reduce(np.intersect1d, test_result.cfgx2_qaids)
+            common_qaids = reduce(np.intersect1d, testres.cfgx2_qaids)
             return common_qaids
         else:
-            return test_result.qaids
+            return testres.qaids
 
-    def get_gt_tags(test_result):
-        ibs = test_result.ibs
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    def get_gt_tags(testres):
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
         gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
         gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
         return gt_tags
 
-    def get_gf_tags(test_result):
+    def get_gf_tags(testres):
         r"""
         Returns:
             list: case_pos_list
@@ -823,21 +821,21 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
-            >>> case_pos_list = test_result.case_sample2(filt_cfg)
-            >>> gf_tags = test_result.get_gf_tags()
+            >>> case_pos_list = testres.case_sample2(filt_cfg)
+            >>> gf_tags = testres.get_gf_tags()
         """
-        ibs = test_result.ibs
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
         gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
         gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
         #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gf']['aid'])
         #ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
-        #ibs.get_annot_case_tags(test_result.qaids)
+        #ibs.get_annot_case_tags(testres.qaids)
         return gf_tags
 
-    def get_all_tags(test_result):
+    def get_all_tags(testres):
         r"""
         CommandLine:
             python -m ibeis --tf TestResult.get_all_tags --db PZ_Master1 --show --filt :
@@ -848,10 +846,10 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timectrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
-            >>> case_pos_list = test_result.case_sample2(filt_cfg)
-            >>> all_tags = test_result.get_all_tags()
+            >>> case_pos_list = testres.case_sample2(filt_cfg)
+            >>> all_tags = testres.get_all_tags()
             >>> selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
             >>> print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
@@ -862,41 +860,41 @@ class TestResult(object):
             >>> pt.set_figtitle(cfghelpers.get_cfg_lbl(filt_cfg))
             >>> ut.show_if_requested()
         """
-        gt_tags = test_result.get_gt_tags()
-        gf_tags = test_result.get_gf_tags()
+        gt_tags = testres.get_gt_tags()
+        gf_tags = testres.get_gf_tags()
         #gt_tags = [[['gt_' + t for t in tag] for tag in tags] for tags in gt_tags]
         #gf_tags = [[['gf_' + t for t in tag] for tag in tags] for tags in gf_tags]
         #all_tags = [[ut.flatten(t) for t in zip(*item)] for item in zip(gf_tags, gt_tags)]
         all_tags = [ut.list_zipflatten(*item) for item in zip(gf_tags, gt_tags)]
         #from ibeis import tag_funcs
         #ibs.get_annot_case_tags()
-        #truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        #truth2_prop, prop2_mat = testres.get_truth2_prop()
         #gt_annotmatch_rowids = truth2_prop['gt']['aid']
         #all_tags = [tag_funcs.consolodate_annotmatch_tags(_) for _ in all_tags]
         return all_tags
 
-    def get_gt_annot_tags(test_result):
-        ibs = test_result.ibs
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+    def get_gt_annot_tags(testres):
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
         gt_annot_tags = ibs.unflat_map(ibs.get_annot_case_tags, truth2_prop['gt']['aid'])
         return gt_annot_tags
 
-    def get_query_annot_tags(test_result):
-        ibs = test_result.ibs
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
-        #len(test_result.cfgx2_qaids)
-        unflat_qids = np.tile(test_result.qaids[:, None], (len(test_result.cfgx2_qaids)))
+    def get_query_annot_tags(testres):
+        ibs = testres.ibs
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
+        #len(testres.cfgx2_qaids)
+        unflat_qids = np.tile(testres.qaids[:, None], (len(testres.cfgx2_qaids)))
         query_annot_tags = ibs.unflat_map(ibs.get_annot_case_tags, unflat_qids)
         return query_annot_tags
 
-    def get_gtquery_annot_tags(test_result):
-        gt_annot_tags = test_result.get_gt_annot_tags()
-        query_annot_tags = test_result.get_query_annot_tags()
+    def get_gtquery_annot_tags(testres):
+        gt_annot_tags = testres.get_gt_annot_tags()
+        query_annot_tags = testres.get_query_annot_tags()
         both_tags = [[ut.flatten(t) for t in zip(*item)]
                      for item in zip(query_annot_tags, gt_annot_tags)]
         return both_tags
 
-    def case_sample2(test_result, filt_cfg, return_mask=False, verbose=None):
+    def case_sample2(testres, filt_cfg, return_mask=False, verbose=None):
         r"""
         Args:
             filt_cfg (?):
@@ -917,15 +915,15 @@ class TestResult(object):
             >>> # The same results is achievable with different filter config settings
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
-            >>> case_pos_list1 = test_result.case_sample2(filt_cfg1)
+            >>> case_pos_list1 = testres.case_sample2(filt_cfg1)
             >>> filt_cfg2 = {'min_gtrank': 1}
-            >>> case_pos_list2 = test_result.case_sample2(filt_cfg2)
+            >>> case_pos_list2 = testres.case_sample2(filt_cfg2)
             >>> filt_cfg3 = {'min_gtrank': 0}
-            >>> case_pos_list3 = test_result.case_sample2(filt_cfg3)
+            >>> case_pos_list3 = testres.case_sample2(filt_cfg3)
             >>> filt_cfg4 = {}
-            >>> case_pos_list4 = test_result.case_sample2(filt_cfg4)
+            >>> case_pos_list4 = testres.case_sample2(filt_cfg4)
             >>> assert np.all(case_pos_list1 == case_pos_list2), 'should be equiv configs'
             >>> assert np.any(case_pos_list2 != case_pos_list3), 'should be diff configs'
             >>> assert np.all(case_pos_list3 == case_pos_list4), 'should be equiv configs'
@@ -934,13 +932,13 @@ class TestResult(object):
             >>> # SCRIPT
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = main_helpers.testdata_filtcfg()
-            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> case_pos_list = testres.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
             >>> print(result)
             >>> # Extra stuff
-            >>> all_tags = test_result.get_all_tags()
+            >>> all_tags = testres.get_all_tags()
             >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
 
@@ -948,32 +946,32 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> filt_cfg = {'fail': True, 'min_gtrank': 1, 'max_gtrank': None, 'min_gf_timedelta': '24h'}
             >>> #filt_cfg = cfghelpers.parse_argv_cfg('--filt')[0]
-            >>> case_pos_list = test_result.case_sample2(filt_cfg)
+            >>> case_pos_list = testres.case_sample2(filt_cfg)
             >>> result = ('case_pos_list = %s' % (str(case_pos_list),))
             >>> print(result)
             >>> # Extra stuff
-            >>> all_tags = test_result.get_all_tags()
+            >>> all_tags = testres.get_all_tags()
             >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
         if verbose is None:
             verbose = ut.NOT_QUIET
 
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
         # Initialize isvalid flags to all true
         is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
 
         import operator
         from functools import partial
 
-        #common_qaids = test_result.get_common_qaids()
+        #common_qaids = testres.get_common_qaids()
 
         #@ut.memoize
         #def get_num_casetags():
-        #    ibs = test_result.ibs
+        #    ibs = testres.ibs
         #    #gt_aids = truth2_prop['gt']['aid']
         #    #gf_aids = truth2_prop['gf']['aid']
         #    gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
@@ -994,19 +992,19 @@ class TestResult(object):
         #    return np.array([list(map(len, _tags)) for _tags in tags_list])
 
         #def compare_num_gf_tags(op, val):
-        #    num_gf_tags = map_num_tags(test_result.get_gf_tags())
+        #    num_gf_tags = map_num_tags(testres.get_gf_tags())
         #    return op(num_gf_tags, val)
 
         #def compare_num_gt_tags(op, val):
-        #    num_gt_tags = map_num_tags(test_result.get_gt_tags())
+        #    num_gt_tags = map_num_tags(testres.get_gt_tags())
         #    return op(num_gt_tags, val)
 
         #def compare_num_annot_tags(op, val):
-        #    num_gt_tags = map_num_tags(test_result.get_all_tags())
+        #    num_gt_tags = map_num_tags(testres.get_all_tags())
         #    return op(num_gt_tags, val)
 
         #def compare_num_tags(op, val):
-        #    num_tags = map_num_tags(test_result.get_all_tags())
+        #    num_tags = map_num_tags(testres.get_all_tags())
         #    return op(num_tags, val)
 
         #def in_tags(val, tags_list):
@@ -1045,31 +1043,31 @@ class TestResult(object):
         #    #return ~in_tags(val, tags_list)
 
         #def without_gf_tag(val):
-        #    gf_tags = test_result.get_gf_tags()
+        #    gf_tags = testres.get_gf_tags()
         #    return UTFF(gf_tags, has_none=val)
         #    #flags = notin_tags(val, gf_tags)
         #    #return flags
 
         #def without_gt_tag(val):
-        #    gt_tags = test_result.get_gt_tags()
+        #    gt_tags = testres.get_gt_tags()
         #    return UTFF(gt_tags, has_none=val)
         #    #flags = notin_tags(val, gt_tags)
         #    #return flags
 
         #def with_gt_tag(val):
-        #    gf_tags = test_result.get_gt_tags()
+        #    gf_tags = testres.get_gt_tags()
         #    return UTFF(gf_tags, has_any=val)
         #    #flags = in_tags(val, gf_tags)
         #    #return flags
 
         #def with_gf_tag(val):
-        #    gf_tags = test_result.get_gf_tags()
+        #    gf_tags = testres.get_gf_tags()
         #    return UTFF(gf_tags, has_any=val)
         #    #flags = in_tags(val, gf_tags)
         #    #return flags
 
         #def with_tag(val):
-        #    all_tags = test_result.get_all_tags()
+        #    all_tags = testres.get_all_tags()
         #    return UTFF(all_tags, has_any=val)
         #    #flags = in_tags(val, all_tags)
         #    #return flags
@@ -1085,23 +1083,23 @@ class TestResult(object):
             ('max_gf_timedelta', partial(operator.le, truth2_prop['gf']['timedelta'])),
 
             # Tag filtering
-            ('min_tags', lambda val: UTFF(test_result.get_all_tags(), min_num=val)),
-            ('max_tags', lambda val: UTFF(test_result.get_all_tags(), max_num=val)),
-            ('min_gf_tags', lambda val: UTFF(test_result.get_gf_tags(), min_num=val)),
-            ('max_gf_tags', lambda val: UTFF(test_result.get_gf_tags(), max_num=val)),
-            ('min_gt_tags', lambda val: UTFF(test_result.get_gt_tags(), min_num=val)),
-            ('max_gt_tags', lambda val: UTFF(test_result.get_gt_tags(), max_num=val)),
+            ('min_tags', lambda val: UTFF(testres.get_all_tags(), min_num=val)),
+            ('max_tags', lambda val: UTFF(testres.get_all_tags(), max_num=val)),
+            ('min_gf_tags', lambda val: UTFF(testres.get_gf_tags(), min_num=val)),
+            ('max_gf_tags', lambda val: UTFF(testres.get_gf_tags(), max_num=val)),
+            ('min_gt_tags', lambda val: UTFF(testres.get_gt_tags(), min_num=val)),
+            ('max_gt_tags', lambda val: UTFF(testres.get_gt_tags(), max_num=val)),
 
-            ('min_query_annot_tags', lambda val: UTFF(test_result.get_query_annot_tags(), min_num=val)),
-            ('min_gt_annot_tags', lambda val: UTFF(test_result.get_gt_annot_tags(), min_num=val)),
-            ('min_gtq_tags', lambda val: UTFF(test_result.get_gtquery_annot_tags(), min_num=val)),
-            ('max_gtq_tags', lambda val: UTFF(test_result.get_gtquery_annot_tags(), max_num=val)),
+            ('min_query_annot_tags', lambda val: UTFF(testres.get_query_annot_tags(), min_num=val)),
+            ('min_gt_annot_tags', lambda val: UTFF(testres.get_gt_annot_tags(), min_num=val)),
+            ('min_gtq_tags', lambda val: UTFF(testres.get_gtquery_annot_tags(), min_num=val)),
+            ('max_gtq_tags', lambda val: UTFF(testres.get_gtquery_annot_tags(), max_num=val)),
 
-            ('without_gf_tag', lambda val: UTFF(test_result.get_gf_tags(), has_none=val)),
-            ('without_gt_tag', lambda val: UTFF(test_result.get_gt_tags(), has_none=val)),
-            ('with_gf_tag', lambda val: UTFF(test_result.get_gf_tags(), has_any=val)),
-            ('with_gt_tag', lambda val: UTFF(test_result.get_gt_tags(), has_any=val)),
-            ('with_tag',    lambda val: UTFF(test_result.get_all_tags(), has_any=val)),
+            ('without_gf_tag', lambda val: UTFF(testres.get_gf_tags(), has_none=val)),
+            ('without_gt_tag', lambda val: UTFF(testres.get_gt_tags(), has_none=val)),
+            ('with_gf_tag', lambda val: UTFF(testres.get_gf_tags(), has_any=val)),
+            ('with_gt_tag', lambda val: UTFF(testres.get_gt_tags(), has_any=val)),
+            ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
 
         ]
         filt_cfg = filt_cfg.copy()
@@ -1118,7 +1116,7 @@ class TestResult(object):
                 filt_cfg[tdkey] = ut.ensure_timedelta(filt_cfg[tdkey])
 
         if verbose:
-            print('[test_result] Sampling from is_valid.size=%r with filt=%r' %
+            print('[testres] Sampling from is_valid.size=%r with filt=%r' %
                   (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
             print('  * is_valid.shape = %r' % (is_valid.shape,))
 
@@ -1153,7 +1151,7 @@ class TestResult(object):
         #    gt_ranks = truth2_prop['gt']['rank'][is_valid]
         #    gf_ranks = truth2_prop['gf']['rank'][is_valid]  # NOQA
         #    gt_aids = truth2_prop['gt']['aid'][is_valid]
-        #    qaids = test_result.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
+        #    qaids = testres.get_common_qaids()[np.logical_or.reduce(is_valid.T)]
 
         qx_list, cfgx_list = np.nonzero(is_valid)
 
@@ -1223,9 +1221,9 @@ class TestResult(object):
         case_pos_list = np.vstack((qx_list, cfgx_list)).T
         return case_pos_list
 
-    def case_type_sample(test_result, num_per_group=1, with_success=True,
+    def case_type_sample(testres, num_per_group=1, with_success=True,
                          with_failure=True, min_success_diff=0):
-        category_poses = test_result.partition_case_types(min_success_diff=min_success_diff)
+        category_poses = testres.partition_case_types(min_success_diff=min_success_diff)
         # STRATIFIED SAMPLE OF CASES FROM GROUPS
         #mode = 'failure'
         rng = np.random.RandomState(0)
@@ -1291,26 +1289,26 @@ class TestResult(object):
         return case_pos_list, case_labels_list
 
     @ut.memoize
-    def get_truth2_prop(test_result):
-        ibs = test_result.ibs
-        common_qaids = test_result.get_common_qaids()
+    def get_truth2_prop(testres):
+        ibs = testres.ibs
+        common_qaids = testres.get_common_qaids()
         #common_qaids = ut.random_sample(common_qaids, 20)
         truth2_prop = ut.ddict(ut.odict)
 
         # TODO: have this function take in a case_pos_list as input instead
 
-        truth2_prop['gt']['aid'] = test_result.get_infoprop_mat('qx2_gt_aid', common_qaids)
-        truth2_prop['gf']['aid'] = test_result.get_infoprop_mat('qx2_gf_aid', common_qaids)
-        truth2_prop['gt']['rank'] = test_result.get_infoprop_mat('qx2_gt_rank', common_qaids)
-        truth2_prop['gf']['rank'] = test_result.get_infoprop_mat('qx2_gf_rank', common_qaids)
+        truth2_prop['gt']['aid'] = testres.get_infoprop_mat('qx2_gt_aid', common_qaids)
+        truth2_prop['gf']['aid'] = testres.get_infoprop_mat('qx2_gf_aid', common_qaids)
+        truth2_prop['gt']['rank'] = testres.get_infoprop_mat('qx2_gt_rank', common_qaids)
+        truth2_prop['gf']['rank'] = testres.get_infoprop_mat('qx2_gf_rank', common_qaids)
 
-        truth2_prop['gt']['score'] = np.nan_to_num(test_result.get_infoprop_mat('qx2_gt_raw_score', common_qaids))
-        truth2_prop['gf']['score'] = np.nan_to_num(test_result.get_infoprop_mat('qx2_gf_raw_score', common_qaids))
+        truth2_prop['gt']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gt_raw_score', common_qaids))
+        truth2_prop['gf']['score'] = np.nan_to_num(testres.get_infoprop_mat('qx2_gf_raw_score', common_qaids))
 
         # Cast nans to ints
         for truth in ['gt', 'gf']:
             rank_mat = truth2_prop[truth]['rank']
-            rank_mat[np.isnan(rank_mat)] = test_result.get_worst_possible_rank()
+            rank_mat[np.isnan(rank_mat)] = testres.get_worst_possible_rank()
             truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
         # Rank difference
@@ -1340,7 +1338,7 @@ class TestResult(object):
         prop2_mat['is_failure'] = is_failure
         return truth2_prop, prop2_mat
 
-    def partition_case_types(test_result, min_success_diff=0):
+    def partition_case_types(testres, min_success_diff=0):
         """
         Category Definitions
            * Potential nondistinct cases: (probably more a failure to match query keypoints)
@@ -1353,12 +1351,12 @@ class TestResult(object):
         #ut.embed()
 
         # Matching labels from annotmatch rowid
-        truth2_prop, prop2_mat = test_result.get_truth2_prop()
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
         is_success = prop2_mat['is_success']
         is_failure = prop2_mat['is_failure']
 
         # Which queries differ in success
-        min_success_ratio = min_success_diff / (test_result.nConfig)
+        min_success_ratio = min_success_diff / (testres.nConfig)
         #qx2_cfgdiffratio = np.array([np.sum(flags) / len(flags) for flags in is_success])
         #qx2_isvalid = np.logical_and((1 - qx2_cfgdiffratio) >= min_success_ratio, min_success_ratio <= min_success_ratio)
         qx2_cfgdiffratio = np.array([
@@ -1368,7 +1366,7 @@ class TestResult(object):
         #qx2_configs_differed = np.array([len(np.unique(flags)) > min_success_diff for flags in is_success])
         #qx2_isvalid = qx2_configs_differed
 
-        ibs = test_result.ibs
+        ibs = testres.ibs
         type_getters = [
             ibs.get_annotmatch_is_photobomb,
             ibs.get_annotmatch_is_scenerymatch,
@@ -1391,7 +1389,7 @@ class TestResult(object):
                     truth2_is_type[truth][key] = is_type
 
         truth2_is_type['gt']['cfgxdiffers'] = np.tile(
-            (qx2_cfgdiffratio > 0), (test_result.nConfig, 1)).T
+            (qx2_cfgdiffratio > 0), (testres.nConfig, 1)).T
         truth2_is_type['gt']['cfgxsame']    = ~truth2_is_type['gt']['cfgxdiffers']
 
         # Make other category information
@@ -1456,7 +1454,7 @@ class TestResult(object):
         # Split up between different configurations
         if False:
             cfgx2_category_poses = ut.odict()
-            for cfgx in range(test_result.nConfig):
+            for cfgx in range(testres.nConfig):
                 cfg_category_poses = ut.odict()
                 for key, pos_dict in category_poses.items():
                     cfg_pos_dict = ut.odict()
@@ -1502,7 +1500,7 @@ class TestResult(object):
         #for key, val in key2_gf_is_type.items():
         #    print(val.sum())
 
-    def get_case_positions(test_result, mode='failure', disagree_first=True,
+    def get_case_positions(testres, mode='failure', disagree_first=True,
                            samplekw=None):
         """
         Helps get failure and success cases
@@ -1520,16 +1518,16 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_storage import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> ibs, test_result = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'], t=['default:K=[1,2]'])
             >>> mode = 'failure'
-            >>> new_hard_qx_list = test_result.get_case_positions(mode)
+            >>> new_hard_qx_list = testres.get_case_positions(mode)
             >>> result = ('new_hard_qx_list = %s' % (str(new_hard_qx_list),))
             >>> print(result)
         """
-        common_qaids = test_result.get_common_qaids()
+        common_qaids = testres.get_common_qaids()
         # look at scores of the best gt and gf
-        gf_score_mat = test_result.get_infoprop_mat('qx2_gf_raw_score', common_qaids)
-        gt_score_mat = test_result.get_infoprop_mat('qx2_gt_raw_score', common_qaids)
+        gf_score_mat = testres.get_infoprop_mat('qx2_gf_raw_score', common_qaids)
+        gt_score_mat = testres.get_infoprop_mat('qx2_gt_raw_score', common_qaids)
         #gf_score_mat[np.isnan(gf_score_mat)]
         #gt_score_mat[np.isnan(gf_score_mat)]
         # Nan gf scores are easier, Nan gt scores are harder
@@ -1648,14 +1646,14 @@ class TestResult(object):
         #print(diff_rank.take(row_sortx, axis=0))
         return interesting_qx_list
 
-    def interact_individual_result(test_result, qaid, cfgx=0):
-        #qaids = test_result.get_common_qaids()
-        ibs = test_result.ibs
+    def interact_individual_result(testres, qaid, cfgx=0):
+        #qaids = testres.get_common_qaids()
+        ibs = testres.ibs
         cfgx_list = ut.ensure_iterable(cfgx)
-        qreq_list = ut.list_take(test_result.cfgx2_qreq_, cfgx_list)
+        qreq_list = ut.list_take(testres.cfgx2_qreq_, cfgx_list)
         # Preload any requested configs
         qres_list = [qreq_.load_cached_qres(qaid) for qreq_ in qreq_list]
-        cfgx2_shortlbl = test_result.get_short_cfglbls()
+        cfgx2_shortlbl = testres.get_short_cfglbls()
         show_kwargs = {
             'N': 3,
             'ori': True,
@@ -1674,31 +1672,31 @@ class TestResult(object):
                 ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_,
                 **show_kwargs)
 
-    def reconstruct_test_flags(test_result):
-        if '_cfgstr' in test_result.common_cfgdict:
-            pipecfg_args = [test_result.common_cfgdict['_cfgstr']]
+    def reconstruct_test_flags(testres):
+        if '_cfgstr' in testres.common_cfgdict:
+            pipecfg_args = [testres.common_cfgdict['_cfgstr']]
         else:
             pipecfg_args = ut.unique_keep_order2(
-                [cfg['_cfgstr'] for cfg in test_result.varied_cfg_list])
+                [cfg['_cfgstr'] for cfg in testres.varied_cfg_list])
 
-        if '_cfgstr' in test_result.common_acfg['common']:
-            annotcfg_args = [test_result.common_acfg['common']['_cfgstr']]
+        if '_cfgstr' in testres.common_acfg['common']:
+            annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
         else:
             annotcfg_args = ut.unique_keep_order2([
                 acfg['common']['_cfgstr']
-                for acfg in test_result.varied_acfg_list])
+                for acfg in testres.varied_acfg_list])
         flagstr =  ' '.join([
             '-a ' + ' '.join(annotcfg_args),
             '-t ' + ' ' .join(pipecfg_args),
-            '--db ' + test_result.ibs.get_dbname()
+            '--db ' + testres.ibs.get_dbname()
         ])
         return flagstr
 
-    def draw_rank_cdf(test_result):
+    def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing
-        experiment_drawing.draw_rank_cdf(test_result.ibs, test_result)
+        experiment_drawing.draw_rank_cdf(testres.ibs, testres)
 
-    def find_score_thresh_cutoff(test_result):
+    def find_score_thresh_cutoff(testres):
         """
         FIXME
         DUPLICATE CODE
@@ -1710,15 +1708,15 @@ class TestResult(object):
             print('[dev] annotationmatch_scores')
         #from ibeis.expt import cfghelpers
 
-        assert len(test_result.cfgx2_qreq_) == 1, 'can only specify one config here'
+        assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
         cfgx = 0
-        #qreq_ = test_result.cfgx2_qreq_[cfgx]
-        common_qaids = test_result.get_common_qaids()
-        gt_rawscore = test_result.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-        gf_rawscore = test_result.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+        #qreq_ = testres.cfgx2_qreq_[cfgx]
+        common_qaids = testres.get_common_qaids()
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
         # FIXME: may need to specify which cfg is used in the future
-        #isvalid = test_result.case_sample2(filt_cfg, return_mask=True).T[cfgx]
+        #isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
         tp_nscores = gt_rawscore
         tn_nscores = gf_rawscore
@@ -1746,18 +1744,18 @@ class TestResult(object):
         #pt.plot(x_submax, y_submax, 'o')
         return score_thresh
 
-    def print_percent_identification_success(test_result):
+    def print_percent_identification_success(testres):
         """
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_drawing import *  # NOQA
         """
-        ibs = test_result.ibs
-        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(test_result.qaids))
-        test_result.cfgx2_cfgresinfo[0].keys()
-        #rankmat = test_result.get_rank_mat()
-        qx2_gt_raw_score = test_result.get_infoprop_mat('qx2_gt_raw_score')
-        qx2_gf_raw_score = test_result.get_infoprop_mat('qx2_gf_raw_score')
+        ibs = testres.ibs
+        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(testres.qaids))
+        testres.cfgx2_cfgresinfo[0].keys()
+        #rankmat = testres.get_rank_mat()
+        qx2_gt_raw_score = testres.get_infoprop_mat('qx2_gt_raw_score')
+        qx2_gf_raw_score = testres.get_infoprop_mat('qx2_gf_raw_score')
         nx2_gt_raw_score = np.array([
             ut.safe_max(scores)
             for scores in vt.apply_grouping(qx2_gt_raw_score, groupxs)])

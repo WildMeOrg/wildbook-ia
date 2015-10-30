@@ -22,20 +22,20 @@ def test_configurations(ibs, acfgstr_name_list, test_cfg_name_list):
         >>> ut.show_if_requested()
     """
 
-    test_result_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
+    testres_list = run_test_configurations2(ibs, acfgstr_name_list, test_cfg_name_list)
 
-    for test_result in test_result_list:
-        if test_result is None:
+    for testres in testres_list:
+        if testres is None:
             return
         else:
-            experiment_printres.print_results(ibs, test_result)
-            experiment_drawing.draw_results(ibs, test_result)
-    return test_result_list
+            experiment_printres.print_results(ibs, testres)
+            experiment_drawing.draw_results(ibs, testres)
+    return testres_list
 
 
 
-#def get_cmdline_test_result():
+#def get_cmdline_testres():
 #    ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
 #    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
-#    test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
-#    return ibs, test_result
+#    testres = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+#    return ibs, testres

@@ -48,12 +48,12 @@ class ResultMetadata(object):
     def set_global_data(metadata, cfgstr, qaid, key, val):
         metadata.dictstore[cfgstr][qaid][key] = val
 
-    def sync_test_results(metadata, test_result):
+    def sync_test_results(metadata, testres):
         """ store all test results in the shelf """
-        for cfgx in range(len(test_result.cfgx2_qreq_)):
-            cfgstr = test_result.get_cfgstr(cfgx)
-            qaids = test_result.qaids
-            cfgresinfo = test_result.cfgx2_cfgresinfo[cfgx]
+        for cfgx in range(len(testres.cfgx2_qreq_)):
+            cfgstr = testres.get_cfgstr(cfgx)
+            qaids = testres.qaids
+            cfgresinfo = testres.cfgx2_cfgresinfo[cfgx]
             for key, val_list in six.iteritems(cfgresinfo):
                 for qaid, val in zip(qaids, val_list):
                     metadata.set_global_data(cfgstr, qaid, key, val)
