@@ -202,6 +202,10 @@ class QueryResult(__OBJECT_BASE__):
         # HACK for keeping interactions alive
         qres._live_interactions = []
 
+    def as_chipmatch(qres):
+        from ibeis.model.hots import chip_match
+        return chip_match.ChipMatch2.from_qres(qres)
+
     def get_fm_list(qres):
         """
         returns list of fm's wrt database annotation ids

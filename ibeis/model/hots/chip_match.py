@@ -490,6 +490,25 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         name_scores = vt.list_take_(cm.name_score_list, nidx_list)
         return name_scores
 
+    def get_ranked_nids(cm):
+        sortx = cm.name_score_list.argsort()[::-1]
+        sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
+        sorted_nids = cm.unique_nids.take(sortx, axis=0)
+        return sorted_nids, sorted_name_scores
+
+    def get_ranked_nids_and_aids(cm):
+        sortx = cm.name_score_list.argsort()[::-1]
+        sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
+        sorted_nids = cm.unique_nids.take(sortx, axis=0)
+        sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+        sorted_daids = vt.apply_grouping(cm.daid_list,  sorted_groupxs)
+        sorted_annot_scores = vt.apply_grouping(cm.annot_score_list,  sorted_groupxs)
+        # do subsorting
+        subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
+        subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
+        #subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
+        return sorted_nids, sorted_name_scores, subsorted_daids
+
     def get_num_matches_list(cm):
         num_matches_list = list(map(len, cm.fm_list))
         return num_matches_list
@@ -1095,10 +1114,15 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 
+    def as_qres(cm, qreq_):
+        from ibeis.model.hots import match_chips4
+        assert qreq_ is not None
+        qres = match_chips4.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        return qres
+
     def ishow_analysis(cm, qreq_, **kwargs):
-        from ibeis.model.hots import pipeline
         # hack: just make chipmatch the primary result type
-        qres = pipeline.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        qres = cm.as_qres(qreq_)
         kwshow = {
             'show_query': False,
             'show_timedelta': True,

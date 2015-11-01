@@ -59,10 +59,11 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
         >>> stripsource = ut.strip_line_comments(stripsource)
         >>> print(stripsource)
     """
+    from ibeis.model.hots.match_chips4 import chipmatch_to_resdict
     from ibeis.model.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         build_chipmatches, spatial_verification,
-        chipmatch_to_resdict, vsone_reranking, build_impossible_daids_list)
+        vsone_reranking, build_impossible_daids_list)
 
     qreq_.lazy_load(verbose=verbose)
     #---

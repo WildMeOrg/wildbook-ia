@@ -47,18 +47,16 @@ CommandLine:
 """
 
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, range
-import six
+from six.moves import zip, range, map, filter  # NOQA
+import six  # NOQA
 import numpy as np
 import vtool as vt
 from vtool import keypoint as ktool
 from vtool import spatial_verification as sver
-from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes  # NOQA
 from ibeis.model.hots import chip_match
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import scoring
-from ibeis.model.hots import exceptions as hsexcept
 from ibeis.model.hots import _pipeline_helpers as plh
 import utool as ut
 #profile = ut.profile
@@ -123,33 +121,34 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
 
     Example1:
-        >>> # one-vs-many:
         >>> # ENABLE_DOCTEST
+        >>> # one-vs-many:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> cfgdict = dict(codename='vsmany')
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
         >>> print(qreq_.qparams.query_cfgstr)
         >>> verbose = True
-        >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
-        >>> qres = qaid2_qres[list(qaid2_qres.keys())[0]]
+        >>> cm_list = request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
+        >>> cm = cm_list[0]
         >>> ut.quit_if_noshow()
-        >>> qres.ishow_analysis(ibs, fnum=0, make_figtitle=True)
+        >>> cm.ishow_analysis(qreq_, fnum=0, make_figtitle=True)
         >>> print(qres.get_inspect_str())
         >>> ut.show_if_requested()
 
     Example2:
-        >>> # one-vs-one:
         >>> # ENABLE_DOCTEST
+        >>> # one-vs-one:
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=False)
         >>> ibs1, qreq_1 = plh.get_pipeline_testdata(cfgdict=cfgdict1)
         >>> print(qreq_1.qparams.query_cfgstr)
-        >>> qaid2_qres1 = request_ibeis_query_L0(ibs1, qreq_1)
-        >>> qres1 = qaid2_qres1[list(qaid2_qres1.keys())[0]]
+        >>> cm_list1 = request_ibeis_query_L0(ibs1, qreq_1)
+        >>> cm1 = cm_list1[0]
         >>> ut.quit_if_noshow()
-        >>> qres1.ishow_analysis(ibs1, fnum=1, make_figtitle=True)
+        >>> cm1.ishow_analysis(qreq_1, fnum=1, make_figtitle=True)
+        >>> qres1 = cm1.as_qres(qreq_1)
         >>> print(qres1.get_inspect_str())
         >>> ut.show_if_requested()
 
@@ -221,35 +220,31 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     # Query results format (qaid2_qres)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qaid2_qres_ = chipmatch_to_resdict(qreq_, qaid2_chipmatch_,
-                                       verbose=verbose)
+    #qaid2_qres_ = chipmatch_to_resdict(qreq_, qaid2_chipmatch_,
+    #                                   verbose=verbose)
 
     # <HACK>
     # FOR VSMANY DISTINCTIVENSS
-    if qreq_.qparams.return_expanded_nns:
-        assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
-        # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
-        # BREAKS PIPELINE CACHING ASSUMPTIONS
-        # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
-        # CAUSES TOO MUCH DATA TO BE SAVED
-        for qaid, nns in zip(qreq_.get_external_qaids(), nns_list):
-            # TODO: hook up external neighbor mechanism?
-            # No, not here, further down.
-            (qfx2_idx, qfx2_dist) = nns
-            qres = qaid2_qres_[qaid]
-            qres.qfx2_dist = qfx2_dist
-            msg_list = [
-                #'qres.qfx2_daid = ' + ut.get_object_size_str(qres.qfx2_daid),
-                #'qres.qfx2_dfx = ' + ut.get_object_size_str(qres.qfx2_dfx),
-                'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
-            ]
-            print('\n'.join(msg_list))
+    #if qreq_.qparams.return_expanded_nns:
+    #    assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
+    #    # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
+    #    # BREAKS PIPELINE CACHING ASSUMPTIONS
+    #    # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
+    #    # CAUSES TOO MUCH DATA TO BE SAVED
+    #    qres_list = ut.dict_take(qaid2_qres_, qreq_.get_external_qaids())
+    #    for qaid, nns in zip(qres_list, nns_list):
+    #        qres = qaid2_qres_[qaid]
+    #        qres.qfx2_dist = nns[1]
+    #        msg_list = [
+    #            'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
+    #        ]
+    #        print('\n'.join(msg_list))
     # </HACK>
 
     if VERB_PIPELINE:
         print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
 
-    return qaid2_qres_
+    return qaid2_chipmatch_
 
 #============================
 # 0) Nearest Neighbors
@@ -531,8 +526,6 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # Verbose statistics reporting
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
-    #if USE_NN_MID_CACHE:
-    #    ut.save_cache(neighbor_cachedir, 'neighbs', nn_mid_cacheid, nns_list)
     #if qreq_.qparams.with_metadata:
     #    qreq_.metadata['nns'] = nns_list
     return nns_list
@@ -597,7 +590,6 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
 #============================
 
 
-#@ut.indent_func('[wn]')
 @profile
 def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     """
@@ -704,7 +696,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 #============================
 
 
-#@ut.indent_func('[bc]')
 @profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
                       filtweights_list, filtvalids_list,
@@ -797,9 +788,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
             valid_match_tup, qaid=qaid, fsv_col_lbls=filtkey_list)
             for valid_match_tup, qaid in zip(valid_match_tup_list, intern_qaid_iter)]
     return cm_list
-    # build vsmany dict output
-    #cm_list = dict(zip(external_qaids, cm_list))
-    #return cm_list
 
 
 @profile
@@ -864,14 +852,6 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
     # The q/d's are all internal here, thus in vsone they swap
     valid_match_tup = (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank)
     return valid_match_tup
-
-
-#============================
-# 4.5) Shortlisting
-#============================
-
-
-#@ut.indent_func('[scm]')
 
 
 #============================
@@ -942,7 +922,6 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         return cm_list_SVER
 
 
-#@ut.indent_func('[_sv]')
 @profile
 def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     """
@@ -958,7 +937,6 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     nNameShortList  = qreq_.qparams.nNameShortlistSVER
     nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
-    #qaid2_svtups = {} if with_metadata else None
     # Just in case we are csum scoring, this needs to be computed
     for cm in cm_list:
         cm.evaluate_dnids(qreq_.ibs)
@@ -971,19 +949,6 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist),
                                   prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
-    #cm_list_SVER = []
-    #for cm in cm_progiter:
-    #    pass
-    #    # Find a transform from chip2 to chip1 (the old way was 1 to 2)
-    #    # Get information for sver, query keypoints, diaglen
-    #    #cmSV, daid2_svtup = sver_single_chipmatch(qreq_, cm)
-    #    cmSV = sver_single_chipmatch(qreq_, cm)
-    #    #if with_metadata:
-    #    #    qaid2_svtups[cm.qaid] = daid2_svtup
-    #    # Rebuild the feature match / score arrays to be consistent
-    #    cm_list_SVER.append(cmSV)
-    #if with_metadata:
-    #    qreq_.metadata['qaid2_svtups'] = qaid2_svtups
     return cm_list_SVER
 
 
@@ -991,8 +956,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 def sver_single_chipmatch(qreq_, cm):
     """
     loops over a shortlist of results for a specific query annotation
-
-    python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
+    python -m ibeis --tf chipmatch_to_resdict:1
 
     """
     qaid = cm.qaid
@@ -1004,7 +968,6 @@ def sver_single_chipmatch(qreq_, cm):
     full_homog_checks = qreq_.qparams.full_homog_checks
     sver_output_weighting  = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
-    #daid2_svtup = {} if qreq_.qparams.with_metadata else None
     kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
     kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list, config2_=qreq_.get_external_data_config2())
     if use_chip_extent:
@@ -1019,10 +982,6 @@ def sver_single_chipmatch(qreq_, cm):
         # Weights for inlier scoring
         qweights = scoring.get_annot_kpts_baseline_weights(
             qreq_.ibs, [qaid], config2_=config2_, config=config2_)[0].astype(np.float64)
-        #if False:
-        #    #num_query_feats = qreq_.ibs.get_annot_num_feats(qaid,
-        #    config2_=qreq_.get_external_query_config2())
-        #    #assert all([fm.max(axis=0)[0] < num_query_feats for fm in cm.fm_list])
         match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
     else:
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
@@ -1043,7 +1002,6 @@ def sver_single_chipmatch(qreq_, cm):
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers, match_weights=match_weights,
                     full_homog_checks=full_homog_checks, returnAff=False)
-                # returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
@@ -1060,10 +1018,6 @@ def sver_single_chipmatch(qreq_, cm):
     fsv_list    = ut.filterfalse_items(cm.fsv_list, isnone_list)
     fk_list     = ut.filterfalse_items(cm.fk_list, isnone_list)
 
-    #if qreq_.qparams.with_metadata:
-    #    for sv_tup, daid in zip(svtup_list_, daid_list):
-    #        daid2_svtup[daid] = sv_tup
-
     sver_matchtup_list = []
     fsv_col_lbls = cm.fsv_col_lbls[:]
     if sver_output_weighting:
@@ -1077,14 +1031,11 @@ def sver_single_chipmatch(qreq_, cm):
         fk_SV  = fk.take(homog_inliers, axis=0)
         if sver_output_weighting:
             # Rescore based on homography errors
-            #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
             xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
             homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
             homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
-            #with ut.EmbedOnException():
             homog_err_weight.shape = (homog_err_weight.size, 1)
             fsv_SV = np.concatenate((fsv_SV, homog_err_weight), axis=1)
-            #fsv_SV = np.hstack((fsv_SV, homog_err_weight))
         sver_matchtup_list.append((fm_SV, fsv_SV, fk_SV, H))
 
     fm_list_SV  = ut.get_list_column(sver_matchtup_list, 0)
@@ -1097,7 +1048,7 @@ def sver_single_chipmatch(qreq_, cm):
         fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
         H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,
         fsv_col_lbls=fsv_col_lbls)
-    return cmSV  # , daid2_svtup
+    return cmSV
 
 
 def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
@@ -1124,8 +1075,8 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     # Use extent of matching keypoints
     # first get matching keypoints
     fx2_list = [fm.T[1] for fm in fm_list]
-    kpts2_m_list = [kpts.take(fx2, axis=0)
-                    for (kpts, fx2) in zip(kpts_list, fx2_list)]
+    kpts2_m_list = vt.ziptake(kpts_list, fx2_list)
+    #[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
     dlen_sqrd_list = [ktool.get_kpts_dlen_sqrd(kpts2_m)
                       for kpts2_m in kpts2_m_list]
     return dlen_sqrd_list
@@ -1165,140 +1116,6 @@ def vsone_reranking(qreq_, cm_list, verbose=VERB_PIPELINE):
         print('Step 5.5ish) vsone reranking')
     cm_list_VSONE = vsone_pipeline.vsone_reranking(qreq_, cm_list, verbose)
     return cm_list_VSONE
-
-
-#============================
-# 6) Query Result Format
-#============================
-
-
-@profile
-def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
-    """
-    Converts a dictionary of cmtup_old tuples into a dictionary of query results
-
-    Args:
-        cm_list (dict):
-        qreq_ (QueryRequest): hyper-parameters
-
-    Returns:
-        qaid2_qres
-
-    CommandLine:
-        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
-        python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
-        python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
-        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict --GZ_ALL --allgt
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 5])
-        >>> qaid2_qres = chipmatch_to_resdict(qreq_, cm_list)
-        >>> qres = qaid2_qres[1]
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> cfgdict = dict(sver_output_weighting=True)
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2], cfgdict=cfgdict)
-        >>> qaid2_qres = chipmatch_to_resdict(qreq_, cm_list)
-        >>> qres = qaid2_qres[1]
-        >>> num_filtkeys = len(qres.filtkey_list)
-        >>> ut.assert_eq(num_filtkeys, qres.aid2_fsv[2].shape[1])
-        >>> ut.assert_eq(num_filtkeys, 3)
-        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 150)
-        >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1)), 'math is broken'
-
-    """
-    if verbose:
-        print('[hs] Step 6) Convert chipmatch -> qres')
-    # Matchable daids
-    external_qaids   = qreq_.get_external_qaids()
-    # Create the result structures for each query.
-    qres_list = qreq_.make_empty_query_results()
-    # Perform final scoring
-    # TODO: only score if already unscored
-    score_method = qreq_.qparams.score_method
-    scoring.score_chipmatch_list(qreq_, cm_list, score_method)
-    # Normalize scores if requested
-    if qreq_.qparams.score_normalization:
-        normalizer = qreq_.normalizer
-        for cm in cm_list:
-            cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-    for qaid, qres, cm in zip(external_qaids, qres_list, cm_list):
-        assert qaid == cm.qaid
-        assert qres.qaid == qaid
-        #ut.assert_eq(qaid, cm.qaid)
-        qres.filtkey_list = cm.fsv_col_lbls
-        aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
-        aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
-        aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
-        aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
-        aid2_score = dict(zip(cm.daid_list, cm.score_list))
-        aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-        aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.p))
-        qres.aid2_fm    = aid2_fm
-        qres.aid2_fsv   = aid2_fsv
-        qres.aid2_fs    = aid2_fs
-        qres.aid2_fk    = aid2_fk
-        qres.aid2_score = aid2_score
-        qres.aid2_prob = aid2_prob
-        qres.aid2_H = aid2_H
-    # Build dictionary structure to maintain functionality
-    qaid2_qres = {qaid: qres for qaid, qres in zip(external_qaids, qres_list)}
-    return qaid2_qres
-
-
-#============================
-# Result Caching
-#============================
-
-
-#@ut.indent_func('[tlr]')
-@profile
-def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
-    """
-    Try and load the result structures for each query.
-    returns a list of failed qaids
-    """
-    qaids   = qreq_.get_external_qaids()
-    qauuids = qreq_.get_external_quuids()
-    daids   = qreq_.get_external_daids()
-
-    cfgstr = qreq_.get_cfgstr()
-    qresdir = qreq_.get_qresdir()
-    qaid2_qres_hit = {}
-    #cachemiss_qaids = []
-    # TODO: could prefiler paths that don't exist
-    for qaid, qauuid in zip(qaids, qauuids):
-        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-        try:
-            qres.load(qresdir, force_miss=force_miss, verbose=verbose)  # 77.4 % time
-        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError) as ex:
-            if ut.VERYVERBOSE:
-                ut.printex(ex, iswarning=True)
-            #cachemiss_qaids.append(qaid)  # cache miss
-        else:
-            qaid2_qres_hit[qaid] = qres  # cache hit
-    return qaid2_qres_hit  # , cachemiss_qaids
-
-
-@profile
-def save_resdict(qreq_, qaid2_qres, verbose=VERB_PIPELINE):
-    """
-    Saves a dictionary of query results to disk
-    """
-    qresdir = qreq_.get_qresdir()
-    if verbose:
-        print('[hs] saving %d query results' % len(qaid2_qres))
-    for qres in six.itervalues(qaid2_qres):
-        qres.save(qresdir)
-
-
-#============================
-# Testdata
-#============================
 
 
 if __name__ == '__main__':

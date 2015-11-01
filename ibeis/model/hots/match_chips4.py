@@ -6,6 +6,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #from ibeis.model.hots import query_request
+from ibeis.model.hots import hots_query_result
+from ibeis.model.hots import exceptions as hsexcept
 from ibeis.model.hots import pipeline
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[mc4]')
@@ -265,15 +267,145 @@ def execute_query2(ibs, qreq_, verbose, save_qcache):
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
-        __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, sub_qreq_, verbose=verbose)
+        __cm_list = pipeline.request_ibeis_query_L0(ibs, sub_qreq_, verbose=verbose)
+        __qaid2_qres = chipmatch_to_resdict(qreq_, __cm_list, verbose=verbose)
         if save_qcache:
-            pipeline.save_resdict(sub_qreq_, __qaid2_qres, verbose=verbose)
+            save_resdict(sub_qreq_, __qaid2_qres, verbose=verbose)
         else:
             if ut.VERBOSE:
                 print('[mc4] not saving vsmany chunk')
         qaid2_qres.update(__qaid2_qres)
     return qaid2_qres
 
+
+#============================
+# Result Caching
+#============================
+
+@profile
+def chipmatch_to_resdict(qreq_, cm_list, verbose=pipeline.VERB_PIPELINE):
+    """
+    Converts a dictionary of cmtup_old tuples into a dictionary of query results
+
+    Args:
+        cm_list (dict):
+        qreq_ (QueryRequest): hyper-parameters
+
+    Returns:
+        qaid2_qres
+
+    CommandLine:
+        python -m ibeis --tf chipmatch_to_resdict
+        python -m ibeis --tf chipmatch_to_resdict:1
+        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
+        utprof.py -m ibeis --tf chipmatch_to_resdict --GZ_ALL --allgt
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 5])
+        >>> qaid2_qres = chipmatch_to_resdict(qreq_, cm_list)
+        >>> qres = qaid2_qres[1]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> cfgdict = dict(sver_output_weighting=True)
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2], cfgdict=cfgdict)
+        >>> qaid2_qres = chipmatch_to_resdict(qreq_, cm_list)
+        >>> qres = qaid2_qres[1]
+        >>> num_filtkeys = len(qres.filtkey_list)
+        >>> ut.assert_eq(num_filtkeys, qres.aid2_fsv[2].shape[1])
+        >>> ut.assert_eq(num_filtkeys, 3)
+        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 150)
+        >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1)), 'math is broken'
+
+    """
+    if verbose:
+        print('[hs] Step 6) Convert chipmatch -> qres')
+
+    from ibeis.model.hots import scoring
+    # Matchable daids
+    external_qaids   = qreq_.get_external_qaids()
+    # Create the result structures for each query.
+    qres_list = qreq_.make_empty_query_results()
+    # Perform final scoring
+    # TODO: only score if already unscored
+    score_method = qreq_.qparams.score_method
+    scoring.score_chipmatch_list(qreq_, cm_list, score_method)
+    # Normalize scores if requested
+    if qreq_.qparams.score_normalization:
+        normalizer = qreq_.normalizer
+        for cm in cm_list:
+            cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+    for qaid, qres, cm in zip(external_qaids, qres_list, cm_list):
+        assert qaid == cm.qaid
+        assert qres.qaid == qaid
+        #ut.assert_eq(qaid, cm.qaid)
+        qres.filtkey_list = cm.fsv_col_lbls
+        aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
+        aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
+        aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
+        aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
+        aid2_score = dict(zip(cm.daid_list, cm.score_list))
+        aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
+        aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.p))
+        qres.aid2_fm    = aid2_fm
+        qres.aid2_fsv   = aid2_fsv
+        qres.aid2_fs    = aid2_fs
+        qres.aid2_fk    = aid2_fk
+        qres.aid2_score = aid2_score
+        qres.aid2_prob = aid2_prob
+        qres.aid2_H = aid2_H
+    # Build dictionary structure to maintain functionality
+    qaid2_qres = {qaid: qres for qaid, qres in zip(external_qaids, qres_list)}
+    return qaid2_qres
+
+
+#@ut.indent_func('[tlr]')
+@profile
+def try_load_resdict(qreq_, force_miss=False, verbose=pipeline.VERB_PIPELINE):
+    """
+    Try and load the result structures for each query.
+    returns a list of failed qaids
+
+    python -m utool --tf grep_projects --find try_load_resdict
+    """
+    qaids   = qreq_.get_external_qaids()
+    qauuids = qreq_.get_external_quuids()
+    daids   = qreq_.get_external_daids()
+
+    cfgstr = qreq_.get_cfgstr()
+    qresdir = qreq_.get_qresdir()
+    qaid2_qres_hit = {}
+    #cachemiss_qaids = []
+    # TODO: could prefiler paths that don't exist
+    for qaid, qauuid in zip(qaids, qauuids):
+        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+        try:
+            qres.load(qresdir, force_miss=force_miss, verbose=verbose)  # 77.4 % time
+        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError) as ex:
+            if ut.VERYVERBOSE:
+                ut.printex(ex, iswarning=True)
+            #cachemiss_qaids.append(qaid)  # cache miss
+        else:
+            qaid2_qres_hit[qaid] = qres  # cache hit
+    return qaid2_qres_hit  # , cachemiss_qaids
+
+
+@profile
+def save_resdict(qreq_, qaid2_qres, verbose=pipeline.VERB_PIPELINE):
+    """
+    Saves a dictionary of query results to disk
+
+    python -m utool --tf grep_projects --find save_resdict
+    """
+    qresdir = qreq_.get_qresdir()
+    if verbose:
+        print('[hs] saving %d query results' % len(qaid2_qres))
+    save_gen = (qres.save(qresdir) for qres in six.itervalues(qaid2_qres))
+    for _ in save_gen:
+        pass
 
 if __name__ == '__main__':
     """

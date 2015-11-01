@@ -277,12 +277,21 @@ def get_qres_name_result_info(ibs, qres):
        and the difference
 
     """
-    qaid = qres.get_qaid()
-    qnid = ibs.get_annot_name_rowids(qaid)
-    nscoretup = qres.get_nscoretup(ibs)
-    (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
-    #sorted_score_diff = -np.diff(sorted_nscores.tolist())
-    sorted_nids = np.array(sorted_nids)
+    if False:
+        cm = qres.as_chipmatch()
+        #cm.score_nsum(qreq_)
+        qaid = cm.qaid
+        qnid = cm.qnid
+        nscoretup = cm.get_ranked_nids_and_aids()
+        sorted_nids, sorted_nscores, sorted_aids = nscoretup
+    else:
+        qaid = qres.get_qaid()
+        qnid = ibs.get_annot_name_rowids(qaid)
+        #nscoretup = qres.get_nscoretup(ibs)
+        #(sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
+        sorted_nids = np.array(sorted_nids)
+        #sorted_score_diff = -np.diff(sorted_nscores.tolist())
+
     is_positive  = sorted_nids == qnid
     is_negative = np.logical_and(~is_positive, sorted_nids > 0)
     gt_rank = None if not np.any(is_positive) else np.where(is_positive)[0][0]
@@ -398,10 +407,24 @@ def get_query_result_info(qreq_):
     # Get the groundtruth that could have been matched in this experiment
     qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
 
-    # TODO: change qres to chipmatch and make multi-chipmatch
+    ibs = qreq_.ibs
+    if True:
+        # TODO: change qres to chipmatch and make multi-chipmatch
+        ut.embed()
+        import vtool as vt
+        cm_list = [qres.as_chipmatch() for qres in qx2_qres]
+        for cm in cm_list:
+            cm.score_nsum(qreq_)
+        qaids = qreq_.get_external_qaids()
+        qnids = ibs.get_annot_name_rowids(qaids)
+        groupxs = vt.group_indices(qnids)[1]
+        cm_group_list = vt.apply_grouping_(cm_list, groupxs)
+        for cm_group in cm_group_list:
+            group_name_score_list = np.array(
+                [cm.name_score_list for cm in cm_group]).max(axis=0)
+
     qaids = qreq_.get_external_qaids()
     daids = qreq_.get_external_daids()
-    ibs = qreq_.ibs
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
     qx2_qresinfo = [get_qres_name_result_info(ibs, qres) for qres in qx2_qres]
