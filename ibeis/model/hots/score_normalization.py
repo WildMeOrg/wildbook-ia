@@ -684,7 +684,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> ibeis._init_numpy()
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
-        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
+        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10:2]
         >>> cfgdict = dict(codename='vsone_unnorm')
         >>> use_cache = True
         >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True)

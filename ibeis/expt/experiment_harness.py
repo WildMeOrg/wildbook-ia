@@ -138,7 +138,7 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
         repodir = dirname(ut.get_module_dir(ibeis))
         bt_cachedir = join(repodir, 'BIG_TEST_CACHE')
     else:
-        bt_cachedir = './BIG_TEST_CACHE'
+        bt_cachedir = './localdata/BIG_TEST_CACHE'
     ut.ensuredir(bt_cachedir)
     bt_cachestr = ut.hashstr_arr27([
         qreq_.get_cfgstr(with_query=True)

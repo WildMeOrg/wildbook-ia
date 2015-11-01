@@ -967,67 +967,6 @@ class TestResult(object):
         import operator
         from functools import partial
 
-        #common_qaids = testres.get_common_qaids()
-
-        #@ut.memoize
-        #def get_num_casetags():
-        #    ibs = testres.ibs
-        #    #gt_aids = truth2_prop['gt']['aid']
-        #    #gf_aids = truth2_prop['gf']['aid']
-        #    gt_annotmatch_rowids = truth2_prop['gt']['annotmatch_rowid']
-        #    gt_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gt_annotmatch_rowids)
-        #    num_gt_tags = np.array([list(map(len, _gt_tags)) for _gt_tags in gt_tags])
-        #    gf_annotmatch_rowids = truth2_prop['gf']['annotmatch_rowid']
-
-        #    #gt_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gt_aids) for _gt_aids in gt_aids.T]
-        #    #gf_annotmatch_rowids = [ibs.get_annotmatch_rowid_from_superkey(common_qaids, _gf_aids) for _gf_aids in gf_aids.T]
-
-        #    gf_tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, gf_annotmatch_rowids)
-
-        #    # get matrix of num tags
-        #    num_gf_tags = np.array([list(map(len, _gf_tags)) for _gf_tags in gf_tags])
-        #    return num_gt_tags, num_gf_tags
-
-        #def map_num_tags(tags_list):
-        #    return np.array([list(map(len, _tags)) for _tags in tags_list])
-
-        #def compare_num_gf_tags(op, val):
-        #    num_gf_tags = map_num_tags(testres.get_gf_tags())
-        #    return op(num_gf_tags, val)
-
-        #def compare_num_gt_tags(op, val):
-        #    num_gt_tags = map_num_tags(testres.get_gt_tags())
-        #    return op(num_gt_tags, val)
-
-        #def compare_num_annot_tags(op, val):
-        #    num_gt_tags = map_num_tags(testres.get_all_tags())
-        #    return op(num_gt_tags, val)
-
-        #def compare_num_tags(op, val):
-        #    num_tags = map_num_tags(testres.get_all_tags())
-        #    return op(num_tags, val)
-
-        #def in_tags(val, tags_list):
-        #    #if '&' in val:
-        #    #    logop = all
-        #    #    vals = val.split('&')
-        #    #elif '|' in val:
-        #    #    logop = any
-        #    #    vals = val.split('|')
-        #    #else:
-        #    logop = any
-        #    vals = [val]
-
-        #    vals = [v.lower() for v in vals]
-        #    lower_tags = [
-        #        [[_.lower() for _ in t] for t in tags]
-        #        for tags in tags_list]
-
-        #    flags = np.array([
-        #        [logop([v in t for v in vals]) for t in tags]
-        #        for tags in lower_tags])
-        #    return flags
-
         def unflat_tag_filterflags(tags_list, **kwargs):
             #ut.embed()
             from ibeis import tag_funcs
@@ -1037,40 +976,6 @@ class TestResult(object):
             return flags
 
         UTFF = unflat_tag_filterflags
-
-        #def notin_tags(val, tags_list):
-        #    return UTFF(tags_list, has_none=val)
-        #    #return ~in_tags(val, tags_list)
-
-        #def without_gf_tag(val):
-        #    gf_tags = testres.get_gf_tags()
-        #    return UTFF(gf_tags, has_none=val)
-        #    #flags = notin_tags(val, gf_tags)
-        #    #return flags
-
-        #def without_gt_tag(val):
-        #    gt_tags = testres.get_gt_tags()
-        #    return UTFF(gt_tags, has_none=val)
-        #    #flags = notin_tags(val, gt_tags)
-        #    #return flags
-
-        #def with_gt_tag(val):
-        #    gf_tags = testres.get_gt_tags()
-        #    return UTFF(gf_tags, has_any=val)
-        #    #flags = in_tags(val, gf_tags)
-        #    #return flags
-
-        #def with_gf_tag(val):
-        #    gf_tags = testres.get_gf_tags()
-        #    return UTFF(gf_tags, has_any=val)
-        #    #flags = in_tags(val, gf_tags)
-        #    #return flags
-
-        #def with_tag(val):
-        #    all_tags = testres.get_all_tags()
-        #    return UTFF(all_tags, has_any=val)
-        #    #flags = in_tags(val, all_tags)
-        #    #return flags
 
         rule_list = [
             ('fail',     prop2_mat['is_failure']),
@@ -1102,6 +1007,7 @@ class TestResult(object):
             ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
 
         ]
+
         filt_cfg = filt_cfg.copy()
 
         #timedelta_keys = [
@@ -1143,8 +1049,6 @@ class TestResult(object):
                     print('  * prev_num_valid = %r' % (prev_num_valid,))
                     print('  * num_invalided = %r' % (prev_num_valid - num_valid,))
                     print('  * num_valid = %r' % (num_valid,))
-        if return_mask:
-            return is_valid
 
         #if False:
         #    # Valid props
@@ -1197,13 +1101,38 @@ class TestResult(object):
             # Flat sorting indeices in a matrix
             if reverse:
                 sortx = flat_order.argsort()[::-1]
-                #sortx_mat = order_values.flatten().argsort()[::-1].reshape(order_values.shape)
             else:
                 sortx = flat_order.argsort()
-            #sortx = sortx_mat[is_valid]
             qx_list = qx_list.take(sortx, axis=0)
             cfgx_list = cfgx_list.take(sortx, axis=0)
-            # order_values[tuple(case_pos_list.T)]  # assert in order
+
+        #group_rules = [
+        #    ('max_pername', hack),
+        #]
+        max_pername = filt_cfg.pop('max_pername', None)
+        if max_pername is not None:
+            qaids = testres.get_common_qaids()
+            # FIXME: multiple configs
+            _qaid_list = qaids[qx_list]
+            _qnid_list = testres.ibs.get_annot_nids(_qaid_list)
+            _valid_idxs = []
+            seen_ = ut.ddict(lambda: 0)
+            for idx, _qnid in enumerate(_qnid_list):
+                if seen_[_qnid] < max_pername:
+                    seen_[_qnid] += 1
+                    _valid_idxs.append(idx)
+                #if _qnid not in seen_:
+                    #seen_.add(_qnid)
+            #_valid_idxs = np.unique(_qnid_list, return_index=True)[1]
+            _qx_list = qx_list[_valid_idxs]
+            _cfgx_list = cfgx_list[_valid_idxs]
+            _valid_index = np.vstack((_qx_list, _cfgx_list)).T
+            is_valid = vt.index_to_boolmask(_valid_index, is_valid.shape, hack=True)
+            qx_list = _qx_list
+            cfgx_list = _cfgx_list
+
+        if return_mask:
+            return is_valid
 
         index = filt_cfg.pop('index', None)
         if index is not None:
@@ -1312,11 +1241,17 @@ class TestResult(object):
             truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
 
         # Rank difference
-        hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
-        is_failure = hardness_degree_rank >= 0
-        is_success = hardness_degree_rank < 0
+        #hardness_degree_rank = truth2_prop['gt']['rank'] - truth2_prop['gf']['rank']
+        #is_failure = hardness_degree_rank >= 0
+        #is_success = hardness_degree_rank < 0
+        is_success = truth2_prop['gt']['rank'] == 0
+        is_failure = np.logical_not(is_success)
 
+        #with ut.embed_on_exception_context:
+        # THIS IS NOT THE CASE IF THERE ARE UNKNOWN INDIVIDUALS IN THE DATABASE
         assert np.all(is_success == (truth2_prop['gt']['rank'] == 0))
+
+        # WEIRD THINGS HAPPEN WHEN UNKNOWNS ARE HERE
         #hardness_degree_rank[is_success]
         #is_weird = hardness_degree_rank == 0  # These probably just completely failure spatial verification
 

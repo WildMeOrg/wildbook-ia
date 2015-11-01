@@ -110,3 +110,6 @@ screenshot*.jpg
 _ibeis_setup.py
 
 experiment_*.sh
+
+notebooks/Experiment-Presentable-*
+notebooks/tmptex

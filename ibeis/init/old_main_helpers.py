@@ -547,3 +547,21 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
 #        if VERB_MAIN_HELPERS:
 #            print('[expand_aidcfg] L ___ GET_TEST_DAIDS \n')
 #    else:
+
+#def register_utool_aliases():
+#    """
+#    registers commmon class names with utool so they are printed nicely
+#    """
+#    #print('REGISTER UTOOL ALIASES')
+#    import utool as ut
+#    import matplotlib as mpl
+#    from ibeis.control import IBEISControl, SQLDatabaseControl
+#    from ibeis.gui import guiback
+#    #from ibeis.gui import guifront
+#    ut.extend_global_aliases([
+#        (SQLDatabaseControl.SQLDatabaseController, 'sqldb'),
+#        (IBEISControl.IBEISController, 'ibs'),
+#        (guiback.MainWindowBackend, 'back'),
+#        #(guifront.MainWindowFrontend, 'front'),
+#        (mpl.figure.Figure, 'fig')
+#    ])
