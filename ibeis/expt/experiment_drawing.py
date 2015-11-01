@@ -37,6 +37,7 @@ def annotationmatch_scores(ibs, testres, f=None):
     TODO: plot the difference between the top true score and the next best false score
     CommandLine:
         ib
+        python -m ibeis --tf annotationmatch_scores --db PZ_MTEST --allgt -w --show __serial
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
         python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
@@ -66,7 +67,6 @@ def annotationmatch_scores(ibs, testres, f=None):
         python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
         python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
         python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
-
 
     Example:
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -128,8 +128,6 @@ def annotationmatch_scores(ibs, testres, f=None):
 
     plotname = ''
     figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
-
-    #ut.embed()
 
     encoder.visualize(
         figtitle=figtitle,

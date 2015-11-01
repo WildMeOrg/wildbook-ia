@@ -649,40 +649,46 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             print('[hs] depth(nns_list) ' + str(ut.depth_profile(nns_list)))
 
     print(WEIGHT_LBL)
-    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **PROGKW)
+    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
+    #                                   **PROGKW)
+
     # Build weights for each active filter
-    filtkey_list    = []
+    filtkey_list     = []
     _filtweight_list = []
     _filtvalid_list  = []
     if qreq_.qparams.lnbnn_on:
-        lnbnn_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn'](nns_list, nnvalid0_list, qreq_)
+        lnbnn_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn'](
+            nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(lnbnn_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append('lnbnn')
     if qreq_.qparams.bar_l2_on:
-        bar_l2_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['bar_l2'](nns_list,
-                                                                      nnvalid0_list,
-                                                                      qreq_)
+        bar_l2_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['bar_l2'](
+            nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(bar_l2_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append('bar_l2')
     if qreq_.qparams.ratio_thresh:
-        ratio_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['ratio'](nns_list, nnvalid0_list, qreq_)
+        ratio_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['ratio'](
+            nns_list, nnvalid0_list, qreq_)
         ratio_isvalid   = [qfx2_ratio <= qreq_.qparams.ratio_thresh for
                            qfx2_ratio in ratio_weight_list]
-        ratioscore_list = [np.subtract(1, qfx2_ratio) for qfx2_ratio in ratio_weight_list]
+        ratioscore_list = [np.subtract(1, qfx2_ratio)
+                           for qfx2_ratio in ratio_weight_list]
         _filtweight_list.append(ratioscore_list)
         _filtvalid_list.append(ratio_isvalid)
         filtkey_list.append('ratio')
     if qreq_.qparams.fg_on:
-        fgvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['fg'](nns_list, nnvalid0_list, qreq_)
+        fgvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['fg'](
+            nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(fgvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append('fg')
 
     # Switch nested list structure from [filt, qaid] to [qaid, filt]
     nInternAids = len(nns_list)
-    filtweights_list = [ut.get_list_column(_filtweight_list, index) for index in range(nInternAids)]
+    filtweights_list = [ut.get_list_column(_filtweight_list, index)
+                        for index in range(nInternAids)]
     filtvalids_list = [
         [
             None if filtvalid is None else filtvalid[index]

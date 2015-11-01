@@ -2,6 +2,8 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 from ibeis.expt import experiment_configs
+from ibeis.expt import experiment_drawing
+from ibeis.expt import test_result
 from ibeis.expt import experiment_harness
 from ibeis.expt import experiment_helpers
 from ibeis.expt import experiment_printres

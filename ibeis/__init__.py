@@ -57,7 +57,6 @@ from ibeis.init import main_helpers
 
 from ibeis import model
 
-
 from ibeis import expt
 
 def import_subs():

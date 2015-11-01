@@ -124,6 +124,10 @@ def print_results(ibs, testres):
         python dev.py -e print --db PZ_MTEST --allgt -t custom --print-confusion-stats
         python dev.py -e print --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
         python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
+        python -m ibeis --tf print_results -t default --db PZ_MTEST -a ctrl
+        python -m ibeis --tf print_results -t default --db PZ_MTEST -a ctrl
+        python -m ibeis --tf print_results -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True default:lnbnn_on=False,normonly_on=True --db PZ_MTEST -a timectrl
+
 
     CommandLine:
         python -m ibeis.expt.experiment_printres --test-print_results
