@@ -968,7 +968,6 @@ class TestResult(object):
         from functools import partial
 
         def unflat_tag_filterflags(tags_list, **kwargs):
-            #ut.embed()
             from ibeis import tag_funcs
             flat_tags, cumsum = ut.invertible_flatten2(tags_list)
             flat_flags = tag_funcs.filterflags_general_tags(flat_tags, **kwargs)
@@ -1210,7 +1209,6 @@ class TestResult(object):
 
         #sampled_case_list = np.vstack(ut.flatten(sample_vals))
         #sampled_case_list = sampled_case_list[vt.unique_row_indexes(case_pos_list)]
-        #ut.embed()
         case_pos_list = cases_list
         case_labels_list = labels_list
         #case_pos_list.shape
@@ -1247,7 +1245,6 @@ class TestResult(object):
         is_success = truth2_prop['gt']['rank'] == 0
         is_failure = np.logical_not(is_success)
 
-        #with ut.embed_on_exception_context:
         # THIS IS NOT THE CASE IF THERE ARE UNKNOWN INDIVIDUALS IN THE DATABASE
         assert np.all(is_success == (truth2_prop['gt']['rank'] == 0))
 
@@ -1283,7 +1280,6 @@ class TestResult(object):
         # * scenery failure, photobomb failure, matching failure.
         # TODO: Make this function divide success cases into several types
         # * easy success, difficult success, incidental success
-        #ut.embed()
 
         # Matching labels from annotmatch rowid
         truth2_prop, prop2_mat = testres.get_truth2_prop()
@@ -1663,26 +1659,56 @@ class TestResult(object):
 
     def print_percent_identification_success(testres):
         """
+        Prints names identified (at rank 1) / names queried.
+        This combines results over multiple queries of a particular name using
+        max
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.experiment_drawing import *  # NOQA
         """
         ibs = testres.ibs
-        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(testres.qaids))
-        testres.cfgx2_cfgresinfo[0].keys()
-        #rankmat = testres.get_rank_mat()
+        qaids = testres.get_common_qaids()
+        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(qaids))
+
         qx2_gt_raw_score = testres.get_infoprop_mat('qx2_gt_raw_score')
         qx2_gf_raw_score = testres.get_infoprop_mat('qx2_gf_raw_score')
+
         nx2_gt_raw_score = np.array([
-            ut.safe_max(scores)
+            #ut.safe_max(scores)
+            np.nanmax(scores, axis=0)
             for scores in vt.apply_grouping(qx2_gt_raw_score, groupxs)])
+
         nx2_gf_raw_score = np.array([
-            ut.safe_max(scores)
+            np.nanmax(scores, axis=0)
+            #ut.safe_max(scores)
             for scores in vt.apply_grouping(qx2_gf_raw_score, groupxs)])
 
-        success = nx2_gt_raw_score > nx2_gf_raw_score
-        print('success = %r / %r = %r' % (
-            success.sum(), len(success), success.sum() / len(success)))
+        cfgx2_success = (nx2_gt_raw_score > nx2_gf_raw_score).T
+        print('Identification success (names identified / names queried)')
+        for cfgx, success in enumerate(cfgx2_success):
+            pipelbl = testres.cfgx2_lbl[cfgx]
+            percent = 100 * success.sum() / len(success)
+            print('%2d) success = %r/%r = %.2f -- %s%%' % (
+                cfgx, success.sum(), len(success), percent, pipelbl))
+
+    def print_config_overlap(testres):
+        truth2_prop, prop2_mat = testres.get_truth2_prop()
+        qx2_gt_ranks = truth2_prop['gt']['rank']
+        qx2_success = (qx2_gt_ranks == 0)
+        cfgx2_num_correct = np.nansum(qx2_success, axis=0)
+        best_cfgx = cfgx2_num_correct.argmax()
+
+        print('Config Overlap')
+        for cfgx in range(testres.nConfig):
+            if cfgx == best_cfgx:
+                continue
+            qx2_anysuccess = np.logical_or(qx2_success.T[cfgx], qx2_success.T[best_cfgx])
+            # Queries that other got right that best did not get right
+            qx2_othersuccess = np.logical_and(qx2_anysuccess, np.logical_not(qx2_success.T[best_cfgx]))
+            print('cfgx %d) has %d success cases that that the best config does not have' % (cfgx, qx2_othersuccess.sum()))
+
+        qx2_success.T[cfgx]
 
 
 if __name__ == '__main__':

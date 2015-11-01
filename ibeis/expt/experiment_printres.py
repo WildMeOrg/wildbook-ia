@@ -51,8 +51,8 @@ def print_latexsum(ibs, testres, verbose=True):
         python -m ibeis.expt.experiment_printres --exec-print_latexsum
         python -m ibeis.scripts.gen_cand_expts --exec-gen_script
 
-        python -m ibeis.expt.experiment_printres --exec-print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
-        python -m ibeis.expt.experiment_printres --exec-print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
+        python -m ibeis --tf print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
+        python -m ibeis --tf print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
 
     Example:
         >>> # SCRIPT
@@ -126,8 +126,7 @@ def print_results(ibs, testres):
         python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
         python -m ibeis --tf print_results -t default --db PZ_MTEST -a ctrl
         python -m ibeis --tf print_results -t default --db PZ_MTEST -a ctrl
-        python -m ibeis --tf print_results -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True default:lnbnn_on=False,normonly_on=True --db PZ_MTEST -a timectrl
-
+        python -m ibeis --tf print_results --db PZ_MTEST -a default -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True default:lnbnn_on=False,normonly_on=True
 
     CommandLine:
         python -m ibeis.expt.experiment_printres --test-print_results
@@ -137,7 +136,8 @@ def print_results(ibs, testres):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_printres import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a='default:dpername=1,qpername=[1,2]', t='default:fg_on=False')
+        >>> ibs, testres = main_helpers.testdata_expts(
+        >>>     'PZ_MTEST', a='default:dpername=1,qpername=[1,2]', t='default:fg_on=False')
         >>> result = print_results(ibs, testres)
         >>> print(result)
     """
@@ -403,49 +403,6 @@ def print_results(ibs, testres):
     ##echo_hardcase(default=not ut.get_argflag('--allhard'))
     #echo_hardcase()
 
-    #------------
-
-    @ut.argv_flag_dec
-    def print_colmap():
-        print('==================')
-        print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
-        print('==================')
-        cfgx2_mAP = np.array([aveprec_list.mean() for aveprec_list in cfgx2_aveprecs])
-        sortx = cfgx2_mAP.argsort()
-        for cfgx in sortx:
-            print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
-        #print('L___ Scores per Config ___')
-    print_colmap()
-    #------------
-
-    @ut.argv_flag_dec_true
-    def print_colscore():
-        print('==================')
-        print('[harn] Scores per Config: %s' % testnameid)
-        print('==================')
-        #for cfgx in range(nConfig):
-        #    print('[score] %s' % (cfgx2_lbl[cfgx]))
-        #    for X in X_LIST:
-        #        nLessX_ = nLessX_dict[int(X)][cfgx]
-        #        print('        ' + rankscore_str(X, nLessX_, nQuery))
-        print('\n[harn] ... sorted scores')
-        for X in X_LIST:
-            print('\n[harn] Sorted #ranks < %r scores' % (X))
-            sortx = np.array(nLessX_dict[int(X)]).argsort()
-            #frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
-            #print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
-            #print('frac_list = %r' % (frac_list,))
-            #print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
-            for cfgx in sortx:
-                nLessX_ = nLessX_dict[int(X)][cfgx]
-                rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
-                print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
-    print_colscore()
-
-    #------------
-
-    ut.argv_flag_dec(print_latexsum)(ibs, testres)
-
     #@ut.argv_flag_dec
     #def print_bestcfg():
     #    print('==========================')
@@ -500,7 +457,108 @@ def print_results(ibs, testres):
     #                            use_lbl_width=len(cfgx2_lbl) < 5))
     #print_best_rankmat()
 
+    #@ut.argv_flag_dec
+    #def print_diffmat():
+    #    # score differences over configs
+    #    print('-------------')
+    #    print('Diffmat: %s' % testnameid)
+    #    diff_matstr = get_diffmat_str(rank_mat, testres.qaids, nConfig)
+    #    print(diff_matstr)
+    #print_diffmat()
+
+    #@ut.argv_flag_dec
+    #def print_rankhist_time():
+    #    print('A rank histogram is a dictionary. '
+    #          'The keys denote the range of the ranks that the values fall in')
+    #    # TODO: rectify this code with other hist code
+    #    agg_hist_dict = testres.get_rank_histograms()
+
+    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
+
+    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+    #        #full_cfgstr = testres.cfgx2_qreq_[cfgx].get_full_cfgstr()
+    #        #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+    #        # find the qxs that belong to each bin
+    #        aid_list1 = testres.qaids
+    #        aid_list2 = qx2_gt_aid
+    #        ibs.assert_valid_aids(aid_list1)
+    #        ibs.assert_valid_aids(aid_list2)
+    #        timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+    #        #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
+    #        #                      for delta in timedelta_list]
+
+    #        bin_edges = testres.get_rank_histogram_bin_edges()
+    #        timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+
+    #        timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+    #        print('Time statistics for each rank range:')
+    #        print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+    #print_rankhist_time()
+
+    #@ut.argv_flag_dec
+    #def print_rankhist():
+    #    print('A rank histogram is a dictionary. '
+    #          'The keys denote the range of the ranks that the values fall in')
+    #    # TODO: rectify this code with other hist code
+    #    agg_hist_dict = testres.get_rank_histograms()
+
+    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
+
+    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+    #        print('Frequency of rank ranges:')
+    #        ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
+    #print_rankhist()
+
     #------------
+    # Print summary
+    #print(' --- SUMMARY ---')
+
+    #------------
+
+    @ut.argv_flag_dec
+    def print_colmap():
+        print('==================')
+        print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
+        print('==================')
+        cfgx2_mAP = np.array([aveprec_list.mean() for aveprec_list in cfgx2_aveprecs])
+        sortx = cfgx2_mAP.argsort()
+        for cfgx in sortx:
+            print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
+        #print('L___ Scores per Config ___')
+    print_colmap()
+    #------------
+
+    @ut.argv_flag_dec_true
+    def print_colscore():
+        print('==================')
+        print('[harn] Scores per Config: %s' % testnameid)
+        print('==================')
+        #for cfgx in range(nConfig):
+        #    print('[score] %s' % (cfgx2_lbl[cfgx]))
+        #    for X in X_LIST:
+        #        nLessX_ = nLessX_dict[int(X)][cfgx]
+        #        print('        ' + rankscore_str(X, nLessX_, nQuery))
+        print('\n[harn] ... sorted scores')
+        for X in X_LIST:
+            print('\n[harn] Sorted #ranks < %r scores' % (X))
+            sortx = np.array(nLessX_dict[int(X)]).argsort()
+            #frac_list = (nLessX_dict[int(X)] / cfgx2_nQuery)[:, None]
+            #print('cfgx2_nQuery = %r' % (cfgx2_nQuery,))
+            #print('frac_list = %r' % (frac_list,))
+            #print('Pairwise Difference: ' + str(ut.safe_pdist(frac_list, metric=ut.absdiff)))
+            for cfgx in sortx:
+                nLessX_ = nLessX_dict[int(X)][cfgx]
+                rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
+                print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
+    print_colscore()
+
+    #------------
+
+    ut.argv_flag_dec(print_latexsum)(ibs, testres)
 
     @ut.argv_flag_dec
     def print_next_rankmat():
@@ -587,65 +645,11 @@ def print_results(ibs, testres):
 
     print_confusion_stats(alias_flags=['--cs'])
 
-    #@ut.argv_flag_dec
-    #def print_diffmat():
-    #    # score differences over configs
-    #    print('-------------')
-    #    print('Diffmat: %s' % testnameid)
-    #    diff_matstr = get_diffmat_str(rank_mat, testres.qaids, nConfig)
-    #    print(diff_matstr)
-    #print_diffmat()
+    ut.argv_flag_dec_true(testres.print_percent_identification_success)()
 
-    #@ut.argv_flag_dec
-    #def print_rankhist_time():
-    #    print('A rank histogram is a dictionary. '
-    #          'The keys denote the range of the ranks that the values fall in')
-    #    # TODO: rectify this code with other hist code
-    #    agg_hist_dict = testres.get_rank_histograms()
+    if testres.nConfig > 1:
+        testres.print_config_overlap()
 
-    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
-    #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
-
-    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
-    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
-    #        #full_cfgstr = testres.cfgx2_qreq_[cfgx].get_full_cfgstr()
-    #        #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
-    #        # find the qxs that belong to each bin
-    #        aid_list1 = testres.qaids
-    #        aid_list2 = qx2_gt_aid
-    #        ibs.assert_valid_aids(aid_list1)
-    #        ibs.assert_valid_aids(aid_list2)
-    #        timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-    #        #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
-    #        #                      for delta in timedelta_list]
-
-    #        bin_edges = testres.get_rank_histogram_bin_edges()
-    #        timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
-
-    #        timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
-    #        print('Time statistics for each rank range:')
-    #        print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
-    #print_rankhist_time()
-
-    #@ut.argv_flag_dec
-    #def print_rankhist():
-    #    print('A rank histogram is a dictionary. '
-    #          'The keys denote the range of the ranks that the values fall in')
-    #    # TODO: rectify this code with other hist code
-    #    agg_hist_dict = testres.get_rank_histograms()
-
-    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
-    #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
-
-    #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
-    #    for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
-    #        print('Frequency of rank ranges:')
-    #        ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
-    #print_rankhist()
-
-    #------------
-    # Print summary
-    #print(' --- SUMMARY ---')
     sumstrs = []
     sumstrs.append('')
     sumstrs.append('||===========================')
