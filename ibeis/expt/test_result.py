@@ -1689,7 +1689,7 @@ class TestResult(object):
         for cfgx, success in enumerate(cfgx2_success):
             pipelbl = testres.cfgx2_lbl[cfgx]
             percent = 100 * success.sum() / len(success)
-            print('%2d) success = %r/%r = %.2f -- %s%%' % (
+            print('%2d) success = %r/%r = %.2f%% -- %s' % (
                 cfgx, success.sum(), len(success), percent, pipelbl))
 
     def print_config_overlap(testres):
