@@ -1700,13 +1700,37 @@ class TestResult(object):
         best_cfgx = cfgx2_num_correct.argmax()
 
         print('Config Overlap')
+
+        # Matrix version
+        disjoint_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        disjoint_mat2 = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
+        for cfgx1 in range(testres.nConfig):
+            for cfgx2 in range(testres.nConfig):
+                if cfgx1 == cfgx2:
+                    continue
+                success_qx1 = np.where(qx2_success.T[cfgx1])[0]
+                success_qx2 = np.where(qx2_success.T[cfgx2])[0]
+                union_ = np.union1d(success_qx1, success_qx2),
+                isect_ = np.intersect1d(success_qx1, success_qx2)
+                disjoints = np.setdiff1d(union_, isect_)
+                disjoint_mat[cfgx1][cfgx2] = len(disjoints)
+                disjoint2 = np.setdiff1d(success_qx2, isect_)
+                disjoint_mat2[cfgx2][cfgx1] = len(disjoint2)
+        print('cfgx1 and cfgx2 have <x> not in common')
+        print('disjoint_mat =\n%s' % (disjoint_mat,))
+        print('cfgx1 helps cfgx2 by <x>')
+        print('disjoint_mat2 =\n%s' % (disjoint_mat2,))
+
+        # Numbered version
+        print('best_cfgx = %r' % (best_cfgx,))
         for cfgx in range(testres.nConfig):
             if cfgx == best_cfgx:
                 continue
+            pipelbl = testres.cfgx2_lbl[cfgx]
             qx2_anysuccess = np.logical_or(qx2_success.T[cfgx], qx2_success.T[best_cfgx])
             # Queries that other got right that best did not get right
             qx2_othersuccess = np.logical_and(qx2_anysuccess, np.logical_not(qx2_success.T[best_cfgx]))
-            print('cfgx %d) has %d success cases that that the best config does not have' % (cfgx, qx2_othersuccess.sum()))
+            print('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
 
         qx2_success.T[cfgx]
 
