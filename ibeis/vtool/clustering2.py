@@ -318,9 +318,10 @@ def test_hdbscan():
         >>> from vtool.clustering2 import *  # NOQA
         >>> import numpy as np
         >>> rng = np.random.RandomState(42)
-        >>> data = rng.randn(10000, 128)
+        >>> data = rng.randn(1000000, 128)
         >>> import hdbscan
-        >>> labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
+        >>> with ut.Timer() as t:
+        >>>     labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
 
     """
     pass
@@ -533,8 +534,9 @@ def groupedzip(id_list, datas_list):
     return unique_ids, grouped_iter
 
 
+@profile
 def group_indices(idx2_groupid):
-    """
+    r"""
     group_indices
 
     Args:
@@ -545,8 +547,9 @@ def group_indices(idx2_groupid):
 
     CommandLine:
         python -m vtool.clustering2 --test-group_indices
+        utprof.py -m vtool.clustering2 --test-group_indices:2
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> #np.random.seed(42)
@@ -558,7 +561,7 @@ def group_indices(idx2_groupid):
         >>> print(result)
         (array([1, 2, 3]), [array([1, 3, 5]), array([0, 2, 4, 6]), array([ 7,  8,  9, 10])])
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> idx2_groupid = np.array([[  24], [ 129], [ 659], [ 659], [ 24],
@@ -569,6 +572,41 @@ def group_indices(idx2_groupid):
         >>> result = str((keys, groupxs))
         >>> print(result)
         (array([ 24, 129, 659, 822]), [array([ 0,  4, 10]), array([1]), array([2, 3, 5, 6, 8, 9]), array([7])])
+
+    Example2:
+        >>> # TIMING_TEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> rng = np.random.RandomState(0)
+        >>> idx2_groupid = rng.randint(100, 200, 1000)
+        >>> group_indices(idx2_groupid)
+        >>> [group_indices(rng.randint(100, 200, 1000)) for _ in range(1000)]
+
+    Time:
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
+        >>> stmt_list = ut.codeblock(
+                '''
+                [sortx[lx:rx] for lx, rx in ut.itertwo(idxs)]
+                #[sortx[lx:rx] for lx, rx in zip(idxs[0:-1], idxs[1:])]
+                #[sortx[lx:rx] for lx, rx in ut.iter_window(idxs)]
+                #[sortx[slice(*_)] for _ in ut.itertwo(idxs)]
+                #[sortx[slice(lr, lx)] for lr, lx in ut.itertwo(idxs)]
+                #np.split(sortx, idxs[1:-1])
+                #np.hsplit(sortx, idxs[1:-1])
+                np.array_split(sortx, idxs[1:-1])
+                ''').split('\n')
+        >>> stmt_list = [x for x in stmt_list if not x.startswith('#')]
+        >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10000)
+
+        >>> stmt_list = ut.codeblock(
+                '''
+                np.diff(groupids_sorted)
+                np.ediff1d(groupids_sorted)
+                np.subtract(groupids_sorted[1:], groupids_sorted[:-1])
+                ''').split('\n')
+        >>> stmt_list = [x for x in stmt_list if not x.startswith('#')]
+        >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10000)
 
     Timeit:
         import numba
@@ -586,23 +624,20 @@ def group_indices(idx2_groupid):
         http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
     """
     # Sort items and idx2_groupid by groupid
-    sortx = idx2_groupid.argsort()  # 2.9%
-    #groupids_sorted = idx2_groupid[sortx]  # 3.1%
+    # <len(data) bottlneck>
+    sortx = idx2_groupid.argsort()
     groupids_sorted = idx2_groupid.take(sortx)
     num_items = idx2_groupid.size
     # Find the boundaries between groups
-    diff = np.ones(num_items + 1, idx2_groupid.dtype)  # 8.6%
-    diff[1:(num_items)] = np.diff(groupids_sorted)  # 22.5%
-    #idxs = np.where(diff > 0)[0]  # 8.8%
+    diff = np.ones(num_items + 1, idx2_groupid.dtype)
+    np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
+    #diff[1:num_items] = np.subtract(groupids_sorted[1:], groupids_sorted[:-1])
     idxs = np.flatnonzero(diff)
-    num_groups = idxs.size - 1  # 1.3%
     # Groups are between bounding indexes
-    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
-    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
+    # <len(keys) bottlneck>
+    groupxs = [sortx[lx:rx] for lx, rx in ut.itertwo(idxs)]  # 34.5%
     # Unique group keys
-    keys = groupids_sorted[idxs[0:num_groups]]  # 4.7%
-    #items_sorted = items[sortx]
-    #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
+    keys = groupids_sorted[idxs[:-1]]
     return keys, groupxs
 
 

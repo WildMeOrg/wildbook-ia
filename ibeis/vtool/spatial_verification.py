@@ -994,7 +994,7 @@ def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
         aff_inliers, aff_errors, Aff = sver_c_wrapper.get_best_affine_inliers_cpp(
             kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:
-        if not ut.QUIET:
+        if ut.NOT_QUIET:
             print('WARNING: sver has not been compiled')
         aff_inliers, aff_errors, Aff = get_best_affine_inliers(
             kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)

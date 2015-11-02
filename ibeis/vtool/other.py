@@ -477,6 +477,17 @@ def compute_unique_data_ids_(hashable_rows, iddict_=None):
     return dataid_list
 
 
+def compute_unique_arr_dataids(arr):
+    """ specialized version for speed when arr is an ndarray """
+    iddict_ = {}
+    hashable_rows = list(map(tuple, arr.tolist()))
+    for row in hashable_rows:
+        if row not in iddict_:
+            iddict_[row] = len(iddict_)
+    dataid_list = np.array([iddict_[row] for row in hashable_rows])
+    return dataid_list
+
+
 def compute_unique_integer_data_ids(data):
     r"""
     This is actually slower than compute_unique_data_ids it seems
