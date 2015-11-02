@@ -309,6 +309,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=pipeline.VERB_PIPELINE):
 
     Example2:
         >>> # ENABLE_DOCTEST
+        >>> import numpy as np
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
         >>> cfgdict = dict(sver_output_weighting=True)
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2], cfgdict=cfgdict)

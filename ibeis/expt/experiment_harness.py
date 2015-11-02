@@ -287,8 +287,8 @@ def get_qres_name_result_info(ibs, qres):
     else:
         qaid = qres.get_qaid()
         qnid = ibs.get_annot_name_rowids(qaid)
-        #nscoretup = qres.get_nscoretup(ibs)
-        #(sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
+        nscoretup = qres.get_nscoretup(ibs)
+        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores)  = nscoretup
         sorted_nids = np.array(sorted_nids)
         #sorted_score_diff = -np.diff(sorted_nscores.tolist())
 
