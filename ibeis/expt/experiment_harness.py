@@ -408,9 +408,9 @@ def get_query_result_info(qreq_):
     qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
 
     ibs = qreq_.ibs
-    if True:
+    if False:
         # TODO: change qres to chipmatch and make multi-chipmatch
-        ut.embed()
+        #ut.embed()
         import vtool as vt
         cm_list = [qres.as_chipmatch() for qres in qx2_qres]
         for cm in cm_list:

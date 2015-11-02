@@ -1067,7 +1067,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> cm = cm_list[0]
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
-        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list, config2_=qreq_.get_external_data_config2())
+        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.get_external_data_config2())
         >>> topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)
         >>> ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 800)
 
@@ -1075,7 +1075,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     # Use extent of matching keypoints
     # first get matching keypoints
     fx2_list = [fm.T[1] for fm in fm_list]
-    kpts2_m_list = vt.ziptake(kpts_list, fx2_list)
+    kpts2_m_list = vt.ziptake(kpts_list, fx2_list, axis=0)
     #[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]
     dlen_sqrd_list = [ktool.get_kpts_dlen_sqrd(kpts2_m)
                       for kpts2_m in kpts2_m_list]

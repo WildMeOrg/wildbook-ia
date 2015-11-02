@@ -215,7 +215,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
             # sanity check
             qreq_.assert_self(ibs)
         # Try loading as many cached results as possible
-        qaid2_qres_hit = pipeline.try_load_resdict(qreq_, verbose=verbose)
+        qaid2_qres_hit = try_load_resdict(qreq_, verbose=verbose)
         if len(qaid2_qres_hit) == len(qreq_.get_external_qaids()):
             return qaid2_qres_hit
         else:
