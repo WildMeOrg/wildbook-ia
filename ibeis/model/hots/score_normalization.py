@@ -684,10 +684,12 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> ibeis._init_numpy()
         >>> dbname = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(dbname)
-        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10:2]
-        >>> cfgdict = dict(codename='vsone_unnorm')
+        >>> qaid_list = daid_list = ibs.get_valid_aids()[1:14:2]
+        >>> cfgdict = dict(codename='vsone_unnorm', prescore_method='nsum')
         >>> use_cache = True
-        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True)
+        >>> cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True, return_cm=True)
+        >>> assert cm_list[0].qaid == qaid_list[0], 'inconsistent'
+        >>> qres_list = [cm.as_qres2(qreq_) for cm in cm_list]
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
         >>> result = score_normalizer.get_fname()
         >>> result += '\n' + score_normalizer.get_cfgstr()
@@ -784,8 +786,8 @@ def get_ibeis_score_training_data(ibs, qres_list):
     good_tn_aidnid_pairs = []
     for qx, qres in enumerate(qres_list):
         qaid = qres.get_qaid()
-        if not qres.is_nsum():
-            raise AssertionError('must be nsum')
+        #if not qres.is_nsum():
+        #    raise AssertionError('must be nsum')
         if not ibs.get_annot_has_groundtruth(qaid):
             continue
         qnid = ibs.get_annot_name_rowids(qres.get_qaid())

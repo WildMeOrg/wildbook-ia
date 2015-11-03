@@ -11,7 +11,7 @@ TODO:
 DONE:
     * Implemented funcs based on custom qparams in non None `qreq_` objects
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter  # NOQA
 from os.path import exists, join, relpath
 import utool as ut

@@ -652,6 +652,7 @@ def get_fgweights_hack(qreq_, daid_list):
 
 
 def get_support_data(qreq_, daid_list):
+    # TODO: look into ut.cached_func
     vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_internal_data_config2())
     fgws_list = get_fgweights_hack(qreq_, daid_list)
     return vecs_list, fgws_list

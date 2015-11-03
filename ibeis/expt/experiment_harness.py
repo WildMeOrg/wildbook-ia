@@ -136,15 +136,15 @@ def get_big_test_cache_info(ibs, cfgx2_qreq_):
         import ibeis
         from os.path import dirname, join
         repodir = dirname(ut.get_module_dir(ibeis))
-        bt_cachedir = join(repodir, 'BIG_TEST_CACHE')
+        bt_cachedir = join(repodir, 'BIG_TEST_CACHE2')
     else:
-        bt_cachedir = './localdata/BIG_TEST_CACHE'
+        bt_cachedir = './localdata/BIG_TEST_CACHE2'
     ut.ensuredir(bt_cachedir)
     bt_cachestr = ut.hashstr_arr27([
         qreq_.get_cfgstr(with_query=True)
         for qreq_ in cfgx2_qreq_],
         ibs.get_dbname() + '_cfgs')
-    bt_cachename = 'BIGTESTCACHE'
+    bt_cachename = 'BIGTESTCACHE2'
     return bt_cachedir, bt_cachename, bt_cachestr
 
 
@@ -402,7 +402,6 @@ def get_query_result_info(qreq_):
     #qreq_ = ibs.new_query_request(qaids, daids, verbose=True)
     #qx2_qres = ibs.query_chips(qreq_=qreq_)
     #assert [x.qaid for x in qx2_qres] == qaids, 'request missmatch'
-    #qaid2_qres, qreq_ = ibs._query_chips4(qaids, daids, return_request=True)
     #qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
@@ -420,7 +419,7 @@ def get_query_result_info(qreq_):
         groupxs = vt.group_indices(qnids)[1]
         cm_group_list = vt.apply_grouping_(cm_list, groupxs)
         for cm_group in cm_group_list:
-            group_name_score_list = np.array(
+            group_name_score_list = np.array(  # NOQA
                 [cm.name_score_list for cm in cm_group]).max(axis=0)
 
     qaids = qreq_.get_external_qaids()

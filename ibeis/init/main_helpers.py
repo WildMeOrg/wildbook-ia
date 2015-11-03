@@ -2,7 +2,7 @@
 """
 The AID configuration selection is getting a mjor update right now
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six  # NOQA
 from ibeis.init import old_main_helpers
@@ -54,6 +54,13 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
+def testdata_qreq_(t=['default'], **kwargs):
+    ibs, qaids, daids = testdata_expanded_aids(**kwargs)
+    pcfgdict = testdata_pipecfg(t=t)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
+    return qreq_
+
+
 def testdata_qres(defaultdb='testdb1', t=['default']):
     r"""
     Args:
@@ -74,7 +81,7 @@ def testdata_qres(defaultdb='testdb1', t=['default']):
         >>> result = ('(ibs, qreq_, qres) = %s' % (str((ibs, qreq_, qres)),))
         >>> print(result)
     """
-    ibs, qaids, daids = testdata_ibeis(defaultdb=defaultdb)
+    ibs, qaids, daids = testdata_expanded_aids(defaultdb=defaultdb)
     pcfgdict = testdata_pipecfg(t=t)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     print('qaids = %r' % (qaids,))
@@ -119,8 +126,9 @@ def testdata_expts(defaultdb='testdb1',
     #return ibs, testres_list
 
 
-def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
-                   ibs=None, verbose=False, return_annot_info=False):
+def testdata_expanded_aids(default_qaids=[1], a=['default'],
+                           defaultdb='testdb1', ibs=None, verbose=False,
+                           return_annot_info=False):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -134,23 +142,17 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
         ibs, qaid_list, daid_list, annot_info:
 
     CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --acfg default:aids=gt,shuffle,index=0:25 --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db PZ_MTEST --acfg default:aids=gt,index=0:25 --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_ibeis --db GZ_ALL --acfg ctrl --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:aids=gt,shuffle,index=0:25 --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:aids=gt,index=0:25 --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
-        >>> default_qaids = [1]
-        >>> default_daids = 'all'
-        >>> defaultdb = 'testdb1'
-        >>> ibs = None
-        >>> verbose = False
-        >>> return_annot_info = True
-        >>> ibs, qaid_list, daid_list, aidcfg = testdata_ibeis(default_qaids, default_daids, defaultdb, ibs, verbose, return_annot_info)
+        >>> ibs, qaid_list, daid_list, aidcfg = testdata_expanded_aids(return_annot_info=True)
         >>> print('Printing annot config')
         >>> annotation_configs.print_acfg(aidcfg)
         >>> print('Printing annotconfig stats')
@@ -159,15 +161,17 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
         >>> print('Combined annotconfig stats')
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
     """
-    print('[testdata_ibeis] Getting test annot configs')
+    print('[testdata_expanded_aids] Getting test annot configs')
     import ibeis
     if ibs is None:
         ibs = ibeis.opendb(defaultdb=defaultdb)
     # TODO: rectify command line with function arguments
     from ibeis.expt import experiment_helpers
+    if isinstance(a, six.string_types):
+        a = [a]
     aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'),
                                                  type_=list,
-                                                 default=['default'],
+                                                 default=a,
                                                  return_specified=True)
 
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, aidcfg_name_list)
@@ -197,11 +201,11 @@ def testdata_ibeis(default_qaids=[1], default_daids='all', defaultdb='testdb1',
 
 
 @profile
-def testdata_single_acfg(ibs, default_options=''):
+def testdata_aids(defaultdb=None, default_options='', ibs=None):
     r"""
     CommandLine:
-        python -m ibeis --tf testdata_single_acfg --verbtd --db PZ_ViewPoints
-        python -m ibeis --tf testdata_single_acfg --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
+        python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -210,13 +214,18 @@ def testdata_single_acfg(ibs, default_options=''):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
         >>> default_options = ''
-        >>> aidcfg, aids = testdata_single_acfg(ibs, default_options)
+        >>> aidcfg, aids = testdata_aids(ibs=ibs, default_options=default_options)
         >>> print('\n RESULT:')
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
     from ibeis.init import filter_annots
     from ibeis.expt import annotation_configs
     from ibeis.expt import cfghelpers
+    import ibeis
+    if ibs is None:
+        if defaultdb is None:
+            defaultdb = 'testdb1'
+        ibs = ibeis.opendb(defaultdb=defaultdb)
     cfgstr_options = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=default_options)
     base_cfg = annotation_configs.single_default
     aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,

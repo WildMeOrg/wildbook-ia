@@ -13,7 +13,7 @@ TODO:
 """
 # TODO: rename annotation annotations
 # TODO: make all names consistent
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 #import sys
 import atexit
@@ -1276,7 +1276,6 @@ class IBEISController(BASE_CLASS):
             >>> qaids = ibs.get_valid_aids()[0:1]
             >>> qres = ibs.query_chips(qaids)[0]
             >>> assert qres.qaid == qaids[0]
-
         """
         # The qaid and daid objects are allowed to be None if qreq_ is
         # specified
@@ -1292,32 +1291,30 @@ class IBEISController(BASE_CLASS):
 
         # Wrapped call to the main entrypoint in the API to the hotspotter
         # pipeline
-        _res = ibs._query_chips4(
+        qaid2_cm, qreq_ = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
-            return_request=return_request, verbose=verbose,
+            return_request=True, verbose=verbose,
             save_qcache=save_qcache,
             prog_hook=prog_hook)
-        if return_request:
-            qaid2_qres, qreq_ = _res
-        else:
-            qaid2_qres = _res
 
         # Return a list of query results instead of that awful dictionary
         # that will be depricated in future version of hotspotter.
-        qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+        cm_list = [qaid2_cm[qaid] for qaid in qaid_list]
 
         if return_cm or return_cm_dict or return_cm_simple_dict:
-            from ibeis.model.hots import chip_match
-            cm_list = [
-                chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
             # Convert to cm_list
             if return_cm_simple_dict:
-                qres_list = [cm.to_simple_dict() for cm in cm_list]
+                qres_list = [cm.as_simple_dict() for cm in cm_list]
             elif return_cm_dict:
-                qres_list = [cm.to_dict() for cm in cm_list]
+                qres_list = [cm.as_dict() for cm in cm_list]
             else:
                 qres_list = cm_list
+        else:
+            qres_list = [
+                cm.as_qres2(qreq_)
+                for cm in cm_list
+            ]
 
         if was_scalar:
             # hack for scalar input
@@ -1344,7 +1341,7 @@ class IBEISController(BASE_CLASS):
         main entrypoint in the IBIES API to the hotspotter pipeline
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-_query_chips4
+            python -m ibeis.control.IBEISControl --test-_query_chips4 --show
 
         RESTful:
             Method: PUT
@@ -1357,12 +1354,11 @@ class IBEISController(BASE_CLASS):
             >>> qaid_list = [1]
             >>> daid_list = [1, 2, 3, 4, 5]
             >>> ibs = ibeis.test_main(db='testdb1')
-            >>> qres = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
-
-        #>>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
-        #>>> qreq_.load_indexer()
-        #>>> qreq_.load_query_vectors()
-        #>>> qreq = ibs.qreq
+            >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
+            >>> cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+            >>> ut.quit_if_noshow()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
         """
         from ibeis.model.hots import match_chips4 as mc4
         # Check fo empty queries
@@ -1374,33 +1370,30 @@ class IBEISController(BASE_CLASS):
                        keys=['qaid_list', 'daid_list'])
             if ut.SUPER_STRICT:
                 raise
-            qaid2_qres = {qaid: None for qaid in qaid_list}
-            if return_request:
-                return qaid2_qres, qreq_
-            else:
-                return qaid2_qres
+            qaid2_cm = {qaid: None for qaid in qaid_list}
+        else:
+            # Check for consistency
+            if qreq_ is not None:
+                ut.assert_lists_eq(
+                    qreq_.get_external_qaids(), qaid_list,
+                    'qaids do not agree with qreq_', verbose=True)
+                ut.assert_lists_eq(
+                    qreq_.get_external_daids(), daid_list,
+                    'daids do not agree with qreq_', verbose=True)
+            if qreq_ is None:
+                qreq_ = ibs.new_query_request(qaid_list, daid_list,
+                                              cfgdict=cfgdict, verbose=verbose)
 
-        # Check for consistency
-        if qreq_ is not None:
-            ut.assert_lists_eq(
-                qreq_.get_external_qaids(), qaid_list,
-                'qaids do not agree with qreq_', verbose=True)
-            ut.assert_lists_eq(
-                qreq_.get_external_daids(), daid_list,
-                'daids do not agree with qreq_', verbose=True)
-
-        # Send query to hotspotter (runs the query)
-        _res = mc4.submit_query_request(
-            ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-            return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
-            verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
+            # Send query to hotspotter (runs the query)
+            qaid2_cm = mc4.submit_query_request(
+                ibs,  qaid_list, daid_list, use_cache, use_bigcache,
+                cfgdict=cfgdict, qreq_=qreq_,
+                verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
 
         if return_request:
-            qaid2_qres, qreq_ = _res
-            return qaid2_qres, qreq_
+            return qaid2_cm, qreq_
         else:
-            qaid2_qres = _res
-            return qaid2_qres
+            return qaid2_cm
 
     #_query_chips = _query_chips3
     _query_chips = _query_chips4

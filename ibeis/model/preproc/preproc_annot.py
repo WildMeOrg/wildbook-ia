@@ -13,7 +13,7 @@ Tgen.sh --tbls annotations --Tcfg with_getters:True with_native:True strip_docst
 Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True with_columns:False --quiet
 Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter, map  # NOQA
 import utool as ut
 import uuid
@@ -146,6 +146,9 @@ def make_annot_semantic_uuid(semantic_infotup):
     Returns:
         list: annot_semantic_uuid_list
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_annot --test-make_annot_semantic_uuid
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
@@ -154,6 +157,8 @@ def make_annot_semantic_uuid(semantic_infotup):
         >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
         >>> result = str(annot_semantic_uuid_list[0])
         >>> print(result)
+        bf774bf3-582d-dbce-6ca6-329adeb086a6
+
         215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
     """
     assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)

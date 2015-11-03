@@ -24,7 +24,7 @@ def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid = 2
-        >>> qres = ibs._query_chips4([qaid], ibs.get_valid_aids(), cfgdict=dict())[qaid]
+        >>> qres = ibs.query_chips([qaid], ibs.get_valid_aids(), cfgdict=dict())[0]
         >>> fig = ishow_analysis(ibs, qres)
         >>> pt.show_if_requested()
 
@@ -34,7 +34,7 @@ def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = 12
-        >>> qres = ibs._query_chips4([qaid], ibs.get_valid_aids(), cfgdict=dict())[qaid]
+        >>> qres = ibs.query_chips([qaid], ibs.get_valid_aids(), cfgdict=dict())[0]
         >>> fig = ishow_analysis(ibs, qres)
         >>> pt.show_if_requested()
 

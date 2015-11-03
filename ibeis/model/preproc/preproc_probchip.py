@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Preprocess Probability Chips
 
@@ -12,7 +13,7 @@ TODO:
     * User should be able to manually paint on a chip to denote the foreground
       when the randomforest algorithm messes up.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.detect import randomforest
@@ -403,9 +404,11 @@ def write_dirty_aids(ibs, dirty_probchip_fpath_list, dirty_aids, config2_, speci
         # dont use extrmargin here (for now)
         chip_fpath_list = ibs.get_annot_chip_fpath(dirty_aids, config2_=config2_)
         mask_gen = ibs.generate_species_background_mask(chip_fpath_list, species)
-        for probchip_fpath, probchip in zip(dirty_probchip_fpath_list, mask_gen):
-            probchip = postprocess_mask(probchip)
-            vt.imwrite(probchip_fpath, probchip)
+        _iter = zip(dirty_probchip_fpath_list, mask_gen)
+        for chunk in ut.ichunks(_iter, 64):
+            for probchip_fpath, probchip in ut.ProgressIter(chunk, lbl='write probchip chunk', adjust=True, time_thresh=30.0):
+                probchip = postprocess_mask(probchip)
+                vt.imwrite(probchip_fpath, probchip)
     else:
         raise NotImplementedError('bad featweight_detector=%r' % (featweight_detector,))
 

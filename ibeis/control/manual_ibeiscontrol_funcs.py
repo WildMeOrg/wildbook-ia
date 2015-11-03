@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
 import vtool as vt
 from ibeis.control.controller_inject import make_ibs_register_decorator
+from ibeis import constants as const
+from ibeis.control import accessor_decors
+from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -42,6 +45,8 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(qreq_.get_external_qaids())
         >>> result = str(qreq_.get_query_hashid())
         >>> print(result)
+        _QSUUIDS((1)a5boe72@61xjfpo%)
+
         _QSUUIDS((1)nztoqb6&7apjltd1)
     """
     from ibeis.model.hots import query_request
@@ -168,11 +173,6 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
 #@register_ibs_method
 #def get_vocab_assignments(ibs, qreq_=None):
 #    pass
-
-
-from ibeis import constants as const
-from ibeis.control import accessor_decors
-from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
 
 
 #@ut.time_func

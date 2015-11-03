@@ -9,7 +9,7 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import functools  # NOQA
 import six  # NOQA
 from six.moves import map, range, zip  # NOQA

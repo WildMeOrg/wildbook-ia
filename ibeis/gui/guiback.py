@@ -1336,7 +1336,6 @@ class MainWindowBackend(GUIBACK_BASE):
         qres_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook)
         progbar.close()
         del progbar
-        #qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict)
         # HACK IN ENCOUNTER INFO
         if daids_mode == const.INTRA_ENC_KEY:
             for qres in qres_list:

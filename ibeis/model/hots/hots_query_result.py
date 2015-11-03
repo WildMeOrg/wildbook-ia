@@ -15,6 +15,7 @@ import os
 # Scientific
 import numpy as np
 from ibeis.model.hots import precision_recall
+from ibeis.model.hots import chip_match
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import exceptions as hsexcept
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[QRes]', DEBUG=False)
@@ -22,8 +23,8 @@ from ibeis.model.hots import exceptions as hsexcept
 
 #FORCE_LONGNAME = ut.get_argflag('--longname') or (not ut.WIN32 and not ut.get_argflag('--nolongname'))
 MAX_FNAME_LEN = 64 if ut.WIN32 else 200
-TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids')) or (
-    ut.is_developer() and not ut.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
+TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
+#or ( ut.is_developer() and not ut.get_argflag(('--notruncate-uuids', '--notrunc-uuids')))
 VERBOSE = ut.get_argflag(('--verbose-query-result', '--verb-qres')) or ut.VERBOSE
 
 #=========================
@@ -75,6 +76,8 @@ def query_result_fname(qaid, qauuid, cfgstr, ext='.npz', hack27=False):
         cfgstr (str): query parameter configuration string
         ext (str): filetype extension
     """
+    import warnings
+    warnings.warn('Should be using new chip_match structure')
     #fname_fmt = 'res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}'
     fname_fmt = 'qaid={qaid}_res_{cfgstr}_quuid={quuid}{ext}'
     quuid_str = str(qauuid)[0:8] if TRUNCATE_UUIDS else str(qauuid)
@@ -203,7 +206,6 @@ class QueryResult(__OBJECT_BASE__):
         qres._live_interactions = []
 
     def as_chipmatch(qres):
-        from ibeis.model.hots import chip_match
         return chip_match.ChipMatch2.from_qres(qres)
 
     def get_fm_list(qres):
@@ -247,6 +249,8 @@ class QueryResult(__OBJECT_BASE__):
 
     def load(qres, qresdir, verbose=VERBOSE, force_miss=False):
         """ Loads the result from the given database """
+        import warnings
+        warnings.warn('Should be using new chip_match structure')
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
@@ -313,6 +317,8 @@ class QueryResult(__OBJECT_BASE__):
 
     def save(qres, qresdir, verbose=ut.NOT_QUIET and ut.VERBOSE):
         """ saves query result to directory """
+        import warnings
+        warnings.warn('Should be using new chip_match structure')
         fpath = qres.get_fpath(qresdir)
         if verbose:
             print('[qr] cache save: %r' % (split(fpath)[1],))

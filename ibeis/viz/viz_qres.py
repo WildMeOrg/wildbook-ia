@@ -65,8 +65,8 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
-        >>> aid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5, 6, 7, 8, 9], cfgdict=dict(), return_request=True)
-        >>> qres = aid2_qres[1]
+        >>> qres_list, qreq_ = ibs.query_chips([1], [2, 3, 4, 5, 6, 7, 8, 9], cfgdict=dict(), return_request=True)
+        >>> qres = qres_list[0]
         >>> kwargs = dict(show_query=False, viz_name_score=True, show_timedelta=True, N=3, show_gf=True)
         >>> show_qres_analysis(ibs, qres, qreq_, **kwargs)
         >>> ut.show_if_requested()

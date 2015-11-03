@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 #import six
 #import numpy as np
 #from ibeis.model.hots import hstypes
@@ -59,7 +60,6 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
         >>> stripsource = ut.strip_line_comments(stripsource)
         >>> print(stripsource)
     """
-    from ibeis.model.hots.match_chips4 import chipmatch_to_resdict
     from ibeis.model.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         build_chipmatches, spatial_verification,
@@ -102,10 +102,6 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
         cm_list = cm_list_VSONERR
     else:
         cm_list = cm_list_SVER
-    #---
-    if stop_node == 'chipmatch_to_resdict':
-        return locals()
-    qaid2_qres = chipmatch_to_resdict(qreq_, cm_list, verbose=verbose)
 
     assert False, 'unknown stop_node=%r' % (stop_node,)
 
@@ -122,6 +118,8 @@ def get_pipeline_testdata(dbname=None,
                           preload=True):
     r"""
     Gets testdata for pipeline defined by tests / and or command line
+
+    DEPRICATE in favor of ibeis.init.main_helpers.testdata_qreq
 
     Args:
         cmdline_ok : if false does not check command line
@@ -252,7 +250,8 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', codename='vsmany'):
     qfx2_valid0     = nnvalid0_list[interal_index]
     qfx2_score_list = filtweights_list[interal_index]
     qfx2_valid_list = filtvalids_list[interal_index]
-    args = qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list
+    Knorm = qreq_.qparams.Knorm
+    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, Knorm)
     return qreq_, qaid, daid, args
 
 
@@ -401,6 +400,7 @@ def testdata_matching(*args, **kwargs):
     """
     from ibeis.model.hots import vsone_pipeline
     from ibeis.model.hots import scoring
+    from ibeis.model.hots import pipeline  # NOQA
     ibs, qreq_, cm_list, qaid_list  = testdata_pre_vsonerr(*args, **kwargs)
     vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
     nNameShortlist = qreq_.qparams.nNameShortlistVsone

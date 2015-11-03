@@ -456,11 +456,11 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
                 print('flat_case_labels are known to be messed up')
                 pass
         qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
-        #qres_list = [load_qres(ibs, qaids[qx], qreq_) for qreq_ in qreq_list]
         # TODO: try to get away with not reloading query results or loading
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
+        # TODO: use chip_match
         qres_list = [qreq_.load_cached_qres(qaids[qx]) for qreq_ in qreq_list]
         fpaths_list.append([])
 

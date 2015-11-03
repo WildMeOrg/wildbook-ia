@@ -43,7 +43,7 @@ def get_qres_name_choices(ibs, qres):
         ChoiceTuple: choicetup
 
     CommandLine:
-        python -m ibeis.model.hots.automated_matcher --test-get_qres_name_choices
+        python -m ibeis.model.hots.automatch_suggestor --test-get_qres_name_choices:0
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -51,13 +51,12 @@ def get_qres_name_choices(ibs, qres):
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> qres = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
         >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> print(choicetup)
         >>> result = ut.numpy_str(choicetup.sorted_nids[0:1], force_dtype=False)
         >>> print(result)
         np.array([1])
-
     """
     if qres is None:
         nscoretup = list(map(np.array, ([], [], [], [])))
@@ -97,9 +96,9 @@ def get_system_name_suggestion(ibs, choicetup):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid2_qres, qreq_ = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(),
+        >>> qres_list, qreq_ = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict(),
         ...            return_request=True)
-        >>> qres = qaid2_qres[1]
+        >>> qres = qres_list[0]
         >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup)
         >>> # verify results

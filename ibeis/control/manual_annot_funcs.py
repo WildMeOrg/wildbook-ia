@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Autogen:
     python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
@@ -5,7 +6,7 @@ Autogen:
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import uuid
 import numpy as np  # NOQA
@@ -370,6 +371,12 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> assert prevalid == postvalid
         >>> result += str(postvalid)
         >>> print(result)
+        [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
+        [UUID('3e3e9c98-e47c-f153-7101-f3d4fdadfb90'), UUID('dbf3b1a2-2188-75b4-07d4-0ef7e4787d23')]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+        # semantic uuids change when hashing is different
+
         [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
         [UUID('68160c90-4b82-dc96-dafa-b12948739577'), UUID('03e74d19-1bf7-bc43-a291-8ee06a44da2e')]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
@@ -1274,6 +1281,12 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
         >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
         >>> print(result)
         [
+            UUID('bf774bf3-582d-dbce-6ca6-329adeb086a6'),
+            UUID('60f10a02-1bd1-c2b4-75bb-a34c0a4b6867'),
+        ]
+        semantic_uuid_hashid = _SUUIDS((2)49@orjsiy@lbibo6)
+
+        [
             UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6'),
             UUID('60f10a02-1bd1-c2b4-75bb-a34c0a4b6867'),
         ]
@@ -1365,6 +1378,8 @@ def get_annot_semantic_uuids(ibs, aid_list):
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
         >>> result = annot_semantic_uuid_list
+        [UUID('bf774bf3-582d-dbce-6ca6-329adeb086a6')]
+
         [UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6')]
     """
     id_iter = aid_list
@@ -1745,15 +1760,18 @@ def get_annot_name_texts(ibs, aid_list):
         Method: GET
         URL:    /api/annot/name_texts/
 
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_name_texts
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = get_annot_name_texts(ibs, aid_list)
+        >>> result = ut.list_str(get_annot_name_texts(ibs, aid_list), nl=False)
         >>> print(result)
-        ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
+        ['____', 'easy', 'hard', 'jeff', '____', '____', 'zebra']
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     name_list = ibs.get_name_texts(nid_list)
@@ -1799,9 +1817,9 @@ def get_annot_species_texts(ibs, aid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1::3]
-        >>> result = get_annot_species_texts(ibs, aid_list)
+        >>> result = ut.list_str(get_annot_species_texts(ibs, aid_list), nl=False)
         >>> print(result)
-        [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
+        ['zebra_plains', 'zebra_plains', '____', 'bear_polar']
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -1810,9 +1828,9 @@ def get_annot_species_texts(ibs, aid_list):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
         >>> species_list = get_annot_species_texts(ibs, aid_list)
-        >>> result = set(species_list)
+        >>> result = ut.list_str(list(set(species_list)), nl=False)
         >>> print(result)
-        set([u'zebra_plains'])
+        ['zebra_plains']
 
     RESTful:
         Method: GET
@@ -2153,7 +2171,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
 @register_api('/api/annot/semantic_uuids/', methods=['PUT'])
 def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
     r"""
-    Updater for semantic uuids
+    Ensures that annots have the proper semantic uuids
 
     RESTful:
         Method: PUT
@@ -2171,11 +2189,29 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
 @register_api('/api/annot/visual_uuids/', methods=['PUT'])
 def update_annot_visual_uuids(ibs, aid_list):
     r"""
-    Updater for visual uuids
+    Ensures that annots have the proper visual uuids
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
 
     RESTful:
         Method: PUT
         URL:    /api/annot/visual_uuids/
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --exec-update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis --tf update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis --tf update_annot_visual_uuids --db PZ_Master0
+        python -m ibeis --tf update_annot_visual_uuids --db PZ_MTEST
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs._get_all_aids()
+        >>> update_annot_visual_uuids(ibs, aid_list)
     """
     from ibeis.model.preproc import preproc_annot
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
@@ -2342,7 +2378,6 @@ def set_annot_names(ibs, aid_list, name_list):
     #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
     name_rowid_list = ibs.add_names(name_list)
     ibs.set_annot_name_rowids(aid_list, name_rowid_list)
-    #ibs.update_annot_semantic_uuids(aid_list) # set annot_name_rowids does this
 
 
 @register_ibs_method

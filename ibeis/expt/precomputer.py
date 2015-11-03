@@ -43,7 +43,7 @@ def precfg_dbs(db_list):
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=[])
     for db in db_list:
         ibs = ibeis.opendb(db=db)
-        ibs, qaids, daids = ibeis.init.main_helpers.testdata_ibeis(verbose=False, ibs=ibs)
+        ibs, qaids, daids = ibeis.init.main_helpers.testdata_expanded_aids(verbose=False, ibs=ibs)
         precfg(ibs, qaids, daids, test_cfg_name_list)
 
 

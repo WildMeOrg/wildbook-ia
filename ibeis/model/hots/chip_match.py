@@ -1,22 +1,53 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 import vtool as vt
+from os.path import join
 from operator import xor
 from vtool import matching
 import six
 from ibeis.model.hots import hstypes
-#from collections import namedtuple, defaultdict
 from ibeis.model.hots import old_chip_match
 from ibeis.model.hots import scoring
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[chip_match]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[chip_match]', DEBUG=False)
 
 
 DEBUG_CHIPMATCH = False
 
 #import six
+
+MAX_FNAME_LEN = 64 if ut.WIN32 else 200
+TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
+#or ( ut.is_developer() and not ut.get_argflag(('--notrunc-uuids',)))
+
+
+def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LEN=MAX_FNAME_LEN):
+    """
+    CommandLine:
+        python -m ibeis.model.hots.chip_match --exec-chipmatch_fname
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+        >>> cm = cm_list[0]
+        >>> fname = get_chipmatch_fname(cm.qaid, qreq_, False, 200)
+        >>> result = ('fname = %s' % (ut.reprfunc(fname),))
+        >>> print(result)
+        fname = 'qaid=18_cm_mnzkiegiilcsbwxy_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
+    """
+    quuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
+    qreq_ = qreq_
+    cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+    fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={quuid}{ext}'
+    quuid_str = str(quuid)[0:8] if TRUNCATE_UUIDS else str(quuid)
+    fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext='.cPkl')
+    fname = ut.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'],
+                                 max_len=MAX_FNAME_LEN, hack27=True)
+    return fname
 
 
 def testdata_qres():
@@ -223,7 +254,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
 
         class_dict = ut.from_json(json_str)
-        key_list = ut.get_kwargs(cls.__init__)[0]
+        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
@@ -290,12 +321,75 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         json_str = ut.to_json(cm.__dict__)
         return json_str
 
-    def to_dict(cm):
-        return cm.__dict__
+    def as_dict(cm):
+        return cm.__getstate__()
 
-    def to_simple_dict(cm):
-        simple_dict = ut.dict_subset(cm.__dict__, ['qaid', 'daid_list', 'score_list'])
+    def as_simple_dict(cm):
+        state_dict = cm.__getstate__()
+        simple_dict = ut.dict_subset(state_dict, ['qaid', 'daid_list', 'score_list'])
         return simple_dict
+
+    def __getstate__(cm):
+        state_dict = cm.__dict__
+        return state_dict
+
+    def __setstate__(cm, state_dict):
+        cm.__dict__.update(state_dict)
+
+    # --- IO
+
+    def get_fpath(cm, qreq_):
+        dpath = qreq_.get_qresdir()
+        fname = get_chipmatch_fname(cm.qaid, qreq_)
+        fpath = join(dpath, fname)
+        return fpath
+
+    def save(cm, qreq_, verbose=None):
+        fpath = cm.get_fpath(qreq_)
+        cm.save_to_fpath(fpath, verbose=verbose)
+
+    def save_to_fpath(cm, fpath, verbose=None):
+        """
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-ChipMatch2.save_to_fpath --verbtest --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> qaid = 18
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
+            >>> cm = cm_list[0]
+            >>> dpath = ut.get_app_resource_dir('ibeis')
+            >>> fpath = join(dpath, 'tmp_chipmatch.cPkl')
+            >>> ut.delete(fpath)
+            >>> cm.save_to_fpath(fpath)
+            >>> cm2 = ChipMatch2.load_from_fpath(fpath)
+            >>> assert cm == cm2
+            >>> ut.quit_if_noshow()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
+        """
+        #ut.save_data(fpath, cm.__getstate__(), verbose=verbose)
+        ut.save_cPkl(fpath, cm.__getstate__(), verbose=verbose)
+
+    @classmethod
+    def load(cls, qreq_, qaid, dpath=None, verbose=None):
+        fname = get_chipmatch_fname(qaid, qreq_)
+        if dpath is None:
+            dpath = qreq_.get_qresdir()
+        fpath = join(dpath, fname)
+        cm = cls.load_from_fpath(fpath, verbose=verbose)
+        return cm
+
+    @classmethod
+    def load_from_fpath(cls, fpath, verbose=None):
+        #state_dict = ut.load_data(fpath, verbose=verbose)
+        state_dict = ut.load_cPkl(fpath, verbose=verbose)
+        cm = cls()
+        cm.__setstate__(state_dict)
+        return cm
+
+    # ---
 
     def compress_feature_matches(cm, num=10, rng=np.random, use_random=True):
         """
@@ -323,8 +417,48 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     # Standard Contstructor
 
-    def __init__(cm, qaid=None, daid_list=None, fm_list=None, fsv_list=None, fk_list=None,
-                 score_list=None, H_list=None, fsv_col_lbls=None, dnid_list=None, qnid=None):
+    def __init__(cm, *args, **kwargs):
+        """
+        qaid and daid_list are not optional. fm_list and fsv_list are strongly
+        encouraged and will probalby break things if they are not there.
+        """
+        cm.qaid         = None
+        cm.daid_list    = None
+        cm.fm_list      = None
+        cm.fsv_list     = None
+        cm.fk_list      = None
+        cm.score_list   = None
+        cm.H_list       = None
+        cm.fsv_col_lbls = None
+        cm.daid2_idx    = None
+        cm.fs_list = None
+        # This is aligned with daid list, need to avoid confusion with
+        # unique_nids
+        cm.dnid_list = None
+        # standard groupings
+        # TODO: rename unique_nids to indicate it is aligned with name_groupxs
+        cm.unique_nids = None  # belongs to name_groupxs
+        cm.nid2_nidx = None
+        cm.name_groupxs = None
+        cm.qnid = None
+        # Name probabilities
+        cm.prob_list = None
+        # Annot scores
+        cm.annot_score_list = None
+        # Name scores
+        cm.name_score_list = None
+        cm.csum_score_list = None
+        # TODO: have subclass or dict for special scores
+        cm.csum_score_list = None
+        cm.nsum_score_list = None
+        cm.acov_score_list = None
+        cm.ncov_score_list = None
+        if len(args) + len(kwargs) > 0:
+            cm.initialize(*args, **kwargs)
+
+    def initialize(cm, qaid=None, daid_list=None, fm_list=None, fsv_list=None,
+                   fk_list=None, score_list=None, H_list=None,
+                   fsv_col_lbls=None, dnid_list=None, qnid=None):
         """
         qaid and daid_list are not optional. fm_list and fsv_list are strongly
         encouraged and will probalby break things if they are not there.
@@ -346,27 +480,27 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.score_list   = score_list
         cm.H_list       = H_list
         cm.fsv_col_lbls = fsv_col_lbls
-        cm.daid2_idx    = None
-        cm.fs_list = None
+        #cm.daid2_idx    = None
+        #cm.fs_list = None
         # TODO
         cm.dnid_list = dnid_list
-        # standard groupings
-        cm.unique_nids = None  # belongs to name_groupxs
-        cm.nid2_nidx = None
-        cm.name_groupxs = None
         cm.qnid = qnid
-        # Name probabilities
-        cm.prob_list = None
-        # Annot scores
-        cm.annot_score_list = None
-        # Name scores
-        cm.name_score_list = None
-        # TODO: have subclass or dict for special scores
-        cm.csum_score_list = None
-        cm.nsum_score_list = None
-        cm.acov_score_list = None
-        cm.ncov_score_list = None
-        #
+        # standard groupings
+        #cm.unique_nids = None  # belongs to name_groupxs
+        #cm.nid2_nidx = None
+        #cm.name_groupxs = None
+        ## Name probabilities
+        #cm.prob_list = None
+        ## Annot scores
+        #cm.annot_score_list = None
+        ## (Aggregated) Name scores
+        #cm.name_score_list = None
+        #cm.maxcsum_score_list = None
+        ## TODO: have subclass or dict for special scores
+        #cm.csum_score_list = None
+        #cm.nsum_score_list = None
+        #cm.acov_score_list = None
+        #cm.ncov_score_list = None
         cm._update_daid_index()
 
     # Override eequality
@@ -380,9 +514,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                     return True
                 elif len(arr1) != len(arr2):
                     return False
-                elif all(np.all(x == y)
-                         for x, y in zip(arr1, arr2)):
+                elif any(len(x) != len(y) for x, y in zip(arr1, arr2)):
+                    return False
+                elif all(np.all(x == y) for x, y in zip(arr1, arr2)):
                     return True
+                else:
+                    return False
             flag &= cm.qaid == other.qaid
             flag &= cm.qnid == other.qnid
             flag &= check_arrs_eq(cm.fm_list, other.fm_list)
@@ -554,16 +691,18 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return top_daids
 
     #+=================
-    # Scoring Functions
+    # Score Aggregation Functions
     #------------------
 
     # Cannonical Setters
 
+    @profile
     def set_cannonical_annot_score(cm, annot_score_list):
         cm.annot_score_list = annot_score_list
         #cm.name_score_list  = None
         cm.score_list       = annot_score_list
 
+    @profile
     def set_cannonical_name_score(cm, annot_score_list, name_score_list):
         cm.annot_score_list = annot_score_list
         cm.name_score_list  = name_score_list
@@ -572,12 +711,14 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             cm.annot_score_list, cm.daid_list, cm.daid2_idx, cm.name_groupxs,
             cm.name_score_list)
 
-    # ChipSum Score
+    # --- ChipSum Score
 
+    @profile
     def evaluate_csum_score(cm, qreq_):
         csum_score_list = scoring.compute_csum_score(cm)
         cm.csum_score_list = csum_score_list
 
+    @profile
     def score_csum(cm, qreq_):
         """
         CommandLine:
@@ -597,14 +738,29 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.evaluate_csum_score(qreq_)
         cm.set_cannonical_annot_score(cm.csum_score_list)
 
-    # NameSum Score
+    # --- MaxChipSum Score
 
+    @profile
+    def score_maxcsum(cm, qreq_):
+        cm.evaluate_dnids(qreq_.ibs)
+        cm.score_csum(qreq_)
+        cm.maxcsum_score_list = np.array([
+            scores.max()
+            for scores in vt.apply_grouping(cm.csum_score_list,
+                                            cm.name_groupxs)
+        ])
+        cm.set_cannonical_name_score(cm.csum_score_list, cm.maxcsum_score_list)
+
+    # --- NameSum Score
+
+    @profile
     def evaluate_nsum_score(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
         nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
         assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
         cm.nsum_score_list = nsum_score_list
 
+    @profile
     def score_nsum(cm, qreq_):
         """
         CommandLine:
@@ -629,14 +785,16 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.evaluate_nsum_score(qreq_)
         cm.set_cannonical_name_score(cm.csum_score_list, cm.nsum_score_list)
 
-    # ChipCoverage Score
+    # --- ChipCoverage Score
 
+    @profile
     def evaluate_acov_score(cm, qreq_):
         daid_list, acov_score_list = scoring.compute_annot_coverage_score(
             qreq_, cm, qreq_.qparams)
         assert np.all(daid_list == np.array(cm.daid_list)), 'daids out of alignment'
         cm.acov_score_list = acov_score_list
 
+    @profile
     def score_annot_coverage(cm, qreq_):
         """
         CommandLine:
@@ -657,8 +815,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.evaluate_acov_score(qreq_)
         cm.set_cannonical_annot_score(cm.acov_score_list)
 
-    # NameCoverage Score
+    # --- NameCoverage Score
 
+    @profile
     def evaluate_ncov_score(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
         ncov_nid_list, ncov_score_list = scoring.compute_name_coverage_score(
@@ -666,6 +825,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         assert np.all(cm.unique_nids == ncov_nid_list)
         cm.ncov_score_list = ncov_score_list
 
+    @profile
     def score_name_coverage(cm, qreq_):
         """
         CommandLine:
@@ -1114,10 +1274,32 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 
+    def as_qres2(cm, qreq_):
+        qres = qreq_.make_empty_query_result(cm.qaid)
+        #ut.assert_eq(qaid, cm.qaid)
+        qres.filtkey_list = cm.fsv_col_lbls
+        qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
+        qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
+        qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
+        qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
+        qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
+        qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
+        qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
+        return qres
+
     def as_qres(cm, qreq_):
-        from ibeis.model.hots import match_chips4
+        from ibeis.model.hots import scoring
         assert qreq_ is not None
-        qres = match_chips4.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        # Perform final scoring
+        # TODO: only score if already unscored
+        score_method = qreq_.qparams.score_method
+        # TODO: move scoring part to pipeline
+        scoring.score_chipmatch_list(qreq_, [cm], score_method)
+        # Normalize scores if requested
+        if qreq_.qparams.score_normalization:
+            normalizer = qreq_.normalizer
+            cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+        qres = cm.as_qres2(qreq_)
         return qres
 
     def ishow_analysis(cm, qreq_, **kwargs):
@@ -1157,9 +1339,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        from ibeis.model.hots import pipeline
         # hack: just make chipmatch the primary result type
-        qres = pipeline.chipmatch_to_resdict(qreq_, [cm])[cm.qaid]
+        qres = cm.as_qres(qreq_)
         kwshow = {
             'mode': 1,
         }

@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 """
 TODO:
 optional symetric and asymmetric search
 
 """
-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import numpy as np
 import vtool as vt
@@ -22,11 +22,11 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=
 
 
 @profile
-def score_chipmatch_list(qreq_, cm_list, score_method):
+def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
     """
     CommandLine:
         python -m ibeis.model.hots.scoring --test-score_chipmatch_list
-        python -m ibeis.model.hots.scoring --test-score_chipmatch_list:2
+        python -m ibeis.model.hots.scoring --test-score_chipmatch_list:1
         python -m ibeis.model.hots.scoring --test-score_chipmatch_list:0 --show
 
     Example0:
@@ -55,45 +55,23 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
-
-    #Example2:
-    #    >>> # ENABLE_DOCTEST
-    #    >>> from ibeis.model.hots.scoring import *  # NOQA
-    #    >>> from ibeis.model.hots import name_scoring
-    #    >>> from ibeis.model.hots import scoring
-    #    >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['controlled:qsize=1,dsize=10'], ['candidacy_namescore'])
-    #    >>> per_name_stats = [ibs.get_annot_per_name_stats(qreq_.get_external_daids()) for qreq_ in qreq_list]
-    #    >>> print('per_name_stats = %s' % (ut.list_str(per_name_stats),))
-    #    >>> assert all([stats['mean'] == 1 and stats['std'] == 0 for stats in per_name_stats]), 'this test requires one annot per name in the database'
-    #    >>> qreq_ = qreq_list[0]
-    #    >>> cm_list = cms_list[0]
-    #    >>> # Two chip matches from csum and nsum pipelien runs
-    #    >>> qreq1_, qreq2_ = qreq_list[0:2]
-    #    >>> cm1 = cms_list[0][0]
-    #    >>> cm2 = cms_list[1][0]
-    #    >>> assert cm1 is not cm2 and cm1 == cm2
-    #    >>> cm1.evaluate_dnids(qreq1_.ibs)
-    #    >>> cm2.evaluate_dnids(qreq2_.ibs)
-    #    >>> assert cm1 is not cm2 and cm1 == cm2
-    #    >>> cm, other = cm1, cm2
-    #    >>> cm1.assert_self()
-    #    >>> cm2.assert_self()
-    #    >>> qreq_ = qreq1_
-    #    >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm1)
-    #    >>> csum_score = scoring.compute_csum_score(cm1)
-    #    >>> csum_score = scoring.compute_csum_score(cm2)
     """
+    if progkw is None:
+        progkw = dict(freq=1, time_thresh=30.0, adjust=True)
+    lbl = 'scoring %s' % (score_method)
     # Choose the appropriate scoring mechanism
+    print('[scoring] score %d chipmatches with %s' % (len(cm_list), score_method,))
     if score_method == 'csum':
-        for cm in cm_list:
-            cm.score_csum(qreq_)
+        for cm in ut.ProgressIter(cm_list, lbl=lbl, **progkw):
+            cm.score_maxcsum(qreq_)
     elif score_method == 'nsum':
-        for cm in cm_list:
+        for cm in ut.ProgressIter(cm_list, lbl=lbl, **progkw):
             cm.score_nsum(qreq_)
     else:
-        raise Exception('[hs] unknown scoring method:' + score_method)
+        raise NotImplementedError('[hs] unknown scoring method:' + score_method)
 
 
+@profile
 def compute_csum_score(cm, qreq_=None):
     """
     CommandLine:
@@ -156,8 +134,7 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
     # Sort within each group by the annotation score
     top_daid_sortx_groups   = [annot_score_group.argsort()[::-1]
                                for annot_score_group in top_annot_score_groups]
-    top_sorted_daid_groups  = [daids_group.take(sortx) for daids_group, sortx in
-                               zip(top_daid_groups, top_daid_sortx_groups)]
+    top_sorted_daid_groups  = vt.ziptake(top_daid_groups, top_daid_sortx_groups)
     top_clipped_daids = [ut.listclip(sorted_daid_group, nAnnotPerName)
                          for sorted_daid_group in top_sorted_daid_groups]
     top_daids = ut.flatten(top_clipped_daids)

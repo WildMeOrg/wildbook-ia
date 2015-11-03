@@ -3,7 +3,7 @@ python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templa
 sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --modfname manual_species_funcs
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 # TODO: Fix this name it is too special case
 import uuid
 import functools
@@ -74,7 +74,7 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> # execute function
         >>> species_text_list_ = sanitize_species_texts(ibs, species_text_list)
         >>> # verify results
-        >>> result = str(species_text_list_)
+        >>> result = ut.list_str(species_text_list_, nl=False)
         >>> print(result)
         ['____', '____', 'zebra_plains']
     """
@@ -117,6 +117,9 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
         Method: POST
         URL:    /api/species/
 
+    CommandLine:
+        python -m ibeis.control.manual_species_funcs --test-add_species
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_species_funcs import *  # NOQA
@@ -124,8 +127,8 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
         >>> import utool as ut
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = [
-        ...     u'jaguar', u'zebra_plains', u'zebra_plains', '____', 'TYPO',
-        ...     '____', u'zebra_grevys', u'bear_polar']
+        ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
+        ...     '____', 'zebra_grevys', 'bear_polar']
         >>> species_rowid_list = ibs.add_species(species_text_list)
         >>> print(ut.list_str(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
@@ -133,13 +136,13 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result = str(species_text) + '\n'
-        >>> result += str(all_species_rowids) + '\n'
-        >>> result += str(ibs.get_species_texts(all_species_rowids))
+        >>> result =  ut.list_str(species_text, nl=False) + '\n'
+        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
-        [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
+        ['jaguar', 'zebra_plains', 'zebra_plains', '____', '____', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
-        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
+        ['zebra_plains', 'zebra_grevys', 'bear_polar']
 
     [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
     [8, 9, 10]
@@ -228,13 +231,13 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result = str(species_text) + '\n'
-        >>> result += str(all_species_rowids) + '\n'
-        >>> result += str(ibs.get_species_texts(all_species_rowids))
+        >>> result = ut.list_str(species_text, nl=False) + '\n'
+        >>> result += ut.list_str(all_species_rowids, nl=False) + '\n'
+        >>> result += ut.list_str(ibs.get_species_texts(all_species_rowids), nl=False)
         >>> print(result)
-        [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
+        ['jaguar', 'zebra_plains', 'zebra_plains', '____', '____', '____', 'zebra_grevys', 'bear_polar']
         [1, 2, 3]
-        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
+        ['zebra_plains', 'zebra_grevys', 'bear_polar']
 
     [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
     [8, 9, 10]

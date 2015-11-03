@@ -5,13 +5,15 @@ TODO: make qparams and qreq_ serializeable
 TODO:
     Rename to IdentifyRequest
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import multi_index
 from ibeis.model.hots import score_normalization
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import query_params
+from ibeis.model.hots import chip_match
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+from os.path import join
 import vtool as vt
 #import copy
 import six
@@ -88,6 +90,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
+        NAUT_test_DSUUIDS((5)2s8!cj@nrf6iuqgd)
+
         NAUT_test_DSUUIDS((5)&flvjboruwyi08%t)
 
     Example2:
@@ -998,7 +1002,10 @@ class QueryRequest(object):
         assert_uuids(_daids, _dauuids)
 
     def make_empty_query_results(qreq_):
-        """ returns empty query results for each external qaid """
+        """
+        DEPRICATE in favor of chipmatch
+
+        returns empty query results for each external qaid """
         external_qaids   = qreq_.get_external_qaids()
         external_qauuids = qreq_.get_external_quuids()
         daids  = qreq_.get_external_daids()
@@ -1010,7 +1017,10 @@ class QueryRequest(object):
         return qres_list
 
     def make_empty_query_result(qreq_, qaid):
-        """ makes an empty result for some query aid.  Hack used in case qres
+        """
+        DEPRICATE in favor of chipmatch
+
+        makes an empty result for some query aid.  Hack used in case qres
         returned is None to get a single qres """
         qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
         daids  = qreq_.get_external_daids()
@@ -1019,14 +1029,25 @@ class QueryRequest(object):
         qres.aid2_score = {}
         return qres
 
+    def get_chipmatch_fpaths(qreq_, qaid_list):
+        dpath = qreq_.get_qresdir()
+        fpath_list = [
+            join(dpath, chip_match.get_chipmatch_fname(qaid, qreq_))
+            for qaid in qaid_list
+        ]
+        return fpath_list
+
     def load_cached_qres(qreq_, qaid):
-        """ convinience function for loading a query that has already been
+        """
+        DEPRICATE in favor of chipmatch
+
+        convinience function for loading a query that has already been
         cached """
         shallow_qreq_ = qreq_.shallowcopy()
         shallow_qreq_.set_external_qaids([qaid])
-        qres = shallow_qreq_.ibs._query_chips4(
+        qres = shallow_qreq_.ibs.query_chips(
             [qaid], qreq_.get_external_daids(), use_cache=True,
-            use_bigcache=False, qreq_=shallow_qreq_)[qaid]
+            use_bigcache=False, qreq_=shallow_qreq_)[0]
         return qres
 
 

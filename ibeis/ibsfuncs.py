@@ -10,7 +10,7 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import types
 import functools
@@ -1252,6 +1252,23 @@ def delete_cachedir(ibs):
 
 @register_ibs_method
 def delete_qres_cache(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis --tf delete_qres_cache
+        python -m ibeis --tf delete_qres_cache --db PZ_MTEST
+        python -m ibeis --tf delete_qres_cache --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> result = delete_qres_cache(ibs)
+        >>> print(result)
+    """
     print('[ibs] delete delete_qres_cache')
     qreq_cachedir = ibs.get_qres_cachedir()
     qreq_bigcachedir = ibs.get_big_cachedir()
@@ -3179,7 +3196,7 @@ def get_dbnotes_fpath(ibs, ensure=False):
 def get_yaw_viewtexts(yaw_list):
     r"""
     Args:
-        yaw (?):
+        yaw_list (list of angles):
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
@@ -3192,7 +3209,7 @@ def get_yaw_viewtexts(yaw_list):
         >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
         >>> # execute function
         >>> text_list = get_yaw_viewtexts(yaw_list)
-        >>> result = str(text_list)
+        >>> result = ut.list_str(text_list, nl=False)
         >>> # verify results
         >>> print(result)
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
@@ -3258,17 +3275,17 @@ def get_database_species(ibs, aid_list=None):
         >>> # ENABLE_DOCTEST
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ibs.get_database_species()
+        >>> result = ut.list_str(ibs.get_database_species(), nl=False)
         >>> print(result)
-        ['____', u'bear_polar', u'zebra_grevys', u'zebra_plains']
+        ['____', 'bear_polar', 'zebra_grevys', 'zebra_plains']
 
     Example2:
         >>> # ENABLE_DOCTEST
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> result = ibs.get_database_species()
+        >>> result = ut.list_str(ibs.get_database_species(), nl=False)
         >>> print(result)
-        [u'zebra_plains']
+        ['zebra_plains']
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -3358,9 +3375,10 @@ def get_database_species_count(ibs, aid_list=None):
         >>> import ibeis  # NOQA
         >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ibs.get_database_species_count()
+        >>> result = ut.dict_str(ibs.get_database_species_count(), nl=False)
         >>> print(result)
-        {u'zebra_plains': 6, '____': 3, u'zebra_grevys': 2, u'bear_polar': 2}
+        {'____': 3, 'bear_polar': 2, 'zebra_grevys': 2, 'zebra_plains': 6}
+
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -5627,7 +5645,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, qaids, daids = main_helpers.testdata_ibeis()
+        >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids()
         >>> get_annotconfig_stats(ibs, qaids, daids)
     """
     kwargs = kwargs.copy()

@@ -201,8 +201,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
         sv_cfg.nAnnotPerNameSVER = 6
-        #sv_cfg.prescore_method = 'csum'
-        sv_cfg.prescore_method = 'nsum'
+        sv_cfg.prescore_method = 'csum'
+        #sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
         sv_cfg.sver_output_weighting = False  # weight feature scores with sver errors
         sv_cfg.weight_inliers = True  # weight feature scores with sver errors
@@ -763,9 +763,9 @@ class QueryConfig(ConfigBase):
         smk_cfg = query_cfg.smk_cfg
         vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
         agg_cfg = query_cfg.agg_cfg
-        sv_cfg = query_cfg.sv_cfg
+        #sv_cfg = query_cfg.sv_cfg
 
-        assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
+        #assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
 
         if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
             assert agg_cfg.score_method == 'nsum'

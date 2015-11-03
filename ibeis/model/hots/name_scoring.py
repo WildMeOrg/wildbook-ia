@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, map  # NOQA
 import numpy as np
 import itertools
@@ -50,6 +51,7 @@ def testdata_chipmatch():
     return cm
 
 
+@profile
 def compute_nsum_score(cm, qreq_=None):
     r"""
     nsum
@@ -61,8 +63,11 @@ def compute_nsum_score(cm, qreq_=None):
         tuple: (unique_nids, nsum_score_list)
 
     CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score
         python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:0
         python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:2
+        utprof.py -m ibeis.model.hots.name_scoring --test-compute_nsum_score:2
+        utprof.py -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -84,7 +89,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_.ibs)
         >>> #cm.qnid = 1   # Hack for testdb1 names
-        >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm)
+        >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_)
         >>> assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
         >>> flags = (nsum_nid_list == cm.qnid)
         >>> max_true = nsum_score_list[flags].max()
@@ -118,55 +123,41 @@ def compute_nsum_score(cm, qreq_=None):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
     """
+    #assert qreq_ is not None
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match
-    qaid = cm.qaid
-    dnid_list = cm.dnid_list
-    fs_list = cm.get_fsv_prod_list()
-    fm_list = cm.fm_list
     #
     # The query feature index for each feature match
-    fx1_list = [fm.T[0] for fm in fm_list]
+    fx1_list = [fm.T[0] for fm in cm.fm_list]
     # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
+    nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
-    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
+    name_grouped_fs_list  = vt.apply_grouping_(cm.get_fsv_prod_list(),  name_groupxs)
     # Stack up all matches to a particular name
-    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
-    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+    name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
+    name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
     if HACK_SINGLE_ORI:
         # keypoints with the same xy can only have one of them vote
-        kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+        kpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
         xys1_ = vt.get_xys(kpts1).T
-        kpts_xyid_list = vt.compute_unique_data_ids(xys1_)
+        kpts_xyid_list = vt.compute_unique_arr_dataids(xys1_)
         # Make nested group for every name by query feature index (accounting for duplicate orientation)
-        name_grouped_xyid_flat = (kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
-        xyid_groupxs_list = (vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat)
-        feat_grouped_fs_list = list(
-            vt.apply_grouping(fs_flat, xyid_groupxs)
-            for fs_flat, xyid_groupxs in zip(name_grouped_fs_flat, xyid_groupxs_list)
-        )
+        name_grouped_xyid_flat = [kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat]
+        feat_groupxs_list = [vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat]
     else:
-        # Make nested group for every name by query feature index
-        fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
-        feat_grouped_fs_list = list(
-            vt.apply_grouping(fs_flat, fx1_groupxs)
-            for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
-        )
+        # make unique indicies using feature indexes
+        feat_groupxs_list = [vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat]
+    # Make nested group for every name by unique query feature index
+    feat_grouped_fs_list = [[fs_flat.take(xs, axis=0) for xs in feat_groupxs]
+                            for fs_flat, feat_groupxs in zip(name_grouped_fs_flat, feat_groupxs_list)]
     # Prevent a feature from voting twice:
     # take only the max score that a query feature produced
-    best_fs_list = list(
-        np.array([fs_group.max() for fs_group in feat_grouped_fs])
-        for feat_grouped_fs in feat_grouped_fs_list
-    )
-    nsum_score_list = np.array([fs.sum() for fs in best_fs_list])
-    # DO NOT Return sorted by the name score
-    #name_score_sortx = nsum_score_list.argsort()[::-1]
-    #nsum_score_list = nsum_score_list.take(name_score_sortx)
-    #nsum_nid_list   = nsum_nid_list.take(name_score_sortx)
+    nsum_score_list = np.array([np.sum([fs_group.max() for fs_group in feat_grouped_fs])
+                                for feat_grouped_fs in feat_grouped_fs_list])
     return nsum_nid_list, nsum_score_list
 
 
+@profile
 def compute_nsum_score2(cm, qreq_=None):
     r"""
     Example3:
@@ -189,6 +180,7 @@ def compute_nsum_score2(cm, qreq_=None):
     return nsum_nid_list, nsum_score_list, featflag_list
 
 
+@profile
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     """
 
@@ -240,6 +232,7 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     return featflag_list
 
 
+@profile
 def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
     r"""
     fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
@@ -294,6 +287,7 @@ def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_grou
     return featflag_list
 
 
+@profile
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
     r"""
     takes name scores and gives them to the best annotation
@@ -328,8 +322,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> name_groupxs     = cm.name_groupxs
         >>> # Execute Function
         >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)
+        >>> # Check that the correct name gets the highest score
         >>> target = name_score_list[cm.nid2_nidx[cm.qnid]]
-        >>> # Check Results
         >>> test_index = np.where(score_list == target)[0][0]
         >>> cm.score_list = score_list
         >>> ut.assert_eq(ibs.get_annot_name_rowids(cm.daid_list[test_index]), cm.qnid)
@@ -337,6 +331,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> assert cm.get_top_nids()[0] == cm.unique_nids[cm.nsum_score_list.argmax()], 'bug in alignment'
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_)
+        >>> ut.show_if_requested()
 
     Example:
         >>> annot_score_list = []
@@ -408,6 +403,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
 #    annot_idx_list = np.add(baseindex_list, offset_list)
 
 
+@profile
 def group_scores_by_name(ibs, aid_list, score_list):
     r"""
     Converts annotation scores to name scores.
@@ -425,12 +421,12 @@ def group_scores_by_name(ibs, aid_list, score_list):
         >>> daid_list = ibs.get_valid_aids()
         >>> qaid_list = daid_list[0:1]
         >>> cfgdict = dict()
-        >>> qaid2_qres, qreq_ = ibs._query_chips4(
+        >>> qres_list, qreq_ = ibs.query_chips(
         ...     qaid_list, daid_list, cfgdict=cfgdict, return_request=True,
         ...     use_cache=False, save_qcache=False)
-        >>> qres = qaid2_qres[qaid_list[0]]
-        >>> print(qres.get_inspect_str())
-        >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
+        >>> qres = qres_list[0]
+        >>> #print(qres.get_inspect_str())
+        >>> #print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
         >>> aid_list, score_list = qres.get_aids_and_scores()
         >>> nscoretup = group_scores_by_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup

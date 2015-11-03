@@ -35,7 +35,7 @@ def test_configurations(ibs, acfgstr_name_list, test_cfg_name_list):
 
 
 #def get_cmdline_testres():
-#    ibs, qaids, daids = main_helpers.testdata_ibeis(verbose=False)
+#    ibs, qaids, daids = main_helpers.testdata_expanded_aids(verbose=False)
 #    test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
 #    testres = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
 #    return ibs, testres

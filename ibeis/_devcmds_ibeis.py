@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This is supposed to be pristine, it turns out to be mostly clutter
 from __future__ import absolute_import, division, print_function
-import six
+import six  # NOQA
 from ibeis._devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
@@ -108,12 +108,10 @@ def query_aids(ibs, qaid_list, daid_list=None):
     import ibeis
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
-    for qaid in qaid_list:
-        qres = qaid2_qres[qaid]
+    qres_list = ibs.query_chips(qaid_list, daid_list)
+    for qres in qres_list:
         assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
         qres.ishow_top(ibs, fnum=df2.next_fnum(), annot_mode=1, make_figtitle=True)
-    return qaid2_qres
 
 
 @devcmd('sver')
@@ -126,12 +124,10 @@ def sver_aids(ibs, qaid_list, daid_list=None):
     """
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
-    for qaid in qaid_list:
-        qres = qaid2_qres[qaid]
+    qres_list = ibs.query_chips(qaid_list, daid_list)
+    for qres in qres_list:
         aid2 = qres.get_top_aids()[0]
-        interact.ishow_sver(ibs, qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
-    return qaid2_qres
+        interact.ishow_sver(ibs, qres.qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
 
 
 @devcmd('cfg')
@@ -222,11 +218,12 @@ def export(ibs, aid_pairs=None):
     #utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
-        qaid2_qres = ibs._query_chips4(aid_pair, aid_pair)
+        qres_list = ibs.query_chips(aid_pair, aid_pair)
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
-        for qaid, qres in six.iteritems(qaid2_qres):
+        for qres in qres_list:
+            qaid = qres.qaid
             print('Getting kpts from %r' % qaid)
             #qres.show_top(ibs)
             posrid_list = utool.ensure_iterable(qres.get_classified_pos())

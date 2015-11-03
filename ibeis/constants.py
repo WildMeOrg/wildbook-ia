@@ -4,7 +4,7 @@ It is better to use constant variables instead of hoping you spell the same
 string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 # import utool
 import six
 import numpy as np
@@ -94,14 +94,15 @@ class PATH_NAMES(object):
     trees      = 'trees'
     nets       = 'nets'
     uploads    = 'uploads'
-    qres       = 'qres'
-    bigcache   = 'qres_bigcache'
     detectimg  = 'detectimg'
     thumbs     = 'thumbs'
     trashdir   = 'trashed_images'
     distinctdir = 'distinctiveness_model'
     scorenormdir = 'scorenorm'
     smartpatrol = 'smart_patrol'
+    # Query Results (chipmatch dirs)
+    qres       = 'qres_new'
+    bigcache   = 'qres_bigcache_new'
 
 
 class REL_PATHS(object):

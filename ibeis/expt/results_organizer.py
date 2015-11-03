@@ -393,7 +393,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:10]
         >>> daid_list = ibs.get_valid_aids()[0:10]
-        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> qres_list = ibs.query_chips(qaid_list, daid_list)
         >>> ranks_lt = 3
         >>> directed = False
         >>> name_scoring = False

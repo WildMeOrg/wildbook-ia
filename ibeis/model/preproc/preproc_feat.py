@@ -2,7 +2,7 @@
 """
 Computes patch based features based on Hesaff, SIFT, or convnets.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 import pyhesaff
 import utool

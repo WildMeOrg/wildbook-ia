@@ -27,15 +27,15 @@ def TEST_QUERY(ibs):
     print('[TEST_QUERY] len(daid_list)=%r' % (len(daid_list)))
     qaid_list = daid_list[0:1]
     print('[TEST_QUERY] len(qaid_list)=%r' % (len(qaid_list)))
-    qres_dict = ibs._query_chips4(qaid_list, daid_list, use_cache=False, use_bigcache=False)
-    qres_dict_ = ibs._query_chips4(qaid_list, daid_list)
+    qres_list = ibs.query_chips(qaid_list, daid_list, use_cache=False, use_bigcache=False)
+    qres_list_ = ibs.query_chips(qaid_list, daid_list)
 
     try:
-        vals1 = list(qres_dict.values())
-        vals2 = list(qres_dict_.values())
+        vals1 = qres_list
+        vals2 = qres_list_
         assert len(vals1) == 1, 'expected 1 qres in result'
         assert len(vals2) == 1, 'expected 1 qres in result'
-        assert list(qres_dict.keys()) == list(qres_dict_.keys()), 'qres cache doesnt work. key error'
+        #assert list(qres_dict.keys()) == list(qres_dict_.keys()), 'qres cache doesnt work. key error'
         qres1 = vals1[0]
         qres2 = vals2[0]
         inspect_str1 = qres1.get_inspect_str(ibs)
@@ -48,8 +48,7 @@ def TEST_QUERY(ibs):
         raise
 
     if ut.show_was_requested():
-        for qaid in qaid_list:
-            qres  = qres_dict[qaid]
+        for qres in qres_list:
             top_aids = qres.get_top_aids()
             #top_aids = utool.safe_slice(top_aids, 3)
             aid2 = top_aids[0]

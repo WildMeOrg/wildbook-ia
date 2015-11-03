@@ -49,12 +49,12 @@ if __name__ == '__main__':
 #                                   developing=True)
 from ibeis._devcmds_ibeis import *  # NOQA
 # IBEIS
-from ibeis.init import main_helpers
-from ibeis.other import dbinfo
-from ibeis.expt import experiment_configs
-from ibeis.expt import experiment_harness
-from ibeis.expt import results_all
-from ibeis import params, constants
+from ibeis.init import main_helpers  # NOQA
+from ibeis.other import dbinfo  # NOQA
+from ibeis.expt import experiment_configs  # NOQA
+from ibeis.expt import experiment_harness  # NOQA
+from ibeis.expt import results_all  # NOQA
+from ibeis import params, constants  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
@@ -312,7 +312,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
             count += 1
             # Execute query
             daids = false_sample + [gt_aid]
-            qres = ibs._query_chips4([qaid], daids)[qaid]
+            qres = ibs.query_chips([qaid], daids)[0]
             # Elicit information
             score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
             # Append result
@@ -379,7 +379,7 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
         false_sample = false_aids_samples[dbsample_index]
         print(false_sample)
         daids = false_sample + [gt_aid]
-        qres = ibs._query_chips4([qaid], daids)[qaid]
+        qres = ibs.query_chips([qaid], daids)[0]
         #for score in scores:
         #    if score is None:
         #        continue
@@ -415,7 +415,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     cfgdict = dict(codename='vsone')
     qaid2_vsoneqres = {}
     for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
-        qres = ibs._query_chips4([qaid], vsoneaids, cfgdict=cfgdict)[qaid]
+        qres = ibs.query_chips([qaid], vsoneaids, cfgdict=cfgdict)[0]
         qaid2_vsoneqres[qaid] = qres
     vsone_allres = results_all.init_allres(ibs, qaid2_vsoneqres)
     viz_allres_annotation_scores(vsone_allres)
@@ -848,7 +848,7 @@ def run_dev(ibs):
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
-        ibs, qaid_list, daid_list = main_helpers.testdata_ibeis(ibs=ibs)
+        ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
         #qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
         #daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
         print('[run_def] Test Annotations:')

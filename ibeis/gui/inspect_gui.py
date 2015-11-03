@@ -867,7 +867,7 @@ def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> qres = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
         >>> daid = qaids[0]
         >>> qreq_ = None
         >>> match_thumbtup_cache = {}
