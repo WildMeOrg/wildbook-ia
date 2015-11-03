@@ -223,7 +223,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> # ENABLE_DOCTEST
         >>> # TEST PARTIAL HIT
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
-        >>> cfgdict1 = dict(codename='vsmany', sv_on=True, prescore_method='nsum')
+        >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
         >>> #ibs.cfg.other_cfg.hots_batch_size = 2
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4, 5, 6, 7, 8, 9])
         >>> use_cache, save_qcache, verbose = False, True, False
@@ -240,7 +240,6 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> qaid2_cm_ = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)
         >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.get_external_qaids()])
         >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.get_external_qaids())]
-        >>> print(qaid2_cm)
 
     Ignore:
         other = cm_ = qaid2_cm_[qaid]
