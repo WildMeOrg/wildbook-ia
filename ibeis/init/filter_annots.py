@@ -145,7 +145,7 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
         annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
 
     if need_both_tags:
-        both_tags_list = list(map(ut.unique_keep_order2,
+        both_tags_list = list(map(ut.unique_keep_order,
                                   map(ut.flatten, zip(annot_tags_list,
                                                       annotmatch_tags_list))))
 

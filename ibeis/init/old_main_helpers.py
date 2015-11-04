@@ -294,7 +294,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * ... not defaulting')
 
-    available_qaids = ut.unique_keep_order2(available_qaids)
+    available_qaids = ut.unique_keep_order(available_qaids)
 
     # ---- EXCLUSION STEP
     if VERB_MAIN_HELPERS:
@@ -448,7 +448,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
         if VERB_MAIN_HELPERS:
             print('[get_test_daids] * ... not defaulting')
 
-    available_daids = ut.unique_keep_order2(available_daids)
+    available_daids = ut.unique_keep_order(available_daids)
 
     # ---- EXCLUSION STEP
     if VERB_MAIN_HELPERS:

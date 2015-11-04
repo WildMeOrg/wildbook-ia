@@ -740,7 +740,7 @@ def check_name_consistency(ibs, nid_list):
     for aids, sids in zip(aids_list, species_rowids_list):
         if not ut.list_allsame(sids):
             error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (
-                aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
+                aids, ibs.get_species_texts(ut.unique_keep_order(sids)))
             print(error_msg)
             error_list.append(error_msg)
     if len(error_list) > 0:
@@ -2257,7 +2257,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     #name_list = ibs.get_name_texts(nid_list)
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
-    unique_species_rowids_list = list(map(ut.unique_keep_order2, species_rowids_list))
+    unique_species_rowids_list = list(map(ut.unique_keep_order, species_rowids_list))
     # TODO: ibs.duplicate_map
     unique_species_texts_list = ibs.unflat_map(ibs.get_species_texts, unique_species_rowids_list)
     species_codes = [
@@ -2436,7 +2436,7 @@ def hack(ibs):
 
     #if False:
     #    eids_with_bad_names = [6, 7, 16]
-    #    bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
+    #    bad_nids = ut.unique_keep_order(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
 
 
 def draw_thumb_helper(tup):
@@ -5876,7 +5876,7 @@ def find_unlabeled_name_members(ibs, **kwargs):
 
     x = ut.flatten(selected_aids_list)
     y = ut.sortedby2(x, list(map(len, x)))
-    selected_aids = ut.unique_keep_order2(ut.flatten(y))
+    selected_aids = ut.unique_keep_order(ut.flatten(y))
     return selected_aids
 
     #ibs.unflat_map(ibs.get_annot_quality_texts, aids_list)

@@ -192,7 +192,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.gt1, self.gt2 = self.gts_list
         # A flat list of all the aids we are looking at
         self.is_split_case = self.nid1 == self.nid2
-        self.all_aid_list = ut.unique_keep_order2([aid1, aid2] + self.gt1 + self.gt2)
+        self.all_aid_list = ut.unique_keep_order([aid1, aid2] + self.gt1 + self.gt2)
         self.all_nid_list_orig = ibs.get_annot_name_rowids(self.all_aid_list)
         self.other_aids = list(set(self.all_aid_list) - set([self.aid1, self.aid2]))
 
@@ -219,7 +219,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def get_other_nids(self):
         ibs = self.ibs
         all_nid_list = ibs.get_annot_name_rowids(self.all_aid_list)
-        unique_nid_list = ut.unique_keep_order2(all_nid_list)
+        unique_nid_list = ut.unique_keep_order(all_nid_list)
         is_unknown = ibs.is_nid_unknown(unique_nid_list)
         is_name1 = [nid == self.nid1 for nid in unique_nid_list]
         is_name2 = [nid == self.nid2 for nid in unique_nid_list]

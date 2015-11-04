@@ -1097,7 +1097,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_list      = [model._get_row_id(_qtindex) for _qtindex in qtindex_list]
         level_list   = [model._get_level(_qtindex) for _qtindex in qtindex_list]
         level2_ids_ = ut.group_items(id_list, level_list)
-        level2_ids = {level: ut.unique_keep_order2(ids)
+        level2_ids = {level: ut.unique_keep_order(ids)
                       for level, ids in six.iteritems(level2_ids_)}
 
         ibs = ibswgt.back.ibs

@@ -646,14 +646,14 @@ class TestResult(object):
                 else:
                     cfgname_list = [cfg['dcfg__cfgname']
                                     for cfg in testres.varied_acfg_list]
-                    cfgname_list = ut.unique_keep_order2(cfgname_list)
+                    cfgname_list = ut.unique_keep_order(cfgname_list)
                     annot_cfgname = '[' + ','.join(cfgname_list) + ']'
                 try:
                     pipeline_cfgname = testres.common_cfgdict['_cfgstr']
                 except KeyError:
                     #pipeline_cfgname = testres.common_cfgdict['_cfgname']
                     cfgstr_list = [cfg['_cfgstr'] for cfg in testres.varied_cfg_list]
-                    uniuqe_cfgstrs = ut.unique_keep_order2(cfgstr_list)
+                    uniuqe_cfgstrs = ut.unique_keep_order(cfgstr_list)
                     pipeline_cfgname = '[' + ','.join(uniuqe_cfgstrs) + ']'
 
                 annot_cfgname = testres._shorten_lbls(annot_cfgname)
@@ -1217,7 +1217,7 @@ class TestResult(object):
 
         # Computes unique test cases and groups them with all case labels
         caseid_list = vt.compute_unique_data_ids(sampled_case_list)
-        unique_case_ids = ut.unique_keep_order2(caseid_list)
+        unique_case_ids = ut.unique_keep_order(caseid_list)
         labels_list = ut.dict_take(ut.group_items(sampled_lbl_list, caseid_list), unique_case_ids)
         cases_list = np.vstack(ut.get_list_column(ut.dict_take(ut.group_items(sampled_case_list, caseid_list), unique_case_ids), 0))
 
@@ -1406,7 +1406,7 @@ class TestResult(object):
                     for type_, pos_list in pos_dict.items():
                         #if False:
                         #    _qx2_casegroup = ut.group_items(pos_list, pos_list.T[0], sorted_=False)
-                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order2(pos_list.T[0]))
+                        #    qx2_casegroup = ut.order_dict_by(_qx2_casegroup, ut.unique_keep_order(pos_list.T[0]))
                         #    grouppos_list = list(qx2_casegroup.values())
                         #    grouppos_len_list = list(map(len, grouppos_list))
                         #    _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
@@ -1515,7 +1515,7 @@ class TestResult(object):
         #talk about convoluted
         _qx2_casegroup = ut.group_items(case_pos_list, case_pos_list.T[0], sorted_=False)
         qx2_casegroup = ut.order_dict_by(
-            _qx2_casegroup, ut.unique_keep_order2(case_pos_list.T[0]))
+            _qx2_casegroup, ut.unique_keep_order(case_pos_list.T[0]))
         grouppos_list = list(qx2_casegroup.values())
         grouppos_len_list = list(map(len, grouppos_list))
         _len2_groupedpos = ut.group_items(grouppos_list, grouppos_len_list, sorted_=False)
@@ -1603,13 +1603,13 @@ class TestResult(object):
         if '_cfgstr' in testres.common_cfgdict:
             pipecfg_args = [testres.common_cfgdict['_cfgstr']]
         else:
-            pipecfg_args = ut.unique_keep_order2(
+            pipecfg_args = ut.unique_keep_order(
                 [cfg['_cfgstr'] for cfg in testres.varied_cfg_list])
 
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
         else:
-            annotcfg_args = ut.unique_keep_order2([
+            annotcfg_args = ut.unique_keep_order([
                 acfg['common']['_cfgstr']
                 for acfg in testres.varied_acfg_list])
         flagstr =  ' '.join([

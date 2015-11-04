@@ -152,7 +152,7 @@ detection_summary = ('# Detection Summary', ut.codeblock(
             ibs, [a[0]], use_cache=False)
         qaids, daids = expanded_aids_list[0]
         all_aids = ut.flatten([qaids, daids])
-        gids = ut.unique_keep_order2(ibs.get_annot_gids(all_aids))
+        gids = ut.unique_keep_order(ibs.get_annot_gids(all_aids))
 
     aids = ibs.get_image_aids(gids)
 

@@ -122,6 +122,42 @@ def compute_nsum_score(cm, qreq_=None):
         >>> #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> FIXME: breaks when fg_on=True
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> from ibeis.model.hots import name_scoring
+        >>> from ibeis.model.hots import scoring
+        >>> # Test to make sure name score and chips score are equal when per_name=1
+        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1,fg_on=True'])
+        >>> qreq_, cm_list = qreq_list[0], cms_list[0]
+        >>> cm = cm_list[0]
+        >>> # Ensure there is only one aid per database name
+        >>> import ibeis
+        >>> assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+        >>> #stats_dict = ibs.get_annot_stats_dict(qreq_.get_external_daids(), prefix='d')
+        >>> #stats = stats_dict['dper_name']
+        >>> stats = ibs.get_annot_per_name_stats(qreq_.get_external_daids())
+        >>> print('per_name_stats = %s' % (ut.dict_str(stats, nl=False),))
+        >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
+        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm.assert_self(qreq_)
+        >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm)
+        >>> csum_score = scoring.compute_csum_score(cm)
+        >>> assert all(nsum_score == csum_score), 'should be the same when K=1 and per_name=1'
+        >>> # Evaluate parts of the sourcecode
+
+        #>>> func1 = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags
+        #>>> func2 = name_scoring.get_namescore_nonvoting_feature_flags
+        #>>> sourcecode1 = ut.get_func_sourcecode(func1, stripdef=True, stripret=True, strip_docstr=True, remove_linenums=[-1, -2])
+        #>>> locals_ = locals()
+        #>>> globals_ = globals()
+        #>>> six.exec_(sourcecode1, globals_, locals_)
+        #>>> sourcecode2 = ut.get_func_sourcecode(func2, stripdef=True, stripret=True, strip_docstr=True)
+        #>>> six.exec_(sourcecode2, globals_, locals_)
+        #assert locals_['kpts1'] is None
+        #locals_['featflag_list']
     """
     #assert qreq_ is not None
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
@@ -129,10 +165,11 @@ def compute_nsum_score(cm, qreq_=None):
     #
     # The query feature index for each feature match
     fx1_list = [fm.T[0] for fm in cm.fm_list]
+    fs_list = cm.get_fsv_prod_list()
     # Group annotation matches by name
     nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
-    name_grouped_fs_list  = vt.apply_grouping_(cm.get_fsv_prod_list(),  name_groupxs)
+    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
     # Stack up all matches to a particular name
     name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
     name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
@@ -167,6 +204,8 @@ def compute_nsum_score2(cm, qreq_=None):
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(fg_on=False, augment_queryside_hack=True))
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> nsum_nid_list1, nsum_score_list1, featflag_list1 = compute_nsum_score2(cm, qreq_)
+        >>> nsum_nid_list2, nsum_score_list2 = compute_nsum_score(cm, qreq_)
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
     """
@@ -183,42 +222,23 @@ def compute_nsum_score2(cm, qreq_=None):
 @profile
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     """
+    Computes flags to desribe which features can or can not vote
 
     CommandLine:
         python -m ibeis.model.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
 
-    FIXME: breaks when fg_on=True
-
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # FIXME: breaks when fg_on=True
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> from ibeis.model.hots import name_scoring
-        >>> from ibeis.model.hots import scoring
         >>> # Test to make sure name score and chips score are equal when per_name=1
         >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1,fg_on=True'])
         >>> qreq_, cm_list = qreq_list[0], cms_list[0]
         >>> cm = cm_list[0]
-        >>> # Ensure there is only one aid per database name
-        >>> stats = ibs.get_annot_per_name_stats(qreq_.get_external_daids())
-        >>> print('per_name_stats = %s' % (ut.dict_str(stats, nl=False),))
-        >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
         >>> cm.evaluate_dnids(qreq_.ibs)
-        >>> cm.assert_self()
-        >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm)
-        >>> csum_score = scoring.compute_csum_score(cm)
-        >>> assert all(nsum_score == csum_score), 'should be the same when K=1 and per_name=1'
-        >>> # Evaluate parts of the sourcecode
-
-        #>>> func1 = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags
-        #>>> func2 = name_scoring.get_namescore_nonvoting_feature_flags
-        #>>> sourcecode1 = ut.get_func_sourcecode(func1, stripdef=True, stripret=True, strip_docstr=True, remove_linenums=[-1, -2])
-        #>>> locals_ = locals()
-        #>>> globals_ = globals()
-        #>>> six.exec_(sourcecode1, globals_, locals_)
-        #>>> sourcecode2 = ut.get_func_sourcecode(func2, stripdef=True, stripret=True, strip_docstr=True)
-        #>>> six.exec_(sourcecode2, globals_, locals_)
-        #assert locals_['kpts1'] is None
-        #locals_['featflag_list']
+        >>> featflat_list = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
+        >>> assert all(list(map(np.all, featflat_list))), 'all features should be able to vote in K=1, per_name=1 case'
     """
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match

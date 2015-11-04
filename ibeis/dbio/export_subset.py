@@ -1483,7 +1483,7 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> aid_list = expanded_aids_list[0][0]
         >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
         >>> # Expand to get all annots in each chosen image
-        >>> gid_list = ut.unique_keep_order2(ibs.get_annot_gids(aid_list))
+        >>> gid_list = ut.unique_keep_order(ibs.get_annot_gids(aid_list))
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         >>> ibs.print_annot_stats(aid_list, yawtext_isect=True, per_image=True)
         >>> new_dbpath = ut.get_argval('--new-dbpath', default='PZ_ViewPoints')

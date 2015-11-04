@@ -139,7 +139,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
     if not ut.get_argflag('--show'):  # False:
         tags_list = tag_funcs.consolodate_annotmatch_tags(tags_list)
-    tag_list = ut.unique_keep_order2(ut.flatten(tags_list))
+    tag_list = ut.unique_keep_order(ut.flatten(tags_list))
 
     # DUP CODE
     name_equality = (ibs.get_annot_nids(aid_list[0]) ==

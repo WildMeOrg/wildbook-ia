@@ -232,7 +232,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
     #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
-    case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+    case_qx_list = ut.unique_keep_order(case_pos_list.T[0])
     selected_tags = ut.list_take(all_tags, case_qx_list)
 
     flat_tags_list = list(map(ut.flatten, selected_tags))
@@ -407,7 +407,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
     ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))
     #samplekw = dict(per_group=5)
     #case_pos_list = testres.get_case_positions('failure', samplekw=samplekw)
-    #failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+    #failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])
     #sel_rows = (np.array(failure_qx_list).tolist())
     #sel_cols = (list(range(testres.nConfig)))
 
@@ -814,13 +814,13 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
 
     def convert_case_pos_to_cfgx(case_pos_list, case_labels_list):
         # Convert to all cfgx format
-        qx_list = ut.unique_keep_order2(np.array(case_pos_list).T[0])
+        qx_list = ut.unique_keep_order(np.array(case_pos_list).T[0])
         ut.dict_take(ut.group_items(case_pos_list, case_pos_list.T[0]), qx_list)
         if case_labels_list is not None:
             grouped_labels = ut.dict_take(
                 ut.group_items(case_labels_list, case_pos_list.T[0]),
                 qx_list)
-            flat_case_labels = list(map(ut.unique_keep_order2, map(ut.flatten, grouped_labels)))
+            flat_case_labels = list(map(ut.unique_keep_order, map(ut.flatten, grouped_labels)))
         else:
             flat_case_labels = None
         new_rows = np.array(qx_list).tolist()
@@ -848,7 +848,7 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
         #samplekw = ut.argparse_dict(dict(per_group=5))
         samplekw = ut.argparse_dict(dict(per_group=None))
         case_pos_list = testres.get_case_positions(mode='failure', samplekw=samplekw)
-        failure_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
+        failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])
         sel_rows.extend(np.array(failure_qx_list).tolist())
         sel_cols.extend(list(range(len(cfg_list))))
 
@@ -879,8 +879,8 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
         sel_cols.extend(new_cols)
         pass
 
-    sel_rows = ut.unique_keep_order2(sel_rows)
-    sel_cols = ut.unique_keep_order2(sel_cols)
+    sel_rows = ut.unique_keep_order(sel_rows)
+    sel_cols = ut.unique_keep_order(sel_cols)
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
 

@@ -142,7 +142,7 @@ def consolodate_annotmatch_tags(case_tags):
 
     filtered_tags = list(map(filter_tags, case_tags))
     mapped_tags = list(map(map_tags, filtered_tags))
-    unique_tags = list(map(ut.unique_keep_order2,  mapped_tags))
+    unique_tags = list(map(ut.unique_keep_order,  mapped_tags))
     new_tags = list(map(cap_tags, unique_tags))
 
     return new_tags
@@ -936,7 +936,7 @@ def get_annot_all_tags(ibs, aid_list):
     """
     annotmatch_tags_list = ibs.get_annot_annotmatch_tags(aid_list)
     annot_tags_list = ibs.get_annot_case_tags(aid_list)
-    both_tags_list = list(map(ut.unique_keep_order2, map(ut.flatten,
+    both_tags_list = list(map(ut.unique_keep_order, map(ut.flatten,
                                                          zip(annot_tags_list,
                                                              annotmatch_tags_list))))
     return both_tags_list

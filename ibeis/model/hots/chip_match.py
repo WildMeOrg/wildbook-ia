@@ -1013,7 +1013,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
         """
-        cm.assert_self()
+        cm.assert_self(qreq_)
         #ut.embed()
 
         top_lbls = [' top aids', ' scores', ' ranks']
@@ -1226,94 +1226,126 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         assert cm.score_list is None or len(cm.score_list) == len(cm.daid_list), 'incompatable data'
         assert cm.dnid_list is None or len(cm.dnid_list) == len(cm.daid_list), 'incompatable data'
 
-        failed_list = []
+        class TestLogger(object):
+            def __init__(testlog):
+                testlog.test_out = ut.ddict(list)
+                testlog.current_test = None
+                testlog.failed_list = []
 
-        if cm.score_list is not None:
-            daids = cm.get_top_aids()
-            scores = cm.get_top_scores()
-            scores_ = cm.get_annot_scores(daids)
-            if not np.all(scores == scores_):
-                failed_list.append('bad score mapping')
-                if verbose:
-                    print('[cm] score mappings are NOT ok')
-            else:
-                print('[cm] score mappings are ok')
+            def start_test(testlog, name):
+                testlog.current_test = name
 
-        if strict or qreq_ is not None and cm.dnid_list is not None:
-            if not np.all(cm.dnid_list == qreq_.ibs.get_annot_name_rowids(cm.daid_list)):
-                failed_list.append('bad nids')
+            def log_skipped(testlog, msg):
                 if verbose:
-                    print('[cm] annot aligned nids are NOT ok')
+                    print('[cm] skip: ' + msg)
+
+            def log_passed(testlog, msg):
+                if verbose:
+                    print('[cm] pass: ' + msg)
+
+            def skip_test(testlog):
+                testlog.log_skipped(testlog.current_test)
+                testlog.current_test = None
+
+            def log_failed(testlog, msg):
+                testlog.test_out[testlog.current_test].append(msg)
+                testlog.failed_list.append(msg)
+                print('[cm] FAILED!: ' + msg)
+
+            def end_test(testlog):
+                if len(testlog.test_out[testlog.current_test]) == 0:
+                    testlog.log_passed(testlog.current_test)
+                else:
+                    testlog.log_failed(testlog.current_test)
+                testlog.current_test = None
+
+            def context(testlog, name):
+                testlog.start_test(name)
+                return testlog
+
+            def __enter__(testlog):
+                return testlog
+
+            def __exit__(testlog, a, b, c):
+                if testlog.current_test is not None:
+                    testlog.end_test()
+
+        testlog = TestLogger()
+
+        with testlog.context('lookup score by daid'):
+            if cm.score_list is None:
+                testlog.skip_test()
             else:
-                print('[cm] annot aligned nids are ok')
+                daids = cm.get_top_aids()
+                scores = cm.get_top_scores()
+                scores_ = cm.get_annot_scores(daids)
+                if not np.all(scores == scores_):
+                    testlog.log_failed('score mappings are NOT ok')
+
+        with testlog.context('dnid_list = name(daid_list'):
+            if strict or qreq_ is not None and cm.dnid_list is not None:
+                if not np.all(cm.dnid_list == qreq_.ibs.get_annot_name_rowids(cm.daid_list)):
+                    testlog.log_failed('annot aligned nids are NOT ok')
+            else:
+                testlog.skip_tetst()
 
         if strict or cm.unique_nids is not None:
-            nidx_list = ut.dict_take(cm.nid2_nidx, cm.unique_nids)
-            assert nidx_list == list(range(len(nidx_list)))
-            assert np.all(cm.unique_nids[nidx_list] == cm.unique_nids)
-            if verbose:
-                print('[cm] unique nid mapping is ok')
+            with testlog.context('unique nid mapping'):
+                nidx_list = ut.dict_take(cm.nid2_nidx, cm.unique_nids)
+                assert nidx_list == list(range(len(nidx_list)))
+                assert np.all(cm.unique_nids[nidx_list] == cm.unique_nids)
 
-            grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
-            for nids in grouped_nids:
-                ut.assert_all_eq(nids)
-            if True:
-                if verbose:
-                    print('[cm] internal dnid name grouping is consistent')
-            else:
-                print('[cm] internal dnid name grouping is NOT consistent')
+            with testlog.context('allsame(grouped(dnid_list))'):
+                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
+                for nids in grouped_nids:
+                    if not ut.list_allsame(nids):
+                        testlog.log_failed('internal dnid name grouping is NOT consistent')
 
-            grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
-            alignment_failed_list = []
-            for nids, nid in zip(grouped_nids, cm.unique_nids):
-                if not np.all(nids == nid):
-                    msg = 'unique nids are not aligned with name_groupxs, nids=%r, nid=%r' % (nids, nid)
-                    print(msg)
-                    alignment_failed_list.append(msg)
-                    break
-            if len(alignment_failed_list) == 0:
-                if verbose:
-                    print('[cm] unique nid alignment is ok')
-            else:
-                print('[cm] unique nid alignment is NOT ok')
-                failed_list.extend(alignment_failed_list)
+            with testlog.context('allsame(name(grouped(daid_list)))'):
+                if qreq_ is None:
+                    testlog.skip_test()
+                else:
+                    # this might fail if this result is old and the names have changed
+                    grouped_aids = vt.apply_grouping(cm.daid_list, cm.name_groupxs)
+                    grouped_mapped_nids = qreq_.ibs.unflat_map(qreq_.ibs.get_annot_name_rowids, grouped_aids)
+                    for nids in grouped_mapped_nids:
+                        if not ut.list_allsame(nids):
+                            testlog.log_failed('internal daid name grouping is NOT consistent')
+
+            with testlog.context('dnid_list - unique_nid alignment'):
+                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
+                for nids, nid in zip(grouped_nids, cm.unique_nids):
+                    if not np.all(nids == nid):
+                        testlog.log_failed(
+                            'cm.unique_nids is NOT aligned with '
+                            'vt.apply_grouping(cm.dnid_list, cm.name_groupxs). '
+                            ' nids=%r, nid=%r' % (nids, nid)
+                        )
+                        break
 
             if qreq_ is not None:
-                grouped_aids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
-                # this might fail if this result is old and the names have changed
-                grouped_mapped_nids = qreq_.ibs.unflat_map(qreq_.ibs.get_annot_name_rowids, grouped_aids)
-                for nids in grouped_mapped_nids:
-                    ut.assert_all_eq(nids)
-                if True:
-                    if verbose:
-                        print('[cm] internal daid name grouping is consistent')
-                else:
-                    print('[cm] internal daid name grouping is NOT consistent')
-
-                alignment_failed_list = []
+                testlog.start_test('daid_list - unique_nid alignment')
                 for nids, nid in zip(grouped_mapped_nids, cm.unique_nids):
                     if not np.all(nids == nid):
-                        alignment_failed_list.append('unique nids are not aligned with name_groupxs, nids=%r, nid=%r' % (nids, nid))
+                        testlog.log_failed(
+                            'cm.unique_nids is NOT aligned with '
+                            'vt.apply_grouping(name(cm.daid_list), cm.name_groupxs). '
+                            ' name(aids)=%r, nid=%r' % (nids, nid)
+                        )
                         break
-                if len(alignment_failed_list) == 0:
-                    if verbose:
-                        print('[cm] unique mapped nid alignment is ok')
-                else:
-                    print('[cm] unique mapped nid alignment is NOT ok')
-                    failed_list.extend(alignment_failed_list)
+                testlog.end_test()
 
-        assert len(failed_list) == 0, '\n'.join(failed_list)
+        assert len(testlog.failed_list) == 0, '\n'.join(testlog.failed_list)
+        testlog.log_passed('lengths are ok')
 
-        if verbose:
-            print('[cm] lengths are ok')
         try:
             assert ut.list_all_eq_to([fsv.shape[1] for fsv in cm.fsv_list], len(cm.fsv_col_lbls))
         except Exception as ex:
             cm.print_rawinfostr()
             raise
         assert ut.list_all_eq_to([fm.shape[1] for fm in cm.fm_list], 2), 'bad fm'
-        if verbose:
-            print('[cm] shapes are ok')
+        testlog.log_passed('shapes are ok')
+
         if strict or qreq_ is not None:
             external_qaids = qreq_.get_external_qaids().tolist()
             external_daids = qreq_.get_external_daids().tolist()
@@ -1325,8 +1357,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                         config2_=qreq_.get_external_query_config2()).shape[0]
                     assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
                         'did not index query descriptors properly')
-                if verbose:
-                    print('[cm] vsone daids are ok are ok')
+                testlog.log_passed('vsone daids are ok are ok')
 
             nFeats1 = qreq_.ibs.get_annot_num_feats(
                 cm.qaid, config2_=qreq_.get_external_query_config2())
@@ -1358,8 +1389,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                                      'nFeats2_list', 'max_fx1_list',
                                      'max_fx2_list', ])
                 raise
-            if verbose:
-                print('[cm] nFeats are ok in fm')
+            testlog.log_passed('nFeats are ok in fm')
+        else:
+            testlog.log_skipped('nFeat check')
 
         if qreq_ is not None:
             pass

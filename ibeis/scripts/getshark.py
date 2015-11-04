@@ -134,7 +134,7 @@ def download_sharks(XMLdata, number):
                                    parsed_info['nameid_list'])]
     # Create directories
     ut.ensuredir(named_outputdir)
-    named_dirs = ut.unique_keep_order2(list(map(dirname, parsed_info['namedir_fpath_list'])))
+    named_dirs = ut.unique_keep_order(list(map(dirname, parsed_info['namedir_fpath_list'])))
     for dir_ in named_dirs:
         ut.ensuredir(dir_)
     # Copy
@@ -253,7 +253,7 @@ def parse_shark_tags(orig_fname_list):
             _tags = [key if re.match(pat, t) else t for t in _tags]
         pat = ut.regex_or(invalid_tag_patterns)
         _tags = [t for t in _tags if not re.match(pat, t)]
-        _tags = ut.unique_keep_order2(_tags)
+        _tags = ut.unique_keep_order(_tags)
         return _tags
 
     all_img_tag_list = list(map(parse_all_fname_tags, orig_fname_list))
