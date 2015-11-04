@@ -109,7 +109,7 @@ class CustomAPI(object):
         self.parse_column_tuples(col_name_list, *self.orig_data_tup, **self.orig_kwargs)
 
     def add_column_names(self, new_colnames):
-        col_name_list = ut.unique_keep_order2(self.col_name_list + new_colnames)
+        col_name_list = ut.unique_keep_order(self.col_name_list + new_colnames)
         self.update_column_names(col_name_list)
 
     def get_available_colnames(self):
