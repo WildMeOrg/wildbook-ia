@@ -18,7 +18,7 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import scipy.stats.mstats as spmstat
 from six.moves import zip, range, map  # NOQA
 #profile = ut.profile
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[scoring]', DEBUG=False)
 
 
 @profile
@@ -208,7 +208,7 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
 # TODO: qreq_
 
 
-def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float64):
+def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
     """
     applies selectivity score from SMK paper
     Take componentwise dot produt and divide by 512**2 because of the
@@ -281,7 +281,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
     if len(weight_lists) == 0:
-        baseline_weights_list = [np.ones(num, np.float64) for num in ibs.get_annot_num_feats(aid_list, config2_=config2_)]
+        baseline_weights_list = [np.ones(num, np.float) for num in ibs.get_annot_num_feats(aid_list, config2_=config2_)]
         #baseline_weights_list = [None] * len(aid_list)
     else:
         # geometric mean of the selected weights

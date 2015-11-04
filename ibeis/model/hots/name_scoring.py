@@ -4,6 +4,7 @@ from six.moves import zip, range, map  # NOQA
 import numpy as np
 import itertools
 import vtool as vt
+from ibeis.model.hots import hstypes
 import utool as ut
 #import six
 #from ibeis.model.hots import scoring
@@ -28,11 +29,11 @@ def testdata_chipmatch():
     ]
     # score each feature match as 1
     fsv_list = [
-        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
-        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
-        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
-        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
-        np.array([(1,), (1,), (1,), (1,), (1, )], dtype=np.float32),
+        np.array([(1,), (1,), (1,), (1,)], dtype=hstypes.FS_DTYPE),
+        np.array([(1,), (1,), (1,), (1,)], dtype=hstypes.FS_DTYPE),
+        np.array([(1,), (1,), (1,), (1,)], dtype=hstypes.FS_DTYPE),
+        np.array([(1,), (1,), (1,), (1,)], dtype=hstypes.FS_DTYPE),
+        np.array([(1,), (1,), (1,), (1,), (1, )], dtype=hstypes.FS_DTYPE),
     ]
     cm = chip_match.ChipMatch2(
         qaid=1,
@@ -76,10 +77,10 @@ def compute_nsum_score(cm, qreq_=None):
         >>> cm = testdata_chipmatch()
         >>> # execute function
         >>> (unique_nids, nsum_score_list) = compute_nsum_score(cm)
-        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'])
+        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'], force_dtype=False)
         >>> print(result)
-        unique_nids = np.array([1, 2, 3], dtype=np.int32)
-        nsum_score_list = np.array([ 4.,  7.,  5.], dtype=np.float32)
+        unique_nids = np.array([1, 2, 3])
+        nsum_score_list = np.array([ 4.,  7.,  5.])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -88,6 +89,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm._cast_scores()
         >>> #cm.qnid = 1   # Hack for testdb1 names
         >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_)
         >>> assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
@@ -96,6 +98,9 @@ def compute_nsum_score(cm, qreq_=None):
         >>> max_false = nsum_score_list[~flags].max()
         >>> assert max_true > max_false, 'is this truely a hard case?'
         >>> assert max_true > 1.2, 'score=%r should be higher for aid=18' % (max_true,)
+        >>> nsum_nid_list2, nsum_score_list2, _ = compute_nsum_score2(cm, qreq_)
+        >>> assert np.allclose(nsum_score_list2, nsum_score_list), 'something is very wrong'
+        >>> assert np.all(nsum_score_list2 == nsum_score_list), 'could be a percision issue'
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -125,16 +130,16 @@ def compute_nsum_score(cm, qreq_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> FIXME: breaks when fg_on=True
+        >>> # FIXME: breaks when fg_on=True
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> from ibeis.model.hots import name_scoring
         >>> from ibeis.model.hots import scoring
+        >>> import ibeis
         >>> # Test to make sure name score and chips score are equal when per_name=1
         >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST', ['default:dpername=1,qsize=1,dsize=10'], ['default:K=1,fg_on=True'])
         >>> qreq_, cm_list = qreq_list[0], cms_list[0]
         >>> cm = cm_list[0]
         >>> # Ensure there is only one aid per database name
-        >>> import ibeis
         >>> assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
         >>> #stats_dict = ibs.get_annot_stats_dict(qreq_.get_external_daids(), prefix='d')
         >>> #stats = stats_dict['dper_name']
@@ -143,36 +148,50 @@ def compute_nsum_score(cm, qreq_=None):
         >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
         >>> cm.evaluate_dnids(qreq_.ibs)
         >>> cm.assert_self(qreq_)
-        >>> nsum_nid_list, nsum_score = name_scoring.compute_nsum_score(cm)
-        >>> csum_score = scoring.compute_csum_score(cm)
-        >>> assert all(nsum_score == csum_score), 'should be the same when K=1 and per_name=1'
+        >>> cm._cast_scores()
+        >>> # cm.fs_list = cm.fs_list.astype(np.float)
+        >>> nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_)
+        >>> nsum_nid_list2, nsum_score_list2, _ = name_scoring.compute_nsum_score2(cm, qreq_)
+        >>> csum_score_list = scoring.compute_csum_score(cm)
+        >>> assert np.allclose(nsum_score_list, csum_score_list), 'should be the same when K=1 and per_name=1'
+        >>> assert all(nsum_score_list  == csum_score_list), 'should be the same when K=1 and per_name=1'
+        >>> assert all(nsum_score_list2 == csum_score_list), 'should be the same when K=1 and per_name=1'
         >>> # Evaluate parts of the sourcecode
 
-        #>>> func1 = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags
-        #>>> func2 = name_scoring.get_namescore_nonvoting_feature_flags
-        #>>> sourcecode1 = ut.get_func_sourcecode(func1, stripdef=True, stripret=True, strip_docstr=True, remove_linenums=[-1, -2])
-        #>>> locals_ = locals()
-        #>>> globals_ = globals()
-        #>>> six.exec_(sourcecode1, globals_, locals_)
-        #>>> sourcecode2 = ut.get_func_sourcecode(func2, stripdef=True, stripret=True, strip_docstr=True)
-        #>>> six.exec_(sourcecode2, globals_, locals_)
-        #assert locals_['kpts1'] is None
-        #locals_['featflag_list']
+        assert all(nsum_score_list3 == csum_score_list), 'should be the same when K=1 and per_name=1'
+        fm_list = fm_list[0:1]
+        fs_list = fs_list[0:1]
+        featflag_list2 = featflag_list2[0:1]
+        dnid_list = dnid_list[0:1]
+        name_groupxs2 = name_groupxs2[0:1]
+        nsum_nid_list2 = nsum_nid_list2[0:1]
+
     """
     #assert qreq_ is not None
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match
     #
     # The query feature index for each feature match
-    fx1_list = [fm.T[0] for fm in cm.fm_list]
+    fm_list = cm.fm_list
     fs_list = cm.get_fsv_prod_list()
+    dnid_list = cm.dnid_list
+    #--
+    fx1_list = [fm.T[0] for fm in fm_list]
+    """
+    # Try a rebase?
+    fx1_list = list(map(vt.compute_unique_data_ids_, fx1_list))
+    """
     # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
+    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
     name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
     # Stack up all matches to a particular name
     name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
     name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
+    """
+    assert np.all(name_grouped_fs_list[0][0] == fs_list[0])
+    assert np.all(name_grouped_fs_flat[0] == fs_list[0])
+    """
     if HACK_SINGLE_ORI:
         # keypoints with the same xy can only have one of them vote
         kpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
@@ -187,8 +206,20 @@ def compute_nsum_score(cm, qreq_=None):
     # Make nested group for every name by unique query feature index
     feat_grouped_fs_list = [[fs_flat.take(xs, axis=0) for xs in feat_groupxs]
                             for fs_flat, feat_groupxs in zip(name_grouped_fs_flat, feat_groupxs_list)]
+    """
+    np.array(feat_grouped_fs_list)[0].T[0] == fs_list
+    """
+    if False:
+        valid_fs_list = [
+            np.array([group.max() for group in grouped_fs])
+            #np.array([group[group.argmax()] for group in grouped_fs])
+            for grouped_fs in feat_grouped_fs_list
+        ]
+        nsum_score_list4 = np.array([valid_fs.sum() for valid_fs in valid_fs_list])  # NOQA
     # Prevent a feature from voting twice:
     # take only the max score that a query feature produced
+    #name_grouped_valid_fs_list1 =[np.array([fs_group.max() for fs_group in feat_grouped_fs])
+    #                            for feat_grouped_fs in feat_grouped_fs_list]
     nsum_score_list = np.array([np.sum([fs_group.max() for fs_group in feat_grouped_fs])
                                 for feat_grouped_fs in feat_grouped_fs_list])
     return nsum_nid_list, nsum_score_list
@@ -209,14 +240,19 @@ def compute_nsum_score2(cm, qreq_=None):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
     """
-    featflag_list = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
+    featflag_list2 = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
     fs_list = cm.get_fsv_prod_list()
-    name_groupxs = cm.name_groupxs
-    valid_fs_list = vt.zipcompress(fs_list, featflag_list)
-    name_grouped_valid_fs_list = vt.apply_grouping_(valid_fs_list,  name_groupxs)
-    nsum_nid_list = cm.dnid_list
-    nsum_score_list = [sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list]
-    return nsum_nid_list, nsum_score_list, featflag_list
+    name_groupxs2 = cm.name_groupxs
+    nsum_nid_list2 = cm.unique_nids
+    #--
+    valid_fs_list2 = vt.zipcompress(fs_list, featflag_list2)
+    name_grouped_valid_fs_list2 = vt.apply_grouping_(valid_fs_list2,  name_groupxs2)
+    nsum_score_list2 = np.array([sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list2])
+    if False:
+        nsum_score_list3 = np.array([  # NOQA
+            np.sum([fs_group.sum() for fs_group in valid_fs_group])
+            for valid_fs_group in name_grouped_valid_fs_list2])
+    return nsum_nid_list2, nsum_score_list2, featflag_list2
 
 
 @profile

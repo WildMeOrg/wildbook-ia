@@ -35,12 +35,15 @@ ut.noinject('[hstypes]')
 
 
 #INTEGER_TYPE = np.int32
-INDEX_TYPE = np.int32
+#INDEX_TYPE = np.int32
+INDEX_TYPE = np.int
 
 #INTEGER_TYPE = np.int64
-INTEGER_TYPE = np.int32
+#INTEGER_TYPE = np.int32
+INTEGER_TYPE = np.int
 
-FLOAT_TYPE = np.float64
+#FLOAT_TYPE = np.float64
+FLOAT_TYPE = np.float
 #FLOAT_TYPE = np.float32
 
 VEC_DIM = 128

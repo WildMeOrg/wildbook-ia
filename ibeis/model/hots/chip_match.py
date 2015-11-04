@@ -187,6 +187,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     # Modification / Evaluation Functions
     #------------------
 
+    def _cast_scores(cm, dtype=np.float):
+        cm.fsv_list = [fsv.astype(dtype) for fsv in cm.fsv_list]
+
     def extend_results(cm, qreq_, other_aids=None):
         """
         returns a new cmtup_old that contains empty data for an extended set of
@@ -1035,7 +1038,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
         top_stack = np.vstack(top_list)
         #top_stack = np.array(top_stack, dtype=object)
-        top_stack = np.array(top_stack, dtype=np.float32)
+        top_stack = np.array(top_stack, dtype=np.float)
         #np.int32)
         top_str = np.array_str(top_stack, precision=3, suppress_small=True, max_line_width=200)
 
@@ -1287,7 +1290,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                 if not np.all(cm.dnid_list == qreq_.ibs.get_annot_name_rowids(cm.daid_list)):
                     testlog.log_failed('annot aligned nids are NOT ok')
             else:
-                testlog.skip_tetst()
+                testlog.skip_test()
 
         if strict or cm.unique_nids is not None:
             with testlog.context('unique nid mapping'):

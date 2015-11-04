@@ -748,7 +748,8 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
-        >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
+        >>> cm = cm_list[0]
+        >>> fm = cm.fm_list[cm.daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 500, 800, 'vsmany nmatches out of bounds')
