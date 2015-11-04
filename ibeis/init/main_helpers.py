@@ -63,38 +63,6 @@ def testdata_qreq_(t=None, **kwargs):
     return qreq_
 
 
-def testdata_qres(defaultdb='testdb1', t=['default']):
-    r"""
-    TODO: depricate for chipmatch
-
-    Args:
-        defaultdb (str): (default = 'testdb1')
-
-    Returns:
-        tuple: (ibs, testres)
-
-    CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_qres
-        python -m ibeis.init.main_helpers --exec-testdata_qres --qaid 1
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> defaultdb = 'testdb1'
-        >>> (ibs, qreq_, qres) = testdata_qres(defaultdb)
-        >>> result = ('(ibs, qreq_, qres) = %s' % (str((ibs, qreq_, qres)),))
-        >>> print(result)
-    """
-    ibs, qaids, daids = testdata_expanded_aids(defaultdb=defaultdb)
-    pcfgdict = testdata_pipecfg(t=t)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
-    print('qaids = %r' % (qaids,))
-    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
-    qres = qreq_.load_cached_qres(qaids[0])
-    print('qreq_ = %r' % (qreq_,))
-    return ibs, qreq_, qres
-
-
 def testdata_cm(defaultdb=None, default_qaids=None):
     r"""
     CommandLine:

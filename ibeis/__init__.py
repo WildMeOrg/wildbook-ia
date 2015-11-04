@@ -203,8 +203,8 @@ def testdata_expts(*args, **kwargs):
 #)
 
 from ibeis.init import main_helpers
-testdata_qres = main_helpers.testdata_qres
 testdata_cm = main_helpers.testdata_cm
+testdata_cmlist = main_helpers.testdata_cmlist
 testdata_qreq_ = main_helpers.testdata_qreq_
 testdata_pipecfg = main_helpers.testdata_pipecfg
 testdata_filtcfg = main_helpers.testdata_filtcfg
