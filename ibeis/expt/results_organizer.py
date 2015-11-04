@@ -313,10 +313,13 @@ def organize_results(ibs, qaid2_qres):
 
 
 @profile
-def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
+def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
                              name_scoring=False, ibs=None, filter_reviewed=False,
                              filter_duplicate_namepair_matches=False):
     """
+    THIS IS PROBABLY ONE OF THE ONLY THINGS IN THIS FILE THAT SHOULD NOT BE
+    DEPRICATED
+
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
     Used in inspect_gui and interact_qres2
@@ -331,19 +334,19 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
     CommandLine:
         python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
+        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
 
     Example0:
-        >>> # UNSTABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:5]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+        >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
         >>> ranks_lt = 5
         >>> directed = True
         >>> name_scoring = False
-        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed, ibs=ibs)
+        >>> candidate_matches = get_automatch_candidates(cm_list, ranks_lt, directed, ibs=ibs)
         >>> print(candidate_matches)
 
     Example1:
@@ -353,14 +356,14 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> cm_list = ibs.query_chips(qaid_list, daid_list, return_cm=True)
         >>> ranks_lt = 5
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,
+        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
@@ -373,14 +376,14 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
-        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list, return_cm=True)
         >>> ranks_lt = 1
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,
+        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
@@ -400,37 +403,38 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,
+        ...    qaid2_cm, ranks_lt, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
         >>> print(candidate_matches)
     """
     import vtool as vt
+    from ibeis.model.hots import chip_match
     print(('[resorg] get_automatch_candidates('
            'filter_reviewed={filter_reviewed},'
            'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
            'directed={directed},'
            'ranks_lt={ranks_lt},'
            ).format(**locals()))
-    print('[resorg] len(qaid2_qres) = %d' % (len(qaid2_qres)))
+    print('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack  = []
     daids_stack  = []
     ranks_stack  = []
     scores_stack = []
 
     # For each QueryResult, Extract inspectable candidate matches
-    for qaid, qres in six.iteritems(qaid2_qres):
-        assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
-        from ibeis.model.hots import chip_match
-        if isinstance(qres, chip_match.ChipMatch2):
-            cm = qres
+    if isinstance(cm_list, dict):
+        cm_list = list(cm_list.values())
+
+    for cm in cm_list:
+        if isinstance(cm, chip_match.ChipMatch2):
             daids  = cm.get_top_aids(ntop=ranks_lt)
             scores = cm.get_top_scores(ntop=ranks_lt)
             ranks  = np.arange(len(daids))
             qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
         else:
-            (qaids, daids, scores, ranks) = qres.get_match_tbldata(
+            (qaids, daids, scores, ranks) = cm.get_match_tbldata(
                 ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
         qaids_stack.append(qaids)
         daids_stack.append(daids)

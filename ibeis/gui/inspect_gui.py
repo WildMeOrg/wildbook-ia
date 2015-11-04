@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module was never really finished. It is used in some cases
 to display the results from a query in a qt window. It needs
@@ -6,7 +7,7 @@ some work if its to be re-integrated.
 TODO:
     Refresh name table on inspect gui close
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
@@ -15,6 +16,7 @@ from ibeis import ibsfuncs
 from ibeis.expt import results_organizer
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
+from ibeis.model.hots import chip_match
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
 #import functools
@@ -33,7 +35,7 @@ REVIEWED_STATUS_TEXT = 'Reviewed'
 USE_FILTER_PROXY = False
 
 
-def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
+def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
                                      marking_mode=False,
                                      aid_list=None, **kwargs):
     """ assert that the ampersand cannot have duplicate keys
@@ -42,7 +44,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
         ibs (IBEISController):  ibeis controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
-        qres (QueryResult):  object of feature correspondences and scores
+        cm (ChipMatch2):  object of feature correspondences and scores
         qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
         aid_list (list):  list of annotation rowids(default = None)
 
@@ -55,20 +57,24 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
         python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
 
         # Other scripts that call this one;w
-        python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl   -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
+        python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
+        python -m ibeis.dev -e cases --db PZ_MTEST  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
 
     Example:
-        >>> # SCRIPT
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
-        >>> ibs, qreq_, qres = ibeis.testdata_qres(t=['default:fg_on=False'])
-        >>> aid1 = qres.qaid
-        >>> aid2 = qres.get_top_aids()[0]
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(t=['default:fg_on=False'])
+        >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        >>> cm = cm_list[0]
+        >>> ibs = qreq_.ibs
+        >>> aid1 = cm.qaid
+        >>> aid2 = cm.get_top_aids()[0]
         >>> aid_list = None
-        >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_, aid_list)
+        >>> options = get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_, aid_list)
         >>> result = ('options = %s' % (ut.list_str(options),))
         >>> print(result)
-
     """
     if ut.VERBOSE:
         print('[inspect_gui] Building AID pair context menu options')
@@ -76,17 +82,15 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
 
     #assert qreq_ is not None, 'must specify qreq_'
 
-    if qres is not None:
+    if cm is not None:
         # MAKE SURE THIS IS ALL CM
-        cm = qres
         show_chip_match_features_option = (
             'Show chip feature matches',
-            partial(cm.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
+            partial(cm.ishow_single_annotmatch, qreq_, aid2, mode=0))
         if aid_list is not None:
             # Give a subcontext menu for multiple options
             def partial_show_chip_matches_to(aid_):
-                return lambda: cm.ishow_matches(ibs, aid_, mode=0,
-                                                  qreq_=qreq_)
+                return lambda: cm.ishow_single_annotmatch(qreq_, aid_, mode=0)
             show_chip_match_features_option = (
                 'Show chip feature matches',
                 [
@@ -94,10 +98,17 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
                     for aid_ in aid_list
                 ]
             )
+
+        def show_single_namematch():
+            import plottool as pt
+            ax = cm.show_single_namematch(qreq_, aid2, mode=0)
+            ax = pt.gca()
+            ax.figure.canvas.draw()
+            pt.update()
+
         options += [
             show_chip_match_features_option,
-            ('Show name feature matches', lambda: cm.show_name_matches(
-                ibs, aid2, mode=0, qreq_=qreq_)),
+            ('Show name feature matches', show_single_namematch),
         ]
 
     with_interact_chips = True
@@ -156,13 +167,13 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
                                                                          aid2)),
             ('Mark as &True Match.',
              lambda: set_annot_pair_as_positive_match_(
-                 ibs, aid1, aid2, qres, qreq_, **kwargs)),
+                 ibs, aid1, aid2, cm, qreq_, **kwargs)),
             ('Mark as &False Match.',
              lambda:  set_annot_pair_as_negative_match_(
-                 ibs, aid1, aid2, qres, qreq_, **kwargs)),
+                 ibs, aid1, aid2, cm, qreq_, **kwargs)),
             ('Inspect Match Candidates',
              lambda: review_match(
-                 ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
+                 ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)),
             ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2))
@@ -300,8 +311,11 @@ class QueryResultsWidget(APIItemWidget):
 
     """
 
-    def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
+    def __init__(qres_wgt, ibs, cm_list, parent=None, callback=None,
                  name_scoring=False, qreq_=None, **kwargs):
+
+        assert not isinstance(cm_list, dict)
+
         if ut.VERBOSE:
             print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
@@ -324,7 +338,7 @@ class QueryResultsWidget(APIItemWidget):
         if USE_FILTER_PROXY:
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
                                     qres_wgt.show_split)
-        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring,
+        qres_wgt.set_query_results(ibs, cm_list, name_scoring=name_scoring,
                                    qreq_=qreq_, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
@@ -395,16 +409,16 @@ class QueryResultsWidget(APIItemWidget):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
 
-    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False,
+    def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
                           qreq_=None, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         tblnice = 'Query Results: ' + kwargs.get('query_title', '')
         ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
 
         qres_wgt.ibs = ibs
-        qres_wgt.qaid2_qres = qaid2_qres
+        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
         qres_wgt.qreq_ = qreq_
-        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres,
+        qres_wgt.qres_api = make_qres_api(ibs, cm_list,
                                           name_scoring=name_scoring,
                                           qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
@@ -509,9 +523,9 @@ class QueryResultsWidget(APIItemWidget):
             ibs = qres_wgt.ibs
             aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
             _tup = get_widget_review_vars(qres_wgt, aid1)
-            ibs, qres, qreq_, update_callback, backend_callback = _tup
+            ibs, cm, qreq_, update_callback, backend_callback = _tup
             options = get_aidpair_context_menu_options(
-                ibs, aid1, aid2, qres, qreq_=qreq_,
+                ibs, aid1, aid2, cm, qreq_=qreq_,
                 update_callback=update_callback,
                 backend_callback=backend_callback)
             option_dict = {key[key.find('&') + 1]: val for key, val in options
@@ -547,8 +561,8 @@ class QueryResultsWidget(APIItemWidget):
         qwin = qres_wgt
         aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
         tup = get_widget_review_vars(qres_wgt, aid1)
-        ibs, qres, qreq_, update_callback, backend_callback = tup
-        show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres,
+        ibs, cm, qreq_, update_callback, backend_callback = tup
+        show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, cm,
                                   qreq_=qreq_, update_callback=update_callback,
                                   backend_callback=backend_callback)
 
@@ -556,10 +570,10 @@ class QueryResultsWidget(APIItemWidget):
 def get_widget_review_vars(qres_wgt, qaid):
     ibs   = qres_wgt.ibs
     qreq_ = qres_wgt.qreq_
-    qres  = qres_wgt.qaid2_qres[qaid]
+    cm  = qres_wgt.qaid2_cm[qaid]
     update_callback = None  # hack (checking if necessary)
     backend_callback = qres_wgt.callback
-    return ibs, qres, qreq_, update_callback, backend_callback
+    return ibs, cm, qreq_, update_callback, backend_callback
 
 
 def get_aidpair_from_qtindex(qres_wgt, qtindex):
@@ -579,13 +593,9 @@ def get_annotmatch_rowid_from_qtindex(qres_wgt, qtindex):
 def show_match_at_qtindex(qres_wgt, qtindex):
     print('interact')
     qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
-    qreq_ = qres_wgt.qreq_
-    #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid,
-    #mode=1)
-    #match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs,
-    #aid, mode=1, qreq_=qreq_)
-    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(
-        qres_wgt.ibs, daid, mode=0, qreq_=qreq_)
+    cm = qres_wgt.qaid2_cm[qaid]
+    match_interaction = cm.ishow_single_annotmatch(
+        qres_wgt.qreq_, daid, mode=0)
     fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
@@ -597,30 +607,30 @@ def review_match_at_qtindex(qres_wgt, qtindex):
     #update_callback = model._update
     #ibs   = qres_wgt.ibs
     #qreq_ = qres_wgt.qreq_
-    #qres  = qres_wgt.qaid2_qres[qaid]
+    #cm  = qres_wgt.qaid2_cm[qaid]
     #update_callback = None  # hack (checking if necessary)
     #backend_callback = qres_wgt.callback
     qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     tup = get_widget_review_vars(qres_wgt, qaid)
-    ibs, qres, qreq_, update_callback, backend_callback = tup
+    ibs, cm, qreq_, update_callback, backend_callback = tup
     review_match(ibs, qaid, daid, update_callback=update_callback,
-                 backend_callback=backend_callback, qres=qres, qreq_=qreq_)
+                 backend_callback=backend_callback, cm=cm, qreq_=qreq_)
 
 
 # ______
 
 
-def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None,
+def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, cm, qreq_=None,
                               **kwargs):
     """
     kwargs are used for callbacks like qres_callback and query_callback
     """
-    options = get_aidpair_context_menu_options(ibs, aid1, aid2, qres,
+    options = get_aidpair_context_menu_options(ibs, aid1, aid2, cm,
                                                qreq_=qreq_, **kwargs)
     guitool.popup_menu(qwin, qpoint, options)
 
 
-def set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+def set_annot_pair_as_positive_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
     def on_nontrivial_merge(ibs, aid1, aid2):
         MERGE_NEEDS_INTERACTION  = False
         MERGE_NEEDS_VERIFICATION = True
@@ -645,12 +655,12 @@ def set_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
             aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
-        review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
+        review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
         print('user canceled positive match')
 
 
-def set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
     def on_nontrivial_split(ibs, aid1, aid2):
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
         print('There are %d annots in this name. Need more sophisticated split'
@@ -661,19 +671,19 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
             aid1, aid2, on_nontrivial_split=on_nontrivial_split)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
-        review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
+        review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
         print('user canceled negative match')
 
 
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None,
-                 qreq_=None, qres=None, **kwargs):
+                 qreq_=None, cm=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = interact_name.MatchVerificationInteraction(
         ibs, aid1, aid2, fnum=64, update_callback=update_callback,
-        qres=qres,
+        cm=cm,
         qreq_=qreq_,
         backend_callback=backend_callback, **kwargs)
     return mvinteract
@@ -778,7 +788,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> import guitool
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> assert ibs.dbname == 'PZ_MTEST', 'do not use on a real database'
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> if not ut.get_argflag('--nodelete'):
@@ -787,38 +798,27 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> ut.quit_if_noshow()
         >>> # TODO: add in qwin to main loop
-        >>> guitool.qtapp_loop()
+        >>> guitool.qtapp_loop(qwin=main_locals['qres_wgt'])
         >>> print(main_execstr)
         >>> exec(main_execstr)
     """
-    from ibeis.viz.interact import interact_qres2  # NOQA
     from ibeis.gui import inspect_gui
-    from ibeis.expt import results_all
-    allres = results_all.get_allres(ibs, qaid_list, cfgdict={
-        'augment_queryside_hack': True})
-    tblname = 'qres'
-    qreq_ = allres.qreq_
-    qaid2_qres = allres.qaid2_qres
+    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={'augment_queryside_hack': True})
+    cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+    tblname = ''
     name_scoring = False
     ranks_lt = 5
-    # This object is created inside QresResultsWidget
-    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
     # This is where you create the result widigt
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
-    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-    #ranks_lt=ranks_lt, qreq_=qreq_)
     #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(
-        ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
+        ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
         filter_duplicate_namepair_matches=True)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
     qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres,
-    #ranks_lt=ranks_lt)
     print('</inspect_matches>')
     # simulate double click
     #qres_wgt._on_click(qres_wgt.model.index(2, 2))
@@ -827,63 +827,55 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     return locals_
 
 
-def get_match_thumb_fname(qres, daid):
+def get_match_thumb_fname(cm, daid, qreq_):
     """
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --exec-get_match_thumb_fname
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.expt import results_all
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:2]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> allres = results_all.get_allres(ibs, qaid_list)
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST')
         >>> thumbsize = (128, 128)
-        >>> qreq_ = None
-        >>> qres = allres.qaid2_qres[qaid_list[0]]
-        >>> daid = daid_list[0]
-        >>> match_thumb_fname = get_match_thumb_fname(qres, daid)
+        >>> daid = cm.get_top_aids()[0]
+        >>> match_thumb_fname = get_match_thumb_fname(cm, daid, qreq_)
         >>> result = match_thumb_fname
         >>> print(result)
         match_aids=1,1_cfgstr=ubpzwu5k54h6xbnr.jpg
     """
     # Make thumbnail name
-    config_hash = ut.hashstr(qres.cfgstr)
-    qaid = qres.qaid
+    config_hash = ut.hashstr27(qreq_.get_cfgstr())
+    qaid = cm.qaid
     match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s.jpg' % ((qaid, daid,
                                                              config_hash))
     return match_thumb_fname
 
 
-def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
+def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     r"""
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-ensure_match_img
+        python -m ibeis.gui.inspect_gui --test-ensure_match_img --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> qaids = ibs.get_valid_aids(species=species)
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
-        >>> daid = qaids[0]
-        >>> qreq_ = None
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> daid = cm.get_top_aids()[0]
         >>> match_thumbtup_cache = {}
         >>> # execute function
-        >>> match_thumb_fpath_ = ensure_match_img(ibs, qres, daid, qreq_, match_thumbtup_cache)
+        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_, match_thumbtup_cache)
         >>> # verify results
         >>> result = str(match_thumb_fpath_)
         >>> print(result)
-        >>> ut.quit_if_noshow():
+        >>> ut.quit_if_noshow()
         >>> ut.startfile(match_thumb_fpath_, quote=True)
     """
     #from os.path import exists
     match_thumbdir = ibs.get_match_thumbdir()
-    match_thumb_fname = get_match_thumb_fname(qres, daid)
+    match_thumb_fname = get_match_thumb_fname(cm, daid, qreq_)
     match_thumb_fpath_ = ut.unixjoin(match_thumbdir, match_thumb_fname)
     #if exists(match_thumb_fpath_):
     #    return match_thumb_fpath_
@@ -892,27 +884,20 @@ def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
     else:
         # TODO: just draw the image at the correct thumbnail size
         # TODO: draw without matplotlib?
-        fpath = qres.dump_match_img(
-            ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
-            notitle=True, verbose=False, qreq_=qreq_)
+        if isinstance(cm, chip_match.ChipMatch2):
+            fpath = cm.imwrite_single_annotmatch(
+                qreq_, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
+                notitle=True, verbose=False)
+        else:
+            print('WARNING: using old qres instead of cm')
+            fpath = cm.dump_match_img(
+                ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
+                notitle=True, verbose=False, qreq_=qreq_)
         match_thumbtup_cache[match_thumb_fpath_] = fpath
     return fpath
 
 
-def get_match_thumbtup(ibs, qaid2_qres, qaids, daids, index, qreq_=None,
-                       thumbsize=(128, 128), match_thumbtup_cache={}):
-    qaid, daid = qaids[index], daids[index]
-    qres = qaid2_qres[qaid]
-    fpath = ensure_match_img(ibs, qres, daid, qreq_=qreq_,
-                             match_thumbtup_cache=match_thumbtup_cache)
-    if isinstance(thumbsize, int):
-        thumbsize = (thumbsize, thumbsize)
-    thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize,
-                [], [])
-    return thumbtup
-
-
-def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
+def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
                   filter_reviewed=None,
                   filter_duplicate_namepair_matches=False,
                   qreq_=None,
@@ -925,33 +910,28 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         python -m ibeis.gui.inspect_gui --test-make_qres_api
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> import guitool
-        >>> from ibeis.viz.interact import interact_qres2  # NOQA
         >>> from ibeis.gui import inspect_gui
-        >>> from ibeis.expt import results_all
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:2]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> allres = results_all.get_allres(ibs, qaid_list)
+        >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
         >>> tblname = 'qres'
-        >>> qaid2_qres = allres.qaid2_qres
         >>> name_scoring = False
         >>> ranks_lt = 5
-        >>> make_qres_api(ibs, qaid2_qres, ranks_lt, name_scoring)
-
+        >>> qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)
+        >>> print('qres_api = %r' % (qres_api,))
     """
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
     ibs.cfg.other_cfg.ranks_lt = 2
     if filter_reviewed is None:
         # only filter big queries if not specified
-        filter_reviewed = len(qaid2_qres) > 6
+        filter_reviewed = len(cm_list) > 6
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
+
     candidate_matches = results_organizer.get_automatch_candidates(
-        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,
+        cm_list, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,
         directed=False, filter_reviewed=filter_reviewed,
         filter_duplicate_namepair_matches=filter_duplicate_namepair_matches
     )
@@ -1039,20 +1019,34 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
 
     USE_MATCH_THUMBS = True
     if USE_MATCH_THUMBS:
+
+        def get_match_thumbtup(ibs, qaid2_cm, qaids, daids, index, qreq_=None,
+                               thumbsize=(128, 128), match_thumbtup_cache={}):
+            daid = daids[index]
+            qaid = qaids[index]
+            cm = qaid2_cm[qaid]
+            assert cm.qaid == qaid, 'aids do not aggree'
+            #cm = cm_list[qaid]
+            fpath = ensure_match_img(ibs, cm, daid, qreq_=qreq_,
+                                     match_thumbtup_cache=match_thumbtup_cache)
+            if isinstance(thumbsize, int):
+                thumbsize = (thumbsize, thumbsize)
+            thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize,
+                        [], [])
+            return thumbtup
+
         col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
                              MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
-        get_match_thumbtup_ = partial(get_match_thumbtup, ibs, qaid2_qres,
+        qaid2_cm = {cm.qaid: cm for cm in cm_list}
+        get_match_thumbtup_ = partial(get_match_thumbtup, ibs, qaid2_cm,
                                       qaids, daids, qreq_=qreq_,
                                       match_thumbtup_cache={})
         col_getter_dict[MATCH_THUMB_TEXT] = get_match_thumbtup_
 
-    #get_status_bgrole_func = partial(get_match_status_bgrole, ibs)
     col_bgrole_dict = {
         MATCHED_STATUS_TEXT : partial(get_match_status_bgrole, ibs),
         REVIEWED_STATUS_TEXT: partial(get_reviewed_status_bgrole, ibs),
-        #'aid'    : get_status_bgrole_func,
-        #'qaid'   : get_status_bgrole_func,
     }
     # TODO: remove ider dict.
     # it is massively unuseful
@@ -1144,72 +1138,20 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     return qres_api
 
 
-def launch_review_matches_interface(ibs, qres_list, dodraw=False):
+def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=False):
     """ TODO: move to a more general function """
     from ibeis.gui import inspect_gui
     import guitool
     guitool.ensure_qapp()
     #backend_callback = back.front.update_tables
     backend_callback = None
-    qaid2_qres = {qres.qaid: qres for qres in qres_list}
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                              callback=backend_callback)
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
+                                              callback=backend_callback,
+                                              filter_reviewed=filter_reviewed)
     if dodraw:
         qres_wgt.show()
         qres_wgt.raise_()
     return qres_wgt
-
-
-def inspect_orphaned_qres_bigcache(ibs, bc_fpath, cfgdict={}):
-    """
-    Hack to try and grab the last big query
-
-    import ibeis
-    ibs = ibeis.opendb('PZ_Master0')
-    fname = 'PZ_Master0_QRESMAP_QSUUIDS((187)85k!tqcpgtb8k%rj)_DSUUIDS((200)4%t0tenxktstb676)2m8fp@nto!s@@0f+_a@2duauqcb4r18g7.cPkl'  # NOQA
-    bc_dpath = ibs.get_big_cachedir()
-    from os.path import join
-    bc_fpath = join(bc_dpath, fname)
-
-    import os
-    bc_dpath = ibs.get_big_cachedir()
-    fpath_list = ut.ls(bc_dpath)
-    ctime_list = list(map(os.path.getctime, fpath_list))
-    sorted_fpath_list = ut.sortedby(fpath_list, ctime_list, reverse=True)
-    bc_fpath = sorted_fpath_list[0]
-
-    cfgdict = dict(
-        can_match_samename=False, use_k_padding=False, affine_invariance=False,
-        scale_max=150, augment_queryside_hack=True)
-
-    """
-    qaid2_qres = ut.load_cPkl(bc_fpath)
-    qaid_list = list(qaid2_qres.keys())
-    qres = qaid2_qres[qaid_list[0]]
-    daid_list = qres.daids
-    #for qres in six.itervalues(qaid2_qres):
-    #    assert np.all(daid_list == qres.daids)
-    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
-
-    true_cfgstr = qres.cfgstr
-    guess_cfgstr = qreq_.get_cfgstr()
-
-    true_cfgstr_ = '\n'.join(true_cfgstr.split('_'))
-    guess_cfgstr_ = '\n'.join(guess_cfgstr.split('_'))
-    textdiff = (ut.get_textdiff(true_cfgstr_, guess_cfgstr_))
-    print(textdiff)
-    if len(textdiff) > 0:
-        raise Exception('you may need to fix the configstr')
-
-    from ibeis.viz.interact import interact_qres2  # NOQA
-    from ibeis.gui import inspect_gui
-    guitool.ensure_qapp()
-    ranks_lt = 1
-    qres_wgt = inspect_gui.QueryResultsWidget(
-        ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=True,
-        filter_duplicate_namepair_matches=True, query_title='Recovery Hack')
-    qres_wgt.show()
-    qres_wgt.raise_()
 
 
 if __name__ == '__main__':

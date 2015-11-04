@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 #from ibeis.viz.interact.interact_matches import ishow_matches
 from six.moves import range
 import functools
@@ -87,10 +88,9 @@ class Interact_QueryResult(object):
 
     def init_candidates(self, qaid2_qres):
         self.qaid2_qres = qaid2_qres
-        get_candidates = results_organizer.get_automatch_candidates
-        self.cand_match_list = get_candidates(self.qaid2_qres,
-                                              ranks_lt=self.ranks_lt,
-                                              directed=False)
+        self.cand_match_list = results_organizer.get_automatch_candidates(self.qaid2_qres,
+                                                                          ranks_lt=self.ranks_lt,
+                                                                          directed=False)
         (qaids, aids, scores, ranks) = self.cand_match_list
         self.qaids = qaids
         self.aids = aids

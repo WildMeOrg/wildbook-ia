@@ -22,7 +22,6 @@ from ibeis.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientat
 from ibeis.viz.viz_image import show_image
 from ibeis.viz.viz_chip import show_chip
 from ibeis.viz.viz_name import show_name
-from ibeis.viz.viz_matches import show_matches, annotate_matches
 from ibeis.viz.viz_qres import show_qres, show_qres_top, show_qres_analysis
 from ibeis.viz.viz_sver import show_sver, _compute_svvars
 from ibeis.viz.viz_nearest_descriptors import show_nearest_descriptors

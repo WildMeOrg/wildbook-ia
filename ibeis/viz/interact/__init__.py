@@ -14,7 +14,6 @@ from ibeis.viz.interact import interact_image
 from ibeis.viz.interact import interact_matches
 from ibeis.viz.interact import interact_name
 from ibeis.viz.interact import interact_qres
-from ibeis.viz.interact import interact_qres2
 from ibeis.viz.interact import interact_sver
 
 from ibeis.viz.interact.interact_image import ishow_image
@@ -72,7 +71,6 @@ def reload_subs(verbose=True):
     getattr(interact_matches, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_name, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_qres, 'rrr', fbrrr)(verbose=verbose)
-    getattr(interact_qres2, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_sver, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
     try:
@@ -90,7 +88,6 @@ IMPORT_TUPLES = [
     ('interact_matches', None),
     ('interact_name', None),
     ('interact_qres', None),
-    ('interact_qres2', None),
     ('interact_sver', None),
 ]
 
@@ -99,31 +96,3 @@ Regen Command:
     cd /home/joncrall/code/ibeis/ibeis/viz/interact
     makeinit.py
 """
-## flake8: noqa
-#from __future__ import absolute_import, division, print_function
-#import utool
-
-#from . import interact_image
-#from . import interact_chip
-#from . import interact_name
-#from . import interact_qres
-#from . import interact_bbox
-#from . import interact_sver
-#from . import interact_matches
-#from . import interact_annotations2
-
-#print, print_, printDBG, rrr, profile = utool.inject(
-#    __name__, '[interact]')
-
-#def reload_subs():
-#    """ Reloads interact and submodules """
-#    rrr()
-#    getattr(interact_bbox, 'rrr', lambda: None)()
-#    getattr(interact_chip, 'rrr', lambda: None)()
-#    getattr(interact_image, 'rrr', lambda: None)()
-#    getattr(interact_matches, 'rrr', lambda: None)()
-#    getattr(interact_name, 'rrr', lambda: None)()
-#    getattr(interact_qres, 'rrr', lambda: None)()
-#    getattr(interact_sver, 'rrr', lambda: None)()
-#    rrr()
-#rrrr = reload_subs

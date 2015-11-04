@@ -124,13 +124,11 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_name import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> self = testsdata_match_verification()
         >>> # verify results
-        >>> if ut.show_was_requested():
-        >>>    self.show_page()
-        >>>    pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> self.show_page()
+        >>> ut.show_if_requested()
     """
     #from ibeis.viz.interact.interact_name import *  # NOQA
     import ibeis
@@ -167,8 +165,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
         self.qres_callback = kwargs.get('qres_callback', None)
-        self.qres = kwargs.get('qres', None)
+        self.cm = kwargs.get('cm', None)
         self.qreq_ = kwargs.get('qreq_', None)
+        if self.cm is not None:
+            from ibeis.model.hots import chip_match
+            assert isinstance(self.cm, chip_match.ChipMatch2)
+            assert self.qreq_ is not None
         self.infer_data()
         if dodraw:
             self.show_page(bring_to_front=True)
@@ -253,7 +255,6 @@ class MatchVerificationInteraction(AbstractInteraction):
         r"""
         Args:
 
-
         Returns:
             list: row_aids_list
 
@@ -278,9 +279,9 @@ class MatchVerificationInteraction(AbstractInteraction):
             >>> # verify results
             >>> result = str(row_aids_list)
             >>> print(result)
-            >>> if ut.show_was_requested():
-            >>>    self.show_page()
-            >>>    pt.show_if_requested()
+            >>> ut.quit_if_noshow()
+            >>> self.show_page()
+            >>> ut.show_if_requested()
         """
 
         def get_row(rowx):
@@ -329,7 +330,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Variables we will work with to paint a pretty picture
         ibs = self.ibs
         nRows = self.nRows
-        colpad = 1 if  self.qres is not None else 0
+        colpad = 1 if  self.cm is not None else 0
         nCols = self.nCols + colpad
 
         # Distinct color for every unique name
@@ -339,7 +340,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         row_aids_list = self.get_row_aids_list()
 
-        if self.qres is not None:
+        if self.cm is not None:
             print("DRAWING QRES")
             pnum = (1, nCols, 1)
             if not fulldraw:
@@ -347,7 +348,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 # that are here already manually
                 ax = self.fig.add_subplot(*pnum)
                 self.clear_parent_axes(ax)
-            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False, qreq_=self.qreq_)
+            self.cm.show_single_annotmatch(self.qreq_, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False)
 
         # For each row
         for rowx, aid_list in enumerate(row_aids_list):
@@ -493,9 +494,9 @@ class MatchVerificationInteraction(AbstractInteraction):
             >>> result = self.show_hud()
             >>> # verify results
             >>> print(result)
-            >>> if ut.show_was_requested():
-            >>>    self.show_page()
-            >>>    pt.show_if_requested()
+            >>> ut.quit_if_noshow():
+            >>> self.show_page()
+            >>> pt.show_if_requested()
         """
         # Button positioners
         hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=.15, h=.063,
@@ -658,9 +659,9 @@ class MatchVerificationInteraction(AbstractInteraction):
                 aid = vh.get_ibsdat(ax, 'aid')
                 #print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
-                    import guitool
-                    height = self.fig.canvas.geometry().height()
-                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    #import guitool
+                    #height = self.fig.canvas.geometry().height()
+                    #qpoint = guitool.newQPoint(event.x, height - event.y)
                     #ibs = self.ibs
                     #is_exemplar = ibs.get_annot_exemplar_flags(aid)
                     #def context_func():
@@ -669,13 +670,16 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #guitool.popup_menu(self.fig.canvas, pt, [
                     #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     #])
+                    # TODO USE ABSTRACT INTERACTION
                     from ibeis.viz.interact import interact_chip
-                    interact_chip.show_annot_context_menu(
-                        self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
+                    options = interact_chip.build_annot_context_options(self.ibs, aid, refresh_func=self.show_page)
+                    self.show_popup_menu(options, event)
+                    #interact_chip.show_annot_context_menu(
+                    #    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
                 #print(ut.dict_str(event.__dict__))
             elif viztype == 'matches':
-                self.qres.ishow_matches(self.ibs, self.aid2, fnum=None, mode=0, qreq_=self.qreq_)
+                self.cm.ishow_single_annotmatch(self.qreq_, self.aid2, fnum=None, mode=0)
 
 
 if __name__ == '__main__':

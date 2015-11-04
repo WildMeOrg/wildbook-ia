@@ -349,20 +349,19 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --qaid=1 --daid=4
+        --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> qaids = ibs.get_valid_aids(species=species)
-        >>> aid1 = 1
-        >>> aid2 = 2
-        >>> qreq_ = None
-        >>> result = vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> aid1 = ut.get_argval('--qaid', default=1)
+        >>> aid2 = ut.get_argval('--daid', default=2)
+        >>> result = vsone_independant_pair_hack(qreq_.ibs, aid1, aid2, qreq_)
         >>> print(result)
+        >>> ibs = qreq_.ibs
         >>> ut.show_if_requested()
     """
     cfgdict = dict(codename='vsone', fg_on=False)
@@ -371,6 +370,7 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
         cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
     vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
     cm_vsone = ibs.query_chips(qreq_=vsone_qreq_, return_cm=True)[0]
+    cm_vsone = cm_vsone.extend_results(vsone_qreq_)
     #cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
     cm_vsone.ishow_analysis(vsone_qreq_)
     #qres_vsone.ishow_analysis(ibs=ibs)

@@ -417,20 +417,14 @@ def group_scores_by_name(ibs, aid_list, score_list):
         >>> from ibeis.model.hots.name_scoring import *   # NOQA
         >>> import ibeis
         >>> from ibeis.expt import results_all
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> daid_list = ibs.get_valid_aids()
-        >>> qaid_list = daid_list[0:1]
-        >>> cfgdict = dict()
-        >>> qres_list, qreq_ = ibs.query_chips(
-        ...     qaid_list, daid_list, cfgdict=cfgdict, return_request=True,
-        ...     use_cache=False, save_qcache=False)
-        >>> qres = qres_list[0]
-        >>> #print(qres.get_inspect_str())
-        >>> #print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
-        >>> aid_list, score_list = qres.get_aids_and_scores()
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST')
+        >>> ibs = qreq_.ibs
+        >>> #print(cm.get_inspect_str(qreq_))
+        >>> aid_list = cm.daid_list
+        >>> score_list = cm.annot_score_list
         >>> nscoretup = group_scores_by_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
-        >>> ut.assert_eq(sorted_nids[0], 1)
+        >>> ut.assert_eq(sorted_nids[0], cm.qnid)
 
     TODO:
         # TODO: this code needs a really good test case

@@ -12,7 +12,7 @@ CommandLine:
 
     python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 import plottool as pt
@@ -32,7 +32,7 @@ from ibeis.viz import viz_chip
 from plottool import abstract_interaction  # TODO
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.viz.interact.interact_chip import ishow_chip
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_matches]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[interact_matches]', DEBUG=False)
 
 
 AbstractInteraction = abstract_interaction.AbstractInteraction
@@ -198,22 +198,44 @@ class MatchInteraction(object):
         qaid      = self.qaid
         ibs       = self.ibs
         xywh2_ptr = self.xywh2_ptr
-        print_('[inter] clicked matches')
+        print('[inter] clicked matches')
         if event is None:
             return
         button = event.button
         is_right_click = button == 3
+
+        # Out of axes click
+        (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
+        if None in [x, y, ax]:
+            in_axis = False
+            if not is_right_click:
+                print('... out of axis')
+                self.chipmatch_view()
+                viz.draw()
+                return
+        else:
+            in_axis = True
+
+        if in_axis:
+            viztype = vh.get_ibsdat(ax, 'viztype', '')
+            is_match_type = viztype in ['matches', 'multi_match']
+            print('[ir] viztype=%r ' % viztype)
+        else:
+            is_match_type = False
+            viztype = ''
+
         if is_right_click:
             from ibeis.gui import inspect_gui
 
             options = []
 
-            options += inspect_gui.get_aidpair_context_menu_options(
-                self.ibs, self.qaid, self.daid, self.qres,
-                qreq_=self.qreq_,
-                #update_callback=self.show_page,
-                #backend_callback=None, aid_list=aid_list)
-            )
+            if is_match_type:
+                options += inspect_gui.get_aidpair_context_menu_options(
+                    self.ibs, self.qaid, self.daid, self.qres,
+                    qreq_=self.qreq_,
+                    #update_callback=self.show_page,
+                    #backend_callback=None, aid_list=aid_list)
+                )
 
             options += [
                 ('Toggle same_fig', self.toggle_samefig),
@@ -236,25 +258,17 @@ class MatchInteraction(object):
             #options.append(('cancel', lambda: print('cancel')))
             self.show_popup_menu(options, event)
             return
-        (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
-        # Out of axes click
-        if None in [x, y, ax]:
-            print('... out of axis')
-            self.chipmatch_view()
-            viz.draw()
-            return
-        else:
-            viztype = vh.get_ibsdat(ax, 'viztype', '')
-            print_('[ir] viztype=%r ' % viztype)
+
+        if in_axis:
             key = '' if event.key is None else event.key
-            print_('key=%r ' % key)
+            print('key=%r ' % key)
             ctrl_down = key.find('control') == 0
             # Click in match axes
-            if viztype == 'matches' and ctrl_down:
+            if is_match_type and ctrl_down:
                 # Ctrl-Click
                 print('.. control click')
                 return self.sv_view()
-            elif viztype == 'matches':
+            elif is_match_type:
                 if len(fm) == 0:
                     print('[inter] no feature matches to click')
                 else:
@@ -271,8 +285,14 @@ class MatchInteraction(object):
                     print('... clicked mx=%r' % mx)
                     self.select_ith_match(mx)
             elif viztype in ['warped', 'unwarped']:
-                hs_aid = ax.__dict__.get('_hs_aid', None)
-                hs_fx = ax.__dict__.get('_hs_fx', None)
+                print('clicked at patch')
+                ut.print_dict(ph.get_plotdat_dict(ax))
+                hs_aid = vh.get_ibsdat(ax, 'aid', None)
+                hs_fx = vh.get_ibsdat(ax, 'fx', None)
+                #hs_aid = ax.__dict__.get('_hs_aid', None)
+                #hs_fx = ax.__dict__.get('_hs_fx', None)
+                print('hs_fx = %r' % (hs_fx,))
+                print('hs_aid = %r' % (hs_aid,))
                 if hs_aid is not None and viztype == 'unwarped':
                     ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
                 elif hs_aid is not None and viztype == 'warped':
@@ -532,10 +552,8 @@ class MatchInteraction(object):
         ut.embed()
 
     #def name_interaction(self):
-    #    from ibeis.viz.interact import interact_name
     #    aid1 = self.qaid  # 14
     #    aid2 = self.daid  # 5546
-    #    self = interact_name.MatchVerificationInteraction(self.ibs, aid1, aid2)
     #    #ut.embed()
 
     def toggle_vert(self):
@@ -552,6 +570,7 @@ class MatchInteraction(object):
         self.same_fig = not self.same_fig
         if self.mx is not None:
             self.select_ith_match(self.mx)
+        pt.update()
 
     def query_last_feature(self):
         ibs      = self.ibs

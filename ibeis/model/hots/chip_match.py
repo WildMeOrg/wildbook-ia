@@ -50,44 +50,6 @@ def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LE
     return fname
 
 
-def testdata_qres():
-    import ibeis
-    ibs = ibeis.opendb(defaultdb='testdb1')
-    qres, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], cfgdict=dict(),
-                                  verbose=True, return_request=True)
-    return qres, qreq_
-
-
-def testdata_cm():
-    r"""
-    CommandLine:
-        python -m ibeis.model.hots.chip_match --test-testdata_cm
-        python -m ibeis.model.hots.chip_match --test-testdata_cm --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.chip_match import *  # NOQA
-        >>> cm, qreq_ = testdata_cm()
-        >>> cm.print_csv(ibs=qreq_.ibs)
-        >>> ut.quit_if_noshow()
-        >>> cm.show_single_annotmatch(qreq_, 2)
-        >>> ut.show_if_requested()
-
-        # qaid = 1
-        # qnid = -1
-        # fsv_col_lbls = ['lnbnn', 'fg']
-        # num_rows=4
-        #   daid,  dnid,    score,  num_matches,  fm_depth,  fsv_depth
-               3,     1,  5637.58,          229,  (229; 2),   (229; 2)
-               5,     2,  1997.63,          142,  (142; 2),   (142; 2)
-               4,    -4,   274.97,           36,   (36; 2),    (36; 2)
-               2,     1,     0.00,          105,  (105; 2),   (105; 2)
-    """
-    qres, qreq_ = testdata_qres()
-    cm = ChipMatch2.from_qres(qres)
-    return cm, qreq_
-
-
 def timing_vsmany_match_tup():
     """
     CommandLine:
@@ -507,8 +469,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> import ibeis
             >>> cls = ChipMatch2
-            >>> cm1, qreq_ = testdata_cm()
+            >>> cm1, qreq_ = ibeis.testdata_cm()
             >>> json_str = cm1.to_json()
             >>> cm = ChipMatch2.from_json(json_str)
             >>> ut.quit_if_noshow()
@@ -573,7 +536,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> # ENABLE_DOCTEST
             >>> # test to convert back and forth from json
             >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> cm, qreq_ = testdata_cm()
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm()
             >>> cm1 = cm
             >>> # Serialize
             >>> json_str = cm.to_json()
@@ -1022,7 +986,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         import ibeis
         return cm.get_top_truth_aids(ibs, ibeis.const.TRUTH_MATCH, ntop)
 
-    def get_annot_scores(cm, daids):  # score_method=None):
+    def get_annot_scores(cm, daids, score_method=None):
         #idx_list = [cm.daid2_idx.get(daid, None) for daid in daids]
         score_list = cm.score_list
         idx_list = ut.dict_take(cm.daid2_idx, daids, None)
@@ -1057,7 +1021,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             qreq_ (QueryRequest):  query request object with hyper-parameters
 
         Returns:
-            ?: varinfo
+            str: varinfo
 
         CommandLine:
             python -m ibeis.model.hots.chip_match --exec-get_inspect_str
@@ -1066,7 +1030,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
             >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> cm, qreq_ = testdata_cm()
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm()
             >>> varinfo = cm.get_inspect_str(qreq_)
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
@@ -1428,20 +1393,19 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         """
 
         CommandLine:
-            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show
-            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show --qaid 1
-            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show --qaid 1 --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
+            python -m ibeis --tf ChipMatch2.show_single_namematch --show
+            python -m ibeis --tf ChipMatch2.show_single_namematch --show --qaid 1
+            python -m ibeis --tf ChipMatch2.show_single_namematch --show --qaid 1 --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
-            >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
-            >>> ut.quit_if_noshow()
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
             >>> homog = False
-            >>> dnid = ibs.get_annot_nids(cm.qaid)
+            >>> dnid = cm.qnid
             >>> cm.show_single_namematch(qreq_, dnid)
+            >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """
         from ibeis.viz import viz_matches
@@ -1474,7 +1438,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         groupxs = cm.name_groupxs[nidx]
         daids = np.take(cm.daid_list, groupxs)
         dnids = np.take(cm.dnid_list, groupxs)
-        assert np.all(dnid == dnids), 'inconsistent naming, dnid=%r, dnids=%r' % (dnid, dnids,)
+        assert np.all(dnid == dnids), (
+            'inconsistent naming, dnid=%r, dnids=%r' % (dnid, dnids,))
         groupxs = groupxs.compress(daids != cm.qaid)
         # </GET NAME GROUPXS>
         # sort annots in this name by the chip score
@@ -1508,9 +1473,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
         name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
 
-        #showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
-        #viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
-        viz_matches.show_name_matches(
+        return viz_matches.show_name_matches(
             qreq_.ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
             name_H1_list, name_featflag_list, name_score=name_score, name_rank=name_rank,
             name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
@@ -1603,10 +1566,53 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 
-    def ishow_matches(cm, ibs, aid2, **kwargs):
-        kwargs['aid2'] = aid2
-        #DEPRICQATE
-        return cm.ishow_match(**kwargs)
+    show_matches = show_single_annotmatch  # HACK
+
+    def ishow_single_annotmatch(cm, qreq_, aid2=None, **kwargs):
+        r"""
+        Iteract with a match to an individual annotation (or maybe name?)
+
+        Args:
+            qreq_ (QueryRequest):  query request object with hyper-parameters
+            aid2 (int):  annotation id(default = None)
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-ishow_single_annotmatch --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> aid2 = None
+            >>> result = cm.ishow_single_annotmatch(qreq_, aid2)
+            >>> print(result)
+            >>> ut.show_if_requested()
+        """
+        from ibeis.viz.interact import interact_matches  # NOQA
+        #if aid == 'top':
+        #    aid = qres.get_top_aids(ibs)
+        kwshow = {
+            'mode': 1,
+        }
+        if aid2 is None:
+            aid2 = cm.get_top_aids(ntop=1)[0]
+        kwshow.update(**kwargs)
+        try:
+            match_interaction = interact_matches.MatchInteraction(qreq_.ibs,
+                                                                  cm, aid2,
+                                                                  qreq_=qreq_,
+                                                                  **kwshow)
+            return match_interaction
+        except Exception as ex:
+            ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
+            raise
+        import plottool as pt
+        pt.update()
+
+    ishow_match = ishow_single_annotmatch
+    ishow_matches = ishow_single_annotmatch
 
     def ishow_analysis(cm, qreq_, **kwargs):
         """
@@ -1623,71 +1629,81 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """
-        # hack: just make chipmatch the primary result type
-        #qres = cm.as_qres(qreq_)
+        from ibeis.viz.interact import interact_qres
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
         }
         kwshow.update(kwargs)
-        #return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
-        from ibeis.viz.interact import interact_qres
-        return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwargs)
+        return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
     def show_analysis(cm, qreq_, **kwargs):
         from ibeis.viz import viz_qres
-        #qres = cm.as_qres(qreq_)
         kwshow = {
             'show_query': False,
             'show_timedelta': True,
         }
         kwshow.update(kwargs)
-        #return qres.show_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
-        return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwargs)
-        #return viz_qres.show_qres_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
+        return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
-    def ishow_match(cm, qreq_, aid2=None, **kwargs):
-        r"""
-        Iteract with a match to an individual annotation (or maybe name?)
-
-        Args:
-            qreq_ (QueryRequest):  query request object with hyper-parameters
-            aid2 (int):  annotation id(default = None)
-
+    def imwrite_single_annotmatch(cm, qreq_, aid, **kwargs):
+        """
         CommandLine:
-            python -m ibeis.model.hots.chip_match --exec-ishow_match --show
+            python -m ibeis.model.hots.chip_match --exec-ChipMatch2.imwrite_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
-            >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
-            >>> aid2 = None
-            >>> result = cm.ishow_match(qreq_, aid2)
-            >>> print(result)
+            >>> import ibeis
+            >>> kwargs = {}
+            >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
+            >>> kwargs['figsize'] = ut.get_argval('--figsize', list, None)
+            >>> kwargs['fpath'] = ut.get_argval('--fpath', str, None)
+            >>> kwargs['draw_fmatches'] = not ut.get_argflag('--no-fmatches')
+            >>> kwargs['vert'] = ut.get_argflag('--vert')
+            >>> kwargs['draw_border'] = ut.get_argflag('--draw_border')
+            >>> kwargs['saveax'] = ut.get_argflag('--saveax')
+            >>> kwargs['in_image'] = ut.get_argflag('--in-image')
+            >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
+            >>> print('kwargs = %s' % (ut.dict_str(kwargs),))
+            >>> cm, qreq_ = ibeis.testdata_cm()
+            >>> aid = cm.get_top_aids()[0]
+            >>> img_fpath = cm.imwrite_single_annotmatch(qreq_, aid, **kwargs)
+            >>> ut.quit_if_noshow()
+            >>> # show the image dumped to disk
+            >>> ut.startfile(img_fpath, quote=True)
             >>> ut.show_if_requested()
         """
-        from ibeis.viz.interact import interact_matches  # NOQA
-        #if aid == 'top':
-        #    aid = qres.get_top_aids(ibs)
-        kwshow = {
-            'mode': 1,
-        }
-        if aid2 is None:
-            aid2 = cm.get_top_aids(ntop=1)[0]
-        kwshow.update(**kwargs)
-        try:
-            match_interaction = interact_matches.MatchInteraction(qreq_.ibs, cm, aid2, qreq_=qreq_, **kwshow)
-            return match_interaction
-        except Exception as ex:
-            ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
-            raise
-        # hack: just make chipmatch the primary result type
-        #qres = cm.as_qres(qreq_)
-        #kwshow.update(kwargs)
-        #return qres.ishow_matches(qreq_.ibs, aid2, qreq_=qreq_, **kwshow)
-        #return qres.ishow_analysis(ibs=qreq_.ibs, qreq_=qreq_, **kwshow)
+        import plottool as pt
+        import matplotlib as mpl
+        # Pop save kwargs from kwargs
+        save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
+        save_vals = ut.dict_take_pop(kwargs, save_keys, None)
+        savekw = dict(zip(save_keys, save_vals))
+        fpath = savekw.pop('fpath')
+        if fpath is None and 'fpath_strict' not in savekw:
+            savekw['usetitle'] = True
+        was_interactive = mpl.is_interactive()
+        if was_interactive:
+            mpl.interactive(False)
+        # Make new figure
+        fnum = pt.ensure_fnum(kwargs.pop('fnum', None))
+        #fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        fig = pt.plt.figure(fnum)
+        fig.clf()
+        # Draw Matches
+        cm.show_single_annotmatch(qreq_, aid, colorbar_=False, fnum=fnum, **kwargs)
+        #if not kwargs.get('notitle', False):
+        #    pt.set_figtitle(cm.make_smaller_title())
+        # Save Figure
+        # Setting fig=fig might make the dpi and figsize code not work
+        img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
+        pt.plt.close(fig)  # Ensure that this figure will not pop up
+        if was_interactive:
+            mpl.interactive(was_interactive)
+        #if False:
+        #    ut.startfile(img_fpath)
+        return img_fpath
 
     def qt_inspect_gui(cm, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
         r"""
@@ -1714,15 +1730,15 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_lt, qreq_, name_scoring)
             >>> ut.quit_if_noshow()
             >>> import guitool
-            >>> guitool.qtapp_loop()
+            >>> guitool.qtapp_loop(qwin=qres_wgt)
         """
         print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui
         import guitool
         guitool.ensure_qapp()
-        qaid2_qres = {cm.qaid: cm}
+        cm_list = [cm]
         print('[inspect_matches] make_qres_widget')
-        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                   ranks_lt=ranks_lt,
                                                   name_scoring=name_scoring,
                                                   qreq_=qreq_)
@@ -1731,9 +1747,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         print('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
-
-    #def ishow_matches():
-    #    pass
 
     @property
     def nid2_name_score(cm):

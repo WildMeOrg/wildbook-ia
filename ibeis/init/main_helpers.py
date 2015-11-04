@@ -54,7 +54,9 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_qreq_(t=['default'], **kwargs):
+def testdata_qreq_(t=None, **kwargs):
+    if t is None:
+        t = ['default']
     ibs, qaids, daids = testdata_expanded_aids(**kwargs)
     pcfgdict = testdata_pipecfg(t=t)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
@@ -63,6 +65,8 @@ def testdata_qreq_(t=['default'], **kwargs):
 
 def testdata_qres(defaultdb='testdb1', t=['default']):
     r"""
+    TODO: depricate for chipmatch
+
     Args:
         defaultdb (str): (default = 'testdb1')
 
@@ -89,6 +93,35 @@ def testdata_qres(defaultdb='testdb1', t=['default']):
     qres = qreq_.load_cached_qres(qaids[0])
     print('qreq_ = %r' % (qreq_,))
     return ibs, qreq_, qres
+
+
+def testdata_cm(defaultdb=None, default_qaids=None):
+    r"""
+    CommandLine:
+        python -m ibeis.init.main_helpers --test-testdata_cm
+        python -m ibeis.init.main_helpers --test-testdata_cm --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> cm.print_csv(ibs=qreq_.ibs)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_, 2)
+        >>> ut.show_if_requested()
+    """
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids)
+    qaids = qreq_.get_external_qaids()
+    print('qaids = %r' % (qaids,))
+    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
+    cm = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
+    return cm, qreq_
+
+
+def testdata_cmlist(defaultdb=None, default_qaids=None):
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids)
+    cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
+    return cm_list, qreq_
 
 
 def testdata_expts(defaultdb='testdb1',
@@ -126,9 +159,8 @@ def testdata_expts(defaultdb='testdb1',
     #return ibs, testres_list
 
 
-def testdata_expanded_aids(default_qaids=[1], a=None,
-                           defaultdb='testdb1', ibs=None, verbose=False,
-                           return_annot_info=False):
+def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
+                           ibs=None, verbose=False, return_annot_info=False):
     r"""
     Args:
         default_qaids (list): (default = [1])
@@ -143,8 +175,7 @@ def testdata_expanded_aids(default_qaids=[1], a=None,
 
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_expanded_aids
-        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:aids=gt,shuffle,index=0:25 --verbose-testdata
-        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:aids=gt,index=0:25 --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata
         python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
 
     Example:
@@ -162,6 +193,10 @@ def testdata_expanded_aids(default_qaids=[1], a=None,
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
     """
     print('[testdata_expanded_aids] Getting test annot configs')
+    if default_qaids is None:
+        default_qaids = [1]
+    if defaultdb is None:
+        defaultdb = 'testdb1'
     import ibeis
     if ibs is None:
         ibs = ibeis.opendb(defaultdb=defaultdb)
@@ -210,6 +245,9 @@ def testdata_aids(defaultdb=None, default_options='', ibs=None):
     CommandLine:
         python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
         python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_aids --show
 
     Example:
         >>> # ENABLE_DOCTEST

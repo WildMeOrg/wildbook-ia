@@ -39,7 +39,7 @@ def parse_args():
         if util_arg.VERBOSE:
             print('[!params] ALREADY INITIALIZED ARGS')
         return
-    program_name = 'IBEIS - Lite'
+    program_name = 'IBEIS - Lite (WARNING THESE ARGS ARE MOSTLY DEPRICATED)'
     description = 'Image Based Ecological Information System'
     parser2 = util_arg.make_argparse2(program_name, description)
 
@@ -58,7 +58,7 @@ def parse_args():
         #parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
         #parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
         #parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
-        parser2.add_ints(('--daid-exclude', '--daids-exclude'), default=[], help='exclude daids from matching')
+        #parser2.add_ints(('--daid-exclude', '--daids-exclude'), default=[], help='exclude daids from matching')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
         parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_flag(('--fulltb'), help='shows a full traceback (default behavior removes decorators from the trace)')

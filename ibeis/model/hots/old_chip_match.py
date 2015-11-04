@@ -293,7 +293,11 @@ class _OldStyleChipMatchSimulator(object):
 
     @property
     def aid2_fs(cm):
-        return _DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.fs_list)
+        if cm.fs_list is None:
+            fs_list = cm.get_fsv_prod_list()
+        else:
+            fs_list = cm.fs_list
+        return _DefaultDictProxy(cm.daid2_idx, cm.daid_list, fs_list)
 
     def tokwargs(cm):
         """

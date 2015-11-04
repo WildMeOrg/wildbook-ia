@@ -202,10 +202,18 @@ def testdata_expts(*args, **kwargs):
 #}
 #)
 
-from ibeis.init.main_helpers import testdata_qres
+from ibeis.init import main_helpers
+testdata_qres = main_helpers.testdata_qres
+testdata_cm = main_helpers.testdata_cm
+testdata_qreq_ = main_helpers.testdata_qreq_
+testdata_pipecfg = main_helpers.testdata_pipecfg
+testdata_filtcfg = main_helpers.testdata_filtcfg
+testdata_expts = main_helpers.testdata_expts
+testdata_expanded_aids = main_helpers.testdata_expanded_aids
+testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
+print, rrr, profile = utool.inject2(__name__, '[ibeis]')
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """

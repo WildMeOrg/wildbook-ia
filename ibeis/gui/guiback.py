@@ -139,7 +139,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_aids = []
         back.sel_nids = []
         back.sel_gids = []
-        back.sel_qres = []
+        back.sel_cm = []
         back.active_enc = 0
         if ut.is_developer():
             back.daids_mode = const.INTRA_ENC_KEY
@@ -324,23 +324,9 @@ class MainWindowBackend(GUIBACK_BASE):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, qres_list, qreq_=None, **kwargs):
-        #if qaid2_qres is None:
-        #    eid = back.get_selected_eid()
-        #    if eid not in back.encounter_query_results:
-        #        raise guiexcept.InvalidRequest('Queries have not been computed yet')
-        #    qaid2_qres = back.encounter_query_results[eid]
-        # review_kw = {
-        #     'on_change_callback': back.front.update_tables,
-        #     'nPerPage': 6,
-        # }
-        # Matplotlib QueryResults interaction
-        #from ibeis.viz.interact import interact_qres2
-        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
-        #back.query_review.show()
+    def review_queries(back, cm_list, qreq_=None, **kwargs):
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
-        qaid2_qres = {qres.qaid: qres for qres in qres_list}
         ibs = back.ibs
 
         def finished_review_callback():
@@ -355,37 +341,11 @@ class MainWindowBackend(GUIBACK_BASE):
 
         kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
         kwargs['qreq_'] = kwargs.get('qreq_', qreq_)
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
                                                        **kwargs)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
-
-    #def show_qres(back, qres, **kwargs):
-    #    top_aids = kwargs.get('top_aids', 6)
-    #    # SHOW MATPLOTLIB RESULTS (NO DECISION INTERACTIONS)
-    #    if ut.get_argflag(('--show-mplres',)):
-    #        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
-    #        kwargs['top_aids'] = top_aids
-    #        kwargs['sidebyside'] = True
-    #        kwargs['show_query'] = False
-    #        #kwargs['sidebyside'] = False
-    #        #kwargs['show_query'] = True
-    #        kwargs['in_image'] = False
-    #        qres.ishow_top(back.ibs, **kwargs)
-
-    #    #interact.ishow_matches(back.ibs, qres, **kwargs)
-    #    # HACK SHOW QT RESULTS
-    #    if not ut.get_argflag(('--noshow-qtres',)):
-    #        from ibeis.gui import inspect_gui
-    #        qaid2_qres = {qres.qaid: qres}
-    #        backend_callback = back.front.update_tables
-    #        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
-    #                                                        callback=backend_callback,
-    #                                                        ranks_lt=top_aids,)
-    #        back.qres_wgt1.show()
-    #        back.qres_wgt1.raise_()
-    #    pass
 
     #----------------------
     # State Management Functions (ewww... state)
@@ -462,9 +422,9 @@ class MainWindowBackend(GUIBACK_BASE):
         UNUSED DEPRICATE
 
         selected query result """
-        if len(back.sel_qres) > 0:
-            qres = back.sel_qres[0]
-            return qres
+        if len(back.sel_cm) > 0:
+            cm = back.sel_cm[0]
+            return cm
         else:
             return None
 
@@ -559,7 +519,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
 
     def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
-                       sel_qres=None, sel_eids=None, mode='set', **kwargs):
+                       sel_cm=None, sel_eids=None, mode='set', **kwargs):
         def modify_collection_attr(self, attr, aug, mode):
             aug = ut.ensure_iterable(aug)
             old = getattr(self, attr)
@@ -593,9 +553,9 @@ class MainWindowBackend(GUIBACK_BASE):
             sel_nids = ut.ensure_iterable(sel_nids)
             back.sel_nids = sel_nids
             back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
-        if sel_qres is not None:
-            raise NotImplementedError('no select qres implemented')
-            back.sel_sel_qres = sel_qres
+        if sel_cm is not None:
+            raise NotImplementedError('no select cm implemented')
+            back.sel_sel_qres = sel_cm
 
     #@backblock
     def select_eid(back, eid=None, **kwargs):
@@ -1149,7 +1109,7 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list (int):  list of annotation ids
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-run_annot_splits:1 --show
+            python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
 
         Example:
             >>> # GUI_DOCTEST
@@ -1173,8 +1133,8 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict, query_msg='Checking for SPLIT cases (matching each annotation within a name)')
-        qres_list = ibs.query_chips(qreq_=qreq_)
-        back.review_queries(qres_list, qreq_=qreq_,
+        cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        back.review_queries(cm_list, qreq_=qreq_,
                             filter_reviewed=False,
                             name_scoring=False,
                             ranks_lt=ranks_lt,
@@ -1333,22 +1293,22 @@ class MainWindowBackend(GUIBACK_BASE):
         # Doesn't seem to work correctly
         #progbar.utool_prog_hook.show_indefinite_progress()
         progbar.utool_prog_hook.force_event_update()
-        qres_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook)
+        cm_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook, return_cm=True)
         progbar.close()
         del progbar
         # HACK IN ENCOUNTER INFO
         if daids_mode == const.INTRA_ENC_KEY:
-            for qres in qres_list:
-                #if qres is not None:
-                qres.eid = eid
-        #back.encounter_query_results[eid].update(qaid2_qres)
+            for cm in cm_list:
+                #if cm is not None:
+                cm.eid = eid
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         # Filter duplicate names if running vsexemplar
         filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
 
-        back.review_queries(qres_list,
-                            filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-                            qreq_=qreq_, query_title=query_title, **kwargs)
+        back.review_queries(
+            cm_list,
+            filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+            qreq_=qreq_, query_title=query_title, **kwargs)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))

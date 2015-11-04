@@ -7,7 +7,7 @@ from ibeis import ibsfuncs
 from ibeis.model.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip
-from ibeis.viz import viz_matches
+from ibeis.viz import viz_matches  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[viz_qres]')
 
 
@@ -185,13 +185,14 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 def testdata_show_qres():
     import ibeis
     # build test data
-    ibs = ibeis.opendb(defaultdb='testdb1')
-    qaids = ut.get_argval('--qaids', type_=list, default=None)
-    if qaids is None:
-        qaids = ibs.get_valid_aids()[0:1]
-    daids = ibs.get_valid_aids()
-    qreq_ = ibs.new_query_request(qaids, daids)
-    cm = ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
+    cm, qreq_ = ibeis.testdata_cm()
+    #ibs = ibeis.opendb(defaultdb='testdb1')
+    #qaids = ut.get_argval('--qaids', type_=list, default=None)
+    #if qaids is None:
+    #    qaids = ibs.get_valid_aids()[0:1]
+    #daids = ibs.get_valid_aids()
+    #qreq_ = ibs.new_query_request(qaids, daids)
+    #cm = ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
     #
     kwargs = dict(
         top_aids=ut.get_argval('--top-aids', type_=int, default=3),
@@ -200,10 +201,11 @@ def testdata_show_qres():
         viz_name_score=not ut.get_argflag('--no-viz_name_score'),
         max_nCols=ut.get_argval('--max_nCols', type_=int, default=None)
     )
-    return ibs, cm, qreq_, kwargs
+    return qreq_.ibs, cm, qreq_, kwargs
 
 
 #@ut.indent_func
+#@ut.tracefunc_xml
 def show_qres(ibs, cm, qreq_=None, **kwargs):
     """
     Display Query Result Logic
@@ -283,7 +285,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
 
     if isinstance(top_aids, int):
         if isinstance(cm, chip_match.ChipMatch2):
-            top_aids = cm.get_top_aids(num=top_aids)
+            top_aids = cm.get_top_aids(top_aids)
         else:
             top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
 
@@ -303,8 +305,8 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
 
-    #if ut.DEBUG2:
-    #    print(cm.get_inspect_str())
+    if ut.DEBUG2:
+        print(cm.get_inspect_str())
 
     ranked_aids = cm.get_top_aids()
     #--------------------------------------------------
@@ -356,6 +358,8 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     # HACK:
     _color_list = pt.distinct_colors(nTop)
     aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
+
+    assert isinstance(cm, chip_match.ChipMatch2), 'qres is no longer supported'
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -410,7 +414,8 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                     _kwshow['draw_lbl'] = False
                     _kwshow['notitle'] = True
                     _kwshow['vert'] = False
-                    viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
+                    cm.show_single_annotmatch(qreq_, aid, **_kwshow)
+                    #viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
                 data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()

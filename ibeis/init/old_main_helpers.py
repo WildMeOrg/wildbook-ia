@@ -416,7 +416,8 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
     DINDEX = params.args.dindex
     NO_JUNK = not ut.get_argflag('--junk')
     EXCLUDE_QUERY = ut.get_argflag('--exclude-query')
-    daids_exclude = params.args.daid_exclude
+    #daids_exclude = params.args.daid_exclude
+    daids_exclude = None
 
     if CONTROLLED_CASES:
         print('[get_test_daids] * Including controlled daids')

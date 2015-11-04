@@ -463,6 +463,8 @@ class QueryResult(__OBJECT_BASE__):
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
 
+    get_annot_ranks = get_aid_ranks
+
     def get_aid_truth(qres, ibs, aid_list):
         # 0: false, 1: True, 2: unknown
         isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
@@ -853,6 +855,7 @@ class QueryResult(__OBJECT_BASE__):
         img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
         if was_interactive:
             mpl.interactive(was_interactive)
+        pt.plt.close(fig)  # Ensure that this figure will not pop up
         #if False:
         #    ut.startfile(img_fpath)
         return img_fpath
