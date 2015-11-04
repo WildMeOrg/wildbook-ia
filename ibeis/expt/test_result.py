@@ -507,7 +507,7 @@ class TestResult(object):
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['unctrl', 'ctrl::unctrl_comp'])
             >>> cfg_lbls = testres.get_short_cfglbls(friendly=True)
             >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
             >>> print(result)
@@ -587,7 +587,7 @@ class TestResult(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
             >>> plotname = ''
             >>> figtitle = testres.make_figtitle(plotname)
             >>> result = ('figtitle = %r' % (figtitle,))
@@ -626,7 +626,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
             >>> with_size = True
             >>> title_aug = testres.get_title_aug(with_size)
             >>> res = u'title_aug = %s' % (title_aug,)
@@ -728,7 +728,7 @@ class TestResult(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl::unctrl_comp'], t=['candk:K=[1,2]'])
             >>> ibs = None
             >>> result = testres.print_acfg_info()
             >>> print(result)
