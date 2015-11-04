@@ -486,8 +486,8 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     try:
         assert not any(isinvalid_list), 'invalid aids: %r' % (
             ut.list_compress(aid_list, isinvalid_list),)
-        isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES)
-                          for aid in aid_list]
+        isinvalid_list = [
+            not ut.is_int(aid) for aid in aid_list]
         assert not any(isinvalid_list), 'invalidly typed aids: %r' % (
             ut.list_compress(aid_list, isinvalid_list),)
     except AssertionError as ex:

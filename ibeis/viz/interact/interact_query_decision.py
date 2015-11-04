@@ -196,6 +196,9 @@ class QueryVerificationInteraction(AbstractInteraction):
                 'size': '13%'
             }
 
+        self.aid2_ax = {}
+        self.aid2_border = {}
+
         if aid in self.comp_aids:
             callback = partial(self.select, aid)
             self.append_button('Select This Animal', callback=callback, **butkw)
@@ -203,9 +206,10 @@ class QueryVerificationInteraction(AbstractInteraction):
             if aid in self.aid_checkbox_states:
                 #If we are selecting it, then make it green, otherwise change it back to grey
                 if self.aid_checkbox_states[aid]:
-                    pt.draw_border(ax, color=(0, 1, 0), lw=4)
+                    border = pt.draw_border(ax, color=(0, 1, 0), lw=4)
                 else:
-                    pt.draw_border(ax, color=(.7, .7, .7), lw=4)
+                    border = pt.draw_border(ax, color=(.7, .7, .7), lw=4)
+                self.aid2_border[aid] = border
             else:
                 self.aid_checkbox_states[aid] = False
             self.append_button('Examine', callback=partial(self.examine, aid), **butkw)

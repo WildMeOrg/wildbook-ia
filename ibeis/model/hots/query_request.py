@@ -1010,11 +1010,46 @@ class QueryRequest(object):
         external_qauuids = qreq_.get_external_quuids()
         daids  = qreq_.get_external_daids()
         cfgstr = qreq_.get_cfgstr()
-        qres_list = [hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-                     for qaid, qauuid in zip(external_qaids, external_qauuids)]
+        qres_list = [
+            hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+            for qaid, qauuid in zip(external_qaids, external_qauuids)
+        ]
         for qres in qres_list:
             qres.aid2_score = {}
         return qres_list
+
+    def make_empty_chip_matches(qreq_):
+        """
+        returns empty query results for each external qaid
+        Returns:
+            list: cm_list
+
+        CommandLine:
+            python -m ibeis.model.hots.query_request --exec-make_empty_chip_matches
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+            >>> cm_list = qreq_.make_empty_chip_matches()
+            >>> cm = cm_list[0]
+            >>> cm.print_rawinfostr()
+            >>> result = ('cm_list = %s' % (str(cm_list),))
+            >>> print(result)
+        """
+        external_qaids  = qreq_.get_external_qaids()
+        #external_daids = qreq_.get_external_daids()
+        #external_dnids = qreq_.ibs.get_annot_name_rowids(external_daids)
+        # FIXME: hacky
+        cm_list = [
+            chip_match.ChipMatch2(qaid, [], qnid=qreq_.ibs.get_annot_name_rowids(qaid))
+            for qaid in (external_qaids)
+        ]
+        for cm in cm_list:
+            cm._empty_hack()
+
+        return cm_list
 
     def make_empty_query_result(qreq_, qaid):
         """

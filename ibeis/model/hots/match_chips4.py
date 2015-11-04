@@ -66,7 +66,7 @@ def empty_query(ibs, qaids):
     """
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
-    qres_list = qreq_.make_empty_query_results()
+    qres_list = qreq_.make_empty_chip_matches()
     qaid2_qres = dict(zip(qaids, qres_list))
     return qaid2_qres, qreq_
 

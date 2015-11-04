@@ -50,53 +50,6 @@ def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LE
     return fname
 
 
-def timing_vsmany_match_tup():
-    """
-    CommandLine:
-        python -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup
-        utprof.py -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup --verbose
-
-    Timeit::
-        %timeit np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
-        %timeit np.ascontiguousarray(np.vstack((valid_qfx, valid_dfx)).T)
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.chip_match import *  # NOQA
-        >>> cm = timing_vsmany_match_tup()
-        >>> print(cm)
-    """
-    import numpy as np
-    # build test data
-    cls = ChipMatch2
-    size = 3000
-    valid_match_tup = (
-        np.array([534, 744, 458, 532, 707, 443] * size),
-        np.array([  0,   0,   0, 885, 885, 885] * size),
-        np.array([  7,  19, 624, 550, 584, 929] * size),
-        np.array([[ 0.09632111,  0.43708295],
-                  [ 0.03178215,  0.66673464],
-                  [ 0.01823044,  0.69417661],
-                  [ 0.00674248,  0.95885468],
-                  [ 0.00422287,  0.96921086],
-                  [ 0.00284576,  0.94884723]]  * size, dtype=np.float32),
-        np.array([1, 2, 3, 2, 3, 4]  * size, dtype=np.int16)
-    )
-    qaid = 1
-    fsv_col_lbls = None
-    # execute function
-    for x in range(0, 10):
-        valid_match_tup = (
-            (1000 * np.abs(np.random.randn(size) + .5)).astype(np.int32),
-            (1000 * np.random.rand(size)).astype(np.int32),
-            (1000 * np.random.rand(size)).astype(np.int32),
-            np.random.rand(size, 2),
-            (1000 * np.random.rand(size)).astype(np.int16)
-        )
-        cm = cls.from_vsmany_match_tup(valid_match_tup, qaid, fsv_col_lbls)
-    return cm
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     """
@@ -183,7 +136,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.fm_list      = fm_list
         cm.fsv_list     = fsv_list
         cm.fk_list      = (fk_list if fk_list is not None else
-                           [np.zeros(fm.shape[0]) for fm in cm.fm_list])
+                           [np.zeros(fm.shape[0]) for fm in cm.fm_list]
+                           if cm.fm_list is not None else None)
         cm.score_list   = score_list
         cm.H_list       = H_list
         cm.fsv_col_lbls = fsv_col_lbls
@@ -211,6 +165,23 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             cm._update_daid_index()
             if cm.dnid_list is not None:
                 cm._update_unique_nid_index()
+
+    def _empty_hack(cm):
+        if cm.daid_list is None:
+            cm.daid_list = np.empty(0, dtype=np.int)
+        assert len(cm.daid_list) == 0
+        cm.fsv_col_lbls = []
+        cm.fm_list = []
+        cm.fsv_list = []
+        cm.fk_list = []
+        cm.H_list = []
+        cm.daid2_idx = {}
+        cm.fs_list = []
+        cm.dnid_list = np.empty(0, dtype=np.int)
+        cm.unique_nids = np.empty(0, dtype=np.int)
+        cm.score_list = np.empty(0)
+        cm.name_score_list = np.empty(0)
+        cm.annot_score_list = np.empty(0)
 
     #------------------
     # Modification / Evaluation Functions
@@ -257,10 +228,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qnid         = cm.qnid
         fsv_col_lbls = cm.fsv_col_lbls
 
+        num_vs = 0 if fsv_col_lbls is None else len(fsv_col_lbls)
+
         fm_list  = extend_nplists(num, cm.fm_list, (0, 2), hstypes.FM_DTYPE)
         fk_list  = extend_nplists(num, cm.fk_list, (0), hstypes.FK_DTYPE)
         fs_list  = extend_nplists(num, cm.fs_list, (0), hstypes.FS_DTYPE)
-        fsv_list = extend_nplists(num, cm.fsv_list, (0, len(fsv_col_lbls)), hstypes.FS_DTYPE)
+        fsv_list = extend_nplists(num, cm.fsv_list, (0, num_vs), hstypes.FS_DTYPE)
         H_list   = extend_pylist(num, cm.H_list, None)
 
         score_list = extend_scores(num, cm.score_list)
@@ -1158,7 +1131,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #append(varinfo('cm.name_score_dict[\'ncov\']'))
         #infostr = '\n'.join(ut.align_lines(str_list, '='))
         infostr = '\n'.join(str_list)
-        print(infostr)
         return infostr
 
     def get_cvs_str(cm,  numtop=6, ibs=None, sort=True):

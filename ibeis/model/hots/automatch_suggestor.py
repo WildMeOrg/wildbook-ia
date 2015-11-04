@@ -62,6 +62,7 @@ def get_qres_name_choices(ibs, cm):
         nscoretup = list(map(np.array, ([], [], [], [])))
         (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup
     else:
+        print('cm= %r' % (cm,))
         nscoretup = cm.get_nscoretup()
 
     (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup

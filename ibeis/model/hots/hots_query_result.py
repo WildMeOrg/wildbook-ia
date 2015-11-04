@@ -179,6 +179,7 @@ class QueryResult(__OBJECT_BASE__):
             * eid should have a uuid
 
         """
+        raise AssertionError('USE CHIPMATCH INSTEAD')
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
