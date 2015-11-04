@@ -803,7 +803,7 @@ def adjust_subplots(left=0.02,  bottom=0.02,
         top = 1 - bottom
     if hspace is None:
         hspace = wspace
-    print('[df2] adjust_subplots(**%s)' % ut.dict_str(locals()))
+    #print('[df2] adjust_subplots(**%s)' % ut.dict_str(locals()))
     plt.subplots_adjust(left, bottom, right, top, wspace, hspace)
 
 
@@ -2450,7 +2450,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
             _drawlines(color_list=colors)
     else:
         # if not matches draw a big red X
-        draw_boxedX(xywh2)
+        #draw_boxedX(xywh2)
+        pass
     # Turn off colorbar if there are no features being drawn
     # or the user doesnt want a colorbar
     drew_anything = fs is not None and (ell or pts or lines)
