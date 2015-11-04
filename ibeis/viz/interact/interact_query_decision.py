@@ -1,11 +1,10 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import utool
 import utool as ut
-import ibeis
 from ibeis import constants as const  # NOQA
 from plottool import interact_helpers as ih
-from plottool import draw_func2 as df2
+import plottool as pt
 from ibeis.viz.interact import interact_matches  # NOQA
 # from ibeis.gui import guiback
 from functools import partial
@@ -14,7 +13,7 @@ from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from plottool.abstract_interaction import AbstractInteraction
 ut.noinject(__name__, '[interact_query_decision]')
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
 #                                                       '[interact_query_decision]', DEBUG=False)
 
 
@@ -25,60 +24,53 @@ ut.noinject(__name__, '[interact_query_decision]')
 NUM_TOP = 3
 
 
-def test_QueryVerificationInteraction():
+class QueryVerificationInteraction(AbstractInteraction):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_query_decision --test-test_QueryVerificationInteraction
-        ./main.py  --eid 2 --inc-query --yes
+        python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
+        python -m ibeis --eid 2 --inc-query --yes
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_query_decision import *  # NOQA
-        >>> # build test data
-        >>> # execute function
-        >>> result = test_QueryVerificationInteraction()
-        >>> # verify results
-        >>> print(result)
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> comp_aids = cm.get_top_aids(NUM_TOP)
+        >>> suggest_aids = comp_aids[0:1]
+        >>> qvi = QueryVerificationInteraction(
+        >>>     qreq_, cm, comp_aids, suggest_aids, progress_current=42, progress_total=1337)
+        >>> ut.show_if_requested()
     """
-    ibs = ibeis.opendb(defaultdb='testdb1')
-    valid_aids = ibs.get_valid_aids()
-    qaids = valid_aids[0:1]
-    daids = valid_aids[1:]
-    qres = ibs.query_chips(qaids, daids)[0]
-    comp_aids = qres.get_top_aids(ibs=ibs, name_scoring=True)[0:NUM_TOP]
-    suggest_aids = comp_aids[0:1]
-    qvi = QueryVerificationInteraction(
-        ibs, qres, comp_aids, suggest_aids, progress_current=42, progress_total=1337)
-    qvi.fig.show()
-    exec(df2.present())
-
-
-class QueryVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, qres, comp_aids, suggest_aids, progress_current=None,
+    def __init__(self, qreq_, cm, comp_aids, suggest_aids, progress_current=None,
                  progress_total=None, update_callback=None,
                  backend_callback=None, name_decision_callback=None, **kwargs):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
         print('[matchver] comp_aids=%r' % (comp_aids,))
         print('[matchver] suggest_aids=%r' % (suggest_aids,))
-        self.ibs = ibs
-        self.qres = qres
-        self.query_aid = self.qres.get_qaid()
-        ibs.assert_valid_aids(comp_aids, verbose=True)
-        ibs.assert_valid_aids(suggest_aids, verbose=True)
-        ibs.assert_valid_aids((self.query_aid,), verbose=True)
+        self.ibs = qreq_.ibs
+        self.qreq_ = qreq_
+        self.cm = cm
+        self.query_aid = self.cm.qaid
+        self.ibs.assert_valid_aids(comp_aids, verbose=True)
+        self.ibs.assert_valid_aids(suggest_aids, verbose=True)
+        self.ibs.assert_valid_aids((self.query_aid,), verbose=True)
         assert(len(comp_aids) <= NUM_TOP)
         self.comp_aids = comp_aids
         self.suggest_aids = suggest_aids
         self.suggest_aids = None  # HACK TO TURN OFF SUGGESTIONS
         self.progress_current = progress_current
         self.progress_total = progress_total
+        def _nonefn():
+            return None
+        def _nonefn2(*args):
+            return None
         if update_callback is None:
-            update_callback = lambda: None
+            update_callback = _nonefn
         if backend_callback is None:
-            backend_callback = lambda: None
+            backend_callback = _nonefn
         if name_decision_callback is None:
-            name_decision_callback = lambda aids: None
+            name_decision_callback = _nonefn2
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
         self.name_decision_callback = name_decision_callback
@@ -99,7 +91,7 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         self.aid_list = [self.query_aid] + self.comp_aids
 
-        # qres = ibs.query_chips(query_aid,)
+        # cm = ibs.query_chips(query_aid,)
 
         #HACK: make sure that comp_aids is of length NUM_TOP
         if len(self.comp_aids) != NUM_TOP:
@@ -116,7 +108,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             'doclf': True,
             'docla': True,
         }
-        self.fig = df2.figure(**figkw)
+        self.fig = pt.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
         ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
         # ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
@@ -139,7 +131,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                     title_suffix = 'SUGGESTED BY IBEIS'
                 self.plot_chip(c_aid, nRows, nCols, px, title_suffix=title_suffix)
             else:
-                df2.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title='NO RESULT')
+                pt.imshow_null(fnum=self.fnum, pnum=(nRows, nCols, nCols + count + 1), title='NO RESULT')
 
         #Plot the Query Chip last
         with ut.EmbedOnException():
@@ -147,7 +139,7 @@ class QueryVerificationInteraction(AbstractInteraction):
             self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix=query_title)
 
         self.show_hud()
-        df2.adjust_subplots_safe(top=0.88, hspace=0.12)
+        pt.adjust_subplots_safe(top=0.88, hspace=0.12)
         self.draw()
         self.show()
         if bring_to_front:
@@ -160,8 +152,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         enable_chip_title_prefix = ut.is_developer()
         #enable_chip_title_prefix = False
         if aid in self.comp_aids:
-            score    = self.qres.get_aid_scores([aid])[0]
-            rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
+            score    = self.cm.get_annot_scores([aid])[0]
+            rawscore = self.cm.get_annot_scores([aid])[0]
             title_suf = kwargs.get('title_suffix', '')
             if score != rawscore:
                 if score is None:
@@ -196,9 +188,9 @@ class QueryVerificationInteraction(AbstractInteraction):
         }
 
         viz_chip.show_chip(ibs, aid, **viz_chip_kw)
-        ax = df2.gca()
+        ax = pt.gca()
         if kwargs.get('make_buttons', True):
-            divider = df2.ensure_divider(ax)
+            divider = pt.ensure_divider(ax)
             butkw = {
                 'divider': divider,
                 'size': '13%'
@@ -211,9 +203,9 @@ class QueryVerificationInteraction(AbstractInteraction):
             if aid in self.aid_checkbox_states:
                 #If we are selecting it, then make it green, otherwise change it back to grey
                 if self.aid_checkbox_states[aid]:
-                    df2.draw_border(ax, color=(0, 1, 0), lw=4)
+                    pt.draw_border(ax, color=(0, 1, 0), lw=4)
                 else:
-                    df2.draw_border(ax, color=(.7, .7, .7), lw=4)
+                    pt.draw_border(ax, color=(.7, .7, .7), lw=4)
             else:
                 self.aid_checkbox_states[aid] = False
             self.append_button('Examine', callback=partial(self.examine, aid), **butkw)
@@ -223,20 +215,20 @@ class QueryVerificationInteraction(AbstractInteraction):
         figtitle = 'Examine a specific image against the query'
 
         #fnum = 510
-        fnum = df2.next_fnum()
-        fig = df2.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
+        fnum = pt.next_fnum()
+        fig = pt.figure(fnum=fnum, pnum=(1, 1, 1), doclf=True, docla=True)
         # can cause freezes should be False
         INTERACT_EXAMINE = False
         if INTERACT_EXAMINE:
-            #fig = interact_matches.ishow_matches(self.ibs, self.qres, aid, figtitle=figtitle, fnum=fnum)
-            fig = self.qres.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
+            #fig = interact_matches.ishow_matches(self.ibs, self.cm, aid, figtitle=figtitle, fnum=fnum)
+            fig = self.cm.ishow_matches(self.ibs, aid, figtitle=figtitle, fnum=fnum)
             print('Finished interact')
             # this is only relevant to matplotlib.__version__ < 1.4.2
             #raise Exception(
             #    'BLACK MAGIC: error intentionally included as a workaround that seems'
             #    'to fix a gui hang on certain computers.')
         else:
-            viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
+            viz_matches.show_matches(self.ibs, self.cm, aid, figtitle=figtitle)
             fig.show()
 
     def select(self, aid, event=None):
@@ -273,8 +265,8 @@ class QueryVerificationInteraction(AbstractInteraction):
     def show_hud(self):
         """ Creates heads up display """
         # Button positioners
-        hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.16,
-                                                     h=3 * utool.PHI_B ** 4,
+        hl_slot, hr_slot = pt.make_bbox_positioners(y=.02, w=.16,
+                                                     h=3 * ut.PHI_B ** 4,
                                                      xpad=.05, startx=0, stopx=1)
 
         select_none_text = 'None of these'
@@ -284,18 +276,18 @@ class QueryVerificationInteraction(AbstractInteraction):
         #Draw boarder around the None of these button
         none_button_axis = none_tup[1]
         if self.other_checkbox_states['none']:
-            df2.draw_border(none_button_axis, color=(0, 1, 0), lw=4, adjust=False)
+            pt.draw_border(none_button_axis, color=(0, 1, 0), lw=4, adjust=False)
         else:
-            df2.draw_border(none_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
+            pt.draw_border(none_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
 
         select_junk_text = 'Junk Query Image'
         junk_tup = self.append_button(select_junk_text, callback=partial(self.select_junk), rect=hl_slot(1))
         #Draw boarder around the None of these button
         junk_button_axis = junk_tup[1]
         if self.other_checkbox_states['junk']:
-            df2.draw_border(junk_button_axis, color=(0, 1, 0), lw=4, adjust=False)
+            pt.draw_border(junk_button_axis, color=(0, 1, 0), lw=4, adjust=False)
         else:
-            df2.draw_border(junk_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
+            pt.draw_border(junk_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
 
         #Add other HUD buttons
         self.append_button('Quit', callback=partial(self.quit), rect=hr_slot(0))
@@ -309,7 +301,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         Animal Identification {progress_string}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
-        df2.set_figtitle(figtitle)
+        pt.set_figtitle(figtitle)
 
     def confirm(self, event=None):
         """

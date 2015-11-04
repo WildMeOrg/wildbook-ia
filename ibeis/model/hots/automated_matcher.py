@@ -100,7 +100,7 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
             #---
             for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
                 yield item
-                #(ibs, qres, qreq_, incinfo) = item
+                #(ibs, cm, qreq_, incinfo) = item
                 # Yeild results for qt interface to call down into user or
                 # oracle code and make a decision
     print('ending interactive iter')
@@ -231,8 +231,8 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     qaid2_qres, qreq_ = execute_query_batch(ibs, qaid_chunk, qreq_vsmany_, incinfo)
 
     #try_decision_callback = incinfo.get('try_decision_callback', None)
-    for qaid, qres in six.iteritems(qaid2_qres):
-        yield [ibs, qres, qreq_, incinfo]
+    for qaid, cm in six.iteritems(qaid2_qres):
+        yield [ibs, cm, qreq_, incinfo]
 
 # ---- DECISION ---
 
@@ -254,7 +254,7 @@ def get_name_suggestion(ibs, qaid, choicetup, incinfo):
 
 
 @profile
-def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
+def run_until_name_decision_signal(ibs, cm, qreq_, incinfo=None):
     r"""
     DECISION STEP 1)
 
@@ -272,16 +272,16 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         >>> incinfo = {}
         >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
         >>> item = six.next(gen)
-        >>> ibs, qres, qreq_, incinfo = item
+        >>> ibs, cm, qreq_, incinfo = item
         >>> # verify results
-        >>> run_until_name_decision_signal(ibs, qres, qreq_, incinfo)
+        >>> run_until_name_decision_signal(ibs, cm, qreq_, incinfo)
 
     Ignore::
-        qres.ishow_top(ibs, sidebyside=False, show_query=True)
+        cm.ishow_top(ibs, sidebyside=False, show_query=True)
     """
     print('--- Identifying Query Animal ---')
-    qaid = qres.get_qaid()
-    choicetup = automatch_suggestor.get_qres_name_choices(ibs, qres)
+    qaid = cm.qaid
+    choicetup = automatch_suggestor.get_qres_name_choices(ibs, cm)
     name_suggest_tup = get_name_suggestion(ibs, qaid, choicetup, incinfo)
     # Have the system ask the user if it is not confident in its decision
     autoname_msg, chosen_names, name_confidence = name_suggest_tup
@@ -297,7 +297,7 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
                 #VIZ_SCORE_NORM = ut.is_developer()
                 if VIZ_SCORE_NORM:
                     qreq_.normalizer.visualize(fnum=511, verbose=False)
-            user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
+            user_dialogs.wait_for_user_name_decision(ibs, cm, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
         else:
@@ -308,11 +308,11 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         #return ('CALLBACK', chosen_names)
         name_decision_callback = incinfo['name_decision_callback']
         name_decision_callback(chosen_names)
-        #exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_, incinfo=incinfo)
+        #exec_name_decision_and_continue(chosen_names, ibs, cm, qreq_, incinfo=incinfo)
 
 
 @profile
-def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
+def exec_name_decision_and_continue(chosen_names, ibs, cm, qreq_,
                                     incinfo=None):
     """
     DECISION STEP 2)
@@ -322,7 +322,7 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     step.
     """
     print('--- Updating Exemplars ---')
-    qaid = qres.get_qaid()
+    qaid = cm.qaid
     #assert ibs.is_aid_unknown(qaid), 'animal is already known'
     try_update_normalizer = False
     was_junk = False
@@ -348,25 +348,25 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     # STATE MAINTENANCE
     # TODO make sure update normalizer works
     if qreq_.normalizer is not None and try_update_normalizer:
-        update_normalizer(ibs, qres, qreq_, chosen_names)
+        update_normalizer(ibs, cm, qreq_, chosen_names)
     # Do update callback so the name updates in the main GUI
     interactive = incinfo.get('interactive', False)
     update_callback = incinfo.get('update_callback', None)
     if interactive and not was_junk and update_callback is not None:
         # Update callback repopulates the names tree
         update_callback()
-    run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+    run_until_exemplar_decision_signal(ibs, cm, qreq_, incinfo=incinfo)
 
 
 @profile
-def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
+def run_until_exemplar_decision_signal(ibs, cm, qreq_, incinfo=None):
     """
     DECISION STEP 3)
 
     Either the system or the user decides if the query should be added to the
     database as an exemplar.
     """
-    qaid = qres.get_qaid()
+    qaid = cm.qaid
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
     exmplr_suggestion = automatch_suggestor.get_system_exemplar_suggestion(ibs, qaid)
     (autoexemplar_msg, exemplar_decision, exemplar_condience) = exmplr_suggestion
@@ -380,11 +380,11 @@ def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
     else:
         # May need to execute callback whereas whatever the interaction was
         # would issue it otherwise
-        exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_, incinfo=incinfo)
+        exec_exemplar_decision_and_continue(exemplar_decision, ibs, cm, qreq_, incinfo=incinfo)
 
 
 @profile
-def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
+def exec_exemplar_decision_and_continue(exemplar_decision, ibs, cm, qreq_,
                                         incinfo=None):
     """
     DECISION STEP 4)
@@ -393,7 +393,6 @@ def exec_exemplar_decision_and_continue(exemplar_decision, ibs, qres, qreq_,
     vsmany query request is updated if needbe and the execution continues.
     (currently to the end of this iteration)
     """
-    #qaid = qres.get_qaid()
     new_aids, remove_aids = exemplar_decision
     #if exemplar_decision:
     if len(new_aids) > 0:
@@ -430,7 +429,7 @@ def run_until_finish(incinfo=None):
 
 
 @profile
-def update_normalizer(ibs, qres, qreq_, chosen_names):
+def update_normalizer(ibs, cm, qreq_, chosen_names):
     r"""
     adds new support data to the current normalizer
 
@@ -458,11 +457,11 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
         >>> incinfo = {}
         >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
         >>> item = six.next(gen)
-        >>> ibs, qres, qreq_, incinfo = item
+        >>> ibs, cm, qreq_, incinfo = item
         >>> qreq_.load_score_normalizer()
         >>> # verify results
         >>> chosen_names = ['easy']
-        >>> update_normalizer(ibs, qres, qreq_, chosen_names)
+        >>> update_normalizer(ibs, cm, qreq_, chosen_names)
     """
     # Fixme: duplicate call to get_qres_name_choices
     if qreq_.normalizer is None:
@@ -471,8 +470,8 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     if len(chosen_names) != 1:
         print('[update_normalizer] NOT UPDATING. only updates using simple matches')
         return
-    qaid = qres.get_qaid()
-    choicetup = automatch_suggestor.get_qres_name_choices(ibs, qres)
+    qaid = cm.qaid
+    choicetup = automatch_suggestor.get_qres_name_choices(ibs, cm)
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     # Get new True Negative support data for score normalization
     name = chosen_names[0]

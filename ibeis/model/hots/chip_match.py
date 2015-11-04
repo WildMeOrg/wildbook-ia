@@ -731,6 +731,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return sorted_nids, sorted_name_scores
 
     def get_ranked_nids_and_aids(cm):
+        """ Hacky func """
         sortx = cm.name_score_list.argsort()[::-1]
         sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
         sorted_nids = cm.unique_nids.take(sortx, axis=0)
@@ -740,8 +741,11 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         # do subsorting
         subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
         subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
-        #subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
-        return sorted_nids, sorted_name_scores, subsorted_daids
+        subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
+        nscoretup = name_scoring.NameScoreTup(sorted_nids, sorted_name_scores,
+                                              subsorted_daids,
+                                              subsorted_annot_scores)
+        return nscoretup
 
     def get_num_matches_list(cm):
         num_matches_list = list(map(len, cm.fm_list))
@@ -1747,11 +1751,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         print('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
-
-    @property
-    def nid2_name_score(cm):
-        return ({} if cm.score_list is None else
-                old_chip_match._DefaultDictProxy(cm.nid2_nidx, cm.unique_nids, cm.name_score_list))
 
 if __name__ == '__main__':
     """

@@ -263,9 +263,9 @@ class IncQueryHarness(INC_LOOP_BASE):
         hack_run_name_decision = False
         with ut.Timer('test_incremental_query'):
             for item  in self.inc_query_gen:
-                (ibs, qres, qreq_, incinfo) = item
+                (ibs, cm, qreq_, incinfo) = item
                 # update incinfo
-                self.qres      = qres
+                self.cm      = cm
                 self.qreq_     = qreq_
                 self.incinfo = incinfo
                 incinfo['count'] += 1
@@ -277,7 +277,7 @@ class IncQueryHarness(INC_LOOP_BASE):
                     incinfo['interactive'] = True
                     hack_run_name_decision = True
                     break
-                automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+                automatch.run_until_name_decision_signal(ibs, cm, qreq_, incinfo=incinfo)
                 #ut.embed()
                 if interactive_after is not None and incinfo['count'] > interactive_after:
                     # stop the automated queries and start interaction
@@ -293,7 +293,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         #incinfo['metatup'] = None
         if hack_run_name_decision:
             # need to rn this so STOP can trigger user interaction
-            automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+            automatch.run_until_name_decision_signal(ibs, cm, qreq_, incinfo=incinfo)
         else:
             incinfo['next_query_callback']()
         return incinfo['interactive']
@@ -324,13 +324,13 @@ class IncQueryHarness(INC_LOOP_BASE):
         try:
             # Generate the query result
             item = six.next(self.inc_query_gen)
-            (ibs, qres, qreq_, incinfo) = item
+            (ibs, cm, qreq_, incinfo) = item
             # update incinfo
-            self.qres      = qres
+            self.cm      = cm
             self.qreq_     = qreq_
             self.incinfo = incinfo
             incinfo['count'] += 1
-            automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
+            automatch.run_until_name_decision_signal(ibs, cm, qreq_, incinfo=incinfo)
             #import plottool as pt
             #pt.present()
 
@@ -361,23 +361,23 @@ class IncQueryHarness(INC_LOOP_BASE):
         """
         #print('[QT] name_decision_slot')
         ibs = self.ibs
-        qres        = self.qres
+        cm        = self.cm
         qreq_       = self.qreq_
         incinfo     = self.incinfo
         automatch.exec_name_decision_and_continue(
-            chosen_names, ibs, qres, qreq_, incinfo=incinfo)
+            chosen_names, ibs, cm, qreq_, incinfo=incinfo)
 
     #@guitool.slot_(bool)
     @QtCore.pyqtSlot(bool)
     def exemplar_decision_slot(self, exemplar_decision):
         incinfo = self.incinfo
         ibs = self.ibs
-        qres        = self.qres
+        cm        = self.cm
         qreq_       = self.qreq_
         incinfo     = self.incinfo
         automatch.exec_exemplar_decision_and_continue(
-            exemplar_decision, ibs, qres, qreq_, incinfo=incinfo)
-        #automatch.exec_name_exemplar_and_continue(name, choicetup, ibs, qres,
+            exemplar_decision, ibs, cm, qreq_, incinfo=incinfo)
+        #automatch.exec_name_exemplar_and_continue(name, choicetup, ibs, cm,
         #                                          qreq_, incinfo=incinfo)
 
 

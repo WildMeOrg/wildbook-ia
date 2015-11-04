@@ -231,20 +231,18 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     # <HACK>
     # FOR VSMANY DISTINCTIVENSS
-    #if qreq_.qparams.return_expanded_nns:
-    #    assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
-    #    # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
-    #    # BREAKS PIPELINE CACHING ASSUMPTIONS
-    #    # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
-    #    # CAUSES TOO MUCH DATA TO BE SAVED
-    #    qres_list = ut.dict_take(qaid2_qres_, qreq_.get_external_qaids())
-    #    for qaid, nns in zip(qres_list, nns_list):
-    #        qres = qaid2_qres_[qaid]
-    #        qres.qfx2_dist = nns[1]
-    #        msg_list = [
-    #            'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
-    #        ]
-    #        print('\n'.join(msg_list))
+    if qreq_.qparams.return_expanded_nns:
+        assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
+        # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
+        # BREAKS PIPELINE CACHING ASSUMPTIONS
+        # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
+        # CAUSES TOO MUCH DATA TO BE SAVED
+        for cm, nns in zip(cm_list, nns_list):
+            cm.qfx2_dist = nns[1]
+            #msg_list = [
+            #    'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
+            #]
+            #print('\n'.join(msg_list))
     # </HACK>
 
     if VERB_PIPELINE:

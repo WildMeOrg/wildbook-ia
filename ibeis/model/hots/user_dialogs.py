@@ -30,18 +30,18 @@ def convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup):
     return comp_aids, suggest_aids
 
 
-def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, incinfo=None):
+def wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, incinfo=None):
     r"""
     Prompts the user for input
     hooks into to some method of getting user input for names
 
     Args:
         ibs (IBEISController):
-        qres (QueryResult):  object of feature correspondences and scores
+        cm (QueryResult):  object of feature correspondences and scores
         autoname_func (function):
 
     CommandLine:
-        python -m ibeis.model.hots.user_dialogs --test-wait_for_user_name_decision
+        python -m ibeis.model.hots.user_dialogs --test-wait_for_user_name_decision --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -51,21 +51,22 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaids = [1]
         >>> daids = [2, 3, 4, 5]
-        >>> qres, qreq_ = ibs._query_chips4(qaids, daids, cfgdict=dict(), return_request=True)[1]
+        >>> cm, qreq_ = ibs.query_chips(qaids, daids, cfgdict=dict(), return_request=True, return_cm=True)[0]
         >>> choicetup = '?'
         >>> name_suggest_tup = '?'
         >>> incinfo = None
         >>> # execute function
-        >>> result = wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, incinfo)
+        >>> result = wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, incinfo)
         >>> # verify results
         >>> print(result)
+        >>> ut.show_if_requested()
     """
-    if qres is None:
+    if cm is None:
         print('WARNING: qres is None')
 
-    new_mplshow = True and qres is not None
-    mplshowtop = False and qres is not None
-    qtinspect = False and qres is not None
+    new_mplshow = True and cm is not None
+    mplshowtop = False and cm is not None
+    qtinspect = False and cm is not None
 
     if new_mplshow:
         from ibeis.viz.interact import interact_query_decision
@@ -81,7 +82,7 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         progress_total         = incinfo['nTotal']
         fnum = incinfo['fnum']
         qvi = interact_query_decision.QueryVerificationInteraction(
-            ibs, qres, comp_aids, suggest_aids,
+            qreq_, cm, comp_aids, suggest_aids,
             name_decision_callback=name_decision_callback,
             #update_callback=update_callback,
             #backend_callback=backend_callback,
@@ -93,8 +94,8 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         import guitool
         fnum = 513
         pt.figure(fnum=fnum, pnum=(2, 3, 1), doclf=True, docla=True)
-        fig = qres.ishow_top(ibs, name_scoring=True, fnum=fnum, in_image=False,
-                             annot_mode=0, sidebyside=False, show_query=True)
+        fig = cm.ishow_top(qreq_, fnum=fnum, in_image=False, annot_mode=0,
+                           sidebyside=False, show_query=True)
         fig.show()
         #fig.canvas.raise_()
         #from plottool import fig_presenter
@@ -119,7 +120,7 @@ def wait_for_user_name_decision(ibs, qres, qreq_, choicetup, name_suggest_tup, i
         #name_decision_callback(user_chosen_name)
     if qtinspect:
         print('Showing qt inspect window')
-        qres_wgt = qres.qt_inspect_gui(ibs, name_scoring=True)
+        qres_wgt = cm.qt_inspect_gui(qreq_)
         qres_wgt.show()
         qres_wgt.raise_()
     #if qreq_ is not None:

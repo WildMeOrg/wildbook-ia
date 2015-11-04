@@ -519,8 +519,8 @@ def train_baseline_ibeis_normalizer(ibs, use_cache=True, **learnkw):
         cfgdict = dict(codename=codename)
         qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict)
         use_qcache = True
-        qres_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, use_cache=use_qcache)
-        normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
+        cm_list = ibs.query_chips(qaid_list, daid_list, qreq_=qreq_, use_cache=use_qcache, return_cm=True)
+        normalizer = cached_ibeis_score_normalizer(ibs, cm_list, qreq_,
                                                    use_cache=use_cache,
                                                    **learnkw)
         # Save as baseline for this species
@@ -663,7 +663,7 @@ def request_ibeis_normalizer(qreq_, verbose=True):
     return normalizer
 
 
-def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
+def cached_ibeis_score_normalizer(ibs, cm_list, qreq_,
                                   use_cache=True, **learnkw):
     r"""
     Builds a normalizer trained on query results for a database
@@ -689,8 +689,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> use_cache = True
         >>> cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True, return_cm=True)
         >>> assert cm_list[0].qaid == qaid_list[0], 'inconsistent'
-        >>> qres_list = [cm.as_qres2(qreq_) for cm in cm_list]
-        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
+        >>> score_normalizer = cached_ibeis_score_normalizer(ibs, cm_list, qreq_)
         >>> result = score_normalizer.get_fname()
         >>> result += '\n' + score_normalizer.get_cfgstr()
         >>> print(result)
@@ -730,7 +729,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         print('cannot load noramlizer so computing on instead')
         ut.printex(ex, iswarning=True)
         #qaid_list = qreq_.get_external_qaids()
-        normalizer = learn_ibeis_score_normalizer(ibs, qres_list, cfgstr,
+        normalizer = learn_ibeis_score_normalizer(ibs, cm_list, cfgstr,
                                                   prefix, **learnkw)
         normalizer.save(cachedir)
     return normalizer
@@ -739,13 +738,13 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
 # LEARNING FUNCTIONS
 
 
-def learn_ibeis_score_normalizer(ibs, qres_list, cfgstr, prefix, **learnkw):
+def learn_ibeis_score_normalizer(ibs, cm_list, cfgstr, prefix, **learnkw):
     """
     Takes the result of queries and trains a score normalizer
 
     Args:
         ibs       (IBEISController):
-        qres_list (list):  object of feature correspondences and scores
+        cm_list (list):  object of feature correspondences and scores
         cfgstr    (str):
 
     Returns:
@@ -753,7 +752,7 @@ def learn_ibeis_score_normalizer(ibs, qres_list, cfgstr, prefix, **learnkw):
     """
     print('learning normalizer')
     # Get support
-    datatup = get_ibeis_score_training_data(ibs, qres_list)
+    datatup = get_ibeis_score_training_data(ibs, cm_list)
     (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
     if len(tp_support) < 2 or len(tn_support) < 2:
         print('len(tp_support) = %r' % (len(tp_support),))
@@ -776,7 +775,7 @@ def learn_ibeis_score_normalizer(ibs, qres_list, cfgstr, prefix, **learnkw):
     return normalizer
 
 
-def get_ibeis_score_training_data(ibs, qres_list):
+def get_ibeis_score_training_data(ibs, cm_list):
     """
     Returns "good" taining examples
     """
@@ -784,15 +783,15 @@ def get_ibeis_score_training_data(ibs, qres_list):
     good_tn_nscores = []
     good_tp_aidnid_pairs = []
     good_tn_aidnid_pairs = []
-    for qx, qres in enumerate(qres_list):
-        qaid = qres.get_qaid()
-        #if not qres.is_nsum():
+    for qx, cm in enumerate(cm_list):
+        qaid = cm.qaid
+        #if not cm.is_nsum():
         #    raise AssertionError('must be nsum')
         if not ibs.get_annot_has_groundtruth(qaid):
             continue
-        qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+        qnid = ibs.get_annot_name_rowids(cm.qaid)
 
-        nscoretup = qres.get_nscoretup(ibs)
+        nscoretup = cm.get_nscoretup()
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
 
         sorted_ndiff = -np.diff(sorted_nscores.tolist())
@@ -944,10 +943,10 @@ def test_score_normalization():
     # Get unnormalized query results
     #cfgdict = dict(codename='nsum_unnorm')
     cfgdict = dict(codename='vsone_unnorm')
-    qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
+    cm_list = ibs.query_chips(qaid_list, daid_list, cfgdict, return_cm=True)
 
     # Get a training sample
-    datatup = get_ibeis_score_training_data(ibs, qres_list)
+    datatup = get_ibeis_score_training_data(ibs, cm_list)
     (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
 
     # Print raw score statistics
@@ -1107,18 +1106,18 @@ def test():
     qaid_list = [1, 2, 3, 4, 5]
     daid_list = [1, 2, 3, 4, 5]
     cfgdict = {'codename': 'nsum'}
-    qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, use_cache=False, cfgdict=cfgdict, return_request=True)
+    cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, use_cache=False, return_cm=True, cfgdict=cfgdict, return_request=True)
     qreq_.load_score_normalizer(qreq_.ibs)
     normalizer = qreq_.normalizer
 
-    for qres in qres_list:
-        aid_list = list(six.iterkeys(qres.aid2_score))
-        score_list = list(six.itervalues(qres.aid2_score))
+    for cm in cm_list:
+        aid_list = list(six.iterkeys(cm.aid2_score))
+        score_list = list(six.itervalues(cm.aid2_score))
         #normalizer  = normalizer
         prob_list = normalizer.normalize_score_list(score_list)
-        qres.qaid2_score = dict(zip(aid_list, prob_list))
-    for qres in qres_list:
-        print(list(six.itervalues(qres.qaid2_score)))
+        cm.qaid2_score = dict(zip(aid_list, prob_list))
+    for cm in cm_list:
+        print(list(six.itervalues(cm.qaid2_score)))
 
         #aid2_score = {aid: normalizer.no(score) for aid, score in }
         pass

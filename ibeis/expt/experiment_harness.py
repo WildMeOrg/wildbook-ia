@@ -283,7 +283,7 @@ def get_qres_name_result_info(ibs, qres, qreq_):
         qaid = cm.qaid
         qnid = cm.qnid
         nscoretup = cm.get_ranked_nids_and_aids()
-        sorted_nids, sorted_nscores, sorted_aids = nscoretup
+        sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
     else:
         qaid = qres.get_qaid()
         qnid = ibs.get_annot_name_rowids(qaid)

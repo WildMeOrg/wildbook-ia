@@ -26,7 +26,7 @@ ExemplarDecision = namedtuple(
 )
 
 
-def get_qres_name_choices(ibs, qres):
+def get_qres_name_choices(ibs, cm):
     r"""
     returns all possible decision a user could make
 
@@ -37,7 +37,7 @@ def get_qres_name_choices(ibs, qres):
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        qres (QueryResult):  object of feature correspondences and scores
+        cm (QueryResult):  object of feature correspondences and scores
 
     Returns:
         ChoiceTuple: choicetup
@@ -50,22 +50,22 @@ def get_qres_name_choices(ibs, qres):
         >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
-        >>> choicetup = get_qres_name_choices(ibs, qres)
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> ibs = qreq_.ibs
+        >>> choicetup = get_qres_name_choices(ibs, cm)
         >>> print(choicetup)
         >>> result = ut.numpy_str(choicetup.sorted_nids[0:1], force_dtype=False)
         >>> print(result)
         np.array([1])
     """
-    if qres is None:
+    if cm is None:
         nscoretup = list(map(np.array, ([], [], [], [])))
         (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup
     else:
-        nscoretup = qres.get_nscoretup(ibs)
+        nscoretup = cm.get_nscoretup()
 
     (sorted_nids, sorted_nscore, sorted_aids, sorted_ascores) = nscoretup
-    sorted_rawscore = [qres.get_aid_scores(aids, rawscore=True) for aids in sorted_aids]
+    sorted_rawscore = [cm.get_annot_scores(aids) for aids in sorted_aids]
 
     choicetup = ChoiceTuple(sorted_nids, sorted_nscore, sorted_rawscore,
                             sorted_aids, sorted_ascores)
@@ -79,7 +79,7 @@ def get_system_name_suggestion(ibs, choicetup):
     Args:
         ibs      (IBEISController):
         qaid      (int):  query annotation id
-        qres      (QueryResult):  object of feature correspondences and scores
+        cm      (QueryResult):  object of feature correspondences and scores
         metatup   (None):
 
     Returns:
@@ -95,11 +95,9 @@ def get_system_name_suggestion(ibs, choicetup):
         >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qres_list, qreq_ = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict(),
-        ...            return_request=True)
-        >>> qres = qres_list[0]
-        >>> choicetup = get_qres_name_choices(ibs, qres)
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> ibs = qreq_.ibs
+        >>> choicetup = get_qres_name_choices(ibs, cm)
         >>> (autoname_msg, name, name_confidence) = get_system_name_suggestion(ibs, choicetup)
         >>> # verify results
         >>> result = str((autoname_msg, name, name_confidence))
@@ -297,12 +295,12 @@ def exemplar_method1_distinctiveness(ibs, qaid, other_exemplars):
     qaid_list = [qaid]
     daid_list = other_exemplars
     cfgdict = dict(codename='vsone_norm_csum')
-    qres = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False)[0]
-    if qres is None:
+    cm = ibs.query_chips(qaid_list, daid_list, cfgdict=cfgdict, verbose=False, return_cm=True)[0]
+    if cm is None:
         exemplar_decision = True
     else:
         #ut.embed()
-        aid_arr, score_arr = qres.get_aids_and_scores()
+        aid_arr, score_arr = cm.get_aids_and_scores()
         exemplar_decision = np.all(aid_arr < exemplar_distinctiveness_thresh)
     return exemplar_decision
 

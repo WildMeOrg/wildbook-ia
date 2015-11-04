@@ -620,7 +620,7 @@ class QueryConfig(ConfigBase):
         # <Hack Paramaters>
         query_cfg.with_metadata = False
         query_cfg.augment_queryside_hack = False
-        #query_cfg.return_expanded_nns = False  # for hacky distinctivness
+        query_cfg.return_expanded_nns = False  # for hacky distinctivness
         query_cfg.use_external_distinctiveness = False  # for distinctivness model
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this

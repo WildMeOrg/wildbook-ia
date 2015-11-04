@@ -299,6 +299,14 @@ class _OldStyleChipMatchSimulator(object):
             fs_list = cm.fs_list
         return _DefaultDictProxy(cm.daid2_idx, cm.daid_list, fs_list)
 
+    @property
+    def nid2_name_score(cm):
+        return ({} if cm.score_list is None else
+                _DefaultDictProxy(cm.nid2_nidx, cm.unique_nids, cm.name_score_list))
+
+    def get_nscoretup(cm):
+        return cm.get_ranked_nids_and_aids()
+
     def tokwargs(cm):
         """
         Can be unpacked and passed as kwargs
