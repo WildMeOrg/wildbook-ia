@@ -1136,6 +1136,8 @@ class ANNOTATIONInteraction(BASE_CLASS):
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
             if self.show_species_tags:
+                # Hack to fix matplotlib 1.5 bug
+                poly.species_tag.figure = self.fig
                 self.fig.ax.draw_artist(poly.species_tag)
 
     def on_click(self, event):
