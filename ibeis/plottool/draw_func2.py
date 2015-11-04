@@ -555,6 +555,7 @@ def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
     rect.set_clip_on(False)
     rect.set_fill(False)
     rect.set_edgecolor(color)
+    return rect
 
 
 TAU = np.pi * 2
