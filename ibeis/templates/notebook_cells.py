@@ -281,7 +281,7 @@ investigate_specific_case = ('# Specific Case Investigation', ut.codeblock(
         db=db,
         a=a,
         #t=t,
-        t=[t[0], t[0] + ':SV=False'],
+        t=[t[0], t[0] + 'SV=False'],
         qaid_override=[2604],  # CHOOSE A SPECIFIC ANNOTATION
         **draw_case_kw)
     _ = test_result.draw_func()
