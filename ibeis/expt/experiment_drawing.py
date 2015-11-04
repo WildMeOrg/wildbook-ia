@@ -19,8 +19,6 @@ SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
 
-SHOW                 = ut.get_argflag('--show')
-
 # only triggered if dump_extra is on
 DUMP_PROBCHIP = False
 DUMP_REGCHIP = False
@@ -80,9 +78,12 @@ def annotationmatch_scores(ibs, testres, f=None):
     if ut.VERBOSE:
         print('[dev] annotationmatch_scores')
     #from ibeis.expt import cfghelpers
-    from ibeis.init import main_helpers
-
-    filt_cfg = main_helpers.testdata_filtcfg(default=f)
+    #from ibeis.init import main_helpers
+    #filt_cfg = main_helpers.testdata_filtcfg(default=f)
+    from ibeis.expt import cfghelpers
+    if f is None:
+        f = ['']
+    filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
     print('filt_cfg = %r' % (filt_cfg,))
 
     assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
@@ -185,7 +186,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         >>> draw_casetag_hist(ibs, testres)
         >>> ut.show_if_requested()
     """
-    from ibeis.init import main_helpers
+    #from ibeis.init import main_helpers
     #from ibeis.expt import cfghelpers
     import plottool as pt
     from ibeis import tag_funcs
@@ -225,7 +226,11 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
 
     # Get tags that match the filter
-    filt_cfg = main_helpers.testdata_filtcfg(f)
+    from ibeis.expt import cfghelpers
+    if f is None:
+        f = ['']
+    filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
+    #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_keep_order2(case_pos_list.T[0])
     selected_tags = ut.list_take(all_tags, case_qx_list)
@@ -275,7 +280,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
 
 @profile
 def draw_individual_cases(ibs, testres, metadata=None, f=None,
-                          show_in_notebook=False, annot_modes=None):
+                          show_in_notebook=False, annot_modes=None, figsize=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -313,14 +318,17 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
-        >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata)
+        >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata, f=filt_cfg)
         >>> #ut.show_if_requested()
     """
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
     import plottool as pt
     cfgx2_qreq_ = testres.cfgx2_qreq_
+
+    SHOW = ut.get_argflag('--show')
 
     # Get selected rows and columns for individual rank investigation
     #qaids = testres.qaids
@@ -339,6 +347,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
     # Sel cols index into cfgx2 maps
     #_viewkw = dict(view_interesting=True)
     sel_rows, sel_cols, flat_case_labels = get_individual_result_sample(testres, filt_cfg=f)
+    print('f = %r' % (f,))
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
 
@@ -347,7 +356,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         'ori': True,
         'ell_alpha': .9,
     }
-    # SHOW ANALYSIS
+    # show analysis
     show_kwargs['show_query'] = False
     show_kwargs['viz_name_score'] = True
     show_kwargs['show_timedelta'] = True
@@ -442,6 +451,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
 
     fnum_start = None
     fnum = pt.ensure_fnum(fnum_start)
+    print('show_in_notebook = %r' % (show_in_notebook,))
 
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
@@ -461,7 +471,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         # TODO: use chip_match
-        qres_list = [qreq_.load_cached_qres(qaids[qx]) for qreq_ in qreq_list]
+        cm_list = [qreq_.load_cached_chipmatch(qaids[qx]) for qreq_ in qreq_list]
         fpaths_list.append([])
 
         if show_in_notebook:
@@ -469,25 +479,23 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
             fnum = fnum + 1
             pt.imshow(np.zeros((1, 200), dtype=np.uint8), fnum=fnum)
 
-        for cfgx, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
+        for cfgx, cm, qreq_ in zip(sel_cols, cm_list, qreq_list):
             if show_in_notebook:
                 fnum = fnum + 1
             else:
                 fnum = cfgx if SHOW else 1
+            #cm = cm.extend_results(qreq_)
             # Get row and column index
             cfgstr = testres.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
-            if False:
-                qres_dpath = qres.get_fname(ext='', hack27=True)
-            else:
-                qres_dpath = 'qaid={qaid}'.format(qaid=qres.qaid)
+            qres_dpath = 'qaid={qaid}'.format(qaid=cm.qaid)
             individ_results_dpath = join(individual_results_figdir, qres_dpath)
             ut.ensuredir(individ_results_dpath)
             # Draw Result
             # try to shorten query labels a bit
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
+            _query_lbl = query_lbl
             qres_fname = query_lbl + '.png'
-            #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
             if DRAW_ANALYSIS:
                 analysis_fpath = join(individ_results_dpath, qres_fname)
                 #print('analysis_fpath = %r' % (analysis_fpath,))
@@ -505,13 +513,15 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
                             # hack to show vertical line
                             fnum = fnum + 1
                         if SHOW:
-                            qres.ishow_analysis(ibs, figtitle=query_lbl,
-                                                fnum=fnum, qreq_=qreq_,
-                                                **show_kwargs)
+                            cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
                         else:
-                            qres.show_analysis(ibs, figtitle=query_lbl,
-                                               fnum=fnum, qreq_=qreq_,
-                                               **show_kwargs)
+                            cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                        if show_in_notebook:
+                            _query_lbl = ''  # only show the query label once
+                            if figsize is not None:
+                                fig = pt.gcf()
+                                fig.set_size_inches(*figsize)
+
                     cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
                     if cmdaug is not None:
                         # Hack for candidacy
@@ -533,14 +543,14 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
                 analysis_fpath_list.append(analysis_fpath)
                 fpaths_list[-1].append(analysis_fpath)
                 if metadata is not None:
-                    metadata.set_global_data(cfgstr, qres.qaid, 'analysis_fpath', analysis_fpath)
+                    metadata.set_global_data(cfgstr, cm.qaid, 'analysis_fpath', analysis_fpath)
 
             # BLIND CASES - draws results without labels to see if we can
             # determine what happened using doubleblind methods
             if DRAW_BLIND:
                 pt.clf()
-                best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
-                qres.show_name_matches(
+                best_gt_aid = cm.get_top_groundtruth_aid(ibs=ibs)
+                cm.show_name_matches(
                     ibs, best_gt_aid, show_matches=False,
                     show_name_score=False, show_name_rank=False,
                     show_annot_score=False, fnum=fnum, qreq_=qreq_,
@@ -552,27 +562,27 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
                 #blind_fpath = pt.custom_figure.save_figure(fpath=blind_fpath, **dumpkw)
                 cpq.append_copy_task(blind_fpath, blind_results_figdir)
                 if metadata is not None:
-                    metadata.set_global_data(cfgstr, qres.qaid, 'blind_fpath', blind_fpath)
+                    metadata.set_global_data(cfgstr, cm.qaid, 'blind_fpath', blind_fpath)
                 #reset()
 
             # REMOVE DUMP_FIG
             #extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
             #if DRAW_QUERY_CHIP:
-            #    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
-            #    _show_chip(ibs, qres.qaid, individual_results_figdir,
+            #    _show_chip(ibs, cm.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
+            #    _show_chip(ibs, cm.qaid, individual_results_figdir,
             #    'QUERY_CXT_', in_image=True, **extra_kw)
 
             #if DRAW_QUERY_GROUNDTRUTH:
-            #    gtaids = ibs.get_annot_groundtruth(qres.qaid)
+            #    gtaids = ibs.get_annot_groundtruth(cm.qaid)
             #    for aid in gtaids:
-            #        rank = qres.get_aid_ranks(aid)
+            #        rank = cm.get_aid_ranks(aid)
             #        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_',
             #        rank=rank, in_image=True, **extra_kw)
 
             #if DRAW_QUERY_RESULT_CONTEXT:
-            #    topids = qres.get_top_aids(num=3)
+            #    topids = cm.get_top_aids(num=3)
             #    for aid in topids:
-            #        rank = qres.get_aid_ranks(aid)
+            #        rank = cm.get_aid_ranks(aid)
             #        _show_chip(ibs, aid, individual_results_figdir,
             #        'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
 
@@ -742,10 +752,17 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
     #from ibeis.expt import cfghelpers
 
     #if sample_cfgstr_list is None:
+    print('filt_cfg = %r' % (filt_cfg,))
     if filt_cfg is None or isinstance(filt_cfg, list):
         # Hack to check if specified on command line
-        from ibeis.init import main_helpers
-        filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)
+        #if not show_in_notebook:
+        #    from ibeis.init import main_helpers
+        #    filt_cfg = main_helpers.testdata_filtcfg(default=filt_cfg)
+        #else:
+            from ibeis.expt import cfghelpers
+            if filt_cfg is None:
+                filt_cfg = ['']
+            filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False))[0]
 
     cfg_list = testres.cfg_list
     #qaids = testres.qaids
@@ -1021,7 +1038,13 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
         pt.adjust_subplots2(use_argv=True)
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None):
+#"""
+#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+#"""
+
+
+def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1038,6 +1061,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None):
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
 
+        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -1049,7 +1074,13 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None):
     """
     import plottool as pt
     #cdf_list, edges = testres.get_rank_cumhist(bins='dense')
-    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
+    if do_per_annot:
+        key = 'qx2_bestranks'
+        target_label = 'accuracy (% per annotation)'
+    else:
+        key = 'qnx2_gt_name_rank'
+        target_label = 'accuracy (% per name)'
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
     label_list = testres.get_short_cfglbls(friendly=True)
     label_list = [
         ('%6.2f%%' % (percent,)) +
@@ -1088,11 +1119,11 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None):
         cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
         edges_short = edges[0:min(len(edges), maxrank + 1)]
 
-    USE_ZOOM = ut.get_argflag('--use-zoom')
+    #USE_ZOOM = ut.get_argflag('--use-zoom')
+    USE_ZOOM = False
     pnum_ = pt.make_pnum_nextgen(nRows=USE_ZOOM + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
-    target_label = 'accuracy (% per annotation)'
     #target_label = '% groundtrue matches ≤ rank'
 
     ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0

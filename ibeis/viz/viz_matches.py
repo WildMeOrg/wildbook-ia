@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool as pt
 import plottool.plot_helpers as ph
@@ -310,7 +310,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None,
         lbls_list = [[] for _ in range(len(aid_list))]
         if kwargs.get('show_name', False):
             for (lbls, name) in zip(lbls_list, name_list):
-                lbls.append(repr(str(name)))
+                lbls.append(repr((name)))
         if kwargs.get('show_nid', True):
             for count, (lbls, nid) in enumerate(zip(lbls_list, nid_list)):
                 # only label the first two images with nids
@@ -482,8 +482,8 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             lbl1_list.append('q' + vh.get_aidstrs(aid1))
             lbl2_list.append(vh.get_aidstrs(aid2))
         if kwargs.get('show_name', True):
-            lbl1_list.append(repr(str(name1)))
-            lbl2_list.append(repr(str(name2)))
+            lbl1_list.append(repr((name1)))
+            lbl2_list.append(repr((name2)))
         if kwargs.get('show_nid', True):
             lbl1_list.append(vh.get_nidstrs(nid1))
             lbl2_list.append(vh.get_nidstrs(nid2))
@@ -534,8 +534,9 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             pt.absolute_lbl(x2 + w2, y2, lbl2)
         # No matches draw a red box
     if fm is None or len(fm) == 0:
-        if draw_border:
-            pt.draw_boxedX(bbox2, theta=theta2)
+        pass
+        #if draw_border:
+        #    pt.draw_boxedX(bbox2, theta=theta2)
 
 
 # OLD QRES BASED FUNCS STILL IN USE
@@ -576,9 +577,9 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
         >>> result = str((ax, xywh1, xywh2))
         >>> print(result)
         >>> #if not ut.get_argflag('--noshow'):
-        >>> if ut.get_argflag('--show'):
-        >>>    execstr = pt.present()
-        >>>    exec(execstr)
+        >>> ut.quit_if_noshow()
+        >>> execstr = pt.present()
+        >>> exec(execstr)
     """
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)

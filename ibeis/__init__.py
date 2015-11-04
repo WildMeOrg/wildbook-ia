@@ -58,6 +58,8 @@ from ibeis.init import main_helpers
 from ibeis import model
 
 from ibeis import expt
+from ibeis import templates
+from ibeis.templates import generate_notebook
 
 def import_subs():
     # Weird / Fancy loading.

@@ -471,7 +471,6 @@ def print_results(ibs, testres):
     #    print('A rank histogram is a dictionary. '
     #          'The keys denote the range of the ranks that the values fall in')
     #    # TODO: rectify this code with other hist code
-    #    agg_hist_dict = testres.get_rank_histograms()
 
     #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
     #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
@@ -502,7 +501,6 @@ def print_results(ibs, testres):
     #    print('A rank histogram is a dictionary. '
     #          'The keys denote the range of the ranks that the values fall in')
     #    # TODO: rectify this code with other hist code
-    #    agg_hist_dict = testres.get_rank_histograms()
 
     #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
     #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()

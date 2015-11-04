@@ -213,14 +213,24 @@ class TestResult(object):
         #worst_possible_rank = len(testres.daids) + 1
         return worst_possible_rank
 
-    def get_rank_histograms(testres, bins=None, asdict=True, jagged=False):
+    def get_rank_histograms(testres, bins=None, asdict=True, jagged=False, key=None):
+        """
+        Ignore:
+            testres.get_infoprop_mat('qnx2_gt_name_rank')
+            testres.get_infoprop_mat('qnx2_gf_name_rank')
+            testres.get_infoprop_mat('qnx2_qnid')
+
+        """
+        if key is None:
+            key = 'qx2_bestranks'
+            #key = 'qnx2_gt_name_rank'
         if bins is None:
             bins = testres.get_rank_histogram_bins()
         elif bins == 'dense':
             bins = np.arange(testres.get_worst_possible_rank() + 1)
         if jagged:
             assert not asdict
-            cfgx2_bestranks = testres.get_infoprop_list('qx2_bestranks')
+            cfgx2_bestranks = testres.get_infoprop_list(key)
             cfgx2_bestranks = [
                 ut.list_replace(bestranks, -1, testres.get_worst_possible_rank())
                 for bestranks in cfgx2_bestranks]
@@ -231,7 +241,9 @@ class TestResult(object):
                 cfgx2_hist[cfgx] = bin_values
             return cfgx2_hist, bin_edges
 
-        rank_mat = testres.get_rank_mat()
+        #rank_mat = testres.get_rank_mat()
+        rank_mat = testres.get_infoprop_mat(key=key)
+
         if not asdict:
             # Use numpy histogram repr
             config_hists = np.zeros((len(rank_mat.T), len(bins) - 1), dtype=np.int32)
@@ -257,13 +269,7 @@ class TestResult(object):
         else:
             return config_hists
 
-    def get_rank_cumhist(testres, bins='dense'):
-        #testres.rrr()
-        hist_list, edges = testres.get_rank_histograms(bins, asdict=False)
-        config_cdfs = np.cumsum(hist_list, axis=1)
-        return config_cdfs, edges
-
-    def get_rank_percentage_cumhist(testres, bins='dense'):
+    def get_rank_percentage_cumhist(testres, bins='dense', key=None):
         r"""
         Args:
             bins (unicode): (default = u'dense')
@@ -274,6 +280,8 @@ class TestResult(object):
         CommandLine:
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
+
+            python -m ibeis --tf TestResult.get_rank_percentage_cumhist --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show --cmd
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -286,10 +294,16 @@ class TestResult(object):
             >>> print(result)
         """
         #testres.rrr()
-        cfgx2_hist, edges = testres.get_rank_histograms(bins, asdict=False, jagged=True)
+        cfgx2_hist, edges = testres.get_rank_histograms(bins, asdict=False, jagged=True, key=key)
         cfgx2_cumhist = np.cumsum(cfgx2_hist, axis=1)
         cfgx2_cumhist_percent = 100 * cfgx2_cumhist / cfgx2_cumhist.T[-1].T[:, None]
         return cfgx2_cumhist_percent, edges
+
+    def get_rank_cumhist(testres, bins='dense'):
+        #testres.rrr()
+        hist_list, edges = testres.get_rank_histograms(bins, asdict=False)
+        config_cdfs = np.cumsum(hist_list, axis=1)
+        return config_cdfs, edges
 
     def get_rank_histogram_bins(testres):
         """ easy to see histogram bins """

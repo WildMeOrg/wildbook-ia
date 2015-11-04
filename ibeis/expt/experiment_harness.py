@@ -270,16 +270,16 @@ def run_test_configurations(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
 
 @profile
-def get_qres_name_result_info(ibs, qres):
+def get_qres_name_result_info(ibs, qres, qreq_):
     """
     these are results per query we care about
      * gt (best correct match) and gf (best incorrect match) rank, their score
        and the difference
 
     """
-    if False:
-        cm = qres.as_chipmatch()
-        #cm.score_nsum(qreq_)
+    from ibeis.model.hots import chip_match
+    if isinstance(qres, chip_match.ChipMatch2):
+        cm = qres
         qaid = cm.qaid
         qnid = cm.qnid
         nscoretup = cm.get_ranked_nids_and_aids()
@@ -292,14 +292,20 @@ def get_qres_name_result_info(ibs, qres):
         sorted_nids = np.array(sorted_nids)
         #sorted_score_diff = -np.diff(sorted_nscores.tolist())
 
-    is_positive  = sorted_nids == qnid
+    is_positive = sorted_nids == qnid
     is_negative = np.logical_and(~is_positive, sorted_nids > 0)
     gt_rank = None if not np.any(is_positive) else np.where(is_positive)[0][0]
     gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
 
     if gt_rank is None or gf_rank is None:
-        # Should a random groundtruth result be chosen if it exists here?
-        gt_aids = qres.get_groundtruth_aids(ibs)
+        if isinstance(qres, chip_match.ChipMatch2):
+            gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.get_external_daids())
+            #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.get_external_daids())
+        else:
+            gt_aids = cm.get_groundtruth_daids()
+            #gf_aids = ibs.get_annot_groundfalse(qres.get_qaid(), daid_list=qres.get_daids())
+        #gt_aids = qres.get_groundtruth_aids(ibs)
+        cm.get_groundtruth_daids()
         gt_aid = gt_aids[0] if len(gt_aids) > 0 else None
         gf_aid = None
         gt_raw_score = None
@@ -364,15 +370,18 @@ def get_query_result_info(qreq_):
         python -m ibeis.expt.experiment_harness --test-get_query_result_info
         python -m ibeis.expt.experiment_harness --test-get_query_result_info:0
         python -m ibeis.expt.experiment_harness --test-get_query_result_info:1
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1
+        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaids = ibs.get_valid_aids()[0:3]
-        >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=['default:qindex=0:3,dindex=0:5'])
+        >>> #ibs = ibeis.opendb('PZ_MTEST')
+        >>> #qaids = ibs.get_valid_aids()[0:3]
+        >>> #daids = ibs.get_valid_aids()[0:5]
+        >>> #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
         >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
@@ -390,6 +399,7 @@ def get_query_result_info(qreq_):
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
+
         for qaid, qres in six.iteritems(qaid2_qres):
             break
         for qaid, qres in six.iteritems(qaid2_qres):
@@ -404,44 +414,87 @@ def get_query_result_info(qreq_):
     #assert [x.qaid for x in qx2_qres] == qaids, 'request missmatch'
     #qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
-    qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
 
     ibs = qreq_.ibs
-    if False:
+    if True:
         # TODO: change qres to chipmatch and make multi-chipmatch
         #ut.embed()
         import vtool as vt
-        cm_list = [qres.as_chipmatch() for qres in qx2_qres]
-        for cm in cm_list:
-            cm.score_nsum(qreq_)
+        cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
+        qx2_qres = cm_list
+        #cm_list = [qres.as_chipmatch() for qres in qx2_qres]
         qaids = qreq_.get_external_qaids()
         qnids = ibs.get_annot_name_rowids(qaids)
-        groupxs = vt.group_indices(qnids)[1]
+
+        unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.get_external_daids()))
+
+        unique_qnids, groupxs = vt.group_indices(qnids)
         cm_group_list = vt.apply_grouping_(cm_list, groupxs)
-        for cm_group in cm_group_list:
-            group_name_score_list = np.array(  # NOQA
-                [cm.name_score_list for cm in cm_group]).max(axis=0)
+        qnid2_aggnamescores = {}
+
+        qnx2_nameres_info = []
+
+        nameres_info_list = []
+        for qnid, cm_group in zip(unique_qnids, cm_group_list):
+            nid2_name_score_group = [
+                dict([(nid, cm.name_score_list[nidx]) for nid, nidx in cm.nid2_nidx.items()])
+                for cm in cm_group
+            ]
+            aligned_name_scores = np.array([
+                ut.dict_take(nid2_name_score, unique_dnids.tolist(), -np.inf)
+                for nid2_name_score in nid2_name_score_group
+            ]).T
+            name_score_list = np.nanmax(aligned_name_scores, axis=1)
+            qnid2_aggnamescores[qnid] = name_score_list
+            # sort
+            sortx = name_score_list.argsort()[::-1]
+            sorted_namescores = name_score_list[sortx]
+            sorted_dnids = unique_dnids[sortx]
+
+            ## infer agg name results
+            is_positive = sorted_dnids == qnid
+            is_negative = np.logical_and(~is_positive, sorted_dnids > 0)
+            gt_name_rank = None if not np.any(is_positive) else np.where(is_positive)[0][0]
+            gf_name_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
+            gt_nid = sorted_dnids[gt_name_rank]
+            gf_nid = sorted_dnids[gf_name_rank]
+            gt_name_score = sorted_namescores[gt_name_rank]
+            gf_name_score = sorted_namescores[gf_name_rank]
+            qnx2_nameres_info = {}
+            qnx2_nameres_info['qnid'] = qnid
+            qnx2_nameres_info['gt_nid'] = gt_nid
+            qnx2_nameres_info['gf_nid'] = gf_nid
+            qnx2_nameres_info['gt_name_rank'] = gt_name_rank
+            qnx2_nameres_info['gf_name_rank'] = gf_name_rank
+            qnx2_nameres_info['gt_name_score'] = gt_name_score
+            qnx2_nameres_info['gf_name_score'] = gf_name_score
+
+            nameres_info_list.append(qnx2_nameres_info)
+            nameres_info = ut.dict_stack(nameres_info_list, 'qnx2_')
+    else:
+        qx2_qres = qreq_.ibs.query_chips(qreq_=qreq_)
 
     qaids = qreq_.get_external_qaids()
     daids = qreq_.get_external_daids()
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
-    qx2_qresinfo = [get_qres_name_result_info(ibs, qres) for qres in qx2_qres]
+    qx2_qresinfo = [get_qres_name_result_info(ibs, qres, qreq_) for qres in qx2_qres]
 
     cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
-    keys = qx2_qresinfo[0].keys()
-    for key in keys:
-        'qx2_' + key
-        ut.get_list_column(qx2_qresinfo, key)
+    #for key in qx2_qresinfo[0].keys():
+    #    'qx2_' + key
+    #    ut.get_list_column(qx2_qresinfo, key)
 
-    qx2_avepercision = np.array(
-        [qres.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
-         (qres, gt_aids) in zip(qx2_qres, qx2_gtaids)])
-    cfgres_info['qx2_avepercision'] = qx2_avepercision
+    if False:
+        qx2_avepercision = np.array(
+            [qres.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+             (qres, gt_aids) in zip(qx2_qres, qx2_gtaids)])
+        cfgres_info['qx2_avepercision'] = qx2_avepercision
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring
     #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
     cfgres_info['qx2_bestranks'] = ut.replace_nones(cfgres_info['qx2_bestranks'] , -1)
+    cfgres_info.update(nameres_info)
     return cfgres_info
 
 

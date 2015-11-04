@@ -77,13 +77,15 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
     #assert qreq_ is not None, 'must specify qreq_'
 
     if qres is not None:
+        # MAKE SURE THIS IS ALL CM
+        cm = qres
         show_chip_match_features_option = (
             'Show chip feature matches',
-            partial(qres.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
+            partial(cm.ishow_matches, ibs, aid2, mode=0, qreq_=qreq_))
         if aid_list is not None:
             # Give a subcontext menu for multiple options
             def partial_show_chip_matches_to(aid_):
-                return lambda: qres.ishow_matches(ibs, aid_, mode=0,
+                return lambda: cm.ishow_matches(ibs, aid_, mode=0,
                                                   qreq_=qreq_)
             show_chip_match_features_option = (
                 'Show chip feature matches',
@@ -94,7 +96,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, qres, qreq_=None,
             )
         options += [
             show_chip_match_features_option,
-            ('Show name feature matches', lambda: qres.show_name_matches(
+            ('Show name feature matches', lambda: cm.show_name_matches(
                 ibs, aid2, mode=0, qreq_=qreq_)),
         ]
 

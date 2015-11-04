@@ -1,187 +1,187 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+from ibeis.templates import notebook_cells
 
 
-class NotebookCells(object):
-    initialize_cell = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        # Set global utool flags
-        import utool as ut
-        ut.util_io.__PRINT_WRITES__ = False
-        ut.util_io.__PRINT_READS__ = False
-        ut.util_parallel.__FORCE_SERIAL__ = True
-        ut.util_cache.VERBOSE_CACHE = False
-        ut.NOT_QUIET = False
+def generate_notebook_report(ibs):
+    r"""
 
-        # Matplotlib stuff
-        %pylab inline
-        %load_ext autoreload
-        %autoreload
+    CommandLine:
+        python -m ibeis --tf generate_notebook_report --db lynx --run
+        python -m ibeis --tf generate_notebook_report --db lynx --ipynb
+        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
+        jupyter-notebook Experiments-lynx.ipynb
+        killall python
 
-        draw_case_kw = dict(show_in_notebook=True, annot_modes=[0, 1])
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.templates.generate_notebook import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> result = generate_notebook_report(ibs)
+        >>> print(result)
+    """
+    dbname = ibs.get_dbname()
+    fname = 'Experiments-' + dbname
+    nb_fpath = fname + '.ipynb'
+    notebook_str = make_ibeis_notebook(ibs)
+    ut.writeto(nb_fpath, notebook_str)
+    if ut.get_argflag('--run'):
+        run_nb = run_ipython_notebook(notebook_str)
+        output_fpath = export_notebook(run_nb, fname)
+        ut.startfile(output_fpath)
+    if ut.get_argflag('--ipynb'):
+        ut.startfile(nb_fpath)
+        #print('notebook_str =\n%s' % (notebook_str,))
 
-        # Setup database specific parameter configurations
-        db = '{dbname}'
-        #a = ['default:qsame_encounter=True,been_adjusted=True,excluderef=True']
-        a = ['default:is_known=True']
-        t = ['default:K=1']
 
-        # Load database for this test run
-        import ibeis
-        ibs = ibeis.opendb(db=db)
-        # ENDBLOCK
-        ''')
+def get_default_cell_template_list():
+    cell_template_list = [
+        notebook_cells.initialize,
+        notebook_cells.annot_config_info,
+        notebook_cells.pipe_config_info,
+        #notebook_cells.timestamp_distribution,
+        #notebook_cells.detection_summary,
+        notebook_cells.per_annotation_accuracy,
+        notebook_cells.per_name_accuracy,
+        notebook_cells.timedelta_distribution,
+        #notebook_cells.dbsize_expt,
+        #notebook_cells.all_scores,
+        #notebook_cells.success_scores,
+        notebook_cells.success_cases,
+        notebook_cells.failure_type1_cases,
+        notebook_cells.failure_type2_cases,
+        notebook_cells.investigate_specific_case,
+        notebook_cells.view_intereseting_tags,
+    ]
+    return cell_template_list
 
-    timestamp_distribution = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        ibeis.other.dbinfo.show_image_time_distributions(ibs, ibs.get_valid_gids())
-        # ENDBLOCK
-        ''')
 
-    detection_summary = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        # Get a sample of images
-        if False:
-            gids = ibs.get_valid_gids()
-        else:
-            from ibeis.init.filter_annots import expand_single_acfg
-            from ibeis.expt import experiment_helpers
-            acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [a[0]], use_cache=False)
-            qaids, daids = expanded_aids_list[0]
-            all_aids = ut.flatten([qaids, daids])
-            gids = ut.unique_keep_order2(ibs.get_annot_gids(all_aids))
+def export_notebook(run_nb, fname):
+    import IPython.nbconvert.exporters
+    import codecs
+    #exporter = IPython.nbconvert.exporters.PDFExporter()
+    exporter = IPython.nbconvert.exporters.HTMLExporter()
+    output, resources = exporter.from_notebook_node(run_nb)
+    ext = resources['output_extension']
+    output_fpath = fname + ext
+    #codecs.open(output_fname, 'w', encoding='utf-8').write(output)
+    codecs.open(output_fpath, 'w').write(output)
+    return output_fpath
+    #IPython.nbconvert.exporters.export_python(runner.nb)
 
-        aids = ibs.get_image_aids(gids)
 
-        nAids_list = list(map(len, aids))
-        gids_sorted = ut.sortedby(gids, nAids_list)[::-1]
-        samplex = list(range(5))
-        print(samplex)
-        gids_sample = ut.list_take(gids_sorted, samplex)
-
-        import ibeis.viz
-        for gid in ut.ProgressIter(gids_sample, lbl='drawing image'):
-            ibeis.viz.show_image(ibs, gid)
-        # ENDBLOCK
-    ''')
-
-    per_annotation_accuracy = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-            e='rank_cdf',
-            db=db, a=a, t=t)
-        #testres.print_unique_annot_config_stats()
-        _ = testres.draw_func()
-        # ENDBLOCK
-        '''
+def run_ipython_notebook(notebook_str):
+    """
+    References:
+        https://github.com/paulgb/runipy
+        >>> from ibeis.templates.generate_notebook import *  # NOQA
+    """
+    from runipy.notebook_runner import NotebookRunner
+    import nbformat
+    import logging
+    log_format = '%(asctime)s %(levelname)s: %(message)s'
+    log_datefmt = '%m/%d/%Y %I:%M:%S %p'
+    logging.basicConfig(
+        level=logging.INFO, format=log_format, datefmt=log_datefmt
     )
-
-    success_scores = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-            e='scores',
-            db=db, a=a, t=t,
-            f=[':fail=False,min_gf_timedelta=None'],
-        )
-        _ = testres.draw_func()
-        # ENDBLOCK
-        ''')
-
-    all_scores = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-            e='scores',
-            db=db, a=a, t=t,
-            f=[':fail=None,min_gf_timedelta=None']
-        )
-        _ = testres.draw_func()
-        # ENDBLOCK
-        ''')
-
-    success_cases = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-            e='draw_cases',
-            db=db, a=a, t=t,
-            f=[':fail=False,index=0:3,sortdsc=gtscore,without_gf_tag=Photobomb,max_pername=1'],
-            **draw_case_kw)
-        _ = testres.draw_func()
-        # ENDBLOCK
-        ''')
-
-    failure_type2_cases = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-            e='draw_cases',
-            db=db, a=a, t=t,
-            f=[':fail=True,index=0:3,sortdsc=gtscore,max_pername=1'],
-            **draw_case_kw)
-        _ = testres.draw_func()
-        # ENDBLOCK
-        ''')
-
-    failure_type1_cases = ut.codeblock(
-        r'''
-        # STARTBLOCK
-        testres = ibeis.run_experiment(
-        e='draw_cases',
-        db=db, a=a, t=t,
-        f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
-        **draw_case_kw)
-        _ = testres.draw_func()
-        # ENDBLOCK
-        ''')
+    #fpath = 'tmp.ipynb'
+    #notebook_str = ut.readfrom(fpath)
+    #nb3 = IPython.nbformat.reads(notebook_str, 3)
+    #cell = nb4.cells[1]
+    #self = runner
+    #runner = NotebookRunner(nb3, mpl_inline=True)
+    print('Executing IPython notebook')
+    nb4 = nbformat.reads(notebook_str, 4)
+    runner = NotebookRunner(nb4)
+    runner.run_notebook(skip_exceptions=False)
+    run_nb = runner.nb
+    return run_nb
 
 
-def make_default_notebook(ibs):
+def make_ibeis_notebook(ibs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.templates.generate_notebook --exec-make_default_notebook
+        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook
+        python -m ibeis --tf make_ibeis_notebook --db lynx
         jupyter-notebook tmp.ipynb
 
+        runipy tmp.ipynb --html report.html
+        runipy --pylab tmp.ipynb tmp2.ipynb
+
+        sudo pip install runipy
+
+        python -c "import runipy; print(runipy.__version__)"
+
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPYT
         >>> from ibeis.templates.generate_notebook import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> result = make_default_notebook(ibs)
-        >>> print(result)
+        >>> notebook_str = make_ibeis_notebook(ibs)
+        >>> print(notebook_str)
     """
+    cell_template_list = get_default_cell_template_list()
+    def make_autogen_str():
+        import sys
+        autogenkw = dict(
+            stamp=ut.timestamp('printable'),
+            regen_cmd=' '.join(sys.argv)
+        )
+        return ut.codeblock(
+            '''
+            # Autogenerated on {stamp}
+            # Regen Command:
+            #    {regen_cmd}
+            #
+            '''
+        ).format(**autogenkw)
+    autogen_str = make_autogen_str()
     dbname = ibs.get_dbname()
-    cell_list = [
-        #None,
-        #'',
-        code_cell(NotebookCells.initialize_cell.format(dbname=dbname)),
-        markdown_cell('# Timestamp Distribution'),
-        code_cell(NotebookCells.timestamp_distribution),
-        markdown_cell('# Query Accuracy (% correct annotations)'),
-        code_cell(NotebookCells.per_annotation_accuracy),
-        markdown_cell('# Score Distribution'),
-        code_cell(NotebookCells.all_scores),
-        markdown_cell('# Success Cases'),
-        code_cell(NotebookCells.success_cases),
-        markdown_cell('# Failure Cases Cases (false pos)'),
-        code_cell(NotebookCells.failure_type1_cases),
-        markdown_cell('# Failure Cases Cases (false neg)'),
-        code_cell(NotebookCells.failure_type2_cases),
-    ]
+    locals_ = locals()
+    from functools import partial
+    _format = partial(format_cells, locals_=locals_)
+    cell_list = ut.flatten(map(_format, cell_template_list))
+    notebook_str = make_notebook(cell_list)
+    return notebook_str
 
-    make_notebook(cell_list)
+
+def format_cells(block, locals_={}):
+    if isinstance(block, tuple):
+        header, code = block
+    else:
+        header = None
+        code = block
+    code = code.format(**locals_)
+    if header is not None:
+        return [markdown_cell(header), code_cell(code)]
+    else:
+        return [code_cell(code)]
 
 
 def code_cell(sourcecode):
+    r"""
+    Args:
+        sourcecode (str):
+
+    Returns:
+        str: json formatted ipython notebook code cell
+
+    CommandLine:
+        python -m ibeis.templates.generate_notebook --exec-code_cell
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.templates.generate_notebook import *  # NOQA
+        >>> sourcecode = notebook_cells.timestamp_distribution[1]
+        >>> sourcecode = notebook_cells.initialize[1]
+        >>> result = code_cell(sourcecode)
+        >>> print(result)
+    """
     from ibeis.templates.template_generator import remove_sentinals
     sourcecode = remove_sentinals(sourcecode)
     cell_header = ut.codeblock(
@@ -203,7 +203,9 @@ def code_cell(sourcecode):
         source_line_repr = ' []\n'
     else:
         lines = sourcecode.split('\n')
-        line_list = [line + '\n' if count < len(lines) else line for count, line in enumerate(lines, start=1)]
+        line_list = [line + '\n' if count < len(lines) else line
+                     for count, line in enumerate(lines, start=1)]
+        #repr_line_list = [repr_single(line) for line in line_list]
         repr_line_list = [repr_single(line) for line in line_list]
         source_line_repr = ut.indent(',\n'.join(repr_line_list), ' ' * 2)
         source_line_repr = ' [\n' + source_line_repr + '\n ]\n'
@@ -211,6 +213,23 @@ def code_cell(sourcecode):
 
 
 def markdown_cell(markdown):
+    r"""
+    Args:
+        markdown (str):
+
+    Returns:
+        str: json formatted ipython notebook markdown cell
+
+    CommandLine:
+        python -m ibeis.templates.generate_notebook --exec-markdown_cell
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.templates.generate_notebook import *  # NOQA
+        >>> markdown = '# Title'
+        >>> result = markdown_cell(markdown)
+        >>> print(result)
+    """
     markdown_header = ut.codeblock(
         """
           {
@@ -225,7 +244,9 @@ def markdown_cell(markdown):
           }
         """
     )
-    return (markdown_header + '\n' + ut.indent(repr_single(markdown), ' ' * 2) + '\n' + markdown_footer)
+    return (markdown_header + '\n' +
+            ut.indent(repr_single(markdown), ' ' * 2) +
+            '\n' + markdown_footer)
 
 
 def make_notebook(cell_list):
@@ -264,13 +285,20 @@ def make_notebook(cell_list):
         """)
 
     cell_body = ut.indent(',\n'.join(cell_list), '  ')
-    nodebook_str = header + '\n' + cell_body +  '\n' +  footer
-    ut.writeto('tmp.ipynb', nodebook_str)
-    print('nodebook_str =\n%s' % (nodebook_str,))
+    notebook_str = header + '\n' + cell_body +  '\n' +  footer
+    return notebook_str
 
 
 def repr_single(s):
-    return "\"" + repr('\'' + s)[2:]
+    if True:
+        str_repr = ut.reprfunc(s)
+        import re
+        if str_repr.startswith('\''):
+            inside = str_repr[1:-1]
+            str_repr = '"' + re.sub('"', '\\"', inside) + '"'
+        return str_repr
+    else:
+        return '"' + ut.reprfunc('\'' + s)[2:]
 
 
 if __name__ == '__main__':

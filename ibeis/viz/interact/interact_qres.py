@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
+from ibeis.model.hots import chip_match
 import plottool as pt
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
@@ -84,7 +85,10 @@ class InteractQres(BASE_CLASS):
             print('clicked none')
         self.kwargs['annot_mode'] = self.kwargs.get('annot_mode', 0) + toggle
         self.kwargs['fnum'] = self.fnum
-        fig = self.qres.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
+        if isinstance(self.qres, chip_match.ChipMatch2):
+            fig = self.qres.show_analysis(self.qreq_, **self.kwargs)
+        else:
+            fig = self.qres.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
         return fig
 
     def show_sver_process_to_aid(self, aid2):
@@ -99,7 +103,10 @@ class InteractQres(BASE_CLASS):
         if self.verbose:
             print('clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
-        self.qres.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
+        if isinstance(self.qres, chip_match.ChipMatch2):
+            self.qres.ishow_match(self.qreq_, aid2, fnum=fnum_)
+        else:
+            self.qres.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
         fig = pt.gcf()
         fig.canvas.draw()
         pt.bring_to_front(fig)

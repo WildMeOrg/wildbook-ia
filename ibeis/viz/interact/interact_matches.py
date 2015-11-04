@@ -119,7 +119,11 @@ class MatchInteraction(object):
             self.fm    = self.cm.fm_list[index]
             self.fk    = self.cm.fk_list[index]
             self.fsv   = self.cm.fsv_list[index]
-            self.fs    = None if self.cm.fs_list is None else self.cm.fs_list[index]
+            if self.cm.fs_list is None:
+                fs_list = self.cm.get_fsv_prod_list()
+            else:
+                fs_list = self.cm.fs_list
+            self.fs    = None if fs_list is None else fs_list[index]
             self.score = None if self.cm.score_list is None else self.cm.score_list[index]
             self.H1    = None if self.cm.H_list is None else cm.H_list[index]
         else:
@@ -128,7 +132,7 @@ class MatchInteraction(object):
             self.fm    = np.empty((0, 2), dtype=hstypes.FM_DTYPE)
             self.fk    = np.empty(0, dtype=hstypes.FK_DTYPE)
             self.fsv   = np.empty((0, 2), dtype=hstypes.FS_DTYPE)
-            self.fs    = None
+            self.fs    = np.empty(0, dtype=hstypes.FS_DTYPE)
             self.score = None
             self.H1    = None
 

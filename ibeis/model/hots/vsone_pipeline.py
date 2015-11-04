@@ -370,8 +370,8 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     if qreq_ is not None:
         cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
     vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-    vsone_qres = ibs.query_chips(qreq_=vsone_qreq_)[0]
-    cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
+    cm_vsone = ibs.query_chips(qreq_=vsone_qreq_, return_cm=True)[0]
+    #cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
     cm_vsone.ishow_analysis(vsone_qreq_)
     #qres_vsone.ishow_analysis(ibs=ibs)
     #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])

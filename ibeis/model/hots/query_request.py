@@ -1037,6 +1037,19 @@ class QueryRequest(object):
         ]
         return fpath_list
 
+    def load_cached_chipmatch(qreq_, qaid):
+        """
+        DEPRICATE in favor of chipmatch
+
+        convinience function for loading a query that has already been
+        cached """
+        shallow_qreq_ = qreq_.shallowcopy()
+        shallow_qreq_.set_external_qaids([qaid])
+        cm = shallow_qreq_.ibs.query_chips(
+            [qaid], qreq_.get_external_daids(), use_cache=True,
+            use_bigcache=False, qreq_=shallow_qreq_, return_cm=True)[0]
+        return cm
+
     def load_cached_qres(qreq_, qaid):
         """
         DEPRICATE in favor of chipmatch

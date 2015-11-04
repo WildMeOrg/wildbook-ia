@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import utool
+from __future__ import absolute_import, division, print_function, unicode_literals
+import utool as ut
 from ibeis.viz import viz_helpers as vh
 from vtool import image as gtool
 from ibeis.model.detect import randomforest
 from os.path import splitext
 from plottool import viz_image2
 import plottool as pt
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[viz_hough]', DEBUG=False)
 
 
-#@utool.indent_func
 def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     if fnum is None:
         fnum = pt.next_fnum()
@@ -35,7 +34,6 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     return fig, ax
 
 
-#@utool.indent_func
 def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None, **kwargs):
     """
     TODO: allow species override in controller
@@ -74,5 +72,4 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import utool as ut  # NOQA ut.doctest_funcs()

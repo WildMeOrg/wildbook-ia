@@ -262,6 +262,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         cm_hit_list = [
             chip_match.ChipMatch2.load_from_fpath(fpath, verbose=False)
             for fpath in ut.ProgressIter(fpaths_hit, nTotal=len(fpaths_hit),
+                                         enabled=len(fpaths_hit) > 1,
                                          lbl='loading cache hits', adjust=True,
                                          freq=1)
         ]

@@ -423,6 +423,8 @@ class QueryResult(__OBJECT_BASE__):
         else:
             return [qres.aid2_prob.get(aid, fillvalue) for aid in aid_arr]
 
+    get_annot_scores = get_aid_scores
+
     # ----------------------------------------
 
     def get_name_decisiontup(qres, ibs):

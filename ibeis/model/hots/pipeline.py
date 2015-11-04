@@ -1046,6 +1046,7 @@ def sver_single_chipmatch(qreq_, cm):
         svtup_list.append(sv_tup)
 
     # Remove all matches that failed spatial verification
+    # TODO: change to list compress and numpy arrays
     isnone_list = ut.flag_None_items(svtup_list)
     svtup_list_ = ut.filterfalse_items(svtup_list, isnone_list)
     daid_list   = ut.filterfalse_items(cm.daid_list, isnone_list)

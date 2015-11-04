@@ -126,7 +126,7 @@ def testdata_expts(defaultdb='testdb1',
     #return ibs, testres_list
 
 
-def testdata_expanded_aids(default_qaids=[1], a=['default'],
+def testdata_expanded_aids(default_qaids=[1], a=None,
                            defaultdb='testdb1', ibs=None, verbose=False,
                            return_annot_info=False):
     r"""
@@ -167,6 +167,10 @@ def testdata_expanded_aids(default_qaids=[1], a=['default'],
         ibs = ibeis.opendb(defaultdb=defaultdb)
     # TODO: rectify command line with function arguments
     from ibeis.expt import experiment_helpers
+    _specified2 = True
+    if a is None:
+        _specified2 = False
+        a = ['default']
     if isinstance(a, six.string_types):
         a = [a]
     aidcfg_name_list, _specified = ut.get_argval(('--aidcfg', '--acfg', '-a'),
@@ -185,7 +189,7 @@ def testdata_expanded_aids(default_qaids=[1], a=['default'],
 
     qaid_list, daid_list = expanded_aids_list[0]
 
-    if not _specified and default_qaids is not None:
+    if not (_specified or _specified2) and default_qaids is not None:
         # hack
         qaid_list = default_qaids
 

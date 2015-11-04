@@ -7,7 +7,7 @@ WindowsDepends:
     wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
     graphviz-2.38.msi
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool as pt
 import vtool as vt
