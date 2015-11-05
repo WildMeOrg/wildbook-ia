@@ -140,7 +140,6 @@ def get_pipeline_testdata(dbname=None,
         >>> from ibeis.model.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
         >>> result = ''
         >>> result += ('daids = %r\n' % (qreq_.get_external_daids(),))
         >>> result += ('qaids = %r' % (qreq_.get_external_qaids(),))

@@ -223,7 +223,7 @@ def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
 
 @register_ibs_method
 @register_api('/api/contributor/new_temp', methods=['POST'])
-def add_new_temp_contributor(ibs, user_prompt=False, offset=None):
+def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=False):
     r"""
     Auto-docstr for 'add_new_temp_contributor'
 
@@ -239,7 +239,10 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None):
         name_first = input('\n[collect_transfer_data] Change first name (Enter to use default): ')
         name_last  = input('\n[collect_transfer_data] Change last name (Enter to use default): ')
 
-    success, location_city, location_state, location_country, location_zip = ut.geo_locate()
+    if autolocate:
+        success, location_city, location_state, location_country, location_zip = ut.geo_locate()
+    else:
+        success = False
 
     if success:
         print('\n[collect_transfer_data] Your location was be determined automatically.')
@@ -282,7 +285,7 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None):
 
 
 @register_ibs_method
-def ensure_contributor_rowids(ibs, user_prompt=False):
+def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -306,8 +309,9 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
         >>> assert ut.list_allsame(contrib_rowid_list1)
         >>> ut.assert_eq(contrib_rowid_list1[0], None)
         >>> user_prompt = ut.get_argflag('--user-prompt')
+        >>> autolocate = ut.get_argflag('--user-prompt')
         >>> # execute function
-        >>> result = ensure_contributor_rowids(ibs, user_prompt)
+        >>> result = ensure_contributor_rowids(ibs, user_prompt, autolocate)
         >>> # verify results
         >>> ibs.print_contributor_table()
         >>> print(result)
@@ -324,7 +328,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
         print('[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned' %
               (len(contrib_rowid_list), len(unassigned_gid_list)))
     if len(unassigned_gid_list) > 0:
-        new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list))
+        new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list), user_prompt=user_prompt, autolocate=autolocate)
         # SET UNASSIGNED IMAGE CONTRIBUTORS
         ibs.set_image_contributor_rowid(unassigned_gid_list, [new_contrib_rowid] * len(unassigned_gid_list))
         ibs.ensure_encounter_configs_populated()
