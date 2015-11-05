@@ -1295,7 +1295,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     import numpy as np
     #import statsmodels
     import statsmodels.nonparametric.kde
-    data = data.astype(np.float64)
+    data = data.astype(np.float64)  # HACK
     try:
         data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
         bw_choices = ['scott', 'silverman', 'normal_reference']
