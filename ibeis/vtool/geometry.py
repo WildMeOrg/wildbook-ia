@@ -1,10 +1,10 @@
 # LICENCE
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import numpy as np
 import utool as ut
 import cv2
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[geom]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[geom]', DEBUG=False)
 
 
 def bboxes_from_vert_list(verts_list, castint=False):

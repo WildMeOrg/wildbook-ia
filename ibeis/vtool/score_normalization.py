@@ -51,7 +51,7 @@ def partition_scores(X, y, attrs=None):
         >>> tup = partition_scores(X, y, attrs)
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.dict_str(resdict, nobraces=True, force_dtype=False,
+        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=True, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
@@ -63,15 +63,16 @@ def partition_scores(X, y, attrs=None):
 
     """
     import vtool as vt
+    import operator
     # Make partitioning
     unique_labels, groupxs = vt.group_indices(y)
     _grouper = partial(vt.apply_grouping, groupxs=groupxs)
     # Group data
     X_parts = _grouper(X)
     # Group attributes
-    import operator
     _nested_attrs = ut.map_dict_vals(_grouper, attrs)
-    _getitem = lambda a, b: operator.getitem(b, a)
+    def _getitem(a, b):
+        return operator.getitem(b, a)
     part_attrs = {
         label: ut.map_dict_vals(partial(_getitem, lblx), _nested_attrs)
         for lblx, label in enumerate(unique_labels)
@@ -113,7 +114,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> (X, y, attrs) = tup
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.dict_str(resdict, nobraces=True, force_dtype=False,
+        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
         >>>                      explicit=True, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),

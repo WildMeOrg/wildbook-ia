@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[other]', DEBUG=False)
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -846,10 +846,20 @@ def flag_intersection(X_, C_):
 
 
 def intersect2d_structured_numpy(A, B, assume_unique=False):
+    """
+    References:
+        http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays
+    """
     nrows, ncols = A.shape
     assert A.dtype == B.dtype, ('A and B must have the same dtypes.'
                                 'A.dtype=%r, B.dtype=%r' % (A.dtype, B.dtype))
-    dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    [('f%d' % i, A.dtype) for i in range(ncols)]
+    #dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    #dtype = {'names': ['f{}'.format(i) for i in range(ncols)],
+    #         'formats': ncols * [A.dtype]}
+    dtype = {'names': ['f%d' % (i,) for i in range(ncols)],
+             'formats': ncols * [A.dtype]}
     #try:
     A_ = np.ascontiguousarray(A).view(dtype)
     B_ = np.ascontiguousarray(B).view(dtype)
