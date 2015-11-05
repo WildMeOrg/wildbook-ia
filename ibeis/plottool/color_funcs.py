@@ -70,8 +70,10 @@ def desaturate_rgb(rgb, amount):
         >>>     color_list = [rgb, new_rgb, desaturate_rgb(rgb, .7)]
         >>>     testshow_colors(color_list)
         >>> # verify results
-        >>> new_rgb = str(result)
+        >>> result = ut.repr2(new_rgb)
         >>> print(result)
+        (1.0, 0.696078431372549, 0.5)
+
         (1.0, 0.41599384851980004, 0.039215686274509776)
     """
     hue_adjust = 0.0
@@ -93,6 +95,7 @@ def lighten_rgb(rgb, amount):
     r"""
     CommandLine:
         python -m plottool.color_funcs --test-lighten_rgb --show
+        python -m plottool.color_funcs --test-lighten_rgb
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -106,9 +109,9 @@ def lighten_rgb(rgb, amount):
         >>>     color_list = [rgb, new_rgb, lighten_rgb(rgb, .5)]
         >>>     testshow_colors(color_list)
         >>> # verify results
-        >>> result = str(new_rgb)
+        >>> result = ut.repr2(new_rgb, with_dtype=False)
         >>> print(result)
-        [ 1.          0.43983083  0.07843137]
+        np.array([ 1.        ,  0.45294118,  0.1       ])
     """
     hue_adjust = 0.0
     sat_adjust = -amount
