@@ -10,8 +10,7 @@ import utool
 import utool as ut  # NOQA
 from guitool import guitool_dialogs
 import weakref
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[guitool_components]')
+(print, rrr, profile) = utool.inject2(__name__, '[guitool_components]')
 
 
 ALIGN_DICT = {
