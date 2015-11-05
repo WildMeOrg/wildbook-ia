@@ -77,7 +77,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> cm = testdata_chipmatch()
         >>> # execute function
         >>> (unique_nids, nsum_score_list) = compute_nsum_score(cm)
-        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'], force_dtype=False)
+        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'], with_dtype=False)
         >>> print(result)
         unique_nids = np.array([1, 2, 3])
         nsum_score_list = np.array([ 4.,  7.,  5.])

@@ -4,7 +4,7 @@ Helper module that helps expand parameters for grid search
 
 TODO: move to utool?
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut  # NOQA
 from six.moves import zip, map  # NOQA
 import re
@@ -265,7 +265,7 @@ def parse_cfgstr_name_options(cfgstr):
         >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
+        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
         >>> print(result)
         (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', None)
 
@@ -274,7 +274,7 @@ def parse_cfgstr_name_options(cfgstr):
         >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default[0:1]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
+        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
         >>> print(result)
         (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', slice(0, 1, None))
 
@@ -283,7 +283,7 @@ def parse_cfgstr_name_options(cfgstr):
         >>> from ibeis.expt.cfghelpers import *  # NOQA
         >>> cfgstr = 'default[0]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
-        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (str((cfgname, cfgopt_strs, subx)),))
+        >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
         >>> print(result)
         (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', [0])
 

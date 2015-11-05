@@ -468,7 +468,7 @@ def filterflags_general_tags(tags_list,
         >>> }
         >>> flags = filterflags_general_tags(tags_list, **kwargs)
         >>> filtered = ut.list_compress(tags_list, flags)
-        >>> result = ('result = %r' % (filtered,))
+        >>> result = ('result = %s' % (ut.repr2(filtered),))
         result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
     import re
