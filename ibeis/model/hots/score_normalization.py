@@ -31,14 +31,14 @@ TODO:
     move scorenorm functionality to vtool
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool
 from os.path import join
 import numpy as np
 import utool as ut
 import vtool as vt
 import six  # NOQA
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[scorenorm]', DEBUG=False)
+print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
 
 
 # NORMALIZER STORAGE AND CACHINE CLASS

@@ -222,7 +222,8 @@ def testdata_aids(defaultdb=None, default_options='', ibs=None):
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.expt import annotation_configs
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> default_options = ''
         >>> aidcfg, aids = testdata_aids(ibs=ibs, default_options=default_options)
         >>> print('\n RESULT:')
