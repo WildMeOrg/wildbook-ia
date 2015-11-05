@@ -75,7 +75,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=10, Knorm=10))
+        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
         >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
