@@ -124,7 +124,7 @@ def parse_latex_comments_for_commmands():
         python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> parse_latex_comments_for_commmands()
     """
@@ -188,7 +188,7 @@ def inspect_annotation_configs():
         python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> make_standard_test_scripts(inspect_annotation_configs())
     """
@@ -483,7 +483,7 @@ def gen_dbranks_tables():
         python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.scripts.gen_cand_expts import *  # NOQA
         >>> result = gen_dbranks_tables()
         >>> print(result)
