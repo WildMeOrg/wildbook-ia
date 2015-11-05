@@ -1259,6 +1259,67 @@ def inspect_pdfs(tn_support, tp_support,
     return inter
 
 
+def estimate_pdf(data, gridsize=1024, adjust=1):
+    """
+    estimate_pdf
+
+    References;
+        http://statsmodels.sourceforge.net/devel/generated/statsmodels.nonparametric.kde.KDEUnivariate.html
+        https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/
+
+    Args:
+        data (ndarray): 1 dimensional data of float64
+        gridsize(int): domain size
+        adjust(int): smoothing factor
+
+    Returns:
+        ndarray: data_pdf
+
+    CommandLine:
+        python -m vtool.score_normalization --exec-estimate_pdf --show
+
+    Example:
+        >>> from vtool.score_normalization import *  # NOQA
+        >>> import vtool as vt
+        >>> rng = np.random.RandomState(0)
+        >>> data = rng.randn(1000)
+        >>> data_pdf = vt.estimate_pdf(data)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.plot(data_pdf.cdf)
+        >>> pt.plot(data_pdf.density)
+        >>> ut.show_if_requested()
+    """
+    import utool as ut
+    #import scipy.stats as spstats
+    import numpy as np
+    #import statsmodels
+    import statsmodels.nonparametric.kde
+    data = data.astype(np.float64)
+    try:
+        data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
+        bw_choices = ['scott', 'silverman', 'normal_reference']
+        bw = bw_choices[1]
+        fitkw = dict(kernel='gau',
+                     bw=bw,
+                     fft=True,
+                     weights=None,
+                     adjust=adjust,
+                     cut=3,
+                     gridsize=gridsize,
+                     clip=(-np.inf, np.inf),)
+        data_pdf.fit(**fitkw)
+        #density = data_pdf.density
+    #try:
+    #    data_pdf = spstats.gaussian_kde(data, bw_factor)
+    #    data_pdf.covariance_factor = bw_factor
+    except Exception as ex:
+        ut.printex(ex, '! Exception while estimating kernel density',
+                   keys=['data'])
+        raise
+    return data_pdf
+
+
 if __name__ == '__main__':
     """
     CommandLine:
