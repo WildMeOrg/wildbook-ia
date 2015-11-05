@@ -491,11 +491,6 @@ def adjust_font(widget, bold=False, pointSize=None, italic=False):
 def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
               enabled=True, bgcolor=None, fgcolor=None, fontkw={}):
     """ wrapper around QtGui.QPushButton
-    connectable signals:
-        void clicked(bool checked=false)
-        void pressed()
-        void released()
-        void toggled(bool checked)
 
     Args:
         parent (None):
@@ -506,18 +501,30 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
         enabled (bool):
         bgcolor (None):
         fgcolor (None):
-        bold (bool):
+        fontkw (dict): (default = {})
+
+    Kwargs:
+        parent, text, clicked, qicon, visible, enabled, bgcolor, fgcolor,
+        fontkw
+
+    connectable signals:
+        void clicked(bool checked=false)
+        void pressed()
+        void released()
+        void toggled(bool checked)
 
     Returns:
-        ?: button
+       QtGui.QPushButton
 
     CommandLine:
+        python -m guitool.guitool_components --exec-newButton
         python -m guitool.guitool_components --test-newButton
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> # build test data
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
         >>> parent = None
         >>> text = ''
         >>> clicked = None
@@ -526,11 +533,9 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
         >>> enabled = True
         >>> bgcolor = None
         >>> fgcolor = None
-        >>> bold = False
-        >>> # execute function
-        >>> button = newButton(parent, text, clicked, qicon, visible, enabled, bgcolor, fgcolor, bold)
-        >>> # verify results
-        >>> result = str(button)
+        >>> fontkw = {}
+        >>> button = newButton(parent, text, clicked, qicon, visible, enabled, bgcolor, fgcolor, fontkw)
+        >>> result = ('button = %s' % (str(button),))
         >>> print(result)
     """
     but_args = [text]
