@@ -113,3 +113,6 @@ experiment_*.sh
 
 notebooks/Experiment-Presentable-*
 notebooks/tmptex
+
+raw_profile.txt
+regen_*
