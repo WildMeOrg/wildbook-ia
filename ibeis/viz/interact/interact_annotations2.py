@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 import plottool as pt  # NOQA

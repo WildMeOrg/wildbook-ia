@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Script to help time determenistic uuid creation
 """

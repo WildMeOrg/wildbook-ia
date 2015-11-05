@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
     def tilemesh(nQKpts, K):
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))

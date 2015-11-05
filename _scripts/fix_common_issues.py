@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 # FIXME: setup for more than just win32
 

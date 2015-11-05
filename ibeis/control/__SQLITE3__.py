@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 custom sqlite3 module that supports numpy types
 """

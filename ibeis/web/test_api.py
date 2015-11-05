@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
     This is a proof of concept for connecting to an authenticated Qubica Server
 """

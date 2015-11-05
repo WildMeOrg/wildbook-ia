@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 this module lists most of the command line args available for use.  there are
 still many cases where util_arg.get_argval and util_arg.get_argflag are used

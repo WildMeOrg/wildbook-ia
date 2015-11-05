@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def export_nnp_master3_subset(ibs):
     r"""
     Args:

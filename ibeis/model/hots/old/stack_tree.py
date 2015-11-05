@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This will be a wrapper around pyflann.
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Reports decisions and confidences about names (identifications) and
 exemplars using query results objects.

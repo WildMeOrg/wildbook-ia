@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This file is in a state of disarray. It is not included anywhere. Yet it might
 have useful code in it

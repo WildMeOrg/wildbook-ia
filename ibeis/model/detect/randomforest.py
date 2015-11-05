@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Interface to pyrf random forest object detection.
 """

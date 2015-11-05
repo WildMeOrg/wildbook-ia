@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module Licence and docstring
 """

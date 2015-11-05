@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sip
 
 # Reference: https://github.com/pyinstaller/pyinstaller/wiki/Recipe-PyQt4-API-Version

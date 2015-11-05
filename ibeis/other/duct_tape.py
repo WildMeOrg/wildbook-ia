@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 import utool

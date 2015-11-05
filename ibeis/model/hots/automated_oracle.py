@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 module for making the correct automatic decisions in incremental tests
 """

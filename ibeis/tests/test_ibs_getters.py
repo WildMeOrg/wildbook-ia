@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """
 python ibeis/tests/test_ibs_getters.py
 

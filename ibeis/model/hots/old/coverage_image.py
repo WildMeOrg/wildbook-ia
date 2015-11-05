@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # TODO: Integrate this with vtool instead
 from __future__ import absolute_import, division, print_function
 # Standard

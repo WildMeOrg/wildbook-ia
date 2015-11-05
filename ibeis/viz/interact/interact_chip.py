@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Interaction for a single annoation.
 Also defines annotation context menu.

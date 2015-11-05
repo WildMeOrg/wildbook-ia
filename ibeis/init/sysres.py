@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS

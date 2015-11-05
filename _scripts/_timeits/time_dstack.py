@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 %timeit np.meshgrid(qfxs, dfxs, indexing='ij')
 x, y = np.meshgrid(qfxs, dfxs, indexing='ij')
 np.array(zip(x.flat, y.flat))

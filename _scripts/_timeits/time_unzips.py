@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Timeit tests for various ways of unziping lists
 """

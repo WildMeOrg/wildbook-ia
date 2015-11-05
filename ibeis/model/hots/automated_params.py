@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 module that specified how we choose paramaters based on current search database
 properties

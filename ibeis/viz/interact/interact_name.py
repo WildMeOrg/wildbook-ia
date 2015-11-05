@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Matplotlib interface for name interactions. Allows for relatively fine grained
 control of splitting and merging.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hacky file to download win packages
 Please only download files as needed.

@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """
 This should probably be renamed guifront.py This defines all of the visual
 components to the GUI It is invoked from guiback, which handles the nonvisual

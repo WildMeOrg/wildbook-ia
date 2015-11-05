@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: Rename to ibeis/init/commands.py
 """

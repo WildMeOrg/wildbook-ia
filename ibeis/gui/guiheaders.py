@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This model provides the declarative interface to all of the api_*_models in
 guitool. Each different type of model/view has to register its iders, getters,

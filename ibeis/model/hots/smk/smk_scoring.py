@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The functions for scoring smk matches
 """

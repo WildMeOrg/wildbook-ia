@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Idea:
     what about the probability of a descriptor match being a score like in SIFT.

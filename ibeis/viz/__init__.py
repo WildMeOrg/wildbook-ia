@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ### __init__.py ###
 # flake8: noqa

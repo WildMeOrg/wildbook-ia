@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 smk_index
 This module contains functions for the SelectiveMatchKernels's inverted index.

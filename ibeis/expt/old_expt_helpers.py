@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def get_testcfg_varydicts(test_cfg_name_list):
     """
     build varydicts from experiment_configs.

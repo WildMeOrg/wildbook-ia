@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --modfname manual_species_funcs

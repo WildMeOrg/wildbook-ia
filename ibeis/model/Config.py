@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Algorithm and behavior configurations are stored here.  These classes are based
 off of the utool.Preference.Pref class which really needs a good overhaul

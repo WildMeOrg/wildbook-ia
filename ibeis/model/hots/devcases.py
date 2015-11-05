@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 development module storing my "development state"
 

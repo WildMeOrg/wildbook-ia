@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module defines all of the menu items in the main GUI
 as well as their callbacks in guiback

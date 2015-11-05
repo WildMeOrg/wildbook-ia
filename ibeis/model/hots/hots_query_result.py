@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: DEPRICATE QRES IN FAVOR OF CHIP_MATCH
 

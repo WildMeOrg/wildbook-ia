@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Functions for images and encoutners that will be injected into an
 IBEISController instance.

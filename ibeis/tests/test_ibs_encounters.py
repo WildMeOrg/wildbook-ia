@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from six.moves import map

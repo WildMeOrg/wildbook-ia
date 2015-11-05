@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.hots_nn_index))"
 python -m doctest -v ibeis/model/hots/hots_nn_index.py

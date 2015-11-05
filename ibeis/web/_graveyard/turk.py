@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 
 BROWSER = ut.get_argflag('--browser')

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 @profile
 def expand_to_default_aids(ibs, aidcfg, prefix='', verbose=VERB_TESTDATA):
     default_aids = aidcfg['default_aids']

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 CommandLine:
     python -c "import utool as ut; ut.write_modscript_alias('Tinc.sh', 'ibeis.model.hots.qt_inc_automatch')"

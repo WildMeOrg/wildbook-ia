@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool.

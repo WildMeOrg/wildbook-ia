@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
         """
         qfx2_xxx = qfx2_dist_
         %timeit np.vstack([row.take(sortx) for sortx, row in zip(qfx2_sortx, qfx2_xxx)])

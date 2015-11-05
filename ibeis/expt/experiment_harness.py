@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Runs many queries and keeps track of some results
 """

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #def fix_command_tuple(command_tuple, sudo=False, shell=False, win32=ut.WIN32):
 #    r"""
 #    Args:

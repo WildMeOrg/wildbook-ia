@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Small GUI for asking the user to enter the clock time shown, and moving along a gid list if the first image isn't a clock
 """
