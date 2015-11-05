@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # LICENCE
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
 from six.moves import zip, map, range
 import cv2
@@ -982,10 +983,10 @@ def find_pixel_value_index(img, pixel):
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
-        pixel (?):
+        pixel (ndarray or scalar):
 
     CommandLine:
-        python -m vtool.math --test-find_pixel_value
+        python -m vtool.math --test-find_pixel_value_index
 
     References:
         http://stackoverflow.com/questions/21407815/get-column-row-index-from-numpy-array-that-meets-a-boolean-condition
@@ -1002,7 +1003,7 @@ def find_pixel_value_index(img, pixel):
         >>> img[0, 0, :] = pixel
         >>> img[2, 0, :] = pixel
         >>> # execute function
-        >>> result = find_pixel_value(img, pixel)
+        >>> result = find_pixel_value_index(img, pixel)
         >>> # verify results
         >>> print(result)
         [[0 0]
@@ -1018,7 +1019,7 @@ def find_pixel_value_index(img, pixel):
 
 def get_pixel_dist(img, pixel):
     if not isinstance(pixel, np.ndarray):
-        if not isinstance(pixel, (list, tuple)):
+        if isinstance(pixel, (list, tuple)):
             pixel = np.array(pixel)
         else:
             pixel = np.array([pixel])

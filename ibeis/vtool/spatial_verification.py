@@ -956,11 +956,11 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
         >>> print(result)
         refined_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
         refined_errors = (
-                           np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
-                                       25.83,    3.82], dtype=np.float32),
-                           np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
-                           np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
-                       )
+                             np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
+                                         25.83,    3.82], dtype=np.float32),
+                             np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
+                             np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
+                         )
         H = np.array([[ 0.92, -0.05,  7.21],
                       [-0.01,  0.91,  4.13],
                       [-0.  , -0.  ,  1.  ]], dtype=np.float64)

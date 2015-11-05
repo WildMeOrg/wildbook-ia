@@ -5,8 +5,8 @@ TODO:
     Does HDBSCAN work on 128 dim vectors?
     http://nbviewer.jupyter.org/github/lmcinnes/hdbscan/blob/master/notebooks/Comparing%20Clustering%20Algorithms.ipynb
 """
-from __future__ import absolute_import, division, print_function
-from six.moves import range
+from __future__ import absolute_import, division, print_function, unicode_literals
+from six.moves import range, zip, map
 import six
 import utool
 import utool as ut
@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[clustering2]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[clustering2]', DEBUG=False)
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
@@ -307,24 +307,24 @@ def refine_akmeans(data, centroids, max_iters=5,
     return centroids
 
 
-def test_hdbscan():
-    r"""
-    CommandLine:
-        python -m vtool.clustering2 --exec-test_hdbscan
+#def test_hdbscan():
+#    r"""
+#    CommandLine:
+#        python -m vtool.clustering2 --exec-test_hdbscan
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import numpy as np
-        >>> rng = np.random.RandomState(42)
-        >>> data = rng.randn(1000000, 128)
-        >>> import hdbscan
-        >>> with ut.Timer() as t:
-        >>>     labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
+#    Example:
+#        >>> # SCRIPT
+#        >>> from vtool.clustering2 import *  # NOQA
+#        >>> from vtool.clustering2 import *  # NOQA
+#        >>> import numpy as np
+#        >>> rng = np.random.RandomState(42)
+#        >>> data = rng.randn(1000000, 128)
+#        >>> import hdbscan
+#        >>> with ut.Timer() as t:
+#        >>>     labels = hdbscan.HDBSCAN(min_cluster_size=15).fit_predict(data)
 
-    """
-    pass
+#    """
+#    pass
 
 
 def akmeans_iterations(data, centroids, max_iters,
@@ -521,12 +521,14 @@ def groupedzip(id_list, datas_list):
         >>> grouped_tuples = list(grouped_iter)
         >>> # verify results
         >>> result = str(groupxs) + '\n'
-        >>> result += '\n'.join(list(map(str, grouped_tuples)))
+        >>> result += ut.list_str(grouped_tuples, nl=1)
         >>> print(result)
         [1 2 3]
-        (['a', 'c', 'e'], ['A', 'C', 'E'])
-        (['b', 'd', 'f'], ['B', 'D', 'F'])
-        (['g'], ['G'])
+        [
+            (['a', 'c', 'e'], ['A', 'C', 'E']),
+            (['b', 'd', 'f'], ['B', 'D', 'F']),
+            (['g'], ['G']),
+        ]
     """
     unique_ids, groupxs = group_indices(id_list)
     grouped_datas_list = [apply_grouping_(data,  groupxs) for data in datas_list]
