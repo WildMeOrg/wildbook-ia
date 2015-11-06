@@ -17,4 +17,10 @@ git commit -m "updated docs"
 #git subtree pull --prefix _page origin gh-pages
 git subtree push --prefix _page origin gh-pages
 
+# Force a subtree push
+# References: http://stevenclontz.com/blog/2014/05/08/git-subtree-push-for-deployment/
+# Command does not work on windows
+#git push origin `git subtree split --prefix _page next`:gh-pages --force
+
+
 #git push origin --delete gh-pages
