@@ -37,14 +37,14 @@ ut.noinject('[hstypes]')
 
 #INTEGER_TYPE = np.int32
 #INDEX_TYPE = np.int32
-INDEX_TYPE = np.int
+INDEX_TYPE = np.int64
 
 #INTEGER_TYPE = np.int64
 #INTEGER_TYPE = np.int32
-INTEGER_TYPE = np.int
+INTEGER_TYPE = np.int64
 
 #FLOAT_TYPE = np.float64
-FLOAT_TYPE = np.float
+FLOAT_TYPE = np.float64
 #FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
@@ -109,7 +109,8 @@ FM_DTYPE  = INTEGER_TYPE
 # Feature Score datatype
 FS_DTYPE  = FLOAT_TYPE
 # Feature Rank datatype
-FK_DTYPE  = np.int16
+#FK_DTYPE  = np.int16
+FK_DTYPE  = np.int8
 
 
 class FiltKeys(object):

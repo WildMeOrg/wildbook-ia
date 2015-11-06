@@ -298,7 +298,7 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     Breaks up query request into several subrequests
     to process "more efficiently" and safer as well.
     """
-    qreq_.lazy_preload(verbose=verbose)
+    qreq_.lazy_preload(verbose=verbose and ut.NOT_QUIET)
     all_qaids = qreq_.get_external_qaids()
     print('len(missed_qaids) = %r' % (len(all_qaids),))
     qaid2_cm = {}

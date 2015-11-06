@@ -80,6 +80,13 @@ python super_setup.py --checkout jdb
 
 GitReferences:
     http://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+
+FIXME:
+    graph-viz
+    pydot
+    ibeis_cnn
+    Theano
+    Lasange
 """
 # FUTURE
 from __future__ import absolute_import, division, print_function
@@ -214,7 +221,8 @@ except Exception:
     print(' '.join(sys.argv))
     sys.exit(1)
 
-import utool as ut
+
+import utool as ut  # NOQA
 
 #-----------------
 #  UTOOL PYTHON

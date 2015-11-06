@@ -64,6 +64,28 @@ def make_config_metaclass():
     Like:
         get_cfgstr
         and the comparison methods
+
+
+    Example:
+        from ibeis.model.Config import *  # NOQA
+        @six.add_metaclass(ConfigMetaclass)
+        class FooConfig(ConfigBase):
+            def __init__(cfg):
+                super(FooConfig, cfg).__init__(name='FooConfig')
+                cfg.initialize_params()
+
+            def get_param_info_list(cfg):
+                return [
+                    ut.ParamInfo('x', 'y'),
+                    ut.ParamInfo('z', 3),
+                ]
+        cfg = FooConfig()
+        print(cfg.get_cfgstr(ignore_keys=['x']))
+        print(cfg.get_cfgstr(ignore_keys=[]))
+
+        cfg = GenericConfig()
+        cfg.x = 'y'
+
     """
     methods_list = ut.get_comparison_methods()
 
@@ -73,16 +95,30 @@ def make_config_metaclass():
         return func
 
     @_register
-    def get_cfgstr_list(cfg, **kwargs):
+    def get_cfgstr_list(cfg, ignore_keys=None, **kwargs):
         """ default get_cfgstr_list, can be overrided by a config object """
         if hasattr(cfg, 'get_param_info_list'):
-            itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list()]
+            if ignore_keys is not None:
+                itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list() if pi.varname not in ignore_keys]
+            else:
+                itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list()]
         else:
             item_list = parse_config_items(cfg)
-            itemstr_list = [key + '=' + str(val) for key, val in item_list]
+            if ignore_keys is not None:
+                itemstr_list = [key + '=' + str(val) for key, val in item_list]
+            else:
+                itemstr_list = [key + '=' + str(val) for key, val in item_list if key not in ignore_keys]
         filtered_itemstr_list = list(filter(len, itemstr_list))
         config_name = cfg.get_config_name()
-        return ['_' + config_name , '(' + ','.join(filtered_itemstr_list) + ')']
+        body = ','.join(filtered_itemstr_list)
+        cfgstr = ''.join(['_', config_name, '(', body, ')'])
+        return cfgstr
+
+    @_register
+    def initialize_params(cfg):
+        """ Initializes config class attributes based on params info list """
+        for pi in cfg.get_param_info_list():
+            setattr(cfg, pi.varname, pi.default)
 
     @_register
     def parse_items(cfg, **kwargs):
@@ -153,37 +189,67 @@ class GenericConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class NNConfig(ConfigBase):
+    r"""
+    CommandLine:
+        python -m ibeis.model.Config --exec-NNConfig
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> nn_cfg = NNConfig()
+        >>> result = nn_cfg.get_cfgstr()
+        >>> print(result)
+    """
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
-        nn_cfg.K = 4
-        nn_cfg.use_k_padding = False  # TODO: force to false when in vsone
-        #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
+        if True:
+            nn_cfg.initialize_params()
+        else:
+            nn_cfg.K = 4
+            nn_cfg.use_k_padding = False  # TODO: force to false when in vsone
+            #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
+            #nn_cfg.index_method = 'multi'
+            nn_cfg.index_method = 'single'
+            nn_cfg.Knorm = 1
+            nn_cfg.checks = 800
+            nn_cfg.normalizer_rule = ['last', 'name'][0]
         nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
         nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
-        #nn_cfg.index_method = 'multi'
-        nn_cfg.index_method = 'single'
-        nn_cfg.Knorm = 1
-        nn_cfg.checks = 800
-        nn_cfg.normalizer_rule = ['last', 'name'][0]
         nn_cfg.update(**kwargs)
 
     def make_feasible(nn_cfg):
         # normalizer rule depends on Knorm
         assert nn_cfg.index_method in nn_cfg.valid_index_methods
-        if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
-            nn_cfg.normalizer_rule = 'last'
+        #if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
+        #    nn_cfg.normalizer_rule = 'last'
 
-    def get_cfgstr_list(nn_cfg, **kwargs):
-        nn_cfgstr  = ['_NN(',
-                      nn_cfg.index_method,
-                      ',K', str(nn_cfg.K),
-                      '+', str(nn_cfg.Knorm),
-                      ',padk=%r' % (nn_cfg.use_k_padding),
-                      ',', nn_cfg.normalizer_rule,
-                      ',cks', str(nn_cfg.checks),
-                      ')']
-        return nn_cfgstr
+    #def get_cfgstr_list(nn_cfg, **kwargs):
+    #    nn_cfgstr  = ['_NN(',
+    #                  nn_cfg.index_method,
+    #                  ',K', str(nn_cfg.K),
+    #                  '+', str(nn_cfg.Knorm),
+    #                  ',padk=%r' % (nn_cfg.use_k_padding),
+    #                  ',', nn_cfg.normalizer_rule,
+    #                  ',cks', str(nn_cfg.checks),
+    #                  ')']
+    #    return nn_cfgstr
+
+    def get_param_info_list(rrvsone_cfg):
+        # new way to try and specify config options.
+        # not sure if i like it yet
+        param_info_list = ut.flatten([
+            [
+                ut.ParamInfo('index_method', 'single', ''),
+                ut.ParamInfo('K', 4, type_=int),
+                ut.ParamInfo('Knorm', 1, 'Kn='),
+                ut.ParamInfo('use_k_padding', False, 'padk='),
+                #ut.ParamInfo('normalizer_rule', 'last', ''),
+                ut.ParamInfo('checks', 800, 'cks', type_=int),
+                #ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
+            ],
+        ])
+        return param_info_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -480,20 +546,24 @@ class NNWeightConfig(ConfigBase):
         ... ]
         >>> result = '\n'.join([cfg.get_cfgstr() for cfg in cfg_list])
         >>> print(result)
-        NNWeight(lnbnn,fg)
-        NNWeight(lnbnn,fg,sameimg,nosamename)
-        NNWeight(ratio_thresh=0.625,fg)
+        _NNWeight(lnbnn,fg)
+        _NNWeight(lnbnn,fg,sameimg,nosamename)
+        _NNWeight(ratio_thresh=0.625,fg)
     """
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
-        for pi in nnweight_cfg.get_param_info_list():
-            setattr(nnweight_cfg, pi.varname, pi.default)
+        nnweight_cfg.initialize_params()
         nnweight_cfg.update(**kwargs)
 
     #def get_config_name(nnweight_cfg):
     #    return 'NNWeight'
 
-    def get_param_info_list(rrvsone_cfg):
+    #def make_feasible(nnweight_cfg):
+    #    # normalizer rule depends on Knorm
+    #    #if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
+    #    #    nn_cfg.normalizer_rule = 'last'
+
+    def get_param_info_list(nnweight_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
@@ -502,14 +572,15 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
                 ut.ParamInfoBool('const_on', False,  hideif=False),
                 ut.ParamInfoBool('borda_on', False,  hideif=False),
-                #ut.ParamInfoBool('lograt_on', False, hideif=False),
+                ut.ParamInfoBool('lograt_on', False, hideif=False),
+                #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
                 #ut.ParamInfoBool('logdist_on', False,  hideif=False),
                 #ut.ParamInfoBool('dist_on', False,  hideif=False),
                 ut.ParamInfoBool('normonly_on', False,  hideif=False),
-                #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
+                ut.ParamInfo('normalizer_rule', 'last', ''),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
@@ -542,8 +613,7 @@ class RerankVsOneConfig(ConfigBase):
     """
     def __init__(rrvsone_cfg, **kwargs):
         super(RerankVsOneConfig, rrvsone_cfg).__init__(name='rrvsone_cfg')
-        for pi in rrvsone_cfg.get_param_info_list():
-            setattr(rrvsone_cfg, pi.varname, pi.default)
+        rrvsone_cfg.initialize_params()
         rrvsone_cfg.update(**kwargs)
 
     def get_config_name(rrvsone_cfg):

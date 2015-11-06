@@ -749,7 +749,7 @@ class QueryRequest(object):
     # --- Lazy Loading ---
 
     @profile
-    def lazy_preload(qreq_, verbose=True):
+    def lazy_preload(qreq_, verbose=ut.NOT_QUIET):
         """
         feature weights and normalizers should be loaded before vsone queries
         are issued. They do not depened only on qparams
@@ -767,7 +767,7 @@ class QueryRequest(object):
             qreq_.load_distinctiveness_normalizer(verbose=verbose)
 
     @profile
-    def lazy_load(qreq_, verbose=True):
+    def lazy_load(qreq_, verbose=ut.NOT_QUIET):
         """
         Performs preloading of all data needed for a batch of queries
         """
@@ -783,7 +783,7 @@ class QueryRequest(object):
 
     # load query data structures
     @profile
-    def ensure_chips(qreq_, verbose=True, extra_tries=1):
+    def ensure_chips(qreq_, verbose=ut.NOT_QUIET, extra_tries=1):
         r""" ensure chips are computed (used in expt, not used in pipeline)
 
         Args:
@@ -827,7 +827,7 @@ class QueryRequest(object):
             config2_=qreq_.get_external_data_config2(), **externgetkw)
 
     @profile
-    def ensure_features(qreq_, verbose=True):
+    def ensure_features(qreq_, verbose=ut.NOT_QUIET):
         r""" ensure features are computed
         Args:
             verbose (bool):  verbosity flag(default = True)
@@ -877,7 +877,7 @@ class QueryRequest(object):
                 raise
 
     @profile
-    def ensure_featweights(qreq_, verbose=True):
+    def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
         """ ensure feature weights are computed """
         #with ut.EmbedOnException():
         if verbose:
@@ -917,7 +917,7 @@ class QueryRequest(object):
             #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
-    def load_indexer(qreq_, verbose=True, force=False):
+    def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False):
         if not force and qreq_.indexer is not None:
             return False
         else:
@@ -939,7 +939,7 @@ class QueryRequest(object):
             return True
 
     @profile
-    def load_score_normalizer(qreq_, verbose=True):
+    def load_score_normalizer(qreq_, verbose=ut.NOT_QUIET):
         if qreq_.normalizer is not None:
             return False
         if verbose:
@@ -950,7 +950,7 @@ class QueryRequest(object):
         qreq_.normalizer = normalizer
 
     @profile
-    def load_distinctiveness_normalizer(qreq_, verbose=True):
+    def load_distinctiveness_normalizer(qreq_, verbose=ut.NOT_QUIET):
         """
         Example:
             >>> from ibeis.model.hots import distinctiveness_normalizer

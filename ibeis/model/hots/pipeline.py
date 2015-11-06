@@ -175,7 +175,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         if qreq_.prog_hook is not None:
             qreq_.prog_hook.initialize_subhooks(4)
 
-        qreq_.lazy_load(verbose=verbose)
+        qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
         impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
 
         # Nearest neighbors (nns_list)
@@ -382,13 +382,33 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --exec-nearest_neighbor_cacheid2
+        python -m ibeis.model.hots.pipeline --exec-nearest_neighbor_cacheid2 --superstrict
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1',
-        >>>                                        qaid_list=[1, 2])
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(
+        >>>     dbname='testdb1', qaid_list=[1, 2],
+        >>>     cfgdict=dict(K=4, Knorm=1, use_k_padding=False))
+        >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
+        >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
+        >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
+        >>> (nn_cachedir, nn_mid_cacheid_list) = tup
+        >>> result = 'nn_mid_cacheid_list = ' + ut.list_str(nn_mid_cacheid_list)
+        >>> print(result)
+        nn_mid_cacheid_list = [
+            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
+            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
+        ]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> verbose = True
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(
+        >>>     dbname='testdb1', qaid_list=[1, 2],
+        >>>     cfgdict=dict(K=2, Knorm=3, use_k_padding=True))
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)
@@ -405,7 +425,17 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
         internal_daids, prefix='D')
 
-    nn_cfgstr      = qreq_.qparams.nn_cfgstr
+    HACK_KCFG = not ut.SUPER_STRICT
+
+    if HACK_KCFG:
+        # hack config so we consolidate different k values
+        # (ie, K=2,Knorm=1 == K=1,Knorm=2)
+        from ibeis.model import Config
+        nn_cfgstr = Config.NNConfig(**qreq_.qparams).get_cfgstr(
+            ignore_keys={'K', 'Knorm', 'use_k_padding'})
+    else:
+        nn_cfgstr      = qreq_.qparams.nn_cfgstr
+
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
     nn_mid_cacheid = (
@@ -414,9 +444,15 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
-    nn_mid_cacheid_list = [
-        str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
-        for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+    if HACK_KCFG:
+        kbase = qreq_.qparams.K + qreq_.qparams.Knorm
+        nn_mid_cacheid_list = [
+            str(query_hashid) + nn_mid_cacheid + '_truek' + str(kbase + Kpad)
+            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+    else:
+        nn_mid_cacheid_list = [
+            str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
+            for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
 
     nn_cachedir = qreq_.ibs.get_neighbor_cachedir()
     # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
@@ -698,6 +734,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         ratio_isvalid   = [qfx2_ratio <= qreq_.qparams.ratio_thresh for
                            qfx2_ratio in ratio_weight_list]
+        # HACK TO GET 1 - RATIO AS SCORE
         ratioscore_list = [np.subtract(1, qfx2_ratio)
                            for qfx2_ratio in ratio_weight_list]
         _filtweight_list.append(ratioscore_list)

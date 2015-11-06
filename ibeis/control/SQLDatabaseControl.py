@@ -5,29 +5,27 @@ Interface into SQL for the IBEIS Controller
 #from __future__ import absolute_import, division, print_function
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from six.moves import map, zip
-from os.path import join, exists
+import parse
 import utool as ut
-#import cStringIO
 import collections
-from six.moves import cStringIO
+from six.moves import map, zip, cStringIO
+from os.path import join, exists
 from ibeis import constants as const
-from ibeis.control._sql_helpers import (_unpacker, sanitize_sql,
-                                        SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
+from ibeis.control._sql_helpers import (
+    _unpacker, sanitize_sql, SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
 from ibeis.control import __SQLITE3__ as lite
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sql]')
+print, rrr, profile = ut.inject2(__name__, '[sql]')
 
 VERBOSE        = ut.VERBOSE
 VERYVERBOSE    = ut.VERYVERBOSE
-#AUTODUMP       = ut.get_argflag('--auto-dump')
 COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
+#AUTODUMP       = ut.get_argflag('--auto-dump')
 
 SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
 __STR__ = const.__STR__
-#__STR__ = str if six.PY3 else unicode
 
 
 def default_decor(func):
@@ -114,9 +112,6 @@ class SQLDatabaseController(object):
             'dependsmap',
             'primary_superkey',
         ]
-        #with ut.Timer('New SQLDatabaseController'):
-        #db.stack = []
-        #db.cache = {}  # key \in [tblname][colnames][rowid]
         # Get SQL file path
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
@@ -162,7 +157,8 @@ class SQLDatabaseController(object):
             ('metadata_value',               'TEXT'),
         ),
             superkeys=[('metadata_key',)],
-            # IMPORTANT: Yes, we want this line to be tabbed over for the schema auto-generation
+            # IMPORTANT: Yes, we want this line to be tabbed over for the
+            # schema auto-generation
             docstr='''
         The table that stores permanently all of the metadata about the
         database (tables, etc)''')
@@ -176,13 +172,16 @@ class SQLDatabaseController(object):
             colnames = ['metadata_key', 'metadata_value']
             params_iter = zip(['database_version'], [version])
             # We don't care to find any, because we know there is no version
-            get_rowid_from_superkey = (lambda x : [None] * len(x))
+            def get_rowid_from_superkey(x):
+                return [None] * len(x)
             db.add_cleanly(const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
 
     def _copy_to_memory(db):
-        # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
-        from six.moves import cStringIO
+        """
+        References:
+            http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
+        """
         if NOT_QUIET:
             print('[sql] Copying database into RAM')
         tempfile = cStringIO()
@@ -430,8 +429,8 @@ class SQLDatabaseController(object):
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         if where_clause is None:
-            fmtdict = {'tblname'     : tblname,
-                       'colnames'    : ', '.join(colnames), }
+            fmtdict = {'tblname'  : tblname,
+                       'colnames' : ', '.join(colnames), }
             operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
@@ -446,15 +445,14 @@ class SQLDatabaseController(object):
             FROM {tblname}
             WHERE {where_clauses}
             '''
-
-            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                     params_iter=params_iter,
-                                                     unpack_scalars=unpack_scalars,
-                                                     eager=eager, **kwargs)
+            val_list = db._executemany_operation_fmt(
+                operation_fmt, fmtdict, params_iter=params_iter,
+                unpack_scalars=unpack_scalars, eager=eager, **kwargs)
         return val_list
 
     @default_decor
-    def get_rowid_from_superkey(db, tblname, params_iter=None, superkey_colnames=None, **kwargs):
+    def get_rowid_from_superkey(db, tblname, params_iter=None,
+                                superkey_colnames=None, **kwargs):
         """ getter which uses the constrained superkeys instead of rowids """
         where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
@@ -462,6 +460,7 @@ class SQLDatabaseController(object):
     @default_decor
     def get(db, tblname, colnames, id_iter=None, id_colname='rowid', eager=True, **kwargs):
         """ getter
+
         Args:
             tblname (str): table name to get from
             colnames (tuple of str): column names to grab from
@@ -760,6 +759,7 @@ class SQLDatabaseController(object):
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=PZ_Master0
             python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items --db=testdb1
+            python -m ibeis.control.SQLDatabaseControl --exec-get_metadata_items
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -851,11 +851,6 @@ class SQLDatabaseController(object):
             superkeys (list or None): list of tuples of column names which
                 uniquely identifies a rowid
         """
-        # TODO: **metadata_keyval
-        #constraint=None, docstr='',
-        #superkeys=None, dependson=None, relates=None,
-        #shortname=None, extern_tables=None, dependsmap=None,
-        #primary_superkey=None):
         bad_kwargs = set(metadata_keyval.keys()) - set(db.table_metadata_keys)
         assert len(bad_kwargs) == 0, 'keyword args specified that are not metadata keys=%r' % (
             bad_kwargs,)
@@ -871,7 +866,6 @@ class SQLDatabaseController(object):
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
-        #if constraint is None:
         constraint_list = []
         superkeys = metadata_keyval.get('superkeys', None)
         try:
@@ -912,11 +906,6 @@ class SQLDatabaseController(object):
         }
         op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
         operation = op_fmtstr.format(**fmtkw)
-        #print('')
-        #print('---------')
-        #print('')
-        #print(operation)
-        #ut.embed()
         db.executeone(operation, [], verbose=False)
 
         # Handle table metdata
@@ -951,8 +940,7 @@ class SQLDatabaseController(object):
         Example:
             >>> def loc_zip_map(x):
             ...     return x
-            >>> ibs = None
-            >>> ibs.db.modify_table(const.CONTRIBUTOR_TABLE, (
+            >>> db.modify_table(const.CONTRIBUTOR_TABLE, (
             >>>         # orig_colname,             new_colname,      new_coltype, convert_func
             >>>         # a non-needed, but correct mapping (identity function)
             >>>         ('contrib_rowid',      '',                    '',               None),
@@ -971,7 +959,7 @@ class SQLDatabaseController(object):
             >>>     superkeys=[('contributor_rowid',)],
             >>>     constraint=[],
             >>>     docstr='Used to store the contributors to the project'
-            >>>  )
+            >>> )
         """
         #assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'tablename must be given'
@@ -1015,7 +1003,8 @@ class SQLDatabaseController(object):
             else:
                 try:
                     assert src in colname_list, (
-                        'Unkown source colname=%s in tablename=%s' % (src, tablename))
+                        'Unkown source colname=%s in tablename=%s' % (
+                            src, tablename))
                 except AssertionError as ex:
                     ut.printex(ex, keys=['colname_list'])
                 index = colname_list.index(src)
@@ -1182,16 +1171,6 @@ class SQLDatabaseController(object):
         # Rename table's metadata
         key_old_list = [tablename_old + '_' + suffix for suffix in db.table_metadata_keys]
         key_new_list = [tablename_new + '_' + suffix for suffix in db.table_metadata_keys]
-        #key_old_list = [
-        #    tablename_old + '_constraint',
-        #    tablename_old + '_docstr',
-        #    tablename_old + '_superkeys',
-        #]
-        #key_new_list = [
-        #    tablename_new + '_constraint',
-        #    tablename_new + '_docstr',
-        #    tablename_new + '_superkeys',
-        #]
         id_iter = [(key,) for key in key_old_list]
         val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
@@ -1221,11 +1200,6 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
 
         # Delete table's metadata
-        #key_list = [
-        #    tablename + '_constraint',
-        #    tablename + '_docstr',
-        #    tablename + '_superkeys',
-        #]
         key_list = [tablename + '_' + suffix for suffix in db.table_metadata_keys]
         db.delete(const.METADATA_TABLE, key_list, id_colname='metadata_key')
 
@@ -1255,6 +1229,9 @@ class SQLDatabaseController(object):
     def get_schema_current_autogeneration_str(db, autogen_cmd):
         """ Convenience: Autogenerates the most up-to-date database schema
 
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-get_schema_current_autogeneration_str
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> import ibeis
@@ -1276,7 +1253,9 @@ class SQLDatabaseController(object):
         # TODO: Fix autogen command
         line_list.append(ut.indent(autogen_cmd, tab1))
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
+        line_list.append('# -*- coding: utf-8 -*-')
         line_list.append('from __future__ import absolute_import, division, print_function')
+        #line_list.append('from __future__ import absolute_import, division, print_function, unicode_literals')
         line_list.append('from ibeis import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')
@@ -1430,11 +1409,6 @@ class SQLDatabaseController(object):
         """
         assert tablename in db.get_table_names(), (
             'tablename=%r is not a part of this database' % (tablename,))
-        #where_clause = 'metadata_key=?'
-        #colnames = ('metadata_value',)
-        #data = [(tablename + '_superkeys',)]
-        #superkey_colnames_list_repr = db.get_where(const.METADATA_TABLE,
-        #colnames, data, where_clause)[0]
         superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys', default=None)
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
@@ -1527,16 +1501,27 @@ class SQLDatabaseController(object):
             http://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
 
         CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-get_columns
             python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=contributors
             python -m ibeis.control.SQLDatabaseControl --exec-get_columns --tablename=nonexist
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> import ibeis
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
             >>> colrichinfo_list = db.get_columns(tablename)
             >>> print('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
+            colrichinfo_list = [
+                (0, 'name_rowid', 'INTEGER', 0, None, 1),
+                (1, 'name_uuid', 'UUID', 1, None, 0),
+                (2, 'name_text', 'TEXT', 1, None, 0),
+                (3, 'name_note', 'TEXT', 0, None, 0),
+                (4, 'name_temp_flag', 'INTEGER', 0, '0', 0),
+                (5, 'name_alias_text', 'TEXT', 0, None, 0),
+                (6, 'name_sex', 'INTEGER', 0, '-1', 0),
+            ]
         """
         # check if the table exists first. Throws an error if it does not exist.
         db.cur.execute('SELECT 1 FROM ' + tablename + ' LIMIT 1')
@@ -1620,6 +1605,7 @@ class SQLDatabaseController(object):
         """
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_new_transferdata
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1639,6 +1625,7 @@ class SQLDatabaseController(object):
             ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
             ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
             ...     print('L___')
+            ...     break
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
@@ -1690,7 +1677,6 @@ class SQLDatabaseController(object):
                                 # Execute hack to fix contributor tables
                                 if tablename_ == 'contributors':
                                     # hack to fix contributors table
-                                    import parse
                                     constraint_str = db.get_metadata_val(tablename_ + '_constraint')
                                     parse_result = parse.parse(
                                         'CONSTRAINT superkey UNIQUE ({superkey})',

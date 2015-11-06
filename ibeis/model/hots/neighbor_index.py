@@ -352,13 +352,15 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             not ut.list_set_equal(covered_aids_list[0], daid_list))
     else:
         can_augment = False
-    print('[aug] Requesting augmented nnindexer')
+    if verbose:
+        print('[aug] Requesting augmented nnindexer')
     if can_augment:
         covered_aids = covered_aids_list[0]
         #with ut.PrintStartEndContext('AUGMENTING NNINDEX', verbose=verbose):
         #    with ut.Indenter('|  '):
-        print('[aug] Augmenting index %r old daids with %d new daids' %
-              (len(covered_aids), len(new_daid_list)))
+        if verbose:
+            print('[aug] Augmenting index %r old daids with %d new daids' %
+                  (len(covered_aids), len(new_daid_list)))
         # Load the base covered indexer
         # THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED
         base_nnindexer = request_memcached_ibeis_nnindexer(qreq_, covered_aids,
@@ -392,7 +394,8 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         return nnindexer
     else:
         #if ut.VERBOSE:
-        print('[aug] Nothing to augment, fallback to memcache')
+        if verbose:
+            print('[aug] Nothing to augment, fallback to memcache')
         # Fallback
         nnindexer = request_memcached_ibeis_nnindexer(
             qreq_, daid_list, verbose=verbose, use_memcache=use_memcache, force_rebuild=force_rebuild, memtrack=memtrack

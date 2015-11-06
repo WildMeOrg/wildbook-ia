@@ -153,7 +153,7 @@ def download_tomcat():
 
 
 @ut.tracefunc_xml
-def find_installed_tomcat(check_unpacked=True):
+def find_installed_tomcat(check_unpacked=True, strict=True):
     """
     Asserts that tomcat was properly installed
 
@@ -173,13 +173,19 @@ def find_installed_tomcat(check_unpacked=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> check_unpacked = True
-        >>> tomcat_dpath = find_installed_tomcat(check_unpacked)
+        >>> strict = False
+        >>> tomcat_dpath = find_installed_tomcat(check_unpacked, strict)
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
         >>> print(result)
     """
     tomcat_dpath = find_tomcat()
     if tomcat_dpath is None:
-        raise ImportError('Cannot find tomcat')
+        msg = 'Cannot find tomcat'
+        if strict:
+            raise ImportError(msg)
+        else:
+            print(msg)
+            return None
     if check_unpacked:
         import ibeis
         # Check that webapps was unpacked
