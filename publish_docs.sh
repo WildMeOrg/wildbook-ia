@@ -9,7 +9,7 @@
 #make html
 #python -m utool.util_setup --exec-autogen_sphinx_apidoc 
 python -m utool.util_setup --exec-autogen_sphinx_apidoc  --nomake
-make -c _doc html
+make -C _doc html
 mkdir _page
 cp -r _doc/_build/html/* _page
 # show page
