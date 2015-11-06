@@ -1177,6 +1177,11 @@ def colwise_operation(arr1, arr2, op):
 
 
 def compare_matrix_columns(matrix, columns, comp_op=np.equal, logic_op=np.logical_or):
+    """
+    REPLACE WITH:
+        qfx2_invalid = logic_op.reduce([comp_op([:, None], qfx2_normnid) for col1 in qfx2_topnid.T])
+
+    """
     # FIXME: Generalize
     #row_matrix = matrix.T
     #row_list   = columns.T

@@ -72,11 +72,31 @@ def check_expr_eq(expr1, expr2, verbose=True):
         >>> result = check_expr_eq(expr1, expr2)
         >>> print(result)
     """
+    if isinstance(expr1, six.string_types):
+        expr1 = sympy.simplify(expr1)
+    if isinstance(expr2, six.string_types):
+        expr2 = sympy.simplify(expr2)
     print(ut.hz_str('Checking if ', repr(expr1), ' == ', repr(expr2)))
     random_point_check = expr1.equals(expr2)
+    if random_point_check is None:
+        random_point_check = False
     print('... seems %r' % (random_point_check,))
     #return random_point_check
     expr3 = expr1 - expr2
+    if not random_point_check and True:
+        common_symbols = expr1.free_symbols.intersection(expr2.free_symbols)
+        if len(common_symbols):
+            y = sympy.symbols('y')  # Hack, should be a new symbol
+            symbol = common_symbols.pop()
+            soln1 = sympy.solve(sympy.Eq(sympy.simplify(expr1), y), symbol)
+            soln2 = sympy.solve(sympy.Eq(sympy.simplify(expr2), y), symbol)
+            print('Solving expr1 for common symbol: ' + str(soln1))
+            print('Solving expr2 for common symbol: ' + str(soln2))
+            if soln1 == soln2:
+                print('This seems True')
+            else:
+                print('This seems False')
+        sympy.solve(sympy.Eq(sympy.simplify(expr2), y), 'd')
     print(ut.hz_str('... checking 0 ', repr(expr3)))
     # Does not always work.
     print('(not gaurenteed to work) expr3.is_zero = %r' % (expr3.is_zero,))
