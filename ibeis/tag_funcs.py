@@ -75,7 +75,6 @@ PROP_MAPPING = {
 
     'TooSmallMatches' : 'FeatureScale',
     'TooLargeMatches' : 'FeatureScale',
-
     #'BadShoulder' : 'BadShoulder',
     #'GoodCoverage': None,
 }

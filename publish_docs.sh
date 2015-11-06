@@ -2,7 +2,11 @@
 # rm -rf _doc
 # rm -rf _page
 #autogen_sphinx_docs.py
-python -m utool.util_setup --exec-autogen_sphinx_apidoc
+#python -m utool.util_setup --exec-autogen_sphinx_apidoc --dry
+python -m utool.util_setup --exec-autogen_sphinx_apidoc --nomake
+cd _doc
+make html
+cd ..
 mkdir _page
 cp -r _doc/_build/html/* _page
 # show page
