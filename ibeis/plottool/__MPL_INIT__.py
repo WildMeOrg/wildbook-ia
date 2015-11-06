@@ -12,7 +12,7 @@ __WHO_INITIALIZED__ = None
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
 TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
-FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='PDF')
+FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='agg')
 
 
 def print_all_backends():
@@ -44,7 +44,7 @@ def get_target_backend():
                     import PyQt4  # NOQA
                 target_backend = 'Qt4Agg'
             except ImportError:
-                print('[!plotttool] WARNING backend fallback to PDF')
+                print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND, ))
                 target_backend = FALLBACK_BACKEND
     return target_backend
 
