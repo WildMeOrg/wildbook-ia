@@ -11,6 +11,7 @@
 python -m utool.util_setup --exec-autogen_sphinx_apidoc  --nomake
 make -C _doc html
 mkdir _page
+rm -rf _page/*
 cp -r _doc/_build/html/* _page
 # show page
 #python -c "import utool as ut; ut.startfile('_doc/_build/html/index.html')"
@@ -27,6 +28,7 @@ git subtree push --prefix _page origin gh-pages
 # References: http://stevenclontz.com/blog/2014/05/08/git-subtree-push-for-deployment/
 # Command does not work on windows
 #git push origin `git subtree split --prefix _page next`:gh-pages --force
+#git push origin `git subtree split --prefix _page {BRANCH}`:gh-pages --force
 
 
 #git push origin --delete gh-pages
