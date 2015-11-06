@@ -12,6 +12,7 @@ __WHO_INITIALIZED__ = None
 
 VERBOSE_MPLINIT = ut.get_argflag(('--verb-mpl', '--verbose'))
 TARGET_BACKEND = ut.get_argval(('--mpl-backend', '--mplbe'), type_=str, default=None)
+FALLBACK_BACKEND = ut.get_argval(('--mpl-fallback-backend', '--mplfbbe'), type_=str, default='PDF')
 
 
 def print_all_backends():
@@ -30,7 +31,8 @@ def get_target_backend():
         not sys.platform.startswith('darwin') and
          os.environ.get('DISPLAY', None) is None):
         # Write to files if we cannot display
-        target_backend = 'PDF'
+        # target_backend = 'PDF'
+        target_backend = FALLBACK_BACKEND
     else:
         target_backend = TARGET_BACKEND
         if target_backend is None:
@@ -43,8 +45,7 @@ def get_target_backend():
                 target_backend = 'Qt4Agg'
             except ImportError:
                 print('[!plotttool] WARNING backend fallback to PDF')
-                target_backend = 'agg'
-                # target_backend = 'PDF'
+                target_backend = FALLBACK_BACKEND
     return target_backend
 
 
