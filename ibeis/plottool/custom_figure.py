@@ -313,7 +313,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
                 fpathndir = ut.path_ndir_split(fpath_clean, 5)
                 print('[pt.save_figure] save_figure() ndir=%r' % (fpathndir))
             #fig.savefig(fpath_clean)
-            if verbose > 1:
+            if verbose > 1 or ut.VERBOSE:
                 print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
             fig.savefig(fpath_clean, **savekw)
         else:
