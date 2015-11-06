@@ -103,28 +103,24 @@ def test_inc_query(ibs_gt, num_initial=0):
 
     Example0:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('testdb1')
         >>> test_inc_query(ibs_gt)
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_MTEST')
         >>> test_inc_query(ibs_gt)
 
     Example2:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('GZ_ALL')
         >>> test_inc_query(ibs_gt)
 
     Example3:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs_gt = ibeis.opendb('PZ_Master0')
         >>> test_inc_query(ibs_gt)
@@ -162,7 +158,6 @@ def incremental_test_qt(ibs, num_initial=0):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.qt_inc_automatch import *  # NOQA
         >>> main_locals = ibeis.main(db='testdb1')
         >>> ibs = main_locals['ibs']

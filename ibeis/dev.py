@@ -44,7 +44,7 @@ import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     ibeis._preload()
-    from ibeis.all_imports import *  # NOQA
+    #from ibeis.all_imports import *  # NOQA
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
 from ibeis._devcmds_ibeis import *  # NOQA

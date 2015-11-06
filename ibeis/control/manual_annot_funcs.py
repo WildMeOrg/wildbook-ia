@@ -1547,20 +1547,19 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     A yaw is the yaw of the annotation in radians
     Viewpoint yaw is inverted. Will be fixed soon.
 
-    The following views have these angles of yaw:
-        left side  - 0.00 tau radians
-        front side - 0.25 tau radians
-        right side - 0.50 tau radians
-        back side  - 0.75 tau radians
-
-        tau = 2 * pi
+    Note:
+        The following views have these angles of yaw:
+            left side  - 0.00 tau radians
+            front side - 0.25 tau radians
+            right side - 0.50 tau radians
+            back side  - 0.75 tau radians
+            (tau = 2 * pi)
 
     SeeAlso:
         ibies.const.VIEWTEXT_TO_YAW_RADIANS
 
-    References;
+    References:
         http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png
-
 
     RESTful:
         Method: PUT

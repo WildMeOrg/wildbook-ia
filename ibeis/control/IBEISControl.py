@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Note:
-    THERE ARE FUNCTIONS THAT ARE INJECTED INTO THE CONTROLLER
-    THAT ARE NOT DEFINED IN THIS MODULE.
-
-    functions in the IBEISController have been split up into several submodules.
-    look at the modules listed in autogenmodname_list to see the full list of
-    functions that will be injected into an IBEISController object
+This module contains the definition of IBEISController. This object
+allows access to a single database. Construction of this object should be
+done using ibeis.opendb().
 
 TODO:
     Module Licence and docstring
+
+Note:
+    There are functions that are injected into the controller that are not
+    defined in this module.  Functions in the IBEISController have been split
+    up into several submodules.  look at the modules listed in
+    autogenmodname_list to see the full list of functions that will be injected
+    into an IBEISController object
+
+    Recently, these functions have been enumerated in
+    ibeis.control._autogen_explicit_controller.py, and explicitly added to the
+    controller using subclassing. This submodule only provides function
+    headers, the source code still resides in the injected modules.
 """
-# TODO: rename annotation annotations
-# TODO: make all names consistent
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 #import sys

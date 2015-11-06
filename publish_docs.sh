@@ -3,7 +3,13 @@
 # rm -rf _page
 #autogen_sphinx_docs.py
 #python -m utool.util_setup --exec-autogen_sphinx_apidoc --dry
-python -m utool.util_setup --exec-autogen_sphinx_apidoc 
+#sphinx-apidoc --force --full --maxdepth="8" --doc-author="Jon Crall" --doc-version="1.4.4" --doc-release="1.4.4" --output-dir="_doc" --private ibeis
+# manual edits
+#manual edits of conf.py
+#make html
+#python -m utool.util_setup --exec-autogen_sphinx_apidoc 
+python -m utool.util_setup --exec-autogen_sphinx_apidoc  --nomake
+make -c _doc html
 mkdir _page
 cp -r _doc/_build/html/* _page
 # show page
