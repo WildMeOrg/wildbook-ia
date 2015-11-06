@@ -43,7 +43,8 @@ def get_target_backend():
                 target_backend = 'Qt4Agg'
             except ImportError:
                 print('[!plotttool] WARNING backend fallback to PDF')
-                target_backend = 'PDF'
+                target_backend = 'agg'
+                # target_backend = 'PDF'
     return target_backend
 
 
