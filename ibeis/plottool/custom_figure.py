@@ -351,10 +351,16 @@ def customize_fontprop(font_prop, **fontkw):
     return font_prop2
 
 
+#LABEL_SIZE = 8
+#TITLE_SIZE = 8
+LABEL_SIZE = ut.get_argval('--labelsize', default=8)
+TITLE_SIZE = ut.get_argval('--titlesize', default=8)
+
+
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    titlesize = fontkw.get('titlesize', 8)
+    titlesize = fontkw.get('titlesize', TITLE_SIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
     }
@@ -366,7 +372,7 @@ def set_xlabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', LABEL_SIZE))
     }
     ax.set_xlabel(lbl, **labelkw)
     #ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
@@ -375,7 +381,7 @@ def set_xlabel(lbl, ax=None, **kwargs):
 def set_ylabel(lbl, **kwargs):
     ax = gca()
     labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', 8))
+        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=kwargs.get('labelsize', LABEL_SIZE))
     }
     ax.set_ylabel(lbl, **labelkw)
     #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)

@@ -194,8 +194,11 @@ def show_if_requested(N=1):
         }
         fpath_ = fpath_.format(**arg_dict)
         fpath_ = ut.remove_chars(fpath_, ' \'"')
-        #dpath = ut.get_argval('--dpath', type_=str, default=None)
-        dpath = ut.get_argval('--dpath', type_=str, default='.')
+        dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
+        if not gotdpath and ut.is_developer():
+            # HACK use utool profile here
+            dpath = ut.truepath('~/latex/crall-candidacy-2015')
+
         fpath = join(dpath, fpath_)
 
         fig = pt.gcf()
@@ -2357,10 +2360,11 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
     Args:
         xywh1 (tuple): location of rchip1 in the axes
         xywh2 (tuple): location or rchip2 in the axes
-        kpts1 (ndarray):  keypoints in rchip1
-        kpts2 (ndarray):  keypoints in rchip1
+        kpts1 (ndarray): keypoints in rchip1
+        kpts2 (ndarray): keypoints in rchip1
         fm (list): feature matches
         fs (list): features scores
+        fm_norm (None): (default = None)
         lbl1 (None): rchip1 label
         lbl2 (None): rchip2 label
         fnum (None): figure number
@@ -2368,6 +2372,46 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
         rect (bool):
         colorbar_ (bool):
         draw_border (bool):
+        cmap (None): (default = None)
+        H1 (None): (default = None)
+        H2 (None): (default = None)
+        scale_factor1 (None): (default = None)
+        scale_factor2 (None): (default = None)
+
+    Kwargs:
+        draw_pts, draw_ell, draw_lines, show_nMatches, all_kpts
+
+    Returns:
+        ?: None
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-plot_fmatch
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> xywh1 = '?'
+        >>> xywh2 = '?'
+        >>> kpts1 = '?'
+        >>> kpts2 = '?'
+        >>> fm = '?'
+        >>> fs = None
+        >>> fm_norm = None
+        >>> lbl1 = None
+        >>> lbl2 = None
+        >>> fnum = None
+        >>> pnum = None
+        >>> rect = False
+        >>> colorbar_ = True
+        >>> draw_border = False
+        >>> cmap = None
+        >>> H1 = None
+        >>> H2 = None
+        >>> scale_factor1 = None
+        >>> scale_factor2 = None
+        >>> None = plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm, lbl1, lbl2, fnum, pnum, rect, colorbar_, draw_border, cmap, H1, H2, scale_factor1, scale_factor2)
+        >>> result = ('None = %s' % (str(None),))
+        >>> print(result)
     """
     if fm is None and fm_norm is None:
         assert kpts1.shape == kpts2.shape, 'shapes different or fm not none'
