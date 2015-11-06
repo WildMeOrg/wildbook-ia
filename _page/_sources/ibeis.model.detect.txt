@@ -1,0 +1,30 @@
+ibeis.model.detect package
+==========================
+
+Submodules
+----------
+
+ibeis.model.detect.grabmodels module
+------------------------------------
+
+.. automodule:: ibeis.model.detect.grabmodels
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.detect.randomforest module
+--------------------------------------
+
+.. automodule:: ibeis.model.detect.randomforest
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model.detect
+    :members:
+    :undoc-members:
+    :show-inheritance:

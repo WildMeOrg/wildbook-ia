@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.scripts package &mdash; ibeis 1.4.4 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.4.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html" />
+    <link rel="up" title="ibeis package" href="ibeis.html" />
+    <link rel="next" title="ibeis.templates package" href="ibeis.templates.html" />
+    <link rel="prev" title="ibeis.other package" href="ibeis.other.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="ibeis-scripts-package">
+<h1>ibeis.scripts package<a class="headerlink" href="#ibeis-scripts-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.scripts.gen_cand_expts">
+<span id="ibeis-scripts-gen-cand-expts-module"></span><h2>ibeis.scripts.gen_cand_expts module<a class="headerlink" href="#module-ibeis.scripts.gen_cand_expts" title="Permalink to this headline">¶</a></h2>
+<p>CommandLine:</p>
+<blockquote>
+<div><p># Run many experiments
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-generate_all &#8211;full
+./experiments_overnight.sh</p>
+<p># Database information
+python -m ibeis &#8211;db PZ_MTEST &#8211;dbinfo &#8211;postload-exit
+python -m ibeis &#8211;db PZ_Master0 &#8211;dbinfo &#8211;postload-exit</p>
+<p># Info about configs for a test
+python -m ibeis &#8211;tf run_test_configurations2 -t default -a ctrl &#8211;db PZ_MTEST &#8211;acfginfo
+python -m ibeis &#8211;tf run_test_configurations2 -t default:sample_size=None -a ctrl &#8211;db PZ_Master0 &#8211;acfginfo  # NOQA
+python -m ibeis &#8211;tf run_test_configurations2 -t default -a ctrl &#8211;db NNP_Master3 &#8211;acfginfo</p>
+<p># Regen Figures
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-parse_latex_comments_for_commmands
+./regen_figdef_expt.sh</p>
+<p># Print all annotation configs that will be used
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-inspect_annotation_configs &#8211;full
+sh experiment_inspect_acfg.sh</p>
+</div></blockquote>
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.experiments_baseline">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_baseline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_baseline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the experiments we are doing on invariance</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_baseline
+./experiment_baseline.sh</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_baseline</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.experiments_invariance">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_invariance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_invariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_invariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the experiments we are doing on invariance</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_invariance
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_invariance &#8211;full</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_invariance</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.experiments_k">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_k</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_k" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_k
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_k &#8211;full
+./experiment_k.sh</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_k</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.experiments_namescore">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_namescore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_namescore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_namescore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the experiments we are doing on invariance</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_namescore &#8211;full
+./experiment_namescore.sh</p>
+<p class="last">python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_namescore &#8211;full
+python -m ibeis.expt.experiment_helpers &#8211;exec-get_annotcfg_list:0 -a candidacy_namescore &#8211;db PZ_Master1  # NOQA</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_namescore</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.experiments_viewpoint">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_viewpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the experiments we are doing on invariance</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-experiments_viewpoint &#8211;full
+./experiment_view.sh</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_viewpoint</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.gen_dbranks_tables">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">gen_dbranks_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#gen_dbranks_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.gen_dbranks_tables" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-gen_dbranks_tables</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gen_dbranks_tables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.generate_all">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">generate_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#generate_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.generate_all" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-generate_all &#8211;vim
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-generate_all
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-generate_all &#8211;full
+./experiments_overnight.sh</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">generate_all</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.generate_dbinfo_table">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">generate_dbinfo_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#generate_dbinfo_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.generate_dbinfo_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core &#8211;show  # NOQA</p>
+<p>FIXME: Old database should not be converted to left
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist PZ_Master1 &#8211;show
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core &#8211;show  # NOQA
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist PZ_MTEST &#8211;show
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist GZ_Master0 &#8211;show
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist GIR_Tanya &#8211;show
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito &#8211;show  # NOQA
+python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist JAG_Kieryn JAG_Kelly &#8211;show</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.get_dbnames">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">get_dbnames</code><span class="sig-paren">(</span><em>exclude_list=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#get_dbnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.get_dbnames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.get_results_command">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">get_results_command</code><span class="sig-paren">(</span><em>expt_name</em>, <em>media_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#get_results_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.get_results_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays results using various media</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.inspect_annotation_configs">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">inspect_annotation_configs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#inspect_annotation_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.inspect_annotation_configs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-inspect_annotation_configs
+python -m ibeis.scripts.gen_cand_expts &#8211;exec-inspect_annotation_configs &#8211;full</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">inspect_annotation_configs</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.make_standard_test_scripts">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">make_standard_test_scripts</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#make_standard_test_scripts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.make_standard_test_scripts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.parse_latex_comments_for_commmands">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">parse_latex_comments_for_commmands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#parse_latex_comments_for_commmands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.parse_latex_comments_for_commmands" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.gen_cand_expts &#8211;exec-parse_latex_comments_for_commmands</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_latex_comments_for_commmands</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.precompute_data">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">precompute_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#precompute_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.precompute_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure features and such are computed
+CommandLine:</p>
+<blockquote>
+<div>python -m ibeis.scripts.gen_cand_expts &#8211;exec-precompute_data</div></blockquote>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">precompute_data</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.register_testgen">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">register_testgen</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#register_testgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.register_testgen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.test_database_intersection">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">test_database_intersection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#test_database_intersection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.test_database_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><p># PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
+python -m ibeis.dbio.export_subset &#8211;exec-check_database_overlap &#8211;db1=PZ_FlankHack &#8211;db2=PZ_Master0  # NOQA</p>
+<p># PZ_MTEST is also a subset of PZ_Master0 with minor changes
+python -m ibeis.dbio.export_subset &#8211;exec-check_database_overlap &#8211;db1=PZ_MTEST &#8211;db2=PZ_Master0  # NOQA</p>
+<p># NNP_Master3 and PZ_Master0 are disjoint
+python -m ibeis.dbio.export_subset &#8211;exec-check_database_overlap &#8211;db1=NNP_Master3 &#8211;db2=PZ_Master0  # NOQA</p>
+<p>python -m ibeis.dbio.export_subset &#8211;exec-check_database_overlap &#8211;db1=PZ_Master1 &#8211;db2=PZ_Master0  # NOQA</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.write_formatted_script_lines">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">write_formatted_script_lines</code><span class="sig-paren">(</span><em>cmd_fmtstr_list</em>, <em>varydict_list</em>, <em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#write_formatted_script_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.write_formatted_script_lines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.gen_cand_expts.write_script_lines">
+<code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">write_script_lines</code><span class="sig-paren">(</span><em>line_list</em>, <em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#write_script_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.write_script_lines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.scripts.getshark">
+<span id="ibeis-scripts-getshark-module"></span><h2>ibeis.scripts.getshark module<a class="headerlink" href="#module-ibeis.scripts.getshark" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.scripts.getshark.download_sharks">
+<code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">download_sharks</code><span class="sig-paren">(</span><em>XMLdata</em>, <em>number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#download_sharks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.download_sharks" title="Permalink to this definition">¶</a></dt>
+<dd><p>cd ~/work/WS_ALL
+python -m ibeis.scripts.getshark</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.getshark</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s">&#39;www.whaleshark.org/listImages.jsp&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">XMLdata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">url_read</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number</span> <span class="o">=</span> <span class="bp">None</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.getshark.main">
+<code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.getshark.parse_shark_tags">
+<code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">parse_shark_tags</code><span class="sig-paren">(</span><em>orig_fname_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#parse_shark_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.parse_shark_tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.getshark.shark_misc">
+<code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">shark_misc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#shark_misc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.shark_misc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.getshark.usage">
+<code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">usage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#usage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.usage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.scripts.rsync_ibeisdb">
+<span id="ibeis-scripts-rsync-ibeisdb-module"></span><h2>ibeis.scripts.rsync_ibeisdb module<a class="headerlink" href="#module-ibeis.scripts.rsync_ibeisdb" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.rsync_ibeisdb
+python -m ibeis.scripts.rsync_ibeisdb &#8211;dryrun</dd>
+</dl>
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync">
+<code class="descclassname">ibeis.scripts.rsync_ibeisdb.</code><code class="descname">rsync</code><span class="sig-paren">(</span><em>src_uri</em>, <em>dst_uri</em>, <em>exclude_dirs=[]</em>, <em>port=22</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync" title="Permalink to this definition">¶</a></dt>
+<dd><p>General function to push or pull a directory from a remote server to a local path</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/">http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</a>
+<a class="reference external" href="http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible">http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible</a></p>
+<dl class="docutils">
+<dt>Notes (rsync commandline options):</dt>
+<dd><p class="first">rsync [OPTION]... SRC [SRC]... DEST
+-v : verbose
+-r : copies data recursively (but dont preserve timestamps and</p>
+<blockquote>
+<div>permission while transferring data</div></blockquote>
+<dl class="docutils">
+<dt>-a <span class="classifier-delimiter">:</span> <span class="classifier">archive mode, allows recursive copying and preserves symlinks,</span></dt>
+<dd>permissions, user and group ownerships, and timestamps</dd>
+</dl>
+<p class="last">-z : compress file data
+-i, &#8211;itemize-changes       output a change-summary for all updates
+-s, &#8211;protect-args :        no space-splitting; only wildcard special-chars
+-h : human-readable, output numbers in a human-readable format
+-P                          same as &#8211;partial &#8211;progress</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main">
+<code class="descclassname">ibeis.scripts.rsync_ibeisdb.</code><code class="descname">rsync_ibsdb_main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync_ibsdb_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.sync_ibeisdb">
+<code class="descclassname">ibeis.scripts.rsync_ibeisdb.</code><code class="descname">sync_ibeisdb</code><span class="sig-paren">(</span><em>remote_uri</em>, <em>dbname</em>, <em>mode='pull'</em>, <em>workdir=None</em>, <em>port=22</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#sync_ibeisdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.sync_ibeisdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>syncs an ibeisdb without syncing the cache or the chip directory
+(or the top level image directory because it shouldnt exist unless it is an
+old hots database)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.scripts">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.scripts" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ibeis.scripts package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ibeis.scripts.gen_cand_expts">ibeis.scripts.gen_cand_expts module</a></li>
+<li><a class="reference internal" href="#module-ibeis.scripts.getshark">ibeis.scripts.getshark module</a></li>
+<li><a class="reference internal" href="#module-ibeis.scripts.rsync_ibeisdb">ibeis.scripts.rsync_ibeisdb module</a></li>
+<li><a class="reference internal" href="#module-ibeis.scripts">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="ibeis.html">ibeis package</a><ul>
+      <li>Previous: <a href="ibeis.other.html" title="previous chapter">ibeis.other package</a></li>
+      <li>Next: <a href="ibeis.templates.html" title="next chapter">ibeis.templates package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ibeis.scripts.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Jon Crall.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/ibeis.scripts.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

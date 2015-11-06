@@ -1,0 +1,136 @@
+ibeis package
+=============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.control
+    ibeis.dbio
+    ibeis.expt
+    ibeis.gui
+    ibeis.init
+    ibeis.model
+    ibeis.other
+    ibeis.scripts
+    ibeis.templates
+    ibeis.tests
+    ibeis.viz
+    ibeis.web
+
+Submodules
+----------
+
+ibeis.__main__ module
+---------------------
+
+.. automodule:: ibeis.__main__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis._devcmds_ibeis module
+---------------------------
+
+.. automodule:: ibeis._devcmds_ibeis
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis._devscript module
+-----------------------
+
+.. automodule:: ibeis._devscript
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.all_imports module
+------------------------
+
+.. automodule:: ibeis.all_imports
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.annotmatch_funcs module
+-----------------------------
+
+.. automodule:: ibeis.annotmatch_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.constants module
+----------------------
+
+.. automodule:: ibeis.constants
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.dev module
+----------------
+
+.. automodule:: ibeis.dev
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.filter_configs module
+---------------------------
+
+.. automodule:: ibeis.filter_configs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.ibsfuncs module
+---------------------
+
+.. automodule:: ibeis.ibsfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.main_module module
+------------------------
+
+.. automodule:: ibeis.main_module
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.params module
+-------------------
+
+.. automodule:: ibeis.params
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.species module
+--------------------
+
+.. automodule:: ibeis.species
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tag_funcs module
+----------------------
+
+.. automodule:: ibeis.tag_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.automated_params &mdash; ibeis 1.4.4 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.4.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ibeis.model.hots.automated_params</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">module that specified how we choose paramaters based on current search database</span>
+<span class="sd">properties</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="c">#import numpy as np</span>
+<span class="c">#import vtool as vt</span>
+<span class="c">#from ibeis.model.hots import hstypes</span>
+<span class="c">#from ibeis.model.hots import match_chips4 as mc4</span>
+<span class="c">#from ibeis.model.hots import distinctiveness_normalizer</span>
+<span class="c">#from six.moves import filter</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autoparams]&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="choose_vsmany_K"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_params.choose_vsmany_K">[docs]</a><span class="k">def</span> <span class="nf">choose_vsmany_K</span><span class="p">(</span><span class="n">num_names</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: Should also scale up the number of checks as well</span>
+
+<span class="sd">    method for choosing K in the initial vsmany queries</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Shows plot for K vs number of names</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_params import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; num_names = np.arange(0, 1000)</span>
+<span class="sd">        &gt;&gt;&gt; num_names_slope = .1</span>
+<span class="sd">        &gt;&gt;&gt; K_max = 10</span>
+<span class="sd">        &gt;&gt;&gt; K_min = 1</span>
+<span class="sd">        &gt;&gt;&gt; K_list = np.floor(num_names_slope * num_names)</span>
+<span class="sd">        &gt;&gt;&gt; K_list[K_list &gt; K_max] = K_max</span>
+<span class="sd">        &gt;&gt;&gt; K_list[K_list &lt; K_min] = K_min</span>
+<span class="sd">        &gt;&gt;&gt; clip_index_list = np.where(K_list &gt;= K_max)[0]</span>
+<span class="sd">        &gt;&gt;&gt; clip_index = clip_index_list[min(len(clip_index_list) - 1, 10)]</span>
+<span class="sd">        &gt;&gt;&gt; K_list = K_list[0:clip_index]</span>
+<span class="sd">        &gt;&gt;&gt; num_names = num_names[0:clip_index]</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot2(num_names, K_list, x_label=&#39;num_names&#39;, y_label=&#39;K&#39;,</span>
+<span class="sd">        ...          equal_aspect=False, marker=&#39;g-&#39;, pad=1, dark=True)</span>
+<span class="sd">        &gt;&gt;&gt; pt.update()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#K = ibs.cfg.query_cfg.nn_cfg.K</span>
+    <span class="c"># TODO: paramaterize in config</span>
+    <span class="n">num_names_slope</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>  <span class="c"># increase K every fifty names</span>
+    <span class="n">K_max</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">K_min</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">num_names_lower</span> <span class="o">=</span> <span class="n">K_min</span> <span class="o">/</span> <span class="n">num_names_slope</span>
+    <span class="n">num_names_upper</span> <span class="o">=</span> <span class="n">K_max</span> <span class="o">/</span> <span class="n">num_names_slope</span>
+    <span class="k">if</span> <span class="n">num_names</span> <span class="o">&lt;</span> <span class="n">num_names_lower</span><span class="p">:</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">K_min</span>
+    <span class="k">elif</span> <span class="n">num_names</span> <span class="o">&lt;</span> <span class="n">num_names_upper</span><span class="p">:</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">num_names_slope</span> <span class="o">*</span> <span class="n">num_names</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">K</span>  <span class="o">=</span> <span class="n">K_max</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">intersect_ordered</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># if self is in query bump k</span>
+            <span class="n">K</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">K</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.automated_params</span>
+<span class="sd">        python -m ibeis.model.hots.automated_params --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.automated_params --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  <li><a href="../../../ibeis.html">ibeis</a><ul>
+  <li><a href="../../model.html">ibeis.model</a><ul>
+  <li><a href="../hots.html">ibeis.model.hots</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Jon Crall.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
