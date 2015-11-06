@@ -1,0 +1,94 @@
+ibeis.model.preproc package
+===========================
+
+Submodules
+----------
+
+ibeis.model.preproc.preproc_annot module
+----------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_annot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_chip module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_chip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_detectimg module
+--------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_detectimg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_encounter module
+--------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_encounter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_feat module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_feat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_featweight module
+---------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_featweight
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_image module
+----------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_image
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_probchip module
+-------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_probchip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_residual module
+-------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_residual
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_rvec module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_rvec
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model.preproc
+    :members:
+    :undoc-members:
+    :show-inheritance:
