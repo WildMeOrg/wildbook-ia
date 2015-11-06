@@ -150,7 +150,7 @@ def print_results(ibs, testres):
     cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
     cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
     cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
-    cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
+    #cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
     cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
     #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
@@ -517,17 +517,17 @@ def print_results(ibs, testres):
 
     #------------
 
-    @ut.argv_flag_dec
-    def print_colmap():
-        print('==================')
-        print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
-        print('==================')
-        cfgx2_mAP = np.array([aveprec_list.mean() for aveprec_list in cfgx2_aveprecs])
-        sortx = cfgx2_mAP.argsort()
-        for cfgx in sortx:
-            print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
-        #print('L___ Scores per Config ___')
-    print_colmap()
+    #@ut.argv_flag_dec
+    #def print_colmap():
+    #    print('==================')
+    #    print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
+    #    print('==================')
+    #    cfgx2_mAP = np.array([aveprec_list.mean() for aveprec_list in cfgx2_aveprecs])
+    #    sortx = cfgx2_mAP.argsort()
+    #    for cfgx in sortx:
+    #        print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
+    #    #print('L___ Scores per Config ___')
+    #print_colmap()
     #------------
 
     @ut.argv_flag_dec_true

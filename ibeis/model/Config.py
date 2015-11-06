@@ -500,6 +500,8 @@ class NNWeightConfig(ConfigBase):
             [
                 ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
+                ut.ParamInfoBool('const_on', False,  hideif=False),
+                ut.ParamInfoBool('borda_on', False,  hideif=False),
                 #ut.ParamInfoBool('lograt_on', False, hideif=False),
                 #ut.ParamInfoBool('logdist_on', False,  hideif=False),
                 #ut.ParamInfoBool('dist_on', False,  hideif=False),

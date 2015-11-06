@@ -11,6 +11,8 @@ def generate_notebook_report(ibs):
         python -m ibeis --tf generate_notebook_report --db lynx --run
         python -m ibeis --tf generate_notebook_report --db lynx --ipynb
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
+        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --ipynb
+        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
@@ -31,9 +33,10 @@ def generate_notebook_report(ibs):
         run_nb = run_ipython_notebook(notebook_str)
         output_fpath = export_notebook(run_nb, fname)
         ut.startfile(output_fpath)
-    if ut.get_argflag('--ipynb'):
+    elif ut.get_argflag('--ipynb'):
         ut.startfile(nb_fpath)
-        #print('notebook_str =\n%s' % (notebook_str,))
+    else:
+        print('notebook_str =\n%s' % (notebook_str,))
 
 
 def get_default_cell_template_list():
@@ -52,8 +55,8 @@ def get_default_cell_template_list():
         notebook_cells.success_cases,
         notebook_cells.failure_type1_cases,
         notebook_cells.failure_type2_cases,
-        notebook_cells.investigate_specific_case,
-        notebook_cells.view_intereseting_tags,
+        #notebook_cells.investigate_specific_case,
+        #notebook_cells.view_intereseting_tags,
     ]
     return cell_template_list
 
@@ -142,6 +145,46 @@ def make_ibeis_notebook(ibs):
         ).format(**autogenkw)
     autogen_str = make_autogen_str()
     dbname = ibs.get_dbname()
+    if ut.get_argflag('--hacktestscore'):
+        annotconfig_list_body = ut.codeblock(
+            '''
+            'timectrl',
+            '''
+        )
+    else:
+        annotconfig_list_body = ut.codeblock(
+            '''
+            'default:is_known=True',
+            #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
+            #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
+            #'timectrl:',
+            #'timectrl:qsize=10,dsize=20',
+            #'timectrl:been_adjusted=True,dpername=3',
+            #'unctrl:been_adjusted=True',
+            '''
+        )
+    if ut.get_argflag('--hacktestscore'):
+        pipeline_list_body = ut.codeblock(
+            '''
+            'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True',
+            'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True',
+            'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True',
+            'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=False',
+            'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=False',
+            'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=False',
+            '''
+        )
+    elif True:
+        pipeline_list_body = ut.codeblock(
+            '''
+            'default',
+            #'default:K=1',
+            #'default:K=1,adapteq=True',
+            #'default:K=1,AI=False',
+            #'default:K=1,AI=False,QRH=True',
+            #'default:K=1,RI=True,AI=False',
+            '''
+        )
     locals_ = locals()
     from functools import partial
     _format = partial(format_cells, locals_=locals_)

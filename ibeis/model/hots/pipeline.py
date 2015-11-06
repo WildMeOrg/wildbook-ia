@@ -678,6 +678,20 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         _filtweight_list.append(bar_l2_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append(filtname)
+    if config2_.const_on:
+        filtname = 'const'
+        constvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
+            nns_list, nnvalid0_list, qreq_)
+        _filtweight_list.append(constvote_weight_list)
+        _filtvalid_list.append(None)  # None means all valid
+        filtkey_list.append(filtname)
+    if config2_.borda_on:
+        filtname = 'borda'
+        constvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
+            nns_list, nnvalid0_list, qreq_)
+        _filtweight_list.append(constvote_weight_list)
+        _filtvalid_list.append(None)  # None means all valid
+        filtkey_list.append(filtname)
     if config2_.ratio_thresh:
         filtname = 'ratio'
         ratio_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](

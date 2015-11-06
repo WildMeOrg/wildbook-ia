@@ -130,6 +130,50 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
 
 
 @_register_nn_simple_weight_func
+def const_match_weighter(nns_list, nnvalid0_list, qreq_):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> import ibeis
+        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> constvote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
+        >>> result = ('constvote_weight_list = %s' % (str(constvote_weight_list),))
+        >>> print(result)
+    """
+    constvote_weight_list = []
+    K = qreq_.qparams.K
+    for nns in (nns_list):
+        (qfx2_idx, qfx2_dist) = nns
+        qfx2_constvote = np.ones((len(qfx2_idx), K), dtype=np.float)
+        constvote_weight_list.append(qfx2_constvote)
+    return constvote_weight_list
+
+
+@_register_nn_simple_weight_func
+def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> import ibeis
+        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> bordavote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
+        >>> result = ('bordavote_weight_list = %s' % (str(bordavote_weight_list),))
+        >>> print(result)
+    """
+    bordavote_weight_list = []
+    K = qreq_.qparams.K
+    for nns in (nns_list):
+        (qfx2_idx, qfx2_dist) = nns
+        qfx2_bordavote = np.tile(np.arange(1, K + 1, dtype=np.float)[::-1], (len(qfx2_idx), 1))
+        bordavote_weight_list.append(qfx2_bordavote)
+    return bordavote_weight_list
+
+
+@_register_nn_simple_weight_func
 def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
     foreground feature match weighting

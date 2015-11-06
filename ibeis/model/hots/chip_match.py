@@ -206,8 +206,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                                          cm.unique_nids)
         num = len(other_aids_)
         num2 = len(other_unique_nids)
-        print('PRINT EXTENDING BY num = %r' % (num,))
-        print('num2 = %r' % (num2,))
+        #print('PRINT EXTENDING BY num = %r' % (num,))
+        #print('num2 = %r' % (num2,))
 
         def extend_scores(num, vals):
             if vals is None:
@@ -1427,8 +1427,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         # <GET NAME GROUPXS>
         try:
             nidx = cm.nid2_nidx[dnid]
-            if nidx == 144:
-                raise
+            #if nidx == 144:
+            #    raise
         except KeyError:
             #def extend():
                 #pass
@@ -1484,11 +1484,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
         name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
 
-        return viz_matches.show_name_matches(
+        _ = viz_matches.show_name_matches(
             qreq_.ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
             name_H1_list, name_featflag_list, name_score=name_score, name_rank=name_rank,
             name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
             pnum=pnum, **kwargs)
+        return _
 
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None,
                                homog=ut.get_argflag('--homog'), **kwargs):
@@ -1519,21 +1520,37 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def show_ranked_matches(cm, qreq_, clip_top=6, *args, **kwargs):
         r"""
+        Plots the ranked-list of name/annot matches using matplotlib
+
         Args:
-            qreq_ (QueryRequest):  query request object with hyper-parameters
+            qreq_ (QueryRequest): query request object with hyper-parameters
             clip_top (int): (default = 6)
 
+        Kwargs:
+            fnum, figtitle, plottype, ...more
+
+        SeeAlso:
+            ibeis.viz.viz_matches.show_matches2
+            ibeis.viz.viz_matches.show_name_matches
+
         CommandLine:
-            python -m ibeis.model.hots.chip_match --exec-show_ranked_matches --show --qaid 1
+            python -m ibeis --tf ChipMatch2.show_ranked_matches --show --qaid 1
+            python -m ibeis --tf ChipMatch2.show_ranked_matches --qaid 86 --colorbar_=False --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> from ibeis.viz import viz_matches
+            >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
+            >>> del kwargs['qaid']
+            >>> kwargs['plottype'] = kwargs.get('plottype', 'namematch')
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
             >>> clip_top = 3
-            >>> cm.show_ranked_matches(qreq_, clip_top, plottype='namematch')
+            >>> print('kwargs = %s' % (ut.repr2(kwargs, nl=True),))
+            >>> cm.show_ranked_matches(qreq_, clip_top, **kwargs)
             >>> ut.show_if_requested()
         """
         idx_list  = ut.listclip(cm.argsort(), clip_top)

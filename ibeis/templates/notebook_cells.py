@@ -28,7 +28,8 @@ initialize = ('# Initialization', ut.codeblock(
     # Pick one of the following annotation configurations
     # to choose the query and database annotations
     a = [
-        'default:is_known=True',
+        {annotconfig_list_body}
+        #'default:is_known=True',
         #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
         #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
         #'timectrl:',
@@ -42,7 +43,8 @@ initialize = ('# Initialization', ut.codeblock(
     # will be compared in the histograms, but only the first configuration will
     # be used for inspecting results.
     t = [
-        'default',
+        {pipeline_list_body}
+        #'default',
         #'default:K=1',
         #'default:K=1,adapteq=True',
         #'default:K=1,AI=False',

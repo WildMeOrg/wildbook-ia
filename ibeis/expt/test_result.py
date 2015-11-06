@@ -450,7 +450,19 @@ class TestResult(object):
             ('candidacy_', ''),
             ('viewpoint_compare', 'viewpoint'),
             #('custom', 'default'),
-            ('fg_on', 'FG'),
+            #('fg_on', 'FG'),
+            ('fg_on=True', 'FG'),
+            ('fg_on=False,?', ''),
+
+            ('lnbnn_on=True', 'LNBNN'),
+            ('lnbnn_on=False,?', ''),
+
+            ('normonly_on=True', 'normonly'),
+            ('normonly_on=False,?', ''),
+
+            ('bar_l2_on=True', 'dist'),
+            ('bar_l2_on=False,?', ''),
+
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
@@ -658,8 +670,11 @@ class TestResult(object):
 
                 annot_cfgname = testres._shorten_lbls(annot_cfgname)
                 pipeline_cfgname = testres._shorten_lbls(pipeline_cfgname)
-                title_aug += ' a=' + annot_cfgname
-                title_aug += ' t=' + pipeline_cfgname
+                # hack turn these off if too long
+                if len(annot_cfgname) < 64:
+                    title_aug += ' a=' + annot_cfgname
+                if len(pipeline_cfgname) < 64:
+                    title_aug += ' t=' + pipeline_cfgname
             except Exception as ex:
                 print(ut.dict_str(testres.common_acfg))
                 print(ut.dict_str(testres.common_cfgdict))

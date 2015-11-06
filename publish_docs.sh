@@ -1,7 +1,8 @@
 #!/bin/bash
 # rm -rf _doc
 # rm -rf _page
-autogen_sphinx_docs.py
+#autogen_sphinx_docs.py
+python -m utool.util_setup --exec-autogen_sphinx_apidoc
 mkdir _page
 cp -r _doc/_build/html/* _page
 # show page

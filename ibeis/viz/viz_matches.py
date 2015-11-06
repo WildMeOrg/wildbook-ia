@@ -53,6 +53,47 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     """
     Called from chip_match.py
 
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        qaid (int):  query annotation id
+        name_daid_list (list):
+        name_fm_list (list):
+        name_fs_list (list):
+        name_H1_list (list):
+        name_featflag_list (list):
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    Kwargs:
+        draw_fmatches, name_rank, fnum, pnum, colorbar_, nonvote_mode,
+        fastmode, show_matches, fs, fm_norm, lbl1, lbl2, rect, draw_border,
+        cmap, H1, H2, scale_factor1, scale_factor2, draw_pts, draw_ell,
+        draw_lines, show_nMatches, all_kpts, in_image, show_query, draw_lbl,
+        name_annot_scores, score, rawscore, aid2_raw_rank, show_name,
+        show_nid, show_aid, show_annot_score, show_truth, name_score,
+        show_name_score, show_name_rank, show_timedelta
+
+    Returns:
+        ?: ax
+
+    CommandLine:
+        python -m ibeis.viz.viz_matches --exec-show_name_matches
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_matches import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> qaid = '?'
+        >>> name_daid_list = '?'
+        >>> name_fm_list = '?'
+        >>> name_fs_list = '?'
+        >>> name_H1_list = '?'
+        >>> name_featflag_list = '?'
+        >>> qreq_ = None
+        >>> ax = show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_)
+        >>> result = ('ax = %s' % (str(ax),))
+        >>> print(result)
+
     CommandLine:
         python -m ibeis.viz.viz_matches --test-show_name_matches --show
 
@@ -108,7 +149,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
-    import numpy as np
+    #print(ut.repr2(kwargs, nl=True))
     #from ibeis import constants as const
     draw_fmatches = kwargs.pop('draw_fmatches', True)
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
@@ -131,23 +172,18 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     pt.set_title(title, ax)
 
+    # Case tags
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(
         [qaid] * len(name_daid_list), name_daid_list)
     annotmatch_rowid_list = ut.filter_Nones(annotmatch_rowid_list)
-    # Case tags
     from ibeis import tag_funcs
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid_list)
     if not ut.get_argflag('--show'):  # False:
         tags_list = tag_funcs.consolodate_annotmatch_tags(tags_list)
     tag_list = ut.unique_keep_order(ut.flatten(tags_list))
 
-    # DUP CODE
-    name_equality = (ibs.get_annot_nids(aid_list[0]) ==
-                     np.array(ibs.get_annot_nids(aid_list[1:])))
-    truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
-    # DUP CODE
-
     name_rank = kwargs.get('name_rank', None)
+    truth = get_multitruth(ibs, aid_list)
     if name_rank is None:
         xlabel = {1: 'Genuine', 0: 'Imposter', 2: 'Unknown'}[truth]
         #xlabel = {1: 'True', 0: 'False', 2: 'Unknown'}[truth]
@@ -158,21 +194,19 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         else:
             xlabel = {
                 1: 'False Negative', 0: 'True Negative', 2: 'Unknown'}[truth]
-    #xlabel_list = []
-    #if any(ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)):
-    #    xlabel_list += [' Photobomb']
-    #if any(ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)):
-    #    xlabel_list += [' Scenery']
-    #if any(ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)):
-    #    xlabel_list += [' Nondistinct']
-    #if any(ibs.get_annotmatch_is_hard(annotmatch_rowid_list)):
-    #    xlabel_list += [' Hard']
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
 
-    #ax.set_xlabel(xlabel)
     pt.set_xlabel(xlabel)
     return ax
+
+
+def get_multitruth(ibs, aid_list):
+    import numpy as np
+    name_equality = (ibs.get_annot_nids(aid_list[0]) ==
+                     np.array(ibs.get_annot_nids(aid_list[1:])))
+    truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
+    return truth
 
 
 def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
@@ -190,7 +224,6 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
 
     #printDBG('[viz] annotate_matches3()')
     #truth = ibs.get_match_truth(aid1, aid2)
-    import numpy as np
 
     #name_equality = (
     #    np.array(ibs.get_annot_nids(aid_list[1:])) == ibs.get_annot_nids(aid_list[0])
@@ -213,9 +246,10 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     for count, aid in enumerate(aid_list, start=1):
         ph.set_plotdat(ax, 'aid%d' % (count,), aid)
 
-    name_equality = (ibs.get_annot_nids(aid_list[0]) ==
-                     np.array(ibs.get_annot_nids(aid_list[1:])))
-    truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
+    #name_equality = (ibs.get_annot_nids(aid_list[0]) ==
+    #                 np.array(ibs.get_annot_nids(aid_list[1:])))
+    #truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
+    truth = get_multitruth(ibs, aid_list)
     if any(ibs.is_aid_unknown(aid_list[1:])) or ibs.is_aid_unknown(aid_list[0]):
         truth = ibs.const.TRUTH_UNKNOWN
     truth_color = vh.get_truth_color(truth)
@@ -226,21 +260,23 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
         name_list = ibs.get_annot_names(aid_list)
         lbls_list = [[] for _ in range(len(aid_list))]
         if kwargs.get('show_name', False):
-            for (lbls, name) in zip(lbls_list, name_list):
-                lbls.append(repr((name)))
+            for count, (lbls, name) in enumerate(zip(lbls_list, name_list)):
+                lbls.append(ut.repr2((name)))
         if kwargs.get('show_nid', True):
             for count, (lbls, nid) in enumerate(zip(lbls_list, nid_list)):
                 # only label the first two images with nids
                 LABEL_ALL_NIDS = False
                 if count <= 1 or LABEL_ALL_NIDS:
-                    lbls.append(vh.get_nidstrs(nid))
+                    #lbls.append(vh.get_nidstrs(nid))
+                    lbls.append(('q' if count == 0 else '') + vh.get_nidstrs(nid))
         if kwargs.get('show_aid', True):
             for count, (lbls, aid) in enumerate(zip(lbls_list, aid_list)):
                 lbls.append(('q' if count == 0 else '') + vh.get_aidstrs(aid))
         if (kwargs.get('show_annot_score', True) and
               name_annot_scores is not None):
+            max_digits = kwargs.get('score_precision', None)
             for (lbls, score) in zip(lbls_list[1:], name_annot_scores):
-                lbls.append(ut.num_fmt(score))
+                lbls.append(ut.num_fmt(score, max_digits=max_digits))
         lbl_list = [' : '.join(lbls) for lbls in lbls_list]
     else:
         lbl_list = [None] * len(aid_list)
@@ -512,6 +548,12 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     import plottool as pt
     import numpy as np
     import vtool as vt
+    kwargs = kwargs.copy()
+
+    colorbar_ = kwargs.pop('colorbar_', True)
+    stack_larger = kwargs.pop('stack_larger', False)
+    # mode for features disabled by name scoring
+    NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
 
     def preprocess_chips(rchip, H, target_wh):
         rchip_ = rchip if H is None else gtool.warpHomog(rchip, H, target_wh)
@@ -531,6 +573,8 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     num = 0 if len(rchip2_list) < 3 else 1
     #vert = True if len(rchip2_list) > 1 else False
     vert = True if len(rchip2_list) > 1 else None
+    #num = 0
+    #vert = False
 
     if False and kwargs.get('fastmode', False):
         # This doesn't actually help the speed very much
@@ -538,11 +582,13 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
             # Hack draw results faster Q
             #initial_sf=.4,
             #initial_sf=.9,
-            use_larger=False,
+            use_larger=stack_larger,
+            #use_larger=True,
         )
     else:
         stackkw = dict()
     #use_larger = True
+    #vert = kwargs.get('fastmode', False)
 
     match_img, offset_list, sf_list = vt.stack_image_list_special(rchip1_,
                                                                   rchip2_list_,
@@ -558,7 +604,6 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     fig, ax = pt.imshow(match_img, fnum=fnum, pnum=pnum)
 
     if kwargs.get('show_matches', True):
-        NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
         ut.flatten(fs_list)
         #ut.embed()
         flat_fs, cumlen_list = ut.invertible_flatten2(fs_list)
@@ -585,7 +630,8 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
                                fm_norm=None, H1=None, H2=None,
                                scale_factor1=sf1, scale_factor2=sf2,
                                colorbar_=False, colors=colors, **kwargs)
-        pt.colorbar(flat_fs, flat_colors)
+        if colorbar_:
+            pt.colorbar(flat_fs, flat_colors)
     bbox_list = [(x, y, w, h) for (x, y), (w, h) in zip(offset_list, wh_list)]
     return offset_list, sf_list, bbox_list
 
