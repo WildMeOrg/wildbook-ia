@@ -46,8 +46,13 @@ class FMT_KEYS:
 
 def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
-    Input: gpath_list
-    Output: names based on the parent folder of each image
+    Args:
+        gpath_list (list): list of image paths
+        img_dir (str): path to image directory
+        fmtkey (str): pattern string to parse names from (default = '{name:*}[aid:d].{ext}')
+
+    Returns:
+        list: name_list - based on the parent folder of each image
 
     CommandLine:
         python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
@@ -60,14 +65,6 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         >>> fmtkey = FMT_KEYS.elephant_fmt
         >>> result = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
         >>> print(result)
-
-    Ignore:
-        print(ut.get_match_text(re.match('e_', 'e_foobar')))
-        print(ut.get_match_text(re.match('(e_)?fo', 'e_foobar')))
-        # YAY
-        print(ut.get_match_text(re.match('(e_)?fo', 'foobar')))
-
-
     """
     # These define regexes that attempt to parse the insane and contradicting
     # naming schemes of the image sets that we get.

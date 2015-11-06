@@ -13,7 +13,7 @@ CHMOD_PATTERNS = [
 ]
 
 PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
-                'ibeis.init', 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
+                'ibeis/init', 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
                 'ibeis/hots', 'ibeis/preproc', 'ibeis/viz',
                 'ibeis/viz/interact', ]
 
@@ -32,6 +32,7 @@ CLUTTER_PATTERNS = [
     'test_pyflann_ptsdata.npz',
     '_test_times.txt',
     'test_times.txt',
+    'raw_profile.txt',
     'Tgen.sh',
     'IBEISApp.pkg',
     'tempfile1.txt',

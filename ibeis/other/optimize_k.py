@@ -10,7 +10,7 @@ import scipy as sp
 import utool as ut
 from six.moves import builtins
 import six
-(print, print_, printDBG, rrr, profile) = ut.inject( __name__, '[optimze_k]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[optimze_k]', DEBUG=False)
 
 
 def collect_ibeis_training_annotations(ibs, nDaids_basis, verbose=True):

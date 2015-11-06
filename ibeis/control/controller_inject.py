@@ -38,7 +38,7 @@ except Exception as ex:
     if ut.SUPER_STRICT:
         raise
 # </flask>
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
+print, rrr, profile = ut.inject2(__name__, '[controller_inject]')
 
 
 #INJECTED_MODULES = []
@@ -88,7 +88,8 @@ def get_flask_app():
 
 # try and load flask
 try:
-    get_flask_app()
+    if GLOBAL_APP_ENABLED:
+        get_flask_app()
 except AttributeError:
     if six.PY3:
         print('Warning flask is broken in python-3.4.0')

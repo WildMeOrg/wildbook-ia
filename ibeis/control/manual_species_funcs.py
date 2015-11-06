@@ -3,21 +3,21 @@
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --modfname manual_species_funcs
 
+# TODO: Fix this name it is too special case
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-# TODO: Fix this name it is too special case
 import uuid
 import functools
 import six  # NOQA
-#from six.moves import range
-from ibeis import constants as const
-from ibeis import ibsfuncs
+from six.moves import range, zip, map  # NOQA
 #import numpy as np
 #import vtool as vt
+from ibeis import constants as const
+from ibeis import ibsfuncs
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_species]')
+print, rrr, profile = ut.inject2(__name__, '[manual_species]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)

@@ -65,77 +65,11 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
 
 
 @_register_nn_simple_weight_func
-def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
-    r"""
-
-    CommandLine:
-        python -m ibeis.model.hots.nn_weights --test-cos_match_weighter
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.nn_weights import *  # NOQA
-        >>> from ibeis.model.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
-        >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
-
-    Dev::
-        qnid = ibs.get_annot_name_rowids(qaid)
-        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
-
-        # remove first match
-        qfx2_nids_ = qfx2_nids.T[1:].T
-        qfx2_cos_  = qfx2_cos.T[1:].T
-
-        # flags of unverified 'correct' matches
-        qfx2_samename = qfx2_nids_ == qnid
-
-        for k in [1, None]:
-            for alpha in [.01, .1, 1, 3, 10, 20, 50]:
-                print('-------')
-                print('alpha = %r' % alpha)
-                print('k = %r' % k)
-                qfx2_cosweight = np.multiply(np.sign(qfx2_cos_), np.power(qfx2_cos_, alpha))
-                if k is None:
-                    qfx2_weight = qfx2_cosweight
-                    flag = qfx2_samename
-                else:
-                    qfx2_weight = qfx2_cosweight.T[0:k].T
-                    flag = qfx2_samename.T[0:k].T
-                #print(qfx2_weight)
-                #print(flag)
-                good_stats_ = ut.get_stats(qfx2_weight[flag])
-                bad_stats_ = ut.get_stats(qfx2_weight[~flag])
-                print('good_matches = ' + ut.dict_str(good_stats_))
-                print('bad_matchees = ' + ut.dict_str(bad_stats_))
-                print('diff_mean = ' + str(good_stats_['mean'] - bad_stats_['mean']))
-
-    """
-    Knorm = qreq_.qparams.Knorm
-    cos_weight_list = []
-    qaid_list = qreq_.get_internal_qaids()
-    # Database feature index to chip index
-    for qaid, nns in zip(qaid_list, nns_list):
-        (qfx2_idx, qfx2_dist) = nns
-        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_internal_query_config2())[np.newaxis, :, :]
-        # database forground weights
-        # avoid using K due to its more dynamic nature by using -Knorm
-        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[:-Knorm])
-        # Component-wise dot product + selectivity function
-        alpha = 3.0
-        qfx2_cosweight = scoring.sift_selectivity_score(qfx2_qvec, qfx2_dvec, alpha)
-        cos_weight_list.append(qfx2_cosweight)
-    return cos_weight_list
-
-
-@_register_nn_simple_weight_func
 def const_match_weighter(nns_list, nnvalid0_list, qreq_):
     """
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
-        >>> import ibeis
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> constvote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
@@ -157,7 +91,6 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
-        >>> import ibeis
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> bordavote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
@@ -171,6 +104,67 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
         qfx2_bordavote = np.tile(np.arange(1, K + 1, dtype=np.float)[::-1], (len(qfx2_idx), 1))
         bordavote_weight_list.append(qfx2_bordavote)
     return bordavote_weight_list
+
+
+@_register_nn_simple_weight_func
+def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
+    r"""
+
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --test-cos_match_weighter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> from ibeis.model.hots import nn_weights
+        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
+        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
+        >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
+
+    Ignore:
+        qnid = ibs.get_annot_name_rowids(qaid)
+        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
+        # remove first match
+        qfx2_nids_ = qfx2_nids.T[1:].T
+        qfx2_cos_  = qfx2_cos.T[1:].T
+        # flags of unverified 'correct' matches
+        qfx2_samename = qfx2_nids_ == qnid
+        for k in [1, None]:
+            for alpha in [.01, .1, 1, 3, 10, 20, 50]:
+                print('-------')
+                print('alpha = %r' % alpha)
+                print('k = %r' % k)
+                qfx2_cosweight = np.multiply(np.sign(qfx2_cos_), np.power(qfx2_cos_, alpha))
+                if k is None:
+                    qfx2_weight = qfx2_cosweight
+                    flag = qfx2_samename
+                else:
+                    qfx2_weight = qfx2_cosweight.T[0:k].T
+                    flag = qfx2_samename.T[0:k].T
+                #print(qfx2_weight)
+                #print(flag)
+                good_stats_ = ut.get_stats(qfx2_weight[flag])
+                bad_stats_ = ut.get_stats(qfx2_weight[~flag])
+                print('good_matches = ' + ut.dict_str(good_stats_))
+                print('bad_matchees = ' + ut.dict_str(bad_stats_))
+                print('diff_mean = ' + str(good_stats_['mean'] - bad_stats_['mean']))
+    """
+    Knorm = qreq_.qparams.Knorm
+    cos_weight_list = []
+    qaid_list = qreq_.get_internal_qaids()
+    # Database feature index to chip index
+    for qaid, nns in zip(qaid_list, nns_list):
+        (qfx2_idx, qfx2_dist) = nns
+        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_internal_query_config2())[np.newaxis, :, :]
+        # database forground weights
+        # avoid using K due to its more dynamic nature by using -Knorm
+        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[:-Knorm])
+        # Component-wise dot product + selectivity function
+        alpha = 3.0
+        qfx2_cosweight = scoring.sift_selectivity_score(qfx2_qvec, qfx2_dvec, alpha)
+        cos_weight_list.append(qfx2_cosweight)
+    return cos_weight_list
 
 
 @_register_nn_simple_weight_func

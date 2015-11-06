@@ -9,7 +9,7 @@ import utool as ut
 import numpy as np  # NOQA
 import six
 from ibeis import params
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[main_helpers]')
+(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 
 VERB_TESTDATA = ut.get_argflag(('--verbose-testdata', '--verbtd'))
