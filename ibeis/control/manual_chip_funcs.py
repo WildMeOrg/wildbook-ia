@@ -59,6 +59,9 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
         returns chip_rowid_list of added (or already existing chips)
 
     TemplateInfo:
+        python -m ibeis.templates.template_generator --key chip --funcname-filter "\<add_annot_chips\>" --modfname=manual_chip_funcs
+        python -m ibeis.templates.template_generator --key chip --modfname=manual_chip_funcs --funcname-filter "\<add_annot_chip"
+
         Tadder_pl_dependant
         parent = annot
         leaf = chip
@@ -130,7 +133,17 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
         colnames = ['annot_rowid', 'config_rowid',
                     'chip_uri', 'chip_width', 'chip_height']
         #chip_rowid_list = ibs.dbcache.add_cleanly(const.CHIP_TABLE, colnames, dirty_params_iter, get_rowid_from_superkey)
-        ibs.dbcache._add(const.CHIP_TABLE, colnames, dirty_params_iter)
+        CHUNKED_ADD = True
+        if CHUNKED_ADD:
+            chunksize = 32 if ut.WIN32 else 128
+            for dirty_params_chunk in ut.ichunks(dirty_params_iter, chunksize=chunksize):
+                nInput = len(dirty_params_chunk)
+                ibs.dbcache._add(
+                    const.CHIP_TABLE, colnames, dirty_params_chunk, nInput=nInput)
+        else:
+            nInput = num_dirty
+            ibs.dbcache._add(
+                const.CHIP_TABLE, colnames, dirty_params_iter, nInput=nInput)
         # Now that the dirty params are added get the correct order of rowids
         chip_rowid_list = get_rowid_from_superkey(aid_list)
     else:
@@ -157,6 +170,7 @@ def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True,
         list: chip_rowid_list
 
     TemplateInfo:
+        python -m ibeis.templates.template_generator --key feat --funcname-filter "\<add_chip_feat\>" --modfname=manual_feat_funcs
         Tgetter_pl_dependant_rowids
         parent = annot
         leaf = chip

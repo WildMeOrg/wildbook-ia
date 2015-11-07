@@ -1512,7 +1512,8 @@ class SQLDatabaseController(object):
             >>> db = ibeis.opendb(defaultdb='testdb1').db
             >>> tablename = ut.get_argval('--tablename', type_=str, default=ibeis.const.NAME_TABLE)
             >>> colrichinfo_list = db.get_columns(tablename)
-            >>> print('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
+            >>> result = ('colrichinfo_list = %s' % (ut.list_str(colrichinfo_list),))
+            >>> print(result)
             colrichinfo_list = [
                 (0, 'name_rowid', 'INTEGER', 0, None, 1),
                 (1, 'name_uuid', 'UUID', 1, None, 0),

@@ -130,7 +130,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, config2_=None):
     if ut.VERBOSE:
         print('[preproc_chip] %d / %d chips need to be computed' %
               (len(invalid_aids), len(aid_list)))
-    chip_result_list = compute_and_write_chips(ibs, invalid_aids)
+    chip_result_list = list(compute_and_write_chips(ibs, invalid_aids))
     chip_fpath_list = ut.get_list_column(chip_result_list, 0)
     return chip_fpath_list
 
@@ -242,8 +242,8 @@ def generate_chip_properties(ibs, aid_list, config2_=None):
     try:
         # the old function didn't even call this
         print('[generate_chip_properties] Requested params for %d chips ' % (len(aid_list)))
-        chip_result_list = compute_and_write_chips(ibs, aid_list, config2_=config2_)
         chip_dir = ibs.get_chipdir()
+        chip_result_list = compute_and_write_chips(ibs, aid_list, config2_=config2_)
         for chip_result, aid in zip(chip_result_list, aid_list):
             cfpath, width, height = chip_result
             chip_uri = relpath(cfpath, chip_dir)
@@ -323,7 +323,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         >>> # ensure they were deleted
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> assert all([cid is None for cid in cid_list]), 'should be gone'
-        >>> chip_result_list = compute_and_write_chips(ibs, aid_list)
+        >>> chip_result_list = list(compute_and_write_chips(ibs, aid_list))
         >>> cfpath_list = ut.get_list_column(chip_result_list, 0)
         >>> cfname_list = ut.lmap(basename, cfpath_list)
         >>> print(cfname_list)
@@ -406,6 +406,8 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     # generation causes a freeze
     # utool has a unstable test that reproduces this reliably (BECAUSE OF
     # CV2.WARP_AFFINE WITH BIG OUTPUT)
+    if ut.VERBOSE:
+        print('Computing %d chips' % (len(cfpath_list)))
 
     DO_IMWRITE_IN_WORKER = False
     if DO_IMWRITE_IN_WORKER:
@@ -414,23 +416,24 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
                                                      ordered=True,
                                                      force_serial=True,
                                                      freq=10)
-        chip_result_list = list(chip_result_iter)
+        #chip_result_list = list(chip_result_iter)
+        for _ in chip_result_iter:
+            yield _
     else:
         # Compute chips in asychronous process. Write here
         chip_result_iter = ut.util_parallel.generate(gen_chip2, arg_list,
                                                      ordered=True,
                                                      force_serial=True,
                                                      freq=10)
-        chip_result_list = []
+        #chip_result_list = []
         for chipBGR, cfpath, width, height in chip_result_iter:
             vt.imwrite(cfpath, chipBGR)
-            chip_result_list.append((cfpath, width, height))
+            del chipBGR
+            yield (cfpath, width, height)
     #print(ut.util_parallel.__POOL__)
-    if ut.VERBOSE:
-        print('Computing %d chips' % (len(cfpath_list)))
     if not ut.VERBOSE:
         print('Done computing chips')
-    return chip_result_list
+    #return chip_result_list
 
 
 def on_delete(ibs, cid_list, config2_=None):

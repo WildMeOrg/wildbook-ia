@@ -271,7 +271,6 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
 
     CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
     Adds / ensures / computes a dependant property
-
     Args:
          chip_rowid_list
 
@@ -279,7 +278,7 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         returns feat_rowid_list of added (or already existing feats)
 
     TemplateInfo:
-        python -m ibeis.templates.template_generator --key feat --funcname-filter '\<add_chip_feat\>' --modfname=manual_feat_funcs
+        python -m ibeis.templates.template_generator --key feat --funcname-filter "\<add_chip_feat\>" --modfname=manual_feat_funcs
         Tadder_pl_dependant
         parent = chip
         leaf = feat

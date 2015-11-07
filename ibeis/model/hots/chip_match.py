@@ -27,7 +27,7 @@ TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
 def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LEN=MAX_FNAME_LEN):
     """
     CommandLine:
-        python -m ibeis.model.hots.chip_match --exec-chipmatch_fname
+        python -m ibeis.model.hots.chip_match --test-get_chipmatch_fname
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -42,6 +42,7 @@ def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LE
     quuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
     qreq_ = qreq_
     cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+    print('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={quuid}{ext}'
     quuid_str = str(quuid)[0:8] if TRUNCATE_UUIDS else str(quuid)
     fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext='.cPkl')
