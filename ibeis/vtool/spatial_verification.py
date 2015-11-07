@@ -527,8 +527,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
     np.logical_and(hypo_inliers_flag, ori_inliers_flag, out=hypo_inliers_flag)
     np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
-    #other.iter_reduce_ufunc(np.logical_and
-    #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    #hypo_inliers_flag = np.logical_and.reduce(
+    #    [xy_inliers_flag, ori_inliers_flag, scale_inliers_flag])
+    # this is also slower
     hypo_inliers = np.where(hypo_inliers_flag)[0]
     hypo_errors = (xy_err, ori_err, scale_err)
     return hypo_inliers, hypo_errors
@@ -899,8 +900,12 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
         np.logical_and(hypo_inliers_flag, ori_inliers_flag, out=hypo_inliers_flag)
         np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
-        #other.iter_reduce_ufunc(np.logical_and
-        #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+        # Seems slower due to memory
+        #hypo_inliers_flag = np.logical_and.reduce(
+        #    [xy_inliers_flag, ori_inliers_flag, scale_inliers_flag])
+        # this is also slower
+        #hypo_inliers_flag = np.logical_and.reduce((xy_inliers_flag,
+        #ori_inliers_flag, scale_inliers_flag), out=xy_inliers_flag)
         refined_inliers = np.where(hypo_inliers_flag)[0].astype(INDEX_DTYPE)
         refined_errors = (xy_err, ori_err, scale_err)
     else:

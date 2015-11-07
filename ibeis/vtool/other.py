@@ -1072,10 +1072,10 @@ def and_lists(*args):
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
         >>> size = 10000
-        >>> np.random.seed(0)
-        >>> arg1 = np.random.randint(2, size=size)
-        >>> arg2 = np.random.randint(2, size=size)
-        >>> arg3 = np.random.randint(2, size=size)
+        >>> rng = np.random.RandomState(0)
+        >>> arg1 = rng.randint(2, size=size)
+        >>> arg2 = rng.randint(2, size=size)
+        >>> arg3 = rng.randint(2, size=size)
         >>> args = (arg1, arg2, arg3)
         >>> flags = and_lists(*args)
         >>> # ensure equal division
@@ -1090,37 +1090,7 @@ def and_lists(*args):
     %timeit reduce(np.logical_and, args)
     %timeit np.logical_and.reduce(args)  # wins with more data
     """
-    flags = np.logical_and.reduce(args)
-    return flags
-    # TODO: Cython
-    # TODO: remove reduce statement (bleh)
-    #if six.PY2:
-    #    flags =  reduce(np.logical_and, args)
-    #elif six.PY3:
-    #    flags =  functools.reduce(np.logical_and, args)
-    #return flags
-
-
-def and_3lists(arr1, arr2, arr3):
-    """
-    >>> from vtool.other import *  # NOQA
-    >>> np.random.seed(53)
-    >>> arr1 = (np.random.rand(1000) > .5).astype(np.bool)
-    >>> arr2 = (np.random.rand(1000) > .5).astype(np.bool)
-    >>> arr3 = (np.random.rand(1000) > .5).astype(np.bool)
-    >>> output = and_3lists(arr1, arr2, arr3)
-    >>> print(utool.hashstr(output))
-    prxuyy1w%ht57jaf
-
-    #if CYTH
-    #CYTH_INLINE
-    cdef:
-        np.ndarray arr1
-        np.ndarray arr2
-        np.ndarray arr3
-    #endif
-    """
-    return np.logical_and(np.logical_and(arr1, arr2), arr3)
+    return np.logical_and.reduce(args)
 
 
 @profile

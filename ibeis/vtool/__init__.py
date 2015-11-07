@@ -313,10 +313,9 @@ if DOELSE:
                                 det_distance, emd, hist_isect, nearest_point, 
                                 ori_distance, signed_ori_distance, 
                                 testdata_hist, understanding_pseudomax_props,) 
-    from vtool.other import (and_3lists, and_lists, argsort_groups, 
-                             argsort_multiarray, assert_zipcompress, 
-                             axiswise_operation2, check_sift_validity, 
-                             clipnorm, colwise_operation, 
+    from vtool.other import (and_lists, argsort_groups, argsort_multiarray, 
+                             assert_zipcompress, axiswise_operation2, 
+                             check_sift_validity, clipnorm, colwise_operation, 
                              compare_matrix_columns, compare_matrix_to_rows, 
                              componentwise_dot, compute_unique_arr_dataids, 
                              compute_unique_data_ids, compute_unique_data_ids_, 
