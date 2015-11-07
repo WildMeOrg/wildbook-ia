@@ -1601,19 +1601,107 @@ class SQLDatabaseController(object):
                        for name in column_names if name not in exclude_columns]
         return column_list, column_names
 
+    def make_json_table_definition(db, tablename):
+        r"""
+        VERY HACKY FUNC RIGHT NOW. NEED TO FIX LATER
+
+        Args:
+            tablename (?):
+
+        Returns:
+            ?: new_transferdata
+
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> db = ibs.db
+            >>> # TODO: define heirarchy
+            >>> tablename = ibs.const.ANNOTATION_TABLE
+            >>> #tablename = ibs.const.IMAGE_TABLE
+            >>> json_def_str = db.make_json_table_definition(tablename)
+            >>> tablename = ibs.const.ANNOTATION_TABLE
+            >>> print('json_def_str = %s' % (json_def_str,))
+
+        Ignore:
+        {
+            'image_list': [
+                {
+                    'image_uuid': 'UUID',
+                    'image_uri': 'TEXT',
+                    'image_ext': 'TEXT',
+                    'image_original_name': 'TEXT',
+                    'image_width': 'INTEGER',
+                    'image_height': 'INTEGER',
+                    'image_time_posix': 'INTEGER',
+                    'image_gps_lat': 'REAL',
+                    'image_gps_lon': 'REAL',
+                    'image_timedelta_posix': 'INTEGER',
+                    'image_annots_list':
+                    [
+                        {
+                            'annot_uuid': 'UUID',
+                            'annot_xtl': 'INTEGER',
+                            'annot_ytl': 'INTEGER',
+                            'annot_width': 'INTEGER',
+                            'annot_height': 'INTEGER',
+                            'annot_theta': 'REAL',
+                            'annot_yaw': 'REAL',   # This is the viewpoint stored in radians
+                            'annot_quality': 'INTEGER',
+                            'annot_age_months_est_min': 'INTEGER',
+                            'annot_age_months_est_max': 'INTEGER',
+                            'species_text': 'DATA',
+                            'name_text': 'DATA',
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+        """
+        new_transferdata = db.get_table_new_transferdata(tablename)
+        (column_list, column_names, extern_colx_list,
+         extern_superkey_colname_list, extern_superkey_colval_list,
+         extern_tablename_list, extern_primarycolnames_list) = new_transferdata
+        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+        #dependson = db.get_metadata_val(tablename + '_dependson', eval_=True, default=None)
+
+        richcolinfo_list = db.get_columns(tablename)
+        table_dict_def = ut.odict([(r.name, r.type_) for r in richcolinfo_list])
+        if dependsmap is not None:
+            for key, val in dependsmap.items():
+                if val[0] == tablename:
+                    del table_dict_def[key]
+                elif val[1] is None:
+                    del table_dict_def[key]
+                else:
+                    # replace with superkey
+                    del table_dict_def[key]
+                    superkey = val[2]
+                    assert len(superkey) == 1, 'unhandled'
+                    table_dict_def[superkey[0]] = 'DATA'
+
+        json_def_str = ut.dict_str(table_dict_def, aligned=True)
+        return json_def_str
+        #table_obj_def =
+
     @default_decor
     def get_table_new_transferdata(db, tablename, exclude_columns=[]):
         """
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
             python -m ibeis.control.SQLDatabaseControl --test-get_table_new_transferdata
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_new_transferdata:1
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
-            >>> # build test data
             >>> import ibeis
-            >>> from ibeis import const
             >>> ibs = ibeis.opendb('testdb1')
             >>> db = ibs.db
             >>> exclude_columns = []
@@ -1626,7 +1714,34 @@ class SQLDatabaseController(object):
             ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
             ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
             ...     print('L___')
-            ...     break
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> db = ibs.db
+            >>> exclude_columns = []
+            >>> tablename = ibs.const.IMAGE_TABLE
+            >>> new_transferdata = db.get_table_new_transferdata(tablename)
+            >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+            >>> print('tablename = %r' % (tablename,))
+            >>> print('colnames = ' + ut.list_str(column_names))
+            >>> print('extern_colx_list = ' + ut.list_str(extern_colx_list))
+            >>> print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
+            >>> print('L___')
+            >>> tablename = ibs.const.ANNOTATION_TABLE
+            >>> new_transferdata = db.get_table_new_transferdata(tablename)
+            >>> column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            >>> dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+            >>> print('tablename = %r' % (tablename,))
+            >>> print('colnames = ' + ut.list_str(column_names))
+            >>> print('extern_colx_list = ' + ut.list_str(extern_colx_list))
+            >>> print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
+            >>> print('L___')
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]

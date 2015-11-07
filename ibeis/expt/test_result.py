@@ -11,10 +11,15 @@ import vtool as vt
 import utool as ut
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
+<<<<<<< HEAD
+=======
 print, rrr, profile = ut.inject2(
     __name__, '[expt_harn]')
 
+>>>>>>> c0b64ceb984ab1da4ea8a219cce7c60966630971
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
+print, rrr, profile = ut.inject2(
+    __name__, '[expt_harn]')
 
 
 def combine_testres_list(ibs, testres_list):
@@ -1645,6 +1650,19 @@ class TestResult(object):
     def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing
         experiment_drawing.draw_rank_cdf(testres.ibs, testres)
+
+    def get_sorted_config_labels(testres):
+        key = 'qx2_bestranks'
+        cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
+        label_list = testres.get_short_cfglbls(friendly=True)
+        label_list = [
+            ('%6.2f%%' % (percent,)) +
+            #ut.scalar_str(percent, precision=2)
+            ' - ' + label
+            for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+        sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+        label_list = ut.list_take(label_list, sortx)
+        return label_list
 
     def find_score_thresh_cutoff(testres):
         """
