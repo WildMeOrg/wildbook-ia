@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-#import six
 import numpy as np
-#import vtool as vt
 import functools
 from ibeis.model.hots import scoring
-#from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh
-from six.moves import zip
+from six.moves import zip, range, map  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[nnweight]')
 
 
@@ -47,20 +44,6 @@ def _register_misc_weight_func(func):
         print('[nn_weights] registering simple func: %r' % (filtkey,))
     MISC_WEIGHT_FUNC_DICT[filtkey] = func
     return func
-
-
-#def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
-#    """ a dot product is a componentwise multiplication of
-#    two vector and then a sum. Do that for arbitary vectors.
-#    Remember to cast uint8 to float32 and then divide by 255**2.
-#    BUT THESE ARE SIFT DESCRIPTORS WHICH USE THE SMALL UINT8 TRICK
-#    DIVIDE BY 512**2 instead
-#    """
-#    arr1 = qfx2_qvec.astype(hstypes.FS_DTYPE)
-#    arr2 = qfx2_dvec.astype(hstypes.FS_DTYPE)
-#    assert qfx2_qvec.dtype.type == np.uint8, 'must have normalized sift descriptors here'
-#    cosangle = vt.componentwise_dot(arr1, arr2) / hstypes.PSEUDO_UINT8_MAX_SQRD
-#    return cosangle
 
 
 @_register_nn_simple_weight_func
@@ -109,6 +92,7 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
 @_register_nn_simple_weight_func
 def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
+    Uses smk-like selectivity function. Need to gridsearch for a good alpha.
 
     CommandLine:
         python -m ibeis.model.hots.nn_weights --test-cos_match_weighter
@@ -121,34 +105,6 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
         >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
-
-    Ignore:
-        qnid = ibs.get_annot_name_rowids(qaid)
-        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))
-        # remove first match
-        qfx2_nids_ = qfx2_nids.T[1:].T
-        qfx2_cos_  = qfx2_cos.T[1:].T
-        # flags of unverified 'correct' matches
-        qfx2_samename = qfx2_nids_ == qnid
-        for k in [1, None]:
-            for alpha in [.01, .1, 1, 3, 10, 20, 50]:
-                print('-------')
-                print('alpha = %r' % alpha)
-                print('k = %r' % k)
-                qfx2_cosweight = np.multiply(np.sign(qfx2_cos_), np.power(qfx2_cos_, alpha))
-                if k is None:
-                    qfx2_weight = qfx2_cosweight
-                    flag = qfx2_samename
-                else:
-                    qfx2_weight = qfx2_cosweight.T[0:k].T
-                    flag = qfx2_samename.T[0:k].T
-                #print(qfx2_weight)
-                #print(flag)
-                good_stats_ = ut.get_stats(qfx2_weight[flag])
-                bad_stats_ = ut.get_stats(qfx2_weight[~flag])
-                print('good_matches = ' + ut.dict_str(good_stats_))
-                print('bad_matchees = ' + ut.dict_str(bad_stats_))
-                print('diff_mean = ' + str(good_stats_['mean'] - bad_stats_['mean']))
     """
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
@@ -600,7 +556,7 @@ def normonly_fn(vdist, ndist):
 
 
 def testdata_vn_dists(nfeats=5, K=3):
-    """
+    r"""
     Test voting and normalizing distances
 
     Returns:
@@ -610,8 +566,8 @@ def testdata_vn_dists(nfeats=5, K=3):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()
-        >>> print(ut.hz_str('vdist = ', ut.repr2(vdist)))
-        >>> print(ut.hz_str('ndist = ', ut.repr2(ndist)))
+        >>> result = (ut.hz_str('vdist = ', ut.repr2(vdist))) + '\n'
+        >>> result += (ut.hz_str('ndist = ', ut.repr2(ndist)))
         vdist = np.array([[ 0.  ,  0.4 ,  0.59],
                           [ 0.17,  0.3 ,  0.51],
                           [ 0.13,  0.42,  0.73],
