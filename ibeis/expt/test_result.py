@@ -1613,25 +1613,34 @@ class TestResult(object):
                 ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_,
                 **show_kwargs)
 
-    def reconstruct_test_flags(testres):
+    def get_pipecfg_args(testres):
         if '_cfgstr' in testres.common_cfgdict:
             pipecfg_args = [testres.common_cfgdict['_cfgstr']]
         else:
             pipecfg_args = ut.unique_keep_order(
                 [cfg['_cfgstr'] for cfg in testres.varied_cfg_list])
+        return ' ' .join(pipecfg_args)
 
+    def get_annotcfg_args(testres):
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
         else:
             annotcfg_args = ut.unique_keep_order([
                 acfg['common']['_cfgstr']
                 for acfg in testres.varied_acfg_list])
+        return ' ' .join(annotcfg_args)
+
+    def reconstruct_test_flags(testres):
+
         flagstr =  ' '.join([
-            '-a ' + ' '.join(annotcfg_args),
-            '-t ' + ' ' .join(pipecfg_args),
+            '-a ' + testres.get_annotcfg_args(),
+            '-t ' + testres.get_pipecfg_args(),
             '--db ' + testres.ibs.get_dbname()
         ])
         return flagstr
+
+    def __str__(testres):
+        return testres.reconstruct_test_flags()
 
     def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing
