@@ -262,12 +262,10 @@ def get_invV_mats2x2(kpts):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
         ... ])
-        >>> # execute function
         >>> invV_mats2x2 = get_invV_mats2x2(kpts)
         >>> # verify results
         >>> result = kpts_repr(invV_mats2x2)
@@ -309,12 +307,10 @@ def get_invVR_mats2x2(kpts):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
         ... ])
-        >>> # execute function
         >>> invVR_mats2x2 = get_invVR_mats2x2(kpts)
         >>> # verify results
         >>> result = kpts_repr(invVR_mats2x2)
@@ -387,12 +383,10 @@ def get_invV_mats3x3(kpts):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts = np.array([
         ...    [0, 0, 1, 2, 3, 0],
         ...    [0, 0, 1, 2, 3, TAU / 4.0],
         ... ])
-        >>> # execute function
         >>> invV_arrs3x3 = get_invV_mats3x3(kpts)
         >>> # verify results
         >>> result = kpts_repr(invV_arrs3x3)
@@ -457,12 +451,10 @@ def get_invVR_mats3x3(kpts):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts = np.array([
         ...    [10, 20, 1, 2, 3, 0],
         ...    [30, 40, 1, 2, 3, TAU / 4.0],
         ... ])
-        >>> # execute function
         >>> invVR_mats3x3 = get_invVR_mats3x3(kpts)
         >>> # verify results
         >>> result = kpts_repr(invVR_mats3x3)
@@ -571,11 +563,9 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> patch_shape = (7, 7)
         >>> scale_factor = 1.0
-        >>> # execute function
         >>> M_list = get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
         >>> # verify results
         >>> result = kpts_repr(M_list)
@@ -692,12 +682,10 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
-        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> kpts = vt.dummy.get_dummy_kpts().astype(np.float64)
         >>> offset = (0.0, 0.0)
         >>> scale_factor = (1.5, 0.5)
-        >>> # execute function
-        >>> kpts_ = offset_kpts(kpts, offset, scale_factor).astype(np.float32)
+        >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
         >>> # verify results
         >>> result = ut.list_str((kpts, kpts_), label_list=['orig', 'new'], precision=2)
         >>> print(result)
@@ -717,14 +705,16 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
                          [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
                          [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
                          [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
-                         [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float32)
-        new = np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,  -0.  ],
-                        [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,  -0.  ],
-                        [ 45.  ,  15.  ,  18.32,   6.01,   5.26,  -0.  ],
-                        [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,  -0.  ],
-                        [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,  -0.  ]], dtype=np.float32)
+                         [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float64)
+        new = np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,   0.  ],
+                        [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,   0.  ],
+                        [ 45.  ,  15.  ,  18.32,   6.01,   5.26,   0.  ],
+                        [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,   0.  ],
+                        [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,   0.  ]], dtype=np.float64)
     """
-    if np.all(offset == (0.0, 0.0)) and (np.all(scale_factor == 1.0) or np.all(scale_factor == (1.0, 1.0))):
+    if (np.all(offset == (0.0, 0.0)) and
+        (np.all(scale_factor == 1.0) or
+         np.all(scale_factor == (1.0, 1.0)))):
         return kpts
     try:
         sfx, sfy = scale_factor
@@ -759,10 +749,8 @@ def transform_kpts(kpts, M):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]], dtype=np.float64)
-        >>> # execute function
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
         >>> result = ut.numpy_str(kpts, precision=3).replace('-0. ', ' 0. ')
@@ -778,7 +766,6 @@ def transform_kpts(kpts, M):
         >>> # DISABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> M = np.array([[  3.,   3.,   5.],
         ...               [  2.,   3.,   6.],
@@ -851,12 +838,10 @@ def transform_kpts_xys(H, kpts):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> H = np.array([[  3.,   3.,   5.],
         ...               [  2.,   3.,   6.],
         ...               [  1.,   1.,   2.]])
-        >>> # execute function
         >>> xy_t = transform_kpts_xys(H, kpts)
         >>> # verify results
         >>> result = ut.numpy_str(xy_t, precision=3)
@@ -1599,10 +1584,8 @@ def invert_invV_mats(invV_mats):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> invV_mats = vt.get_invVR_mats3x3(kpts)
-        >>> # execute function
         >>> V_mats = invert_invV_mats(invV_mats)
         >>> test = vt.matrix_multiply(invV_mats, V_mats)
         >>> # This should give us identity
@@ -1661,9 +1644,7 @@ def get_xy_axis_extents(kpts):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> # execute function
         >>> xyexnts = get_xy_axis_extents(kpts)
         >>> # verify results
         >>> result = str(xyexnts)
@@ -1700,11 +1681,8 @@ def get_kpts_image_extent(kpts):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> # execute function
         >>> wh_bound = get_kpts_image_extent(kpts)
-        >>> # verify results
         >>> result = kpts_repr(np.array(wh_bound))
         >>> print(result)
         array([ 51.79,  54.77])
@@ -1734,11 +1712,8 @@ def get_kpts_dlen_sqrd(kpts):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> # execute function
         >>> dlen_sqrd = get_kpts_dlen_sqrd(kpts)
-        >>> # verify results
         >>> result = '%.2f' % dlen_sqrd
         >>> print(result)
         5681.31
@@ -1840,12 +1815,10 @@ def kpts_docrepr(arr, name='arr', indent=True, *args, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> np.random.seed(0)
         >>> arr = np.random.rand(3, 3)
         >>> args = tuple()
         >>> kwargs = dict()
-        >>> # execute function
         >>> result = kpts_docrepr(arr)
         >>> # verify results
         >>> print(result)
@@ -1882,7 +1855,6 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts1 = np.array([[ 129.83,   46.97,   15.84,    4.66,    7.24,    0.  ],
         ...                   [ 137.88,   49.87,   20.09,    5.76,    6.2 ,    0.  ],
         ...                   [ 115.95,   53.13,   12.96,    1.73,    8.77,    0.  ],
@@ -1904,7 +1876,6 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>>                        [2, 3, 1, 5],
         >>>                        [5, 1, 0, 4],
         >>>                        [3, 1, 5, 0]], dtype=np.int32)
-        >>> # execute function
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
         >>> # verify results
@@ -1920,7 +1891,6 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> # build test data
         >>> kpts1 = np.array([[  6.,   4.,   15.84,    4.66,    7.24,    0.  ],
         ...                   [  9.,   3.,   20.09,    5.76,    6.2 ,    0.  ],
         ...                   [  1.,   1.,   12.96,    1.73,    8.77,    0.  ],])
@@ -1933,7 +1903,6 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> fx2_to_fx1 = np.array([[2, 1, 0],
         >>>                        [0, 1, 2],
         >>>                        [2, 1, 0]], dtype=np.int32)
-        >>> # execute function
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
         >>> # verify results

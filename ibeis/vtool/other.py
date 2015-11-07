@@ -48,15 +48,15 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
         >>> #import vtool as vt
         >>> #sorted_scores = vt.ziptake(scores_list, idxs_list)
         >>> #result = 'sorted_scores = %s' % (ut.list_str(sorted_scores),)
-        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list),)
+        >>> result = 'idxs_list = %s' % (ut.list_str(idxs_list, with_dtype=False),)
         >>> print(result)
         idxs_list = [
-            np.array([1, 0], dtype=np.int64),
-            np.array([1, 0], dtype=np.int64),
-            np.array([0, 1, 2], dtype=np.int64),
-            np.array([4, 7, 0, 5, 6, 1, 2, 3], dtype=np.int64),
-            np.array([1, 0], dtype=np.int64),
-            np.array([5, 3, 1, 2, 0, 4], dtype=np.int64),
+            np.array([1, 0]),
+            np.array([1, 0]),
+            np.array([0, 1, 2]),
+            np.array([4, 7, 0, 5, 6, 1, 2, 3]),
+            np.array([1, 0]),
+            np.array([5, 3, 1, 2, 0, 4]),
         ]
 
     """
