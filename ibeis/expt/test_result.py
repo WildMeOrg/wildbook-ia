@@ -6,13 +6,12 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
-#import six
 from six.moves import zip, range, map  # NOQA
 import vtool as vt
 import utool as ut
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(
+print, rrr, profile = ut.inject2(
     __name__, '[expt_harn]')
 
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
