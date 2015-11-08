@@ -6,15 +6,13 @@ not really used
 most things in here can be depricated
 """
 from __future__ import absolute_import, division, print_function
-# Python
 import six
 import utool as ut  # NOQA
 from six.moves import zip
 import numpy as np
-# Tools
 import utool
 from utool import DynStruct
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG=False)
+print, rrr, profile = utool.inject2(__name__, '[resorg]', DEBUG=False)
 
 
 #
