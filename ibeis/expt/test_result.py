@@ -374,6 +374,26 @@ class TestResult(object):
         return nLessX_dict
 
     def get_all_varied_params(testres):
+        r"""
+        Args:
+
+
+        Returns:
+            list: varied_params
+
+        CommandLine:
+            python -m ibeis.expt.test_result --exec-get_all_varied_params
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> import ibeis
+            >>> testres = ibeis.testdata_expts('PZ_MTEST', t='default:K=[1,2]')[1]
+            >>> varied_params = testres.get_all_varied_params()
+            >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
+            >>> print(result)
+            varied_params = ['K', '_cfgindex']
+        """
         # only for big results
         varied_cfg_params = list(set(ut.flatten(
             [cfgdict.keys()
@@ -1633,7 +1653,6 @@ class TestResult(object):
         return ' ' .join(annotcfg_args)
 
     def reconstruct_test_flags(testres):
-
         flagstr =  ' '.join([
             '-a ' + testres.get_annotcfg_args(),
             '-t ' + testres.get_pipecfg_args(),
