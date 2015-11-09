@@ -351,6 +351,29 @@ def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
 
 
 def argsort_multiarray(arrays, reverse=False):
+    r"""
+    Args:
+        arrays (ndarray):
+        reverse (bool): (default = False)
+
+    Returns:
+        ndarray: sortx
+
+    CommandLine:
+        python -m vtool.other --exec-argsort_multiarray
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arrays = np.array([[1, 1, 1, 2, 2, 2, 3, 4, 5, 5, 5],
+        >>>                    [2, 0, 2, 6, 4, 3, 2, 5, 6, 6, 6],
+        >>>                    [1, 1, 0, 2, 3, 4, 5, 6, 7, 7, 7]],)
+        >>> reverse = False
+        >>> sortx = argsort_multiarray(arrays, reverse)
+        >>> result = ('sortx = %s' % (str(sortx),))
+        >>> print(result)
+        sortx = [ 1  2  0  5  4  3  6  7  8  9 10]
+    """
     sorting_records = np.rec.fromarrays(arrays)
     sort_stride = (-reverse * 2) + 1
     sortx = sorting_records.argsort()[::sort_stride]
