@@ -17,10 +17,11 @@ def testdata_showchip():
         aid_list = ibs.get_valid_aids()[0:4]
     weight_label = ut.get_argval('--weight_label', type_=str, default='fg_weights')
     annote = not ut.get_argflag('--no-annote')
-    kwargs = dict(ori=False, weight_label=weight_label, annote=annote)
+    kwargs = dict(ori=ut.get_argflag('--ori'), weight_label=weight_label, annote=annote)
     ut.print_dict(kwargs)
     default_config = dict(ibeis.model.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
+    print('cfgdict = %r' % (cfgdict,))
     config2_ = ibs.new_query_params(cfgdict=cfgdict)
     print(aid_list)
     return ibs, aid_list, kwargs, config2_
@@ -67,17 +68,29 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_chip --show
+        python -m ibeis.viz.viz_chip --test-show_chip --show --ecc
         python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
+        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
         python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
 
     Example:
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
+        >>> import vtool as vt
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
+        >>> if ut.get_argflag('--ecc'):
+        >>>     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
+        >>>     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]
+        >>>     kpts = ut.random_sample(kpts[weights > .9], 200, seed=0)
+        >>>     ecc = vt.get_kpts_excentricity(kpts)
+        >>>     scale = 1 / vt.get_scales(kpts)
+        >>>     s = ecc if config2_.affine_invariance else scale
+        >>>     colors = pt.scores_to_color(s, cmap_='jet')
+        >>>     kwargs['color'] = colors
+        >>>     kwargs['kpts'] = kpts
         >>> show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)
         >>> pt.show_if_requested()
     """

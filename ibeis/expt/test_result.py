@@ -475,8 +475,10 @@ class TestResult(object):
             ('viewpoint_compare', 'viewpoint'),
             #('custom', 'default'),
             #('fg_on', 'FG'),
-            ('fg_on=True', 'FG'),
-            ('fg_on=False,?', ''),
+            #('fg_on=True', 'FG'),
+            #('fg_on=False,?', ''),
+            ('fg_on=True', 'FG=True'),
+            ('fg_on=False,?', 'FG=False'),
 
             ('lnbnn_on=True', 'LNBNN'),
             ('lnbnn_on=False,?', ''),
@@ -504,8 +506,8 @@ class TestResult(object):
             #('sample_per_ref_name', 'per_gt_name'),
             #('per_name', 'per_gf_name'),   # Try to make labels clearer for paper
             #----
-            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'csum'),
-            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'nsum'),
+            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'amech'),
+            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'fmech'),
             ('force_const_size=[^,]+,?', ''),
             (r'[dq]_true_size=\d+,?', ''),
             (r'_orig_size=[^,]+,?', ''),

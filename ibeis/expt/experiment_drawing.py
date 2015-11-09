@@ -70,7 +70,8 @@ def annotationmatch_scores(ibs, testres, f=None):
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
-        >>> annotationmatch_scores(ibs, testres)
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> annotationmatch_scores(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -165,6 +166,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         # Experiments I tagged
         python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
+        ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
+
         ibeis -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
         ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
         ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
@@ -183,7 +186,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
-        >>> draw_casetag_hist(ibs, testres)
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> draw_casetag_hist(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
     #from ibeis.init import main_helpers
@@ -237,7 +241,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
 
     flat_tags_list = list(map(ut.flatten, selected_tags))
 
-    WITH_NOTAGS = True
+    WITH_NOTAGS = False
     if WITH_NOTAGS:
         flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag'] for tags in flat_tags_list]
     else:
@@ -250,7 +254,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
 
     WITH_WEIGHTS = True
     if WITH_WEIGHTS:
-        flat_weights_list = [[1. / len(tags)] * len(tags) for tags in  flat_tags_list_]
+        flat_weights_list = [[] if len(tags) == 0 else [1. / len(tags)] * len(tags) for tags in  flat_tags_list_]
 
     flat_tags = list(map(str, ut.flatten(flat_tags_list_)))
     if WITH_WEIGHTS:
@@ -262,12 +266,13 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     fnum = None
     fnum = pt.ensure_fnum(fnum)
 
-    pt.word_histogram2(flat_tags, weight_list=weight_list, fnum=fnum, pnum=pnum_(), xlabel='Tag')
+    pt.word_histogram2(flat_tags, weight_list=weight_list, fnum=fnum, pnum=pnum_(), xlabel='Case')
 
     if with_wordcloud:
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
 
-    figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    #figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    figtitle = testres.make_figtitle('Case Histogram', filt_cfg=filt_cfg)
     figtitle += ' #cases=%r' % (len(case_qx_list))
 
     pt.set_figtitle(figtitle)
@@ -1087,7 +1092,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         #ut.scalar_str(percent, precision=2)
         ' - ' + label
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
-    color_list = pt.distinct_colors(len(label_list))
+
+    color_list = pt.distinct_colors(len(label_list), cmap_seed=ut.get_argval('--prefix', type_=str, default=None))
+
     marker_list = pt.distinct_markers(len(label_list))
     test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset',
                                     default=test_cfgx_slice)
@@ -1155,6 +1162,49 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
     pt.set_figtitle(figtitle, size=14)
     # HACK FOR FIGSIZE
+
+    # Overlay a species icon
+    # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+    import matplotlib as mpl
+    #ab = mpl.offsetbox.AnnotationBbox(offsetbox, xy,
+    #                    xybox=(1.02, xy[1]),
+    #                    xycoords='data',
+    #                    boxcoords=("axes fraction", "data"),
+    #                    box_alignment=(0., 0.5),
+    #                    arrowprops=dict(arrowstyle="->"))
+    ax = pt.gca()
+
+    species = ibs.get_primary_database_species()
+    url = {
+        ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+        ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
+        ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/DwwqrJb.png',
+    }[species]
+
+    #icon = vt.imread(ut.grab_test_imgpath('star.png'))
+    #icon = vt.imread(ut.grab_test_imgpath('zebra.png'))
+    icon = vt.imread(ut.grab_file_url(url))
+    #icon = vt.resize_to_maxdims(icon, (128, 128))
+    icon = vt.resize_to_maxdims(icon, (256, 256))
+    icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
+    #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=0.2)
+
+    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+
+    #xy = [0.3, 0.55]
+
+    xy = [ax.get_xlim()[0], 0]
+    ab = mpl.offsetbox.AnnotationBbox(imagebox, xy,
+                                      #xybox=(120., -80.),
+                                      #xybox=(4., -1.),
+                                      xycoords='data',
+                                      boxcoords="offset points",
+                                      box_alignment=(0, 0),
+                                      pad=0.0,
+                                      #arrowprops=dict(arrowstyle="->",
+                                      #                connectionstyle="angle,angleA=0,angleB=90,rad=3")
+                                      )
+    ax.add_artist(ab)
 
     fig = pt.gcf()
     #import utool as ut

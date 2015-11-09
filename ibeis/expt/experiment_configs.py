@@ -104,6 +104,32 @@ def best(metadata):
     return default
 
 
+featscoremetch = [
+    {
+        'lnbnn_on': True,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'ratio_thresh': 0,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'dist_on': True,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'const_on': True,
+        'fg_on': [True, False],
+    },
+    #{
+    #    'lnbnn_on': False,
+    #    'lograt_on': True,
+    #},
+]
+
 # only best for grevys
 invarbest = [{
     'augment_queryside_hack': True,

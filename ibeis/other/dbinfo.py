@@ -607,7 +607,8 @@ def show_image_time_distributions(ibs, gid_list):
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> gid_list = ibs.get_valid_gids()
+        >>> aids = ibeis.testdata_aids(ibs=ibs)
+        >>> gid_list = ut.unique_unordered(ibs.get_annot_gids(aids))
         >>> result = show_image_time_distributions(ibs, gid_list)
         >>> print(result)
         >>> ut.show_if_requested()
