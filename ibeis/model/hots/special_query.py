@@ -387,9 +387,10 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=False, qreq_vsmany_=None,
         pipeline_root='vsmany',
         return_expanded_nns=True
     )
-    qaid2_qres_vsmany, qreq_vsmany_ = ibs._query_chips4(
+    cm_list, qreq_vsmany_ = ibs.query_chips(
         qaids, daids, cfgdict=vsmany_cfgdict, return_request=True,
         use_cache=use_cache, qreq_=qreq_vsmany_, save_qcache=save_qcache)
+    qaid2_qres_vsmany = {cm.qaid: cm for cm in cm_list}
     isnsum = qreq_vsmany_.qparams.score_method == 'nsum'
     assert isnsum, 'not nsum'
     assert qreq_vsmany_.qparams.pipeline_root != 'vsone'
@@ -488,20 +489,14 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
         codename=codename,
     )
     #------------------------
-    # METHOD 1:
     qaid2_qres_vsone = {}
     for qaid, top_aids in vsone_query_pairs:
         # Perform a query request for each
-        qaid2_qres_vsone_, __qreq_vsone_ = ibs._query_chips4(
+        cm_list_vsone_, __qreq_vsone_ = ibs.query_chips(
             [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,
             use_cache=use_cache, save_qcache=save_qcache)
+        qaid2_qres_vsone_ = {cm.qaid: cm for cm in cm_list_vsone_}
         qaid2_qres_vsone.update(qaid2_qres_vsone_)
-    #------------------------
-    # METHOD 2:
-    # doesn't work because daids are not the same for each run
-    #qaid2_qres_vsone_, vsone_qreq_ = ibs._query_chips4(
-    #    [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,
-    #    use_cache=use_cache)
     #------------------------
     # Create pseudo query request because there is no good way to
     # represent the vsone reranking as a single query request and

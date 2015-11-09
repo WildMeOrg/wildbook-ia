@@ -4,7 +4,7 @@ get_dbinfo is probably the only usefull funciton in here
 # This is not the cleanest module
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import numpy as np
@@ -688,6 +688,15 @@ def latex_dbstats(ibs_list, **kwargs):
         >>> ut.quit_if_noshow()
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
+
+    import ibeis
+    # Parse for aids test data
+    aids_list = [ibeis.testdata_aids(ibs=ibs) for ibs in ibs_list]
+
+    #dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
+    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False, aid_list=aids)
+                   for ibs, aids in zip(ibs_list, aids_list)]
+
     #title = db_name + ' database statistics'
     title = 'Database statistics'
     stat_title = '# Annot per name (multiton)'
@@ -735,12 +744,10 @@ def latex_dbstats(ibs_list, **kwargs):
     row_values = []
 
     #stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
-    stat_col_lbls = ['max', 'min', 'mean', 'std', 'median']
+    stat_col_lbls = ['max', 'min', 'mean', 'std', 'med']
     #stat_row_lbls = ['# Annot per Name (multiton)']
     stat_row_lbls = []
     stat_row_values = []
-
-    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
 
     SINGLE_TABLE = False
     EXTRA = True

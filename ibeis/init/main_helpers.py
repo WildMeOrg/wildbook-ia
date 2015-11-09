@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-The AID configuration selection is getting a mjor update right now
+This module defines helper functions to access common input needed to test many
+functions. These functions give a rich command line interface to specifically
+select subsets of annotations, pipeline configurations, and other filters.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -208,24 +210,28 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
 
 
 @profile
-def testdata_aids(defaultdb=None, default_options='', ibs=None):
+def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_acfg=False):
     r"""
     CommandLine:
         python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
         python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist
 
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_aids --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from ibeis.init.main_helpers import *  # NOQA
         >>> from ibeis.expt import annotation_configs
         >>> import ibeis
         >>> #ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> default_options = ''
-        >>> aidcfg, aids = testdata_aids(ibs=ibs, default_options=default_options)
+        >>> a = None
+        >>> adefault = 'default:is_known=True'
+        >>> aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)
         >>> print('\n RESULT:')
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
@@ -233,20 +239,33 @@ def testdata_aids(defaultdb=None, default_options='', ibs=None):
     from ibeis.expt import annotation_configs
     from ibeis.expt import cfghelpers
     import ibeis
+    if a is None:
+        a = adefault
+    a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a)
     if ibs is None:
         if defaultdb is None:
             defaultdb = 'testdb1'
         ibs = ibeis.opendb(defaultdb=defaultdb)
-    cfgstr_options = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=default_options)
-    base_cfg = annotation_configs.single_default
-    aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
-                                                 base_cfg, 'aids',
-                                                 alias_keys=annotation_configs.ALIAS_KEYS)
-    aidcfg = aidcfg_combo[0]
-    if len(aidcfg_combo) > 1:
+    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
+                                       annotation_configs.TEST_NAMES)
+    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
+    #base_cfg = annotation_configs.single_default
+    aidcfg_combo_list = cfghelpers.parse_cfgstr_list2([a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS, expand_nested=False, is_nestedcfgtype=False)
+    #aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
+    #                                             base_cfg, 'aids',
+    #                                             alias_keys=annotation_configs.ALIAS_KEYS)
+    aidcfg_combo = aidcfg_combo_list[0]
+    if len(aidcfg_combo_list) != 1:
         raise AssertionError('Error: combinations not handled for single cfg setting')
+    if len(aidcfg_combo) != 1:
+        raise AssertionError('Error: combinations not handled for single cfg setting')
+    aidcfg = aidcfg_combo[0]
     aids = filter_annots.expand_single_acfg(ibs, aidcfg)
-    return aidcfg, aids
+    if return_acfg:
+        return aids, aidcfg
+    else:
+        return aids
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ Definitions for common aid configurations
 
 Rename to annot_cfgdef
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis.expt import cfghelpers
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
@@ -32,13 +32,15 @@ OTHER_DEFAULTS = {
 # Defaults for the independent filter
 # THese filters are orderless
 INDEPENDENT_DEFAULTS = {
-    'species'             : 'primary',  # specify the species
+    #'species'             : 'primary',  # specify the species
+    'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
     'contrib_contains'    : None,
     # Quality Params
     'require_quality'     : None,  # if True unknown qualities are removed
-    'minqual'             : 'poor',
+    #'minqual'             : 'poor',
+    'minqual'             : None,
     'been_adjusted'       : None,  # HACK PARAM
     # Viewpoint params
     'require_viewpoint'   : None,
@@ -356,6 +358,7 @@ __controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
     #'require_timestamp': True,
     'view_ext': 0,
     'minqual': 'ok',
+    'species': 'primary',
     'is_known': True,
 })
 
@@ -368,12 +371,12 @@ exclude_vars.append('exclude_vars')
 
 default = {
     'qcfg': ut.augdict(
-        __default_aidcfg, {
+        single_default, {
             #'default_aids': (1,)
         }),
 
     'dcfg': ut.augdict(
-        __default_aidcfg, {
+        single_default, {
         }),
 }
 
@@ -386,10 +389,12 @@ unctrl = uncontrolled = {
         __baseline_aidcfg, {
             #'default_aids': 'allgt',
             'min_pername': 2,
+            'species': 'primary',
         }),
 
     'dcfg': ut.augdict(
         __baseline_aidcfg, {
+            'species': 'primary',
         }),
 }
 
@@ -399,6 +404,7 @@ unctrl_comp =  {
     'qcfg': ut.augdict(
         __baseline_aidcfg, {
             #'default_aids': 'allgt',
+            'species': 'primary',
             'sample_per_name': 1,
             'min_pername': 2,
             'view_ext': 0,
@@ -406,6 +412,7 @@ unctrl_comp =  {
 
     'dcfg': ut.augdict(
         __baseline_aidcfg, {
+            'species': 'primary',
         }),
 }
 

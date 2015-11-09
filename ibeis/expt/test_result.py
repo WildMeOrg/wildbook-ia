@@ -282,7 +282,10 @@ class TestResult(object):
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
 
-            python -m ibeis --tf TestResult.get_rank_percentage_cumhist --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show --cmd
+            python -m ibeis --tf TestResult.get_rank_percentage_cumhist \
+                --db lynx \
+                -a default:qsame_encounter=True,been_adjusted=True,excluderef=True \
+                -t default:K=1 --show --cmd
 
         Example:
             >>> # DISABLE_DOCTEST
