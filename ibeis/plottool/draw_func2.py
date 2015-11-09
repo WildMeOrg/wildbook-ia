@@ -1615,60 +1615,6 @@ def print_valid_cmaps():
     print(ut.list_str(sorted(maps)))
 
 
-def show_all_colormaps():
-    """
-    Displays at a 90 degree angle. Weird
-
-    FIXME: Remove call to pylab
-
-    References:
-        http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
-        http://matplotlib.org/examples/color/colormaps_reference.html
-
-    CommandLine:
-        python -m plottool.draw_func2 --test-show_all_colormaps --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> show_all_colormaps()
-        >>> pt.show_if_requested()
-    """
-    import pylab
-    import numpy as np
-    pylab.rc('text', usetex=False)
-    TRANSPOSE = True
-    a = np.outer(np.arange(0, 1, 0.01), np.ones(10))
-    if TRANSPOSE:
-        a = a.T
-    pylab.figure(figsize=(10, 5))
-    if TRANSPOSE:
-        pylab.subplots_adjust(right=0.8, left=0.05, bottom=0.01, top=0.99)
-    else:
-        pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
-    maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
-    maps.sort()
-    l = len(maps) + 1
-    for i, m in enumerate(maps):
-        if TRANSPOSE:
-            pylab.subplot(l, 1, i + 1)
-        else:
-            pylab.subplot(1, l, i + 1)
-
-        #pylab.axis("off")
-        ax = plt.gca()
-        ax.set_xticks([])
-        ax.set_yticks([])
-        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m))  # , origin="lower")
-        if TRANSPOSE:
-            ax.set_ylabel(m, rotation=0, fontsize=10,
-                          horizontalalignment='right', verticalalignment='center')
-        else:
-            pylab.title(m, rotation=90, fontsize=10)
-    #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
-
-
 def colorbar(scalars, colors, custom=False, lbl=None):
     """
     adds a color bar next to the axes based on specific scalars

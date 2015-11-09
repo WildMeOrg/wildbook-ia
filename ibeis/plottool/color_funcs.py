@@ -227,7 +227,7 @@ def brighten(*args, **kwargs):
     return brighten_rgb(*args, **kwargs)
 
 
-def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
+def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cmap_seed=None):
     r"""
     Args:
         N (int):
@@ -250,6 +250,7 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
     CommandLine:
         python -m plottool.color_funcs --exec-distinct_colors --show
         python -m plottool.color_funcs --exec-distinct_colors --show --no-randomize --N 50
+        python -m plottool.color_funcs --exec-distinct_colors --show --cmap_seed=foobar
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -259,8 +260,9 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
         >>> randomize = not ut.get_argflag('--no-randomize')
         >>> brightness = 0.878
         >>> # execute function
+        >>> cmap_seed = ut.get_argval('--cmap_seed', str, default=None)
         >>> hue_range = ut.get_argval('--hue-range', list, default=(0.00, 1.0))
-        >>> RGB_tuples = distinct_colors(N, brightness, randomize, hue_range)
+        >>> RGB_tuples = distinct_colors(N, brightness, randomize, hue_range, cmap_seed=cmap_seed)
         >>> # verify results
         >>> assert len(RGB_tuples) == N
         >>> result = str(RGB_tuples)
@@ -283,11 +285,42 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
     if use_jet:
         import plottool as pt
         cmap = pt.plt.cm.jet
-    else:
-        cmap = None
-
-    if cmap is not None:
         RGB_tuples = list(map(tuple, cmap(np.linspace(0, 1, N))))
+    elif cmap_seed is not None:
+        # Randomized map based on a seed
+        #cmap_ = 'Set1'
+        #cmap_ = 'Dark2'
+        choices = [
+            #'Set1', 'Dark2',
+            'jet',
+            #'gist_rainbow',
+            #'rainbow',
+            #'gnuplot',
+            #'Accent'
+        ]
+        seed = sum(list(map(ord, ut.hashstr27(cmap_seed))))
+        rng = np.random.RandomState(seed + 48930)
+        cmap_str = rng.choice(choices, 1)[0]
+        #print('cmap_str = %r' % (cmap_str,))
+        cmap = pt.plt.cm.get_cmap(cmap_str)
+        #ut.hashstr27(cmap_seed)
+        #cmap_seed = 0
+        #pass
+        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * ((1 / N))
+        range_ = np.linspace(0, 1, N)
+        #print('range_ = %r' % (range_,))
+        range_ = range_ + jitter
+        #print('range_ = %r' % (range_,))
+        while not (np.all(range_ >= 0) and np.all(range_ <= 1)):
+            range_[range_ < 0] = np.abs(range_[range_ < 0] )
+            range_[range_ > 1] = 2 - range_[range_ > 1]
+        #print('range_ = %r' % (range_,))
+        shift = rng.rand()
+        range_ = (range_ + shift) % 1
+        #print('jitter = %r' % (jitter,))
+        #print('shift = %r' % (shift,))
+        #print('range_ = %r' % (range_,))
+        RGB_tuples = list(map(tuple, cmap(range_)))
     else:
         sat = brightness
         val = brightness
@@ -312,6 +345,115 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0)):
 
 def add_alpha(colors):
     return [list(color) + [1] for color in colors]
+
+
+CMAP_DICT = dict([
+    ('Perceptually Uniform Sequential',
+     ['viridis', 'inferno', 'plasma', 'magma']),
+    ('Sequential',     ['Blues', 'BuGn', 'BuPu',
+                        'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                        'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
+                        'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd']),
+    ('Sequential (2)', ['afmhot', 'autumn', 'bone', 'cool',
+                        'copper', 'gist_heat', 'gray', 'hot',
+                        'pink', 'spring', 'summer', 'winter']),
+    ('Diverging',      ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
+                        'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
+                        'seismic']),
+    ('Qualitative',    ['Accent', 'Dark2', 'Paired', 'Pastel1',
+                        'Pastel2', 'Set1', 'Set2', 'Set3']),
+    ('Miscellaneous',  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
+                        'brg', 'CMRmap', 'cubehelix',
+                        'gnuplot', 'gnuplot2', 'gist_ncar',
+                        'nipy_spectral', 'jet', 'rainbow',
+                        'gist_rainbow', 'hsv', 'flag', 'prism']),
+])
+
+
+def show_all_colormaps():
+    """
+    Displays at a 90 degree angle. Weird
+
+    FIXME: Remove call to pylab
+
+    References:
+        http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
+        http://matplotlib.org/examples/color/colormaps_reference.html
+
+    Notes:
+        cmaps = [('Perceptually Uniform Sequential',
+                            ['viridis', 'inferno', 'plasma', 'magma']),
+         ('Sequential',     ['Blues', 'BuGn', 'BuPu',
+                             'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                             'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
+                             'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd']),
+         ('Sequential (2)', ['afmhot', 'autumn', 'bone', 'cool',
+                             'copper', 'gist_heat', 'gray', 'hot',
+                             'pink', 'spring', 'summer', 'winter']),
+         ('Diverging',      ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
+                             'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
+                             'seismic']),
+         ('Qualitative',    ['Accent', 'Dark2', 'Paired', 'Pastel1',
+                             'Pastel2', 'Set1', 'Set2', 'Set3']),
+         ('Miscellaneous',  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
+                             'brg', 'CMRmap', 'cubehelix',
+                             'gnuplot', 'gnuplot2', 'gist_ncar',
+                             'nipy_spectral', 'jet', 'rainbow',
+                             'gist_rainbow', 'hsv', 'flag', 'prism'])
+                             ]
+
+
+    CommandLine:
+        python -m plottool.color_funcs --test-show_all_colormaps --show
+        python -m plottool.color_funcs --test-show_all_colormaps --show --type=Miscellaneous
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> import plottool as pt
+        >>> show_all_colormaps()
+        >>> pt.show_if_requested()
+    """
+    from matplotlib import pyplot as plt
+    import pylab
+    import numpy as np
+
+    pylab.rc('text', usetex=False)
+    TRANSPOSE = True
+    a = np.outer(np.arange(0, 1, 0.01), np.ones(10))
+    if TRANSPOSE:
+        a = a.T
+    pylab.figure(figsize=(10, 5))
+    if TRANSPOSE:
+        pylab.subplots_adjust(right=0.8, left=0.05, bottom=0.01, top=0.99)
+    else:
+        pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
+
+    type_ =  ut.get_argval('--type', str, default=None)
+    if type_ is None:
+        maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
+        maps.sort()
+    else:
+        maps = CMAP_DICT[type_]
+
+    l = len(maps) + 1
+    for i, m in enumerate(maps):
+        if TRANSPOSE:
+            pylab.subplot(l, 1, i + 1)
+        else:
+            pylab.subplot(1, l, i + 1)
+
+        #pylab.axis("off")
+        ax = plt.gca()
+        ax.set_xticks([])
+        ax.set_yticks([])
+        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m))  # , origin="lower")
+        if TRANSPOSE:
+            ax.set_ylabel(m, rotation=0, fontsize=10,
+                          horizontalalignment='right', verticalalignment='center')
+        else:
+            pylab.title(m, rotation=90, fontsize=10)
+    #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
 
 
 if __name__ == '__main__':
