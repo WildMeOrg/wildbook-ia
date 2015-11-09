@@ -455,7 +455,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
     if HACK_KCFG:
-        kbase = qreq_.qparams.K + qreq_.qparams.Knorm
+        kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
         nn_mid_cacheid_list = [
             str(query_hashid) + nn_mid_cacheid + '_truek' + str(kbase + Kpad)
             for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
