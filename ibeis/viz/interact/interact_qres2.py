@@ -12,7 +12,6 @@ from plottool import plot_helpers as ph
 import matplotlib as mpl
 import plottool.draw_func2 as df2
 from ibeis import ibsfuncs
-from ibeis.expt import results_organizer
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_matches
 from ibeis.viz.interact.interact_sver import ishow_sver
@@ -88,9 +87,10 @@ class Interact_QueryResult(object):
 
     def init_candidates(self, qaid2_qres):
         self.qaid2_qres = qaid2_qres
-        self.cand_match_list = results_organizer.get_automatch_candidates(self.qaid2_qres,
-                                                                          ranks_lt=self.ranks_lt,
-                                                                          directed=False)
+        from ibeis.gui import inspect_gui
+        self.cand_match_list = inspect_gui.get_automatch_candidates(self.qaid2_qres,
+                                                                    ranks_lt=self.ranks_lt,
+                                                                    directed=False)
         (qaids, aids, scores, ranks) = self.cand_match_list
         self.qaids = qaids
         self.aids = aids

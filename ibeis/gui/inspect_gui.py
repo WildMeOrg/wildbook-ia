@@ -13,7 +13,6 @@ from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
 from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
-from ibeis.expt import results_organizer
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 from ibeis.model.hots import chip_match
@@ -930,7 +929,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         filter_reviewed = len(cm_list) > 6
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
 
-    candidate_matches = results_organizer.get_automatch_candidates(
+    candidate_matches = get_automatch_candidates(
         cm_list, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,
         directed=False, filter_reviewed=filter_reviewed,
         filter_duplicate_namepair_matches=filter_duplicate_namepair_matches
@@ -1152,6 +1151,194 @@ def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=
         qres_wgt.show()
         qres_wgt.raise_()
     return qres_wgt
+
+
+@profile
+def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
+                             name_scoring=False, ibs=None, filter_reviewed=False,
+                             filter_duplicate_namepair_matches=False):
+    """
+    Needs to be moved to a better file. Maybe something to do with
+    identification.
+
+    Returns a list of matches that should be inspected
+    This function is more lightweight than orgres or allres.
+    Used in inspect_gui and interact_qres2
+
+    Args:
+        cm_list (list): list of chip match objects
+        ranks_lt (int): put all ranks less than this number into the graph
+        directed (bool):
+
+    Returns:
+        tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
+
+    CommandLine:
+        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
+        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+        >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
+        >>> ranks_lt = 5
+        >>> directed = True
+        >>> name_scoring = False
+        >>> candidate_matches = get_automatch_candidates(cm_list, ranks_lt, directed, ibs=ibs)
+        >>> print(candidate_matches)
+
+    Example1:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:5]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> cm_list = ibs.query_chips(qaid_list, daid_list, return_cm=True)
+        >>> ranks_lt = 5
+        >>> directed = False
+        >>> name_scoring = False
+        >>> filter_reviewed = False
+        >>> filter_duplicate_namepair_matches = True
+        >>> candidate_matches = get_automatch_candidates(
+        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
+        ...    filter_reviewed=filter_reviewed,
+        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+        ...    ibs=ibs)
+        >>> print(candidate_matches)
+
+    Example3:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:1]
+        >>> daid_list = ibs.get_valid_aids()[10:100]
+        >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list, return_cm=True)
+        >>> ranks_lt = 1
+        >>> directed = False
+        >>> name_scoring = False
+        >>> filter_reviewed = False
+        >>> filter_duplicate_namepair_matches = True
+        >>> candidate_matches = get_automatch_candidates(
+        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
+        ...    filter_reviewed=filter_reviewed,
+        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+        ...    ibs=ibs)
+        >>> print(candidate_matches)
+
+    Example4:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:10]
+        >>> daid_list = ibs.get_valid_aids()[0:10]
+        >>> qres_list = ibs.query_chips(qaid_list, daid_list)
+        >>> ranks_lt = 3
+        >>> directed = False
+        >>> name_scoring = False
+        >>> filter_reviewed = False
+        >>> filter_duplicate_namepair_matches = True
+        >>> candidate_matches = get_automatch_candidates(
+        ...    qaid2_cm, ranks_lt, directed, name_scoring=name_scoring,
+        ...    filter_reviewed=filter_reviewed,
+        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+        ...    ibs=ibs)
+        >>> print(candidate_matches)
+    """
+    import vtool as vt
+    from ibeis.model.hots import chip_match
+    print(('[resorg] get_automatch_candidates('
+           'filter_reviewed={filter_reviewed},'
+           'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
+           'directed={directed},'
+           'ranks_lt={ranks_lt},'
+           ).format(**locals()))
+    print('[resorg] len(cm_list) = %d' % (len(cm_list)))
+    qaids_stack  = []
+    daids_stack  = []
+    ranks_stack  = []
+    scores_stack = []
+
+    # For each QueryResult, Extract inspectable candidate matches
+    if isinstance(cm_list, dict):
+        cm_list = list(cm_list.values())
+
+    for cm in cm_list:
+        if isinstance(cm, chip_match.ChipMatch2):
+            daids  = cm.get_top_aids(ntop=ranks_lt)
+            scores = cm.get_top_scores(ntop=ranks_lt)
+            ranks  = np.arange(len(daids))
+            qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
+        else:
+            (qaids, daids, scores, ranks) = cm.get_match_tbldata(
+                ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
+        qaids_stack.append(qaids)
+        daids_stack.append(daids)
+        scores_stack.append(scores)
+        ranks_stack.append(ranks)
+
+    # Stack them into a giant array
+    # utool.embed()
+    qaid_arr  = np.hstack(qaids_stack)
+    daid_arr  = np.hstack(daids_stack)
+    score_arr = np.hstack(scores_stack)
+    rank_arr  = np.hstack(ranks_stack)
+
+    # Sort by scores
+    sortx = score_arr.argsort()[::-1]
+    qaid_arr  = qaid_arr[sortx]
+    daid_arr   = daid_arr[sortx]
+    score_arr = score_arr[sortx]
+    rank_arr  = rank_arr[sortx]
+
+    if filter_reviewed:
+        _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist())
+        is_unreviewed = ~np.array(_is_reviewed, dtype=np.bool)
+        qaid_arr  = qaid_arr.compress(is_unreviewed)
+        daid_arr   = daid_arr.compress(is_unreviewed)
+        score_arr = score_arr.compress(is_unreviewed)
+        rank_arr  = rank_arr.compress(is_unreviewed)
+
+    # Remove directed edges
+    if not directed:
+        #nodes = np.unique(directed_edges.flatten())
+        directed_edges = np.vstack((qaid_arr, daid_arr)).T
+        #idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
+
+        unique_rowx = vt.find_best_undirected_edge_indexes(directed_edges, score_arr)
+
+        qaid_arr  = qaid_arr.take(unique_rowx)
+        daid_arr  = daid_arr.take(unique_rowx)
+        score_arr = score_arr.take(unique_rowx)
+        rank_arr  = rank_arr.take(unique_rowx)
+
+    # Filter Double Name Matches
+    if filter_duplicate_namepair_matches:
+        qnid_arr = ibs.get_annot_nids(qaid_arr)
+        dnid_arr = ibs.get_annot_nids(daid_arr)
+        if not directed:
+            directed_name_edges = np.vstack((qnid_arr, dnid_arr)).T
+            unique_rowx2 = vt.find_best_undirected_edge_indexes(directed_name_edges, score_arr)
+        else:
+            namepair_id_list = np.array(vt.compute_unique_data_ids_(list(zip(qnid_arr, dnid_arr))))
+            unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
+            score_namepair_groups = vt.apply_grouping(score_arr, namepair_groupxs)
+            unique_rowx2 = np.array(sorted([
+                groupx[score_group.argmax()]
+                for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)
+            ]), dtype=np.int32)
+        qaid_arr  = qaid_arr.take(unique_rowx2)
+        daid_arr  = daid_arr.take(unique_rowx2)
+        score_arr = score_arr.take(unique_rowx2)
+        rank_arr  = rank_arr.take(unique_rowx2)
+
+    candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
+    return candidate_matches
 
 
 if __name__ == '__main__':
