@@ -1099,7 +1099,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         color_list = ut.list_take(color_list, test_cfgx_slice)
         marker_list = ut.list_take(marker_list, test_cfgx_slice)
     # Order cdf list by rank0
-    sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+    #sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+    sortx = vt.argsort_multiarray(cfgx2_cumhist_percent.T)[::-1]
     label_list = ut.list_take(label_list, sortx)
     cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent, sortx))
     color_list = ut.list_take(color_list, sortx)

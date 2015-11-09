@@ -11,8 +11,8 @@ import vtool as vt
 import utool as ut
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
-print, rrr, profile = ut.inject2(
-    __name__, '[expt_harn]')
+#print, rrr, profile = ut.inject2(
+#    __name__, '[expt_harn]')
 
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
 print, rrr, profile = ut.inject2(
