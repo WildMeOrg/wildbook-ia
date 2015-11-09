@@ -661,6 +661,70 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     return imgkpts
 
 
+def get_kpts_excentricity(kpts):
+    """
+
+    SeeAlso:
+        pyhesaff.tests.test_ellipse
+
+    Ascii:
+
+        Connic marix is
+        Z_mat = np.array((('    A', 'B / 2', 'D / 2'),
+                          ('B / 2', '    C', 'E / 2'),
+                          ('D / 2', 'E / 2', '    F')))
+        ----------------------------------
+        The eccentricity is determined by:
+        [A, B, C, D] = kpts_mat
+
+                    (2 * np.sqrt((A - C) ** 2 + B ** 2))
+        ecc = -----------------------------------------------
+              (nu * (A + C) + np.sqrt((A - C) ** 2 + B ** 2))
+
+        (nu is always 1 for ellipses)
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        offset (tuple): (default = (0.0, 0.0))
+        scale_factor (float): (default = 1.0)
+
+    CommandLine:
+        python -m vtool.keypoint --exec-get_kpts_excentricity --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts_ = vt.dummy.get_dummy_kpts()
+        >>> kpts = np.append(kpts_, [[10, 10, 5, 0, 5, 0]], axis=0)
+        >>> ecc = get_kpts_excentricity(kpts)
+        >>> result = 'ecc = %s' % (ut.repr2(ecc, precision=2))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> colors = pt.scores_to_color(ecc)
+        >>> pt.draw_kpts2(kpts, color=colors, ell_linewidth=6)
+        >>> wh = np.array(vt.get_kpts_image_extent(kpts))
+        >>> ax = pt.gca()
+        >>> ax.set_xlim(0, wh[0])
+        >>> ax.set_ylim(0, wh[1])
+        >>> pt.dark_background()
+        >>> pt.colorbar(ecc, colors)
+        >>> ut.show_if_requested()
+        ecc = np.array([ 0.96,  0.99,  0.87,  0.91,  0.55,  0.  ])
+    """
+    RV_mats2x2 = get_RV_mats2x2(kpts)
+    Z_mats2x2 = get_Z_mats(RV_mats2x2)
+    A = Z_mats2x2[:, 0, 0]
+    B = Z_mats2x2[:, 0, 1] * 2
+    C = Z_mats2x2[:, 1, 1]
+    nu = 1
+    numer = (2 * np.sqrt((A - C) ** 2 + B ** 2))
+    denom = (nu * (A + C) + np.sqrt((A - C) ** 2 + B ** 2))
+    ecc = numer / denom
+    return ecc
+
+
 #@profile
 def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
     r"""
@@ -1552,6 +1616,16 @@ def get_V_mats(kpts, **kwargs):
     invV_mats = get_invV_mats(kpts, **kwargs)
     V_mats = invert_invV_mats(invV_mats)
     return V_mats
+
+
+def get_RV_mats2x2(kpts):
+    """
+    Returns:
+        V_mats (ndarray) : sequence of matrices that transform an ellipse to unit circle
+    """
+    invVR_mats2x2 = get_invVR_mats2x2(kpts)
+    RV_mats2x2 = invert_invV_mats(invVR_mats2x2)
+    return RV_mats2x2
 
 
 #@profile
