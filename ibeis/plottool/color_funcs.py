@@ -4,14 +4,17 @@ from plottool import custom_constants  # NOQA
 import colorsys
 import numpy as np  # NOQA
 import utool as ut
+#from plottool import colormaps as cmaps2
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
 ut.noinject(__name__, '[colorfuncs]')
 
 
 def assert_base01(channels):
     try:
-        assert all([ut.is_float(channel) for channel in channels]), 'channels must be floats'
-        assert all([channel <= 1.0 for channel in channels]), 'channels must be in 0-1'
+        assert all([ut.is_float(channel) for channel in channels]), (
+            'channels must be floats')
+        assert all([channel <= 1.0 for channel in channels]), (
+            'channels must be in 0-1')
     except AssertionError as ex:
         ut.printex(ex, key_list=['channels'])
         raise
@@ -298,6 +301,13 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
             #'gnuplot',
             #'Accent'
         ]
+        cmap_hack = ut.get_argval('--cmap-hack', type_=str, default=None)
+        ncolor_hack = ut.get_argval('--ncolor-hack', type_=int, default=None)
+        if cmap_hack is not None:
+            choices = [cmap_hack]
+        if ncolor_hack is not None:
+            N = ncolor_hack
+            N_ = N
         seed = sum(list(map(ord, ut.hashstr27(cmap_seed))))
         rng = np.random.RandomState(seed + 48930)
         cmap_str = rng.choice(choices, 1)[0]
@@ -306,8 +316,8 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         #ut.hashstr27(cmap_seed)
         #cmap_seed = 0
         #pass
-        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * ((1 / N))
-        range_ = np.linspace(0, 1, N)
+        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * ((1 / (N ** 2)))
+        range_ = np.linspace(0, 1, N, endpoint=False)
         #print('range_ = %r' % (range_,))
         range_ = range_ + jitter
         #print('range_ = %r' % (range_,))
@@ -320,6 +330,8 @@ def distinct_colors(N, brightness=.878, randomize=True, hue_range=(0.0, 1.0), cm
         #print('jitter = %r' % (jitter,))
         #print('shift = %r' % (shift,))
         #print('range_ = %r' % (range_,))
+        if ncolor_hack is not None:
+            range_ = range_[0:N_]
         RGB_tuples = list(map(tuple, cmap(range_)))
     else:
         sat = brightness
@@ -367,6 +379,7 @@ CMAP_DICT = dict([
                         'gnuplot', 'gnuplot2', 'gist_ncar',
                         'nipy_spectral', 'jet', 'rainbow',
                         'gist_rainbow', 'hsv', 'flag', 'prism']),
+    #('New', ['magma', 'inferno', 'plasma', 'viridis']),
 ])
 
 
@@ -432,6 +445,7 @@ def show_all_colormaps():
     type_ =  ut.get_argval('--type', str, default=None)
     if type_ is None:
         maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
+        #maps += cmaps2.__all__
         maps.sort()
     else:
         maps = CMAP_DICT[type_]
@@ -447,7 +461,12 @@ def show_all_colormaps():
         ax = plt.gca()
         ax.set_xticks([])
         ax.set_yticks([])
-        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m))  # , origin="lower")
+        #try:
+        cmap = pylab.get_cmap(m)
+        #except Exception:
+        #    cmap = getattr(cmaps2, m)
+
+        pylab.imshow(a, aspect='auto', cmap=cmap)  # , origin="lower")
         if TRANSPOSE:
             ax.set_ylabel(m, rotation=0, fontsize=10,
                           horizontalalignment='right', verticalalignment='center')

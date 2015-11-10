@@ -1564,7 +1564,7 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
         http://stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
 
     CommandLine:
-        python -m plottool.plots --exec-word_histogram2 --show
+        python -m plottool.plots --exec-word_histogram2 --show --lightbg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1582,18 +1582,17 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
     text_vals = list(text_hist.values())
     sortx = ut.list_argsort(text_vals)[::-1]
     bin_labels = ut.list_take(list(text_hist.keys()), sortx)
-    freq = ut.list_take(text_vals, sortx)
+    freq = np.array(ut.list_take(text_vals, sortx))
     xints = np.arange(len(bin_labels))
 
     width = .95
-    freq_list = [np.array(freq, dtype=np.float)]
-    ymax = max([
-        _freq.max() if len(_freq) > 0 else 0
-        for _freq in freq_list])
+    ymax = freq.max() if len(freq) > 0 else 0
     print('ymax = %r' % (ymax,))
-    pt.multi_plot(xints, freq_list, xpad=0, ypad_high=.5,
+    color = plt.cm.get_cmap('inferno')((freq / freq.max()) * .6 + .3)
+    pt.multi_plot(xints, [freq], xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
+                  color=color,
                   width=width,
                   #xtick_rotation=90,
                   #num_yticks=ymax + 1,

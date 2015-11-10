@@ -128,6 +128,29 @@ def show_was_requested():
     #return ut.show_was_requested()
 
 
+def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0)):
+    """
+    # Overlay a species icon
+    # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+    """
+    ax = gca()
+    icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
+    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+    if coord_type:
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        xy = [
+            xlim[0] * (1 - coords[0]) + xlim[1] * (coords[0]),
+            ylim[0] * (1 - coords[1]) + ylim[1] * (coords[1]),
+        ]
+    ab = mpl.offsetbox.AnnotationBbox(
+        imagebox, xy,
+        xybox=(0., 0.),
+        xycoords='data', boxcoords="offset points",
+        box_alignment=bbox_alignment, pad=0.0)
+    ax.add_artist(ab)
+
+
 def show_if_requested(N=1):
     if ut.NOT_QUIET:
         print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
