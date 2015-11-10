@@ -627,8 +627,13 @@ def get_round_scaled_dsize(dsize_old, scale):
 
 
 def resized_dims_and_ratio(img_size, max_dsize):
+    #if isinstance(max_dsize, (tuple, list, np.ndarray)):
     max_width, max_height = max_dsize
     width, height = img_size
+    if max_width is None:
+        max_width = width
+    if max_height is None:
+        max_height = height
     ratio = min(max_width / width, max_height / height)
     dsize = (int(round(width * ratio)), int(round(height * ratio)))
     return dsize, ratio

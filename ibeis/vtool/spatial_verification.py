@@ -51,8 +51,7 @@ except Exception as ex:
     if False:
         raise
 
-profile = ut.profile
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[sver]', DEBUG=False)
 
 
 VERBOSE_SVER = ut.get_argflag('--verb-sver')
