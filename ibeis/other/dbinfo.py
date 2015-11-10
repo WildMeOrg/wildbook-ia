@@ -653,6 +653,36 @@ def show_time_distributions(ibs, unixtime_list):
             ibs.get_dbname_alias(),
             num_nan, num_total))
         pt.gcf().autofmt_xdate()
+
+        icon = ibs.get_database_icon()
+        if icon is not None:
+            #import matplotlib as mpl
+            #import vtool as vt
+            ax = pt.gca()
+            # Overlay a species icon
+            # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+            #icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))
+            #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+            ##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
+            ##ax.set_xlim(1, 100)
+            ##ax.set_ylim(0, 100)
+            ##x = np.array(ax.get_xlim()).sum() / 2
+            ##y = np.array(ax.get_ylim()).sum() / 2
+            ##xy = [x, y]
+            ##print('xy = %r' % (xy,))
+            ##x = np.nanmin(unixtime_list)
+            ##xy = [x, y]
+            ##print('xy = %r' % (xy,))
+            ##ax.get_ylim()[0]]
+            #xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
+            #ab = mpl.offsetbox.AnnotationBbox(
+            #    imagebox, xy, xycoords='data',
+            #    xybox=(-0., 0.),
+            #    boxcoords="offset points",
+            #    box_alignment=(0, 1), pad=0.0)
+            #ax.add_artist(ab)
+
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
         pt.adjust_subplots2(use_argv=True)

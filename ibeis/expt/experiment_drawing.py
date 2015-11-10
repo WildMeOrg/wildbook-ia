@@ -145,6 +145,10 @@ def annotationmatch_scores(ibs, testres, f=None):
         bin_width=.05,
     )
 
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         pt.adjust_subplots2(use_argv=True)
@@ -194,16 +198,14 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     #from ibeis.expt import cfghelpers
     import plottool as pt
     from ibeis import tag_funcs
-
+    from ibeis.expt import cfghelpers
     # All unfiltered tags
     all_tags = testres.get_all_tags()
-
     if True:
         # Remove gf tags below a thresh and gt tags above a thresh
         gt_tags = testres.get_gt_tags()
         gf_tags = testres.get_gf_tags()
         truth2_prop, prop2_mat = testres.get_truth2_prop()
-
         score_thresh = testres.find_score_thresh_cutoff()
         print('score_thresh = %r' % (score_thresh,))
         # TODO: I want the point that the prob true is greater than prob false
@@ -211,7 +213,6 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
         other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
         #ut.embed()
-
         def zipmask(_tags, _flags):
             return [[item if flag else [] for item, flag
                      in zip(list_, flags)] for list_,
@@ -219,18 +220,14 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         def combinetags(tags1, tags2):
             import utool as ut
             return [ut.list_zipflatten(t1, t2) for t1, t2 in zip(tags1, tags2)]
-
         gt_problem_tags = zipmask(gt_tags, gt_is_problem)
         gf_problem_tags = zipmask(gf_tags, gf_is_problem)
         other_problem_tags = zipmask(all_tags, other_is_problem)
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
                                         other_problem_tags])
-
     if not ut.get_argflag('--fulltag'):
         all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
-
     # Get tags that match the filter
-    from ibeis.expt import cfghelpers
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -238,45 +235,42 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_keep_order(case_pos_list.T[0])
     selected_tags = ut.list_take(all_tags, case_qx_list)
-
     flat_tags_list = list(map(ut.flatten, selected_tags))
-
     WITH_NOTAGS = False
     if WITH_NOTAGS:
-        flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag'] for tags in flat_tags_list]
+        flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag']
+                           for tags in flat_tags_list]
     else:
         flat_tags_list_ = flat_tags_list
-
     WITH_TOTAL = False
     if WITH_TOTAL:
         total = [['Total']] * len(case_qx_list)
         flat_tags_list_ += total
-
     WITH_WEIGHTS = True
     if WITH_WEIGHTS:
-        flat_weights_list = [[] if len(tags) == 0 else [1. / len(tags)] * len(tags) for tags in  flat_tags_list_]
-
+        flat_weights_list = [
+            [] if len(tags) == 0 else [1. / len(tags)] * len(tags)
+            for tags in  flat_tags_list_
+        ]
     flat_tags = list(map(str, ut.flatten(flat_tags_list_)))
     if WITH_WEIGHTS:
         weight_list = ut.flatten(flat_weights_list)
     else:
         weight_list = None
-
-    pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
     fnum = None
+    pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
     fnum = pt.ensure_fnum(fnum)
-
-    pt.word_histogram2(flat_tags, weight_list=weight_list, fnum=fnum, pnum=pnum_(), xlabel='Case')
-
+    pt.word_histogram2(flat_tags, weight_list=weight_list,
+                       fnum=fnum, pnum=pnum_(), xlabel='Case')
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(1, 1), bbox_alignment=(1, 1))
     if with_wordcloud:
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
-
     #figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
     figtitle = testres.make_figtitle('Case Histogram', filt_cfg=filt_cfg)
     figtitle += ' #cases=%r' % (len(case_qx_list))
-
     pt.set_figtitle(figtitle)
-
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         #pt.adjust_subplots(wspace=.01)
@@ -328,16 +322,13 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata, f=filt_cfg)
         >>> #ut.show_if_requested()
     """
+    import plottool as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
-    import plottool as pt
     cfgx2_qreq_ = testres.cfgx2_qreq_
-
     SHOW = ut.get_argflag('--show')
-
     # Get selected rows and columns for individual rank investigation
     #qaids = testres.qaids
-
     #=================================
     # TODO:
     # Get a better (stratified) sample of the hard cases that incorporates the known failure cases
@@ -355,7 +346,6 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
     print('f = %r' % (f,))
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
-
     show_kwargs = {
         'N': 3,
         'ori': True,
@@ -937,7 +927,8 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     #testres.get_param_basis('dcfg_sample_size')
     #K_basis = testres.get_param_basis('K')
     #K_cfgx_lists = [testres.get_cfgx_with_param('K', K) for K in K_basis]
-
+    import plottool as pt
+    from ibeis.expt import annotation_configs
     #param_key_list = testres.get_all_varied_params()
     param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
     #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
@@ -951,9 +942,7 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     if verbose:
         print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
         print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
-
     # Hold a key constant
-    import plottool as pt
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
     #pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key]), max_cols=1))
@@ -965,6 +954,7 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
 
     fnum = pt.ensure_fnum(fnum)
+    pnum0 = None
 
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
@@ -974,8 +964,6 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
             (key, [testres.get_param_val_from_cfgx(cfgx, key)
                    for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
-
-        from ibeis.expt import annotation_configs
         nd_labels = list(agree_param_vals.keys())
         nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
         target_label = annotation_configs.shorten_to_alias_labels(key)
@@ -999,10 +987,13 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                  '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
+        pnum = pnum_()
+        if pnum0 is None:
+            pnum0 = pnum
         if PLOT3D:
             pt.plot_search_surface(known_nd_data, known_target_points,
                                    nd_labels, target_label, title=title,
-                                   fnum=fnum, pnum=pnum_())
+                                   fnum=fnum, pnum=pnum)
         else:
             nonconst_basis_vals = np.unique(known_nd_data.T[1])
             # Find which colors will not be used
@@ -1013,40 +1004,34 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list, fnum=fnum,
-                                    pnum=pnum_(), num_yticks=num_yticks,
+                                    pnum=pnum, num_yticks=num_yticks,
                                     ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
 
+    pt.figure(fnum=fnum, pnum=pnum0)
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))
+
     plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
     figtitle = testres.make_figtitle(plotname)
-
     #if ut.get_argflag('--save'):
     # hack
     if verbose:
         testres.print_unique_annot_config_stats()
-
     #if testres.has_constant_daids():
     #    print('testres.common_acfg = ' + ut.dict_str(testres.common_acfg))
     #    annotconfig_stats_strs, locals_ =
     #    ibs.get_annotconfig_stats(testres.qaids,
     #    testres.cfgx2_daids[0])
-
     pt.set_figtitle(figtitle, size=14)
-
     # HACK FOR FIGSIZE
     fig = pt.gcf()
     fig.set_size_inches(14, 4)
     pt.adjust_subplots(left=.05, bottom=.08, top=.80, right=.95, wspace=.2, hspace=.3)
-
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         pt.adjust_subplots2(use_argv=True)
-
-
-#"""
-#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
-#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
-#"""
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True):
@@ -1056,7 +1041,6 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         testres (TestResult):
 
     CommandLine:
-
         python -m ibeis.dev -e draw_rank_cdf
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
@@ -1065,6 +1049,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
+        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
@@ -1150,7 +1136,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
         num_xticks=maxrank,
-        legend_alpha=.85,
+        #legend_alpha=.85,
+        legend_alpha=.92,
         use_legend=True, pnum=pnum_(), **cumhistkw)
 
     if USE_ZOOM:
@@ -1161,53 +1148,14 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
     pt.set_figtitle(figtitle, size=14)
-    # HACK FOR FIGSIZE
 
-    # Overlay a species icon
-    # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
-    import matplotlib as mpl
-    #ab = mpl.offsetbox.AnnotationBbox(offsetbox, xy,
-    #                    xybox=(1.02, xy[1]),
-    #                    xycoords='data',
-    #                    boxcoords=("axes fraction", "data"),
-    #                    box_alignment=(0., 0.5),
-    #                    arrowprops=dict(arrowstyle="->"))
-    ax = pt.gca()
-
-    species = ibs.get_primary_database_species()
-    url = {
-        ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
-        ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
-        ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/DwwqrJb.png',
-    }[species]
-
-    #icon = vt.imread(ut.grab_test_imgpath('star.png'))
-    #icon = vt.imread(ut.grab_test_imgpath('zebra.png'))
-    icon = vt.imread(ut.grab_file_url(url))
-    #icon = vt.resize_to_maxdims(icon, (128, 128))
-    icon = vt.resize_to_maxdims(icon, (256, 256))
-    icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
-    #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=0.2)
-
-    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
-
-    #xy = [0.3, 0.55]
-
-    xy = [ax.get_xlim()[0], 0]
-    ab = mpl.offsetbox.AnnotationBbox(imagebox, xy,
-                                      #xybox=(120., -80.),
-                                      #xybox=(4., -1.),
-                                      xycoords='data',
-                                      boxcoords="offset points",
-                                      box_alignment=(0, 0),
-                                      pad=0.0,
-                                      #arrowprops=dict(arrowstyle="->",
-                                      #                connectionstyle="angle,angleA=0,angleB=90,rad=3")
-                                      )
-    ax.add_artist(ab)
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, bbox_alignment=(0, 0))
 
     fig = pt.gcf()
     #import utool as ut
+    # HACK FOR FIGSIZE
     fig.set_size_inches(15, 7)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
@@ -1420,10 +1368,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
 
     CommandLine:
         python -m ibeis.dev -e draw_case_timedeltas
-
         python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
         python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
-
 
     Example:
         >>> # DISABLE_DOCTEST

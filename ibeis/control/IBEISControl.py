@@ -1438,6 +1438,22 @@ class IBEISController(BASE_CLASS):
         # FIXME: infer this
         return const.SPECIES_WITH_DETECTORS
 
+    @accessor_decors.default_decorator
+    def get_database_icon(ibs, size=(None, 192)):
+        species = ibs.get_primary_database_species()
+        url = {
+            ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+            ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
+            ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+        }.get(species, None)
+        if url is None:
+            return None
+        #icon = vt.imread(ut.grab_test_imgpath('star.png'))
+        import vtool as vt
+        icon = vt.imread(ut.grab_file_url(url))
+        icon = vt.resize_to_maxdims(icon, size)
+        return icon
+
 
 if __name__ == '__main__':
     """
