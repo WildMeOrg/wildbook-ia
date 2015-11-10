@@ -268,8 +268,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
         sv_cfg.nAnnotPerNameSVER = 6
-        sv_cfg.prescore_method = 'csum'
-        #sv_cfg.prescore_method = 'nsum'
+        #sv_cfg.prescore_method = 'csum'
+        sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
         sv_cfg.sver_output_weighting = False  # weight feature scores with sver errors
         sv_cfg.weight_inliers = True  # weight feature scores with sver errors

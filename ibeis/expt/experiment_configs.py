@@ -65,6 +65,10 @@ ScoreMech = candidacy_namescore = [
         'score_method':      ['nsum'],
         'prescore_method':   ['nsum'],
     },
+    #{
+    #    'score_method':      ['nsum'],
+    #    'prescore_method':   ['csum'],
+    #},
     {
         'score_method':      ['csum'],
         'prescore_method':   ['csum'],
