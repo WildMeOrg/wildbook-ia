@@ -29,59 +29,45 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
 #@devcmd('scores', 'score', 'namescore_roc')
-#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, testres, f=None):
+#def draw_score_sep(ibs, qaid_list, daid_list=None):
+def draw_score_sep(ibs, testres, f=None):
     """
-    TODO: plot the difference between the top true score and the next best false score
+    Draws the separation between true positive and true negative name scores.
+
+    TODO:
+        plot the difference between the top true score and the next best false score?
+
     CommandLine:
         ib
-        python -m ibeis --tf annotationmatch_scores --db PZ_MTEST --allgt -w --show __serial
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
-
-        python dev.py -t scores --db PZ_Master0 --allgt --show
-        python dev.py -t scores --db PZ_MTEST --allgt --show
-
-        python dev.py -t scores --db PZ_Master0 --show --ctrl
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg bar_l2_on:True lnbnn_on:False
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
-
-        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
-        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
-        python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
-
-        python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
-        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
-
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
+        python -m ibeis --tf draw_score_sep --show
+        python -m ibeis --tf draw_score_sep --db PZ_MTEST --allgt -w --show --serial
+        python -m ibeis --tf draw_score_sep -t scores --db PZ_MTEST --allgt --show
+        python -m ibeis --tf draw_score_sep -t scores --db PZ_Master0 --allgt --show
+        python -m ibeis --tf draw_score_sep --db PZ_Master1 -a timectrl -t best --show --cmd
+        python -m ibeis --tf draw_score_sep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
         >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
-        >>> annotationmatch_scores(ibs, testres, f=f)
+        >>> draw_score_sep(ibs, testres, f=f)
         >>> ut.show_if_requested()
+
+    Ignore:
+        import IPython
+        IPython.get_ipython().magic('pylab qt4')
     """
     import plottool as pt
     import vtool as vt
+    from ibeis.expt import cfghelpers
     if ut.VERBOSE:
-        print('[dev] annotationmatch_scores')
+        print('[dev] draw_score_sep')
     #from ibeis.expt import cfghelpers
     #from ibeis.init import main_helpers
     #filt_cfg = main_helpers.testdata_filtcfg(default=f)
-    from ibeis.expt import cfghelpers
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -94,17 +80,28 @@ def annotationmatch_scores(ibs, testres, f=None):
     gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
     gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
+    gt_daid = testres.get_infoprop_mat('qx2_gt_aid').T[cfgx]
+    gf_daid = testres.get_infoprop_mat('qx2_gf_aid').T[cfgx]
+    #if ut.is_float(gf_daid):
+    #    gf_daid = ut.list_replace(gf_daid, np.nan, None)
+
     # FIXME: may need to specify which cfg is used in the future
     isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
+    # hack
+    tp_nscores = np.nan_to_num(tp_nscores)
+    tn_nscores = np.nan_to_num(tn_nscores)
+    # ---
     tn_qaids = tp_qaids = common_qaids[isvalid]
+    tn_daids = gf_daid[isvalid]
+    tp_daids = gt_daid[isvalid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     #print(qreq_.get_cfgstr())
-    part_attrs = {1: {'qaid': tp_qaids},
-                  0: {'qaid': tn_qaids}}
+    part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
+                  0: {'qaid': tn_qaids, 'daid': tp_daids}}
 
     def attr_callback(qaid):
         print('callback qaid = %r' % (qaid,))
@@ -125,8 +122,69 @@ def annotationmatch_scores(ibs, testres, f=None):
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+
+    #ut.embed()
     encoder.fit(name_scores, labels, attrs)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
+
+    # --- NEW ---
+    # Fit accept and reject thresholds
+
+    def find_auto_decision_thresh(encoder, label):
+        """
+        Uses the extreme of one type of label to get an automatic decision
+        threshold.  Ideally the threshold would be a little bigger than this.
+
+        label = True  # find auto accept accept thresh
+        """
+        import operator
+        other_attrs = part_attrs[not label]
+        op = operator.lt if label else operator.gt
+        if label:
+            other_support = tn_scores
+            decision_support = tp_scores
+            sortx = np.argsort(other_support)[::-1]
+        else:
+            other_support = tp_scores
+            decision_support = tn_scores
+            sortx = np.argsort(other_support)
+        sort_support = other_support[sortx]
+        sort_qaids = other_attrs['qaid'][sortx]
+        flags = np.isfinite(sort_support)
+        sort_support = sort_support[flags]
+        sort_qaids = sort_qaids[flags]
+        # ---
+        # HACK: Dont let photobombs contribute here
+        #from ibeis import tag_funcs
+        #other_tags = ibs.get_annot_all_tags(sort_qaids)
+        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
+        #sort_support = sort_support[flags2]
+        # ---
+        autodecide_thresh = sort_support[0]
+        can_auto_decide = op(autodecide_thresh, decision_support)
+
+        autodecide_scores = decision_support[can_auto_decide]
+
+        if len(autodecide_scores) == 0:
+            decision_extreme = np.nan
+        else:
+            if label:
+                decision_extreme = np.nanmin(autodecide_scores)
+            else:
+                decision_extreme = np.nanmax(autodecide_scores)
+
+        num_auto_decide = can_auto_decide.sum()
+        num_total = len(decision_support)
+        percent_auto_decide = 100 * num_auto_decide / num_total
+        print('Decision type: %r' % (label,))
+        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
+        print('Automatic decision threshold2 = %r' % (decision_extreme,))
+        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
+
+    find_auto_decision_thresh(encoder, True)
+    find_auto_decision_thresh(encoder, False)
+
+    # --- /NEW ---
 
     plotname = ''
     figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)

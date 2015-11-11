@@ -1059,7 +1059,7 @@ class TestResult(object):
             ('with_gf_tag', lambda val: UTFF(testres.get_gf_tags(), has_any=val)),
             ('with_gt_tag', lambda val: UTFF(testres.get_gt_tags(), has_any=val)),
             ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
-
+            ('without_tag', lambda val: UTFF(testres.get_all_tags(), has_none=val)),
         ]
 
         filt_cfg = filt_cfg.copy()
@@ -1694,7 +1694,7 @@ class TestResult(object):
         #import plottool as pt
         import vtool as vt
         if ut.VERBOSE:
-            print('[dev] annotationmatch_scores')
+            print('[dev] draw_score_sep')
         #from ibeis.expt import cfghelpers
 
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
@@ -1809,6 +1809,83 @@ class TestResult(object):
             print('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
 
         qx2_success.T[cfgx]
+
+    def load_full_chipmatch_results(testres):
+        #cfgx2_qres
+        pass
+
+    def draw_feat_scoresep(testres, f=None):
+        """
+        CommandLine:
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> defaultdb = 'PZ_MTEST'
+            >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+            >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+            >>> testres.draw_feat_scoresep(f=f)
+            >>> ut.show_if_requested()
+        """
+        assert len(testres.cfgx2_qreq_) == 1, 'can only do this on one qreq_ right now'
+        for qreq_ in testres.cfgx2_qreq_:
+            break
+
+        print('Loading cached chipmatches')
+        cm_list = qreq_.load_cached_chipmatch()
+        print('Done loading cached chipmatches')
+        return
+        fsv_col_lbls = None
+        tp_fsvs_list = []
+        tn_fsvs_list = []
+        for cm in ut.ProgressIter(cm_list, 'building feature score lists'):
+          with ut.embed_on_exception_context:
+            fsv_col_lbls = cm.fsv_col_lbls
+            if True:
+                # top names version
+                sortx = cm.name_argsort()
+                sorted_nids = cm.unique_nids[sortx]
+                sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+                tp_idx = np.where(sorted_nids == cm.qnid)[0][0]
+                tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+                tp_groupxs = sorted_groupxs[tp_idx]
+                tn_groupxs = sorted_groupxs[tn_idx]
+            else:
+                # top annots version
+                sortx = cm.argsort()
+                #sorted_aids = cm.daid_list[sortx]
+                sorted_nids = cm.dnid_list[sortx]
+                tp_idx = np.where(sorted_nids == cm.qnid)[0][0]
+                tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+                tp_groupxs = [tp_idx]
+                tn_groupxs = [tn_idx]
+            if tp_idx != 0:
+                continue
+            tn_fsvs_list.extend(ut.list_take(cm.fsv_list, tn_groupxs))
+            tp_fsvs_list.extend(ut.list_take(cm.fsv_list, tp_groupxs))
+        fsv_tp = np.vstack(tp_fsvs_list)
+        fsv_tn = np.vstack(tn_fsvs_list)
+
+        fs_tp = fsv_tp.prod(axis=1)
+        fs_tn = fsv_tn.prod(axis=1)
+
+        scoretype = '*'.join(fsv_col_lbls)
+
+        encoder = vt.ScoreNormalizer()
+        tn_scores, tp_scores = fs_tp, fs_tn
+        encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
+        figtitle = 'Feature Scores: %r.\n%s' % (scoretype, testres.get_title_aug())
+        fnum = None
+        encoder.visualize(
+            figtitle=figtitle, fnum=fnum,
+            with_scores=False,
+            with_prebayes=False,
+            with_postbayes=False,
+        )
 
 
 if __name__ == '__main__':

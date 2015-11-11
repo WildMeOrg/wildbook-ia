@@ -82,7 +82,7 @@ def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
     return qaid2_qres
 
 
-#@profile
+@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, cfgdict=None, qreq_=None,
                          verbose=pipeline.VERB_PIPELINE, save_qcache=None,
@@ -259,12 +259,12 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.list_compress(external_qaids, exists_flags)
         fpaths_hit = ut.list_compress(fpath_list, exists_flags)
+        fpath_iter = ut.ProgressIter(
+            fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+            lbl='loading cache hits', adjust=True, freq=1)
         cm_hit_list = [
             chip_match.ChipMatch2.load_from_fpath(fpath, verbose=False)
-            for fpath in ut.ProgressIter(fpaths_hit, nTotal=len(fpaths_hit),
-                                         enabled=len(fpaths_hit) > 1,
-                                         lbl='loading cache hits', adjust=True,
-                                         freq=1)
+            for fpath in fpath_iter
         ]
         assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), 'inconsistent'
         qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
@@ -293,6 +293,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
     return qaid2_cm
 
 
+@profile
 def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     """
     Breaks up query request into several subrequests

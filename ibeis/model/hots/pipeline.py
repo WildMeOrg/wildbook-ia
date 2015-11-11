@@ -60,7 +60,7 @@ from ibeis.model.hots import scoring
 from ibeis.model.hots import _pipeline_helpers as plh
 import utool as ut
 #profile = ut.profile
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[pipeline]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[pipeline]')
 
 
 #=================

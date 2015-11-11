@@ -87,7 +87,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.expt.experiment_drawing', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.expt.experiment_drawing', 'draw_score_sep', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -199,11 +199,11 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_annotationmatch_scores(ibs, qaid_list, daid_list):
-    print('[dev] compgrav_annotationmatch_scores')
+def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
+    print('[dev] compgrav_draw_score_sep')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        annotationmatch_scores(ibs_, qaid_list)
+        draw_score_sep(ibs_, qaid_list)
 
 #--------------------
 # RUN DEV EXPERIMENTS
@@ -569,7 +569,7 @@ def devfunc(ibs, qaid_list):
             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
     pt.present()
     locals_ = locals()
-    #locals_.update(annotationmatch_scores(ibs, qaid_list))
+    #locals_.update(draw_score_sep(ibs, qaid_list))
     return locals_
 
 

@@ -8,11 +8,8 @@ from ibeis.expt import test_result
 from ibeis.expt import experiment_harness
 from ibeis.expt import experiment_helpers
 from ibeis.expt import experiment_printres
-from ibeis.expt import results_all
-from ibeis.expt import results_analyzer
-from ibeis.expt import results_organizer
-import utool
-print, print_, printDBG, rrr, profile = utool.inject(
+import utool as ut
+print, rrr, profile = ut.inject2(
     __name__, '[ibeis.expt]')
 
 
