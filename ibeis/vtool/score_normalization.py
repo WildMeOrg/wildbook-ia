@@ -254,6 +254,9 @@ class ScoreNormalizer(object):
         return partition_scores(X, y, attrs)
 
     def get_support(encoder, finite_only=True):
+        """
+        return X, y, and attrs
+        """
         X = encoder.support['X']
         y = encoder.support['y']
         attrs = encoder.support['attrs']
@@ -704,7 +707,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         >>> print(result)
         92
     """
-    # Estimate true positive density
+    import vtool as vt
     if verbose:
         print('[scorenorm] Learning normalization pdf')
         print('[scorenorm] * tp_support.shape=%r' % (tp_support.shape,))
@@ -713,18 +716,18 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] * monotonize = %r' % (monotonize,))
         next_ = ut.next_counter(1)
         total = 8
+    # Find good score domain range
+    min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
+    score_domain = np.linspace(min_score, max_score, gridsize)
+    # Estimate true positive/negative density
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
-    import vtool as vt
     score_tp_pdf = vt.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tn_pdf = vt.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
     if verbose:
         print('[scorenorm] %d/%d estimating score domain' % (next_(), total))
-    # Find good score domain range
-    min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
-    score_domain = np.linspace(min_score, max_score, gridsize)
     # Evaluate true negative density
     if verbose:
         print('[scorenorm] %d/%d evaluating tp density' % (next_(), total))
@@ -740,7 +743,13 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     # FIXME: not always going to be equal probability of true and positive cases
     p_tp = .5
     p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
-    import vtool as vt
+    if np.any(np.isnan(p_tp_given_score)):
+        if False:
+            print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
+            print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
+            print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
+            print('stats:p_tp_given_score = ' + ut.get_stats_str(p_tp_given_score, newlines=True, use_nan=True))
+        p_tp_given_score = vt.interpolate_nans(p_tp_given_score)
     if monotonize:
         if reverse:
             if verbose:
@@ -750,6 +759,10 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         else:
             if verbose:
                 print('[scorenorm] %d/%d monotonize increasing' % (next_(), total))
+            #if False:
+            #    flags = ~np.isnan(p_tp_given_score)
+            #    pt.plot(score_domain[flags], p_tp_given_score[flags])
+            #    pt.plot(score_domain, p_tp_given_score)
             p_tp_given_score = vt.ensure_monotone_strictly_increasing(
                 p_tp_given_score, left_endpoint=0.0, right_endpoint=1.0)
     if return_all:

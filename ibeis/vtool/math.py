@@ -16,6 +16,60 @@ TAU = np.pi * 2  # References: tauday.com
 eps = 1E-9
 
 
+def interpolate_nans(arr):
+    r"""
+    replaces nans with interpolated values or 0
+
+    Args:
+        arr (ndarray):
+
+    Returns:
+        ndarray: new_arr
+
+    CommandLine:
+        python -m vtool.math --exec-interpolate_nans
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> arr = np.array([np.nan, np.nan, np.nan, np.nan])
+        >>> new_arr = interpolate_nans(arr)
+        >>> result = ('new_arr = %s' % (str(new_arr),))
+        >>> print(result)
+        new_arr = [ 0.  0.  0.  0.]
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> arr = np.array([np.nan, 1, np.nan, np.nan, np.nan, np.nan, 10, np.nan, 5])
+        >>> new_arr = interpolate_nans(arr)
+        >>> result = ('new_arr = %s' % (str(new_arr),))
+        >>> print(result)
+        new_arr = [  1.    1.    2.8   4.6   6.4   8.2  10.    7.5   5. ]
+    """
+    import vtool as vt
+    new_arr = arr.copy()
+    nan_idxs = np.where(np.isnan(arr))[0]
+    consecutive_groups = vt.group_consecutive(nan_idxs)
+    last_index = len(arr) - 1
+    for group in consecutive_groups:
+        min_ = group.min()
+        max_ = group.max()
+        if min_ == 0 and max_ == last_index:
+            upper = lower = 0
+        else:
+            if min_ != 0:
+                lower = arr[min_ - 1]
+            if max_ != last_index:
+                upper = arr[max_ + 1]
+            if min_ == 0:
+                lower = upper
+            if max_ == last_index:
+                upper = lower
+        new_arr[min_:max_ + 1] = np.linspace(lower, upper, len(group) + 2)[1:-1]
+    return new_arr
+
+
 def ensure_monotone_strictly_increasing(arr_, left_endpoint=None, right_endpoint=None, zerohack=False, onehack=False, newmode=True):
     """
 
