@@ -1439,7 +1439,7 @@ class IBEISController(BASE_CLASS):
         return const.SPECIES_WITH_DETECTORS
 
     @accessor_decors.default_decorator
-    def get_database_icon(ibs, size=(None, 192)):
+    def get_database_icon(ibs, max_dsize=(None, 192)):
         species = ibs.get_primary_database_species()
         url = {
             ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
@@ -1451,7 +1451,7 @@ class IBEISController(BASE_CLASS):
         #icon = vt.imread(ut.grab_test_imgpath('star.png'))
         import vtool as vt
         icon = vt.imread(ut.grab_file_url(url))
-        icon = vt.resize_to_maxdims(icon, size)
+        icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
 
 

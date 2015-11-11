@@ -101,10 +101,10 @@ def hack_argv(arg):
 for arg in sys.argv[:]:
     hack_argv(arg)
 
-import utool as ut
+import utool as ut  # NOQA
 #ut.show_if_requested()
 #sys.exit(1)
-from utool.util_six import get_funcname
+from utool.util_six import get_funcname  # NOQA
 #import functools
 
 # A list of registered development test functions

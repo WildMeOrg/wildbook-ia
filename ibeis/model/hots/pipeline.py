@@ -1162,6 +1162,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST')
         >>> verbose = True
         >>> cm = cm_list[0]
+        >>> cm.set_cannonical_annot_score(cm.get_num_matches_list())
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
         >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.get_external_data_config2())

@@ -1820,8 +1820,11 @@ class TestResult(object):
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
 
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
+
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
 
         Example:
             >>> # SCRIPT
@@ -1844,6 +1847,45 @@ class TestResult(object):
         cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
         cache_name = 'get_cfgx_feat_scores' + ut.hashstr27(cfgstr)
 
+        class BadDataException(Exception):
+            pass
+
+        def get_training_fsv(cm):
+            sortx = cm.name_argsort()
+            sorted_nids = cm.unique_nids[sortx]
+            sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+            tp_idxs = np.where(sorted_nids == cm.qnid)[0]
+            if len(tp_idxs) == 0:
+                raise BadDataException('no tp_idxs')
+            tp_idx = tp_idxs[0]
+            tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+            if (tn_idx) >= len(sorted_groupxs):
+                raise BadDataException('no tn_idxs')
+            tp_groupxs = sorted_groupxs[tp_idx]
+            tn_groupxs = sorted_groupxs[tn_idx]
+            get_training_annotxs(cm)
+            tp_fsv = ut.list_take(cm.fsv_list, tp_groupxs)
+            tn_fsv = ut.list_take(cm.fsv_list, tn_groupxs)
+            return tp_fsv, tn_fsv
+
+        def get_training_annotxs(cm):
+            sortx = cm.name_argsort()
+            sorted_nids = cm.unique_nids[sortx]
+            sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+            tp_idxs = np.where(sorted_nids == cm.qnid)[0]
+            if len(tp_idxs) == 0:
+                return None
+            tp_idx = tp_idxs[0]
+            tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+            if (tn_idx) >= len(sorted_groupxs):
+                return None
+            tp_groupxs = sorted_groupxs[tp_idx]
+            tn_groupxs = sorted_groupxs[tn_idx]
+            return tp_groupxs, tn_groupxs
+
+        def get_training_desc_dist(cm):
+            tp_groupxs, tn_groupxs = get_training_annotxs(cm)
+
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[])
         def get_cfgx_feat_scores(qreq_):
             cm_list = qreq_.load_cached_chipmatch()
@@ -1852,21 +1894,17 @@ class TestResult(object):
             tp_fsvs_list = []
             tn_fsvs_list = []
             for cm in ut.ProgressIter(cm_list, lbl='building feature score lists', adjust=True):
-                fsv_col_lbls = cm.fsv_col_lbls
+                try:
+                    fsv_col_lbls = cm.fsv_col_lbls
+                    train_fsv_tup = get_training_fsv(cm)
+                    tp_fsv, tn_fsv = train_fsv_tup
+                    tn_fsvs_list.extend(tp_fsv)
+                    tp_fsvs_list.extend(tn_fsv)
+                except BadDataException:
+                    continue
+
                 #if True:
                 # top names version
-                sortx = cm.name_argsort()
-                sorted_nids = cm.unique_nids[sortx]
-                sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
-                tp_idxs = np.where(sorted_nids == cm.qnid)[0]
-                if len(tp_idxs) == 0:
-                    continue
-                tp_idx = tp_idxs[0]
-                tn_idx = 0 if tp_idx > 0 else tp_idx + 1
-                if (tn_idx) >= len(sorted_groupxs):
-                    continue
-                tp_groupxs = sorted_groupxs[tp_idx]
-                tn_groupxs = sorted_groupxs[tn_idx]
                 #else:
                 #    # top annots version
                 #    sortx = cm.argsort()
@@ -1883,13 +1921,13 @@ class TestResult(object):
                 #    tn_groupxs = [tn_idx]
                 #if tp_idx != 0:
                 #    continue
-                tn_fsvs_list.extend(ut.list_take(cm.fsv_list, tn_groupxs))
-                tp_fsvs_list.extend(ut.list_take(cm.fsv_list, tp_groupxs))
             fsv_tp = np.vstack(tp_fsvs_list)
             fsv_tn = np.vstack(tn_fsvs_list)
             return fsv_tp, fsv_tn, fsv_col_lbls
 
         fsv_tp, fsv_tn, fsv_col_lbls = get_cfgx_feat_scores(qreq_)
+        #fsv_tp = 1 - fsv_tp
+        #fsv_tn = 1 - fsv_tn
 
         slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset', default=slice(None, None, None))
 
@@ -1913,6 +1951,14 @@ class TestResult(object):
             with_prebayes=False,
             with_postbayes=False,
         )
+        import plottool as pt
+        icon = qreq_.ibs.get_database_icon()
+        if icon is not None:
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+
+        if ut.get_argflag('--contextadjust'):
+            pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+            pt.adjust_subplots2(use_argv=True)
 
 
 if __name__ == '__main__':
