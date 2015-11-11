@@ -414,33 +414,33 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
 
-    def as_qres2(cm, qreq_):
-        qres = qreq_.make_empty_query_result(cm.qaid)
-        #ut.assert_eq(qaid, cm.qaid)
-        qres.filtkey_list = cm.fsv_col_lbls
-        qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
-        qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
-        qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
-        qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
-        qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
-        qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-        qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
-        return qres
+    #def as_qres2(cm, qreq_):
+    #    qres = qreq_.make_empty_query_result(cm.qaid)
+    #    #ut.assert_eq(qaid, cm.qaid)
+    #    qres.filtkey_list = cm.fsv_col_lbls
+    #    qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
+    #    qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
+    #    qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
+    #    qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
+    #    qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
+    #    qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
+    #    qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
+    #    return qres
 
-    def as_qres(cm, qreq_):
-        from ibeis.model.hots import scoring
-        assert qreq_ is not None
-        # Perform final scoring
-        # TODO: only score if already unscored
-        score_method = qreq_.qparams.score_method
-        # TODO: move scoring part to pipeline
-        scoring.score_chipmatch_list(qreq_, [cm], score_method)
-        # Normalize scores if requested
-        if qreq_.qparams.score_normalization:
-            normalizer = qreq_.normalizer
-            cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-        qres = cm.as_qres2(qreq_)
-        return qres
+    #def as_qres(cm, qreq_):
+    #    from ibeis.model.hots import scoring
+    #    assert qreq_ is not None
+    #    # Perform final scoring
+    #    # TODO: only score if already unscored
+    #    score_method = qreq_.qparams.score_method
+    #    # TODO: move scoring part to pipeline
+    #    scoring.score_chipmatch_list(qreq_, [cm], score_method)
+    #    # Normalize scores if requested
+    #    if qreq_.qparams.score_normalization:
+    #        normalizer = qreq_.normalizer
+    #        cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+    #    qres = cm.as_qres2(qreq_)
+    #    return qres
 
     @classmethod
     def from_json(cls, json_str):

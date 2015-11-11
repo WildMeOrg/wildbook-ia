@@ -1819,7 +1819,9 @@ class TestResult(object):
         CommandLine:
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
-            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
 
         Example:
             >>> # SCRIPT
@@ -1836,39 +1838,64 @@ class TestResult(object):
             break
 
         print('Loading cached chipmatches')
-        cm_list = qreq_.load_cached_chipmatch()
-        print('Done loading cached chipmatches')
-        return
-        fsv_col_lbls = None
-        tp_fsvs_list = []
-        tn_fsvs_list = []
-        for cm in ut.ProgressIter(cm_list, 'building feature score lists'):
-          with ut.embed_on_exception_context:
-            fsv_col_lbls = cm.fsv_col_lbls
-            if True:
+        cfgstr = qreq_.get_cfgstr(with_query=True)
+        import ibeis
+        from os.path import dirname, join
+        cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
+        cache_name = 'get_cfgx_feat_scores' + ut.hashstr27(cfgstr)
+
+        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[])
+        def get_cfgx_feat_scores(qreq_):
+            cm_list = qreq_.load_cached_chipmatch()
+            print('Done loading cached chipmatches')
+            fsv_col_lbls = None
+            tp_fsvs_list = []
+            tn_fsvs_list = []
+            for cm in ut.ProgressIter(cm_list, lbl='building feature score lists', adjust=True):
+                fsv_col_lbls = cm.fsv_col_lbls
+                #if True:
                 # top names version
                 sortx = cm.name_argsort()
                 sorted_nids = cm.unique_nids[sortx]
                 sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
-                tp_idx = np.where(sorted_nids == cm.qnid)[0][0]
+                tp_idxs = np.where(sorted_nids == cm.qnid)[0]
+                if len(tp_idxs) == 0:
+                    continue
+                tp_idx = tp_idxs[0]
                 tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+                if (tn_idx) >= len(sorted_groupxs):
+                    continue
                 tp_groupxs = sorted_groupxs[tp_idx]
                 tn_groupxs = sorted_groupxs[tn_idx]
-            else:
-                # top annots version
-                sortx = cm.argsort()
-                #sorted_aids = cm.daid_list[sortx]
-                sorted_nids = cm.dnid_list[sortx]
-                tp_idx = np.where(sorted_nids == cm.qnid)[0][0]
-                tn_idx = 0 if tp_idx > 0 else tp_idx + 1
-                tp_groupxs = [tp_idx]
-                tn_groupxs = [tn_idx]
-            if tp_idx != 0:
-                continue
-            tn_fsvs_list.extend(ut.list_take(cm.fsv_list, tn_groupxs))
-            tp_fsvs_list.extend(ut.list_take(cm.fsv_list, tp_groupxs))
-        fsv_tp = np.vstack(tp_fsvs_list)
-        fsv_tn = np.vstack(tn_fsvs_list)
+                #else:
+                #    # top annots version
+                #    sortx = cm.argsort()
+                #    #sorted_aids = cm.daid_list[sortx]
+                #    sorted_nids = cm.dnid_list[sortx]
+                #    tp_idxs = np.where(sorted_nids == cm.qnid)[0]
+                #    if len(tp_idxs) == 0:
+                #        continue
+                #    tp_idx = tp_idxs[0]
+                #    tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+                #    if (tn_idx) >= len(cm.dnid_list):
+                #        continue
+                #    tp_groupxs = [tp_idx]
+                #    tn_groupxs = [tn_idx]
+                #if tp_idx != 0:
+                #    continue
+                tn_fsvs_list.extend(ut.list_take(cm.fsv_list, tn_groupxs))
+                tp_fsvs_list.extend(ut.list_take(cm.fsv_list, tp_groupxs))
+            fsv_tp = np.vstack(tp_fsvs_list)
+            fsv_tn = np.vstack(tn_fsvs_list)
+            return fsv_tp, fsv_tn, fsv_col_lbls
+
+        fsv_tp, fsv_tn, fsv_col_lbls = get_cfgx_feat_scores(qreq_)
+
+        slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset', default=slice(None, None, None))
+
+        fsv_col_lbls = ut.list_take(fsv_col_lbls, slice_)
+        fsv_tp = fsv_tp.T[slice_].T
+        fsv_tn = fsv_tn.T[slice_].T
 
         fs_tp = fsv_tp.prod(axis=1)
         fs_tn = fsv_tn.prod(axis=1)
@@ -1876,7 +1903,7 @@ class TestResult(object):
         scoretype = '*'.join(fsv_col_lbls)
 
         encoder = vt.ScoreNormalizer()
-        tn_scores, tp_scores = fs_tp, fs_tn
+        tp_scores, tn_scores = fs_tp, fs_tn
         encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
         figtitle = 'Feature Scores: %r.\n%s' % (scoretype, testres.get_title_aug())
         fnum = None
