@@ -128,12 +128,21 @@ def show_was_requested():
     #return ut.show_was_requested()
 
 
-def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0)):
+def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), max_dsize=None):
     """
     # Overlay a species icon
     # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
     """
     ax = gca()
+    if isinstance(icon, six.string_types):
+        # hack because icon is probably a url
+        icon_url = icon
+        icon = vt.imread(ut.grab_file_url(icon_url))
+        if max_dsize is not None:
+            icon = vt.resize_to_maxdims(icon, max_dsize)
+            icon.shape
+    print('icon.shape = %r' % (icon.shape,))
+
     icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
     imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
     if coord_type:
