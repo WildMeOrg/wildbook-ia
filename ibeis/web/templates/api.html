@@ -68,12 +68,47 @@ C# Version:
 
         var secretKeySignature = GetSignature(appSecret, messageToSendBytes);
         return string.Format("{0}:{1}", appName, secretKeySignature);
-    }</pre></div>
+    }
 
+
+Javascript Version (using CryptoJS):
+    httpAuth = function() {
+        var getSignature = function(message, key) {
+            var hash = CryptoJS.HmacSHA1(message, key);
+            return CryptoJS.enc.Base64.stringify(hash);
+        }
+        return {
+            getAuthorizationHeader: function(url) {
+                var app_name = 'IBEIS'
+                var app_secret = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
+
+                var hash = getSignature(url, app_secret)
+                var header = app_name.concat(':', hash)
+                return header
+            },
+        }
+    }();
+
+
+Java Version:
+    private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+
+    private static String getSignature(String key, byte[] messageToSendBytes) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKeySpec keyHmac = new SecretKeySpec(key.getBytes(), HMAC_SHA1_ALGORITHM);
+        Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+        mac.init(keyHmac);
+        return new String(Base64.encodeBase64(mac.doFinal(messageToSendBytes)));
+    }
+
+    public static String getAuthorizationHeader(String url) throws NoSuchAlgorithmException, InvalidKeyException {
+        String appName = "IBEIS";
+        String appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
+        return appName + ":" + getSignature(appSecret, url.getBytes());
+    }</pre></div>
 
     <h4>Example Request</h4>
     <div class="well well-lg"><pre>
-Request: 
+Request:
     Name:    IBEIS
     Secret:  CB73808F-A6F6-094B-5FCD-385EBAFF8FC0
     Method:  GET
@@ -84,11 +119,11 @@ Request:
 
 Response: {
     "status": {
-        "cache": -1, 
-        "message": "", 
-        "code": 200, 
+        "cache": -1,
+        "message": "",
+        "code": 200,
         "success": true
-    }, 
+    },
     "response": "testdb1"
 }</pre></div>
 
