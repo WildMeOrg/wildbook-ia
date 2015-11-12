@@ -1968,10 +1968,10 @@ class TestResult(object):
         disttypes = ut.get_argval('--disttypes', type_=list, default=None)
 
         # HACKY CACHE
-        #cfgstr = qreq_.get_cfgstr(with_query=True)
-        #cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
-        #cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes))
-        #@ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[])
+        cfgstr = qreq_.get_cfgstr(with_query=True)
+        cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
+        cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes))
+        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[], use_cache=None)
         def get_cfgx_feat_scores(qreq_):
             cm_list = qreq_.load_cached_chipmatch()
             print('Done loading cached chipmatches')
@@ -2027,6 +2027,7 @@ class TestResult(object):
             with_scores=False,
             with_prebayes=False,
             with_postbayes=False,
+            score_range=(0, 1),
             target_tpr=.95,
         )
         import plottool as pt

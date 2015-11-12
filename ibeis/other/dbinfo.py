@@ -730,7 +730,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
     #title = db_name + ' database statistics'
     title = 'Database statistics'
-    stat_title = '# Annot per name (multiton)'
+    stat_title = '# Annotations per name (multiton)'
 
     #col_lbls = [
     #    'multiton',
@@ -761,7 +761,7 @@ def latex_dbstats(ibs_list, **kwargs):
         ('# Annots', (
             'num_multiton_annots',
             'num_singleton_annots',
-            'num_unknown_annots',
+            #'num_unknown_annots',
             'num_annots')),
     ]
     #multicol_lbls = [('# Names', 3), ('# Annots', 3)]
@@ -799,8 +799,10 @@ def latex_dbstats(ibs_list, **kwargs):
 
     CENTERLINE = False
     AS_TABLE = True
-    tablekw = dict(astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False,
-                   precision=2, col_sep='', multicol_sep='|', **kwargs)
+    tablekw = dict(
+        astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False, precision=2,
+        col_sep='', multicol_sep='|',
+        **kwargs)
 
     if EXTRA:
         extra_keys = [
@@ -809,9 +811,9 @@ def latex_dbstats(ibs_list, **kwargs):
             'yawtext2_nAnnots',
         ]
         extra_titles = {
-            'species2_nAids': 'Annots per Species',
-            'qualtext2_nAnnots': 'Annots per Quality',
-            'yawtext2_nAnnots': 'Annots per Viewpoint',
+            'species2_nAids': 'Annotations per species.',
+            'qualtext2_nAnnots': 'Annotations per quality.',
+            'yawtext2_nAnnots': 'Annotations per viewpoint.',
         }
         extra_collbls = ut.ddict(list)
         extra_rowvalues = ut.ddict(list)
@@ -837,7 +839,7 @@ def latex_dbstats(ibs_list, **kwargs):
         for key in extra_keys:
             extra_tables[key] = ut.util_latex.make_score_tabular(
                 row_lbls, extra_collbls[key], extra_rowvalues[key],
-                title=extra_titles[key], col_align='r', **tablekw)
+                title=extra_titles[key], col_align='r', table_position='[h!]', **tablekw)
 
     #tabular_str = util_latex.tabular_join(tabular_body_list)
     if SINGLE_TABLE:
@@ -845,7 +847,7 @@ def latex_dbstats(ibs_list, **kwargs):
         multicol_lbls += [(stat_title, len(stat_col_lbls))]
 
     count_tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, **tablekw)
+        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, table_position='[ht!]', **tablekw)
 
     #print(row_lbls)
 
@@ -854,7 +856,7 @@ def latex_dbstats(ibs_list, **kwargs):
     else:
         stat_tabular_str = ut.util_latex.make_score_tabular(
             stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title,
-            col_align='r', **tablekw)
+            col_align='r', table_position='[h!]', **tablekw)
 
         # Make a table of statistics
         if tablekw['astable']:
