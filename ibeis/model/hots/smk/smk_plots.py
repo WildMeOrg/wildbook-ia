@@ -500,7 +500,7 @@ def get_qres_and_closest_valid_k(ibs, aid, K=4):
     }
     #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
     #ibs.cfg.query_cfg.with_metadata = True
-    qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, cfgdict=cfgdict)
+    qaid2_qres, qreq_ = ibs.query_chips([aid], ibs.get_valid_aids(), use_cache=False, return_request=True, cfgdict=cfgdict)
     indexer = qreq_.indexer
     qres = qaid2_qres[aid]
     return qres, None
@@ -667,7 +667,8 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
     for count, metrickey in enumerate(metric_keys):
         if isinstance(metrickey, tuple):
             #lbl = repr(metrickey)
-            fixstr = lambda str_: str_.replace('wx2_', '').replace('_stats', '')
+            def fixstr(str_):
+                return str_.replace('wx2_', '').replace('_stats', '')
             lbl = '%s(%s)' % (metrickey[1].upper(), fixstr(metrickey[0]))
         else:
             lbl = str(metrickey)

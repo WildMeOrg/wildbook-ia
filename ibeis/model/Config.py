@@ -268,8 +268,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
         sv_cfg.nAnnotPerNameSVER = 6
-        sv_cfg.prescore_method = 'csum'
-        #sv_cfg.prescore_method = 'nsum'
+        #sv_cfg.prescore_method = 'csum'
+        sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
         sv_cfg.sver_output_weighting = False  # weight feature scores with sver errors
         sv_cfg.weight_inliers = True  # weight feature scores with sver errors
@@ -975,6 +975,13 @@ class FeatureConfig(ConfigBase):
         #feat_cfg.affine_invariance = False  # 9001 # 80
         #feat_cfg.rotation_invariance = True  # 9001 # 80
 
+        """
+        # TODO:
+            multiple features (lists of features to use)
+            per-chip filtering based on decision (this probably should belong to chip cfg)
+            optional mask
+        """
+
         feat_cfg.use_adaptive_scale = False  # 9001 # 80
         feat_cfg.nogravity_hack = False  # 9001 # 80
         feat_cfg.update(**kwargs)
@@ -992,23 +999,6 @@ class FeatureConfig(ConfigBase):
             for type_, name, default, doc in feat_cfg._iterparams()
         }
         return dict_args
-
-    #def get(self, key, *d):
-    #    """ get a paramater value by string
-    #    HUGE HACK. Makes it appear like the chip config string is part of the
-    #    dictionary of this item This is a monkey patch
-    #    """
-    #    ERROR_ON_DEFAULT = True
-    #    if ERROR_ON_DEFAULT:
-    #        if key == 'feat_cfgstr':
-    #            return self.get_cfgstr()
-    #        elif key == 'feat_cfg_dict':
-    #            return self.to_dict()
-    #        else:
-    #            #return super(ConfigBase, self).__getitem(key)
-    #            return getattr(self, key)
-    #    else:
-    #        return getattr(self, key, *d)
 
     def get_cfgstr_list(feat_cfg, **kwargs):
         if kwargs.get('use_feat', True):
@@ -1051,6 +1041,23 @@ class FeatureConfig(ConfigBase):
             feat_cfgstrs = []
         feat_cfgstrs.extend(feat_cfg._chip_cfg.get_cfgstr_list(**kwargs))
         return feat_cfgstrs
+
+    #def get(self, key, *d):
+    #    """ get a paramater value by string
+    #    HUGE HACK. Makes it appear like the chip config string is part of the
+    #    dictionary of this item This is a monkey patch
+    #    """
+    #    ERROR_ON_DEFAULT = True
+    #    if ERROR_ON_DEFAULT:
+    #        if key == 'feat_cfgstr':
+    #            return self.get_cfgstr()
+    #        elif key == 'feat_cfg_dict':
+    #            return self.to_dict()
+    #        else:
+    #            #return super(ConfigBase, self).__getitem(key)
+    #            return getattr(self, key)
+    #    else:
+    #        return getattr(self, key, *d)
 
 
 @six.add_metaclass(ConfigMetaclass)

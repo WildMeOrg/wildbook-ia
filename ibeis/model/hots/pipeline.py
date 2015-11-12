@@ -60,7 +60,7 @@ from ibeis.model.hots import scoring
 from ibeis.model.hots import _pipeline_helpers as plh
 import utool as ut
 #profile = ut.profile
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[pipeline]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[pipeline]')
 
 
 #=================
@@ -398,6 +398,11 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> result = 'nn_mid_cacheid_list = ' + ut.list_str(nn_mid_cacheid_list)
         >>> print(result)
         nn_mid_cacheid_list = [
+            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6',
+            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6',
+        ]
+
+        nn_mid_cacheid_list = [
             '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
             'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
         ]
@@ -415,6 +420,11 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> (nn_cachedir, nn_mid_cacheid_list) = tup
         >>> result = 'nn_mid_cacheid_list = ' + ut.list_str(nn_mid_cacheid_list)
         >>> print(result)
+        nn_mid_cacheid_list = [
+            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6',
+            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6',
+        ]
+
         nn_mid_cacheid_list = [
             '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
             'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
@@ -445,7 +455,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
     if HACK_KCFG:
-        kbase = qreq_.qparams.K + qreq_.qparams.Knorm
+        kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
         nn_mid_cacheid_list = [
             str(query_hashid) + nn_mid_cacheid + '_truek' + str(kbase + Kpad)
             for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
@@ -956,7 +966,6 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         >>> cm = cm_list[0]
         >>> top_nids = cm.get_top_nids(6)
         >>> verbose = True
-        >>> # Execute Function
         >>> cm_list_SVER = spatial_verification(qreq_, cm_list)
         >>> # Test Results
         >>> cmSV = cm_list_SVER[0]
@@ -972,7 +981,18 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         >>> ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), 'feature matches were not filtered'
         >>> ut.quit_if_noshow()
         >>> cmSV.show_daids_matches(qreq_, gt_daids)
+        >>> import plottool as pt
+        >>> #homog_tup = (refined_inliers, H)
+        >>> #aff_tup = (aff_inliers, Aff)
+        >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
         >>> ut.show_if_requested()
+
+    Ignore:
+        idx = cm.daid2_idx[gt_daids[0]]
+        idxSV = cmSV.daid2_idx[gt_daids[0]]
+        cm.fm_list[idx]
+        cmSV.fm_list[idxSV]
+        cmSV.H_list[idxSV]
 
     Ignore:
         #print("NEIGHBOR HASH")
@@ -1044,6 +1064,54 @@ def sver_single_chipmatch(qreq_, cm):
     loops over a shortlist of results for a specific query annotation
     python -m ibeis --tf chipmatch_to_resdict:1
 
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        cm (ChipMatch2):
+
+    Returns:
+        ChipMatch2: cmSV
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show -t default:sv_on=True -a default --qaid 4
+        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show --qaid=18 --y=0
+        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show --qaid=18 --y=1
+
+        8
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST')  #, qaid_list=[18])
+        >>> assert len(qreq_list) == 1
+        >>> qreq_ = qreq_list[0]
+        >>> cm_list = cms_list[0]
+        >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
+        >>> cm = cm_list[0]
+        >>> source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)
+        >>> source = ut.replace_between_tags(source, '', '# <SENTINAL>', '# </SENTINAL>')
+        >>> globals_ = globals().copy()
+        >>> exec(source, globals_)
+        >>> svtup_list = globals_['svtup_list']
+        >>> daids = cm.get_groundtruth_daids()
+        >>> x = ut.get_argval('--y', type_=int, default=0)
+        >>> print('x = %r' % (x,))
+        >>> daid = daids[x % len(daids)]
+        >>> idx = cm.daid2_idx[daid]
+        >>> svtup = svtup_list[idx]
+        >>> refined_inliers, refined_errors, H = svtup[0:3]
+        >>> aff_inliers, aff_errors, Aff = svtup[3:6]
+        >>> homog_tup = (refined_inliers, H)
+        >>> aff_tup = (aff_inliers, Aff)
+        >>> fm = cm.fm_list[idx]
+        >>> aid1 = cm.qaid
+        >>> aid2 = daid
+        >>> rchip1, rchip2 = ibs.get_annot_chips([aid1, aid2], config2_=qreq_.get_external_query_config2())
+        >>> kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=qreq_.get_external_data_config2())
+        >>> import plottool as pt
+        >>> refine_method = 'homog'
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
+        >>> ut.show_if_requested()
+
     """
     qaid = cm.qaid
     use_chip_extent = qreq_.qparams.use_chip_extent
@@ -1087,13 +1155,15 @@ def sver_single_chipmatch(qreq_, cm):
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers, match_weights=match_weights,
-                    full_homog_checks=full_homog_checks, returnAff=False)
+                    full_homog_checks=full_homog_checks, returnAff=True)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
-                              keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                                    'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
+                           keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
+                                 'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
                 sv_tup = None
         svtup_list.append(sv_tup)
+
+    # <SENTINAL>
 
     # Remove all matches that failed spatial verification
     # TODO: change to list compress and numpy arrays
@@ -1152,6 +1222,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST')
         >>> verbose = True
         >>> cm = cm_list[0]
+        >>> cm.set_cannonical_annot_score(cm.get_num_matches_list())
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
         >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.get_external_data_config2())

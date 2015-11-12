@@ -20,7 +20,7 @@ import six
 import utool as ut
 import numpy as np
 import warnings
-from ibeis.model.hots import hots_query_result
+#from ibeis.model.hots import hots_query_result
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
 
 VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qreq', '--verbqreq'))
@@ -647,6 +647,7 @@ class QueryRequest(object):
 
     # External id-hashes
 
+    #@ut.memoize
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
         try:
@@ -658,6 +659,7 @@ class QueryRequest(object):
             daids, prefix='D')
         return data_hashid
 
+    #@ut.memoize
     def get_query_hashid(qreq_):
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
@@ -1001,22 +1003,22 @@ class QueryRequest(object):
         assert_uuids(_qaids, _qauuids)
         assert_uuids(_daids, _dauuids)
 
-    def make_empty_query_results(qreq_):
-        """
-        DEPRICATE in favor of chipmatch
+    #def make_empty_query_results(qreq_):
+    #    """
+    #    DEPRICATE in favor of chipmatch
 
-        returns empty query results for each external qaid """
-        external_qaids   = qreq_.get_external_qaids()
-        external_qauuids = qreq_.get_external_quuids()
-        daids  = qreq_.get_external_daids()
-        cfgstr = qreq_.get_cfgstr()
-        qres_list = [
-            hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-            for qaid, qauuid in zip(external_qaids, external_qauuids)
-        ]
-        for qres in qres_list:
-            qres.aid2_score = {}
-        return qres_list
+    #    returns empty query results for each external qaid """
+    #    external_qaids   = qreq_.get_external_qaids()
+    #    external_qauuids = qreq_.get_external_quuids()
+    #    daids  = qreq_.get_external_daids()
+    #    cfgstr = qreq_.get_cfgstr()
+    #    qres_list = [
+    #        hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+    #        for qaid, qauuid in zip(external_qaids, external_qauuids)
+    #    ]
+    #    for qres in qres_list:
+    #        qres.aid2_score = {}
+    #    return qres_list
 
     def make_empty_chip_matches(qreq_):
         """
@@ -1051,52 +1053,67 @@ class QueryRequest(object):
 
         return cm_list
 
-    def make_empty_query_result(qreq_, qaid):
-        """
-        DEPRICATE in favor of chipmatch
+    #def make_empty_query_result(qreq_, qaid):
+    #    """
+    #    DEPRICATE in favor of chipmatch
 
-        makes an empty result for some query aid.  Hack used in case qres
-        returned is None to get a single qres """
-        qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
-        daids  = qreq_.get_external_daids()
-        cfgstr = qreq_.get_cfgstr()
-        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
-        qres.aid2_score = {}
-        return qres
+    #    makes an empty result for some query aid.  Hack used in case qres
+    #    returned is None to get a single qres """
+    #    qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
+    #    daids  = qreq_.get_external_daids()
+    #    cfgstr = qreq_.get_cfgstr()
+    #    qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
+    #    qres.aid2_score = {}
+    #    return qres
 
+    @profile
     def get_chipmatch_fpaths(qreq_, qaid_list):
+        """
+        Efficient function to get a list of chipmatch paths
+        """
         dpath = qreq_.get_qresdir()
+        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+        qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
         fpath_list = [
-            join(dpath, chip_match.get_chipmatch_fname(qaid, qreq_))
-            for qaid in qaid_list
+            join(dpath, chip_match.get_chipmatch_fname(
+                qaid, qreq_, qauuid=qauuid, cfgstr=cfgstr))
+            for qaid, qauuid in zip(qaid_list, qauuid_list)
         ]
         return fpath_list
 
-    def load_cached_chipmatch(qreq_, qaid):
+    @profile
+    def load_cached_chipmatch(qreq_, qaid=None):
         """
         DEPRICATE in favor of chipmatch
 
         convinience function for loading a query that has already been
         cached """
+        if qaid is None:
+            qaid = qreq_.get_external_qaids()
         shallow_qreq_ = qreq_.shallowcopy()
-        shallow_qreq_.set_external_qaids([qaid])
-        cm = shallow_qreq_.ibs.query_chips(
-            [qaid], qreq_.get_external_daids(), use_cache=True,
-            use_bigcache=False, qreq_=shallow_qreq_, return_cm=True)[0]
-        return cm
+        is_scalar = not ut.isiterable(qaid)
+        qaid_list = [qaid] if is_scalar else qaid
+        shallow_qreq_.set_external_qaids(qaid_list)
+        cm_list = shallow_qreq_.ibs.query_chips(
+            qaid_list, qreq_.get_external_daids(), use_cache=True,
+            use_bigcache=False, qreq_=shallow_qreq_, return_cm=True)
+        if is_scalar:
+            return cm_list[0]
+        else:
+            return cm_list
 
-    def load_cached_qres(qreq_, qaid):
-        """
-        DEPRICATE in favor of chipmatch
+    #def load_cached_qres(qreq_, qaid):
+    #    """
+    #    DEPRICATE in favor of chipmatch
 
-        convinience function for loading a query that has already been
-        cached """
-        shallow_qreq_ = qreq_.shallowcopy()
-        shallow_qreq_.set_external_qaids([qaid])
-        qres = shallow_qreq_.ibs.query_chips(
-            [qaid], qreq_.get_external_daids(), use_cache=True,
-            use_bigcache=False, qreq_=shallow_qreq_)[0]
-        return qres
+    #    convinience function for loading a query that has already been
+    #    cached """
+    #    shallow_qreq_ = qreq_.shallowcopy()
+    #    shallow_qreq_.set_external_qaids([qaid])
+    #    qres = shallow_qreq_.ibs.query_chips(
+    #        [qaid], qreq_.get_external_daids(), use_cache=True,
+    #        use_bigcache=False, qreq_=shallow_qreq_)[0]
+    #    return qres
 
 
 def test_cfg_deepcopy():

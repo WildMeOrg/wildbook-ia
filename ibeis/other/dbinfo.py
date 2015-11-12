@@ -4,7 +4,7 @@ get_dbinfo is probably the only usefull funciton in here
 # This is not the cleanest module
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import numpy as np
@@ -607,7 +607,8 @@ def show_image_time_distributions(ibs, gid_list):
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> gid_list = ibs.get_valid_gids()
+        >>> aids = ibeis.testdata_aids(ibs=ibs)
+        >>> gid_list = ut.unique_unordered(ibs.get_annot_gids(aids))
         >>> result = show_image_time_distributions(ibs, gid_list)
         >>> print(result)
         >>> ut.show_if_requested()
@@ -652,6 +653,36 @@ def show_time_distributions(ibs, unixtime_list):
             ibs.get_dbname_alias(),
             num_nan, num_total))
         pt.gcf().autofmt_xdate()
+
+        icon = ibs.get_database_icon()
+        if icon is not None:
+            #import matplotlib as mpl
+            #import vtool as vt
+            ax = pt.gca()
+            # Overlay a species icon
+            # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+            #icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))
+            #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+            ##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
+            ##ax.set_xlim(1, 100)
+            ##ax.set_ylim(0, 100)
+            ##x = np.array(ax.get_xlim()).sum() / 2
+            ##y = np.array(ax.get_ylim()).sum() / 2
+            ##xy = [x, y]
+            ##print('xy = %r' % (xy,))
+            ##x = np.nanmin(unixtime_list)
+            ##xy = [x, y]
+            ##print('xy = %r' % (xy,))
+            ##ax.get_ylim()[0]]
+            #xy = [ax.get_xlim()[0], ax.get_ylim()[1]]
+            #ab = mpl.offsetbox.AnnotationBbox(
+            #    imagebox, xy, xycoords='data',
+            #    xybox=(-0., 0.),
+            #    boxcoords="offset points",
+            #    box_alignment=(0, 1), pad=0.0)
+            #ax.add_artist(ab)
+
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
         pt.adjust_subplots2(use_argv=True)
@@ -688,9 +719,18 @@ def latex_dbstats(ibs_list, **kwargs):
         >>> ut.quit_if_noshow()
         >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
+
+    import ibeis
+    # Parse for aids test data
+    aids_list = [ibeis.testdata_aids(ibs=ibs) for ibs in ibs_list]
+
+    #dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
+    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False, aid_list=aids)
+                   for ibs, aids in zip(ibs_list, aids_list)]
+
     #title = db_name + ' database statistics'
     title = 'Database statistics'
-    stat_title = '# Annot per name (multiton)'
+    stat_title = '# Annotations per name (multiton)'
 
     #col_lbls = [
     #    'multiton',
@@ -721,7 +761,7 @@ def latex_dbstats(ibs_list, **kwargs):
         ('# Annots', (
             'num_multiton_annots',
             'num_singleton_annots',
-            'num_unknown_annots',
+            #'num_unknown_annots',
             'num_annots')),
     ]
     #multicol_lbls = [('# Names', 3), ('# Annots', 3)]
@@ -735,12 +775,10 @@ def latex_dbstats(ibs_list, **kwargs):
     row_values = []
 
     #stat_col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
-    stat_col_lbls = ['max', 'min', 'mean', 'std', 'median']
+    stat_col_lbls = ['max', 'min', 'mean', 'std', 'med']
     #stat_row_lbls = ['# Annot per Name (multiton)']
     stat_row_lbls = []
     stat_row_values = []
-
-    dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]
 
     SINGLE_TABLE = False
     EXTRA = True
@@ -761,8 +799,10 @@ def latex_dbstats(ibs_list, **kwargs):
 
     CENTERLINE = False
     AS_TABLE = True
-    tablekw = dict(astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False,
-                   precision=2, col_sep='', multicol_sep='|', **kwargs)
+    tablekw = dict(
+        astable=AS_TABLE, centerline=CENTERLINE, FORCE_INT=False, precision=2,
+        col_sep='', multicol_sep='|',
+        **kwargs)
 
     if EXTRA:
         extra_keys = [
@@ -771,9 +811,9 @@ def latex_dbstats(ibs_list, **kwargs):
             'yawtext2_nAnnots',
         ]
         extra_titles = {
-            'species2_nAids': 'Annots per Species',
-            'qualtext2_nAnnots': 'Annots per Quality',
-            'yawtext2_nAnnots': 'Annots per Viewpoint',
+            'species2_nAids': 'Annotations per species.',
+            'qualtext2_nAnnots': 'Annotations per quality.',
+            'yawtext2_nAnnots': 'Annotations per viewpoint.',
         }
         extra_collbls = ut.ddict(list)
         extra_rowvalues = ut.ddict(list)
@@ -799,7 +839,7 @@ def latex_dbstats(ibs_list, **kwargs):
         for key in extra_keys:
             extra_tables[key] = ut.util_latex.make_score_tabular(
                 row_lbls, extra_collbls[key], extra_rowvalues[key],
-                title=extra_titles[key], col_align='r', **tablekw)
+                title=extra_titles[key], col_align='r', table_position='[h!]', **tablekw)
 
     #tabular_str = util_latex.tabular_join(tabular_body_list)
     if SINGLE_TABLE:
@@ -807,7 +847,7 @@ def latex_dbstats(ibs_list, **kwargs):
         multicol_lbls += [(stat_title, len(stat_col_lbls))]
 
     count_tabular_str = ut.util_latex.make_score_tabular(
-        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, **tablekw)
+        row_lbls, col_lbls, row_values, title=title, multicol_lbls=multicol_lbls, table_position='[ht!]', **tablekw)
 
     #print(row_lbls)
 
@@ -816,7 +856,7 @@ def latex_dbstats(ibs_list, **kwargs):
     else:
         stat_tabular_str = ut.util_latex.make_score_tabular(
             stat_row_lbls, stat_col_lbls, stat_row_values, title=stat_title,
-            col_align='r', **tablekw)
+            col_align='r', table_position='[h!]', **tablekw)
 
         # Make a table of statistics
         if tablekw['astable']:

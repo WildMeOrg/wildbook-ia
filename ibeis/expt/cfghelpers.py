@@ -189,10 +189,60 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     return cfg_lbl
 
 
+#def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):
+#    try:
+#        cfg_combo = customize_base_cfg(
+#            cfgname, cfgopt_strs, base_cfg, cfgtype,
+#            alias_keys=alias_keys, valid_keys=valid_keys,
+#            offset=len(cfg_combos), strict=strict)
+#        return cfg_combo
+#    except Exception as ex:
+#        ut.printex(ex, 'Parse Error CfgstrList2',
+#                   keys=['cfgname', 'cfgopt_strs', 'base_cfg',
+#                         'cfgtype', 'alias_keys', 'valid_keys'])
+#        raise
+
+
+@ut.on_exception_report_input(keys=['cfgname', 'cfgopt_strs', 'base_cfg',
+                                    'cfgtype', 'alias_keys', 'valid_keys'],
+                              force=True)
 def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
-                       alias_keys=None, valid_keys=None, offset=0, strict=True):
+                       alias_keys=None, valid_keys=None, offset=0,
+                       strict=True):
     """
-    cfgopt_strs = 'dsize=1000,per_name=[1,2]'
+    Args:
+        cfgname (str): config name
+        cfgopt_strs (str): mini-language defining key variations
+        base_cfg (dict): specifies the default cfg to customize
+        cfgtype (?):
+        alias_keys (None): (default = None)
+        valid_keys (None): if base_cfg is not specied, this defines the valid
+            keys (default = None)
+        offset (int): (default = 0)
+        strict (bool): (default = True)
+
+    Returns:
+        list: cfg_combo - list of config dicts defining customized configs
+            based on cfgopt_strs. customized configs always are given an
+            _cfgindex, _cfgstr, and _cfgname key.
+
+    CommandLine:
+        python -m ibeis.expt.cfghelpers --exec-_customize_base_cfg
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.expt.cfghelpers import *  # NOQA
+        >>> cfgname = 'default'
+        >>> cfgopt_strs = 'dsize=1000,per_name=[1,2]'
+        >>> base_cfg = '?'
+        >>> cfgtype = '?'
+        >>> alias_keys = None
+        >>> valid_keys = None
+        >>> offset = 0
+        >>> strict = True
+        >>> cfg_combo = customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, offset, strict)
+        >>> result = ('cfg_combo = %s' % (str(cfg_combo),))
+        >>> print(result)
     """
     cfg = base_cfg.copy()
     # Parse dict out of a string
@@ -205,20 +255,21 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
     remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys)
     # Remap keynames based on aliases
     if alias_keys is not None:
+        # Use new standard keys and remove old aliased keys
         for key in set(alias_keys.keys()):
             if key in cfg_options:
-                # use standard new key
                 cfg_options[alias_keys[key]] = cfg_options[key]
-                # remove old alised key
                 del cfg_options[key]
     # Ensure that nothing bad is being updated
     if strict:
+        parsed_keys = cfg_options.keys()
         if valid_keys is not None:
-            ut.assert_all_in(cfg_options.keys(), valid_keys, 'keys specified not in valid set')
+            ut.assert_all_in(parsed_keys, valid_keys,
+                             'keys specified not in valid set')
         else:
-            ut.assert_all_in(cfg_options.keys(), cfg.keys(), 'keys specified not in default options')
+            ut.assert_all_in(parsed_keys, cfg.keys(),
+                             'keys specified not in default options')
     # Finalize configuration dict
-    #cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=False)
     cfg.update(cfg_options)
     cfg['_cfgtype'] = cfgtype
     cfg['_cfgname'] = cfgname
@@ -233,20 +284,6 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
         else:
             cfg_['_cfgstr'] = cfg_['_cfgname']
     return cfg_combo
-
-
-def try_customize_base(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):
-    try:
-        cfg_combo = customize_base_cfg(
-            cfgname, cfgopt_strs, base_cfg, cfgtype,
-            alias_keys=alias_keys, valid_keys=valid_keys,
-            offset=len(cfg_combos), strict=strict)
-        return cfg_combo
-    except Exception as ex:
-        ut.printex(ex, 'Parse Error CfgstrList2',
-                   keys=['cfgname', 'cfgopt_strs', 'base_cfg',
-                         'cfgtype', 'alias_keys', 'valid_keys'])
-        raise
 
 
 def parse_cfgstr_name_options(cfgstr):
@@ -443,9 +480,9 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                     raise
                 # --
                 for base_cfg in base_cfg_list:
-                    cfg_combo = try_customize_base(cfgname, cfgopt_strs, base_cfg,
-                                                   cfgtype, alias_keys, valid_keys,
-                                                   cfg_combos, strict)
+                    cfg_combo = customize_base_cfg(
+                        cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys,
+                        valid_keys, strict=strict, offset=len(cfg_combos))
                     if is_nestedcfgtype:
                         cfg_combo = [cfg_combo]
                     if expand_nested:

@@ -783,8 +783,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         'encounterID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
-    submit_namchange_url_fmtstr = (wildbook_base_url + '/' + url_command + '?'
-                                   + url_args_fmtstr)
+    submit_namchange_url_fmtstr = (
+        wildbook_base_url + '/' + url_command + '?' + url_args_fmtstr)
 
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_known=True)

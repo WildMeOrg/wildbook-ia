@@ -1376,8 +1376,10 @@ def get_empty_gids(ibs, eid=None):
 
 @register_ibs_method
 def get_annot_vecs_cache(ibs, aids):
-    """ When you have a list with duplicates and you dont want to copy data
-    creates a reference to each data object indexed by a dict """
+    """
+    When you have a list with duplicates and you dont want to copy data
+    creates a reference to each data object indexed by a dict
+    """
     unique_aids = list(set(aids))
     unique_desc = ibs.get_annot_vecs(unique_aids)
     desc_cache = dict(list(zip(unique_aids, unique_desc)))

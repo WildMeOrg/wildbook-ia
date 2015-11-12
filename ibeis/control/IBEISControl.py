@@ -1230,7 +1230,7 @@ class IBEISController(BASE_CLASS):
                     verbose=pipeline.VERB_PIPELINE,
                     save_qcache=None,
                     prog_hook=None,
-                    return_cm=False,
+                    return_cm=None,
                     return_cm_dict=False,
                     return_cm_simple_dict=False,
                     ):
@@ -1249,26 +1249,33 @@ class IBEISController(BASE_CLASS):
                 that will be searched
             cfgdict (dict): dictionary of configuration options used to create
                 a new QueryRequest if not already specified
-            use_cache (bool):
-            use_bigcache (bool):
+            use_cache (bool): turns on/off chip match cache (default: True)
+            use_bigcache (bool): turns one/off chunked chip match cache (default: True)
             qreq_ (QueryRequest): optional, a QueryRequest object that
                 overrides all previous settings
             return_request (bool): returns the request which will be created if
                 one is not already specified
             verbose (bool): default=False, turns on verbose printing
-            return_cm (bool): default=False, if true converts QueryResult
+            return_cm (bool): default=True, if true converts QueryResult
                 objects into serializable ChipMatch2 objects (in the future
                 this will be defaulted to True)
 
         Returns:
-            list: a list of QueryResult objects containing the matching
+            list: a list of ChipMatch2 objects containing the matching
                 annotations, scores, and feature matches
 
         Returns(2):
-            tuple: (qres_list, qreq_) - a list of query results and optionally the QueryRequest object used
+            tuple: (cm_list, qreq_) - a list of query results and optionally the QueryRequest object used
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-query_chips
+
+            # Test speed of single query
+            python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
+                -a default:qindex=0:1,dindex=0:500 --nocache-hs
+
+            python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
+                -a default:qindex=0:1,dindex=0:3000 --nocache-hs
 
         RESTful:
             Method: PUT
@@ -1278,11 +1285,17 @@ class IBEISController(BASE_CLASS):
             >>> # SLOW_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> qaids = ibs.get_valid_aids()[0:1]
-            >>> qres = ibs.query_chips(qaids)[0]
-            >>> assert qres.qaid == qaids[0]
+            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> ibs = qreq_.ibs
+            >>> cm_list = ibs.query_chips(qreq_=qreq_)
+            >>> cm = cm_list[0]
+            >>> ut.quit_if_noshow()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
         """
+
+        if return_cm is None:
+            return_cm = True
         # The qaid and daid objects are allowed to be None if qreq_ is
         # specified
         if qaid_list is None:
@@ -1311,26 +1324,26 @@ class IBEISController(BASE_CLASS):
         if return_cm or return_cm_dict or return_cm_simple_dict:
             # Convert to cm_list
             if return_cm_simple_dict:
-                qres_list = [cm.as_simple_dict() for cm in cm_list]
+                cm_list = [cm.as_simple_dict() for cm in cm_list]
             elif return_cm_dict:
-                qres_list = [cm.as_dict() for cm in cm_list]
+                cm_list = [cm.as_dict() for cm in cm_list]
             else:
-                qres_list = cm_list
-        else:
-            qres_list = [
-                cm.as_qres2(qreq_)
-                for cm in cm_list
-            ]
+                cm_list = cm_list
+        #else:
+        #    cm_list = [
+        #        cm.as_qres2(qreq_)
+        #        for cm in cm_list
+        #    ]
 
         if was_scalar:
             # hack for scalar input
-            assert len(qres_list) == 1
-            qres_list = qres_list[0]
+            assert len(cm_list) == 1
+            cm_list = cm_list[0]
 
         if return_request:
-            return qres_list, qreq_
+            return cm_list, qreq_
         else:
-            return qres_list
+            return cm_list
 
     @register_api('/api/core/query_chips4/', methods=['PUT'])
     def _query_chips4(ibs, qaid_list, daid_list,
@@ -1401,56 +1414,6 @@ class IBEISController(BASE_CLASS):
         else:
             return qaid2_cm
 
-    #_query_chips = _query_chips3
-    _query_chips = _query_chips4
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/query_encounter/', methods=['PUT'])
-    def query_encounter(ibs, qaid_list, eid, **kwargs):
-        """
-        _query_chips wrapper
-
-        RESTful:
-            Method: PUT
-            URL:    /api/core/query_encounter/
-        """
-        daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
-        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
-        # HACK IN ENCOUNTER INFO
-        for qres in six.itervalues(qaid2_qres):
-            qres.eid = eid
-        return qaid2_qres
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/query_exemplars/', methods=['PUT'])
-    def query_exemplars(ibs, qaid_list, **kwargs):
-        """
-        Queries vs the exemplars
-
-        RESTful:
-            Method: PUT
-            URL:    /api/core/query_exemplars/
-        """
-        daid_list = ibs.get_valid_aids(is_exemplar=True)
-        assert len(daid_list) > 0, 'there are no exemplars'
-        return ibs._query_chips4(qaid_list, daid_list, **kwargs)
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/query_all/', methods=['PUT'])
-    def query_all(ibs, qaid_list, **kwargs):
-        """
-        DEPRICATED
-
-        Queries vs all valid chip ~~the exemplars~~
-
-        RESTful:
-            Method: PUT
-            URL:    /api/core/query_all/
-        """
-        daid_list = ibs.get_valid_aids()
-        qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
-        return qaid2_qres
-
     @accessor_decors.default_decorator
     @register_api('/api/core/has_species_detector/', methods=['GET'])
     def has_species_detector(ibs, species_text):
@@ -1474,6 +1437,22 @@ class IBEISController(BASE_CLASS):
         """
         # FIXME: infer this
         return const.SPECIES_WITH_DETECTORS
+
+    @accessor_decors.default_decorator
+    def get_database_icon(ibs, max_dsize=(None, 192)):
+        species = ibs.get_primary_database_species()
+        url = {
+            ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
+            ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
+            ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+        }.get(species, None)
+        if url is None:
+            return None
+        #icon = vt.imread(ut.grab_test_imgpath('star.png'))
+        import vtool as vt
+        icon = vt.imread(ut.grab_file_url(url))
+        icon = vt.resize_to_maxdims(icon, max_dsize)
+        return icon
 
 
 if __name__ == '__main__':

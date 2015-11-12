@@ -40,7 +40,7 @@ def empty_query(ibs, qaids):
         qaids (?):
 
     Returns:
-        tuple: (qaid2_qres, qreq_)
+        tuple: (qaid2_cm, qreq_)
 
     CommandLine:
         python -m ibeis.model.hots.match_chips4 --test-empty_query
@@ -53,36 +53,36 @@ def empty_query(ibs, qaids):
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
         >>> # execute function
-        >>> (qaid2_qres, qreq_) = empty_query(ibs, qaids)
+        >>> (qaid2_cm, qreq_) = empty_query(ibs, qaids)
         >>> # verify results
-        >>> result = str((qaid2_qres, qreq_))
+        >>> result = str((qaid2_cm, qreq_))
         >>> print(result)
-        >>> qres = qaid2_qres[qaids[0]]
-        >>> ut.assert_eq(len(qres.get_top_aids()), 0)
+        >>> cm = qaid2_cm[qaids[0]]
+        >>> ut.assert_eq(len(cm.get_top_aids()), 0)
         >>> ut.quit_if_noshow()
-        >>> qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
+        >>> cm.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
         >>> from matplotlib import pyplot as plt
         >>> plt.show()
     """
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
-    qres_list = qreq_.make_empty_chip_matches()
-    qaid2_qres = dict(zip(qaids, qres_list))
-    return qaid2_qres, qreq_
+    cm = qreq_.make_empty_chip_matches()
+    qaid2_cm = dict(zip(qaids, cm))
+    return qaid2_cm, qreq_
 
 
 def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
     assert len(qreq_.get_external_qaids()) > 0, ' no current query aids'
     if len(qreq_.get_external_daids()) == 0:
         print('[mc4] WARNING no daids... returning empty query')
-        qaid2_qres, qreq_ = empty_query(ibs, qreq_.get_external_qaids())
-        return qaid2_qres
+        qaid2_cm, qreq_ = empty_query(ibs, qreq_.get_external_qaids())
+        return qaid2_cm
     save_qcache = False
-    qaid2_qres = execute_query2(ibs, qreq_, verbose, save_qcache)
-    return qaid2_qres
+    qaid2_cm = execute_query2(ibs, qreq_, verbose, save_qcache)
+    return qaid2_cm
 
 
-#@profile
+@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, cfgdict=None, qreq_=None,
                          verbose=pipeline.VERB_PIPELINE, save_qcache=None,
@@ -92,7 +92,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
 
     TODO: rename use_cache to use_qcache
 
-    Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres
+    Checks a big cache for qaid2_cm.  If cache miss, tries to load each cm
     individually.  On an individual cache miss, it preforms the query.
 
     Args:
@@ -103,7 +103,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         use_bigcache (bool):
 
     Returns:
-        qaid2_qres (dict): dict of QueryResult objects
+        qaid2_cm (dict): dict of QueryResult objects
 
     CommandLine:
         python -m ibeis.model.hots.match_chips4 --test-submit_query_request
@@ -118,7 +118,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> use_cache = True
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={}, verbose=True)
-        >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)
+        >>> qaid2_cm = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)
     """
     # Get flag defaults if necessary
     if use_cache is None:
@@ -172,7 +172,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         use_cache (bool):
 
     Returns:
-        qaid2_qres
+        qaid2_cm
 
     CommandLine:
         python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1:0
@@ -259,12 +259,12 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.list_compress(external_qaids, exists_flags)
         fpaths_hit = ut.list_compress(fpath_list, exists_flags)
+        fpath_iter = ut.ProgressIter(
+            fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+            lbl='loading cache hits', adjust=True, freq=1)
         cm_hit_list = [
             chip_match.ChipMatch2.load_from_fpath(fpath, verbose=False)
-            for fpath in ut.ProgressIter(fpaths_hit, nTotal=len(fpaths_hit),
-                                         enabled=len(fpaths_hit) > 1,
-                                         lbl='loading cache hits', adjust=True,
-                                         freq=1)
+            for fpath in fpath_iter
         ]
         assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), 'inconsistent'
         qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
@@ -273,7 +273,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
             return qaid2_cm_hit
         else:
             if len(qaid2_cm_hit) > 0 and not ut.QUIET:
-                print('... partial qres cache hit %d/%d' % (
+                print('... partial cm cache hit %d/%d' % (
                     len(qaid2_cm_hit), len(external_qaids)))
         cachehit_qaids = list(qaid2_cm_hit.keys())
         # mask queries that have already been executed
@@ -293,6 +293,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
     return qaid2_cm
 
 
+@profile
 def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     """
     Breaks up query request into several subrequests

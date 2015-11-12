@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 """
+TODO DEPRICATE
+
 This file contains most every module I've ever used.
 Serves as a good check to make sure either everything I
 want to use is imported / exists.
@@ -143,9 +145,6 @@ from ibeis import ibsfuncs
 from ibeis.init import main_commands
 from ibeis.other import dbinfo
 from ibeis.init import sysres
-from ibeis.expt import results_organizer
-from ibeis.expt import results_analyzer
-from ibeis.expt import results_all
 from ibeis.expt import experiment_configs
 from ibeis.expt import experiment_harness
 from ibeis.expt import experiment_printres
@@ -209,7 +208,7 @@ from ibeis.viz.interact import ishow_sver
 #from ibeis.viz.interact import ishow_matches
 from ibeis.viz.interact import iselect_bbox
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, rrr, profile) = utool.inject2(
     __name__, '[all_imports]', DEBUG=False)
 
 def find_unregisterd():

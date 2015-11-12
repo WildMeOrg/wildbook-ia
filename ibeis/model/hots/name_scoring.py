@@ -472,7 +472,6 @@ def group_scores_by_name(ibs, aid_list, score_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *   # NOQA
         >>> import ibeis
-        >>> from ibeis.expt import results_all
         >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST')
         >>> ibs = qreq_.ibs
         >>> #print(cm.get_inspect_str(qreq_))

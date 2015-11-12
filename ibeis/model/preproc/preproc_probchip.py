@@ -425,6 +425,8 @@ def postprocess_mask(mask):
         python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True
+        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid 9970 --adapteq=True
+        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1
 
     SeeAlso:
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
@@ -443,7 +445,9 @@ def postprocess_mask(mask):
         >>> config2_ = ibs.new_query_params(cfgdict=cfgdict)
         >>> chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]
         >>> chip = vt.imread(chip_fpath)
-        >>> species = ibs.const.Species.ZEB_PLAIN
+        >>> #species = ibs.const.Species.ZEB_PLAIN
+        >>> species = ibs.get_primary_database_species()
+        >>> print('species = %r' % (species,))
         >>> mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))
         >>> mask = mask_list[0]
         >>> mask2 = postprocess_mask(mask)

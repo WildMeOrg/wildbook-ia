@@ -16,7 +16,7 @@ import utool as ut
 from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 from collections import namedtuple
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_annot]')
+print, rrr, profile = ut.inject2(__name__, '[manual_annot]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)

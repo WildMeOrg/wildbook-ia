@@ -345,7 +345,8 @@ def testdata_pre_sver2(*args, **kwargs):
     """
     #from ibeis.model import Config
     ibs, qreq_list = get_pipeline_testdata2(*args, **kwargs)
-    locals_list = [testrun_pipeline_upto(qreq_, 'spatial_verification') for qreq_ in qreq_list]
+    locals_list = [testrun_pipeline_upto(qreq_, 'spatial_verification')
+                   for qreq_ in qreq_list]
     cms_list = [locals_['cm_list_FILT'] for locals_ in locals_list]
     #nnfilts_list   = locals_['nnfilts_list']
     return ibs, qreq_list, cms_list

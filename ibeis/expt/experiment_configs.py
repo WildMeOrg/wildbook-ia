@@ -65,6 +65,10 @@ ScoreMech = candidacy_namescore = [
         'score_method':      ['nsum'],
         'prescore_method':   ['nsum'],
     },
+    #{
+    #    'score_method':      ['nsum'],
+    #    'prescore_method':   ['csum'],
+    #},
     {
         'score_method':      ['csum'],
         'prescore_method':   ['csum'],
@@ -103,6 +107,32 @@ def best(metadata):
                 return apply_param(default)
     return default
 
+
+featscoremetch = [
+    {
+        'lnbnn_on': True,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'ratio_thresh': 0,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'dist_on': True,
+        'fg_on': [True, False],
+    },
+    {
+        'lnbnn_on': False,
+        'const_on': True,
+        'fg_on': [True, False],
+    },
+    #{
+    #    'lnbnn_on': False,
+    #    'lograt_on': True,
+    #},
+]
 
 # only best for grevys
 invarbest = [{

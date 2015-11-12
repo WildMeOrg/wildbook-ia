@@ -24,27 +24,36 @@ TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
 #or ( ut.is_developer() and not ut.get_argflag(('--notrunc-uuids',)))
 
 
-def get_chipmatch_fname(qaid, qreq_, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LEN=MAX_FNAME_LEN):
+@profile
+def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None, TRUNCATE_UUIDS=TRUNCATE_UUIDS, MAX_FNAME_LEN=MAX_FNAME_LEN):
     """
     CommandLine:
-        python -m ibeis.model.hots.chip_match --exec-chipmatch_fname
+        python -m ibeis.model.hots.chip_match --test-get_chipmatch_fname
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.chip_match import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
-        >>> fname = get_chipmatch_fname(cm.qaid, qreq_, False, 200)
-        >>> result = ('fname = %s' % (ut.reprfunc(fname),))
+        >>> fname = get_chipmatch_fname(cm.qaid, qreq_, qauuid=None, TRUNCATE_UUIDS=False, MAX_FNAME_LEN=200)
+        >>> result = ('fname = %s' % (ut.repr2(fname),))
         >>> print(result)
+        fname = 'qaid=18_cm_qjjzmjiwwwdhyzrw_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
+
         fname = 'qaid=18_cm_mnzkiegiilcsbwxy_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
     """
-    quuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
-    qreq_ = qreq_
-    cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
-    fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={quuid}{ext}'
-    quuid_str = str(quuid)[0:8] if TRUNCATE_UUIDS else str(quuid)
-    fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str, ext='.cPkl')
+    if qauuid is None:
+        print('[chipmatch] Warning qasuuid should be passed into get_chipmatch_fname')
+        qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
+    if cfgstr is None:
+        print('[chipmatch] Warning cfgstr should be passed into get_chipmatch_fname')
+        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+    #print('cfgstr = %r' % (cfgstr,))
+    fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'
+    text_type = six.text_type
+    #text_type = str
+    qauuid_str = text_type(qauuid)[0:8] if TRUNCATE_UUIDS else text_type(qauuid)
+    fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, qauuid=qauuid_str, ext='.cPkl')
     fname = ut.long_fname_format(fname_fmt, fmt_dict, ['cfgstr'],
                                  max_len=MAX_FNAME_LEN, hack27=True)
     return fname
@@ -405,33 +414,33 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
 
-    def as_qres2(cm, qreq_):
-        qres = qreq_.make_empty_query_result(cm.qaid)
-        #ut.assert_eq(qaid, cm.qaid)
-        qres.filtkey_list = cm.fsv_col_lbls
-        qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
-        qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
-        qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
-        qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
-        qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
-        qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-        qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
-        return qres
+    #def as_qres2(cm, qreq_):
+    #    qres = qreq_.make_empty_query_result(cm.qaid)
+    #    #ut.assert_eq(qaid, cm.qaid)
+    #    qres.filtkey_list = cm.fsv_col_lbls
+    #    qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
+    #    qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
+    #    qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
+    #    qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
+    #    qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
+    #    qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
+    #    qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
+    #    return qres
 
-    def as_qres(cm, qreq_):
-        from ibeis.model.hots import scoring
-        assert qreq_ is not None
-        # Perform final scoring
-        # TODO: only score if already unscored
-        score_method = qreq_.qparams.score_method
-        # TODO: move scoring part to pipeline
-        scoring.score_chipmatch_list(qreq_, [cm], score_method)
-        # Normalize scores if requested
-        if qreq_.qparams.score_normalization:
-            normalizer = qreq_.normalizer
-            cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-        qres = cm.as_qres2(qreq_)
-        return qres
+    #def as_qres(cm, qreq_):
+    #    from ibeis.model.hots import scoring
+    #    assert qreq_ is not None
+    #    # Perform final scoring
+    #    # TODO: only score if already unscored
+    #    score_method = qreq_.qparams.score_method
+    #    # TODO: move scoring part to pipeline
+    #    scoring.score_chipmatch_list(qreq_, [cm], score_method)
+    #    # Normalize scores if requested
+    #    if qreq_.qparams.score_normalization:
+    #        normalizer = qreq_.normalizer
+    #        cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+    #    qres = cm.as_qres2(qreq_)
+    #    return qres
 
     @classmethod
     def from_json(cls, json_str):
@@ -760,12 +769,25 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return top_daids
 
     def argsort(cm):
-        if cm.score_list is None:
-            num_matches_list = cm.get_num_matches_list()
-            sortx = ut.list_argsort(num_matches_list, reverse=True)
-        else:
-            sortx = ut.list_argsort(cm.score_list, reverse=True)
-        return sortx
+        #if cm.score_list is None:
+        #    num_matches_list = cm.get_num_matches_list()
+        #    sortx = ut.list_argsort(num_matches_list, reverse=True)
+        #else:
+        sortx = ut.list_argsort(cm.score_list, reverse=True)
+        return np.array(sortx)
+
+    def name_argsort(cm):
+        return np.array(ut.list_argsort(cm.name_score_list, reverse=True))
+
+    @property
+    def ranks(cm):
+        sortx = cm.argsort()
+        return sortx.argsort()
+
+    @property
+    def unique_name_ranks(cm):
+        sortx = cm.name_argsort()
+        return sortx.argsort()
 
     #+=================
     # Score Aggregation Functions

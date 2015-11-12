@@ -328,9 +328,10 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
         no_matches = all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
         if no_matches:
             xy, w, h = pt.get_axis_xy_width_height(ax)
-            axes_bbox = (xy[0], xy[1], w, h)
+            #axes_bbox = (xy[0], xy[1], w, h)
             if draw_border:
-                pt.draw_boxedX(axes_bbox, theta=0)
+                pass
+                #pt.draw_boxedX(axes_bbox, theta=0)
 
 
 def annotate_matches2(ibs, aid1, aid2, fm, fs,
@@ -434,7 +435,8 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             # No matches draw a red box
             if fm is None or len(fm) == 0:
                 if draw_border:
-                    pt.draw_boxedX(bbox2, theta=theta2)
+                    pass
+                    #pt.draw_boxedX(bbox2, theta=theta2)
 
 
 #@ut.indent_func

@@ -29,58 +29,45 @@ FONTKW = dict(legendsize=12, labelsize=12, ticksize=12, titlesize=14)
 
 
 #@devcmd('scores', 'score', 'namescore_roc')
-#def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-def annotationmatch_scores(ibs, testres, f=None):
+#def draw_score_sep(ibs, qaid_list, daid_list=None):
+def draw_score_sep(ibs, testres, f=None):
     """
-    TODO: plot the difference between the top true score and the next best false score
+    Draws the separation between true positive and true negative name scores.
+
+    TODO:
+        plot the difference between the top true score and the next best false score?
+
     CommandLine:
         ib
-        python -m ibeis --tf annotationmatch_scores --db PZ_MTEST --allgt -w --show __serial
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
-
-        python dev.py -t scores --db PZ_Master0 --allgt --show
-        python dev.py -t scores --db PZ_MTEST --allgt --show
-
-        python dev.py -t scores --db PZ_Master0 --show --ctrl
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg bar_l2_on:True lnbnn_on:False
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
-        python dev.py -t scores --db PZ_Master0 --show --ctrl --cfg fg_on:False
-
-        python -m ibeis.dev -e scores -t default  -a uncontrolled --db PZ_MTEST --show
-        python -m ibeis.dev -e scores -t default -a timecontrolled --db PZ_Master1 --show
-        python -m ibeis.dev -e scores -t default:AQH=False,AI=False -a timecontrolled --db PZ_Master1 --show --onlygood
-
-        python -m ibeis.dev -e cases -a timecontrolled -t default:AQH=False,AI=False --db PZ_Master1 --qaid 1253 --show
-        python -m ibeis.dev -e cases -a timecontrolled -t invarbest --db PZ_Master1 --qaid 574 --show
-
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :onlygood=False,smallfptime=False --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=86400 --show
-        python -m ibeis.dev -e scores -t invarbest -a timecontrolled:require_quality=True --db PZ_Master1 --filt :fail=False,min_gf_timedelta=24h --show
+        python -m ibeis --tf draw_score_sep --show
+        python -m ibeis --tf draw_score_sep --db PZ_MTEST --allgt -w --show --serial
+        python -m ibeis --tf draw_score_sep -t scores --db PZ_MTEST --allgt --show
+        python -m ibeis --tf draw_score_sep -t scores --db PZ_Master0 --allgt --show
+        python -m ibeis --tf draw_score_sep --db PZ_Master1 -a timectrl -t best --show --cmd
+        python -m ibeis --tf draw_score_sep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['uncontrolled'])
-        >>> annotationmatch_scores(ibs, testres)
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> draw_score_sep(ibs, testres, f=f)
         >>> ut.show_if_requested()
+
+    Ignore:
+        import IPython
+        IPython.get_ipython().magic('pylab qt4')
     """
     import plottool as pt
     import vtool as vt
+    from ibeis.expt import cfghelpers
     if ut.VERBOSE:
-        print('[dev] annotationmatch_scores')
+        print('[dev] draw_score_sep')
     #from ibeis.expt import cfghelpers
     #from ibeis.init import main_helpers
     #filt_cfg = main_helpers.testdata_filtcfg(default=f)
-    from ibeis.expt import cfghelpers
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -93,17 +80,28 @@ def annotationmatch_scores(ibs, testres, f=None):
     gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
     gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
 
+    gt_daid = testres.get_infoprop_mat('qx2_gt_aid').T[cfgx]
+    gf_daid = testres.get_infoprop_mat('qx2_gf_aid').T[cfgx]
+    #if ut.is_float(gf_daid):
+    #    gf_daid = ut.list_replace(gf_daid, np.nan, None)
+
     # FIXME: may need to specify which cfg is used in the future
     isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
 
     tp_nscores = gt_rawscore[isvalid]
     tn_nscores = gf_rawscore[isvalid]
+    # hack
+    tp_nscores = np.nan_to_num(tp_nscores)
+    tn_nscores = np.nan_to_num(tn_nscores)
+    # ---
     tn_qaids = tp_qaids = common_qaids[isvalid]
+    tn_daids = gf_daid[isvalid]
+    tp_daids = gt_daid[isvalid]
 
     #encoder = vt.ScoreNormalizer(target_tpr=.7)
     #print(qreq_.get_cfgstr())
-    part_attrs = {1: {'qaid': tp_qaids},
-                  0: {'qaid': tn_qaids}}
+    part_attrs = {1: {'qaid': tp_qaids, 'daid': tn_daids},
+                  0: {'qaid': tn_qaids, 'daid': tp_daids}}
 
     def attr_callback(qaid):
         print('callback qaid = %r' % (qaid,))
@@ -124,8 +122,69 @@ def annotationmatch_scores(ibs, testres, f=None):
     tp_scores = tp_nscores
     tn_scores = tn_nscores
     name_scores, labels, attrs = encoder._to_xy(tp_nscores, tn_nscores, part_attrs)
+
+    #ut.embed()
     encoder.fit(name_scores, labels, attrs)
     #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
+
+    # --- NEW ---
+    # Fit accept and reject thresholds
+
+    def find_auto_decision_thresh(encoder, label):
+        """
+        Uses the extreme of one type of label to get an automatic decision
+        threshold.  Ideally the threshold would be a little bigger than this.
+
+        label = True  # find auto accept accept thresh
+        """
+        import operator
+        other_attrs = part_attrs[not label]
+        op = operator.lt if label else operator.gt
+        if label:
+            other_support = tn_scores
+            decision_support = tp_scores
+            sortx = np.argsort(other_support)[::-1]
+        else:
+            other_support = tp_scores
+            decision_support = tn_scores
+            sortx = np.argsort(other_support)
+        sort_support = other_support[sortx]
+        sort_qaids = other_attrs['qaid'][sortx]
+        flags = np.isfinite(sort_support)
+        sort_support = sort_support[flags]
+        sort_qaids = sort_qaids[flags]
+        # ---
+        # HACK: Dont let photobombs contribute here
+        #from ibeis import tag_funcs
+        #other_tags = ibs.get_annot_all_tags(sort_qaids)
+        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
+        #sort_support = sort_support[flags2]
+        # ---
+        autodecide_thresh = sort_support[0]
+        can_auto_decide = op(autodecide_thresh, decision_support)
+
+        autodecide_scores = decision_support[can_auto_decide]
+
+        if len(autodecide_scores) == 0:
+            decision_extreme = np.nan
+        else:
+            if label:
+                decision_extreme = np.nanmin(autodecide_scores)
+            else:
+                decision_extreme = np.nanmax(autodecide_scores)
+
+        num_auto_decide = can_auto_decide.sum()
+        num_total = len(decision_support)
+        percent_auto_decide = 100 * num_auto_decide / num_total
+        print('Decision type: %r' % (label,))
+        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
+        print('Automatic decision threshold2 = %r' % (decision_extreme,))
+        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
+
+    find_auto_decision_thresh(encoder, True)
+    find_auto_decision_thresh(encoder, False)
+
+    # --- /NEW ---
 
     plotname = ''
     figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
@@ -143,6 +202,10 @@ def annotationmatch_scores(ibs, testres, f=None):
         #bin_width=.125,
         bin_width=.05,
     )
+
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
 
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
@@ -165,6 +228,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         # Experiments I tagged
         python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
+        ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
+
         ibeis -e taghist -a timequalctrl -t invarbest --db PZ_Master1  --show
         ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show
         ibeis -e taghist -a timequalctrl:minqual=good -t invarbest --db PZ_Master1  --show --filt :fail=True
@@ -183,23 +248,22 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts('PZ_Master1', a=['timequalcontrolled'])
-        >>> draw_casetag_hist(ibs, testres)
+        >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+        >>> draw_casetag_hist(ibs, testres, f=f)
         >>> ut.show_if_requested()
     """
     #from ibeis.init import main_helpers
     #from ibeis.expt import cfghelpers
     import plottool as pt
     from ibeis import tag_funcs
-
+    from ibeis.expt import cfghelpers
     # All unfiltered tags
     all_tags = testres.get_all_tags()
-
     if True:
         # Remove gf tags below a thresh and gt tags above a thresh
         gt_tags = testres.get_gt_tags()
         gf_tags = testres.get_gf_tags()
         truth2_prop, prop2_mat = testres.get_truth2_prop()
-
         score_thresh = testres.find_score_thresh_cutoff()
         print('score_thresh = %r' % (score_thresh,))
         # TODO: I want the point that the prob true is greater than prob false
@@ -207,7 +271,6 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
         other_is_problem = ~np.logical_or(gt_is_problem, gf_is_problem)
         #ut.embed()
-
         def zipmask(_tags, _flags):
             return [[item if flag else [] for item, flag
                      in zip(list_, flags)] for list_,
@@ -215,18 +278,14 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         def combinetags(tags1, tags2):
             import utool as ut
             return [ut.list_zipflatten(t1, t2) for t1, t2 in zip(tags1, tags2)]
-
         gt_problem_tags = zipmask(gt_tags, gt_is_problem)
         gf_problem_tags = zipmask(gf_tags, gf_is_problem)
         other_problem_tags = zipmask(all_tags, other_is_problem)
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
                                         other_problem_tags])
-
     if not ut.get_argflag('--fulltag'):
         all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags) for case_tags in all_tags]
-
     # Get tags that match the filter
-    from ibeis.expt import cfghelpers
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -234,44 +293,42 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_keep_order(case_pos_list.T[0])
     selected_tags = ut.list_take(all_tags, case_qx_list)
-
     flat_tags_list = list(map(ut.flatten, selected_tags))
-
-    WITH_NOTAGS = True
+    WITH_NOTAGS = False
     if WITH_NOTAGS:
-        flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag'] for tags in flat_tags_list]
+        flat_tags_list_ = [tags if len(tags) > 0 else ['NoTag']
+                           for tags in flat_tags_list]
     else:
         flat_tags_list_ = flat_tags_list
-
     WITH_TOTAL = False
     if WITH_TOTAL:
         total = [['Total']] * len(case_qx_list)
         flat_tags_list_ += total
-
     WITH_WEIGHTS = True
     if WITH_WEIGHTS:
-        flat_weights_list = [[1. / len(tags)] * len(tags) for tags in  flat_tags_list_]
-
+        flat_weights_list = [
+            [] if len(tags) == 0 else [1. / len(tags)] * len(tags)
+            for tags in  flat_tags_list_
+        ]
     flat_tags = list(map(str, ut.flatten(flat_tags_list_)))
     if WITH_WEIGHTS:
         weight_list = ut.flatten(flat_weights_list)
     else:
         weight_list = None
-
-    pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
     fnum = None
+    pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=with_wordcloud + 1)
     fnum = pt.ensure_fnum(fnum)
-
-    pt.word_histogram2(flat_tags, weight_list=weight_list, fnum=fnum, pnum=pnum_(), xlabel='Tag')
-
+    pt.word_histogram2(flat_tags, weight_list=weight_list,
+                       fnum=fnum, pnum=pnum_(), xlabel='Case')
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(1, 1), bbox_alignment=(1, 1))
     if with_wordcloud:
         pt.wordcloud(' '.join(flat_tags), fnum=fnum, pnum=pnum_())
-
-    figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    #figtitle = testres.make_figtitle('Tag Histogram', filt_cfg=filt_cfg)
+    figtitle = testres.make_figtitle('Case Histogram', filt_cfg=filt_cfg)
     figtitle += ' #cases=%r' % (len(case_qx_list))
-
     pt.set_figtitle(figtitle)
-
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         #pt.adjust_subplots(wspace=.01)
@@ -323,16 +380,13 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata, f=filt_cfg)
         >>> #ut.show_if_requested()
     """
+    import plottool as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
-    import plottool as pt
     cfgx2_qreq_ = testres.cfgx2_qreq_
-
     SHOW = ut.get_argflag('--show')
-
     # Get selected rows and columns for individual rank investigation
     #qaids = testres.qaids
-
     #=================================
     # TODO:
     # Get a better (stratified) sample of the hard cases that incorporates the known failure cases
@@ -350,7 +404,6 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
     print('f = %r' % (f,))
     if flat_case_labels is None:
         flat_case_labels = [None] * len(sel_rows)
-
     show_kwargs = {
         'N': 3,
         'ori': True,
@@ -932,7 +985,8 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     #testres.get_param_basis('dcfg_sample_size')
     #K_basis = testres.get_param_basis('K')
     #K_cfgx_lists = [testres.get_cfgx_with_param('K', K) for K in K_basis]
-
+    import plottool as pt
+    from ibeis.expt import annotation_configs
     #param_key_list = testres.get_all_varied_params()
     param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
     #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
@@ -946,9 +1000,7 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     if verbose:
         print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
         print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
-
     # Hold a key constant
-    import plottool as pt
     #const_key = 'K'
     const_key = 'dcfg_sample_per_name'
     #pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key]), max_cols=1))
@@ -960,6 +1012,7 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
 
     fnum = pt.ensure_fnum(fnum)
+    pnum0 = None
 
     for const_idx, const_val in enumerate(basis_dict[const_key]):
         const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
@@ -969,8 +1022,6 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
             (key, [testres.get_param_val_from_cfgx(cfgx, key)
                    for cfgx in const_basis_cfgx_list])
             for key in param_key_list if key != const_key])
-
-        from ibeis.expt import annotation_configs
         nd_labels = list(agree_param_vals.keys())
         nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
         target_label = annotation_configs.shorten_to_alias_labels(key)
@@ -994,10 +1045,13 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                  '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
+        pnum = pnum_()
+        if pnum0 is None:
+            pnum0 = pnum
         if PLOT3D:
             pt.plot_search_surface(known_nd_data, known_target_points,
                                    nd_labels, target_label, title=title,
-                                   fnum=fnum, pnum=pnum_())
+                                   fnum=fnum, pnum=pnum)
         else:
             nonconst_basis_vals = np.unique(known_nd_data.T[1])
             # Find which colors will not be used
@@ -1008,40 +1062,34 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
                                     marker_list=nonconst_marker_list, fnum=fnum,
-                                    pnum=pnum_(), num_yticks=num_yticks,
+                                    pnum=pnum, num_yticks=num_yticks,
                                     ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
 
+    pt.figure(fnum=fnum, pnum=pnum0)
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))
+
     plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
     figtitle = testres.make_figtitle(plotname)
-
     #if ut.get_argflag('--save'):
     # hack
     if verbose:
         testres.print_unique_annot_config_stats()
-
     #if testres.has_constant_daids():
     #    print('testres.common_acfg = ' + ut.dict_str(testres.common_acfg))
     #    annotconfig_stats_strs, locals_ =
     #    ibs.get_annotconfig_stats(testres.qaids,
     #    testres.cfgx2_daids[0])
-
     pt.set_figtitle(figtitle, size=14)
-
     # HACK FOR FIGSIZE
     fig = pt.gcf()
     fig.set_size_inches(14, 4)
     pt.adjust_subplots(left=.05, bottom=.08, top=.80, right=.95, wspace=.2, hspace=.3)
-
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         pt.adjust_subplots2(use_argv=True)
-
-
-#"""
-#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
-#ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
-#"""
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_annot=True):
@@ -1051,7 +1099,6 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         testres (TestResult):
 
     CommandLine:
-
         python -m ibeis.dev -e draw_rank_cdf
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
@@ -1060,6 +1107,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
+        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        #ibeis -e rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
@@ -1087,7 +1136,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         #ut.scalar_str(percent, precision=2)
         ' - ' + label
         for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
-    color_list = pt.distinct_colors(len(label_list))
+
+    color_list = pt.distinct_colors(len(label_list), cmap_seed=ut.get_argval('--prefix', type_=str, default=None))
+
     marker_list = pt.distinct_markers(len(label_list))
     test_cfgx_slice = ut.get_argval('--test_cfgx_slice', type_='fuzzy_subset',
                                     default=test_cfgx_slice)
@@ -1099,7 +1150,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         color_list = ut.list_take(color_list, test_cfgx_slice)
         marker_list = ut.list_take(marker_list, test_cfgx_slice)
     # Order cdf list by rank0
-    sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+    #sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+    sortx = vt.argsort_multiarray(cfgx2_cumhist_percent.T)[::-1]
     label_list = ut.list_take(label_list, sortx)
     cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent, sortx))
     color_list = ut.list_take(color_list, sortx)
@@ -1142,7 +1194,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
         num_xticks=maxrank,
-        legend_alpha=.85,
+        #legend_alpha=.85,
+        legend_alpha=.92,
         use_legend=True, pnum=pnum_(), **cumhistkw)
 
     if USE_ZOOM:
@@ -1153,10 +1206,14 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         ax2 = pt.gca()
         pt.zoom_effect01(ax1, ax2, 1, maxrank, fc='w')
     pt.set_figtitle(figtitle, size=14)
-    # HACK FOR FIGSIZE
+
+    icon = ibs.get_database_icon()
+    if icon is not None:
+        pt.overlay_icon(icon, bbox_alignment=(0, 0))
 
     fig = pt.gcf()
     #import utool as ut
+    # HACK FOR FIGSIZE
     fig.set_size_inches(15, 7)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
@@ -1369,10 +1426,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
 
     CommandLine:
         python -m ibeis.dev -e draw_case_timedeltas
-
         python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:force_const_size=True uncontrolled:force_const_size=True --consistent --db PZ_Master1 --show
         python -m ibeis.dev -e timedelta_hist -t baseline -a uncontrolled ctrl:sample_rule_ref=max_timedelta --db PZ_Master1 --show --aidcfginfo
-
 
     Example:
         >>> # DISABLE_DOCTEST

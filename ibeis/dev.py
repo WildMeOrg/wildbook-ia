@@ -38,7 +38,6 @@ import utool as ut
 from utool.util_six import get_funcname
 import utool
 #from ibeis.model.hots import smk
-import plottool
 import plottool as pt
 import ibeis
 if __name__ == '__main__':
@@ -53,7 +52,6 @@ from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
 from ibeis.expt import experiment_harness  # NOQA
-from ibeis.expt import results_all  # NOQA
 from ibeis import params, constants  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
@@ -89,7 +87,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_printres', 'print_results', ['printres', 'print']),
     ('ibeis.expt.experiment_printres', 'print_latexsum', ['latexsum']),
     ('ibeis.dbio.export_subset', 'export_annots'),
-    ('ibeis.expt.experiment_drawing', 'annotationmatch_scores', ['scores', 'scores_good', 'scores_all']),
+    ('ibeis.expt.experiment_drawing', 'draw_score_sep', ['scores', 'scores_good', 'scores_all']),
 ]
 
 
@@ -110,58 +108,6 @@ def _register_doctest_precmds():
         devprecmd(*aliases)(_doctest_func)
 
 _register_doctest_precmds()
-
-
-@devcmd('dists', 'dist', 'vecs_dist')
-def vecs_dist(ibs, qaid_list, daid_list=None):
-    """
-    Plots the distances between matching descriptors
-        with groundtruth (true/false) data
-
-    True distances are spatially verified descriptor matches
-    Top false distances distances are spatially verified descriptor matches
-
-    SeeAlso:
-        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn --show
-        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show
-        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
-        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
-
-
-    CommandLine:
-        python dev.py -t vecs_dist --db NAUT_test --allgt -w --show
-        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
-        python dev.py -t vecs_dist --db PZ_Master0 --allgt -w --show
-        python dev.py -t vecs_dist --db NNP_Maser3 --allgt -w --show
-        python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
-        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
-    """
-    print('[dev] vecs_dist')
-    allres = results_all.get_allres(ibs, qaid_list)
-    # Get the descriptor distances of true matches
-    orgtype_list = ['top_false', 'true']
-    #disttype = 'L2'
-    disttype = 'lnbnn'
-    # Get descriptor match distances
-    orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
-    results_analyzer.print_desc_distances_map(orgres2_distmap)
-    #true_desc_dists  = orgres2_distmap['true']['L2']
-    #false_desc_dists = orgres2_distmap['false']['L2']
-    #scores_list = [false_desc_dists, true_desc_dists]
-    dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
-    if False:
-        dists_lbls = orgtype_list
-        dists_markers = ['x--', 'o--']
-        pt.plots.plot_sorted_scores(dists_list, dists_lbls, dists_markers)
-    else:
-        encoder = vt.ScoreNormalizer()
-        tn_scores, tp_scores = dists_list
-        name_scores, labels = encoder._to_xy(tp_scores, tn_scores)
-        encoder.fit(name_scores, labels)
-        encoder.visualize(figtitle='Descriptor Distance')
-
-    pt.set_figtitle('Descriptor Sorted Distance d(x)\n' + allres.get_cfgstr())
-    return locals()
 
 
 @devcmd('tune', 'autotune')
@@ -236,87 +182,11 @@ def incremental_test(ibs, qaid_list, daid_list=None):
     return automated_matcher.incremental_test(ibs1, num_initial)
 
 
-def viz_allres_annotation_scores(allres):
-    """
-    chip vs chip scores
-
-    CommandLine:
-        python dev.py -t viz_allres_annotation_scores --db PZ_Master0 --allgt
-    """
-    # Get the descriptor distances of true matches
-    #orgtype_list = ['false', 'true']
-    #orgtype_list = ['top_false', 'top_true']
-    orgtype_list = ['rank0_false', 'rank0_true']
-    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
-    markers_map = defaultdict(lambda: 'o')
-    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
-    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
-    #true_cmatch_scores  = cmatch_scores_map['true']
-    #false_cmatch_scores = cmatch_scores_map['false']
-    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
-    scores_lbls = orgtype_list
-    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
-    plottool.plots.plot_sorted_scores(scores_list, scores_lbls, scores_markers)
-    pt.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
-    return locals()
-
-
-@devcmd('vsone_gt')
-def vsone_gt(ibs, qaid_list, daid_list=None):
-    """
-    dev.py --db PZ_MTEST --allgt --cmd
-    """
-    cfgdict = dict(fg_on=True)
-    allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
-    #orgtype_list = ['top_false', 'top_true']
-    org_top_false = allres.get_orgtype('rank0_false')
-    top_false_aid_pairs = zip(org_top_false.qaids, org_top_false.aids)
-    gtaids_list = ibs.get_annot_groundtruth(qaid_list, daid_list=daid_list)
-    # Add groundtruth pairs to query
-    qaid2_vsoneaids_ = dict(zip(qaid_list, gtaids_list))
-    qaid2_vsoneaids = ut.ddict(list)
-    # Add problem cases
-    for qaid, daid in top_false_aid_pairs:
-        qaid2_vsoneaids[qaid].append(daid)
-        qaid2_vsoneaids[qaid].extend(qaid2_vsoneaids_.get(qaid, []))
-    cfgdict = dict(codename='vsone')
-    qaid2_vsoneqres = {}
-    for qaid, vsoneaids in six.iteritems(qaid2_vsoneaids):
-        qres = ibs.query_chips([qaid], vsoneaids, cfgdict=cfgdict)[0]
-        qaid2_vsoneqres[qaid] = qres
-    vsone_allres = results_all.init_allres(ibs, qaid2_vsoneqres)
-    viz_allres_annotation_scores(vsone_allres)
-    #cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
-
-
 @devcmd('inspect')
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
     return inspect_gui.test_inspect_matches(ibs, qaid_list, daid_list)
-
-
-@devcmd('gv')
-def gvcomp(ibs, qaid_list, daid_list):
-    """
-    GV = With gravity vector
-    RI = With rotation invariance
-    """
-    print('[dev] gvcomp')
-    assert isinstance(ibs, IBEISControl.IBEISController), 'bad input'  # let jedi know whats up
-    def testcomp(ibs, qaid_list):
-        allres = results_all.get_allres(ibs, qaid_list)
-        for qaid in qaid_list:
-            qres = allres.get_qres(qaid)
-            qres.ishow_top(ibs, annot_mode=2, in_image=True, figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr))
-        return allres
-    ibs_GV = ibs
-    ibs_RI = ibs.clone_handle(nogravity_hack=True)
-    #utool.embed()
-
-    allres_GV = testcomp(ibs_GV, qaid_list)
-    allres_RI = testcomp(ibs_RI, qaid_list)
-    return locals()
 
 
 def get_ibslist(ibs):
@@ -329,11 +199,11 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_annotationmatch_scores(ibs, qaid_list, daid_list):
-    print('[dev] compgrav_annotationmatch_scores')
+def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
+    print('[dev] compgrav_draw_score_sep')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        annotationmatch_scores(ibs_, qaid_list)
+        draw_score_sep(ibs_, qaid_list)
 
 #--------------------
 # RUN DEV EXPERIMENTS
@@ -637,7 +507,6 @@ def devfunc(ibs, qaid_list):
     print('\ncfgstr..')
     print(feat_cfg.get_cfgstr())
     print(utool.dict_str(feat_cfg.get_hesaff_params()))
-    #allres = results_all.get_allres(ibs, qaid_list)
     from ibeis import viz
     aid = 1
     ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
@@ -700,7 +569,7 @@ def devfunc(ibs, qaid_list):
             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
     pt.present()
     locals_ = locals()
-    #locals_.update(annotationmatch_scores(ibs, qaid_list))
+    #locals_.update(draw_score_sep(ibs, qaid_list))
     return locals_
 
 

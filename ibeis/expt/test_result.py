@@ -6,16 +6,17 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
-#import six
 from six.moves import zip, range, map  # NOQA
 import vtool as vt
 import utool as ut
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[expt_harn]')
+#print, rrr, profile = ut.inject2(
+#    __name__, '[expt_harn]')
 
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
+print, rrr, profile = ut.inject2(
+    __name__, '[expt_harn]')
 
 
 def combine_testres_list(ibs, testres_list):
@@ -281,7 +282,10 @@ class TestResult(object):
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist
             python -m ibeis --tf TestResult.get_rank_percentage_cumhist -t baseline -a uncontrolled ctrl
 
-            python -m ibeis --tf TestResult.get_rank_percentage_cumhist --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --show --cmd
+            python -m ibeis --tf TestResult.get_rank_percentage_cumhist \
+                --db lynx \
+                -a default:qsame_encounter=True,been_adjusted=True,excluderef=True \
+                -t default:K=1 --show --cmd
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -373,6 +377,26 @@ class TestResult(object):
         return nLessX_dict
 
     def get_all_varied_params(testres):
+        r"""
+        Args:
+
+
+        Returns:
+            list: varied_params
+
+        CommandLine:
+            python -m ibeis.expt.test_result --exec-get_all_varied_params
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> import ibeis
+            >>> testres = ibeis.testdata_expts('PZ_MTEST', t='default:K=[1,2]')[1]
+            >>> varied_params = testres.get_all_varied_params()
+            >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
+            >>> print(result)
+            varied_params = ['K', '_cfgindex']
+        """
         # only for big results
         varied_cfg_params = list(set(ut.flatten(
             [cfgdict.keys()
@@ -451,8 +475,10 @@ class TestResult(object):
             ('viewpoint_compare', 'viewpoint'),
             #('custom', 'default'),
             #('fg_on', 'FG'),
-            ('fg_on=True', 'FG'),
-            ('fg_on=False,?', ''),
+            #('fg_on=True', 'FG'),
+            #('fg_on=False,?', ''),
+            ('fg_on=True', 'FG=True'),
+            ('fg_on=False,?', 'FG=False'),
 
             ('lnbnn_on=True', 'LNBNN'),
             ('lnbnn_on=False,?', ''),
@@ -480,8 +506,8 @@ class TestResult(object):
             #('sample_per_ref_name', 'per_gt_name'),
             #('per_name', 'per_gf_name'),   # Try to make labels clearer for paper
             #----
-            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'csum'),
-            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'nsum'),
+            ('prescore_method=\'?csum\'?,score_method=\'?csum\'?,?', 'amech'),
+            ('prescore_method=\'?nsum\'?,score_method=\'?nsum\'?,?', 'fmech'),
             ('force_const_size=[^,]+,?', ''),
             (r'[dq]_true_size=\d+,?', ''),
             (r'_orig_size=[^,]+,?', ''),
@@ -1033,7 +1059,7 @@ class TestResult(object):
             ('with_gf_tag', lambda val: UTFF(testres.get_gf_tags(), has_any=val)),
             ('with_gt_tag', lambda val: UTFF(testres.get_gt_tags(), has_any=val)),
             ('with_tag',    lambda val: UTFF(testres.get_all_tags(), has_any=val)),
-
+            ('without_tag', lambda val: UTFF(testres.get_all_tags(), has_none=val)),
         ]
 
         filt_cfg = filt_cfg.copy()
@@ -1614,29 +1640,50 @@ class TestResult(object):
                 ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_,
                 **show_kwargs)
 
-    def reconstruct_test_flags(testres):
+    def get_pipecfg_args(testres):
         if '_cfgstr' in testres.common_cfgdict:
             pipecfg_args = [testres.common_cfgdict['_cfgstr']]
         else:
             pipecfg_args = ut.unique_keep_order(
                 [cfg['_cfgstr'] for cfg in testres.varied_cfg_list])
+        return ' ' .join(pipecfg_args)
 
+    def get_annotcfg_args(testres):
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
         else:
             annotcfg_args = ut.unique_keep_order([
                 acfg['common']['_cfgstr']
                 for acfg in testres.varied_acfg_list])
+        return ' ' .join(annotcfg_args)
+
+    def reconstruct_test_flags(testres):
         flagstr =  ' '.join([
-            '-a ' + ' '.join(annotcfg_args),
-            '-t ' + ' ' .join(pipecfg_args),
+            '-a ' + testres.get_annotcfg_args(),
+            '-t ' + testres.get_pipecfg_args(),
             '--db ' + testres.ibs.get_dbname()
         ])
         return flagstr
 
+    def __str__(testres):
+        return testres.reconstruct_test_flags()
+
     def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing
         experiment_drawing.draw_rank_cdf(testres.ibs, testres)
+
+    def get_sorted_config_labels(testres):
+        key = 'qx2_bestranks'
+        cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
+        label_list = testres.get_short_cfglbls(friendly=True)
+        label_list = [
+            ('%6.2f%%' % (percent,)) +
+            #ut.scalar_str(percent, precision=2)
+            ' - ' + label
+            for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+        sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
+        label_list = ut.list_take(label_list, sortx)
+        return label_list
 
     def find_score_thresh_cutoff(testres):
         """
@@ -1647,7 +1694,7 @@ class TestResult(object):
         #import plottool as pt
         import vtool as vt
         if ut.VERBOSE:
-            print('[dev] annotationmatch_scores')
+            print('[dev] draw_score_sep')
         #from ibeis.expt import cfghelpers
 
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
@@ -1762,6 +1809,235 @@ class TestResult(object):
             print('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
 
         qx2_success.T[cfgx]
+
+    def load_full_chipmatch_results(testres):
+        #cfgx2_qres
+        pass
+
+    def draw_feat_scoresep(testres, f=None):
+        """
+        CommandLine:
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift,fg
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift
+
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
+
+            utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.init import main_helpers
+            >>> defaultdb = 'PZ_MTEST'
+            >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+            >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
+            >>> testres.draw_feat_scoresep(f=f)
+            >>> ut.show_if_requested()
+        """
+        assert len(testres.cfgx2_qreq_) == 1, 'can only do this on one qreq_ right now'
+        for qreq_ in testres.cfgx2_qreq_:
+            break
+
+        print('Loading cached chipmatches')
+        import ibeis  # NOQA
+        from os.path import dirname, join  # NOQA
+
+        class UnbalancedExampleException(Exception):
+            pass
+
+        def get_topannot_training_idxs(cm):
+            """ top annots version """
+            sortx = cm.argsort()
+            sorted_nids = cm.dnid_list[sortx]
+            tp_idxs_ = np.where(sorted_nids == cm.qnid)[0]
+            if len(tp_idxs_) == 0:
+                raise UnbalancedExampleException()
+            tp_idx = tp_idxs_[0]
+            tn_idx = 0 if tp_idx > 0 else tp_idx + 1
+            if (tn_idx) >= len(cm.dnid_list):
+                raise UnbalancedExampleException()
+            tp_idxs = [tp_idx]
+            tn_idxs = [tn_idx]
+            return tp_idxs, tn_idxs
+
+        def get_topname_training_idxs(cm, num_false=5):
+            """
+            gets the index of the annots in the top groundtrue name and the top
+            groundfalse names.
+            """
+            sortx = cm.name_argsort()
+            sorted_nids = cm.unique_nids[sortx]
+            sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+            # name ranks of the groundtrue name
+            tp_ranks = np.where(sorted_nids == cm.qnid)[0]
+            if len(tp_ranks) == 0:
+                raise UnbalancedExampleException()
+            # name ranks of the top groundfalse names
+            tp_rank = tp_ranks[0]
+            tn_ranks = [rank for rank in range(num_false + 1)
+                        if rank != tp_rank and rank < len(sorted_groupxs)]
+            if len(tn_ranks) == 0:
+                raise UnbalancedExampleException()
+            # annot idxs of the examples
+            tp_idxs = sorted_groupxs[tp_rank]
+            tn_idxs = ut.flatten(ut.list_take(sorted_groupxs, tn_ranks))
+            return tp_idxs, tn_idxs
+
+        def get_training_fsv(cm):
+            tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+            tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
+            tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
+            return tp_fsv, tn_fsv
+
+        def get_training_desc_dist(cm, qreq_, fsv_col_lbls):
+            """ computes custom distances on prematched descriptors """
+            ibs = qreq_.ibs
+            qaid = cm.qaid
+            tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+            tp_daids = cm.daid_list.take(tp_idxs)
+            tn_daids = cm.daid_list.take(tn_idxs)
+            tp_fm = ut.list_take(cm.fm_list, tp_idxs)
+            tn_fm = ut.list_take(cm.fm_list, tn_idxs)
+            tp_fx0 = [fm.T[0] for fm in tp_fm]
+            tn_fx0 = [fm.T[0] for fm in tn_fm]
+            tp_fx1 = [fm.T[1] for fm in tp_fm]
+            tn_fx1 = [fm.T[1] for fm in tn_fm]
+            query_config2_ = qreq_.get_external_query_config2()
+            data_config2_ = qreq_.get_external_data_config2()
+            #assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+            special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg'])
+            dist_lbls = ut.list_take(fsv_col_lbls, dist_xs)
+            special_lbls = ut.list_take(fsv_col_lbls, special_xs)
+            if len(special_xs) > 0:
+                assert special_lbls[0] == 'fg'
+                # hack for fgweights (could potentially get them directly from fsv)
+                qfgweights = ibs.get_annot_fgweights([qaid], config2_=query_config2_)[0]
+                tp_dfgweights = ibs.get_annot_fgweights(tp_daids, config2_=data_config2_)
+                tn_dfgweights = ibs.get_annot_fgweights(tn_daids, config2_=data_config2_)
+                # Align weights
+                tp_qfgweights_m = vt.ziptake([qfgweights] * len(tp_fx0), tp_fx0, axis=0)
+                tn_qfgweights_m = vt.ziptake([qfgweights] * len(tn_fx0), tn_fx0, axis=0)
+                tp_dfgweights_m = vt.ziptake(tp_dfgweights, tp_fx1, axis=0)
+                tn_dfgweights_m = vt.ziptake(tn_dfgweights, tn_fx1, axis=0)
+                tp_qfgweights_flat_m = np.hstack(tp_qfgweights_m)
+                tn_qfgweights_flat_m = np.hstack(tn_qfgweights_m)
+                tp_dfgweights_flat_m = np.hstack(tp_dfgweights_m)
+                tn_dfgweights_flat_m = np.hstack(tn_dfgweights_m)
+                tp_fgweights = np.sqrt(tp_qfgweights_flat_m * tp_dfgweights_flat_m)
+                tn_fgweights = np.sqrt(tn_qfgweights_flat_m * tn_dfgweights_flat_m)
+                special_tp_dists = tp_fgweights[:, None]
+                special_tn_dists = tn_fgweights[:, None]
+            else:
+                special_tp_dists = np.empty((0, 0))
+                special_tn_dists = np.empty((0, 0))
+            if len(dist_xs) > 0:
+                # Get descriptors
+                qvecs = ibs.get_annot_vecs(qaid, config2_=query_config2_)
+                tp_dvecs = ibs.get_annot_vecs(tp_daids, config2_=data_config2_)
+                tn_dvecs = ibs.get_annot_vecs(tn_daids, config2_=data_config2_)
+                # Align descriptors
+                tp_qvecs_m = vt.ziptake([qvecs] * len(tp_fx0), tp_fx0, axis=0)
+                tn_qvecs_m = vt.ziptake([qvecs] * len(tn_fx0), tn_fx0, axis=0)
+                tp_dvecs_m = vt.ziptake(tp_dvecs, tp_fx1, axis=0)
+                tn_dvecs_m = vt.ziptake(tn_dvecs, tn_fx1, axis=0)
+                tp_qvecs_flat_m = np.vstack(tp_qvecs_m)
+                tn_qvecs_flat_m = np.vstack(tn_qvecs_m)
+                tp_dvecs_flat_m = np.vstack(tp_dvecs_m)
+                tn_dvecs_flat_m = np.vstack(tn_dvecs_m)
+                # Compute descriptor distnaces
+                _tp_dists = vt.compute_distances(
+                    tp_qvecs_flat_m, tp_dvecs_flat_m, dist_lbls)
+                _tn_dists = vt.compute_distances(
+                    tn_dvecs_flat_m, tn_qvecs_flat_m, dist_lbls)
+                tp_dists = np.vstack(_tp_dists.values()).T
+                tn_dists = np.vstack(_tn_dists.values()).T
+            else:
+                tp_dists = np.empty((0, 0))
+                tn_dists = np.empty((0, 0))
+
+            tp_fsv = vt.rebuild_partition(special_tp_dists.T, tp_dists.T, special_xs, dist_xs)
+            tn_fsv = vt.rebuild_partition(special_tn_dists.T, tn_dists.T, special_xs, dist_xs)
+            tp_fsv = np.array(tp_fsv).T
+            tn_fsv = np.array(tn_fsv).T
+            return tp_fsv, tn_fsv
+
+        disttypes = ut.get_argval('--disttypes', type_=list, default=None)
+
+        # HACKY CACHE
+        cfgstr = qreq_.get_cfgstr(with_query=True)
+        cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
+        cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes))
+        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[], use_cache=None)
+        def get_cfgx_feat_scores(qreq_):
+            cm_list = qreq_.load_cached_chipmatch()
+            print('Done loading cached chipmatches')
+            fsv_col_lbls = None
+            tp_fsvs_list = []
+            tn_fsvs_list = []
+            for cm in ut.ProgressIter(cm_list,
+                                      lbl='building featscore lists',
+                                      adjust=True, freq=1):
+                try:
+                    if disttypes is None:
+                        # Use precomputed fsv distances
+                        fsv_col_lbls = cm.fsv_col_lbls
+                        tp_fsv, tn_fsv = get_training_fsv(cm)
+                    else:
+                        # Investigate independant computed dists
+                        fsv_col_lbls = disttypes
+                        tp_fsv, tn_fsv = get_training_desc_dist(cm, qreq_, fsv_col_lbls)
+                    tp_fsvs_list.extend(tp_fsv)
+                    tn_fsvs_list.extend(tn_fsv)
+                except UnbalancedExampleException:
+                    continue
+            fsv_tp = np.vstack(tp_fsvs_list)
+            fsv_tn = np.vstack(tn_fsvs_list)
+            return fsv_tp, fsv_tn, fsv_col_lbls
+
+        fsv_tp, fsv_tn, fsv_col_lbls = get_cfgx_feat_scores(qreq_)
+        #fsv_tp = 1 - fsv_tp
+        #fsv_tn = 1 - fsv_tn
+
+        slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset', default=slice(None, None, None))
+
+        fsv_col_lbls = ut.list_take(fsv_col_lbls, slice_)
+        fsv_tp = fsv_tp.T[slice_].T
+        fsv_tn = fsv_tn.T[slice_].T
+
+        if fsv_col_lbls == ['L2_sift', 'fg']:
+            # SUPER HACK. Use fg as a filter rather than multiplier
+            tp_scores = fsv_tp.T[0][fsv_tp.T[1] > .8]
+            tn_scores = fsv_tn.T[0][fsv_tp.T[1] > .8]
+            scoretype = fsv_col_lbls[0] + '[' + fsv_col_lbls[1] + ' > .8]'
+        else:
+            tp_scores = fsv_tp.prod(axis=1)
+            tn_scores = fsv_tn.prod(axis=1)
+            scoretype = '*'.join(fsv_col_lbls)
+
+        encoder = vt.ScoreNormalizer()
+        encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
+        figtitle = 'Feature Scores: %s, %s' % (scoretype, testres.get_title_aug())
+        fnum = None
+        encoder.visualize(
+            figtitle=figtitle, fnum=fnum,
+            with_scores=False,
+            with_prebayes=False,
+            with_postbayes=False,
+            score_range=(0, 1),
+            target_tpr=.95,
+        )
+        import plottool as pt
+        icon = qreq_.ibs.get_database_icon()
+        if icon is not None:
+            pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))
+
+        if ut.get_argflag('--contextadjust'):
+            pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
+            pt.adjust_subplots2(use_argv=True)
 
 
 if __name__ == '__main__':

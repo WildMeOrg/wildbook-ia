@@ -322,8 +322,7 @@ SPECIES_TUPS = [
 # FIXME: infer this
 SPECIES_WITH_DETECTORS = (
     Species.ZEB_PLAIN,
-
-    #Species.ZEB_GREVY,
+    Species.ZEB_GREVY,
     #Species.GIRAFFE,
     #Species.ELEPHANT_SAV,
 

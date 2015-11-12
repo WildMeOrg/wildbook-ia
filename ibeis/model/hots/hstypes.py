@@ -37,7 +37,10 @@ ut.noinject('[hstypes]')
 
 #INTEGER_TYPE = np.int32
 #INDEX_TYPE = np.int32
-INDEX_TYPE = np.int64
+#INDEX_TYPE = np.int64
+# The index type should be the native sytem int, otherwise np.take will fail
+# due to the safe constraint.
+INDEX_TYPE = np.int_
 
 #INTEGER_TYPE = np.int64
 #INTEGER_TYPE = np.int32
