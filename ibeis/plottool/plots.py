@@ -681,6 +681,9 @@ def plot_score_histograms(scores_list,
                           overlay_score_domain=None,
                           **kwargs):
     """
+    TODO:
+        rewrite using multiplog
+
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
 
@@ -784,12 +787,16 @@ def plot_score_histograms(scores_list,
         df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
     import matplotlib as mpl
+    ax = df2.gca()
+    xlim = kwargs.get('xlim', None)
+    if xlim is not None:
+        ax.set_xlim(xlim)
+
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight='light', size=kwargs.get('labelsize', 8))
     }
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
-    ax = df2.gca()
     ax.set_xlabel(score_label, **labelkw)
     ax.set_ylabel('frequency', **labelkw)
     #df2.dark_background()

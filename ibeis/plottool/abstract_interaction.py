@@ -214,10 +214,11 @@ class AbstractInteraction(object):
 
 class AbstractPagedInteraction(AbstractInteraction):
 
-    def __init__(self, nPages=None, **kwargs):
+    def __init__(self, nPages=None, draw_hud=True, **kwargs):
         self.current_pagenum = 0
         assert nPages is not None
         self.nPages = nPages
+        self.draw_hud = draw_hud
         self.NEXT_PAGE_HOTKEYS  = ['right', 'pagedown']
         self.PREV_PAGE_HOTKEYS  = ['left', 'pageup']
         super(AbstractPagedInteraction, self).__init__(**kwargs)
@@ -237,6 +238,8 @@ class AbstractPagedInteraction(AbstractInteraction):
     def make_hud(self):
         """ Creates heads up display """
         import plottool as pt
+        if not self.draw_hud:
+            return
         # Button positioning
         #w, h = .08, .04
         #w, h = .14, .08
