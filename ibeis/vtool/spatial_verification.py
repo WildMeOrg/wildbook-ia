@@ -19,6 +19,7 @@ FIXME:
 References:
     http://ags.cs.uni-kl.de/fileadmin/inf_ags/3dcv-ws11-12/3DCV_WS11-12_lec04.pdf
     http://www.imgfsr.com/CVPR2011/Tutorial6/RANSAC_CVPR2011.pdf
+    http://szeliski.org/Book/drafts/SzeliskiBook_20100903_draft.pdf Page 317
 
 Notes:
     Invariants of affine transforms - parallel lines, ratios of parallel lengths, ratios of areas
@@ -565,7 +566,8 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
         >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
-        >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+        >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
+        >>>                             scale_thresh_sqrd, ori_thresh)
         >>> result = ut.hashstr(output)
         >>> print(result)
         89kz8nh6p+66t!+u
@@ -717,18 +719,28 @@ def unnormalize_transform(M_prime, T1, T2):
 
 
 def estimate_refined_transform(kpts1, kpts2, fm, aff_inliers, refine_method='homog'):
-    """ estimates final transformation using normalized affine inliers """
+    """ estimates final transformation using normalized affine inliers
+
+    References:
+        http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+    """
     xy1_man, xy2_man, T1, T2 = get_normalized_affine_inliers(kpts1, kpts2, fm, aff_inliers)
     # Compute homgraphy transform from chip1 -> chip2 using affine inliers
+    # homographys assume the two images are planar, or the camera is
+    # rotating around the subject
+
     if refine_method == 'homog':
         H_prime = compute_homog(xy1_man, xy2_man)
     elif refine_method == 'affine':
         H_prime = compute_affine(xy1_man, xy2_man)
-    #elif refine_method == 'cv2-homog':
-    #    # homographys assume the two images are planar, or the camera is
-    #    # rotating around the subject
-    #    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=0)[0]
-    #    H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=cv2.LMEDS)[0]
+    elif refine_method == 'cv2-homog':
+        H_prime, mask = cv2.findHomography(xy1_man.T, xy2_man.T, method=0)
+    elif refine_method == 'cv2-ransac-homog':
+        H_prime, mask = cv2.findHomography(
+            xy1_man.T, xy2_man.T, method=cv2.RANSAC,
+            ransacReprojThreshold=3)
+    elif refine_method == 'cv2-lmeds-homog':
+        H_prime, mask = cv2.findHomography(xy1_man.T, xy2_man.T, method=cv2.LMEDS)
     #elif refine_method == 'fund':
     #    # the fundamental matrix only implies: x'.T.dot(F).dot(x) == 0
     #    # it maps a point from one image onto a line in the second image.
@@ -984,16 +996,20 @@ def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
     """
     H = estimate_refined_transform(kpts1, kpts2, fm, aff_inliers,
                                    refine_method=refine_method)
-    if refine_method == 'homog':
+    if refine_method.endswith('homog'):
         homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
                                        scale_thresh, ori_thresh, full_homog_checks)
+    #elif refine_method == 'cv2-homog':
+    #    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
+    #                                   scale_thresh, ori_thresh, full_homog_checks)
     elif refine_method == 'affine':
         homog_tup1 = test_affine_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd,
                                         scale_thresh, ori_thresh)
     return homog_tup1
 
 
-def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh):
+def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
+                             scale_thresh, ori_thresh):
     if HAVE_SVER_C_WRAPPER:
         aff_inliers, aff_errors, Aff = sver_c_wrapper.get_best_affine_inliers_cpp(
             kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
@@ -1118,8 +1134,20 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     aff_inliers, aff_errors, Aff = get_best_affine_inliers_(
         kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     #print(aff_inliers)
+
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
+        # Test user defined param
+        if VERBOSE_SVER:
+            print('[sver] Failed spatial verification len(aff_inliers) = %r' %
+                  (len(aff_inliers),))
+        svtup = None
+        return svtup
+    if ((refine_method.endswith('homog') and len(aff_inliers) < 7) or
+         len(aff_inliers) < 4):
+        # Test fundamental param
+        # need to have 4 or more inliers to comopute an affine
+        # and need at least 7 to compute a homography
         if VERBOSE_SVER:
             print('[sver] Failed spatial verification len(aff_inliers) = %r' %
                   (len(aff_inliers),))
@@ -1135,14 +1163,20 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
+    except ValueError:
+        if ut.VERYVERBOSE and ut.SUPER_STRICT:
+            ut.printex(ex, 'error cv2 in homog estimation.', iswarning=True)
+        return None
     except IndexError:
         raise
     except Exception as ex:
         # There is a weird error that starts with MemoryError and ends up
         # makeing len(h) = 6.
         ut.printex(ex, 'Unknown error in homog estimation.',
-                      keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
-                            'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
+                      keys=['kpts1', 'kpts2',  'fm', 'fm.shape', 'kpts1.shape',
+                            (len, 'aff_inliers'),
+                            'kpts2.shape', 'xy_thresh', 'scale_thresh',
+                            'dlen_sqrd2', 'min_nInliers'])
         if ut.SUPER_STRICT:
             print('SUPER_STRICT is on. Reraising')
             raise
@@ -1156,17 +1190,6 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         svtup = (refined_inliers, refined_errors, H, None, None, None)
         return svtup
 
-#try:
-#    import cyth
-#    if cyth.DYNAMIC:
-#        exec(cyth.import_cyth_execstr(__name__))
-#    else:
-#        # <AUTOGEN_CYTH>
-#        # Regen command: python -c "import vtool.linalg" --cyth-write
-#        # </AUTOGEN_CYTH>
-#        pass
-#except Exception as ex:
-#    pass
 
 if __name__ == '__main__':
     """

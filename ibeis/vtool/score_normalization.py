@@ -634,6 +634,7 @@ class ScoreNormalizer(object):
             attr_callback=None,
             with_prebayes=True,
             with_postbayes=True,
+            score_range=None,
             bin_width=None,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
@@ -1051,7 +1052,7 @@ def inspect_pdfs(tn_support, tp_support,
                  with_roc=False, with_precision_recall=False, with_hist=False,
                  fnum=None, figtitle=None, interactive=None, use_stems=None,
                  part_attrs=None, thresh_kw=None, attr_callback=None,
-                 with_prebayes=True, with_postbayes=True, **kwargs):
+                 with_prebayes=True, with_postbayes=True, score_range=None, **kwargs):
     """
     Shows plots of learned thresholds
 
@@ -1205,6 +1206,7 @@ def inspect_pdfs(tn_support, tp_support,
             num_bins=kwargs.get('num_bins', 40),
             overlay_prob_given_list=(p_score_given_tn, p_score_given_tp),
             overlay_score_domain=score_domain,
+            xlim=score_range,
             **support_kw)
 
     def _prob_support_hist(fnum, pnum):
