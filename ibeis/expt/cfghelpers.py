@@ -3,6 +3,10 @@
 Helper module that helps expand parameters for grid search
 
 TODO: move to utool?
+
+It turns out a lot of the commandlines made possible here can be generatd by
+using bash brace expansion.
+http://www.linuxjournal.com/content/bash-brace-expansion
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut  # NOQA
@@ -244,13 +248,16 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
         >>> result = ('cfg_combo = %s' % (str(cfg_combo),))
         >>> print(result)
     """
+
     cfg = base_cfg.copy()
     # Parse dict out of a string
+    #ANYTHING_NOT_BRACE = r'[^\[\]]*\]'
+    ANYTHING_NOT_PAREN_OR_BRACE = r'[^()\[\]]*[\]\)]'
     cfgstr_options_list = re.split(
-        r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), cfgopt_strs)
+        r',\s*' + ut.negative_lookahead(ANYTHING_NOT_PAREN_OR_BRACE), cfgopt_strs)
     #cfgstr_options_list = cfgopt_strs.split(',')
     cfg_options = ut.parse_cfgstr_list(
-        cfgstr_options_list, smartcast=True, oldmode=False)
+        cfgstr_list=cfgstr_options_list, smartcast=True, oldmode=False)
     # Hack for q/d-prefix specific configs
     remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys)
     # Remap keynames based on aliases

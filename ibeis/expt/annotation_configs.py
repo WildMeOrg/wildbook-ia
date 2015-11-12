@@ -55,6 +55,15 @@ INDEPENDENT_DEFAULTS = {
     'max_numfeat'         : None,
 }
 
+
+# HACK
+from ibeis import tag_funcs  # NOQA  #
+# Build Filters
+filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
+for key in filter_keys:
+    INDEPENDENT_DEFAULTS[key] = None
+
+
 INTRAGROUP_DEFAULTS = {
     # if True all annots must belong to the same encounter
     'same_encounter'      : None,
@@ -625,6 +634,19 @@ viewdiff = vp = viewpoint_compare = {
         }),
 }
 
+
+# Use tags to find a small set of difficult cases
+timectrlhard = viewpoint_compare = {
+    'qcfg': ut.augdict(
+        timectrl['qcfg'], ut.odict([
+            ('has_any', ('needswork','correctable','mildviewpoint')),
+            ('has_none', ('viewpoint','photobomb','error:viewpoint', 'quality')),
+        ])),
+
+    'dcfg': ut.augdict(
+        timectrl['dcfg'], {
+        }),
+}
 """
 ibeis -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True
 ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True

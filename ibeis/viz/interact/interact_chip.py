@@ -273,6 +273,14 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ('dev print annot info', print_annot_info),
         ('dev refresh', pt.update),
     ]
+
+    if ut.is_developer():
+        def dev_embed(ibs=ibs, aid=aid):
+            ut.embed()
+            pass
+        callback_list += [
+            ('dev chip context embed', dev_embed),
+        ]
     return callback_list
 
 
@@ -379,13 +387,20 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         else:
             if event.button == 3:   # right-click
                 import guitool
-                from ibeis.viz.interact import interact_chip
+                #from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = guitool.newQPoint(event.x, height - event.y)
                 refresh_func = partial(_chip_view, **kwargs)
-                interact_chip.show_annot_context_menu(
-                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
-                    with_interact_chip=False, config2_=config2_)
+
+                callback_list = build_annot_context_options(
+                    ibs, aid, refresh_func=refresh_func,
+                    with_interact_chip=False,
+                    config2_=config2_)
+                qwin = fig.canvas
+                guitool.popup_menu(qwin, qpoint, callback_list)
+                #interact_chip.show_annot_context_menu(
+                #    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
+                #    with_interact_chip=False, config2_=config2_)
             else:
                 viztype = vh.get_ibsdat(ax, 'viztype')
                 print_('[ic] viztype=%r' % viztype)

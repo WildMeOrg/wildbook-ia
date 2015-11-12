@@ -2,7 +2,7 @@
 """
 TODO: sort annotations at the end of every step
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
 import utool as ut
 import numpy as np
@@ -51,6 +51,8 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
 
     CommandLine:
         python -m ibeis --tf filter_annots_general
+        python -m ibeis --tf filter_annots_general --db PZ_Master1 --has_any=[needswork,correctable,mildviewpoint] --has_none=[viewpoint,photobomb,error:viewpoint,quality] --show
+
         python -m ibeis --tf filter_annots_general --db=GZ_Master1  \
                 --max-numfeat=300 --show --minqual=junk --species=None
         python -m ibeis --tf filter_annots_general --db=lynx \
@@ -60,7 +62,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
-        >>> filter_kw = ut.argparse_dict(get_default_annot_filter_form(), type_hint=ut.ddict(list, logic=str))
+        >>> filter_kw = ut.argparse_dict(get_default_annot_filter_form(), type_hint=ut.ddict(list, has_any=list, has_none=list, logic=str))
         >>> print('filter_kw = %s' % (ut.dict_str(filter_kw),))
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -80,7 +82,7 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
     filter_kw.update(kwargs)
     aid_list_ = aid_list
     filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
-    # TODO GET FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
+    # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
     aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw)
     return aid_list_
@@ -449,6 +451,10 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
 
         python -m ibeis --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
+        python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd  --veryverbtd
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
@@ -684,6 +690,10 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         >>>                                        prefix, verbose)
         >>> result = ('avail_aids = %s' % (str(avail_aids),))
         >>> print(result)
+
+    Ignore:
+        # Testing tag features
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd
     """
     from ibeis import ibsfuncs
     if aidcfg is None:
@@ -694,6 +704,17 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     VerbosityContext = verbose_context_factory(
         'FILTER_INDEPENDENT', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
+
+    # FILTER HACK
+    # TODO: further integrate
+    if aidcfg.get('has_any', None) or aidcfg.get('has_none', None):
+        filterkw = ut.dict_subset(aidcfg, ['has_any', 'has_none'], None)
+        flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
+        with VerbosityContext('has_any', 'has_none'):
+            avail_aids = ut.list_compress(avail_aids, flags)
+            #avail_aids = ibs.filter_aids_without_name(
+            #    avail_aids, invert=not aidcfg['is_known'])
+        avail_aids = sorted(avail_aids)
 
     if aidcfg['is_known'] is True:
         with VerbosityContext('is_known'):
@@ -822,7 +843,6 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         """
         same_encounter = aidcfg['same_encounter']
         assert same_encounter is True
-        #ut.embed()
         eid_list = ibs.get_annot_primary_encounter(avail_aids)
         nid_list = ibs.get_annot_nids(avail_aids)
         multiprop2_aids = ut.hierarchical_group_items(avail_aids, [nid_list, eid_list])

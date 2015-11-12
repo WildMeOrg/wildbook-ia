@@ -1072,9 +1072,35 @@ def sver_single_chipmatch(qreq_, cm):
         ChipMatch2: cmSV
 
     CommandLine:
-        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show -t default:sv_on=True -a default --qaid 4
-        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show --qaid=18 --y=0
-        python -m ibeis.model.hots.pipeline --exec-sver_single_chipmatch --show --qaid=18 --y=1
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] -a timectrlhard ---acfginfo --veryverbtd
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:full_homog_checks=True -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=affine -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=cv2-homog -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=cv2-homog,full_homog_checks=True -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=cv2-homog,full_homog_checks=False -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=cv2-lmeds-homog,full_homog_checks=False -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:refine_method=cv2-ransac-homog,full_homog_checks=False -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show \
+            -t default:full_homog_checks=False -a default --qaid 18
+
+        python -m ibeis --tf sver_single_chipmatch --show --qaid=18 --y=0
+        python -m ibeis --tf sver_single_chipmatch --show --qaid=18 --y=1
 
         8
 
@@ -1108,30 +1134,29 @@ def sver_single_chipmatch(qreq_, cm):
         >>> rchip1, rchip2 = ibs.get_annot_chips([aid1, aid2], config2_=qreq_.get_external_query_config2())
         >>> kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=qreq_.get_external_data_config2())
         >>> import plottool as pt
-        >>> refine_method = 'homog'
-        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=qreq_.qparams.refine_method)
         >>> ut.show_if_requested()
 
     """
     qaid = cm.qaid
-    use_chip_extent = qreq_.qparams.use_chip_extent
-    xy_thresh       = qreq_.qparams.xy_thresh
-    scale_thresh    = qreq_.qparams.scale_thresh
-    ori_thresh      = qreq_.qparams.ori_thresh
-    min_nInliers    = qreq_.qparams.min_nInliers
-    full_homog_checks = qreq_.qparams.full_homog_checks
-    sver_output_weighting  = qreq_.qparams.sver_output_weighting
+    use_chip_extent       = qreq_.qparams.use_chip_extent
+    xy_thresh             = qreq_.qparams.xy_thresh
+    scale_thresh          = qreq_.qparams.scale_thresh
+    ori_thresh            = qreq_.qparams.ori_thresh
+    min_nInliers          = qreq_.qparams.min_nInliers
+    full_homog_checks     = qreq_.qparams.full_homog_checks
+    refine_method         = qreq_.qparams.refine_method
+    sver_output_weighting = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
     kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
-    kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list, config2_=qreq_.get_external_data_config2())
+    kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list,
+                                          config2_=qreq_.get_external_data_config2())
     if use_chip_extent:
         top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
             cm.daid_list, config2_=qreq_.get_external_data_config2())
     else:
         top_dlen_sqrd_list = compute_matching_dlen_extent(qreq_, cm.fm_list, kpts2_list)
-    #
     config2_ = qreq_.get_external_query_config2()
-
     if qreq_.qparams.weight_inliers:
         # Weights for inlier scoring
         qweights = scoring.get_annot_kpts_baseline_weights(
@@ -1139,7 +1164,6 @@ def sver_single_chipmatch(qreq_, cm):
         match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
     else:
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
-
     _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list,
                  top_dlen_sqrd_list, match_weight_list)
     svtup_list = []
@@ -1149,13 +1173,14 @@ def sver_single_chipmatch(qreq_, cm):
             sv_tup = None
         else:
             try:
-                # Compute homography from chip2 to chip1
-                # returned homography maps image1 space into image2 space
-                # image1 is a query chip and image2 is a database chip
+                # Compute homography from chip2 to chip1 returned homography
+                # maps image1 space into image2 space image1 is a query chip
+                # and image2 is a database chip
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                     dlen_sqrd2, min_nInliers, match_weights=match_weights,
-                    full_homog_checks=full_homog_checks, returnAff=True)
+                    full_homog_checks=full_homog_checks, refine_method=refine_method,
+                    returnAff=True)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
                            keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',

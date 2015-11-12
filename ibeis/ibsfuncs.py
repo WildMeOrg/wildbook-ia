@@ -1670,9 +1670,14 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         vals_list += [ibs.get_annot_notes(aid_list)]
         key_list += [key]
 
-    key = 'tags'
+    key = 'case_tags'
     if kwargs.get(key, default):
         vals_list += [ibs.get_annot_case_tags(aid_list)]
+        key_list += [key]
+
+    key = 'match_tags'
+    if kwargs.get(key, default):
+        vals_list += [ibs.get_annot_annotmatch_tags(aid_list)]
         key_list += [key]
 
     key = 'name'

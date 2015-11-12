@@ -725,7 +725,7 @@ def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
     flattens vecs_list and builds a reverse index from the flattened indices
     (idx) to the original aids and fxs
     """
-    print('[nnindex] Preparing data for indexing')
+    print('[nnindex] Preparing data for indexing / loading index')
     # Check input
     assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
     assert len(aid_list) > 0, ('len(aid_list) == 0.'
