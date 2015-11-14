@@ -1595,7 +1595,7 @@ def image_upload(cleanup=True, **kwargs):
     return gid
 
 
-@register_api('/api/core/helloworld/')
+@register_api('/api/core/helloworld/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def hello_world(*args, **kwargs):
     print('------------------ HELLO WORLD ------------------')
     print('Args:', args)

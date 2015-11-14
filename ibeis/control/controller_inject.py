@@ -226,10 +226,13 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         kwargs.pop('_', None)
     print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
+    assert len(args) == 0, ''
     try:
-        output = func(*args, **kwargs)
+        #output = func(*args, **kwargs)
+        output = func(**kwargs)
     except TypeError:
-        output = func(ibs=ibs, *args, **kwargs)
+        #output = func(ibs=ibs, *args, **kwargs)
+        output = func(ibs=ibs, **kwargs)
     return (output, True, 200, None, jQuery_callback)
 
 
@@ -413,10 +416,12 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 # @crossdomain(origin='*')
                 # @authentication_either
                 @wraps(func)
-                def translated_call(*args, **kwargs):
+                #def translated_call(*args, **kwargs):
+                def translated_call(**kwargs):
                     #from flask import make_response
                     try:
-                        values = translate_ibeis_webcall(func, *args, **kwargs)
+                        #values = translate_ibeis_webcall(func, *args, **kwargs)
+                        values = translate_ibeis_webcall(func, **kwargs)
                         rawreturn, success, code, message, jQuery_callback = values
                     except WebException as webex:
                         rawreturn = ''
@@ -473,9 +478,11 @@ def get_ibeis_flask_route(__name__):
                 # @crossdomain(origin='*')
                 # @authentication_user_only
                 @wraps(func)
-                def translated_call(*args, **kwargs):
+                #def translated_call(*args, **kwargs):
+                def translated_call(**kwargs):
                     try:
-                        result = func(*args, **kwargs)
+                        #result = func(*args, **kwargs)
+                        result = func(**kwargs)
                     except Exception as ex:
                         rawreturn = str(traceback.format_exc())
                         success = False

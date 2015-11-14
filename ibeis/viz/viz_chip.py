@@ -21,9 +21,11 @@ def testdata_showchip():
     ut.print_dict(kwargs)
     default_config = dict(ibeis.model.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
-    print('cfgdict = %r' % (cfgdict,))
+    print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
     config2_ = ibs.new_query_params(cfgdict=cfgdict)
-    print(aid_list)
+    print('query_cfgstr = ' + config2_.query_cfgstr)
+    print('feat_cfgstr = ' + config2_.feat_cfgstr)
+    print('[viz_chip.testdata] aid_list = %r' % (aid_list,))
     return ibs, aid_list, kwargs, config2_
 
 
@@ -72,6 +74,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
         python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
         python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
+
+        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn
+        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30
 
     Example:
         >>> # VIZ_TEST

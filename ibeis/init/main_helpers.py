@@ -242,7 +242,9 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_a
     if a is None:
         a = adefault
     a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a)
+    return_ibs = False
     if ibs is None:
+        return_ibs = True
         if defaultdb is None:
             defaultdb = 'testdb1'
         ibs = ibeis.opendb(defaultdb=defaultdb)
@@ -250,18 +252,24 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_a
                                        annotation_configs.TEST_NAMES)
     named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
                                    ut.get_list_column(named_defaults_dict, 'qcfg')))
-    #base_cfg = annotation_configs.single_default
-    aidcfg_combo_list = cfghelpers.parse_cfgstr_list2([a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS, expand_nested=False, is_nestedcfgtype=False)
-    #aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
-    #                                             base_cfg, 'aids',
-    #                                             alias_keys=annotation_configs.ALIAS_KEYS)
-    aidcfg_combo = aidcfg_combo_list[0]
-    if len(aidcfg_combo_list) != 1:
-        raise AssertionError('Error: combinations not handled for single cfg setting')
-    if len(aidcfg_combo) != 1:
-        raise AssertionError('Error: combinations not handled for single cfg setting')
-    aidcfg = aidcfg_combo[0]
-    aids = filter_annots.expand_single_acfg(ibs, aidcfg)
+    # Allow command line override
+    aids = ut.get_argval(('--aid', '--aids'), type_=list, default=None)
+    aidcfg = None
+    if aids is None:
+        #base_cfg = annotation_configs.single_default
+        aidcfg_combo_list = cfghelpers.parse_cfgstr_list2([a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS, expand_nested=False, is_nestedcfgtype=False)
+        #aidcfg_combo = cfghelpers.customize_base_cfg('default', cfgstr_options,
+        #                                             base_cfg, 'aids',
+        #                                             alias_keys=annotation_configs.ALIAS_KEYS)
+        aidcfg_combo = aidcfg_combo_list[0]
+        if len(aidcfg_combo_list) != 1:
+            raise AssertionError('Error: combinations not handled for single cfg setting')
+        if len(aidcfg_combo) != 1:
+            raise AssertionError('Error: combinations not handled for single cfg setting')
+        aidcfg = aidcfg_combo[0]
+        aids = filter_annots.expand_single_acfg(ibs, aidcfg)
+    if return_ibs:
+        return ibs, aids
     if return_acfg:
         return aids, aidcfg
     else:

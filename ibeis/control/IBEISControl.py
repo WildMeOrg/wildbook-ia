@@ -220,6 +220,7 @@ class IBEISController(BASE_CLASS):
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
+        ibs.jobs = {}  # start development of async server calls with jobids
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):
@@ -1453,6 +1454,139 @@ class IBEISController(BASE_CLASS):
         icon = vt.imread(ut.grab_file_url(url))
         icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/get_job_status/', methods=['GET'])
+    def get_job_status(ibs, jobid):
+        fut = ibs.jobs[jobid]
+        return fut.running()
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/test_simple_job/', methods=['POST'])
+    def test_simple_job(ibs, **kwform):
+        from tornado.concurrent import return_future
+        jobid = 'simple_job'
+        if True or jobid not in ibs.jobs:
+            @return_future
+            def simple_job(arg, callback=None):
+                import time
+                time.sleep(20)
+                result = (100, arg)
+                callback(result)
+            fut = simple_job('foo')
+            ibs.jobs[jobid] = fut
+        fut = ibs.jobs[jobid]
+        print('fut = %r' % (fut,))
+        return fut
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/add_images_json/', methods=['POST'])
+    def add_images_json(ibs, **kwform):
+        #json_image_list, json_annots_list):
+        """
+        REST:
+            Method: GET
+            URL: /api/core/add_images_json/
+
+        Ignore:
+            sudo apt-get install rabbitmq-server
+            sudo pip install celery
+
+        Args:
+            json_image_list (list) : list of image json objects
+            json_annots_list (list) : list of image annotation objects
+
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
+
+        Example:
+            >>> # WEB_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import time
+            >>> import ibeis
+            >>> import requests
+            >>> # Start up the web instance
+            >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
+            >>> time.sleep(.5)
+            >>> baseurl = 'http://127.0.1.1:5000'
+            >>> # ut.to_json(payload)
+            >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
+            >>> payload = ut.map_dict_vals(ut.to_json, _payload)
+            >>> #resp = requests.post(baseurl + '/api/core/helloworld/?f=b', data=payload)
+            >>> resp = requests.post(baseurl + '/api/core/add_images_json/', data=payload)
+            >>> print(resp)
+            >>> web_instance.terminate()
+            >>> json_dict = resp.json()
+            >>> text = json_dict['response']
+            >>> print(text)
+        """
+        print('kwform = ' + ut.dict_str(kwform))
+        print('FOOBAR')
+        raise NotImplementedError('add_images_json')
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/detect_image_by_uuid/', methods=['GET'])
+    def detect_image_by_uuid(ibs, image_uuid_list, species):
+        """
+        REST:
+            Method: GET
+            URL: /api/core/detect_image_by_uuid/
+
+        Args:
+            image_uuid_list (list) : list of image uuids to detect on.
+            species (str) : species to detect
+        """
+        raise NotImplementedError('add_images_json')
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/identify_annots_by_uuid/', methods=['GET'])
+    def identify_annots_by_uuid(ibs, query_annot_uuid_list, available_data_annot_uuid_list, pipecfg, **kwargs):
+        """
+        REST:
+            Method: GET
+            URL: /api/core/identify_annots/
+
+        Args:
+            query_annot_uuid_list (list) : specifies the query annotations to identify.
+            available_data_annot_uuid_list (list) : specifies the annotations that the algorithm
+                                                                 is allowed to use for identification.
+                                                                 If not specified all annotations are used.   (default=None)
+            pipecfg (dict): dictionary of pipeline configuration arguments (default=None)
+
+        Example:
+            >>> # WEB_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(defaultdb='PZ_MTEST', a=['default'])
+            >>> query_annot_uuid_list = ibs.get_annot_uuids(qaids)
+            >>> available_data_annot_uuid_list = ibs.get_annot_uuids(daids)
+            >>> pipecfg={}
+        """
+        qaid_list = ibs.get_annot_aids_from_uuid(query_annot_uuid_list)
+        daid_list = ibs.get_annot_aids_from_uuid(available_data_annot_uuid_list)
+        jobid = 'query_job'
+        kwargs = {'use_cache': False}
+        #from tornado.concurrent import return_future
+        from tornado.gen import coroutine
+        from tornado.ioloop import IOLoop
+        if True or jobid not in ibs.jobs:
+            @coroutine
+            def query_job(ibs, qaid_list, daid_list, pipecfg, callback=None, **kwargs):
+                cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
+                yield cm_list
+                #callback(cm_list)
+            epoll = IOLoop.current()
+            epoll.add_callback(query_job, ibs, qaid_list, daid_list, pipecfg, **kwargs)
+
+            fut = query_job(ibs, qaid_list, daid_list, pipecfg, **kwargs)
+            ibs.jobs[jobid] = fut
+        #id_ = ut.spawn_background_thread(ibs.query_chips, qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
+        #fut = ibs.jobs[jobid]
+        proc = ut.spawn_background_process(ibs.query_chips, qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
+        ibs.jobs[jobid] = proc
+        #print('fut = %r' % (fut,))
+        #return fut
+        raise NotImplementedError('add_images_json')
 
 
 if __name__ == '__main__':
