@@ -822,7 +822,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> # Take subset of feature matches
         >>> fm = fm_
         >>> scale_err, xy_err, ori_err = \
-        ...     ut.exec_func_sourcecode(test_homog_errors, globals(), locals(),
+        ...     ut.exec_func_src(test_homog_errors, globals(), locals(),
         ...     'scale_err, xy_err, ori_err'.split(', '))
         >>> # we only care about checking out scale and orientation here. ignore bad xy points
         >>> xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
@@ -832,7 +832,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> fm = fm_[np.array(scale_err).argsort()[::-1][:10]]
         >>> # Exec sourcecode
         >>> kpts1_m, kpts2_m, off_xy1_m, off_xy1_mt, dxy1_m, dxy1_mt, xy2_m, xy1_m, xy1_mt, scale_err, xy_err, ori_err = \
-        ...     ut.exec_func_sourcecode(test_homog_errors, globals(), locals(),
+        ...     ut.exec_func_src(test_homog_errors, globals(), locals(),
         ...     'kpts1_m, kpts2_m, off_xy1_m, off_xy1_mt, dxy1_m, dxy1_mt, xy2_m, xy1_m, xy1_mt, scale_err, xy_err, ori_err'.split(', '))
         >>> #---------------
         >>> ut.quit_if_noshow()
