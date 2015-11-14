@@ -708,7 +708,10 @@ def plot_score_histograms(scores_list,
         >>> print(result)
     """
     if figtitle is None:
-        figtitle = 'histogram of ' + score_label + 's'
+        if len(scores_list) == 1:
+            figtitle = 'histogram of %d ' % (len(scores_list[0])) + score_label + 's'
+        else:
+            figtitle = 'histogram of ' + score_label + 's'
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:

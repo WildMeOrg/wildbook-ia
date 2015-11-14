@@ -19,6 +19,30 @@ def testdata_kpts():
 
 
 def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
+    r"""
+    Args:
+        chip (ndarray[uint8_t, ndim=2]):  annotation image data
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        fnum (int):  figure number(default = 0)
+        pnum (tuple):  plot number(default = None)
+
+    Kwargs:
+        ddd, title, figtitle, interpolation, cmap, heatmap, data_colorbar,
+        darken, update, redraw_image, docla, doclf, projection, sel_fx
+
+    CommandLine:
+        python -m plottool.viz_keypoints --exec-show_keypoints
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.viz_keypoints import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts, vecs, chip = testdata_kpts()
+        >>> fnum = 0
+        >>> pnum = None
+        >>> result = show_keypoints(chip, kpts, fnum, pnum)
+        >>> print(result)
+    """
     #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
     fig, ax = df2.imshow(chip, fnum=fnum, pnum=pnum, **kwargs)
     _annotate_kpts(kpts, **kwargs)
@@ -30,35 +54,39 @@ def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
 
 #@utool.indent_func
 def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
+    r"""
+    Args:
+        kpts_ (ndarray): keypoints
+        sel_fx (None):
+
+    Keywords:
+        color:  3/4-tuple, ndarray, or str
+
+    Returns:
+        None
+
+    Example:
+        >>> from plottool.viz_keypoints import *  # NOQA
+        >>> sel_fx = None
+        >>> kpts = np.array([[  92.9246,   17.5453,    7.8103,   -3.4594,   10.8566,    0.    ],
+        ...                  [  76.8585,   24.7918,   11.4412,   -3.2634,    9.6287,    0.    ],
+        ...                  [ 140.6303,   24.9027,   10.4051,  -10.9452, 10.5991,    0.    ],])
+
     """
-        Args:
-            kpts_ (ndarray): keypoints
-            sel_fx (None):
-
-        Keywords:
-            color:  3/4-tuple, ndarray, or str
-
-        Returns:
-            None
-
-        Example:
-            >>> from plottool.viz_keypoints import *  # NOQA
-            >>> sel_fx = None
-            >>> kpts = np.array([[  92.9246,   17.5453,    7.8103,   -3.4594,   10.8566,    0.    ],
-            ...                  [  76.8585,   24.7918,   11.4412,   -3.2634,    9.6287,    0.    ],
-            ...                  [ 140.6303,   24.9027,   10.4051,  -10.9452, 10.5991,    0.    ],])
-
-    """
-    '''
-    python -c "import utool; utool.print_auto_docstr('plottool.viz_keypoints', '_annotate_kpts')"
-    '''
     if len(kpts_) == 0:
         print('len(kpts_) == 0...')
         return
-    color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
+    #color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
+    color = kwargs.get('color', 'scale' if sel_fx is None else df2.ORANGE)
     if color == 'distinct':
         # hack for distinct colors
         color = df2.distinct_colors(len(kpts_))  # , randomize=True)
+    elif color == 'scale':
+        # hack for distinct colors
+        import vtool as vt
+        #color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='inferno', score_range=(0, 50))
+        color = df2.scores_to_color(vt.get_scales(kpts_), cmap_='viridis', score_range=(5, 30), cmap_range=None)
+        #df2.distinct_colors(len(kpts_))  # , randomize=True)
     # Keypoint drawing kwargs
     drawkpts_kw = {
         'ell': True,

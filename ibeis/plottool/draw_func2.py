@@ -55,7 +55,7 @@ lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
 DARKEN = ut.get_argval(
-    '--darken', type_=float, default=(.3 if ut.get_argflag('--darken') else None))
+    '--darken', type_=float, default=(.7 if ut.get_argflag('--darken') else None))
 
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
@@ -1468,8 +1468,8 @@ def variation_trunctate(data):
 
 
 def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
-                    custom=False, val2_customcolor=None, scale_min=.1,
-                    scale_max=.9):
+                    custom=False, val2_customcolor=None, score_range=None,
+                    cmap_range=(.1, .9)):
     """
     Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1', 'Set2', 'Accent'
 
@@ -1507,16 +1507,25 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     #    base_colormap = cmap
     #    data = score_list
     #    cmap = customize_colormap(score_list, base_colormap)
-    min_ = score_list.min()
-    range_ = score_list.max() - min_
-    if range_ == 0:
+    if score_range is None:
+        min_ = score_list.min()
+        max_ = score_list.max()
+    else:
+        min_ = score_range[0]
+        max_ = score_range[1]
+    if cmap_range is None:
+        cmap_scale_min, cmap_scale_max = 0., 1.
+    else:
+        cmap_scale_min, cmap_scale_max = cmap_range
+    extent_ = max_ - min_
+    if extent_ == 0:
         colors = [cmap(.5) for fx in range(len(score_list))]
     else:
         if logscale:
             def score2_01(score):
                 return np.log2(
-                    1 + scale_min + scale_max *
-                    (float(score) - min_) / (range_))
+                    1 + cmap_scale_min + cmap_scale_max *
+                    (float(score) - min_) / (extent_))
             score_list = np.array(score_list)
             #rank_multiplier = score_list.argsort() / len(score_list)
             #normscore = np.array(list(map(score2_01, score_list))) * rank_multiplier
@@ -1524,7 +1533,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
             colors =  list(map(cmap, normscore))
         else:
             def score2_01(score):
-                return scale_min + scale_max * (float(score) - min_) / (range_)
+                return cmap_scale_min + cmap_scale_max * (float(score) - min_) / (extent_)
         colors = [cmap(score2_01(score)) for score in score_list]
         if val2_customcolor is not None:
             colors = [
@@ -1537,12 +1546,12 @@ def customize_colormap(data, base_colormap):
     unique_scalars = np.array(sorted(np.unique(data)))
     max_ = unique_scalars.max()
     min_ = unique_scalars.min()
-    range_ = max_ - min_
-    bounds = np.linspace(min_, max_ + 1, range_ + 2)
+    extent_ = max_ - min_
+    bounds = np.linspace(min_, max_ + 1, extent_ + 2)
 
     # Get a few more colors than we actually need so we don't hit the bottom of
     # the cmap
-    colors_ix = np.concatenate((np.linspace(0, 1., range_ + 2), (0., 0., 0., 0.)))
+    colors_ix = np.concatenate((np.linspace(0, 1., extent_ + 2), (0., 0., 0., 0.)))
     colors_rgba = base_colormap(colors_ix)
     # TODO: parametarize
     val2_special_rgba = {
@@ -1562,7 +1571,7 @@ def customize_colormap(data, base_colormap):
 
     sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
-    sm.set_clim(-.5, range_ + 0.5)
+    sm.set_clim(-.5, extent_ + 0.5)
     #colorbar = plt.colorbar(sm)
 
     #missing_ixs = find_nonconsec_indices(unique_scalars, bounds)
@@ -1699,8 +1708,8 @@ def colorbar(scalars, colors, custom=False, lbl=None):
         unique_scalars, unique_idx = np.unique(scalars, return_index=True)
         unique_colors = np.array(colors)[unique_idx]
         #max_, min_ = unique_scalars.max(), unique_scalars.min()
-        #range_ = max_ - min_
-        #bounds = np.linspace(min_, max_ + 1, range_ + 2)
+        #extent_ = max_ - min_
+        #bounds = np.linspace(min_, max_ + 1, extent_ + 2)
         listed_cmap = mpl.colors.ListedColormap(unique_colors)
         #norm = mpl.colors.BoundaryNorm(bounds, listed_cmap.N)
         #sm = mpl.cm.ScalarMappable(cmap=listed_cmap, norm=norm)
@@ -2105,7 +2114,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             darken = .5
         # Darken the shown picture
         imgdtype = img.dtype
-        img = np.array(img, dtype=float) * darken
+        img = np.array(img, dtype=float) * (1 - darken)
         img = np.array(img, dtype=imgdtype)
 
     plt_imshow_kwargs = {

@@ -86,35 +86,6 @@ class MultiImageInteraction(BASE_CLASS):
         self.nPages = vt.iceil(self.nImgs / nPerPage)
         self.show_page()
 
-    #def append_button(self, text, divider=None, rect=None, callback=None,
-    #                  **kwargs):
-    #    """ Adds a button to the current page """
-    #    if divider is not None:
-    #        new_ax = divider.append_axes('bottom', size='9%', pad=.05)
-    #    if rect is not None:
-    #        new_ax = df2.plt.axes(rect)
-    #    new_but = mpl.widgets.Button(new_ax, text)
-    #    if callback is not None:
-    #        new_but.on_clicked(callback)
-    #    ph.set_plotdat(new_ax, 'viztype', 'button')
-    #    ph.set_plotdat(new_ax, 'text', text)
-    #    for key, val in six.iteritems(kwargs):
-    #        ph.set_plotdat(new_ax, key, val)
-    #    # Keep buttons from losing scrop
-    #    self.scope.append((new_but, new_ax))
-
-    #def display_buttons(self):
-    #    # Create the button for scrolling forwards
-    #    self.next_ax = plt.axes([0.75, 0.025, 0.15, 0.075])
-    #    self.next_but = Button(self.next_ax, 'next')
-    #    self.next_but.on_clicked(self.display_next_page)
-
-    #    # Create the button for scrolling backwards
-    #    self.prev_ax = plt.axes([0.1, .025, 0.15, 0.075])
-    #    self.prev_but = Button(self.prev_ax, 'prev')
-    #    self.prev_but.on_clicked(self.display_prev_page)
-    #    # Connect the callback whenever the figure is clicked
-
     def make_hud(self):
         """ Creates heads up display """
         # Button positioning
@@ -138,14 +109,6 @@ class MultiImageInteraction(BASE_CLASS):
     def prev_page(self, event):
         self.show_page(self.current_pagenum - 1)
         pass
-
-    #def clean_scope(self):
-    #    """ Removes any widgets saved in the interaction scope """
-    #    #for (but, ax) in self.scope:
-    #    #    but.disconnect_events()
-    #    #    ax.set_visible(False)
-    #    #    assert len(ax.callbacks.callbacks) == 0
-    #    self.scope = []
 
     def prepare_page(self, pagenum):
         """ Gets indexes for the pagenum ready to be displayed """
@@ -181,9 +144,6 @@ class MultiImageInteraction(BASE_CLASS):
             self.plot_image(index)
         self.make_hud()
         self.draw()
-
-    #def draw(self):
-    #    self.fig.canvas.draw()
 
     def plot_image(self, index):
         px = index - self.start_index
@@ -289,6 +249,46 @@ class MultiImageInteraction(BASE_CLASS):
             self.display_next_page()
         if event.key == 'p':
             self.display_prev_page()
+
+    #def clean_scope(self):
+    #    """ Removes any widgets saved in the interaction scope """
+    #    #for (but, ax) in self.scope:
+    #    #    but.disconnect_events()
+    #    #    ax.set_visible(False)
+    #    #    assert len(ax.callbacks.callbacks) == 0
+    #    self.scope = []
+
+    #def draw(self):
+    #    self.fig.canvas.draw()
+
+    #def append_button(self, text, divider=None, rect=None, callback=None,
+    #                  **kwargs):
+    #    """ Adds a button to the current page """
+    #    if divider is not None:
+    #        new_ax = divider.append_axes('bottom', size='9%', pad=.05)
+    #    if rect is not None:
+    #        new_ax = df2.plt.axes(rect)
+    #    new_but = mpl.widgets.Button(new_ax, text)
+    #    if callback is not None:
+    #        new_but.on_clicked(callback)
+    #    ph.set_plotdat(new_ax, 'viztype', 'button')
+    #    ph.set_plotdat(new_ax, 'text', text)
+    #    for key, val in six.iteritems(kwargs):
+    #        ph.set_plotdat(new_ax, key, val)
+    #    # Keep buttons from losing scrop
+    #    self.scope.append((new_but, new_ax))
+
+    #def display_buttons(self):
+    #    # Create the button for scrolling forwards
+    #    self.next_ax = plt.axes([0.75, 0.025, 0.15, 0.075])
+    #    self.next_but = Button(self.next_ax, 'next')
+    #    self.next_but.on_clicked(self.display_next_page)
+
+    #    # Create the button for scrolling backwards
+    #    self.prev_ax = plt.axes([0.1, .025, 0.15, 0.075])
+    #    self.prev_but = Button(self.prev_ax, 'prev')
+    #    self.prev_but.on_clicked(self.display_prev_page)
+    #    # Connect the callback whenever the figure is clicked
 
 
 if __name__ == '__main__':

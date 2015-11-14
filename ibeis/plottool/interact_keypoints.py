@@ -6,12 +6,18 @@ from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 from plottool.viz_featrow import draw_feat_row
 from plottool.viz_keypoints import show_keypoints
+from plottool import abstract_interaction
 
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_kpts]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[interact_kpts]', DEBUG=False)
+
+
+class KeypointInteraction(abstract_interaction.AbstractInteraction):
+    pass
 
 
 def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
     """
+    TODO: make into a class
 
     CommandLine:
         python -m plottool.interact_keypoints --test-ishow_keypoints --show
@@ -27,7 +33,8 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         >>> import vtool as vt
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> ut.quit_if_noshow()
-        >>> pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
+        >>> #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
+        >>> pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4)
         >>> pt.show_if_requested()
     """
     if isinstance(chip, six.string_types):
@@ -61,10 +68,10 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         if event is None  or event.xdata is None or event.inaxes is None:
             annote_ptr[0] = (annote_ptr[0] + 1) % 3
             mode = annote_ptr[0]
-            draw_ell = mode == 1
-            draw_pts = mode == 2
+            ell = mode == 1
+            pts = mode == 2
             print('... default kpts view mode=%r' % mode)
-            _viz_keypoints(fnum, draw_ell=draw_ell, draw_pts=draw_pts, **kwargs)    # MAYBE: remove kwargs
+            _viz_keypoints(fnum, ell=ell, pts=pts, **kwargs)    # MAYBE: remove kwargs
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', None)
