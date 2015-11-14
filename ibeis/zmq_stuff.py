@@ -305,6 +305,8 @@ def main():
 
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
     main()
     #while True:
     #    if not t.is_alive():
@@ -312,5 +314,6 @@ if __name__ == '__main__':
     #t.join()
 
 """
+python ibeis/zmq_stuff.py
 python zmq_stuff.py both
 """

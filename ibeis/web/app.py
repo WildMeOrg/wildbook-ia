@@ -1806,6 +1806,8 @@ def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
         # Start the tornado web handler
+        # WSGI = Web Server Gateway Interface
+        # WSGI is Python standard described in detail in PEP 3333
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
         http_server.listen(app.server_port)
