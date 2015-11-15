@@ -64,8 +64,8 @@ inject_modnames = [
     #'ibeis.control.manual_dependant_funcs',
     'ibeis.control.manual_chip_funcs',
     'ibeis.control.manual_feat_funcs',
-    (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
-    (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+    #(('--no-cnn', '--nocnn'), 'ibeis_cnn'),
+    #(('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
 ]
 
 for modname in inject_modnames:
@@ -85,13 +85,17 @@ for modname in inject_modnames:
 # instance
 
 # Explicit Inject Subclass
-if True:
-    """
-    python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
-    """
-    from ibeis.control import _autogen_explicit_controller
-    BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
-else:
+try:
+    if ut.get_argflag('--dyn'):
+        raise ImportError
+        #BASE_CLASS = object
+    else:
+        """
+        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+        """
+        from ibeis.control import _autogen_explicit_controller
+        BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
+except ImportError:
     BASE_CLASS = object
 
 

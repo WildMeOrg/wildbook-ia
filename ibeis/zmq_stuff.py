@@ -161,7 +161,7 @@ def scheduler():
 
 def process_request(msg):
     """process the message (reverse letters)"""
-    #return ['foobar']
+    #return ['foobar']/en
     import time
     time.sleep(.1)
     return [ part[::-1] for part in msg ]
