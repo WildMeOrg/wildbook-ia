@@ -228,7 +228,7 @@ class BackgroundJobQueue(object):
     def __init__(self, id):
         self.id = id
         self.initialize_background_processes()
-        self.initialize_main_thread()
+        #self.initialize_main_thread()
 
     def initialize_background_processes(self):
         print('Initialize Background Processes')
@@ -279,19 +279,20 @@ def main():
 
     print('Initializing Main Thread')
     sender = BackgroundJobQueue(1)
-    print('... waiting for jobs')
-    if False:
-        #ut.embed()
-        sender.queue_job()
-    else:
-        time.sleep(.5)
-        sender.queue_job()
-        #time.sleep(1.5)
-        #sender.queue_job()
-        time.sleep(1.5)
-        time.sleep(1.5)
+    sender
+    #print('... waiting for jobs')
+    #if False:
+    #    #ut.embed()
+    #    sender.queue_job()
+    #else:
+    #    time.sleep(.5)
+    #    sender.queue_job()
+    #    #time.sleep(1.5)
+    #    #sender.queue_job()
+    #    time.sleep(1.5)
+    #    time.sleep(1.5)
 
-    if False:
+    if True:
         clients = [threading.Thread(target=client, args=(i, 2)) for i in range(4)]
         for t in clients:
             t.start()
@@ -315,5 +316,5 @@ if __name__ == '__main__':
 
 """
 python ibeis/zmq_stuff.py
-python zmq_stuff.py both
+python ibeis/zmq_stuff.py both
 """

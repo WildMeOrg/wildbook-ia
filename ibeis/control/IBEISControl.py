@@ -88,7 +88,6 @@ for modname in inject_modnames:
 try:
     if ut.get_argflag('--dyn'):
         raise ImportError
-        #BASE_CLASS = object
     else:
         """
         python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
@@ -100,7 +99,7 @@ except ImportError:
 
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
+(print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
