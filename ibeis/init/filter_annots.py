@@ -330,7 +330,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
         # this has to be after sample_size assignment, otherwise the filtering
         # is unstable Remove queries that have labeling errors in them.
         # TODO: fix errors AND remove labels
-        REMOVE_LABEL_ERRORS = True
+        #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
+        REMOVE_LABEL_ERRORS = False
+        #ut.is_developer() or ut.get_argflag('--noerrors')
         if REMOVE_LABEL_ERRORS:
             qaids_, daids_ = expanded_aids
 

@@ -43,6 +43,7 @@ ANNOTMATCH_PROPS_OTHER = [
 
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
+    'TimeDeltaError',
 ]
 
 OLD_ANNOTMATCH_PROPS = [
