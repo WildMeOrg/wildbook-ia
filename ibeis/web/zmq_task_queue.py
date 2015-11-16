@@ -131,19 +131,31 @@ def test_zmq_task():
         #dbgwait()
         #sender.get_job_status(jobid1)
         #dbgwait()
-        jobid2 = sender.queue_job('helloworld', 10)
-        jobid4 = sender.queue_job('helloworld', 10)
-        jobid5 = sender.queue_job('helloworld', 10)
+        jobid_list = [sender.queue_job('helloworld', 5) for _ in range(100)]
+        #jobid2 = sender.queue_job('helloworld', 5)
+        ##time.sleep(.2)
+        #jobid4 = sender.queue_job('helloworld', 5)
+        ##time.sleep(.2)
+        #jobid5 = sender.queue_job('helloworld', 5)
+        #time.sleep(.2)
         #jobid2 = 'foobar'
 
-        while True:
-            reply = sender.get_job_status(jobid2)
-            time.sleep(1)
-            if reply['jobstatus'] == 'completed':
-                reply = sender.get_job_result(jobid2)
-                result = reply['result']
-                print('Final result = %r' % (result,))
-                break
+        def wait_for_job_result(jobid):
+            while True:
+                reply = sender.get_job_status(jobid)
+                if reply['jobstatus'] == 'completed':
+                    reply = sender.get_job_result(jobid)
+                    result = reply['result']
+                    print('Final result = %r' % (result,))
+                    return result
+                time.sleep(3.0)
+
+        for jobid in jobid_list:
+            wait_for_job_result(jobid)
+
+        #wait_for_job_result(jobid2)
+        #wait_for_job_result(jobid4)
+        #wait_for_job_result(jobid5)
         #sender.queue_job()
         dbgwait()
     print('FINISHED TEST SCRIPT')
@@ -151,7 +163,8 @@ def test_zmq_task():
 
 class BackgroundProcs(object):
     def __init__(self):
-        self.num_engines = 1
+        #self.num_engines = 3
+        self.num_engines = 50
         self.engine_queue_proc = None
         self.collect_queue_proc = None
         self.engine_procs = None
@@ -160,7 +173,7 @@ class BackgroundProcs(object):
     def __del__(self):
         print('Cleaning up job client')
         if self.engine_procs is not None:
-            for i in self.engine_proces:
+            for i in self.engine_procs:
                 i.terminate()
         if self.engine_queue_proc is not None:
             self.engine_queue_proc.terminate()
@@ -268,7 +281,7 @@ def new_queue_loop(iface1, iface2, name=None):
     loop_name = queue_name + '_loop'
     def queue_loop():
         print = partial(ut.colorprint, color='green')
-        with ut.Indenter('[%s] ' % (name,)):
+        with ut.Indenter('[%s] ' % (queue_name,)):
             print('Init new_queue_loop: name=%r' % (name,))
             # bind the client dealer to the queue router
             rout_sock = ctx.socket(zmq.ROUTER)
@@ -280,8 +293,7 @@ def new_queue_loop(iface1, iface2, name=None):
             deal_sock.setsockopt_string(zmq.IDENTITY, name + '.' + 'DEALER')
             deal_sock.bind(iface2)
             print('bind %s_iface2 = %r' % (name, iface2,))
-            #if False:
-            if 0:
+            if 1:
                 # the remainder of this function can be entirely replaced with
                 zmq.device(zmq.QUEUE, rout_sock, deal_sock)
             else:
@@ -307,8 +319,70 @@ def new_queue_loop(iface1, iface2, name=None):
     ut.set_funcname(queue_loop, loop_name)
     return queue_loop
 
-engine_queue_loop = new_queue_loop(engine_iface1, engine_iface2, name='engine')
 collect_queue_loop = new_queue_loop(collect_iface1, collect_iface2, name='collect')
+
+
+def engine_queue_loop():
+    # SPECIALIZED QUEUE LOOP
+    iface1, iface2 = engine_iface1, engine_iface2
+    name = 'engine'
+    queue_name = name + '_queue'
+    loop_name = queue_name + '_loop'
+    print = partial(ut.colorprint, color='red')
+    with ut.Indenter('[%s] ' % (queue_name,)):
+        print('Init new_queue_loop: name=%r' % (name,))
+        # bind the client dealer to the queue router
+        rout_sock = ctx.socket(zmq.ROUTER)
+        rout_sock.setsockopt_string(zmq.IDENTITY, name + '.queue.' + 'ROUTER')
+        rout_sock.bind(iface1)
+        print('bind %s_iface2 = %r' % (name, iface1,))
+        # bind the server router to the queue dealer
+        deal_sock = ctx.socket(zmq.DEALER)
+        deal_sock.setsockopt_string(zmq.IDENTITY, name + '.queue.' + 'DEALER')
+        deal_sock.bind(iface2)
+        print('bind %s_iface2 = %r' % (name, iface2,))
+
+        collect_push_sock = ctx.socket(zmq.PUSH)
+        collect_push_sock.connect(collect_pushpull_iface)
+        print('connect collect_pushpull_iface = %r' % (collect_pushpull_iface,))
+        job_counter = 0
+
+        # but this shows what is really going on:
+        poller = zmq.Poller()
+        poller.register(rout_sock, zmq.POLLIN)
+        poller.register(deal_sock, zmq.POLLIN)
+        while True:
+            evts = dict(poller.poll())
+            # poll() returns a list of tuples [(socket, evt), (socket, evt)]
+            # dict(poll()) turns this into {socket:evt, socket:evt}
+            if rout_sock in evts:
+                # HACK GET REQUEST FROM CLIENT
+                job_counter += 1
+                idents, request = rcv_multipart_json(rout_sock, num=1, print=print)
+
+                #jobid = 'result_%s' % (id_,)
+                #jobid = 'result_%s' % (uuid.uuid4(),)
+                jobid = 'jobid-%04d' % (job_counter,)
+                print('Creating jobid %r' % (jobid,))
+
+                # Reply immediately with a new jobid
+                reply_notify = {
+                    'jobid': jobid,
+                    'status': 'ok',
+                    'text': 'job accepted',
+                    'action': 'notification',
+                }
+                request['jobid'] = jobid
+                print('...notifying collector about new job')
+                collect_push_sock.send_json(reply_notify)
+                print('... notifying client that job was accepted')
+                send_multipart_json(rout_sock, idents, reply_notify)
+                print('... notifying backend engine to start')
+                send_multipart_json(deal_sock, idents, request)
+            if deal_sock in evts:
+                pass
+        print('Exiting %s' % (loop_name,))
+#engine_queue_loop = new_queue_loop(engine_iface1, engine_iface2, name='engine')
 
 
 def engine_loop(id_):
@@ -325,7 +399,7 @@ def engine_loop(id_):
     """
     import ibeis
     #base_print = print  # NOQA
-    print = partial(ut.colorprint, color='red')
+    print = partial(ut.colorprint, color='darkred')
     with ut.Indenter('[engine %d] ' % (id_)):
         print('Initializing engine')
         print('connect engine_iface2 = %r' % (engine_iface2,))
@@ -341,34 +415,15 @@ def engine_loop(id_):
 
         collect_push_sock = ctx.socket(zmq.PUSH)
         collect_push_sock.connect(collect_pushpull_iface)
-        job_counter = 0
         while True:
-            idents, request = rcv_multipart_json(engine_rout_sock)
+            idents, request = rcv_multipart_json(engine_rout_sock, print=print)
             action = request['action']
-
-            #jobid = 'result_%s' % (id_,)
-            #jobid = 'result_%s' % (uuid.uuid4(),)
-            job_counter += 1
-            jobid = 'jobid_%s-%04d' % (id_, job_counter,)
-            print('Creating jobid %r' % (jobid,))
-
-            # Reply immediately with a new jobid
-            reply_notify = {
-                'jobid': jobid,
-                'status': 'ok',
-                'text': 'job accepted',
-                'action': 'notification'
-            }
-            print('...notifying collector about new job')
-            collect_push_sock.send_json(reply_notify)
-            print('... notifying client that job was accepted')
-            send_multipart_json(engine_rout_sock, idents, reply_notify)
-            dbgwait()
+            jobid = request['jobid']
 
             # Start working
             # (maybe this should be offloaded to another process?)
             print('is working...')
-            time.sleep(.1)
+            #time.sleep(.1)
             args = request['args']
             kwargs = request['kwargs']
 
@@ -409,14 +464,14 @@ def send_multipart_json(sock, idents, reply):
     sock.send_multipart(multi_reply)
 
 
-def rcv_multipart_json(sock):
+def rcv_multipart_json(sock, num=2, print=print):
     # note that the first two parts will be ['Controller.ROUTER', 'Client.<id_>']
     # these are needed for the reply to propagate up to the right client
     multi_msg = sock.recv_multipart()
     print('----')
     print('Handling Request: %r' % (multi_msg,))
-    idents = multi_msg[:2]
-    request_json = multi_msg[2]
+    idents = multi_msg[:num]
+    request_json = multi_msg[num]
     request = ut.from_json(request_json)
     return idents, request
 
@@ -464,7 +519,7 @@ def collector_loop():
 
         def handle_request():
             #pair_msg = collect_rout_sock.recv_json()
-            idents, request = rcv_multipart_json(collect_rout_sock)
+            idents, request = rcv_multipart_json(collect_rout_sock, print=print)
             reply = {}
             action = request['action']
             print('...building action=%r response' % (action,))
@@ -495,8 +550,8 @@ def collector_loop():
         if COLLECT_MODE is None:
             assert False
         elif COLLECT_MODE == 'timeout':
-            collect_pull_sock.RCVTIMEO = 100
-            collect_rout_sock.RCVTIMEO = 100
+            collect_pull_sock.RCVTIMEO = 1
+            collect_rout_sock.RCVTIMEO = 1
             # Timeout event loop
             while True:
                 #print('Collecting...')
@@ -548,7 +603,8 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     if ut.get_argflag('--main'):
-        test_zmq_task()
+        with ut.Timer('full'):
+            test_zmq_task()
     else:
         import utool as ut  # NOQA
         ut.doctest_funcs()
