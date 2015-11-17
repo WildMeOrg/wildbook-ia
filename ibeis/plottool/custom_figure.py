@@ -241,6 +241,8 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
 
+    DEPCIATE
+
     Args:
         fnum (int):  figure number
         fpath (str): file path string

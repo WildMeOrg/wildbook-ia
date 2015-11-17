@@ -161,6 +161,14 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), 
 
 
 def show_if_requested(N=1):
+    """
+    Used at the end of tests. Handles command line arguments for saving figures
+
+    Referencse:
+        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
+
+    """
+
     if ut.NOT_QUIET:
         print('[pt] ' + str(ut.get_caller_name(range(3))) + ' show_if_requested()')
 
@@ -237,24 +245,82 @@ def show_if_requested(N=1):
 
         dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
+        fpath_strict = ut.truepath(fpath)
         #ut.embed()
-
-        absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
-                                   figsize=False, dpi=dpi)
-
+        SAVE_PARTS = ut.get_argflag('--saveparts')
         CLIP_WHITE = ut.get_argflag('--clipwhite')
-        if CLIP_WHITE:
-            # remove white borders
-            fpath_in = fpath_out = absfpath_
-            vt.clipwhite_ondisk(fpath_in, fpath_out)
-            #img = vt.imread(absfpath_)
-            #thresh = 128
-            #fillval = [255, 255, 255]
-            #cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
-            #print('img.shape = %r' % (img.shape,))
-            #print('cropped_img.shape = %r' % (cropped_img.shape,))
-            #vt.imwrite(absfpath_, cropped_img)
 
+        if SAVE_PARTS:
+            def full_extent(axs, pad=0.0):
+                """Get the full extent of an axes, including axes labels, tick labels, and
+                titles."""
+                import matplotlib as mpl
+                # For text objects, we need to draw the figure first, otherwise the extents
+                # are undefined.
+                items = []
+                #if len(axs) > 1:
+                #    ut.embed()
+                for ax in axs:
+                    ax.figure.canvas.draw()  # FIXME; is this necessary?
+                    items += ax.get_xticklabels() + ax.get_yticklabels()
+                    items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
+                    items += [ax, ax.title]
+                bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
+                return bbox.expanded(1.0 + pad, 1.0 + pad)
+
+            subpath_list = []
+
+            # Group axes that belong together
+            atomic_axes = []
+            seen_ = set([])
+            for ax in fig.axes:
+                div = pt.get_plotdat(ax, DF2_DIVIDER_KEY, None)
+                if div is not None:
+                    df2_div_axes = pt.get_plotdat_dict(ax).get('df2_div_axes', [])
+                    seen_.add(ax)
+                    seen_.update(set(df2_div_axes))
+                    atomic_axes.append([ax] + df2_div_axes)
+                else:
+                    if ax not in seen_:
+                        atomic_axes.append([ax])
+                        seen_.add(ax)
+
+            for count, axs in ut.ProgressIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
+                subpath = ut.augpath(fpath_strict, chr(count + 65))
+                extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
+                fig.savefig(subpath, bbox_inches=extent)
+                subpath_list.append(subpath)
+            absfpath_ = subpath
+            from os.path import relpath
+            fpath_list = [relpath(_, dpath) for _ in subpath_list]
+
+            if CLIP_WHITE:
+                for subpath in subpath_list:
+                    # remove white borders
+                    pass
+                    vt.clipwhite_ondisk(subpath, subpath)
+        else:
+            absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
+                                       figsize=False, dpi=dpi)
+
+            if CLIP_WHITE:
+                # remove white borders
+                fpath_in = fpath_out = absfpath_
+                vt.clipwhite_ondisk(fpath_in, fpath_out)
+                #img = vt.imread(absfpath_)
+                #thresh = 128
+                #fillval = [255, 255, 255]
+                #cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+                #print('img.shape = %r' % (img.shape,))
+                #print('cropped_img.shape = %r' % (cropped_img.shape,))
+                #vt.imwrite(absfpath_, cropped_img)
+            #if dpath is not None:
+            #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
+            #else:
+            #    fpath_ = fpath
+            fpath_list = [fpath_]
+
+        # Print out latex info
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
         caption_list = ut.get_argval('--caption', type_=str,
                                      default=basename(fpath).replace('_', ' '))
@@ -269,16 +335,19 @@ def show_if_requested(N=1):
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
         print('width_str = %r' % (width_str,))
         height_str  = ut.get_argval('--height', type_=str, default=None)
-        #if dpath is not None:
-        #    fpath_ = ut.unixjoin(dpath, basename(absfpath_))
-        #else:
-        #    fpath_ = fpath
-        fpath_list = [fpath_]
 
-        if len(fpath_list) == 1 and ut.is_developer():
-            latex_block = (
-                '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
-                width_str + '}{\n' + caption_str + '\n}{' + label_str + '}')
+        if ut.is_developer() and len(fpath_list) < 8:
+            if len(fpath_list) == 1:
+                latex_block = (
+                    '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
+                    width_str + '}{\n' + caption_str + '\n}{' + label_str + '}')
+            else:
+                width_str = '1'
+                latex_block = (
+                    '\MultiImageCommand' '{' + label_str + '}' +
+                    '{' + width_str + '}' + '{\n' + caption_str + '\n}'
+                    '{' + '}{'.join(fpath_list) + '}'
+                )
             # HACK
         else:
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
@@ -1620,6 +1689,15 @@ def ensure_divider(ax):
     if divider is None:
         divider = make_axes_locatable(ax)
         ph.set_plotdat(ax, DF2_DIVIDER_KEY, divider)
+        orig_append_axes = divider.append_axes
+        def df2_append_axes(divider, position, size, pad=None, add_to_figure=True, **kwargs):
+            """ override divider add axes to register the divided axes """
+            div_axes = ph.get_plotdat(ax, 'df2_div_axes', [])
+            new_ax = orig_append_axes(position, size, pad=pad, add_to_figure=add_to_figure, **kwargs)
+            div_axes.append(new_ax)
+            ph.set_plotdat(ax, 'df2_div_axes', div_axes)
+            return new_ax
+        ut.inject_func_as_method(divider, df2_append_axes, 'append_axes', allow_override=True)
     return divider
 
 

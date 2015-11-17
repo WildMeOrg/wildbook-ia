@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 # Standard
 import warnings
 from six.moves import zip, range
@@ -11,7 +11,8 @@ import utool
 import utool as ut  # NOQA
 import numpy as np
 
-ut.noinject(__name__, '[plots]')
+#ut.noinject(__name__, '[plots]')
+print, rrr, profile = ut.inject2(__name__, '[plots]')
 
 
 def is_default_dark_bg():
@@ -164,7 +165,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     Kwargs:
         fnum, pnum, title, xlabel, ylabel, num_xticks, use_legend, legend_loc,
-        labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize
+        labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize, spread_list
         can append _list to any of these
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
 
@@ -196,7 +197,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     kind = kwargs.get('kind', 'plot')
     transpose = kwargs.get('transpose', False)
 
-    def parsekw_list(key, kwargs):
+    def parsekw_list(key, kwargs, num_lines=num_lines):
         """ copies relevant plot commands into plot_list_kw """
         if key in kwargs:
             val_list = [kwargs[key]] * num_lines
@@ -210,6 +211,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
     # Parse out arguments to ax.plot
     plot_kw_keys = ['label', 'color', 'marker', 'markersize',
                     'markeredgewidth', 'linewidth', 'linestyle']
+    # hackish / extra args that dont go to plot, but help
+    extra_plot_kw_keys = ['spread_alpha']
+    plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
     plot_list_kw = dict([
         (key, vals)
@@ -222,6 +226,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
     if kind == 'plot':
         if 'marker' not in plot_list_kw:
             plot_list_kw['marker'] = pt.distinct_markers(num_lines)
+        if 'spread_alpha' not in plot_list_kw:
+            plot_list_kw['spread_alpha'] = [.2] * num_lines
+
     if kind == 'bar':
         # Remove non-bar kwargs
         ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
@@ -234,13 +241,18 @@ def multi_plot(xdata, ydata_list, **kwargs):
             plot_list_kw['width'] = [width] * num_lines
         #xdata - (width / 2)
 
+    spread_list = kwargs.get('spread_list', None)
+    if spread_list is None:
+        pass
+
     # nest into a list of dicts for each line in the multiplot
-    valid_keys = list(plot_list_kw.keys())
-    valid_vals = plot_list_kw.values()
+    valid_keys = ut.setdiff_ordered(list(plot_list_kw.keys()), extra_plot_kw_keys)
+    valid_vals = ut.dict_take(plot_list_kw, valid_keys)
     plot_kw_list = [dict(zip(valid_keys, vals)) for vals in zip(*valid_vals)]
 
-    # Parse out axes formating options
-    title           = kwargs.get('title', None)
+    extra_kw_keys = extra_plot_kw_keys
+    extra_kw_vals = ut.dict_take(plot_list_kw, extra_kw_keys)
+    extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
     # Setup figure
     fig = pt.figure(fnum=fnum, pnum=pnum)
@@ -259,19 +271,28 @@ def multi_plot(xdata, ydata_list, **kwargs):
     else:
         plot_func = getattr(ax, kind)  # usually ax.plot
 
-    for count, (ydata, plot_kw) in enumerate(zip(ydata_list, plot_kw_list)):
+    for count, (ydata, plot_kw, extra_kw) in enumerate(zip(ydata_list, plot_kw_list, extra_kw_list)):
         ymask = np.isfinite(ydata)
         ydata_ = ydata.compress(ymask)
         xdata_ = xdata.compress(ymask)
         #ax.plot(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
-
             baseoffset = (width * num_lines) / 2
             lineoffset = (width * count)
-
             offset = baseoffset - lineoffset  # Fixeme for more histogram bars
             xdata_ = xdata_ - offset
         plot_func(xdata_, ydata_, **plot_kw)
+        if spread_list is not None:
+            xdata = np.array(xdata)
+            spread = spread_list[count]
+            ydata_ave = np.array(ydata_)
+            y_data_dev = np.array(spread)
+            y_data_max = ydata_ave + y_data_dev
+            y_data_min = ydata_ave - y_data_dev
+            ax = df2.gca()
+            spread_alpha = extra_kw['spread_alpha']
+            ax.fill_between(xdata, y_data_min, y_data_max, alpha=spread_alpha,
+                            color=plot_kw.get('color', None))  # , zorder=0)
     # L________________
 
     #max_y = max(np.max(y_data), max_y)
@@ -297,12 +318,18 @@ def multi_plot(xdata, ydata_list, **kwargs):
         kwargs = {transpose_key(key): val for key, val in kwargs.items()}
 
     # Setup axes labeling
+    title      = kwargs.get('title', None)
+    xlabel     = kwargs.get('xlabel', '')
+    ylabel     = kwargs.get('ylabel', '')
 
-    xlabel          = kwargs.get('xlabel', '')
-    ylabel          = kwargs.get('ylabel', '')
+    # Font sizes
+    titlesize  = kwargs.get('titlesize',  12)
+    labelsize  = kwargs.get('labelsize',  10)
+    legendsize = kwargs.get('legendsize', 10)
+
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', 8))
+            weight='light', size=labelsize)
     }
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
@@ -320,26 +347,26 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ymin = kwargs.get('ymin', ax.get_ylim()[0])
     ymax = kwargs.get('ymax', ax.get_ylim()[1])
 
+    if xmax == 'data':
+        xmax = xdata.max()
+    if xmin == 'data':
+        xmin = xdata.min()
+
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
     num_yticks = kwargs.get('num_yticks', None)
     if num_xticks is not None:
         # TODO check if xdata is integral
         if ut.is_int(xdata):
-            #xticks = np.unique(xticks.astype(np.int32))
-            xticks = np.linspace(np.ceil(xmin), np.floor(xmax), num_xticks).astype(np.int32)
+            xticks = np.linspace(np.ceil(xmin), np.floor(xmax),
+                                 num_xticks).astype(np.int32)
         else:
             xticks = np.linspace((xmin), (xmax), num_xticks)
         ax.set_xticks(xticks)
-        #max_pos = (xdata.max() + 1)
-        #step_size = int(max_pos // num_xticks)
-        #ax.set_xticks(np.arange(1, max_pos, step_size))
     if num_yticks is not None:
-        #ystep = (ymax - ymin) // (num_yticks - 1)
-        #yticks = np.arange(ymin, ymax + ystep, ystep)
         if ut.is_int(ydata):
-            yticks = np.linspace(np.ceil(ymin), np.floor(ymax), num_yticks).astype(np.int32)
-            #yticks = np.unique(yticks.astype(np.int32))
+            yticks = np.linspace(np.ceil(ymin), np.floor(ymax),
+                                 num_yticks).astype(np.int32)
         else:
             yticks = np.linspace((ymin), (ymax), num_yticks)
         ax.set_yticks(yticks)
@@ -359,13 +386,14 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     xtick_rotation = kwargs.get('xtick_rotation', None)
     if xtick_rotation is not None:
-        [lbl.set_rotation(xtick_rotation) for lbl in ax.get_xticklabels()]
+        [lbl.set_rotation(xtick_rotation)
+         for lbl in ax.get_xticklabels()]
     ytick_rotation = kwargs.get('ytick_rotation', None)
     if ytick_rotation is not None:
-        [lbl.set_rotation(ytick_rotation) for lbl in ax.get_yticklabels()]
+        [lbl.set_rotation(ytick_rotation)
+         for lbl in ax.get_yticklabels()]
 
     # Axis padding
-
     xpad = kwargs.get('xpad', None)
     ypad = kwargs.get('ypad', None)
     xpad_factor = kwargs.get('xpad_factor', None)
@@ -394,21 +422,25 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Setup title
     if title is not None:
-        titlesize = kwargs.get('titlesize', 8)
         titlekw = {
-            'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+            'fontproperties': mpl.font_manager.FontProperties(
+                weight='light', size=titlesize)
         }
         ax.set_title(title, **titlekw)
 
-    use_legend      = kwargs.get('use_legend', 'label' in valid_keys)
-    legend_loc      = kwargs.get('legend_loc', 'best')
-    legend_alpha      = kwargs.get('legend_alpha', 1.0)
+    use_legend   = kwargs.get('use_legend', 'label' in valid_keys)
+    legend_loc   = kwargs.get('legend_loc', 'best')
+    legend_alpha = kwargs.get('legend_alpha', 1.0)
     if use_legend:
-        df2.legend(loc=legend_loc, size=kwargs.get('legendsize', 8), alpha=legend_alpha)
+        df2.legend(loc=legend_loc, size=legendsize, alpha=legend_alpha)
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
+    lightbg = kwargs.get('lightbg', None)
+    if lightbg is None:
+        lightbg = not is_default_dark_bg()
     if use_darkbackground is None:
-        use_darkbackground = is_default_dark_bg()
+        use_darkbackground = not lightbg
+        #use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         pt.dark_background()
     return fig
@@ -1246,11 +1278,9 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
         >>> title = 'p vs score'
         >>> x_label = 'p'
         >>> y_label = 'score diff'
-        >>> # execute function
         >>> result = interval_stats_plot(param2_stat_dict, fnum, pnum, x_label, y_label, title)
-        >>> df2.show_if_requested()
-        >>> # verify results
         >>> print(result)
+        >>> ut.show_if_requested()
     """
     if fnum is None:
         fnum = df2.next_fnum()
@@ -1310,9 +1340,12 @@ def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0],
                        label=None, marker='o', linestyle='-'):
     r"""
     Args:
-        xdata (?):
-        ydata_mean (?):
-        y_data_std (?):
+        xdata (ndarray):
+        ydata_mean (ndarray):
+        y_data_std (ndarray):
+
+    SeeAlso:
+        pt.multi_plot (using the spread_list kwarg)
 
     CommandLine:
         python -m plottool.plots --test-interval_line_plot --show
