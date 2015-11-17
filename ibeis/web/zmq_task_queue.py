@@ -39,7 +39,7 @@ python -m ibeis.web.zmq_task_queue --main --fg
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-if True:
+if False:
     import os
     os.environ['UTOOL_NOCNN'] = 'True'
 if True:

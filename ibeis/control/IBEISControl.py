@@ -64,8 +64,8 @@ inject_modnames = [
     #'ibeis.control.manual_dependant_funcs',
     'ibeis.control.manual_chip_funcs',
     'ibeis.control.manual_feat_funcs',
-    #(('--no-cnn', '--nocnn'), 'ibeis_cnn'),
-    #(('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+    (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
+    (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
 ]
 
 for modname in inject_modnames:
