@@ -84,7 +84,7 @@
         <div style="color: #999; font-style: italic; margin-bottom: 40px;">
           Sightings by day
           <br/>
-          (Blue - number of unique sightings, Green - number of (global) new unique sightings, Grey - shared unique sightings from previous day)
+          (Black - number of taken images, Red - number of used images, Yellow - number of used annotations, Blue - number of unique sightings, Green - number of (global) new unique sightings, Grey - number of shared unique sightings from previous day)
         </div>
 
         <canvas id="canvasLine" height="150"></canvas>
@@ -261,26 +261,47 @@
     labels: {{ bar_label_list }},
     {% endautoescape %}
     datasets: [
+      // {
+      //     fillColor: "rgba(77,83,96,0.5)",
+      //     strokeColor: "rgba(77,83,96,0.8)",
+      //     highlightFill: "rgba(77,83,96,0.75)",
+      //     highlightStroke: "rgba(77,83,96,1)",
+      //     data: {{ bar_value_list1 }}
+      // },
+      {
+          fillColor: "rgba(247,70,74,0.5)",
+          strokeColor: "rgba(247,70,74,0.8)",
+          highlightFill: "rgba(247,70,74,0.75)",
+          highlightStroke: "rgba(247,70,74,1)",
+          data: {{ bar_value_list2 }}
+      },
+      {
+          fillColor: "rgba(253,180,92,0.5)",
+          strokeColor: "rgba(253,180,92,0.8)",
+          highlightFill: "rgba(253,180,92,0.75)",
+          highlightStroke: "rgba(253,180,92,1)",
+          data: {{ bar_value_list3 }}
+      },
       {
           fillColor: "rgba(151,187,205,0.5)",
           strokeColor: "rgba(151,187,205,0.8)",
           highlightFill: "rgba(151,187,205,0.75)",
           highlightStroke: "rgba(151,187,205,1)",
-          data: {{ bar_value_list1 }}
+          data: {{ bar_value_list4 }}
       },
       {
           fillColor: "rgba(92,184,92,0.5)",
           strokeColor: "rgba(92,184,92,0.8)",
           highlightFill: "rgba(92,184,92,0.75)",
           highlightStroke: "rgba(92,184,92,1)",
-          data: {{ bar_value_list2 }}
+          data: {{ bar_value_list5 }}
       },
       {
           fillColor: "rgba(220,220,220,0.5)",
           strokeColor: "rgba(220,220,220,0.8)",
           highlightFill: "rgba(220,220,220,0.75)",
           highlightStroke: "rgba(220,220,220,1)",
-          data: {{ bar_value_list3 }}
+          data: {{ bar_value_list6 }}
       },
     ]
   };
