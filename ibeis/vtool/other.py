@@ -17,6 +17,14 @@ def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
         return np.empty(default_shape, dtype=default_dtype)
 
 
+def median_abs_dev(arr_list, **kwargs):
+    """
+    References:
+        https://en.wikipedia.org/wiki/Median_absolute_deviation
+    """
+    return np.median(np.abs(arr_list - np.median(arr_list, **kwargs)), **kwargs)
+
+
 def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=True):
     """
     Sorts each group normally, but randomizes order of level values.

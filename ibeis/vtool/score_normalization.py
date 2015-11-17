@@ -133,8 +133,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
             'must specify both or none')
         assert sorted(tp_attrs.keys()) == sorted(tn_attrs.keys()), (
             'dicts do not agree')
-        attrs = ut.dict_intersection(tp_attrs, tn_attrs, combine=True,
-                                     combine_op=np.append)
+        attrs = ut.dict_isect_combine(tp_attrs, tn_attrs, combine_op=np.append)
         num_attrs = np.array(list(map(len, attrs.values())))
         assert np.all(num_attrs == len(scores)), (
             'num attrs must agree with data')

@@ -874,24 +874,24 @@ def find_kpts_direction(imgBGR, kpts, DEBUG_ROTINVAR=False):
     return kpts2
 
 
-def test_find_kp_direction():
+def draw_kp_ori_steps():
     """
     Shows steps in orientation estimation
 
     CommandLine:
-        python -m vtool.patch --test-test_find_kp_direction --show --diskshow
-        python -m vtool.patch --test-test_find_kp_direction --show --interact
-        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
+        python -m vtool.patch --test-draw_kp_ori_steps --show --diskshow
+        python -m vtool.patch --test-draw_kp_ori_steps --show --interact
+        python -m vtool.patch --test-draw_kp_ori_steps --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
 
-        python -m vtool.patch --test-test_find_kp_direction --dpath ~/latex/crall-candidacy-2015/ --save figures/test_find_kp_direction.jpg  --figsize=14,9 --dpi=180 --height=2.65 --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1 --diskshow
+        python -m vtool.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180 --height=2.65 --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1 --diskshow
 
-        python -m vtool.patch --test-test_find_kp_direction --dpath ~/latex/crall-candidacy-2015/ --save figures/test_find_kp_direction.jpg  --figsize=14,9 --dpi=180  --djust=.04,.05,.1 --diskshow --fname=zebra.png --fx=121
+        python -m vtool.patch --test-draw_kp_ori_steps --dpath ~/latex/crall-candidacy-2015/ --save figures/draw_kp_ori_steps.jpg  --figsize=14,9 --dpi=180  --djust=.04,.05,.1 --diskshow --fname=zebra.png --fx=121
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> import plottool as pt
         >>> from vtool.patch import *  # NOQA
-        >>> test_find_kp_direction()
+        >>> draw_kp_ori_steps()
         >>> pt.show_if_requested()
     """
     #from vtool.patch import *  # NOQA
@@ -995,7 +995,9 @@ def test_find_kp_direction():
             break
 
 
-def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=None):
+def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag,
+                                      gori, hist, centers, gori_weights,
+                                      fx=None):
     import plottool as pt
     import vtool as vt
     # DRAW TEST INFO
