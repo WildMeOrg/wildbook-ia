@@ -225,10 +225,11 @@ func_aliases = {
 
 def remove_sentinals(code_text):
     """ Removes template comments and vim sentinals """
-    code_text = ut.regex_replace(r'^ *# STARTBLOCK *$\n', '', code_text)
-    code_text = ut.regex_replace(r'^ *# ENDBLOCK *$\n?', '', code_text)
-    code_text = ut.regex_replace(r'^ *# *REM [^\n]*$\n?', '', code_text)
-    code_text = code_text.rstrip()
+    return ut.remove_codeblock_syntax_sentinals(code_text)
+    #code_text = ut.regex_replace(r'^ *# STARTBLOCK *$\n', '', code_text)
+    #code_text = ut.regex_replace(r'^ *# ENDBLOCK *$\n?', '', code_text)
+    #code_text = ut.regex_replace(r'^ *# *REM [^\n]*$\n?', '', code_text)
+    #code_text = code_text.rstrip()
     return code_text
 
 

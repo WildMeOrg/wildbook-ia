@@ -1612,6 +1612,11 @@ class SQLDatabaseController(object):
             ?: new_transferdata
 
         CommandLine:
+            python -m ibeis --tf SQLDatabaseControl.make_json_table_definition
+
+        CommandLine:
+            python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
+            --include_inherited=True
             python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
 
         Example:
@@ -1622,47 +1627,57 @@ class SQLDatabaseController(object):
             >>> db = ibs.db
             >>> # TODO: define heirarchy
             >>> tablename = ibs.const.ANNOTATION_TABLE
-            >>> #tablename = ibs.const.IMAGE_TABLE
-            >>> json_def_str = db.make_json_table_definition(tablename)
-            >>> tablename = ibs.const.ANNOTATION_TABLE
-            >>> print('json_def_str = %s' % (json_def_str,))
+            >>> annot_table_def = db.make_json_table_definition(tablename)
+            >>> tablename = ibs.const.IMAGE_TABLE
+            >>> image_table_def = db.make_json_table_definition(tablename)
+            >>> print('annot_attrs = %s' % (ut.repr2(annot_table_def, nl=True),))
+            >>> print('image_attrs = %s' % (ut.repr2(image_table_def, nl=True),))
 
         Ignore:
-        {
-            'image_list': [
-                {
-                    'image_uuid': 'UUID',
-                    'image_uri': 'TEXT',
-                    'image_ext': 'TEXT',
-                    'image_original_name': 'TEXT',
-                    'image_width': 'INTEGER',
-                    'image_height': 'INTEGER',
-                    'image_time_posix': 'INTEGER',
-                    'image_gps_lat': 'REAL',
-                    'image_gps_lon': 'REAL',
-                    'image_timedelta_posix': 'INTEGER',
-                    'image_annots_list':
-                    [
-                        {
-                            'annot_uuid': 'UUID',
-                            'annot_xtl': 'INTEGER',
-                            'annot_ytl': 'INTEGER',
-                            'annot_width': 'INTEGER',
-                            'annot_height': 'INTEGER',
-                            'annot_theta': 'REAL',
-                            'annot_yaw': 'REAL',   # This is the viewpoint stored in radians
-                            'annot_quality': 'INTEGER',
-                            'annot_age_months_est_min': 'INTEGER',
-                            'annot_age_months_est_max': 'INTEGER',
-                            'species_text': 'DATA',
-                            'name_text': 'DATA',
-                        },
-                        ...
-                    ]
-                },
-                ...
-            ]
-        }
+            annot_table_def = {
+                'annot_rowid': 'INTEGER',
+                'annot_uuid': 'UUID',
+                'annot_xtl': 'INTEGER',
+                'annot_ytl': 'INTEGER',
+                'annot_width': 'INTEGER',
+                'annot_height': 'INTEGER',
+                'annot_theta': 'REAL',
+                'annot_num_verts': 'INTEGER',
+                'annot_verts': 'TEXT',
+                'annot_yaw': 'REAL',
+                'annot_detect_confidence': 'REAL',
+                'annot_exemplar_flag': 'INTEGER',
+                'annot_note': 'TEXT',
+                'annot_visual_uuid': 'UUID',
+                'annot_semantic_uuid': 'UUID',
+                'annot_quality': 'INTEGER',
+                'annot_age_months_est_min': 'INTEGER',
+                'annot_age_months_est_max': 'INTEGER',
+                'annot_tags': 'TEXT',
+                'species_text': 'DATA',
+                'name_text': 'DATA',
+                'image_uuid': 'DATA',
+            }
+            image_table_def = {
+                'image_rowid': 'INTEGER',
+                'image_uuid': 'UUID',
+                'image_uri': 'TEXT',
+                'image_ext': 'TEXT',
+                'image_original_name': 'TEXT',
+                'image_width': 'INTEGER',
+                'image_height': 'INTEGER',
+                'image_time_posix': 'INTEGER',
+                'image_gps_lat': 'REAL',
+                'image_gps_lon': 'REAL',
+                'image_toggle_enabled': 'INTEGER',
+                'image_toggle_reviewed': 'INTEGER',
+                'image_note': 'TEXT',
+                'image_timedelta_posix': 'INTEGER',
+                'image_original_path': 'TEXT',
+                'image_location_code': 'TEXT',
+                'contributor_tag': 'DATA',
+                'party_tag': 'DATA',
+            }
         """
         new_transferdata = db.get_table_new_transferdata(tablename)
         (column_list, column_names, extern_colx_list,
@@ -1682,12 +1697,13 @@ class SQLDatabaseController(object):
                 else:
                     # replace with superkey
                     del table_dict_def[key]
+                    _deptablecols = db.get_columns(val[0])
                     superkey = val[2]
                     assert len(superkey) == 1, 'unhandled'
-                    table_dict_def[superkey[0]] = 'DATA'
-
-        json_def_str = ut.dict_str(table_dict_def, aligned=True)
-        return json_def_str
+                    colinfo = {_.name: _ for _ in _deptablecols}[superkey[0]]
+                    table_dict_def[superkey[0]] = colinfo.type_
+        #json_def_str = ut.dict_str(table_dict_def, aligned=True)
+        return table_dict_def
         #table_obj_def =
 
     @default_decor

@@ -7,6 +7,7 @@ Rename to annot_cfgdef
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from ibeis.expt import cfghelpers
+import numpy as np  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
 
 
@@ -564,6 +565,37 @@ varysize_td1h = apply_timecontrol(varysize, '1h')
 varysize_tdqual = apply_qualcontrol(varysize_td)
 
 
+varynannots = {
+    'qcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'allgt',
+            'sample_size': None,
+            'sample_per_name': 1,
+            #'force_const_size': True,
+            #'min_pername': 4,
+            'min_pername': 1,
+        }),
+
+    'dcfg': ut.augdict(
+        __controlled_aidcfg, {
+            #'default_aids': 'all',
+            'sample_per_name': [1],
+            #'sample_per_name': [1, 3],
+            'exclude_reference': True,
+            #'sample_size': [.01, .125, 0.25, .375, 0.5, .625, 0.75],  # , .875],  # .95], 1.0],
+            #'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],
+            'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
+            'sample_size': [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
+            #'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),
+            #(10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(np.int) / 1000,
+            'min_pername': 1,
+        }),
+}
+varynannots_td = apply_timecontrol(varynannots)
+#varysize_td1h = apply_timecontrol(varysize, '1h')
+#varysize_tdqual = apply_qualcontrol(varysize_td)
+
+
 # Compare query of frontleft animals when database has only left sides
 """
 ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache
@@ -639,8 +671,8 @@ viewdiff = vp = viewpoint_compare = {
 timectrlhard = viewpoint_compare = {
     'qcfg': ut.augdict(
         timectrl['qcfg'], ut.odict([
-            ('has_any', ('needswork','correctable','mildviewpoint')),
-            ('has_none', ('viewpoint','photobomb','error:viewpoint', 'quality')),
+            ('has_any', ('needswork', 'correctable', 'mildviewpoint')),
+            ('has_none', ('viewpoint', 'photobomb', 'error:viewpoint', 'quality')),
         ])),
 
     'dcfg': ut.augdict(

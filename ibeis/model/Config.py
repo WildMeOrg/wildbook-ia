@@ -974,6 +974,7 @@ class FeatureConfig(ConfigBase):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
         feat_cfg.feat_type = 'hesaff+sift'
+        feat_cfg.bgmethod = None
         feat_cfg._param_list = list(six.iteritems(pyhesaff.get_hesaff_default_params()))
 
         for type_, name, default, doc in feat_cfg._iterparams():
@@ -1015,6 +1016,8 @@ class FeatureConfig(ConfigBase):
             #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
             feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
             feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
+            if feat_cfg.bgmethod is not None:
+                feat_cfgstrs += [',bg=%s' % (feat_cfg.bgmethod)]
             # TODO: Named Tuple
             alias = {
                 'numberOfScales': 'nScales',

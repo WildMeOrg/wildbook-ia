@@ -81,9 +81,9 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
     """
     filter_kw.update(kwargs)
     aid_list_ = aid_list
-    filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
+    #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
-    aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
+    #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
     aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw)
     return aid_list_
 
@@ -102,9 +102,10 @@ def get_default_annot_filter_form():
     """
     from ibeis.expt import annotation_configs
     iden_defaults = annotation_configs.INDEPENDENT_DEFAULTS.copy()
-    tag_defaults = get_annot_tag_filterflags(
-        None, None, {}, request_defaultkw=True)
-    filter_kw = ut.dict_union3(iden_defaults, tag_defaults, combine_op=None)
+    filter_kw = iden_defaults
+    #tag_defaults = get_annot_tag_filterflags(
+    #    None, None, {}, request_defaultkw=True)
+    #filter_kw = ut.dict_union3(iden_defaults, tag_defaults, combine_op=None)
     return filter_kw
 
 
@@ -329,7 +330,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
         # this has to be after sample_size assignment, otherwise the filtering
         # is unstable Remove queries that have labeling errors in them.
         # TODO: fix errors AND remove labels
-        REMOVE_LABEL_ERRORS = True
+        #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
+        REMOVE_LABEL_ERRORS = False
+        #ut.is_developer() or ut.get_argflag('--noerrors')
         if REMOVE_LABEL_ERRORS:
             qaids_, daids_ = expanded_aids
 
@@ -705,17 +708,6 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         'FILTER_INDEPENDENT', aidcfg, verbose)
     VerbosityContext.startfilter(withpre=withpre)
 
-    # FILTER HACK
-    # TODO: further integrate
-    if aidcfg.get('has_any', None) or aidcfg.get('has_none', None):
-        filterkw = ut.dict_subset(aidcfg, ['has_any', 'has_none'], None)
-        flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
-        with VerbosityContext('has_any', 'has_none'):
-            avail_aids = ut.list_compress(avail_aids, flags)
-            #avail_aids = ibs.filter_aids_without_name(
-            #    avail_aids, invert=not aidcfg['is_known'])
-        avail_aids = sorted(avail_aids)
-
     if aidcfg['is_known'] is True:
         with VerbosityContext('is_known'):
             avail_aids = ibs.filter_aids_without_name(
@@ -804,6 +796,17 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('exclude_view', hack=True):
             avail_aids = ibs.remove_aids_of_viewpoint(
                 avail_aids, exclude_view)
+
+    # FILTER HACK
+    # TODO: further integrate
+    if aidcfg.get('has_any', None) or aidcfg.get('has_none', None):
+        filterkw = ut.dict_subset(aidcfg, ['has_any', 'has_none'], None)
+        flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
+        with VerbosityContext('has_any', 'has_none'):
+            avail_aids = ut.list_compress(avail_aids, flags)
+            #avail_aids = ibs.filter_aids_without_name(
+            #    avail_aids, invert=not aidcfg['is_known'])
+        avail_aids = sorted(avail_aids)
 
     avail_aids = sorted(avail_aids)
 

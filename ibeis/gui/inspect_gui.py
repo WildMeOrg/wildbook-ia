@@ -122,22 +122,23 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             config2_list_ = [qreq_.get_external_query_config2(),
                              qreq_.get_external_data_config2()]
 
-        interact_chip_options = []
-        for count, (aid, config2_) in enumerate(zip(aid_list2,
-                                                    config2_list_),
-                                                start=1):
-            interact_chip_options += [
-                ('Interact Annot&%d' % (count,),
-                 partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,
-                         fnum=None, **kwargs)),
-            ]
-        interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
-        interact_chip_options.append(
-            ('Interact &All Annots', lambda: [func() for func in
-                                              interact_chip_actions]),
-        )
+        #interact_chip_options = []
+        #for count, (aid, config2_) in enumerate(zip(aid_list2,
+        #                                            config2_list_),
+        #                                        start=1):
+        #    interact_chip_options += [
+        #        ('Interact Annot&%d' % (count,),
+        #         partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,
+        #                 fnum=None, **kwargs)),
+        #    ]
+        #interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
+        #interact_chip_options.append(
+        #    ('Interact &All Annots', lambda: [func() for func in
+        #                                      interact_chip_actions]),
+        #)
 
         chip_contex_options = []
+        print('config2_list_ = %r' % (config2_list_,))
         for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_),
                                                 start=1):
             chip_contex_options += [
@@ -267,6 +268,20 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
                        for func in ut.get_list_column(case_options, 1)]))
         options += [
             ('Match Ta&gs', case_options)
+        ]
+
+    if ut.is_developer():
+        def dev_debug():
+            print('ibs = %r' % (ibs,))
+            print('cm = %r' % (cm,))
+            print('aid1 = %r' % (aid1,))
+            print('aid2 = %r' % (aid2,))
+            print('qreq_ = %r' % (qreq_,))
+        def dev_embed(ibs=ibs, aid1=aid1, aid2=aid2, cm=cm, qreq_=qreq_):
+            ut.embed()
+        options += [
+            ('dev pair context embed', dev_embed),
+            ('dev pair context debug', dev_debug),
         ]
     return options
 

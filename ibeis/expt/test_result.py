@@ -1668,6 +1668,53 @@ class TestResult(object):
     def __str__(testres):
         return testres.reconstruct_test_flags()
 
+    def draw_score_diff_disti(testres):
+        r"""
+        CommandLine:
+            python -m ibeis.expt.test_result --exec-draw_score_diff_disti --show
+            13502
+
+            python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
+            python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varynannots_td -t best  --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> import ibeis
+            >>> ibs, testres = ibeis.testdata_expts('PZ_Master1', a=['varynannots_td'], t=['best'])
+            >>> result = testres.draw_score_diff_disti()
+            >>> print(result)
+            >>> ut.show_if_requested()
+        """
+        qaids = testres.get_common_qaids()
+        gt_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score')
+        isvalid = (np.isfinite(gt_rawscore)).prod(axis=1).astype(np.bool)
+        valid_gt_rawscore = gt_rawscore[isvalid]
+        ibs = testres.ibs
+        valid_qaids = qaids[isvalid]
+        # Hack remove timdelta error
+        flags = ibs.get_annot_tag_filterflags(valid_qaids, {'has_none': 'timedeltaerror'})
+        valid_qaids = valid_qaids[flags]
+        valid_gt_rawscore = valid_gt_rawscore[flags]
+        #ut.embed()
+        #ibs.filterf
+        # Remove that outlier
+        #hack = valid_gt_rawscore.max(axis=1).argsort()[0:-1]
+        #valid_gt_rawscore = valid_gt_rawscore[hack]
+        import plottool as pt
+        values = valid_gt_rawscore
+        fnum = pt.ensure_fnum(None)
+        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 1), title='raw', fnum=fnum)
+        diffs = np.diff(valid_gt_rawscore, axis=1)
+        values = diffs
+        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 2), title='diffs', fnum=fnum)
+        #values = valid_gt_rawscore / valid_gt_rawscore.T[0][:, None]
+        #values = np.diff(np.sqrt(valid_gt_rawscore), axis=1)
+        values = np.diff(np.log(valid_gt_rawscore), axis=1)
+        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 3), title='log diff', fnum=fnum)
+        #pt.multi_plot(list(range(len(diffs))), [diffs.mean(axis=0)])
+        pass
+
     def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing
         experiment_drawing.draw_rank_cdf(testres.ibs, testres)

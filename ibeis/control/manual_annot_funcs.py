@@ -2524,9 +2524,35 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     r"""
     Returns paths to probability images.
 
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        config2_ (dict): (default = None)
+
     RESTful:
         Method: GET
         URL:    /api/annot/probchip_fpath/
+
+    Returns:
+        list: probchip_fpath_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> config2_ = ibs.new_query_params({'featweight_detector': 'cnn'})
+        >>> probchip_fpath_list = get_annot_probchip_fpath(ibs, aid_list, config2_)
+        >>> result = ('probchip_fpath_list = %s' % (str(probchip_fpath_list),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list, nPerPage=4)
+        >>> ut.show_if_requested()
     """
     # FIXME: this is implemented very poorly. Caches not robust. IE they are
     # never invalidated. Not all config information is passed through

@@ -123,9 +123,6 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
-    # TODO
-    config2_ = None
-
     def refresh_wrp(func):
         def _wrp():
             ret = func()
@@ -275,11 +272,15 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     ]
 
     if ut.is_developer():
-        def dev_embed(ibs=ibs, aid=aid):
+        def dev_debug():
+            print('aid = %r' % (aid,))
+            print('config2_ = %r' % (config2_,))
+        def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
             ut.embed()
             pass
         callback_list += [
             ('dev chip context embed', dev_embed),
+            ('dev chip context debug', dev_debug),
         ]
     return callback_list
 

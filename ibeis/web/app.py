@@ -1609,7 +1609,7 @@ def image_upload(cleanup=True, **kwargs):
     return gid
 
 
-@register_api('/api/core/helloworld/')
+@register_api('/api/core/helloworld/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def hello_world(*args, **kwargs):
     print('------------------ HELLO WORLD ------------------')
     print('Args:', args)
@@ -1820,6 +1820,8 @@ def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
             print('[web] opening browser with url = %r' % (url,))
             webbrowser.open(url)
         # Start the tornado web handler
+        # WSGI = Web Server Gateway Interface
+        # WSGI is Python standard described in detail in PEP 3333
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
         http_server.listen(app.server_port)
