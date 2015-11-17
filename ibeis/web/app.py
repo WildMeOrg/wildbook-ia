@@ -184,8 +184,14 @@ def view():
     date_taken_dict = {}
     for gid, date in zip(gid_list_unique, date_list_unique):
         if date not in date_taken_dict:
-            date_taken_dict[date] = 0
-        date_taken_dict[date] += 1
+            date_taken_dict[date] = [0, 0]
+        date_taken_dict[date][1] += 1
+
+    gid_list_all = ibs.get_valid_gids()
+    date_list_all = _date_list(gid_list_all)
+    for gid, date in zip(gid_list_all, date_list_all):
+        if date in date_taken_dict:
+            date_taken_dict[date][0] += 1
 
     value = 0
     label_list = []
@@ -200,18 +206,20 @@ def view():
         index_list.append(index + 1)
         # Add to counters
         if date not in date_seen_dict:
-            date_seen_dict[date] = [0, 0, 0]
+            date_seen_dict[date] = [0, 0, 0, 0]
+
+        date_seen_dict[date][0] += 1
 
         if nid not in current_seen_set:
             current_seen_set.add(nid)
-            date_seen_dict[date][0] += 1
+            date_seen_dict[date][1] += 1
             if nid in previous_seen_set:
-                date_seen_dict[date][2] += 1
+                date_seen_dict[date][3] += 1
 
         if nid not in seen_set:
             seen_set.add(nid)
             value += 1
-            date_seen_dict[date][1] += 1
+            date_seen_dict[date][2] += 1
 
         # Add to register
         value_list.append(value)
@@ -265,10 +273,12 @@ def view():
 
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
-    bar_value_list0 = [ date_taken_dict[date] for date in bar_label_list ]
-    bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
-    bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
-    bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
+    bar_value_list1 = [ date_taken_dict[date][0] for date in bar_label_list ]
+    bar_value_list2 = [ date_taken_dict[date][1] for date in bar_label_list ]
+    bar_value_list3 = [ date_seen_dict[date][0] for date in bar_label_list ]
+    bar_value_list4 = [ date_seen_dict[date][1] for date in bar_label_list ]
+    bar_value_list5 = [ date_seen_dict[date][2] for date in bar_label_list ]
+    bar_value_list6 = [ date_seen_dict[date][3] for date in bar_label_list ]
 
     # label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
     # value_list += [0] * (len(index_list) - len(value_list))
@@ -287,9 +297,9 @@ def view():
 
     # Calculate the Petersen-Lincoln index form the last two days
     try:
-        c1 = bar_value_list1[-2]
-        c2 = bar_value_list1[-1]
-        c3 = bar_value_list3[-1]
+        c1 = bar_value_list4[-2]
+        c2 = bar_value_list5[-1]
+        c3 = bar_value_list6[-1]
         pl_index = int(math.ceil( (c1 * c2) / c3 ))
         pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
         pl_error_dom = float(c3 ** 3)
@@ -390,10 +400,12 @@ def view():
                        gps_list_markers_all=gps_list_markers_all,
                        gps_list_tracks=gps_list_tracks,
                        bar_label_list=bar_label_list,
-                       bar_value_list0=bar_value_list0,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
                        bar_value_list3=bar_value_list3,
+                       bar_value_list4=bar_value_list4,
+                       bar_value_list5=bar_value_list5,
+                       bar_value_list6=bar_value_list6,
                        age_list=age_list,
                        age_ambiguous=age_ambiguous,
                        age_unreviewed=age_unreviewed,
