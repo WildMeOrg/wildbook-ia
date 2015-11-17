@@ -182,22 +182,34 @@ def view():
     seen_set = set()
     current_seen_set = set()
     previous_seen_set = set()
+    seen_gid_set = set()
     last_date = None
     date_seen_dict = {}
-    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+    date_taken_dict = {}
+    for index, (gid, aid, nid, date) in enumerate(zip(gid_list, aid_list, nid_list, date_list)):
         index_list.append(index + 1)
         # Add to counters
         if date not in date_seen_dict:
             date_seen_dict[date] = [0, 0, 0]
+
+        if date not in date_taken_dict:
+            date_taken_dict[date] = 0
+
+        if gid not in seen_gid_set:
+            date_taken_dict[date] += 1
+            seen_gid_set.add(gid)
+
         if nid not in current_seen_set:
             current_seen_set.add(nid)
             date_seen_dict[date][0] += 1
             if nid in previous_seen_set:
                 date_seen_dict[date][2] += 1
+
         if nid not in seen_set:
             seen_set.add(nid)
             value += 1
             date_seen_dict[date][1] += 1
+
         # Add to register
         value_list.append(value)
         # Reset step (per day)
@@ -250,6 +262,7 @@ def view():
 
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
+    bar_value_list0 = [ date_taken_dict[date] for date in bar_label_list ]
     bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
     bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
     bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
@@ -374,6 +387,7 @@ def view():
                        gps_list_markers_all=gps_list_markers_all,
                        gps_list_tracks=gps_list_tracks,
                        bar_label_list=bar_label_list,
+                       bar_value_list0=bar_value_list0,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
                        bar_value_list3=bar_value_list3,
