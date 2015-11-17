@@ -1672,8 +1672,13 @@ class TestResult(object):
         r"""
 
         CommandLine:
-            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best
-            python -m ibeis --tf get_annotcfg_list -a varynannots_td -t best --verbtd --nocache-annot  --db PZ_Master1
+            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db PZ_Master1
+            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best --db GZ_Master1
+            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td1h -t best --db GIRM_Master1
+
+            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td:qmin_pername=3,dpername=2 -t best --db PZ_Master1
+
+            python -m ibeis --tf get_annotcfg_list -a varynannots_td -t best --db PZ_Master1
             13502
             python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
             python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td -t best  --show
@@ -1687,33 +1692,123 @@ class TestResult(object):
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        qaids = testres.get_common_qaids()
-        gt_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score')
-        isvalid = (np.isfinite(gt_rawscore)).prod(axis=1).astype(np.bool)
-        valid_gt_rawscore = gt_rawscore[isvalid]
-        ibs = testres.ibs
-        valid_qaids = qaids[isvalid]
-        # Hack remove timdelta error
-        flags = ibs.get_annot_tag_filterflags(valid_qaids, {'has_none': 'timedeltaerror'})
-        valid_qaids = valid_qaids[flags]
-        valid_gt_rawscore = valid_gt_rawscore[flags]
-        #ibs.filterf
-        # Remove that outlier
-        #hack = valid_gt_rawscore.max(axis=1).argsort()[0:-1]
-        #valid_gt_rawscore = valid_gt_rawscore[hack]
         import plottool as pt
-        values = valid_gt_rawscore
+        import vtool as vt
+
+        # dont look at filtered cases
+        ibs = testres.ibs
+        qaids = testres.get_common_qaids()
+        qaids = ibs.get_annot_tag_filterflags(qaids, {'has_none': 'timedeltaerror'})
+
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score')
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score')
+
+        gt_valid_flags_list = np.isfinite(gt_rawscore).T
+        gf_valid_flags_list = np.isfinite(gf_rawscore).T
+
+        cfgx2_gt_scores = vt.zipcompress(gt_rawscore.T, gt_valid_flags_list)
+        cfgx2_gf_scores = vt.zipcompress(gf_rawscore.T, gf_valid_flags_list)
+
+        # partition by rank
+        gt_rank     = testres.get_infoprop_mat('qx2_gt_rank')
+        gf_ranks    = testres.get_infoprop_mat('qx2_gf_rank')
+        cfgx2_gt_ranks  = vt.zipcompress(gt_rank.T,     gt_valid_flags_list)
+        cfgx2_rank0_gt_scores = vt.zipcompress(cfgx2_gt_scores, [ranks == 0 for ranks in cfgx2_gt_ranks])
+        cfgx2_rankX_gt_scores = vt.zipcompress(cfgx2_gt_scores, [ranks > 0 for ranks in cfgx2_gt_ranks])
+        cfgx2_gf_ranks  = vt.zipcompress(gf_ranks.T,    gf_valid_flags_list)
+        cfgx2_rank0_gf_scores = vt.zipcompress(cfgx2_gf_scores, [ranks == 0 for ranks in cfgx2_gf_ranks])
+
+        #valid_gtranks = gt_rank[isvalid]
+        #valid_qaids = qaids[isvalid]
+        # Hack remove timdelta error
+        #valid_qaids = valid_qaids[flags]
+        #valid_gt_rawscore = valid_gt_rawscore[flags]
+        #valid_gtranks = valid_gtranks[flags]
+
+        xdata = list(map(len, testres.cfgx2_daids))
+
+        USE_MEDIAN = 1
+        #USE_LOG = True
+        USE_LOG = False
+        if USE_MEDIAN:
+            ave = np.median
+            dev = vt.median_abs_dev
+        else:
+            ave = np.mean
+            dev = np.std
+
+        def make_interval_args(arr_list, ave=ave, dev=dev, **kwargs):
+            #if not USE_MEDIAN:
+            #    # maybe approximate median by removing the most extreme values
+            #    arr_list = [np.array(sorted(arr))[5:-5] for arr in arr_list]
+            import utool as ut
+            if USE_LOG:
+                arr_list = list(map(lambda x: np.log(x + 1), arr_list))
+            sizes_ = list(map(len, arr_list))
+            ydata_ = list(map(ave, arr_list))
+            spread_ = list(map(dev, arr_list))
+            #ut.get_stats(arr_list, axis=0)
+            label = kwargs.get('label', '')
+            label += ' ' + ut.get_funcname(ave)
+            kwargs['label'] = label
+            print(label + 'score stats : ' +
+                  ut.repr2(ut.get_jagged_stats(arr_list, use_median=True), nl=1, precision=1))
+            return ydata_, spread_, kwargs, sizes_
+
+        args_list1 = [
+            make_interval_args(cfgx2_gt_scores, label='GT', color=pt.TRUE_BLUE),
+            make_interval_args(cfgx2_gf_scores, label='GF', color=pt.FALSE_RED),
+        ]
+
+        args_list2 = [
+            make_interval_args(cfgx2_rank0_gt_scores, label='GT-rank = 0', color=pt.LIGHT_GREEN),
+            make_interval_args(cfgx2_rankX_gt_scores, label='GT-rank > 0', color=pt.YELLOW),
+            make_interval_args(cfgx2_rank0_gf_scores, label='GF-rank = 0', color=pt.PINK),
+            #make_interval_args(cfgx2_rank2_gt_scores, label='gtrank < 2'),
+        ]
+
+        plotargs_list = [args_list1, args_list2]
+        #plotargs_list = [args_list1]
+        ymax = -np.inf
+        ymin = np.inf
+        for args_list in plotargs_list:
+            ydata_list = np.array(ut.get_list_column(args_list, 0))
+            spread = np.array(ut.get_list_column(args_list, 1))
+            ymax = max(ymax, np.array(ydata_list + spread).max())
+            ymin = min(ymax, np.array(ydata_list - spread).min())
+
+        ylabel = 'log name score' if USE_LOG else 'name score'
+
+        statickw = dict(
+            #title='scores vs dbsize',
+            xlabel='database size (number of annotations)',
+            ylabel=ylabel,
+            #xscale='log', ymin=0, ymax=10,
+            linewidth=2, spread_alpha=.5, lightbg=True, marker='o',
+            #xmax='data',
+            ymax=ymax, ymin=ymin, xmax='data', xmin='data',
+        )
+
         fnum = pt.ensure_fnum(None)
-        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 1), title='raw', fnum=fnum)
-        diffs = np.diff(valid_gt_rawscore, axis=1)
-        values = diffs
-        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 2), title='diffs', fnum=fnum)
-        #values = valid_gt_rawscore / valid_gt_rawscore.T[0][:, None]
-        #values = np.diff(np.sqrt(valid_gt_rawscore), axis=1)
-        values = np.diff(np.log(valid_gt_rawscore), axis=1)
-        pt.multi_plot(list(range(len(values))), values, pnum=(3, 1, 3), title='log diff', fnum=fnum)
-        #pt.multi_plot(list(range(len(diffs))), [diffs.mean(axis=0)])
-        pass
+        pnum_ = pt.make_pnum_nextgen(len(plotargs_list), 1)
+
+        for args_list in plotargs_list:
+            ydata_list = ut.get_list_column(args_list, 0)
+            spread_list = ut.get_list_column(args_list, 1)
+            kwargs_list = ut.get_list_column(args_list, 2)
+            sizes_list = ut.get_list_column(args_list, 3)
+            print('sizes_list = %s' % (ut.repr2(sizes_list, nl=1),))
+
+            # Pack kwargs list for multi_plot
+            plotkw = ut.dict_stack2(kwargs_list, '_list')
+            plotkw2 = ut.merge_dicts(statickw, plotkw)
+
+            pt.multi_plot(xdata, ydata_list, spread_list=spread_list,
+                          fnum=fnum, pnum=pnum_(), **plotkw2)
+
+        pt.adjust_subplots2(hspace=.3)
+        figtitle = 'Score vs DBSize: %s' % (testres.get_title_aug())
+        pt.set_figtitle(figtitle)
 
     def draw_rank_cdf(testres):
         from ibeis.expt import experiment_drawing

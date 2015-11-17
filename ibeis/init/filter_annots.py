@@ -341,6 +341,13 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
             qsize = len(expanded_aids[0])
             dsize = len(expanded_aids[1])
 
+            # <hack for float that should not interfere with other hacks
+            if qcfg['sample_size'] != qsize:
+                qcfg['_orig_sample_size'] = qcfg['sample_size']
+            if dcfg['sample_size'] != dsize:
+                dcfg['_orig_sample_size'] = dcfg['sample_size']
+            # /-->
+
             if min_qsize is None:
                 qcfg['sample_size'] = qsize
             if min_dsize is None:  # UNSURE
@@ -1287,7 +1294,7 @@ class CountstrParser(object):
         # change to dict_union when parsing ors
         import functools
         andcombine = functools.partial(
-            ut.dict_intersection, combine=True, combine_op=operator.and_)
+            ut.dict_isect_combine, combine_op=operator.and_)
         expr_nid2_result = reduce(andcombine, prop_nid2_result_list)
         return expr_nid2_result
 

@@ -584,7 +584,7 @@ varynannots = {
             'exclude_reference': True,
             #'sample_size': [.01, .125, 0.25, .375, 0.5, .625, 0.75],  # , .875],  # .95], 1.0],
             #'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],
-            'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
+            'sample_size': [.0, .01, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
             #'sample_size': [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
             #'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),
             #(10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(np.int) / 1000,
@@ -592,7 +592,7 @@ varynannots = {
         }),
 }
 varynannots_td = apply_timecontrol(varynannots)
-#varysize_td1h = apply_timecontrol(varysize, '1h')
+varynannots_td1h = apply_timecontrol(varynannots, '1h')
 #varysize_tdqual = apply_qualcontrol(varysize_td)
 
 

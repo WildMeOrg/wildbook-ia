@@ -5359,7 +5359,8 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     for edge in prop_edges:
         edge_nid2_aids_list = [prop2_nid2_aids.get(prop, {}) for prop in edge]
         isect_nid2_aids = reduce(
-            functools.partial(ut.dict_intersection, combine=True),
+            #functools.partial(ut.dict_intersection, combine=True),
+            ut.dict_isect_combine,
             edge_nid2_aids_list)
         edge2_nid2_aids[edge] = isect_nid2_aids
         #common_nids = list(isect_nid2_aids.keys())

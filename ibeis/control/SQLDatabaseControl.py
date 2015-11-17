@@ -1254,15 +1254,15 @@ class SQLDatabaseController(object):
         line_list.append(ut.indent(autogen_cmd, tab1))
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
         line_list.append('# -*- coding: utf-8 -*-')
-        line_list.append('from __future__ import absolute_import, division, print_function')
-        #line_list.append('from __future__ import absolute_import, division, print_function, unicode_literals')
+        #line_list.append('from __future__ import absolute_import, division, print_function')
+        line_list.append('from __future__ import absolute_import, division, print_function, unicode_literals')
         line_list.append('from ibeis import constants as const')
         line_list.append('\n')
         line_list.append('# =======================')
         line_list.append('# Schema Version Current')
         line_list.append('# =======================')
         line_list.append('\n')
-        line_list.append('VERSION_CURRENT = %r' % str(db_version_current))
+        line_list.append('VERSION_CURRENT = %s' % ut.repr2(db_version_current))
         line_list.append('\n')
         line_list.append('def update_current(db, ibs=None):')
         # Function content
@@ -1282,18 +1282,18 @@ class SQLDatabaseController(object):
             if constant_name is not None:
                 line_list.append(tab1 + 'db.add_table(const.%s, [' % (constant_name, ))
             else:
-                line_list.append(tab1 + 'db.add_table(%r, [' % (tablename,))
+                line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
             column_list = db.get_columns(tablename)
             for column in column_list:
-                col_name = ('%r,' % str(column[1])).ljust(32)
+                col_name = ('%s,' % ut.repr2(__STR__(column[1]))).ljust(32)
                 col_type = str(column[2])
                 if column[5] == 1:  # Check if PRIMARY KEY
-                    col_type += " PRIMARY KEY"
+                    col_type += ' PRIMARY KEY'
                 elif column[3] == 1:  # Check if NOT NULL
-                    col_type += " NOT NULL"
+                    col_type += ' NOT NULL'
                 elif column[4] is not None:
-                    col_type += " DEFAULT " + str(column[4])  # Specify default value
-                line_list.append(tab2 + '(%s%r),' % (col_name, col_type, ))
+                    col_type += ' DEFAULT ' + __STR__(column[4])  # Specify default value
+                line_list.append(tab2 + '(%s%s),' % (col_name, ut.repr2(col_type), ))
             line_list.append(tab1 + '],')
             superkeys = db.get_table_superkey_colnames(tablename)
             docstr = db.get_table_docstr(tablename)
@@ -1309,7 +1309,7 @@ class SQLDatabaseController(object):
                 quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
                 return quoted_docstr
             line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
-            line_list.append(tab2 + 'superkeys=%r,' % (superkeys, ))
+            line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys), ))
             #line_list.append(tab2 + 'constraint=%r,' %
             #(db.get_metadata_val(tablename + '_constraint'),))
             # Hack out docstr and superkeys for now
@@ -1320,10 +1320,10 @@ class SQLDatabaseController(object):
                 val = db.get_metadata_val(key, eval_=True, default=None)
                 if val is not None:
                     #ut.embed()
-                    line_list.append(tab2 + '%s=%r,' % (suffix, val))
+                    line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
             dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
             if dependsmap is not None:
-                _dictstr = ut.indent(ut.dict_str(dependsmap), tab2)
+                _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
                 depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
                 # hack for formatting
                 depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')

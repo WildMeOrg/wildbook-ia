@@ -122,7 +122,15 @@ def testdata_expts(defaultdb='testdb1',
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-    testres_list = experiment_harness.run_test_configurations2(
+
+    # Hack a cache here
+    if ut.is_developer():
+        from os.path import dirname, join
+        cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))
+        load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(experiment_harness.run_test_configurations2)
+    else:
+        load_testres = experiment_harness.run_test_configurations2
+    testres_list = load_testres(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
     testres = test_result.combine_testres_list(ibs, testres_list)
     return ibs, testres
