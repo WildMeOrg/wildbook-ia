@@ -161,19 +161,31 @@ def root():
 
 @register_route('/view')
 def view():
+    def _date_list(gid_list):
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
+        ]
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        return date_list
+
     ibs = current_app.ibs
     aid_list = ibs.filter_aids_count()
     gid_list = ibs.get_annot_gids(aid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    unixtime_list = ibs.get_image_unixtime(gid_list)
-    datetime_list = [
-        ut.unixtime_to_datetimestr(unixtime)
-        if unixtime is not None else
-        'UNKNOWN'
-        for unixtime in unixtime_list
-    ]
-    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-    date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    date_list = _date_list(gid_list)
+
+    gid_list_unique = list(set(gid_list))
+    date_list_unique = _date_list(gid_list_unique)
+    date_taken_dict = {}
+    for gid, date in zip(gid_list_unique, date_list_unique):
+        if date not in date_taken_dict:
+            date_taken_dict[date] = 0
+        date_taken_dict[date] += 1
 
     value = 0
     label_list = []
@@ -182,22 +194,13 @@ def view():
     seen_set = set()
     current_seen_set = set()
     previous_seen_set = set()
-    seen_gid_set = set()
     last_date = None
     date_seen_dict = {}
-    date_taken_dict = {}
-    for index, (gid, aid, nid, date) in enumerate(zip(gid_list, aid_list, nid_list, date_list)):
+    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
         index_list.append(index + 1)
         # Add to counters
         if date not in date_seen_dict:
             date_seen_dict[date] = [0, 0, 0]
-
-        if date not in date_taken_dict:
-            date_taken_dict[date] = 0
-
-        if gid not in seen_gid_set:
-            date_taken_dict[date] += 1
-            seen_gid_set.add(gid)
 
         if nid not in current_seen_set:
             current_seen_set.add(nid)
