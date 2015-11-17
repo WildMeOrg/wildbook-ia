@@ -336,7 +336,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
 
 
 @profile
-def draw_individual_cases(ibs, testres, metadata=None, f=None,
+def draw_match_cases(ibs, testres, metadata=None, f=None,
                           show_in_notebook=False, annot_modes=None, figsize=None):
     r"""
     Args:
@@ -345,11 +345,11 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --exec-draw_individual_cases
+        python -m ibeis.expt.experiment_drawing --exec-draw_match_cases
 
-        python -m ibeis.dev -e draw_individual_cases --figdir=individual_results
-        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
-        python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
+        python -m ibeis.dev -e draw_match_cases --figdir=individual_results
+        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
+        python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         python -m ibeis.dev -e print --db PZ_Master1 -a timecontrolled -t invarbest
         python -m ibeis.dev -e cases --db PZ_Master1 -a timecontrolled -t invarbest --filt : --show
@@ -377,7 +377,7 @@ def draw_individual_cases(ibs, testres, metadata=None, f=None,
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
-        >>> analysis_fpath_list = draw_individual_cases(ibs, testres, metadata, f=filt_cfg)
+        >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata, f=filt_cfg)
         >>> #ut.show_if_requested()
     """
     import plottool as pt
@@ -1120,7 +1120,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,cv2-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
 
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
-        python -m ibeis --tf draw_individual_cases --db PZ_Master1 -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
+        python -m ibeis --tf draw_match_cases --db PZ_Master1 -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd --filt :orderby=gfscore,reverse=1,min_gtrank=1 --show
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrlhard:dsize=300 ---acfginfo --veryverbtd
 
     Example:
@@ -1689,7 +1689,7 @@ def draw_results(ibs, testres):
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
-        draw_individual_cases(ibs, testres, metadata=metadata)
+        draw_match_cases(ibs, testres, metadata=metadata)
 
     metadata.write()
     if ut.get_argflag(('--guiview', '--gv')):

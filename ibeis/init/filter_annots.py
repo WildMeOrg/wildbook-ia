@@ -206,6 +206,35 @@ def filterannots_by_tags(ibs, aid_list, filter_kw):
     return aid_list_
 
 
+def get_acfg_cacheinfo(ibs, aidcfg):
+    from ibeis.expt import cfghelpers
+    # Make loading aids a big faster for experiments
+    if ut.is_developer():
+        import ibeis
+        from os.path import dirname, join
+        repodir = dirname(ut.get_module_dir(ibeis))
+        acfg_cachedir = join(repodir, 'ACFG_CACHE')
+    else:
+        acfg_cachedir = './localdata/ACFG_CACHE'
+        ut.ensuredir(acfg_cachedir)
+    acfg_cachename = 'ACFG_CACHE'
+
+    RESPECT_INTERNAL_CFGS = False
+    if RESPECT_INTERNAL_CFGS:
+        aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
+    else:
+        import copy
+        relevant_aidcfg = copy.deepcopy(aidcfg)
+        ut.delete_dict_keys(relevant_aidcfg['qcfg'],
+                            cfghelpers.INTERNAL_CFGKEYS)
+        ut.delete_dict_keys(relevant_aidcfg['dcfg'],
+                            cfghelpers.INTERNAL_CFGKEYS)
+        aid_cachestr = (
+            ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(relevant_aidcfg)))
+    acfg_cacheinfo = acfg_cachedir, acfg_cachename, aid_cachestr
+    return acfg_cacheinfo
+
+
 def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
     from ibeis.expt import annotation_configs
     if verbose:
@@ -252,8 +281,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
             return b
         elif b is None:
             return a
-        else:
-            return min(a, b)
+        return min(a, b)
     expanded_aids_list = []
 
     # Keep track of seen samples
@@ -282,89 +310,91 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
             dcfg['sample_size'] = tmpmin(dcfg['sample_size'] , min_dsize)
 
         # Expand modified acfgdict
-        expanded_aids = expand_acfgs(ibs, acfg, use_cache=use_cache,
-                                     hack_exclude_keys=hack_exclude_keys)
+        with ut.Indenter('[%d] ' % (combox,)):
+            expanded_aids = expand_acfgs(ibs, acfg, use_cache=use_cache,
+                                         hack_exclude_keys=hack_exclude_keys)
 
-        if dcfg.get('hack_extra', None):
-            # SUCH HACK to get a larger database
-            _aidcfg = annotation_configs.default['dcfg']
-            _aidcfg['sample_per_name'] = 1
-            _aidcfg['sample_size'] = 500
-            _aidcfg['min_pername'] = 1
-            _aidcfg['require_viewpoint'] = True
-            _aidcfg['exclude_reference'] = True
-            _aidcfg['view'] = 'right'
-            prefix = 'hack'
-            qaids = expanded_aids[0]
-            daids = expanded_aids[1]
+            if dcfg.get('hack_extra', None):
+                # SUCH HACK to get a larger database
+                assert False
+                _aidcfg = annotation_configs.default['dcfg']
+                _aidcfg['sample_per_name'] = 1
+                _aidcfg['sample_size'] = 500
+                _aidcfg['min_pername'] = 1
+                _aidcfg['require_viewpoint'] = True
+                _aidcfg['exclude_reference'] = True
+                _aidcfg['view'] = 'right'
+                prefix = 'hack'
+                qaids = expanded_aids[0]
+                daids = expanded_aids[1]
 
-            _extra_aids =  ibs.get_valid_aids()
-            _extra_aids = ibs.remove_groundtrue_aids(
-                _extra_aids, (qaids + daids))
-            _extra_aids = filter_annots_independent(
-                ibs, _extra_aids, _aidcfg, prefix)
-            _extra_aids = sample_annots(
-                ibs, _extra_aids, _aidcfg, prefix)
-            daids = sorted(daids + _extra_aids)
-            expanded_aids = (qaids, daids)
+                _extra_aids =  ibs.get_valid_aids()
+                _extra_aids = ibs.remove_groundtrue_aids(
+                    _extra_aids, (qaids + daids))
+                _extra_aids = filter_annots_independent(
+                    ibs, _extra_aids, _aidcfg, prefix)
+                _extra_aids = sample_annots(
+                    ibs, _extra_aids, _aidcfg, prefix)
+                daids = sorted(daids + _extra_aids)
+                expanded_aids = (qaids, daids)
 
-        qsize = len(expanded_aids[0])
-        dsize = len(expanded_aids[1])
+            qsize = len(expanded_aids[0])
+            dsize = len(expanded_aids[1])
 
-        if min_qsize is None:
-            qcfg['sample_size'] = qsize
-        if min_dsize is None:  # UNSURE
-            dcfg['sample_size'] = dsize
+            if min_qsize is None:
+                qcfg['sample_size'] = qsize
+            if min_dsize is None:  # UNSURE
+                dcfg['sample_size'] = dsize
 
-        if qcfg['sample_size'] != qsize:
-            qcfg['_true_sample_size'] = qsize
-        if dcfg['sample_size'] != dsize:
-            dcfg['_true_sample_size'] = dsize
+            if qcfg['sample_size'] != qsize:
+                qcfg['_true_sample_size'] = qsize
+            if dcfg['sample_size'] != dsize:
+                dcfg['_true_sample_size'] = dsize
 
-        if qcfg['force_const_size']:
-            min_qsize = tmpmin(min_qsize, qsize)
-        if dcfg['force_const_size']:  # UNSURE
-            min_dsize = tmpmin(min_dsize, dsize)
+            if qcfg['force_const_size']:
+                min_qsize = tmpmin(min_qsize, qsize)
+            if dcfg['force_const_size']:  # UNSURE
+                min_dsize = tmpmin(min_dsize, dsize)
 
-        # so hacky
-        # this has to be after sample_size assignment, otherwise the filtering
-        # is unstable Remove queries that have labeling errors in them.
-        # TODO: fix errors AND remove labels
-        #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
-        REMOVE_LABEL_ERRORS = False
-        #ut.is_developer() or ut.get_argflag('--noerrors')
-        if REMOVE_LABEL_ERRORS:
-            qaids_, daids_ = expanded_aids
+            # so hacky
+            # this has to be after sample_size assignment, otherwise the filtering
+            # is unstable Remove queries that have labeling errors in them.
+            # TODO: fix errors AND remove labels
+            #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
+            REMOVE_LABEL_ERRORS = True
+            #ut.is_developer() or ut.get_argflag('--noerrors')
+            if REMOVE_LABEL_ERRORS:
+                qaids_, daids_ = expanded_aids
 
-            partitioned_sets = ibs.partition_annots_into_corresponding_groups(
-                qaids_, daids_)
-            tup = partitioned_sets
-            query_group, data_group, unknown_group, distract_group = tup
+                partitioned_sets = ibs.partition_annots_into_corresponding_groups(
+                    qaids_, daids_)
+                tup = partitioned_sets
+                query_group, data_group, unknown_group, distract_group = tup
 
-            unknown_flags  = ibs.unflat_map(
-                ibs.get_annot_tag_filterflags, unknown_group,
-                filter_kw=dict(none_match=['.*error.*']))
-            #data_flags  = ibs.unflat_map(
-            #    ibs.get_annot_tag_filterflags, data_group,
-            #    filter_kw=dict(none_match=['.*error.*']))
-            query_flags = ibs.unflat_map(
-                ibs.get_annot_tag_filterflags, query_group,
-                filter_kw=dict(none_match=['.*error.*']))
+                unknown_flags  = ibs.unflat_map(
+                    ibs.get_annot_tag_filterflags, unknown_group,
+                    filter_kw=dict(none_match=['.*error.*']))
+                #data_flags  = ibs.unflat_map(
+                #    ibs.get_annot_tag_filterflags, data_group,
+                #    filter_kw=dict(none_match=['.*error.*']))
+                query_flags = ibs.unflat_map(
+                    ibs.get_annot_tag_filterflags, query_group,
+                    filter_kw=dict(none_match=['.*error.*']))
 
-            query_noterror_flags = list(map(all, ut.list_zipflatten(
-                query_flags,
-                #data_flags,
-            )))
-            unknown_noterror_flags = list(map(all, unknown_flags))
+                query_noterror_flags = list(map(all, ut.list_zipflatten(
+                    query_flags,
+                    #data_flags,
+                )))
+                unknown_noterror_flags = list(map(all, unknown_flags))
 
-            filtered_queries = ut.flatten(
-                ut.list_compress(query_group, query_noterror_flags))
-            filtered_unknown = ut.flatten(
-                ut.list_compress(unknown_group, unknown_noterror_flags))
+                filtered_queries = ut.flatten(
+                    ut.list_compress(query_group, query_noterror_flags))
+                filtered_unknown = ut.flatten(
+                    ut.list_compress(unknown_group, unknown_noterror_flags))
 
-            filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
+                filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
 
-            expanded_aids = (filtered_qaids_, daids_)
+                expanded_aids = (filtered_qaids_, daids_)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)
@@ -372,35 +402,6 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
     # Sample afterwords
 
     return list(zip(acfg_combo, expanded_aids_list))
-
-
-def get_acfg_cacheinfo(ibs, aidcfg):
-    from ibeis.expt import cfghelpers
-    # Make loading aids a big faster for experiments
-    if ut.is_developer():
-        import ibeis
-        from os.path import dirname, join
-        repodir = dirname(ut.get_module_dir(ibeis))
-        acfg_cachedir = join(repodir, 'ACFG_CACHE')
-    else:
-        acfg_cachedir = './localdata/ACFG_CACHE'
-        ut.ensuredir(acfg_cachedir)
-    acfg_cachename = 'ACFG_CACHE'
-
-    RESPECT_INTERNAL_CFGS = False
-    if RESPECT_INTERNAL_CFGS:
-        aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
-    else:
-        import copy
-        relevant_aidcfg = copy.deepcopy(aidcfg)
-        ut.delete_dict_keys(relevant_aidcfg['qcfg'],
-                            cfghelpers.INTERNAL_CFGKEYS)
-        ut.delete_dict_keys(relevant_aidcfg['dcfg'],
-                            cfghelpers.INTERNAL_CFGKEYS)
-        aid_cachestr = (
-            ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(relevant_aidcfg)))
-    acfg_cacheinfo = acfg_cachedir, acfg_cachename, aid_cachestr
-    return acfg_cacheinfo
 
 
 @profile
@@ -978,11 +979,13 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, reference_aids, prefix='',
         VerbosityContext.endfilter()
         return avail_aids
 
-    if isinstance(sample_size, float):
+    if ut.is_float(sample_size):
         # A float sample size is a interpolations between full data and small
         # data
         sample_size = int(round((len(avail_aids) * sample_size +
                                  (1 - sample_size) * len(reference_aids))))
+        if verbose:
+            print('Expanding sample size to: %r' % (sample_size,))
 
     # This function first partitions aids into a one set that corresonds with
     # the reference set and another that does not correspond with the reference

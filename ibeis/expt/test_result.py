@@ -1670,12 +1670,13 @@ class TestResult(object):
 
     def draw_score_diff_disti(testres):
         r"""
-        CommandLine:
-            python -m ibeis.expt.test_result --exec-draw_score_diff_disti --show
-            13502
 
-            python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
-            python -m ibeis.dev -e draw_individual_cases --db PZ_Master1 -a varynannots_td -t best  --show
+        CommandLine:
+            python -m ibeis --tf TestResult.draw_score_diff_disti --show -a varynannots_td -t best
+            python -m ibeis --tf get_annotcfg_list -a varynannots_td -t best --verbtd --nocache-annot  --db PZ_Master1
+            13502
+            python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td:dsample_size=.01 -t best  --show --qaid 13502
+            python -m ibeis --tf draw_match_cases --db PZ_Master1 -a varynannots_td -t best  --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1696,7 +1697,6 @@ class TestResult(object):
         flags = ibs.get_annot_tag_filterflags(valid_qaids, {'has_none': 'timedeltaerror'})
         valid_qaids = valid_qaids[flags]
         valid_gt_rawscore = valid_gt_rawscore[flags]
-        #ut.embed()
         #ibs.filterf
         # Remove that outlier
         #hack = valid_gt_rawscore.max(axis=1).argsort()[0:-1]
