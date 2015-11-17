@@ -304,6 +304,10 @@ def view():
         pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
         pl_error_dom = float(c3 ** 3)
         pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
+    except ValueError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
     except IndexError:
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
