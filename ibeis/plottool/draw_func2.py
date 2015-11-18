@@ -336,7 +336,7 @@ def show_if_requested(N=1):
         print('width_str = %r' % (width_str,))
         height_str  = ut.get_argval('--height', type_=str, default=None)
 
-        if ut.is_developer() and len(fpath_list) < 8:
+        if ut.is_developer() and len(fpath_list) < 4:
             if len(fpath_list) == 1:
                 latex_block = (
                     '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
