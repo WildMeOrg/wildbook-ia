@@ -47,7 +47,7 @@ TestFuncs:
     --print-scorediff-mat-stats --print-confusion-stats
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import numpy as np
 import vtool as vt
@@ -64,13 +64,13 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range, reduce  # NOQA
 #profile = ut.profile
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[vsonepipe]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[vsonepipe]')
 
 #from collections import namedtuple
 
 
 def show_post_vsmany_vser():
-    """ TESTFUNC just show the input data
+    r""" TESTFUNC just show the input data
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --homog
@@ -123,7 +123,7 @@ def prepare_vsmany_chipmatch(qreq_, cm_list_SVER):
 
 #@profile
 def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
-    """
+    r"""
     Driver function
 
     CommandLine:
@@ -334,8 +334,62 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=True, verbose=None):
     return matches, metadata
 
 
+def vsone_name_independant_hack(ibs, nids, qreq_=None):
+    r"""
+    show grid of aids with matches inside and between names
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid (?):
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_MTEST --show
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_Master1 --show --nids=5099,5181
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> # TODO: testdata_qparams?
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> nids = ut.get_argval('--nids', type_=list, default=[1])
+        >>> ibs = qreq_.ibs
+        >>> result = vsone_name_independant_hack(qreq_.ibs, nids, qreq_)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    aids = ut.flatten(ibs.get_name_aids(nids))
+    print('len(aids) = %r' % (len(aids),))
+    idxs = range(len(aids))
+    import plottool as pt
+    fnum = pt.ensure_fnum(None)
+    import ibeis.viz
+    #for idx1, idx2 in ut.upper_diag_self_prodx(idxs):
+    for idx1, idx2 in ut.self_prodx(idxs):
+        aid1 = aids[idx1]
+        aid2 = aids[idx2]
+        #vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
+        cfgdict = dict(codename='vsone', fg_on=False)
+        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
+        vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
+        cm_vsone = ibs.query_chips(qreq_=vsone_qreq_, return_cm=True)[0]
+        cm_vsone = cm_vsone.extend_results(vsone_qreq_)
+        #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
+        #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
+        pnum = (len(aids), len(aids), (idx1 * len(aids) + idx2) + 1)
+        cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
+                                        fnum=fnum, pnum=pnum)
+
+    for idx in idxs:
+        aid = aids[idx]
+        pnum = (len(aids), len(aids), (idx * len(aids) + idx) + 1)
+        ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,
+                            draw_lbl=False, nokpts=True,
+                            fnum=fnum, pnum=pnum)
+
+
 def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
-    """ simple hack convinience func
+    r""" simple hack convinience func
     Uses vsmany qreq to build a "similar" vsone qreq
 
     TODO:
@@ -348,7 +402,7 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
         qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
 
     CommandLine:
-        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show
+        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --db PZ_MTEST
         python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --qaid=1 --daid=4
         --cmd
 
@@ -372,7 +426,8 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     cm_vsone = ibs.query_chips(qreq_=vsone_qreq_, return_cm=True)[0]
     cm_vsone = cm_vsone.extend_results(vsone_qreq_)
     #cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
-    cm_vsone.ishow_analysis(vsone_qreq_)
+    #cm_vsone.ishow_analysis(vsone_qreq_)
+    cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2)
     #qres_vsone.ishow_analysis(ibs=ibs)
     #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
     #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
@@ -516,7 +571,7 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
 
 @profile
 def refine_matches(qreq_, prior_cm, config={}):
-    """
+    r"""
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog
@@ -717,7 +772,7 @@ def quick_vsone_flann(flann_cachedir, qvecs):
 
 @profile
 def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
-    """
+    r"""
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show
@@ -766,7 +821,7 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
 
 @profile
 def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
-    """
+    r"""
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show
@@ -1016,6 +1071,8 @@ def gridsearch_constrained_matches():
 def gridsearch_unconstrained_matches():
     r"""
     Search unconstrained ratio test vsone match
+
+    This still works
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show

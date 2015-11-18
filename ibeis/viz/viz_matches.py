@@ -219,8 +219,8 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     #show_query  = kwargs.get('show_query', True)
     draw_border = kwargs.get('draw_border', True)
     draw_lbl    = kwargs.get('draw_lbl', True)
+    notitle     = kwargs.get('notitle', False)
     # List of annotation scores for each annot in the name
-    name_annot_scores = kwargs.get('name_annot_scores', None)
 
     #printDBG('[viz] annotate_matches3()')
     #truth = ibs.get_match_truth(aid1, aid2)
@@ -253,6 +253,13 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     if any(ibs.is_aid_unknown(aid_list[1:])) or ibs.is_aid_unknown(aid_list[0]):
         truth = ibs.const.TRUTH_UNKNOWN
     truth_color = vh.get_truth_color(truth)
+
+    if len(aid_list) == 2:
+        # HACK; generalize to multple annots
+        name_annot_scores = kwargs.get('name_annot_scores', None)
+        title = vh.get_query_text(ibs, None, aid_list[1], truth, qaid=aid_list[0], **kwargs)
+        if not notitle:
+            pt.set_title(title, ax)
 
     if draw_lbl:
         # Build labels

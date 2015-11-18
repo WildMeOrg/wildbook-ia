@@ -470,7 +470,7 @@ class SQLDatabaseController(object):
             unpack_scalars (bool): default True
         """
         if VERBOSE_SQL:
-            print(ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' %
+            print('[sql]' + ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' %
                   (tblname, colnames,))
         assert isinstance(colnames, tuple), 'must specify column names to get from'
         #if isinstance(colnames, six.string_types):

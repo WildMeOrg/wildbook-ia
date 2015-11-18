@@ -15,7 +15,7 @@ from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
 from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[cfg]')
+(print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 
 #ConfigBase = ut.DynStruct
 #ConfigBase = object

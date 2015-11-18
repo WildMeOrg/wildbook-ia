@@ -467,13 +467,25 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
         >>> aid_list = ibs.get_valid_aids()
         >>> verbose = False
         >>> veryverbose = False
+        >>> print('Asserting multiple')
         >>> result = assert_valid_aids(ibs, aid_list, verbose, veryverbose)
+        >>> print('Asserting single')
+        >>> result = assert_valid_aids(ibs, aid_list[0:1], verbose, veryverbose)
+        >>> print('Asserting multiple incorrect')
         >>> try:
         >>>    result = assert_valid_aids(ibs, aid_list + [0], verbose, veryverbose)
         >>> except AssertionError:
         >>>    print('Correctly got assertion')
         >>> else:
         >>>    assert False, 'should have failed'
+        >>> print('Asserting single incorrect')
+        >>> try:
+        >>>    result = assert_valid_aids(ibs, [0], verbose, veryverbose)
+        >>> except AssertionError:
+        >>>    print('Correctly got assertion')
+        >>> else:
+        >>>    assert False, 'should have failed'
+        >>> print(result)
         >>> print(result)
     """
     #if ut.NO_ASSERTS and not force:
@@ -484,11 +496,13 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     isinvalid_list = [aid is None for aid in ibs.get_annot_aid(aid_list)]
     #isinvalid_list = [aid not in valid_aids for aid in aid_list]
     try:
-        assert not any(isinvalid_list), 'invalid aids: %r' % (
+        assert not any(isinvalid_list), '%d/%d invalid aids: %r' % (
+            sum(isinvalid_list), len(aid_list),
             ut.list_compress(aid_list, isinvalid_list),)
         isinvalid_list = [
             not ut.is_int(aid) for aid in aid_list]
-        assert not any(isinvalid_list), 'invalidly typed aids: %r' % (
+        assert not any(isinvalid_list), '%d/%d invalidly typed aids: %r' % (
+            sum(isinvalid_list), len(aid_list),
             ut.list_compress(aid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))

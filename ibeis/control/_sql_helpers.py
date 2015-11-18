@@ -15,7 +15,7 @@ import distutils
 # =======================
 # Helper Functions
 # =======================
-VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql'))
+VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 #AUTODUMP = ut.get_argflag('--auto-dump')
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
@@ -415,9 +415,9 @@ class SQLExecutionContext(object):
             if context.verbose:
                 print('[sql] operation=\n' + context.operation)
         # Comment out timeing code
-        if __debug__:
-            if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-                context.tt = ut.tic(context.operation_lbl)
+        #if __debug__:
+        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
+        #        context.tt = ut.tic(context.operation_lbl)
         return context
 
     # --- with SQLExecutionContext: statment code happens here ---
@@ -442,9 +442,9 @@ class SQLExecutionContext(object):
     def __exit__(context, type_, value, trace):
         """ Finalization of an SQLController call """
         #print('exit context')
-        if __debug__:
-            if NOT_QUIET and (VERBOSE_SQL or context.verbose):
-                ut.toc(context.tt)
+        #if __debug__:
+        #    if NOT_QUIET and (VERBOSE_SQL or context.verbose):
+        #        ut.toc(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY CONTEXT')

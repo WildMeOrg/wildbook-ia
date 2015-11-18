@@ -1516,6 +1516,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None,
                                homog=ut.get_argflag('--homog'), **kwargs):
         """
+        TODO: rename daid to aid2
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
