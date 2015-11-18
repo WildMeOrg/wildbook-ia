@@ -5,16 +5,19 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 #from ibeis import params
-import utool as ut
-from ibeis.expt import test_result
-from ibeis.model.hots import match_chips4 as mc4
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
-import vtool as vt
 import re
+import utool as ut
+import vtool as vt
+from ibeis.expt import test_result
+from ibeis.expt import old_storage
+from ibeis.model.hots import match_chips4 as mc4
 #from plottool import plot_helpers as ph
 from six.moves import map, range, input  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_drawres]')
+
+
 SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
@@ -223,10 +226,10 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         testres (TestResult):  test result object
 
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist --show
+        python -m ibeis --tf -draw_casetag_hist --show
 
         # Experiments I tagged
-        python -m ibeis.expt.experiment_drawing --exec-draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
+        python -m ibeis --tf -draw_casetag_hist -a timecontrolled -t invarbest --db PZ_Master1  --show
 
         ibeis -e taghist -a timectrl -t best --db PZ_Master1  --show
 
@@ -345,7 +348,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         metadata (None): (default = None)
 
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --exec-draw_match_cases
+        python -m ibeis --tf -draw_match_cases
 
         python -m ibeis.dev -e draw_match_cases --figdir=individual_results
         python -m ibeis.dev -e draw_match_cases --db PZ_Master1 -a ctrl -t default --figdir=figures --vf --vh2 --show
@@ -483,15 +486,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
     analysis_fpath_list = []
 
-    def reset():
-        if not SHOW:
-            try:
-                pt.fig_presenter.reset()
-            except Exception as ex:
-                if ut.VERBOSE:
-                    ut.prinex(ex)
-                pass
-
     overwrite = True
     #overwrite = False
     #overwrite = ut.get_argflag('--overwrite')
@@ -592,7 +586,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
                     #fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
                     #analysis_fpath_ = pt.save_figure(fpath=analysis_fpath, **dumpkw)
-                    #reset()
                 analysis_fpath_list.append(analysis_fpath)
                 fpaths_list[-1].append(analysis_fpath)
                 if metadata is not None:
@@ -616,7 +609,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                 cpq.append_copy_task(blind_fpath, blind_results_figdir)
                 if metadata is not None:
                     metadata.set_global_data(cfgstr, cm.qaid, 'blind_fpath', blind_fpath)
-                #reset()
 
             # REMOVE DUMP_FIG
             #extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
@@ -786,8 +778,8 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
         tuple: (sel_rows, sel_cols, flat_case_labels)
 
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl
-        python -m ibeis.expt.experiment_drawing --exec-get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
+        python -m ibeis --tf -get_individual_result_sample --db PZ_Master1 -a ctrl
+        python -m ibeis --tf -get_individual_result_sample --db PZ_Master1 -a ctrl --filt :fail=True,min_gtrank=5,gtrank_lt=20
 
 
     Example:
@@ -962,12 +954,14 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
         testres (TestResult):  test result object
 
     CommandLine:
-        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_MTEST --show
-        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master0 --show
-        python -m ibeis.dev -e draw_rank_surface --show  -t candidacy_k -a varysize2  --db PZ_Master0 --show
+        python -m ibeis --tf draw_rank_surface --show  -t best -a varysize --db PZ_Master1 --show
 
-        python -m ibeis.dev -e draw_rank_surface -t candidacy_k -a varysize:qsize=500,dsize=[500,1000,1500,2000,2500,3000] --db PZ_Master1 --show
+        python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show
+        python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show
 
+        python -m ibeis --tf draw_rank_surface --show  -t candidacy_k -a varysize  --db PZ_Master1 --show --param-keys=K,dcfg_sample_per_name,dcfg_sample_size
+        python -m ibeis --tf draw_rank_surface --show  -t best -a varynannots_td varynannots_td:qmin_pername=3,dpername=2  --db PZ_Master1 --show --param-keys=dcfg_sample_per_name,dcfg_sample_size
+        python -m ibeis --tf draw_rank_surface --show  -t best -a varynannots_td  --db PZ_Master1 --show --param-keys=dcfg_sample_size
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -978,71 +972,118 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
-    percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
+    import plottool as pt
+    from ibeis.expt import annotation_configs
+    #ut.embed()
+    #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
+    #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
+    percent_le1_list = cfgx2_cumhist_percent.T[0]
     #testres.cfgx2_lbl
     #testres.get_param_basis('dcfg_sample_per_name')
     #testres.get_param_basis('dcfg_sample_size')
     #K_basis = testres.get_param_basis('K')
     #K_cfgx_lists = [testres.get_cfgx_with_param('K', K) for K in K_basis]
-    import plottool as pt
-    from ibeis.expt import annotation_configs
     #param_key_list = testres.get_all_varied_params()
-    param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
+    #ut.embed()
+
+    # Extract the requested keys
+    default_param_key_list = ['K', 'dcfg_sample_per_name', 'dcfg_sample_size']
+    param_key_list = ut.get_argval('--param-keys', type_=list, default=default_param_key_list)
+
     #param_key_list = ['K', 'dcfg_sample_per_name', 'len(daids)']
     basis_dict      = {}
     cfgx_lists_dict = {}
     for key in param_key_list:
         _basis = testres.get_param_basis(key)
         _cfgx_list = [testres.get_cfgx_with_param(key, val) for val in _basis]
+        # Grid of config indexes using param key as reference
         cfgx_lists_dict[key] = _cfgx_list
         basis_dict[key] = _basis
+
     if verbose:
         print('basis_dict = ' + ut.dict_str(basis_dict, nl=1, hack_liststr=True))
+        print('e.g. cfgx_lists_dict[1] contains the indexes of all configs whre K = basis_dict["K"][1]')
         print('cfx_lists_dict = ' + ut.dict_str(cfgx_lists_dict, nl=2, hack_liststr=True))
-    # Hold a key constant
+
     #const_key = 'K'
-    const_key = 'dcfg_sample_per_name'
-    #pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key]), max_cols=1))
+
+    if len(param_key_list) == 1:
+        const_key = None
+        const_basis = [None]
+        basis_dict[None] = [0]
+        #const_basis_cfgx_lists
+        # Create a single empty dimension for a single pnum
+        # correct, but not conceptually right
+        #ut.embed()
+        cfgx_lists_dict[None] = ut.list_transpose(cfgx_lists_dict[param_key_list[0]])
+    elif len(param_key_list) > 1:
+        # Hold a key constant if more than 1 subplot
+        const_key = param_key_list[1]
+        #const_key = 'dcfg_sample_per_name'
+        const_basis = basis_dict[const_key]
+        #pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key]), max_cols=1))
+        #ymax = percent_le1_list.max()
+        #ymin = percent_le1_list.min()
+    else:
+        assert False
+
     pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
-    #ymax = percent_le1_list.max()
-    #ymin = percent_le1_list.min()
-    # Use consistent markers and colors.
-    color_list = pt.distinct_colors(len(basis_dict[param_key_list[-1]]))
-    marker_list = pt.distinct_markers(len(basis_dict[param_key_list[-1]]))
+
+    const_basis_cfgx_lists = cfgx_lists_dict[const_key]
+
+    if len(param_key_list) > 2:
+        # Use consistent markers and colors when varying a lot of params
+        #num_other_params = len(basis_dict[param_key_list[-1]])
+        num_other_params = len(basis_dict[const_key])
+        color_list = pt.distinct_colors(num_other_params)
+        marker_list = pt.distinct_markers(num_other_params)
+    else:
+        color_list = pt.distinct_colors(1)
+        marker_list = pt.distinct_markers(1)
 
     fnum = pt.ensure_fnum(fnum)
     pnum0 = None
 
-    for const_idx, const_val in enumerate(basis_dict[const_key]):
-        const_basis_cfgx_list = cfgx_lists_dict[const_key][const_idx]
+    nd_labels_full = [key for key in param_key_list if key != const_key]
+
+    for const_idx, const_val in enumerate(const_basis):
+        const_basis_cfgx_list = const_basis_cfgx_lists[const_idx]
         rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
         agree_param_vals = dict([
             (key, [testres.get_param_val_from_cfgx(cfgx, key)
                    for cfgx in const_basis_cfgx_list])
-            for key in param_key_list if key != const_key])
-        nd_labels = list(agree_param_vals.keys())
-        nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels]
-        target_label = annotation_configs.shorten_to_alias_labels(key)
+            for key in nd_labels_full])
 
-        #target_label = 'num rank ≤ 1'
-        #label_list = [ut.scalar_str(percent, precision=2) + '% - ' + label for
-        #percent, label in zip(cdf_list.T[0], label_list)]
-        #target_label = '% groundtrue matches = rank 1'
-        target_label = 'accuracy (%)'
+        # Make a list of points that need plotting
         known_nd_data = np.array(list(agree_param_vals.values())).T
         known_target_points = np.array(rank_list)
 
+        nd_labels_ = nd_labels_full[:]
+
+        if len(nd_labels_) == 1:
+            # hack for nonvaried params
+            empty_dim = np.zeros((len(known_nd_data), 1))
+            known_nd_data = np.hstack([known_nd_data, empty_dim])
+            nd_labels_ += [None]
+
+        # short ndlabels
+        nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels_]
+        target_label = annotation_configs.shorten_to_alias_labels(key)
+
+        target_label = 'accuracy (%)'
+
+        # hack
         ymin = 30 if known_target_points.min() > 30 and False else 0
         num_yticks = 8 if ymin == 30 else 11
 
-        #title = ('% Ranks = 1 when ' +
-        #annotation_configs.shorten_to_alias_labels(const_key) + '=%r' %
-        #(const_val,))
-        title = ('accuracy when ' +
-                 annotation_configs.shorten_to_alias_labels(const_key) +
-                 '=%r' % (const_val,))
+        if const_key is None:
+            title = 'accuracy'
+        else:
+            title = ('accuracy when ' +
+                     annotation_configs.shorten_to_alias_labels(const_key) +
+                     '=%r' % (const_val,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         PLOT3D = ut.get_argflag('--no2dsurf')
         pnum = pnum_()
@@ -1053,11 +1094,15 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                                    nd_labels, target_label, title=title,
                                    fnum=fnum, pnum=pnum)
         else:
+            # Convert known nd data into a multiplot-ish format
             nonconst_basis_vals = np.unique(known_nd_data.T[1])
             # Find which colors will not be used
-            nonconst_covers_basis = np.in1d(basis_dict[param_key_list[-1]], nonconst_basis_vals)
+            nonconst_key = nd_labels_[1]
+            nonconst_basis = np.array(basis_dict[nonconst_key])
+            nonconst_covers_basis = np.in1d(nonconst_basis, nonconst_basis_vals)
             nonconst_color_list = ut.list_compress(color_list, nonconst_covers_basis)
             nonconst_marker_list = ut.list_compress(marker_list, nonconst_covers_basis)
+
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
                                     color_list=nonconst_color_list,
@@ -1071,17 +1116,12 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     if icon is not None:
         pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))
 
+    nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels_full]
     plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
     figtitle = testres.make_figtitle(plotname)
-    #if ut.get_argflag('--save'):
     # hack
     if verbose:
         testres.print_unique_annot_config_stats()
-    #if testres.has_constant_daids():
-    #    print('testres.common_acfg = ' + ut.dict_str(testres.common_acfg))
-    #    annotconfig_stats_strs, locals_ =
-    #    ibs.get_annotconfig_stats(testres.qaids,
-    #    testres.cfgx2_daids[0])
     pt.set_figtitle(figtitle, size=14)
     # HACK FOR FIGSIZE
     fig = pt.gcf()
@@ -1103,7 +1143,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show
         python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a ctrl:qsize=1 ctrl:qsize=3
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_baseline --db PZ_MTEST -a ctrl --show
-        python -m ibeis -tm exptdraw --exec-draw_rank_cdf -t candidacy_baseline -a ctrl --db PZ_MTEST --show
+        python -m ibeis --tf -draw_rank_cdf -t candidacy_baseline -a ctrl --db PZ_MTEST --show
         python -m ibeis.dev -e draw_rank_cdf -t candidacy_invariance -a ctrl --db PZ_Master1 --show
         \
            --save invar_cumhist_{db}_a_{a}_t_{t}.png --dpath=~/code/ibeis/results  --adjust=.15 --dpi=256 --clipwhite --diskshow
@@ -1230,145 +1270,6 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
         pt.adjust_subplots2(use_argv=True)
     #pt.set_figtitle(figtitle, size=10)
-
-
-def make_metadata_custom_api(metadata):
-    r"""
-    CommandLine:
-        python -m ibeis.expt.experiment_drawing --test-make_metadata_custom_api --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()
-        >>> metadata_fpath = '/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf'
-        >>> metadata = test_result.ResultMetadata(metadata_fpath, autoconnect=True)
-        >>> wgt = make_metadata_custom_api(metadata)
-        >>> ut.quit_if_noshow()
-        >>> wgt.show()
-        >>> wgt.raise_()
-        >>> guitool.qtapp_loop(wgt, frequency=100)
-    """
-    import guitool
-    from guitool.__PYQT__ import QtCore
-
-    class MetadataViewer(guitool.APIItemWidget):
-        def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
-            guitool.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
-            wgt.connect_signals_and_slots()
-
-        @guitool.slot_(QtCore.QModelIndex)
-        def _on_doubleclick(wgt, qtindex):
-            print('[wgt] _on_doubleclick: ')
-            col = qtindex.column()
-            if wgt.api.col_edit_list[col]:
-                print('do nothing special for editable columns')
-                return
-            model = qtindex.model()
-            colname = model.get_header_name(col)
-            if colname.endswith('fpath'):
-                print('showing fpath')
-                fpath = model.get_header_data(colname, qtindex)
-                ut.startfile(fpath)
-
-        def connect_signals_and_slots(wgt):
-            #wgt.view.clicked.connect(wgt._on_click)
-            wgt.view.doubleClicked.connect(wgt._on_doubleclick)
-            #wgt.view.pressed.connect(wgt._on_pressed)
-            #wgt.view.activated.connect(wgt._on_activated)
-
-    guitool.ensure_qapp()
-    #cfgstr_list = metadata
-    col_name_list, column_list = metadata.get_square_data()
-
-    # Priority of column names
-    colname_priority = ['qaids', 'qx2_gt_rank', 'qx2_gt_timedelta',
-                        'qx2_gf_timedelta',  'analysis_fpath',
-                        'qx2_gt_raw_score', 'qx2_gf_raw_score']
-    colname_priority += sorted(ut.setdiff_ordered(col_name_list, colname_priority))
-    sortx = ut.priority_argsort(col_name_list, colname_priority)
-    col_name_list = ut.list_take(col_name_list, sortx)
-    column_list = ut.list_take(column_list, sortx)
-
-    col_lens = list(map(len, column_list))
-    print('col_name_list = %r' % (col_name_list,))
-    print('col_lens = %r' % (col_lens,))
-    assert len(col_lens) > 0, 'no columns'
-    assert col_lens[0] > 0, 'no rows'
-    assert all([len_ == col_lens[0] for len_ in col_lens]), 'inconsistant data'
-    col_types_dict = {}
-    col_getter_dict = dict(zip(col_name_list, column_list))
-    col_bgrole_dict = {}
-    col_ider_dict = {}
-    col_setter_dict = {}
-    col_nice_dict = {name: name.replace('qx2_', '') for name in col_name_list}
-    col_nice_dict.update({
-        'qx2_gt_timedelta': 'GT TimeDelta',
-        'qx2_gf_timedelta': 'GF TimeDelta',
-        'qx2_gt_rank': 'GT Rank',
-    })
-    editable_colnames = []
-    sortby = 'qaids'
-    def get_thumb_size():
-        return 128
-    col_width_dict = {}
-    custom_api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size,
-        sort_reverse=True,
-        col_width_dict=col_width_dict,
-        col_nice_dict=col_nice_dict
-    )
-    #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.dict_str(headers))
-    wgt = MetadataViewer()
-    wgt.connect_api(custom_api)
-    return wgt
-
-
-def make_test_result_custom_api(ibs, testres):
-    import guitool
-    guitool.ensure_qapp()
-    cfgx = 0
-    cfgres_info = testres.cfgx2_cfgresinfo[cfgx]
-    qaids = testres.qaids
-    gt_aids = cfgres_info['qx2_gt_aid']
-    gf_aids = cfgres_info['qx2_gf_aid']
-    qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
-    qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
-    col_name_list = [
-        'qaids',
-        'qx2_gt_aid',
-        'qx2_gf_aid',
-        'qx2_gt_timedelta',
-        'qx2_gf_timedelta',
-    ]
-    col_types_dict = {}
-    col_getter_dict = {}
-    col_getter_dict.update(**cfgres_info)
-    col_getter_dict['qaids'] = testres.qaids
-    col_getter_dict['qx2_gt_timedelta'] = qx2_gt_timedelta
-    col_getter_dict['qx2_gf_timedelta'] = qx2_gf_timedelta
-    col_bgrole_dict = {}
-    col_ider_dict = {}
-    col_setter_dict = {}
-    editable_colnames = []
-    sortby = 'qaids'
-    def get_thumb_size():
-        return 128
-    col_width_dict = {}
-
-    custom_api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
-    #headers = custom_api.make_headers(tblnice='results')
-    #print(ut.dict_str(headers))
-    wgt = guitool.APIItemWidget()
-    wgt.connect_api(custom_api)
-    return wgt
 
 
 def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None,
@@ -1695,8 +1596,8 @@ def draw_results(ibs, testres):
     if ut.get_argflag(('--guiview', '--gv')):
         import guitool
         guitool.ensure_qapp()
-        #wgt = make_test_result_custom_api(ibs, testres)
-        wgt = make_metadata_custom_api(metadata)
+        #wgt = old_storage.make_test_result_custom_api(ibs, testres)
+        wgt = old_storage.make_metadata_custom_api(metadata)
         wgt.show()
         wgt.raise_()
         guitool.qtapp_loop(wgt, frequency=100)

@@ -26,10 +26,10 @@ def combine_testres_list(ibs, testres_list):
     CommandLine:
         python -m ibeis --tf combine_testres_list
 
-        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_Master0 --show
-        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show
+        python -m ibeis --tf -draw_rank_cdf --db PZ_Master0 --show
+        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
 
     >>> # DISABLE_DOCTEST
     >>> from ibeis.expt.test_result import *  # NOQA
@@ -89,6 +89,7 @@ def combine_testres_list(ibs, testres_list):
     big_testres.common_acfg = annotation_configs.compress_aidcfg(big_testres.acfg)
     big_testres.common_cfgdict = reduce(ut.dict_intersection, big_testres.cfgdict_list)
     big_testres.varied_acfg_list = agg_varied_acfg_list
+    big_testres.nonvaried_acfg = nonvaried_acfg
     big_testres.varied_cfg_list = [
         ut.delete_dict_keys(cfgdict.copy(), list(big_testres.common_cfgdict.keys()))
         for cfgdict in big_testres.cfgdict_list]
@@ -121,6 +122,9 @@ class TestResult(object):
         testres.cfgx2_qreq_      = cfgx2_qreq_
         testres.lbl              = None
         testres.testnameid       = None
+
+    def __str__(testres):
+        return testres.reconstruct_test_flags()
 
     @property
     def ibs(testres):
@@ -306,6 +310,7 @@ class TestResult(object):
     def get_rank_cumhist(testres, bins='dense'):
         #testres.rrr()
         hist_list, edges = testres.get_rank_histograms(bins, asdict=False)
+        #hist_list, edges = testres.get_rank_histograms(bins, asdict=False, jagged=True)
         config_cdfs = np.cumsum(hist_list, axis=1)
         return config_cdfs, edges
 
@@ -378,14 +383,11 @@ class TestResult(object):
 
     def get_all_varied_params(testres):
         r"""
-        Args:
-
-
         Returns:
             list: varied_params
 
         CommandLine:
-            python -m ibeis.expt.test_result --exec-get_all_varied_params
+            python -m ibeis --tf -get_all_varied_params
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -427,18 +429,30 @@ class TestResult(object):
                 acfg[key]
                 for acfg in testres.varied_acfg_list])))
         else:
-            assert False
+            #assert False, 'param is not varied'
+            if key in testres.common_cfgdict:
+                basis = [testres.common_cfgdict[key]]
+            elif key in testres.nonvaried_acfg:
+                basis = [testres.nonvaried_acfg[key]]
+            else:
+                assert False, 'param=%r doesnt exist' % (key,)
         return basis
 
     def get_param_val_from_cfgx(testres, cfgx, key):
         if key == 'len(daids)':
             return len(testres.cfgx2_daids[cfgx])
+        # --- HACK - the keys are different in varied dict for some reason ---
         elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
             return testres.varied_cfg_list[cfgx][key]
         elif any([key in cfgdict for cfgdict in testres.varied_acfg_list]):
             return testres.varied_acfg_list[cfgx][key]
+        # --- / Hack
+        elif any([key in cfgdict for cfgdict in testres.cfgx2_pcfg]):
+            return testres.cfgx2_pcfg[cfgx][key]
+        elif any([key in cfgdict for cfgdict in testres.cfgx2_acfg]):
+            return testres.cfgx2_acfg[cfgx][key]
         else:
-            assert False
+            assert False, 'param=%r doesnt exist' % (key,)
 
     def get_cfgx_with_param(testres, key, val):
         """
@@ -454,7 +468,13 @@ class TestResult(object):
             cfgx_list = [cfgx for cfgx, acfg in enumerate(testres.varied_acfg_list)
                          if acfg[key] == val]
         else:
-            assert False
+            if key in testres.common_cfgdict:
+                cfgx_list = list(range(testres.nConfig))
+            elif key in testres.nonvaried_acfg:
+                cfgx_list = list(range(testres.nConfig))
+            else:
+                assert False, 'param=%r doesnt exist' % (key,)
+            #assert False, 'param is not varied'
         return cfgx_list
 
     def get_full_cfgstr(testres, cfgx):
@@ -1665,9 +1685,6 @@ class TestResult(object):
         ])
         return flagstr
 
-    def __str__(testres):
-        return testres.reconstruct_test_flags()
-
     def draw_score_diff_disti(testres):
         r"""
 
@@ -1811,10 +1828,16 @@ class TestResult(object):
         pt.set_figtitle(figtitle)
 
     def draw_rank_cdf(testres):
+        """
+        Wrapper
+        """
         from ibeis.expt import experiment_drawing
         experiment_drawing.draw_rank_cdf(testres.ibs, testres)
 
     def get_sorted_config_labels(testres):
+        """
+        helper
+        """
         key = 'qx2_bestranks'
         cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
         label_list = testres.get_short_cfglbls(friendly=True)

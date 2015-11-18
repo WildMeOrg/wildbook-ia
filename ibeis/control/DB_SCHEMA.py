@@ -1157,27 +1157,46 @@ def update_1_4_6(db, ibs=None):
 
 
 def update_1_4_7(db, ibs=None):
+    """
+    Need to;
+        change notes to tag_text_data
+        add configuration that made the match
+        add the score of the match
+        add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE
+    """
+    pass
     #db.modify_table(
     #    const.ANNOTMATCH_TABLE, [
-    #        (None, 'annotmatch_is_interesting',      'INTEGER', None),
     #        (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
     #        (None, 'annotmatch_score',  'REAL', None),
     #        (None, 'config_rowid',  'INTEGER', None),
     #    ]
     #)
-    # Maybe we want the notation of each annotation having having a set of
-    # classes with probabilities (c, p). Or an annotation label with a
-    # confidence.
-    db.modify_table(
-        const.ANNOTATION_TABLE, [
-            (None, 'annot_mask_uri',    'TEXT', None),
-        ]
-    )
-    db.modify_table(
-        const.NAME_TABLE, [
-            (None, 'name_nickname_text',    'TEXT', None),
-        ]
-    )
+
+r"""
+#def update_lost_to_time(db, ibs=None):
+#    #db.modify_table(
+#    #    const.ANNOTMATCH_TABLE, [
+#    #        (None, 'annotmatch_is_interesting',      'INTEGER', None),
+#    #        (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
+#    #        (None, 'annotmatch_score',  'REAL', None),
+#    #        (None, 'config_rowid',  'INTEGER', None),
+#    #    ]
+#    #)
+#    # Maybe we want the notation of each annotation having having a set of
+#    # classes with probabilities (c, p). Or an annotation label with a
+#    # confidence.
+#    db.modify_table(
+#        const.ANNOTATION_TABLE, [
+#            (None, 'annot_mask_uri',    'TEXT', None),
+#        ]
+#    )
+#    db.modify_table(
+#        const.NAME_TABLE, [
+#            (None, 'name_nickname_text',    'TEXT', None),
+#        ]
+#    )
+"""
 
 
 # ========================

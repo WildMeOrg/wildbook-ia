@@ -223,6 +223,8 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname'):
 
 
 def shorten_to_alias_labels(key):
+    if key is None:
+        return None
     search_list = list(ALIAS_KEYS.values()) + ['qcfg_', 'dcfg_', 'common_']
     repl_list = list(ALIAS_KEYS.keys()) + ['q', 'd', '']
     return ut.multi_replace(key, search_list, repl_list)
