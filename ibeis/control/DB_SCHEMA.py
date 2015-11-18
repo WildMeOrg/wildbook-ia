@@ -1163,6 +1163,10 @@ def update_1_4_7(db, ibs=None):
         add configuration that made the match
         add the score of the match
         add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE
+
+    Probably want a separate table for the config_rowid matching results
+    because the primary key needs to be (config_rowid, aid1, aid2) OR just
+    (config_rowid, annotmatch_rowid)
     """
     pass
     #db.modify_table(
