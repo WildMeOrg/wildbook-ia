@@ -26,6 +26,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
                          color_list=None, marker_list=None, report_max=True,
                          **kwargs):
     r"""
+    Plots nd-data in 2d using multiple contour lines
 
     CommandLine:
         python -m plottool.plots --test-plot_multiple_scores --show
@@ -60,7 +61,7 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
     # Put the data into a dense field grid
     nd_basis = [np.unique(arr) for arr in known_nd_data.T]
     inverse_basis = [dict(zip(arr, np.arange(len(arr)))) for arr in nd_basis]
-    data_field = np.full(list(map(len, nd_basis)), np.nan)
+    data_field = np.full(ut.maplen(nd_basis), np.nan)
     # Fill in field values
     for coord, val in zip(known_nd_data, known_target_points):
         index = [invbase[pt] for invbase, pt in zip(inverse_basis, coord)]
@@ -78,14 +79,20 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(axis=1) > 1
         multiple_max_markers = ['*' if flag else '' for flag in hasmultiple_max]
 
-        label_list = [
-            '%.2f%% %s=%r%s - %s=%r'
-            % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
-            for val, max_nd0, max_score, marker in zip(nd_basis[1],
-                                                       max_nd0_list,
-                                                       max_score_list,
-                                                       multiple_max_markers)
-        ]
+        if nd_labels[1] is None:
+            label_list = [
+                '%.2f%% %s=%r%s'
+                % (max_score, nd_labels[0], max_nd0, marker)
+                for max_nd0, max_score, marker in zip(
+                    max_nd0_list, max_score_list, multiple_max_markers)
+            ]
+        else:
+            label_list = [
+                '%.2f%% %s=%r%s - %s=%r'
+                % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
+                for val, max_nd0, max_score, marker in zip(
+                    nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
+            ]
     else:
         label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
 
@@ -271,7 +278,14 @@ def multi_plot(xdata, ydata_list, **kwargs):
     else:
         plot_func = getattr(ax, kind)  # usually ax.plot
 
-    for count, (ydata, plot_kw, extra_kw) in enumerate(zip(ydata_list, plot_kw_list, extra_kw_list)):
+    assert len(ydata_list) > 0, 'no ydata'
+    #ut.embed()
+    #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
+    #assert len(extra_kw_list) == len(ydata_list), 'bad length'
+
+    from six.moves import zip_longest
+
+    for count, (ydata, plot_kw, extra_kw) in enumerate(zip_longest(ydata_list, plot_kw_list, extra_kw_list)):
         ymask = np.isfinite(ydata)
         ydata_ = ydata.compress(ymask)
         xdata_ = xdata.compress(ymask)
