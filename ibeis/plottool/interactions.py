@@ -38,8 +38,9 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
             fnum = pt.next_fnum()
         self.fnum = fnum
 
-    def append_plot(self, func, extra=None):
-        pnum = self._pnumiter()
+    def append_plot(self, func, extra=None, pnum=None):
+        if pnum is None:
+            pnum = self._pnumiter()
         self.pnum_list.append(pnum)
         self.func_list.append(func)
 
