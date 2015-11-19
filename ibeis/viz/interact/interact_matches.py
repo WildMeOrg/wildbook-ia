@@ -302,6 +302,9 @@ class MatchInteraction(object):
                 print('...Unknown viztype: %r' % viztype)
             viz.draw()
 
+    #def plot()
+    # define for expandable interaction
+
     def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
         just visualizes the matches using some type of lines
