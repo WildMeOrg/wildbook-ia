@@ -358,12 +358,24 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
+    from plottool.interactions import ExpandableInteraction
+    import plottool as pt
+    fnum = pt.ensure_fnum(None)
+    inter = ExpandableInteraction(fnum)
+
     aids = ut.flatten(ibs.get_name_aids(nids))
     print('len(aids) = %r' % (len(aids),))
     idxs = range(len(aids))
-    import plottool as pt
-    fnum = pt.ensure_fnum(None)
     import ibeis.viz
+    from functools import partial
+
+    def wrap_show_func(func, *args, **kwargs):
+        def _show_func_wrap(fnum, pnum):
+            return func(*args, fnum=fnum, pnum=pnum, **kwargs)
+        return _show_func_wrap
+
+    # TODO: append an optional alternate ishow function
+
     #for idx1, idx2 in ut.upper_diag_self_prodx(idxs):
     for idx1, idx2 in ut.self_prodx(idxs):
         aid1 = aids[idx1]
@@ -377,15 +389,19 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
         #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
         pnum = (len(aids), len(aids), (idx1 * len(aids) + idx2) + 1)
-        cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
-                                        fnum=fnum, pnum=pnum)
+        inter.append_plot(wrap_show_func(cm_vsone.show_single_annotmatch, vsone_qreq_, daid=aid2, draw_lbl=False), pnum=pnum)
+        #,  pnum=pnum)
+        #cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
+        #                                fnum=fnum, pnum=pnum)
 
     for idx in idxs:
         aid = aids[idx]
         pnum = (len(aids), len(aids), (idx * len(aids) + idx) + 1)
-        ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,
-                            draw_lbl=False, nokpts=True,
-                            fnum=fnum, pnum=pnum)
+        inter.append_plot(wrap_show_func(ibeis.viz.show_chip, ibs, aid, qreq_=qreq_, draw_lbl=False, nokpts=True), pnum=pnum)
+        #ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,
+        #                    draw_lbl=False, nokpts=True,
+        #                    fnum=fnum, pnum=pnum)
+    inter.show_page()
 
 
 def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
