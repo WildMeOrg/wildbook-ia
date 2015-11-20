@@ -8,12 +8,13 @@ from functools import update_wrapper
 from functools import wraps
 from os.path import abspath, join, dirname
 # import simplejson as json
-import json
-import pickle
+#import json
+#import pickle
+#from six.moves import cPickle as pickle
 import traceback
 from hashlib import sha1
 import os
-import numpy as np
+#import numpy as np
 import hmac
 import string
 import random
@@ -42,7 +43,8 @@ print, rrr, profile = ut.inject2(__name__, '[controller_inject]')
 
 
 #INJECTED_MODULES = []
-UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
+UTOOL_AUTOGEN_SPHINX_RUNNING = not (
+    os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
 GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
                       not ut.get_argflag('--no-flask') and HAS_FLASK)
@@ -51,11 +53,14 @@ GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
 GLOBAL_APP = None
 GLOBAL_CORS = None
-JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
+#JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 # REMOTE_PROXY_URL = 'dozer.cs.rpi.edu'
 REMOTE_PROXY_URL = None
 REMOTE_PROXY_PORT = 5001
+
+
+CONTROLLER_CLASSNAME = 'IBEISController'
 
 
 def get_flask_app():
@@ -99,48 +104,6 @@ except AttributeError:
         raise
 
 
-class JSONPythonObjectEncoder(json.JSONEncoder):
-    """
-        References:
-            http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
-            http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
-            https://github.com/jsonpickle/jsonpickle
-    """
-    numpy_type_tuple = tuple([np.ndarray] + list(set(np.typeDict.values())))
-
-    def default(self, obj):
-        r"""
-        Args:
-            obj (object):
-
-        Returns:
-            str: json string
-
-        CommandLine:
-            python -m ibeis.control.controller_inject --test-JSONPythonObjectEncoder.default
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.control.controller_inject import *  # NOQA
-            >>> self = JSONPythonObjectEncoder()
-            >>> obj_list = [1, [1], {}, 'foobar', np.array([1, 2, 3])]
-            >>> result_list = []
-            >>> for obj in obj_list:
-            ...     try:
-            ...         encoded = json.dumps(obj, cls=JSONPythonObjectEncoder)
-            ...         print(encoded)
-            ...     except Exception as ex:
-            ...         ut.printex(ex)
-        """
-        if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
-            return json.JSONEncoder.default(self, obj)
-        elif isinstance(obj, self.numpy_type_tuple):
-            #return json.JSONEncoder.default(self, obj.tolist())
-            return obj.tolist()
-        pickled_obj = pickle.dumps(obj)
-        return {JSON_PYTHON_OBJECT_TAG: pickled_obj}
-
-
 class WebException(Exception):
     def __init__(self, message, code=400):
         self.code = code
@@ -148,15 +111,6 @@ class WebException(Exception):
 
     def __str__(self):
         return repr('%r: %r' % (self.code, self.message, ))
-
-
-def _as_python_object(value, verbose=False, **kwargs):
-    if verbose:
-        print('PYTHONIZE: %r' % (value, ))
-    if JSON_PYTHON_OBJECT_TAG in value:
-        pickled_obj = str(value[JSON_PYTHON_OBJECT_TAG])
-        return pickle.loads(pickled_obj)
-    return value
 
 
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
@@ -176,7 +130,8 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         },
         'response' : rawreturn
     }
-    response = json.dumps(template, cls=JSONPythonObjectEncoder)
+    #response = json.dumps(template, cls=JSONPythonObjectEncoder)
+    response = ut.to_json(template)
     if jQuery_callback is not None and isinstance(jQuery_callback, str):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
         response = '%s(%s)' % (jQuery_callback, response)
@@ -184,7 +139,7 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
 
 
 def translate_ibeis_webcall(func, *args, **kwargs):
-    print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     def _process_input(multidict):
         for (arg, value) in multidict.iterlists():
             if len(value) > 1:
@@ -195,11 +150,13 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             if value in ['True', 'False']:
                 value = value.lower()
             try:
-                converted = json.loads(value, object_hook=_as_python_object)
+                #converted = json.loads(value, object_hook=_as_python_object)
+                converted = ut.from_json(value)
             except Exception:
                 # try making string and try again...
                 value = '"%s"' % (value, )
-                converted = json.loads(value, object_hook=_as_python_object)
+                #converted = json.loads(value, object_hook=_as_python_object)
+                converted = ut.from_json(value)
             if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
                 if isinstance(converted, str) and ',' in converted:
                     converted = converted.strip().split(',')
@@ -232,7 +189,15 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         output = func(**kwargs)
     except TypeError:
         #output = func(ibs=ibs, *args, **kwargs)
-        output = func(ibs=ibs, **kwargs)
+        try:
+            output = func(ibs=ibs, **kwargs)
+        except Exception:
+            print('Error in translate ibeis web call')
+            print('kwargs = %r' % (kwargs,))
+            print('args = %r' % (args,))
+            print('flask.request.args = %r' % (flask.request.args,))
+            print('flask.request.form = %r' % (flask.request.form,))
+            raise
     return (output, True, 200, None, jQuery_callback)
 
 
@@ -276,7 +241,8 @@ def authentication_user_only(func):
 
 def create_key():
     hyphen_list = [8, 13, 18, 23]
-    key_list = [ '-' if _ in hyphen_list else random.choice(string.hexdigits) for _ in xrange(36) ]
+    key_list = ['-' if _ in hyphen_list else random.choice(string.hexdigits)
+                for _ in xrange(36) ]
     return ''.join(key_list).upper()
 
 
@@ -487,7 +453,9 @@ def get_ibeis_flask_route(__name__):
                         rawreturn = str(traceback.format_exc())
                         success = False
                         code = 400
-                        message = 'Route error, Python Exception thrown: %r' % (str(ex), )
+                        message = (
+                            'Route error, Python Exception thrown: %r' %
+                            (str(ex), ))
                         jQuery_callback = None
                         result = translate_ibeis_webreturn(rawreturn, success,
                                                            code, message,
@@ -502,7 +470,8 @@ def get_ibeis_flask_route(__name__):
         return ut.dummy_args_decor
 
 
-def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, **kwargs):
+def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
+                     **kwargs):
     if GLOBAL_APP_ENABLED and GLOBAL_APP is None:
         raise ValueError('Flask has not been initialized')
     api_name = remote_api_func.__name__
@@ -537,13 +506,17 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
     # Make request to server
     try:
         if remote_api_method == 'GET':
-            req = requests.get(remote_api_url, headers=headers, data=kwargs, verify=False)
+            req = requests.get(remote_api_url, headers=headers, data=kwargs,
+                               verify=False)
         elif remote_api_method == 'POST':
-            req = requests.post(remote_api_url, headers=headers, data=kwargs, verify=False)
+            req = requests.post(remote_api_url, headers=headers, data=kwargs,
+                                verify=False)
         elif remote_api_method == 'PUT':
-            req = requests.put(remote_api_url, headers=headers, data=kwargs, verify=False)
+            req = requests.put(remote_api_url, headers=headers, data=kwargs,
+                               verify=False)
         elif remote_api_method == 'DELETE':
-            req = requests.delete(remote_api_url, headers=headers, data=kwargs, verify=False)
+            req = requests.delete(remote_api_url, headers=headers, data=kwargs,
+                                  verify=False)
         else:
             message = '_api_result got unsupported method=%r' % (remote_api_method, )
             raise KeyError(message)
@@ -551,9 +524,10 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
         message = '_api_result could not connect to server %s' % (ex, )
         raise IOError(message)
     response = req.text
-    converted = json.loads(response, object_hook=_as_python_object)
+    #converted = json.loads(response, object_hook=_as_python_object)
+    converted = ut.from_json(value)
     response = converted.get('response', None)
-    print(response)
+    print('response = %s' % (response,))
     return response
 
 
@@ -562,7 +536,7 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001, 
 def dev_autogen_explicit_imports():
     r"""
     CommandLine:
-        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
+        python -m ibeis --tf dev_autogen_explicit_imports
 
     Example:
         >>> # SCRIPT
@@ -577,7 +551,7 @@ def dev_autogen_explicit_imports():
 def dev_autogen_explicit_injects():
     r"""
     CommandLine:
-        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+        python -m ibeis --tf dev_autogen_explicit_injects
 
     Example:
         >>> # SCRIPT
@@ -586,7 +560,9 @@ def dev_autogen_explicit_injects():
     """
     import ibeis  # NOQA
     classname = CONTROLLER_CLASSNAME
-    regen_command = 'python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects'
+    regen_command = (
+        'python -m ibeis.control.controller_inject '
+        '--exec-dev_autogen_explicit_injects')
     import ibeis.control.IBEISControl
     conditional_imports = [
         modname for modname in ibeis.control.IBEISControl.inject_modnames
@@ -597,9 +573,6 @@ def dev_autogen_explicit_injects():
     dpath = ut.get_module_dir(ibeis.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
     ut.writeto(fpath, source_block)
-
-
-CONTROLLER_CLASSNAME = 'IBEISController'
 
 
 def make_ibs_register_decorator(modname):
@@ -627,176 +600,6 @@ def make_ibs_register_decorator(modname):
         #register_ibs_aliased_method(aliastup)
         return func
     return CLASS_INJECT_KEY, register_ibs_method
-
-
-r"""
-Vim add decorator
-%s/^\n^@\([^r]\)/\r\r@register_ibs_method\r@\1/gc
-%s/^\n\(def .*(ibs\)/\r\r@register_ibs_method\r\1/gc
-%s/\n\n\n\n/\r\r\r/gc
-
-# FIND UNREGISTERED METHODS
-/^[^@]*\ndef
-"""
-
-
-def sort_module_functions():
-    from os.path import dirname, join
-    import utool as ut
-    import ibeis.control
-    import re
-    #import re
-    #regex = r'[^@]*\ndef'
-    modfpath = dirname(ibeis.control.__file__)
-    fpath = join(modfpath, 'manual_annot_funcs.py')
-    #fpath = join(modfpath, 'manual_dependant_funcs.py')
-    #fpath = join(modfpath, 'manual_lblannot_funcs.py')
-    #fpath = join(modfpath, 'manual_name_species_funcs.py')
-    text = ut.read_from(fpath, verbose=False)
-    lines =  text.splitlines()
-    indent_list = [ut.get_indentation(line) for line in lines]
-    isfunc_list = [line.startswith('def ') for line in lines]
-    isblank_list = [len(line.strip(' ')) == 0 for line in lines]
-    isdec_list = [line.startswith('@') for line in lines]
-
-    tmp = ['def' if isfunc else indent for isfunc, indent in  zip(isfunc_list, indent_list)]
-    tmp = ['b' if isblank else t for isblank, t in  zip(isblank_list, tmp)]
-    tmp = ['@' if isdec else t for isdec, t in  zip(isdec_list, tmp)]
-    #print('\n'.join([str((t, count + 1)) for (count, t) in enumerate(tmp)]))
-    block_list = re.split('\n\n\n', text, flags=re.MULTILINE)
-
-    #for block in block_list:
-    #    print('#====')
-    #    print(block)
-
-    isfunc_list = [re.search('^def ', block, re.MULTILINE) is not None for block in block_list]
-
-    whole_varname = ut.whole_word(ut.REGEX_VARNAME)
-    funcname_regex = r'def\s+' + ut.named_field('funcname', whole_varname)
-
-    def findfuncname(block):
-        match = re.search(funcname_regex, block)
-        return match.group('funcname')
-
-    funcnameblock_list = [findfuncname(block) if isfunc else None
-                          for isfunc, block in zip(isfunc_list, block_list)]
-
-    funcblock_list = ut.filter_items(block_list, isfunc_list)
-    funcname_list = ut.filter_items(funcnameblock_list, isfunc_list)
-
-    nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
-
-    nonfunc_list = ut.filterfalse_items(block_list, isfunc_list)
-    ismain_list = [re.search('^if __name__ == ["\']__main__["\']', nonfunc) is not None
-                   for nonfunc in nonfunc_list]
-
-    mainblock_list = ut.filter_items(nonfunc_list, ismain_list)
-    nonfunc_list = ut.filterfalse_items(nonfunc_list, ismain_list)
-
-    newtext_list = []
-
-    for nonfunc in nonfunc_list:
-        newtext_list.append(nonfunc)
-        newtext_list.append('\n')
-
-    #funcname_list
-    for funcblock in ut.sortedby(funcblock_list, funcname_list):
-        newtext_list.append(funcblock)
-        newtext_list.append('\n')
-
-    for mainblock in mainblock_list:
-        newtext_list.append(mainblock)
-
-    newtext = '\n'.join(newtext_list)
-    print(newtext)
-    print(len(newtext))
-    print(len(text))
-
-    backup_fpath = ut.augpath(fpath, augext='.bak', augdir='_backup', ensure=True)
-
-    ut.write_to(backup_fpath, text)
-    ut.write_to(fpath, newtext)
-
-    #for block, isfunc in zip(block_list, isfunc_list):
-    #    if isfunc:
-    #        print(block)
-
-    #for block, isfunc in zip(block_list, isfunc_list):
-    #    if isfunc:
-    #        print('----')
-    #        print(block)
-    #        print('\n')
-
-
-def find_unregistered_methods():
-    r"""
-    CommandLine:
-        python -m ibeis.control.controller_inject --test-find_unregistered_methods --enableall
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.controller_inject import *  # NOQA
-        >>> result = find_unregistered_methods()
-        >>> print(result)
-    """
-    from os.path import dirname
-    import utool as ut
-    import ibeis.control
-    import re
-    #regex = r'[^@]*\ndef'
-    modfpath = dirname(ibeis.control.__file__)
-    fpath_list = ut.glob(modfpath, 'manual_*_funcs.py')
-    #fpath_list += ut.glob(modfpath, '_autogen_*_funcs.py')
-
-    def multiline_grepfile(regex, fpath):
-        found_matchtexts = []
-        found_linenos   = []
-        text = ut.read_from(fpath, verbose=False)
-        for match in  re.finditer(regex, text, flags=re.MULTILINE):
-            lineno = text[:match.start()].count('\n')
-            matchtext = ut.get_match_text(match)
-            found_linenos.append(lineno)
-            found_matchtexts.append(matchtext)
-        return found_matchtexts, found_linenos
-
-    def multiline_grep(regex, fpath_list):
-        found_fpath_list      = []
-        found_matchtexts_list = []
-        found_linenos_list    = []
-        for fpath in fpath_list:
-            found_matchtexts, found_linenos = multiline_grepfile(regex, fpath)
-            # append anything found in this file
-            if len(found_matchtexts) > 0:
-                found_fpath_list.append(fpath)
-                found_matchtexts_list.append(found_matchtexts)
-                found_linenos_list.append(found_linenos)
-        return found_fpath_list, found_matchtexts_list, found_linenos_list
-
-    def print_mutliline_matches(tup):
-        found_fpath_list, found_matchtexts_list, found_linenos_list = tup
-        for fpath, found_matchtexts, found_linenos in zip(found_fpath_list,
-                                                          found_matchtexts_list,
-                                                          found_linenos_list):
-            print('+======')
-            print(fpath)
-            for matchtext, lineno in zip(found_matchtexts, found_linenos):
-                print('    ' + '+----')
-                print('    ' + str(lineno))
-                print('    ' + str(matchtext))
-                print('    ' + 'L____')
-
-    #print(match)
-    print('\n\n GREPING FOR UNDECORATED FUNCTIONS')
-    regex = '^[^@\n]*\ndef\\s.*$'
-    tup = multiline_grep(regex, fpath_list)
-    print_mutliline_matches(tup)
-
-    print('\n\n GREPING FOR UNDECORATED FUNCTION ALIASES')
-    regex = '^' + ut.REGEX_VARNAME + ' = ' + ut.REGEX_VARNAME
-    tup = multiline_grep(regex, fpath_list)
-    print_mutliline_matches(tup)
-    #ut.grep('aaa\rdef', modfpath, include_patterns=['manual_*_funcs.py',
-    #'_autogen_*_funcs.py'], reflags=re.MULTILINE)
 
 
 class ExternalStorageException(Exception):

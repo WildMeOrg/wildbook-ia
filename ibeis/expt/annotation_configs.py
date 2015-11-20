@@ -376,10 +376,8 @@ __controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
 
 single_default = __default_aidcfg
 
-
 exclude_vars = list(vars().keys())   # this line is before tests
 exclude_vars.append('exclude_vars')
-
 
 default = {
     'qcfg': ut.augdict(

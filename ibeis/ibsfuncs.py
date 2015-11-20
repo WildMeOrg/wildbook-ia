@@ -17,14 +17,10 @@ import functools
 import re
 from six.moves import zip, range, map
 from os.path import split, join, exists
-#import vtool.image as gtool
 import numpy as np
-from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
-#from vtool import linalg, geometry, image
 import vtool as vt
 import utool as ut
-import ibeis
-#from ibeis import params
+from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from ibeis import constants as const
 try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
@@ -36,26 +32,12 @@ from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[ibsfuncs]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
 
 
-# Try to work around circular import
-#from ibeis.control.IBEISControl import IBEISController
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
-#CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
-#register_ibs_method = ut.make_class_method_decorator(CLASS_INJECT_KEY,
-#__name__)
-
-
-def fix_zero_features(ibs):
-    aid_list = ibs.get_valid_aids()
-    nfeat_list = ibs.get_annot_num_feats(aid_list, ensure=False)
-    haszero_list = [nfeat == 0 for nfeat in nfeat_list]
-    haszero_aids = ut.list_compress(aid_list, haszero_list)
-    ibs.delete_annot_chips(haszero_aids)
 
 
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
@@ -920,6 +902,14 @@ def fix_remove_visual_dupliate_annotations(ibs):
             visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
             ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
             assert len(ibs_dup_annots) == 0
+
+
+def fix_zero_features(ibs):
+    aid_list = ibs.get_valid_aids()
+    nfeat_list = ibs.get_annot_num_feats(aid_list, ensure=False)
+    haszero_list = [nfeat == 0 for nfeat in nfeat_list]
+    haszero_aids = ut.list_compress(aid_list, haszero_list)
+    ibs.delete_annot_chips(haszero_aids)
 
 
 @register_ibs_method
@@ -2623,6 +2613,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
@@ -3422,6 +3413,7 @@ def get_dbnotes(ibs):
 @register_ibs_method
 def set_dbnotes(ibs, notes):
     """ sets notes for an entire database """
+    import ibeis
     assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
     ut.write_to(ibs.get_dbnotes_fpath(), notes)
 

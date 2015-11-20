@@ -9,8 +9,7 @@ import logging
 import re
 import utool as ut
 import distutils
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[sql-helpers]')
+(print, rrr, profile) = ut.inject2(__name__, '[sql-helpers]')
 
 # =======================
 # Helper Functions

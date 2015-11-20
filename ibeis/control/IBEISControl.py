@@ -9,15 +9,19 @@ TODO:
 
 Note:
     There are functions that are injected into the controller that are not
-    defined in this module.  Functions in the IBEISController have been split
-    up into several submodules.  look at the modules listed in
-    autogenmodname_list to see the full list of functions that will be injected
-    into an IBEISController object
+      defined in this module.
+    Functions in the IBEISController have been split up into several
+      submodules.
+    look at the modules listed in autogenmodname_list to see the full list of
+      functions that will be injected into an IBEISController object
 
     Recently, these functions have been enumerated in
-    ibeis.control._autogen_explicit_controller.py, and explicitly added to the
-    controller using subclassing. This submodule only provides function
-    headers, the source code still resides in the injected modules.
+      ibeis.control._autogen_explicit_controller.py,
+      and explicitly added to the
+
+    controller using subclassing.
+    This submodule only provides function headers, the source code still
+      resides in the injected modules.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -28,18 +32,20 @@ import weakref
 from six.moves import zip
 from os.path import join, split
 import utool as ut
-import ibeis  # NOQA
+#import ibeis  # NOQA
 from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import xml.etree.ElementTree as ET
 from ibeis.model.hots import pipeline
+# Inject utool functions
+(print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
 # Import modules which define injectable functions
 
 # tuples represent conditional imports with the flags in the first part of the
 # tuple and the modname in the second
-inject_modnames = [
+AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.annotmatch_funcs',
     'ibeis.tag_funcs',
     'ibeis.ibsfuncs',
@@ -66,9 +72,10 @@ inject_modnames = [
     'ibeis.control.manual_feat_funcs',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
+    'ibeis.web.zmq_task_queue',
 ]
 
-for modname in inject_modnames:
+for modname in AUTOLOAD_PLUGIN_MODNAMES:
     if isinstance(modname, tuple):
         flag, modname = modname
         if ut.get_argflag(flag):
@@ -76,13 +83,13 @@ for modname in inject_modnames:
     ut.import_modname(modname)
 
 # NOTE: new plugin code needs to be hacked in here currently
-# this is not a long term solution.
-# THE Long term solution is to get these working (which are partially integrated)
-#     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_imports
-#     python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+# this is not a long term solution.  THE Long term solution is to get these
+# working (which are partially integrated)
+#     python -m ibeis --tf dev_autogen_explicit_imports
+#     python -m ibeis --tf dev_autogen_explicit_injects
 
-# Ensure that all injectable modules are imported before constructing the class
-# instance
+# Ensure that all injectable modules are imported before constructing the
+# class instance
 
 # Explicit Inject Subclass
 try:
@@ -90,16 +97,12 @@ try:
         raise ImportError
     else:
         """
-        python -m ibeis.control.controller_inject --exec-dev_autogen_explicit_injects
+        python -m ibeis --tf dev_autogen_explicit_injects
         """
         from ibeis.control import _autogen_explicit_controller
         BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController
 except ImportError:
     BASE_CLASS = object
-
-
-# Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
@@ -112,7 +115,7 @@ __IBEIS_CONTROLLER_CACHE__ = {}
 
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
-        use_cache=True, request_dbversion=None):
+        use_cache=True, request_dbversion=None, asproxy=None):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -122,7 +125,8 @@ def request_IBEISController(
         ensure    (bool):
         wbaddr    (None):
         verbose   (bool):
-        use_cache (bool): use the global ibeis controller cache. (default=True)
+        use_cache (bool): use the global ibeis controller cache.
+            Make sure this is false if calling from a Thread. (default=True)
         request_dbversion (str): developer flag. Do not use.
 
     Returns:
@@ -139,11 +143,25 @@ def request_IBEISController(
         >>> wbaddr = None
         >>> verbose = True
         >>> use_cache = False
-        >>> ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose, use_cache)
+        >>> ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose,
+        >>>                               use_cache)
         >>> result = str(ibs)
         >>> print(result)
     """
     global __IBEIS_CONTROLLER_CACHE__
+    if asproxy:
+        # Not sure if this is the correct way to do a controller proxy
+        from multiprocessing.managers import BaseManager
+        class IBEISManager(BaseManager):
+            pass
+        IBEISManager.register(str('IBEISController'), IBEISController)
+        manager = IBEISManager()
+        manager.start()
+        ibs = manager.IBEISController(
+            dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
+            request_dbversion=request_dbversion)
+        return ibs
+
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
             print('[request_IBEISController] returning cached controller')
@@ -176,8 +194,6 @@ def __cleanup():
         pass
 
 
-#
-#
 #-----------------
 # IBEIS CONTROLLER
 #-----------------
@@ -198,8 +214,6 @@ class IBEISController(BASE_CLASS):
         theta - angle of rotation for a chip
     """
 
-    #
-    #
     #-------------------------------
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
@@ -213,17 +227,19 @@ class IBEISController(BASE_CLASS):
         ibs.const = const
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
-        # observer_weakref_list keeps track of the guibacks connected to this controller
+        # observer_weakref_list keeps track of the guibacks connected to this
+        # controller
         ibs.observer_weakref_list = []
         # not completely working decorator cache
         ibs.table_cache = None
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
-        # _send_wildbook_request will do nothing if no wildbook address is specified
+        # _send_wildbook_request will do nothing if no wildbook address is
+        # specified
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql(request_dbversion=request_dbversion)
         ibs._init_config()
-        ibs.jobs = {}  # start development of async server calls with jobids
+        ibs.job_manager = None
         print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):
@@ -243,11 +259,14 @@ class IBEISController(BASE_CLASS):
         """
         Returns info about the underlying SQL cache memory
         """
-        total_size_str = ut.get_object_size_str(ibs.table_cache, lbl='size(table_cache): ')
+        total_size_str = ut.get_object_size_str(ibs.table_cache,
+                                                lbl='size(table_cache): ')
         total_size_str = '\nlen(table_cache) = %r' % (len(ibs.table_cache))
-        table_size_str_list = [ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
-                               for key, val in six.iteritems(ibs.table_cache)]
-        cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
+        table_size_str_list = [
+            ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
+            for key, val in six.iteritems(ibs.table_cache)]
+        cachestats_str = (
+            total_size_str + ut.indentjoin(table_size_str_list, '\n  * '))
         return cachestats_str
 
     def print_cachestats_str(ibs):
@@ -258,9 +277,9 @@ class IBEISController(BASE_CLASS):
 
     def _initialize_self(ibs):
         """
-        For utools auto reload
-        Called after reload
-        Injects code from development modules into the controller
+        Injects code from plugin modules into the controller
+
+        Used in utools auto reload.  Called after reload.
         """
         if ut.VERBOSE:
             print('[ibs] _initialize_self()')
@@ -269,12 +288,13 @@ class IBEISController(BASE_CLASS):
             ibs, controller_inject.CONTROLLER_CLASSNAME,
             allow_override=ibs.allow_override)
         assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
-        assert hasattr(ibs, 'get_annot_pair_timdelta'), 'issue with annotmatch_funcs'
+        assert hasattr(ibs, 'get_annot_pair_timdelta'), (
+            'issue with annotmatch_funcs')
         ibs.register_controller()
 
     def _on_reload(ibs):
         """
-        For utools auto reload.
+        For utools auto reload (rrr).
         Called before reload
         """
         # Reloading breaks flask, turn it off
@@ -285,13 +305,10 @@ class IBEISController(BASE_CLASS):
         # Reload dependent modules
         ut.reload_injected_modules(controller_inject.CONTROLLER_CLASSNAME)
 
-    #def inject_module_plugin(ibs, module):
-    #    global INJECTED_MODULES
-    #    if module not in INJECTED_MODULES:
-    #        INJECTED_MODULES.append(module)
-    #    ut.inject_instance(
-    #        ibs, classkey=module.CLASS_INJECT_KEY,
-    #        allow_override=ibs.allow_override, strict=False)
+    def load_plugin_module(ibs, module):
+        ut.inject_instance(
+            ibs, classkey=module.CLASS_INJECT_KEY,
+            allow_override=ibs.allow_override, strict=False, verbose=False)
 
     # We should probably not implement __del__
     # see: https://docs.python.org/2/reference/datamodel.html#object.__del__
@@ -345,9 +362,10 @@ class IBEISController(BASE_CLASS):
     # ------------
 
     def _init_rowid_constants(ibs):
-        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
-        ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
-        ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID  # ADD TO CONSTANTS
+        # ADD TO CONSTANTS
+        ibs.UNKNOWN_LBLANNOT_ROWID = 0
+        ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
+        ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
@@ -368,7 +386,6 @@ class IBEISController(BASE_CLASS):
         # ibs.db.dump()
         ibs._init_rowid_constants()
 
-    #@ut.indent_func
     def _init_sqldbcore(ibs, request_dbversion=None):
         """
         Example:
@@ -391,7 +408,6 @@ class IBEISController(BASE_CLASS):
             # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
 
             ibs.print_encounter_table(exclude_columns=['encounter_uuid'])
-
         """
         from ibeis.control import _sql_helpers
         from ibeis.control import SQLDatabaseControl as sqldbc
@@ -434,7 +450,6 @@ class IBEISController(BASE_CLASS):
         #import sys
         #sys.exit(1)
 
-    #@ut.indent_func
     def _init_sqldbcache(ibs):
         """ Need to reinit this sometimes if cache is ever deleted """
         from ibeis.control import _sql_helpers
@@ -532,8 +547,8 @@ class IBEISController(BASE_CLASS):
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         # TODO: constantify these
-        # so non controller objects (like in score normalization) have access to
-        # these
+        # so non controller objects (like in score normalization) have access
+        # to these
         ibs._ibsdb      = join(ibs.dbdir, REL_PATHS._ibsdb)
         ibs.trashdir    = join(ibs.dbdir, REL_PATHS.trashdir)
         ibs.cachedir    = join(ibs.dbdir, REL_PATHS.cache)
@@ -570,8 +585,6 @@ class IBEISController(BASE_CLASS):
         ut.ensuredir(ibs.distinctdir, verbose=_verbose)
         ibs.get_smart_patrol_dir()
 
-    #
-    #
     #--------------
     # --- DIRS ----
     #--------------
@@ -1459,33 +1472,8 @@ class IBEISController(BASE_CLASS):
         return icon
 
     @accessor_decors.default_decorator
-    @register_api('/api/core/get_job_status/', methods=['GET'])
-    def get_job_status(ibs, jobid):
-        fut = ibs.jobs[jobid]
-        return fut.running()
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/test_simple_job/', methods=['POST'])
-    def test_simple_job(ibs, **kwform):
-        from tornado.concurrent import return_future
-        jobid = 'simple_job'
-        if True or jobid not in ibs.jobs:
-            @return_future
-            def simple_job(arg, callback=None):
-                import time
-                time.sleep(20)
-                result = (100, arg)
-                callback(result)
-            fut = simple_job('foo')
-            ibs.jobs[jobid] = fut
-        fut = ibs.jobs[jobid]
-        print('fut = %r' % (fut,))
-        return fut
-
-    @accessor_decors.default_decorator
     @register_api('/api/core/add_images_json/', methods=['POST'])
-    def add_images_json(ibs, **kwform):
-        #json_image_list, json_annots_list):
+    def add_images_json(ibs, json_image_list, json_annot_list):
         """
         REST:
             Method: GET
@@ -1497,7 +1485,7 @@ class IBEISController(BASE_CLASS):
 
         Args:
             json_image_list (list) : list of image json objects
-            json_annots_list (list) : list of image annotation objects
+            json_annot_list (list) : list of image annotation objects
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
@@ -1506,16 +1494,13 @@ class IBEISController(BASE_CLASS):
             >>> # WEB_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import time
-            >>> import ibeis
             >>> import requests
             >>> # Start up the web instance
-            >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
-            >>> time.sleep(.5)
+            >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
             >>> baseurl = 'http://127.0.1.1:5000'
-            >>> # ut.to_json(payload)
             >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
             >>> payload = ut.map_dict_vals(ut.to_json, _payload)
-            >>> #resp = requests.post(baseurl + '/api/core/helloworld/?f=b', data=payload)
+            >>> resp = requests.post(baseurl + '/api/core/helloworld/?f=b', data=payload)
             >>> resp = requests.post(baseurl + '/api/core/add_images_json/', data=payload)
             >>> print(resp)
             >>> web_instance.terminate()
@@ -1523,72 +1508,7 @@ class IBEISController(BASE_CLASS):
             >>> text = json_dict['response']
             >>> print(text)
         """
-        print('kwform = ' + ut.dict_str(kwform))
         print('FOOBAR')
-        raise NotImplementedError('add_images_json')
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/detect_image_by_uuid/', methods=['GET'])
-    def detect_image_by_uuid(ibs, image_uuid_list, species):
-        """
-        REST:
-            Method: GET
-            URL: /api/core/detect_image_by_uuid/
-
-        Args:
-            image_uuid_list (list) : list of image uuids to detect on.
-            species (str) : species to detect
-        """
-        raise NotImplementedError('add_images_json')
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/identify_annots_by_uuid/', methods=['GET'])
-    def identify_annots_by_uuid(ibs, query_annot_uuid_list, available_data_annot_uuid_list, pipecfg, **kwargs):
-        """
-        REST:
-            Method: GET
-            URL: /api/core/identify_annots/
-
-        Args:
-            query_annot_uuid_list (list) : specifies the query annotations to identify.
-            available_data_annot_uuid_list (list) : specifies the annotations that the algorithm
-                                                                 is allowed to use for identification.
-                                                                 If not specified all annotations are used.   (default=None)
-            pipecfg (dict): dictionary of pipeline configuration arguments (default=None)
-
-        Example:
-            >>> # WEB_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis
-            >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(defaultdb='PZ_MTEST', a=['default'])
-            >>> query_annot_uuid_list = ibs.get_annot_uuids(qaids)
-            >>> available_data_annot_uuid_list = ibs.get_annot_uuids(daids)
-            >>> pipecfg={}
-        """
-        qaid_list = ibs.get_annot_aids_from_uuid(query_annot_uuid_list)
-        daid_list = ibs.get_annot_aids_from_uuid(available_data_annot_uuid_list)
-        jobid = 'query_job'
-        kwargs = {'use_cache': False}
-        #from tornado.concurrent import return_future
-        from tornado.gen import coroutine
-        from tornado.ioloop import IOLoop
-        if True or jobid not in ibs.jobs:
-            @coroutine
-            def query_job(ibs, qaid_list, daid_list, pipecfg, callback=None, **kwargs):
-                cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
-                yield cm_list
-                #callback(cm_list)
-            epoll = IOLoop.current()
-            epoll.add_callback(query_job, ibs, qaid_list, daid_list, pipecfg, **kwargs)
-
-            fut = query_job(ibs, qaid_list, daid_list, pipecfg, **kwargs)
-            ibs.jobs[jobid] = fut
-        #id_ = ut.spawn_background_thread(ibs.query_chips, qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
-        #fut = ibs.jobs[jobid]
-        proc = ut.spawn_background_process(ibs.query_chips, qaid_list, daid_list, cfgdict=pipecfg, return_request=True, **kwargs)
-        ibs.jobs[jobid] = proc
-        #print('fut = %r' % (fut,))
-        #return fut
         raise NotImplementedError('add_images_json')
 
 

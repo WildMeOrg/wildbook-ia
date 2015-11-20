@@ -1332,7 +1332,7 @@ def get_annot_thetas(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot/uuids/', methods=['GET'])
+@register_api('/api/annot/uuids/', methods=['GET', 'POST'])
 def get_annot_uuids(ibs, aid_list):
     r"""
     Returns:

@@ -75,6 +75,9 @@ def _init_gui(activate=True):
 
 #@profile
 def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
+    """
+    Private function that calls code to create an ibeis controller
+    """
     import utool as ut
     from ibeis import params
     from ibeis.control import IBEISControl
@@ -87,11 +90,17 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
         ibs = None
         ut.printWARN('[main!] WARNING args.dbdir is None')
     else:
-        request_dbversion = kwargs.get('request_dbversion', None)
+        kwargs = kwargs.copy()
+        request_dbversion = kwargs.pop('request_dbversion', None)
+        asproxy = kwargs.pop('asproxy', None)
         ibs = IBEISControl.request_IBEISController(
-            dbdir=dbdir, use_cache=use_cache, request_dbversion=request_dbversion)
+            dbdir=dbdir, use_cache=use_cache,
+            request_dbversion=request_dbversion,
+            asproxy=asproxy)
         if web is None:
-            web = params.args.webapp
+            web = ut.get_argflag(('--webapp', '--webapi', '--web', '--browser'),
+                                 help_='automatically launch the web app / web api')
+            #web = params.args.webapp
         if web:
             from ibeis.web import app
             port = params.args.webport
@@ -290,26 +299,49 @@ def main(gui=True, dbdir=None, defaultdb='cache',
 
 
 def opendb_in_background(*args, **kwargs):
+    """
+    Starts a web server in the background
+    """
     import utool as ut
+    import time
+    sec = kwargs.pop('wait', 0)
+    if sec != 0:
+        print('waiting %s seconds for startup' % (sec,))
     proc = ut.spawn_background_process(opendb, *args, **kwargs)
+    if sec != 0:
+        time.sleep(sec)  # wait for process to initialize
     return proc
+
+
+def opendb_bg_web(*args, **kwargs):
+    """
+    Wrapper around opendb_in_background
+    """
+    _kw = dict(web=True, browser=False)
+    _kw.update(kwargs)
+    return opendb_in_background(*args, **_kw)
 
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True,
            web=None, **kwargs):
     """
-    main without the preload (except for option to delete database before opening)
+    main without the preload (except for option to delete database before
+    opening)
 
     Args:
         db (str):  database name in your workdir used only if dbdir is None
         dbdir (None): full database path
-        defaultdb (str): dbdir search stratagy when db is None and dbdir is None
-        allow_newdir (bool): (default=True) if True errors when opening a nonexisting database
-        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the entire
+        defaultdb (str): dbdir search stratagy when db is None and dbdir is
+            None
+        allow_newdir (bool): (default=True) if True errors when opening a
+            nonexisting database
+        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the
+            entire
         verbose (bool): verbosity flag
         web (bool): starts webserver if True (default=param specification)
-        use_cache (bool): if True will try to return a previously loaded controller
+        use_cache (bool): if True will try to return a previously loaded
+            controller
 
     Returns:
         IBEISController: ibs
@@ -324,17 +356,21 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         >>> delete_ibsdir = False
         >>> verbose = False
         >>> use_cache = True
-        >>> ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir, verbose, use_cache)
+        >>> ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir,
+        >>>              verbose, use_cache)
         >>> result = str(ibs)
         >>> print(result)
     """
     from ibeis.init import sysres
     from ibeis import ibsfuncs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir,
+                                  cache_priority=False)
     if delete_ibsdir is True:
-        assert allow_newdir, 'must be making new directory if you are deleting everything!'
+        assert allow_newdir, (
+            'must be making new directory if you are deleting everything!')
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web, **kwargs)
+    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web,
+                      **kwargs)
     return ibs
 
 

@@ -360,17 +360,16 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
     """
     from plottool.interactions import ExpandableInteraction
     import plottool as pt
+    import ibeis.viz
     fnum = pt.ensure_fnum(None)
     inter = ExpandableInteraction(fnum)
 
     aids = ut.flatten(ibs.get_name_aids(nids))
     print('len(aids) = %r' % (len(aids),))
     idxs = range(len(aids))
-    import ibeis.viz
-    from functools import partial
 
     def wrap_show_func(func, *args, **kwargs):
-        def _show_func_wrap(fnum, pnum):
+        def _show_func_wrap(fnum=None, pnum=None):
             return func(*args, fnum=fnum, pnum=pnum, **kwargs)
         return _show_func_wrap
 
@@ -389,7 +388,10 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
         #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
         pnum = (len(aids), len(aids), (idx1 * len(aids) + idx2) + 1)
-        inter.append_plot(wrap_show_func(cm_vsone.show_single_annotmatch, vsone_qreq_, daid=aid2, draw_lbl=False), pnum=pnum)
+        show_func = wrap_show_func(cm_vsone.show_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, show_name_score=True)
+        ishow_func = wrap_show_func(cm_vsone.ishow_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True)
+        inter.append_plot(show_func, pnum=pnum, ishow_func=ishow_func)
+        #inter.append_plot(cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True), pnum=pnum)
         #,  pnum=pnum)
         #cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
         #                                fnum=fnum, pnum=pnum)

@@ -254,9 +254,9 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
         truth = ibs.const.TRUTH_UNKNOWN
     truth_color = vh.get_truth_color(truth)
 
+    name_annot_scores = kwargs.get('name_annot_scores', None)
     if len(aid_list) == 2:
         # HACK; generalize to multple annots
-        name_annot_scores = kwargs.get('name_annot_scores', None)
         title = vh.get_query_text(ibs, None, aid_list[1], truth, qaid=aid_list[0], **kwargs)
         if not notitle:
             pt.set_title(title, ax)

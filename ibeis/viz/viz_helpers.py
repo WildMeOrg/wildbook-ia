@@ -292,14 +292,44 @@ def get_annot_text(ibs, aid_list, draw_lbls):
     return text_list
 
 
-def get_query_text(ibs, qres, aid2, truth, **kwargs):
-    """ returns title based on the query chip and result """
+def get_query_text(ibs, cm, aid2, truth, **kwargs):
+    """
+    returns title based on the query chip and result
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        cm (ChipMatch):  object of feature correspondences and scores
+        aid2 (int):  annotation id
+        truth (int): 0, 1, 2
+
+    Kwargs:
+        qaid, score, rawscore, aid2_raw_rank, show_truth, name_score,
+        name_rank, show_name_score, show_name_rank, show_timedelta
+
+    Returns:
+        str: query_text
+
+    CommandLine:
+        python -m ibeis.viz.viz_helpers --exec-get_query_text
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_helpers import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> cm = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
+        >>> aid2 = '?'
+        >>> truth = '?'
+        >>> query_text = get_query_text(ibs, cm, aid2, truth)
+        >>> result = ('query_text = %s' % (str(query_text),))
+        >>> print(result)
+    """
     text_list = []
-    if qres is not None:
-        qaid = qres.qaid
-        score = qres.get_aid_scores([aid2])[0]
-        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
-        aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+    if cm is not None:
+        qaid = cm.qaid
+        score = cm.get_aid_scores([aid2])[0]
+        rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
+        aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
     else:
         qaid          = kwargs.get('qaid', None)
         score         = kwargs.get('score', None)
@@ -308,9 +338,9 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
     if kwargs.get('show_truth', False):
         truth_str = '*%s*' % get_truth_text(ibs, truth)
         text_list.append(truth_str)
-    if kwargs.get('show_rank', aid2_raw_rank is not None or qres is not None):
+    if kwargs.get('show_rank', aid2_raw_rank is not None or cm is not None):
         try:
-            #aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+            #aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
@@ -318,14 +348,14 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
             #ut.embed()
             raise
         text_list.append(rank_str)
-    if kwargs.get('show_rawscore', rawscore is not None or qres is not None):
-        #rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+    if kwargs.get('show_rawscore', rawscore is not None or cm is not None):
+        #rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
         rawscore_str = ('rawscore=' + ut.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
-    if kwargs.get('show_score', score is not None or qres is not None):
-        #score = qres.get_aid_scores([aid2])[0]
+    if kwargs.get('show_score', score is not None or cm is not None):
+        #score = cm.get_aid_scores([aid2])[0]
         score_str = ('score=' + ut.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str

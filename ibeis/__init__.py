@@ -51,7 +51,7 @@ from ibeis import dbio
 
 from ibeis.init import sysres
 from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
-                               test_main, opendb, opendb_in_background)
+                               test_main, opendb, opendb_in_background, opendb_bg_web)
 from ibeis.control.IBEISControl import IBEISController
 from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
 from ibeis.init import main_helpers

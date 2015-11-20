@@ -1,31 +1,27 @@
 # -*- coding: utf-8 -*-
-# Dependencies: flask, tornado
+"""
+Dependencies: flask, tornado
+"""
 from __future__ import absolute_import, division, print_function
-# HTTP / HTML
+import random
+from os.path import join, exists
+import zipfile
+import time
+import math
 import tornado.wsgi
 import tornado.httpserver
 from flask import request, redirect, url_for, make_response, current_app
 import logging
 import socket
 import simplejson as json
-# IBEIS
 from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
 import ibeis.constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, PI, TAU
-import utool as ut
-# Web Internal
 from ibeis.web import appfuncs as ap
-# Others
-# import numpy as np
-# from scipy.optimize import curve_fit
-#from detecttools.directory import Directory
-import random
-from os.path import join, exists
-import zipfile
-import time
-import math
+from ibeis.web import zmq_task_queue  # NOQA
+import utool as ut
 
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
@@ -1596,7 +1592,7 @@ def image_upload(cleanup=True, **kwargs):
         URL:    /api/image/
     """
     ibs = current_app.ibs
-    print(request.files)
+    print('request.files = %s' % (request.files,))
 
     filestore = request.files.get('image', None)
     if filestore is None:
@@ -1775,7 +1771,7 @@ def api():
             if len(methods) == 0:
                 continue
             if len(methods) > 1:
-                print(methods)
+                print('methods = %r' % (methods,))
             method = list(methods)[0]
             if method not in rule_dict.keys():
                 rule_dict[method] = []
@@ -1851,7 +1847,7 @@ def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix=''):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix='', start_job_queue=True):
     """
     Parse command line options and start the server.
 
@@ -1870,7 +1866,17 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix=
         print('[web] Pre-computing all annotation chips...')
         ibs.check_chip_existence()
         ibs.compute_all_chips()
+
+    if start_job_queue:
+        #from ibeis.web import zmq_task_queue
+        #ibs.load_plugin_module(zmq_task_queue)
+        #import time
+        #time.sleep(1)
+        ibs.initialize_job_manager()
+        #time.sleep(10)
+
     start_tornado(ibs, port, browser, url_suffix)
+    ibs.close_job_manager()
 
 
 if __name__ == '__main__':

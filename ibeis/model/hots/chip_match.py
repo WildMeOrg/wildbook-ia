@@ -1514,7 +1514,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return _
 
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None,
-                               homog=ut.get_argflag('--homog'), **kwargs):
+                               homog=ut.get_argflag('--homog'), aid2=None, **kwargs):
         """
         TODO: rename daid to aid2
 
@@ -1530,6 +1530,10 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> ut.show_if_requested()
         """
         from ibeis.viz import viz_matches
+        if aid2 is not None:
+            assert daid is None, 'use aid2 instead of daid kwarg'
+            daid = aid2
+
         if daid is None:
             idx = cm.argsort()[0]
             daid = cm.daid_list[idx]
@@ -1540,7 +1544,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
         fs   = None if fsv is None else fsv.prod(axis=1)
         showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
-        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
+        score = None if cm.score_list is None else cm.score_list[idx]
+        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,
+                                  score=score, **showkw)
 
     def show_ranked_matches(cm, qreq_, clip_top=6, *args, **kwargs):
         r"""
@@ -1660,8 +1666,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         except Exception as ex:
             ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
             raise
-        import plottool as pt
-        pt.update()
+        if not kwargs.get('noupdate', False):
+            import plottool as pt
+            pt.update()
 
     ishow_match = ishow_single_annotmatch
     ishow_matches = ishow_single_annotmatch

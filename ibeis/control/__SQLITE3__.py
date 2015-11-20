@@ -10,7 +10,6 @@ import uuid
 import numpy as np
 #from utool.util_inject import inject_print_functions
 #print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=False)
-
 import utool as ut
 ut.noinject(__name__, '[ibeis.control.__SQLITE3__]', DEBUG=False)
 

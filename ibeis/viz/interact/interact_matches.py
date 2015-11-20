@@ -84,7 +84,9 @@ class MatchInteraction(object):
             self.begin(dodraw=dodraw)
 
     def init_old(self, ibs, qres, *args, **kwargs):
-        """ old begin function for working with qres objects """
+        """
+        old begin function for working with qres objects
+        """
         if not isinstance(qres, chip_match.ChipMatch2):
             self.qres = qres
             cm = chip_match.ChipMatch2.from_qres(self.qres)
