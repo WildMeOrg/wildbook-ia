@@ -206,8 +206,8 @@ def show_if_requested(N=1):
         figsize = [eval(term) if isinstance(term, str) else term
                    for term in figsize]
         figw, figh = figsize[0], figsize[1]
-        #print('get_size_inches = %r' % (fig.get_size_inches(),))
-        #print('fig w,h (inches) = %r, %r' % (figw, figh))
+        print('get_size_inches = %r' % (fig.get_size_inches(),))
+        print('fig w,h (inches) = %r, %r' % (figw, figh))
         fig.set_size_inches(figw, figh)
         #print('get_size_inches = %r' % (fig.get_size_inches(),))
 
@@ -859,7 +859,12 @@ def presetup_axes(x_label='x', y_label='y', title_pref='', title=None,
         ax.set_aspect('equal')
 
 
-def postsetup_axes(use_legend=True, bg='dark'):
+def postsetup_axes(use_legend=True, bg=None):
+    import plottool as pt
+    if bg is None:
+        if pt.is_default_dark_bg():
+            bg = 'dark'
+
     if bg == 'dark':
         dark_background()
     if use_legend:
