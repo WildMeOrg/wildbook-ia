@@ -750,8 +750,8 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> offset = (0.0, 0.0)
         >>> scale_factor = (1.5, 0.5)
         >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
-        >>> # verify results
-        >>> result = ut.list_str((kpts, kpts_), label_list=['orig', 'new'], precision=2)
+        >>> # verify results (hack + 0. to fix negative 0)
+        >>> result = ut.list_str((kpts, kpts_ + 0.), label_list=['orig', 'new'], precision=2)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

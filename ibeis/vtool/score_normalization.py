@@ -170,9 +170,6 @@ class ScoreNormalizer(object):
         >>> ut.show_if_requested()
     """
     def __init__(encoder, **kwargs):
-        """
-
-        """
         encoder.learn_kw = ut.update_existing(
             dict(
                 gridsize=1024,
@@ -618,7 +615,7 @@ class ScoreNormalizer(object):
         """
         import plottool as pt
         default_kw = dict(
-            with_scores=True,
+            with_scores=False,
             with_roc=True,
             #with_roc=False,
             #with_precision_recall=True,
