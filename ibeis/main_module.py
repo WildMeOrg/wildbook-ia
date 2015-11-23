@@ -21,7 +21,8 @@ except AttributeError:
 
 
 def _on_ctrl_c(signal, frame):
-    print('[ibeis.main_module] Caught ctrl+c')
+    proc_name = multiprocessing.current_process().name
+    print('[ibeis.main_module] Caught ctrl+c in %s' % (proc_name,))
     try:
         _close_parallel()
     except Exception as ex:

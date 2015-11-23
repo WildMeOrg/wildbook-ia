@@ -680,7 +680,7 @@ def review_tagged_splits():
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> # Find aids that still need splits
-        >>> aid_pair_list = ibs.filter_aidpairs_by_tags('SplitCase')
+        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
         >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
         >>> _aid_list = ut.list_compress(aid_pair_list, truth_list)
         >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
@@ -750,7 +750,7 @@ def review_tagged_joins():
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> # Find aids that still need Joins
-        >>> aid_pair_list = ibs.filter_aidpairs_by_tags('JoinCase')
+        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
         >>> if ibs.get_dbname() == 'testdb1':
         >>>     aid_pair_list = [[1, 2]]
         >>> truth_list_ = ibs.get_aidpair_truths(*zip(*aid_pair_list))
