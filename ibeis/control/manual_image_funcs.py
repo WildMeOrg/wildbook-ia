@@ -20,7 +20,8 @@ from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from os.path import join, exists, abspath, normpath
+#from os.path import join, exists, abspath, normpath, isabs
+from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -374,8 +375,7 @@ def localize_images(ibs, gid_list_=None):
 
     #gpath_list = ibs.get_image_paths(gid_list)
     uri_list = ibs.get_image_uris(gid_list)
-
-    from os.path import isabs
+    #from os.path import isabs
     from six.moves import urllib
 
     url_protos = ['https://', 'http://']
