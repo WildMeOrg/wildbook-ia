@@ -925,8 +925,8 @@ def get_image_paths(ibs, gid_list):
         >>> # execute function
         >>> #gpath_list = get_image_paths(ibs, gid_list)
         >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
-        >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
-        >>> new_gpath_list = get_image_paths(ibs, new_gids)
+        >>> gid_list = ibs.add_images([new_gpath], auto_localize=False)
+        >>> new_gpath_list = get_image_paths(ibs, gid_list)
         >>> # verify results
         >>> ut.assert_eq(new_gpath, new_gpath_list[0])
         >>> result = str(new_gpath_list)
@@ -939,6 +939,7 @@ def get_image_paths(ibs, gid_list):
     # Images should never have null uris
     # If the uri is not absolute then it is infered to be relative to ibs.imgdir
     ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
+    # Note: join does not prepend anything if the uri is absolute
     gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
 
