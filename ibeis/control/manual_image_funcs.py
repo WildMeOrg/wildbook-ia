@@ -367,6 +367,8 @@ def localize_images(ibs, gid_list_=None):
         ibs.vd()
 
     """
+    #from os.path import isabs
+    from six.moves import urllib
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
@@ -375,8 +377,6 @@ def localize_images(ibs, gid_list_=None):
 
     #gpath_list = ibs.get_image_paths(gid_list)
     uri_list = ibs.get_image_uris(gid_list)
-    #from os.path import isabs
-    from six.moves import urllib
 
     url_protos = ['https://', 'http://']
     s3_proto = ['s3://']
