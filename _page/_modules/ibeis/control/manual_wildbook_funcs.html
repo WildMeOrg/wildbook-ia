@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -286,7 +286,7 @@
 
 </div>
 <span class="nd">@ut.tracefunc_xml</span>
-<div class="viewcode-block" id="find_installed_tomcat"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.find_installed_tomcat">[docs]</a><span class="k">def</span> <span class="nf">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="find_installed_tomcat"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.find_installed_tomcat">[docs]</a><span class="k">def</span> <span class="nf">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Asserts that tomcat was properly installed</span>
 
@@ -306,13 +306,19 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_wildbook_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; check_unpacked = True</span>
-<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_installed_tomcat(check_unpacked)</span>
+<span class="sd">        &gt;&gt;&gt; strict = False</span>
+<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_installed_tomcat(check_unpacked, strict)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_tomcat</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&#39;Cannot find tomcat&#39;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Cannot find tomcat&#39;</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">check_unpacked</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">ibeis</span>
         <span class="c"># Check that webapps was unpacked</span>
@@ -910,8 +916,8 @@
         <span class="s">&#39;encounterID={annot_uuid!s}&#39;</span><span class="p">,</span>
         <span class="s">&#39;individualID={name_text!s}&#39;</span><span class="p">,</span>
     <span class="p">])</span>
-    <span class="n">submit_namchange_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span><span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url_command</span> <span class="o">+</span> <span class="s">&#39;?&#39;</span>
-                                   <span class="o">+</span> <span class="n">url_args_fmtstr</span><span class="p">)</span>
+    <span class="n">submit_namchange_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url_command</span> <span class="o">+</span> <span class="s">&#39;?&#39;</span> <span class="o">+</span> <span class="n">url_args_fmtstr</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -1168,7 +1174,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

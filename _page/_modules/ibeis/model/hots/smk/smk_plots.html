@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.smk.smk_plots &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.smk.smk_plots &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -637,7 +637,7 @@
     <span class="p">}</span>
     <span class="c">#ibs.cfg.query_cfg.pipeline_root = &#39;vsmany&#39;</span>
     <span class="c">#ibs.cfg.query_cfg.with_metadata = True</span>
-    <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_all</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
     <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">qres</span><span class="p">,</span> <span class="bp">None</span>
@@ -804,7 +804,8 @@
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">metrickey</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metric_keys</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrickey</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="c">#lbl = repr(metrickey)</span>
-            <span class="n">fixstr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">str_</span><span class="p">:</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;wx2_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_stats&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">fixstr</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;wx2_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_stats&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">fixstr</span><span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lbl</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metrickey</span><span class="p">)</span>
@@ -960,7 +961,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

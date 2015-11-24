@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.DB_SCHEMA &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -1290,27 +1290,71 @@
 
 </div>
 <div class="viewcode-block" id="update_1_4_7"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_7">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_7</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;image_uri_original&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="post_1_4_7"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.post_1_4_7">[docs]</a><span class="k">def</span> <span class="nf">post_1_4_7</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_gids</span><span class="p">()</span>
+        <span class="n">image_uri_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_uri_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="c"># change type of annot_visual_uuid</span>
+            <span class="p">(</span><span class="s">&#39;image_uri_original&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="update_1_4_8"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_8">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_8</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Need to;</span>
+<span class="sd">        change notes to tag_text_data</span>
+<span class="sd">        add configuration that made the match</span>
+<span class="sd">        add the score of the match</span>
+<span class="sd">        add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE</span>
+
+<span class="sd">    Probably want a separate table for the config_rowid matching results</span>
+<span class="sd">    because the primary key needs to be (config_rowid, aid1, aid2) OR just</span>
+<span class="sd">    (config_rowid, annotmatch_rowid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
     <span class="c">#db.modify_table(</span>
     <span class="c">#    const.ANNOTMATCH_TABLE, [</span>
-    <span class="c">#        (None, &#39;annotmatch_is_interesting&#39;,      &#39;INTEGER&#39;, None),</span>
     <span class="c">#        (None, &#39;annotmatch_posixtime_modified&#39;,  &#39;INTEGER&#39;, None),</span>
     <span class="c">#        (None, &#39;annotmatch_score&#39;,  &#39;REAL&#39;, None),</span>
     <span class="c">#        (None, &#39;config_rowid&#39;,  &#39;INTEGER&#39;, None),</span>
     <span class="c">#    ]</span>
     <span class="c">#)</span>
-    <span class="c"># Maybe we want the notation of each annotation having having a set of</span>
-    <span class="c"># classes with probabilities (c, p). Or an annotation label with a</span>
-    <span class="c"># confidence.</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_mask_uri&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;name_nickname_text&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
+</div>
+<span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">#def update_lost_to_time(db, ibs=None):</span>
+<span class="sd">#    #db.modify_table(</span>
+<span class="sd">#    #    const.ANNOTMATCH_TABLE, [</span>
+<span class="sd">#    #        (None, &#39;annotmatch_is_interesting&#39;,      &#39;INTEGER&#39;, None),</span>
+<span class="sd">#    #        (None, &#39;annotmatch_posixtime_modified&#39;,  &#39;INTEGER&#39;, None),</span>
+<span class="sd">#    #        (None, &#39;annotmatch_score&#39;,  &#39;REAL&#39;, None),</span>
+<span class="sd">#    #        (None, &#39;config_rowid&#39;,  &#39;INTEGER&#39;, None),</span>
+<span class="sd">#    #    ]</span>
+<span class="sd">#    #)</span>
+<span class="sd">#    # Maybe we want the notation of each annotation having having a set of</span>
+<span class="sd">#    # classes with probabilities (c, p). Or an annotation label with a</span>
+<span class="sd">#    # confidence.</span>
+<span class="sd">#    db.modify_table(</span>
+<span class="sd">#        const.ANNOTATION_TABLE, [</span>
+<span class="sd">#            (None, &#39;annot_mask_uri&#39;,    &#39;TEXT&#39;, None),</span>
+<span class="sd">#        ]</span>
+<span class="sd">#    )</span>
+<span class="sd">#    db.modify_table(</span>
+<span class="sd">#        const.NAME_TABLE, [</span>
+<span class="sd">#            (None, &#39;name_nickname_text&#39;,    &#39;TEXT&#39;, None),</span>
+<span class="sd">#        ]</span>
+<span class="sd">#    )</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 
 <span class="c"># ========================</span>
@@ -1319,7 +1363,7 @@
 
 <span class="c"># TODO: do we save a backup with the older version number in the file name?</span>
 
-</div>
+
 <span class="n">base</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
     <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
@@ -1348,7 +1392,8 @@
     <span class="p">(</span><span class="s">&#39;1.4.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_4</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.4.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_5</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.4.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_6</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
-    <span class="c">#(&#39;1.4.7&#39;,    (None,                 update_1_4_7,       None                )),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_7</span><span class="p">,</span>       <span class="n">post_1_4_7</span>          <span class="p">)),</span>
+    <span class="c">#(&#39;1.4.8&#39;,    (None,                 update_1_4_8,       None                )),</span>
 <span class="p">])</span>
 
 
@@ -1490,7 +1535,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

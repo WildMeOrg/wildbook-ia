@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.cfghelpers &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.expt.cfghelpers &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -136,6 +136,10 @@
 <span class="sd">Helper module that helps expand parameters for grid search</span>
 
 <span class="sd">TODO: move to utool?</span>
+
+<span class="sd">It turns out a lot of the commandlines made possible here can be generatd by</span>
+<span class="sd">using bash brace expansion.</span>
+<span class="sd">http://www.linuxjournal.com/content/bash-brace-expansion</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
@@ -321,37 +325,91 @@
         <span class="n">cfg_lbl</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">NAMEVARSEP</span> <span class="o">+</span> <span class="n">_lbl</span>
     <span class="k">return</span> <span class="n">cfg_lbl</span>
 
+
+<span class="c">#def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):</span>
+<span class="c">#    try:</span>
+<span class="c">#        cfg_combo = customize_base_cfg(</span>
+<span class="c">#            cfgname, cfgopt_strs, base_cfg, cfgtype,</span>
+<span class="c">#            alias_keys=alias_keys, valid_keys=valid_keys,</span>
+<span class="c">#            offset=len(cfg_combos), strict=strict)</span>
+<span class="c">#        return cfg_combo</span>
+<span class="c">#    except Exception as ex:</span>
+<span class="c">#        ut.printex(ex, &#39;Parse Error CfgstrList2&#39;,</span>
+<span class="c">#                   keys=[&#39;cfgname&#39;, &#39;cfgopt_strs&#39;, &#39;base_cfg&#39;,</span>
+<span class="c">#                         &#39;cfgtype&#39;, &#39;alias_keys&#39;, &#39;valid_keys&#39;])</span>
+<span class="c">#        raise</span>
+
 </div>
+<span class="nd">@ut.on_exception_report_input</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cfgname&#39;</span><span class="p">,</span> <span class="s">&#39;cfgopt_strs&#39;</span><span class="p">,</span> <span class="s">&#39;base_cfg&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;cfgtype&#39;</span><span class="p">,</span> <span class="s">&#39;alias_keys&#39;</span><span class="p">,</span> <span class="s">&#39;valid_keys&#39;</span><span class="p">],</span>
+                              <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <div class="viewcode-block" id="customize_base_cfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.customize_base_cfg">[docs]</a><span class="k">def</span> <span class="nf">customize_base_cfg</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span>
-                       <span class="n">alias_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                       <span class="n">alias_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    cfgopt_strs = &#39;dsize=1000,per_name=[1,2]&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cfgname (str): config name</span>
+<span class="sd">        cfgopt_strs (str): mini-language defining key variations</span>
+<span class="sd">        base_cfg (dict): specifies the default cfg to customize</span>
+<span class="sd">        cfgtype (?):</span>
+<span class="sd">        alias_keys (None): (default = None)</span>
+<span class="sd">        valid_keys (None): if base_cfg is not specied, this defines the valid</span>
+<span class="sd">            keys (default = None)</span>
+<span class="sd">        offset (int): (default = 0)</span>
+<span class="sd">        strict (bool): (default = True)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cfg_combo - list of config dicts defining customized configs</span>
+<span class="sd">            based on cfgopt_strs. customized configs always are given an</span>
+<span class="sd">            _cfgindex, _cfgstr, and _cfgname key.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-_customize_base_cfg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgname = &#39;default&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfgopt_strs = &#39;dsize=1000,per_name=[1,2]&#39;</span>
+<span class="sd">        &gt;&gt;&gt; base_cfg = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfgtype = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; alias_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; valid_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; offset = 0</span>
+<span class="sd">        &gt;&gt;&gt; strict = True</span>
+<span class="sd">        &gt;&gt;&gt; cfg_combo = customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, offset, strict)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfg_combo = %s&#39; % (str(cfg_combo),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">base_cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="c"># Parse dict out of a string</span>
+    <span class="c">#ANYTHING_NOT_BRACE = r&#39;[^\[\]]*\]&#39;</span>
+    <span class="n">ANYTHING_NOT_PAREN_OR_BRACE</span> <span class="o">=</span> <span class="s">r&#39;[^()\[\]]*[\]\)]&#39;</span>
     <span class="n">cfgstr_options_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
-        <span class="s">r&#39;,\s*&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="s">r&#39;[^\[\]]*\]&#39;</span><span class="p">),</span> <span class="n">cfgopt_strs</span><span class="p">)</span>
+        <span class="s">r&#39;,\s*&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="n">ANYTHING_NOT_PAREN_OR_BRACE</span><span class="p">),</span> <span class="n">cfgopt_strs</span><span class="p">)</span>
     <span class="c">#cfgstr_options_list = cfgopt_strs.split(&#39;,&#39;)</span>
     <span class="n">cfg_options</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span>
-        <span class="n">cfgstr_options_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">cfgstr_list</span><span class="o">=</span><span class="n">cfgstr_options_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="c"># Hack for q/d-prefix specific configs</span>
     <span class="n">remove_prefix_hack</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">cfg_options</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
     <span class="c"># Remap keynames based on aliases</span>
     <span class="k">if</span> <span class="n">alias_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Use new standard keys and remove old aliased keys</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">alias_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg_options</span><span class="p">:</span>
-                <span class="c"># use standard new key</span>
                 <span class="n">cfg_options</span><span class="p">[</span><span class="n">alias_keys</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="c"># remove old alised key</span>
                 <span class="k">del</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="c"># Ensure that nothing bad is being updated</span>
     <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+        <span class="n">parsed_keys</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">valid_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">valid_keys</span><span class="p">,</span> <span class="s">&#39;keys specified not in valid set&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">parsed_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="p">,</span>
+                             <span class="s">&#39;keys specified not in valid set&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s">&#39;keys specified not in default options&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">parsed_keys</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                             <span class="s">&#39;keys specified not in default options&#39;</span><span class="p">)</span>
     <span class="c"># Finalize configuration dict</span>
-    <span class="c">#cfg = ut.update_existing(cfg, cfg_options, copy=True, assert_exists=False)</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cfg_options</span><span class="p">)</span>
     <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgtype</span>
     <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgname</span>
@@ -366,20 +424,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cfg_combo</span>
-
-</div>
-<div class="viewcode-block" id="try_customize_base"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.try_customize_base">[docs]</a><span class="k">def</span> <span class="nf">try_customize_base</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="p">,</span> <span class="n">cfg_combos</span><span class="p">,</span> <span class="n">strict</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">customize_base_cfg</span><span class="p">(</span>
-            <span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span>
-            <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="n">valid_keys</span><span class="p">,</span>
-            <span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_combos</span><span class="p">),</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cfg_combo</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Parse Error CfgstrList2&#39;</span><span class="p">,</span>
-                   <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cfgname&#39;</span><span class="p">,</span> <span class="s">&#39;cfgopt_strs&#39;</span><span class="p">,</span> <span class="s">&#39;base_cfg&#39;</span><span class="p">,</span>
-                         <span class="s">&#39;cfgtype&#39;</span><span class="p">,</span> <span class="s">&#39;alias_keys&#39;</span><span class="p">,</span> <span class="s">&#39;valid_keys&#39;</span><span class="p">])</span>
-        <span class="k">raise</span>
 
 </div>
 <div class="viewcode-block" id="parse_cfgstr_name_options"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.parse_cfgstr_name_options">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_name_options</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>
@@ -576,9 +620,9 @@
                     <span class="k">raise</span>
                 <span class="c"># --</span>
                 <span class="k">for</span> <span class="n">base_cfg</span> <span class="ow">in</span> <span class="n">base_cfg_list</span><span class="p">:</span>
-                    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">try_customize_base</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span>
-                                                   <span class="n">cfgtype</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="p">,</span>
-                                                   <span class="n">cfg_combos</span><span class="p">,</span> <span class="n">strict</span><span class="p">)</span>
+                    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">customize_base_cfg</span><span class="p">(</span>
+                        <span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">,</span>
+                        <span class="n">valid_keys</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_combos</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">is_nestedcfgtype</span><span class="p">:</span>
                         <span class="n">cfg_combo</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg_combo</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
@@ -679,7 +723,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

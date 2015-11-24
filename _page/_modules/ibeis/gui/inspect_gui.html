@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.gui.inspect_gui &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -144,7 +144,6 @@
                      <span class="n">ChangeLayoutContext</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_organizer</span>
 <span class="c">#from ibeis.viz import interact</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
@@ -254,22 +253,23 @@
             <span class="n">config2_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">(),</span>
                              <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()]</span>
 
-        <span class="n">interact_chip_options</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span>
-                                                    <span class="n">config2_list_</span><span class="p">),</span>
-                                                <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">interact_chip_options</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="s">&#39;Interact Annot&amp;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,),</span>
-                 <span class="n">partial</span><span class="p">(</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span>
-                         <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
-            <span class="p">]</span>
-        <span class="n">interact_chip_actions</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">interact_chip_options</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">interact_chip_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span><span class="s">&#39;Interact &amp;All Annots&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="n">func</span><span class="p">()</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span>
-                                              <span class="n">interact_chip_actions</span><span class="p">]),</span>
-        <span class="p">)</span>
+        <span class="c">#interact_chip_options = []</span>
+        <span class="c">#for count, (aid, config2_) in enumerate(zip(aid_list2,</span>
+        <span class="c">#                                            config2_list_),</span>
+        <span class="c">#                                        start=1):</span>
+        <span class="c">#    interact_chip_options += [</span>
+        <span class="c">#        (&#39;Interact Annot&amp;%d&#39; % (count,),</span>
+        <span class="c">#         partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,</span>
+        <span class="c">#                 fnum=None, **kwargs)),</span>
+        <span class="c">#    ]</span>
+        <span class="c">#interact_chip_actions = ut.get_list_column(interact_chip_options, 1)</span>
+        <span class="c">#interact_chip_options.append(</span>
+        <span class="c">#    (&#39;Interact &amp;All Annots&#39;, lambda: [func() for func in</span>
+        <span class="c">#                                      interact_chip_actions]),</span>
+        <span class="c">#)</span>
 
         <span class="n">chip_contex_options</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;config2_list_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_list_</span><span class="p">,))</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">config2_list_</span><span class="p">),</span>
                                                 <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">chip_contex_options</span> <span class="o">+=</span> <span class="p">[</span>
@@ -399,6 +399,20 @@
                        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">case_options</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]))</span>
         <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
             <span class="p">(</span><span class="s">&#39;Match Ta&amp;gs&#39;</span><span class="p">,</span> <span class="n">case_options</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="k">def</span> <span class="nf">dev_debug</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;ibs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;cm = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="p">,))</span>
+        <span class="k">def</span> <span class="nf">dev_embed</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="o">=</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+        <span class="n">options</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;dev pair context embed&#39;</span><span class="p">,</span> <span class="n">dev_embed</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;dev pair context debug&#39;</span><span class="p">,</span> <span class="n">dev_debug</span><span class="p">),</span>
         <span class="p">]</span>
     <span class="k">return</span> <span class="n">options</span>
 
@@ -1061,7 +1075,7 @@
         <span class="n">filter_reviewed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span>
     <span class="n">ranks_lt</span> <span class="o">=</span> <span class="n">ranks_lt</span> <span class="k">if</span> <span class="n">ranks_lt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_lt</span>
 
-    <span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">get_automatch_candidates</span><span class="p">(</span>
+    <span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
         <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span>
         <span class="n">directed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
         <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span>
@@ -1285,6 +1299,194 @@
     <span class="k">return</span> <span class="n">qres_wgt</span>
 
 </div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_automatch_candidates"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.get_automatch_candidates">[docs]</a><span class="k">def</span> <span class="nf">get_automatch_candidates</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_reviewed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Needs to be moved to a better file. Maybe something to do with</span>
+<span class="sd">    identification.</span>
+
+<span class="sd">    Returns a list of matches that should be inspected</span>
+<span class="sd">    This function is more lightweight than orgres or allres.</span>
+<span class="sd">    Used in inspect_gui and interact_qres2</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cm_list (list): list of chip match objects</span>
+<span class="sd">        ranks_lt (int): put all ranks less than this number into the graph</span>
+<span class="sd">        directed (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2</span>
+<span class="sd">        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_()</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
+<span class="sd">        &gt;&gt;&gt; directed = True</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(cm_list, ranks_lt, directed, ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[0:20]</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = ibs.query_chips(qaid_list, daid_list, return_cm=True)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[10:100]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_cm = ibs.query_chips(qaid_list, daid_list, return_cm=True)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 1</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example4:</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; qres_list = ibs.query_chips(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 3</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    qaid2_cm, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[resorg] get_automatch_candidates(&#39;</span>
+           <span class="s">&#39;filter_reviewed={filter_reviewed},&#39;</span>
+           <span class="s">&#39;filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},&#39;</span>
+           <span class="s">&#39;directed={directed},&#39;</span>
+           <span class="s">&#39;ranks_lt={ranks_lt},&#39;</span>
+           <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[resorg] len(cm_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)))</span>
+    <span class="n">qaids_stack</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">daids_stack</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ranks_stack</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">scores_stack</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># For each QueryResult, Extract inspectable candidate matches</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cm_list</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
+            <span class="n">daids</span>  <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">ntop</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_scores</span><span class="p">(</span><span class="n">ntop</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">)</span>
+            <span class="n">ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">))</span>
+            <span class="n">qaids</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">daids</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">daids</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_match_tbldata</span><span class="p">(</span>
+                <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">qaids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="n">daids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">scores_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="n">ranks_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span>
+
+    <span class="c"># Stack them into a giant array</span>
+    <span class="c"># utool.embed()</span>
+    <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">qaids_stack</span><span class="p">)</span>
+    <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">daids_stack</span><span class="p">)</span>
+    <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">scores_stack</span><span class="p">)</span>
+    <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ranks_stack</span><span class="p">)</span>
+
+    <span class="c"># Sort by scores</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">daid_arr</span>   <span class="o">=</span> <span class="n">daid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">filter_reviewed</span><span class="p">:</span>
+        <span class="n">_is_reviewed</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_is_reviewed</span><span class="p">(</span><span class="n">qaid_arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">is_unreviewed</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">_is_reviewed</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">daid_arr</span>   <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+
+    <span class="c"># Remove directed edges</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">directed</span><span class="p">:</span>
+        <span class="c">#nodes = np.unique(directed_edges.flatten())</span>
+        <span class="n">directed_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">daid_arr</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="c">#idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])</span>
+
+        <span class="n">unique_rowx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">directed_edges</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">)</span>
+
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+
+    <span class="c"># Filter Double Name Matches</span>
+    <span class="k">if</span> <span class="n">filter_duplicate_namepair_matches</span><span class="p">:</span>
+        <span class="n">qnid_arr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid_arr</span><span class="p">)</span>
+        <span class="n">dnid_arr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">daid_arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">directed</span><span class="p">:</span>
+            <span class="n">directed_name_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">qnid_arr</span><span class="p">,</span> <span class="n">dnid_arr</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">unique_rowx2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">directed_name_edges</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">namepair_id_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids_</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qnid_arr</span><span class="p">,</span> <span class="n">dnid_arr</span><span class="p">))))</span>
+            <span class="n">unique_namepair_ids</span><span class="p">,</span> <span class="n">namepair_groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">namepair_id_list</span><span class="p">)</span>
+            <span class="n">score_namepair_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">score_arr</span><span class="p">,</span> <span class="n">namepair_groupxs</span><span class="p">)</span>
+            <span class="n">unique_rowx2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span>
+                <span class="n">groupx</span><span class="p">[</span><span class="n">score_group</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+                <span class="k">for</span> <span class="n">groupx</span><span class="p">,</span> <span class="n">score_group</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">namepair_groupxs</span><span class="p">,</span> <span class="n">score_namepair_groups</span><span class="p">)</span>
+            <span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+
+    <span class="n">candidate_matches</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">daid_arr</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">,</span> <span class="n">rank_arr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">candidate_matches</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -1332,7 +1534,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.special_query &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.special_query &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -522,9 +522,10 @@
         <span class="n">pipeline_root</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span>
         <span class="n">return_expanded_nns</span><span class="o">=</span><span class="bp">True</span>
     <span class="p">)</span>
-    <span class="n">qaid2_qres_vsmany</span><span class="p">,</span> <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+    <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span>
         <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">vsmany_cfgdict</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">)</span>
+    <span class="n">qaid2_qres_vsmany</span> <span class="o">=</span> <span class="p">{</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">:</span> <span class="n">cm</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">}</span>
     <span class="n">isnsum</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span>
     <span class="k">assert</span> <span class="n">isnsum</span><span class="p">,</span> <span class="s">&#39;not nsum&#39;</span>
     <span class="k">assert</span> <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">!=</span> <span class="s">&#39;vsone&#39;</span>
@@ -623,20 +624,14 @@
         <span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c">#------------------------</span>
-    <span class="c"># METHOD 1:</span>
     <span class="n">qaid2_qres_vsone</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">top_aids</span> <span class="ow">in</span> <span class="n">vsone_query_pairs</span><span class="p">:</span>
         <span class="c"># Perform a query request for each</span>
-        <span class="n">qaid2_qres_vsone_</span><span class="p">,</span> <span class="n">__qreq_vsone_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+        <span class="n">cm_list_vsone_</span><span class="p">,</span> <span class="n">__qreq_vsone_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span>
             <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">top_aids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">vsone_cfgdict</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
             <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">)</span>
+        <span class="n">qaid2_qres_vsone_</span> <span class="o">=</span> <span class="p">{</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">:</span> <span class="n">cm</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list_vsone_</span><span class="p">}</span>
         <span class="n">qaid2_qres_vsone</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_vsone_</span><span class="p">)</span>
-    <span class="c">#------------------------</span>
-    <span class="c"># METHOD 2:</span>
-    <span class="c"># doesn&#39;t work because daids are not the same for each run</span>
-    <span class="c">#qaid2_qres_vsone_, vsone_qreq_ = ibs._query_chips4(</span>
-    <span class="c">#    [qaid], top_aids, cfgdict=vsone_cfgdict, return_request=True,</span>
-    <span class="c">#    use_cache=use_cache)</span>
     <span class="c">#------------------------</span>
     <span class="c"># Create pseudo query request because there is no good way to</span>
     <span class="c"># represent the vsone reranking as a single query request and</span>
@@ -1063,7 +1058,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

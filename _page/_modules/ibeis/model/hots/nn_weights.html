@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.nn_weights &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.nn_weights &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -135,18 +135,14 @@
   <h1>Source code for ibeis.model.hots.nn_weights</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
-<span class="c">#from ibeis.model.hots import name_scoring</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[nnweight]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[nnweight]&#39;</span><span class="p">)</span>
 
 
 <span class="n">NN_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{}</span>
@@ -161,8 +157,8 @@
 <span class="sd">    Registers a nearest neighbor normalized weighting</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">NN_WEIGHT_FUNC_DICT</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_fn&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_fn&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">filtfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">nn_normalized_weight</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtfunc</span>
@@ -170,35 +166,21 @@
 
 
 <span class="k">def</span> <span class="nf">_register_nn_simple_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
 <span class="k">def</span> <span class="nf">_register_misc_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">MISC_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
-<div class="viewcode-block" id="componentwise_uint8_dot"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.componentwise_uint8_dot">[docs]</a><span class="k">def</span> <span class="nf">componentwise_uint8_dot</span><span class="p">(</span><span class="n">qfx2_qvec</span><span class="p">,</span> <span class="n">qfx2_dvec</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; a dot product is a componentwise multiplication of</span>
-<span class="sd">    two vector and then a sum. Do that for arbitary vectors.</span>
-<span class="sd">    Remember to cast uint8 to float32 and then divide by 255**2.</span>
-<span class="sd">    BUT THESE ARE SIFT DESCRIPTORS WHICH USE THE SMALL UINT8 TRICK</span>
-<span class="sd">    DIVIDE BY 512**2 instead</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">arr1</span> <span class="o">=</span> <span class="n">qfx2_qvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
-    <span class="n">arr2</span> <span class="o">=</span> <span class="n">qfx2_dvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">qfx2_qvec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="s">&#39;must have normalized sift descriptors here&#39;</span>
-    <span class="n">cosangle</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">componentwise_dot</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">)</span> <span class="o">/</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">PSEUDO_UINT8_MAX_SQRD</span>
-    <span class="k">return</span> <span class="n">cosangle</span>
-
-</div>
 <span class="nd">@_register_nn_simple_weight_func</span>
 <div class="viewcode-block" id="const_match_weighter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.const_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">const_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -234,16 +216,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">bordavote_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
-    <span class="k">for</span> <span class="n">nns</span> <span class="ow">in</span> <span class="p">(</span><span class="n">nns_list</span><span class="p">):</span>
-        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
-        <span class="n">qfx2_bordavote</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">bordavote_weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qfx2_bordavote</span><span class="p">)</span>
+    <span class="n">_branks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">bordavote_weight_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">_branks</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="ow">in</span> <span class="n">nns_list</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">bordavote_weight_list</span>
 
 </div>
 <span class="nd">@_register_nn_simple_weight_func</span>
 <div class="viewcode-block" id="cos_match_weighter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.cos_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">cos_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Uses smk-like selectivity function. Need to gridsearch for a good alpha.</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.nn_weights --test-cos_match_weighter</span>
@@ -256,42 +240,15 @@
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, nns_list, nnvalid0_list = tup</span>
 <span class="sd">        &gt;&gt;&gt; assert qreq_.qparams.cos_on, &#39;bug setting custom params cos_weight&#39;</span>
 <span class="sd">        &gt;&gt;&gt; cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        qnid = ibs.get_annot_name_rowids(qaid)</span>
-<span class="sd">        qfx2_nids = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qfx2_idx.T[0:K].T))</span>
-<span class="sd">        # remove first match</span>
-<span class="sd">        qfx2_nids_ = qfx2_nids.T[1:].T</span>
-<span class="sd">        qfx2_cos_  = qfx2_cos.T[1:].T</span>
-<span class="sd">        # flags of unverified &#39;correct&#39; matches</span>
-<span class="sd">        qfx2_samename = qfx2_nids_ == qnid</span>
-<span class="sd">        for k in [1, None]:</span>
-<span class="sd">            for alpha in [.01, .1, 1, 3, 10, 20, 50]:</span>
-<span class="sd">                print(&#39;-------&#39;)</span>
-<span class="sd">                print(&#39;alpha = %r&#39; % alpha)</span>
-<span class="sd">                print(&#39;k = %r&#39; % k)</span>
-<span class="sd">                qfx2_cosweight = np.multiply(np.sign(qfx2_cos_), np.power(qfx2_cos_, alpha))</span>
-<span class="sd">                if k is None:</span>
-<span class="sd">                    qfx2_weight = qfx2_cosweight</span>
-<span class="sd">                    flag = qfx2_samename</span>
-<span class="sd">                else:</span>
-<span class="sd">                    qfx2_weight = qfx2_cosweight.T[0:k].T</span>
-<span class="sd">                    flag = qfx2_samename.T[0:k].T</span>
-<span class="sd">                #print(qfx2_weight)</span>
-<span class="sd">                #print(flag)</span>
-<span class="sd">                good_stats_ = ut.get_stats(qfx2_weight[flag])</span>
-<span class="sd">                bad_stats_ = ut.get_stats(qfx2_weight[~flag])</span>
-<span class="sd">                print(&#39;good_matches = &#39; + ut.dict_str(good_stats_))</span>
-<span class="sd">                print(&#39;bad_matchees = &#39; + ut.dict_str(bad_stats_))</span>
-<span class="sd">                print(&#39;diff_mean = &#39; + str(good_stats_[&#39;mean&#39;] - bad_stats_[&#39;mean&#39;]))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">cos_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">qconfig2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
     <span class="c"># Database feature index to chip index</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
         <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
-        <span class="n">qfx2_qvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">())[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">qfx2_qvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
         <span class="c"># database forground weights</span>
         <span class="c"># avoid using K due to its more dynamic nature by using -Knorm</span>
         <span class="n">qfx2_dvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_vecs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">])</span>
@@ -340,14 +297,14 @@
 <span class="nd">@_register_misc_weight_func</span>
 <div class="viewcode-block" id="distinctiveness_match_weighter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.distinctiveness_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">distinctiveness_match_weighter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: finish intergration</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
 <span class="sd">        &gt;&gt;&gt; tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;, codename=&#39;vsone_dist_extern_distinctiveness&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, nns_list, nnvalid0_list = tup</span>
-
-<span class="sd">    TODO: finish intergration</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span>
     <span class="k">assert</span> <span class="n">dstcnvs_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
@@ -373,7 +330,7 @@
 <span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        dict: weights_list</span>
+<span class="sd">        list: weights_list</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -409,46 +366,21 @@
 <span class="sd">        #from ibeis.model.hots import neighbor_index as hsnbrx</span>
 <span class="sd">        #nnindexer = hsnbrx.request_ibeis_nnindexer(qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#utool.stash_testdata(&#39;nns_list&#39;)</span>
-    <span class="c">#</span>
-    <span class="c">#Knorm = qreq_.qparams.Knorm</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">normalizer_rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
-    <span class="c">#with_metadata = qreq_.qparams.with_metadata</span>
-    <span class="c">#normweight_upper_bound = 30  # TODO:  make this specific to each normweight func</span>
-
-    <span class="c"># Prealloc output</span>
-    <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c">#if with_metadata:</span>
-    <span class="c">#    metadata = qreq_.metadata</span>
-    <span class="c">#    metakey = ut.get_funcname(normweight_fn) + &#39;_norm_meta&#39;</span>
-    <span class="c">#    metadata[metakey] = {}</span>
-    <span class="c">#    metakey_metadata = metadata[metakey]</span>
-    <span class="c">#else:</span>
-    <span class="c">#    metakey_metadata = None</span>
     <span class="c"># Database feature index to chip index</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
-        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
-        <span class="c"># Apply normalized weights</span>
-        <span class="n">qfx2_normweight</span> <span class="o">=</span> <span class="n">apply_normweight</span><span class="p">(</span>
+    <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">apply_normweight</span><span class="p">(</span>
             <span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="c">#with_metadata, metakey_metadata)</span>
-        <span class="c">#qfx2_normweight[qfx2_normweight &gt; normweight_upper_bound] = normweight_upper_bound</span>
-        <span class="c">#qfx2_normweight /= normweight_upper_bound</span>
-        <span class="c"># Output</span>
-        <span class="n">weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qfx2_normweight</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="k">return</span> <span class="n">weight_list</span>
 
 </div>
-<div class="viewcode-block" id="apply_normweight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.apply_normweight">[docs]</a><span class="k">def</span> <span class="nf">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span>
-                     <span class="n">qreq_</span><span class="p">):</span>
-    <span class="c">#, with_metadata, metakey_metadata):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper: applies the normalized weight function to one query annotation</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        ndarray: qfx2_normweight</span>
+<div class="viewcode-block" id="apply_normweight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.apply_normweight">[docs]</a><span class="k">def</span> <span class="nf">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">,</span>
+                     <span class="n">Knorm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; helper applies the normalized weight function to one query annotation</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        normweight_fn (func):  chosen weight function e.g. lnbnn</span>
@@ -458,6 +390,9 @@
 <span class="sd">        normalizer_rule (str):</span>
 <span class="sd">        Knorm (int):</span>
 <span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: qfx2_normweight</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.nn_weights --test-apply_normweight</span>
@@ -493,29 +428,15 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[nn_weights] no normalizer_rule=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">normalizer_rule</span><span class="p">)</span>
     <span class="n">qfx2_normdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dists</span><span class="p">[</span><span class="n">normk</span><span class="p">]</span>
                               <span class="k">for</span> <span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">normk</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">qfx2_normk</span><span class="p">)])</span>
-    <span class="c">#qfx2_normidx  = np.array([idxs[normk]</span>
-    <span class="c">#                          for (idxs, normk) in zip(qfx2_idx, qfx2_normk)])</span>
-    <span class="c"># Ensure shapes are valid</span>
     <span class="n">qfx2_normdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">vdist</span> <span class="o">=</span> <span class="n">qfx2_nndist</span>    <span class="c"># voting distance</span>
     <span class="n">ndist</span> <span class="o">=</span> <span class="n">qfx2_normdist</span>  <span class="c"># normalizer distance</span>
     <span class="n">qfx2_normweight</span> <span class="o">=</span> <span class="n">normweight_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
-    <span class="c"># build meta</span>
-    <span class="c">#if with_metadata:</span>
-    <span class="c">#    normmeta_header = (&#39;normalizer_metadata&#39;, [&#39;norm_aid&#39;, &#39;norm_fx&#39;, &#39;norm_k&#39;])</span>
-    <span class="c">#    qfx2_normmeta = np.array(</span>
-    <span class="c">#        [</span>
-    <span class="c">#            (qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)</span>
-    <span class="c">#            for (normk, idx) in zip(qfx2_normk, qfx2_normidx)</span>
-    <span class="c">#        ]</span>
-    <span class="c">#    )</span>
-    <span class="c">#    metakey_metadata[qaid] = (normmeta_header, qfx2_normmeta)</span>
     <span class="k">return</span> <span class="n">qfx2_normweight</span>
 
 </div>
 <div class="viewcode-block" id="get_name_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.get_name_normalizers">[docs]</a><span class="k">def</span> <span class="nf">get_name_normalizers</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper: normalizers for &#39;name&#39; normalizer_rule</span>
+    <span class="sd">&quot;&quot;&quot; helper normalizers for &#39;name&#39; normalizer_rule</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        qaid (int): query annotation id</span>
@@ -537,7 +458,6 @@
 <span class="sd">        &gt;&gt;&gt; (qfx2_idx, qfx2_dist) = nns_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
 <span class="sd">        &gt;&gt;&gt; qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">Knorm</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="s">&#39;inconsistency in qparams&#39;</span>
     <span class="c"># Get the top names you do not want your normalizer to be from</span>
@@ -560,8 +480,7 @@
 
 </div>
 <div class="viewcode-block" id="mark_name_valid_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.mark_name_valid_normalizers">[docs]</a><span class="k">def</span> <span class="nf">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">qfx2_normnid</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper: Allows matches only to the first result of a given name</span>
+    <span class="sd">&quot;&quot;&quot; Helper func that allows matches only to the first result for a name</span>
 
 <span class="sd">    Each query feature finds its K matches and Kn normalizing matches. These are the</span>
 <span class="sd">    candidates from which it can choose a set of matches and a single normalizer.</span>
@@ -569,16 +488,10 @@
 <span class="sd">    A normalizer is marked as invalid if it belongs to a name that was also in its</span>
 <span class="sd">    feature&#39;s candidate matching set.</span>
 
-
 <span class="sd">    Args:</span>
 <span class="sd">        qfx2_topnid (ndarray): marks the names a feature matches</span>
 <span class="sd">        qfx2_normnid (ndarray): marks the names of the feature normalizers</span>
 <span class="sd">        qnid (int): query name id</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        print(ut.doctest_repr(qfx2_normnid, &#39;qfx2_normnid&#39;, verbose=False))</span>
-<span class="sd">        print(ut.doctest_repr(qfx2_topnid, &#39;qfx2_topnid&#39;, verbose=False))</span>
-
 
 <span class="sd">    Returns:</span>
 <span class="sd">        qfx2_selnorm - index of the selected normalizer for each query feature</span>
@@ -613,37 +526,35 @@
 <span class="sd">        &gt;&gt;&gt; result = str(qfx2_normk_)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [2 1 2 0 0 0 2 0]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        print(ut.doctest_repr(qfx2_normnid, &#39;qfx2_normnid&#39;, verbose=False))</span>
+<span class="sd">        print(ut.doctest_repr(qfx2_topnid, &#39;qfx2_topnid&#39;, verbose=False))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Your normalizer should be from a name that is not in any of the top</span>
+    <span class="c"># The normalizer should be from a name that is not in any of the top</span>
     <span class="c"># matches if possible. If not possible it should be from the name with the</span>
     <span class="c"># highest k value.</span>
 
-    <span class="c">#%timeit np.vstack([vt.get_uncovered_mask(normnids, topnids) for topnids, normnids in zip(qfx2_topnid, qfx2_normnid)])</span>
-    <span class="c">#%timeit vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid)</span>
-    <span class="c">#&quot;&quot;&quot; matrix = qfx2_normnid; columns = qfx2_topnid; row_matrix = matrix.T; row_list = columns.T; &quot;&quot;&quot;</span>
-    <span class="c"># Find the positions in the normalizers that could be valid (assumes Knorm &gt; 1)</span>
-    <span class="c"># wow, this actually seems to work an is efficient. I hardly understand the code I write.</span>
-    <span class="c"># takes each column in topnid and comparses it to each column in in qfx2_normnid</span>
-    <span class="c"># Taking the logical or of all of these results gives you a matrix with the</span>
-    <span class="c"># shape of qfx2_normnid that is True where a normalizing feature&#39;s name</span>
-    <span class="c"># appears anywhere in the corresponding row of qfx2_topnid</span>
-    <span class="n">qfx2_invalid</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compare_matrix_columns</span><span class="p">(</span>
-        <span class="n">qfx2_normnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span>
-        <span class="n">comp_op</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">,</span>
-        <span class="n">logic_op</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">)</span>
-    <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">qfx2_invalid</span><span class="p">)</span>
+    <span class="c">#old_qfx2_invalid = vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid, comp_op=np.equal, logic_op=np.logical_or)</span>
+    <span class="c"># Find the positions in the normalizers that could be valid</span>
+    <span class="c"># (assumes Knorm &gt; 1)</span>
+    <span class="c"># IE positions in qfx2_normnid that appear anywhere in the corresponding</span>
+    <span class="c"># row of qfx2_topnid</span>
+    <span class="c"># TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), &#39;Normalizers are potential matches. Increase Knorm&#39;</span>
+
+    <span class="c">#qfx2_invalid = np.logical_or.reduce([col1[:, None] == qfx2_normnid for col1 in qfx2_topnid.T])</span>
+    <span class="c">#qfx2_valid = np.logical_not(qfx2_invalid)</span>
+    <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="n">col1</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qfx2_normnid</span> <span class="k">for</span> <span class="n">col1</span> <span class="ow">in</span> <span class="n">qfx2_topnid</span><span class="o">.</span><span class="n">T</span><span class="p">])</span>
 
     <span class="c">#if qnid is not None:</span>
     <span class="c"># Mark self as invalid, if given that information</span>
     <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_normnid</span> <span class="o">!=</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
 
-    <span class="c"># TODO: warn if any([np.any(flags) for flags in qfx2_invalid]), &#39;Normalizers are potential matches. Increase Knorm&#39;</span>
-
     <span class="c"># For each query feature find its best normalizer (using negative indices)</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qfx2_normnid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">qfx2_validxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">normrow</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">normrow</span> <span class="ow">in</span> <span class="n">qfx2_valid</span><span class="p">]</span>
-    <span class="n">qfx2_selnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">validxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Knorm</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validxs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span>
-                             <span class="n">validxs</span> <span class="ow">in</span> <span class="n">qfx2_validxs</span><span class="p">],</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span>
+    <span class="n">qfx2_validxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">normrow</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">normrow</span> <span class="ow">in</span> <span class="n">qfx2_valid</span><span class="p">]</span>
+    <span class="n">qfx2_selnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">validxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Knorm</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validxs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+                             <span class="k">for</span> <span class="n">validxs</span> <span class="ow">in</span> <span class="n">qfx2_validxs</span><span class="p">],</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qfx2_selnorm</span>
 
 </div>
@@ -654,25 +565,18 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; ndists = np.array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6]])</span>
-<span class="sd">        &gt;&gt;&gt; ndist = ndists.T[0:1].T</span>
-<span class="sd">        &gt;&gt;&gt; vdist = np.array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])</span>
-<span class="sd">        &gt;&gt;&gt; vdist1 = vdist[:, 0:1]</span>
-<span class="sd">        &gt;&gt;&gt; vdist2 = vdist[:, 0:2]</span>
-<span class="sd">        &gt;&gt;&gt; vdist3 = vdist[:, 0:3]</span>
-<span class="sd">        &gt;&gt;&gt; vdist4 = vdist[:, 0:4]</span>
-<span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist1, ndist))</span>
-<span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist2, ndist))</span>
-<span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist3, ndist))</span>
-<span class="sd">        &gt;&gt;&gt; print(lnbnn_fn(vdist4, ndist))</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = lnbnn_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;lnbnn  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        lnbnn  = np.array([[ 0.62,  0.22,  0.03],</span>
+<span class="sd">                           [ 0.35,  0.22,  0.01],</span>
+<span class="sd">                           [ 0.87,  0.58,  0.27],</span>
+<span class="sd">                           [ 0.67,  0.42,  0.25],</span>
+<span class="sd">                           [ 0.59,  0.3 ,  0.27]])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span><span class="p">)</span>
-
-</div>
-<span class="nd">@_register_nn_normalized_weight_func</span>
-<div class="viewcode-block" id="loglnbnn_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.loglnbnn_fn">[docs]</a><span class="k">def</span> <span class="nf">loglnbnn_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c"># / 1000.0</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
@@ -688,47 +592,150 @@
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; vdist = np.array([[ 0.,  0.,  0.,  0.,  0.,  0.]], dtype=np.float32).T</span>
-<span class="sd">        &gt;&gt;&gt; ndist = np.array([[  60408.,   61594.,  111387., 120138., 124307.,  125625.]], dtype=np.float32).T</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
 <span class="sd">        &gt;&gt;&gt; out = ratio_fn(vdist, ndist)</span>
-<span class="sd">        &gt;&gt;&gt; result = np.array_repr(out.T, precision=2)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;ratio = &#39;, ut.repr2(out, precision=2))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        array([[ 0.,  0.,  0.,  0.,  0.,  0.]], dtype=float32)</span>
-
-<span class="sd">    Example2:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; vdist = np.array([[  79260.,  138617.,   47964.,  127839.,  123543.,  112204.]], dtype=np.float32).T</span>
-<span class="sd">        &gt;&gt;&gt; ndist = np.array([[  83370.,  146245.,  128620.,  129598.,  126165.,  124761.]], dtype=np.float32).T</span>
-<span class="sd">        &gt;&gt;&gt; out = ratio_fn(vdist, ndist)</span>
-<span class="sd">        &gt;&gt;&gt; result = np.array_repr(out.T, precision=2)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        array([[ 0.95,  0.95,  0.37,  0.99,  0.98,  0.9 ]], dtype=float32)</span>
+<span class="sd">        ratio = np.array([[ 0.  ,  0.65,  0.95],</span>
+<span class="sd">                          [ 0.33,  0.58,  0.98],</span>
+<span class="sd">                          [ 0.13,  0.42,  0.73],</span>
+<span class="sd">                          [ 0.15,  0.47,  0.68],</span>
+<span class="sd">                          [ 0.23,  0.61,  0.65]])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
-<div class="viewcode-block" id="dist_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.dist_fn">[docs]</a><span class="k">def</span> <span class="nf">dist_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; just use straight up distance &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">vdist</span>
-
-</div>
-<span class="nd">@_register_nn_normalized_weight_func</span>
 <div class="viewcode-block" id="bar_l2_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.bar_l2_fn">[docs]</a><span class="k">def</span> <span class="nf">bar_l2_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; one - distnce. no normalizer &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The feature weight is (1 - the euclidian distance</span>
+<span class="sd">    between the features). The normalizers are unused.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = bar_l2_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;barl2  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        barl2  = np.array([[ 1.  ,  0.6 ,  0.41],</span>
+<span class="sd">                           [ 0.83,  0.7 ,  0.49],</span>
+<span class="sd">                           [ 0.87,  0.58,  0.27],</span>
+<span class="sd">                           [ 0.88,  0.63,  0.46],</span>
+<span class="sd">                           [ 0.82,  0.53,  0.5 ]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">vdist</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
+<div class="viewcode-block" id="loglnbnn_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.loglnbnn_fn">[docs]</a><span class="k">def</span> <span class="nf">loglnbnn_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ignore:</span>
+<span class="sd">        import vtool as vt</span>
+<span class="sd">        vt.check_expr_eq(&#39;log(d) - log(n)&#39;, &#39;log(d / n)&#39;)   # True</span>
+<span class="sd">        vt.check_expr_eq(&#39;log(d) / log(n)&#39;, &#39;log(d - n)&#39;)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = loglnbnn_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;loglnbnn  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        loglnbnn  = np.array([[ 0.48,  0.2 ,  0.03],</span>
+<span class="sd">                              [ 0.3 ,  0.2 ,  0.01],</span>
+<span class="sd">                              [ 0.63,  0.46,  0.24],</span>
+<span class="sd">                              [ 0.51,  0.35,  0.22],</span>
+<span class="sd">                              [ 0.46,  0.26,  0.24]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+
+</div>
+<span class="nd">@_register_nn_normalized_weight_func</span>
 <div class="viewcode-block" id="logratio_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.logratio_fn">[docs]</a><span class="k">def</span> <span class="nf">logratio_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = normonly_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(out)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([[ 0.62,  0.62,  0.62],</span>
+<span class="sd">                  [ 0.52,  0.52,  0.52],</span>
+<span class="sd">                  [ 1.  ,  1.  ,  1.  ],</span>
+<span class="sd">                  [ 0.79,  0.79,  0.79],</span>
+<span class="sd">                  [ 0.77,  0.77,  0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndist</span><span class="p">,</span> <span class="n">vdist</span> <span class="o">+</span> <span class="n">EPS</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
 <div class="viewcode-block" id="normonly_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.normonly_fn">[docs]</a><span class="k">def</span> <span class="nf">normonly_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = normonly_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(out)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([[ 0.62,  0.62,  0.62],</span>
+<span class="sd">                  [ 0.52,  0.52,  0.52],</span>
+<span class="sd">                  [ 1.  ,  1.  ,  1.  ],</span>
+<span class="sd">                  [ 0.79,  0.79,  0.79],</span>
+<span class="sd">                  [ 0.77,  0.77,  0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ndist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">vdist</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
     <span class="c">#return ndist[None, 0:1]</span>
+
+</div>
+<div class="viewcode-block" id="testdata_vn_dists"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.testdata_vn_dists">[docs]</a><span class="k">def</span> <span class="nf">testdata_vn_dists</span><span class="p">(</span><span class="n">nfeats</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Test voting and normalizing distances</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (vdist, ndist) - test voting distances and normalizer distances</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; result = (ut.hz_str(&#39;vdist = &#39;, ut.repr2(vdist))) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += (ut.hz_str(&#39;ndist = &#39;, ut.repr2(ndist)))</span>
+<span class="sd">        vdist = np.array([[ 0.  ,  0.4 ,  0.59],</span>
+<span class="sd">                          [ 0.17,  0.3 ,  0.51],</span>
+<span class="sd">                          [ 0.13,  0.42,  0.73],</span>
+<span class="sd">                          [ 0.12,  0.37,  0.54],</span>
+<span class="sd">                          [ 0.18,  0.47,  0.5 ]])</span>
+<span class="sd">        ndist = np.array([[ 0.62],</span>
+<span class="sd">                          [ 0.52],</span>
+<span class="sd">                          [ 1.  ],</span>
+<span class="sd">                          [ 0.79],</span>
+<span class="sd">                          [ 0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">make_precise</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+        <span class="n">prec</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="p">((</span><span class="n">prec</span> <span class="o">*</span> <span class="n">dist</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">/</span> <span class="n">prec</span><span class="p">)</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dist</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c"># Ensure distance increases</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">vdist</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndist</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">vdist</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">ndist</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">make_precise</span><span class="p">(</span><span class="n">vdist</span> <span class="o">/</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">make_precise</span><span class="p">(</span><span class="n">ndist</span> <span class="o">/</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="n">vdist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span>
+
+
+<span class="c">#@_register_nn_normalized_weight_func</span>
+<span class="c">#def dist_fn(vdist, ndist):</span>
+<span class="c">#    &quot;&quot;&quot; the euclidian distance between the features &quot;&quot;&quot;</span>
+<span class="c">#    return vdist</span>
 
 
 <span class="c">#@_register_nn_simple_weight_func</span></div>
@@ -748,6 +755,9 @@
 </div>
 <div class="viewcode-block" id="test_all_normalized_weights"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.test_all_normalized_weights">[docs]</a><span class="k">def</span> <span class="nf">test_all_normalized_weights</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.nn_weights --exec-test_all_normalized_weights</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; test_all_normalized_weights()</span>
@@ -821,7 +831,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

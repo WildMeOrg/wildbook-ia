@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.neighbor_index &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.neighbor_index &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -487,13 +487,15 @@
             <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_set_equal</span><span class="p">(</span><span class="n">covered_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">daid_list</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">can_augment</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Requesting augmented nnindexer&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Requesting augmented nnindexer&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">can_augment</span><span class="p">:</span>
         <span class="n">covered_aids</span> <span class="o">=</span> <span class="n">covered_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c">#with ut.PrintStartEndContext(&#39;AUGMENTING NNINDEX&#39;, verbose=verbose):</span>
         <span class="c">#    with ut.Indenter(&#39;|  &#39;):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Augmenting index </span><span class="si">%r</span><span class="s"> old daids with </span><span class="si">%d</span><span class="s"> new daids&#39;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">covered_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_daid_list</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Augmenting index </span><span class="si">%r</span><span class="s"> old daids with </span><span class="si">%d</span><span class="s"> new daids&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">covered_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_daid_list</span><span class="p">)))</span>
         <span class="c"># Load the base covered indexer</span>
         <span class="c"># THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED</span>
         <span class="n">base_nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">covered_aids</span><span class="p">,</span>
@@ -527,7 +529,8 @@
         <span class="k">return</span> <span class="n">nnindexer</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c">#if ut.VERBOSE:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Nothing to augment, fallback to memcache&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[aug] Nothing to augment, fallback to memcache&#39;</span><span class="p">)</span>
         <span class="c"># Fallback</span>
         <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_ibeis_nnindexer</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="o">=</span><span class="n">force_rebuild</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span>
@@ -857,7 +860,7 @@
 <span class="sd">    flattens vecs_list and builds a reverse index from the flattened indices</span>
 <span class="sd">    (idx) to the original aids and fxs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex] Preparing data for indexing&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex] Preparing data for indexing / loading index&#39;</span><span class="p">)</span>
     <span class="c"># Check input</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="s">&#39;invalid input. bad len&#39;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;len(aid_list) == 0.&#39;</span>
@@ -1721,7 +1724,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

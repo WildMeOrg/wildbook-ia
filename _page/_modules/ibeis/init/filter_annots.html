@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.filter_annots &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.init.filter_annots &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -133,7 +133,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: sort annotations at the end of every step</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -182,6 +182,8 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf filter_annots_general</span>
+<span class="sd">        python -m ibeis --tf filter_annots_general --db PZ_Master1 --has_any=[needswork,correctable,mildviewpoint] --has_none=[viewpoint,photobomb,error:viewpoint,quality] --show</span>
+
 <span class="sd">        python -m ibeis --tf filter_annots_general --db=GZ_Master1  \</span>
 <span class="sd">                --max-numfeat=300 --show --minqual=junk --species=None</span>
 <span class="sd">        python -m ibeis --tf filter_annots_general --db=lynx \</span>
@@ -191,7 +193,7 @@
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.init.filter_annots import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; filter_kw = ut.argparse_dict(get_default_annot_filter_form(), type_hint=ut.ddict(list, logic=str))</span>
+<span class="sd">        &gt;&gt;&gt; filter_kw = ut.argparse_dict(get_default_annot_filter_form(), type_hint=ut.ddict(list, has_any=list, has_none=list, logic=str))</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;filter_kw = %s&#39; % (ut.dict_str(filter_kw),))</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
@@ -210,9 +212,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">filter_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">aid_list</span>
-    <span class="n">filter_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">merge_dicts</span><span class="p">(</span><span class="n">get_default_annot_filter_form</span><span class="p">(),</span> <span class="n">filter_kw</span><span class="p">)</span>
-    <span class="c"># TODO GET FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT</span>
-    <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filterannots_by_tags</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
+    <span class="c">#filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)</span>
+    <span class="c"># TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT</span>
+    <span class="c">#aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)</span>
     <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list_</span>
 
@@ -231,9 +233,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
     <span class="n">iden_defaults</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">INDEPENDENT_DEFAULTS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">tag_defaults</span> <span class="o">=</span> <span class="n">get_annot_tag_filterflags</span><span class="p">(</span>
-        <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{},</span> <span class="n">request_defaultkw</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">filter_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_union3</span><span class="p">(</span><span class="n">iden_defaults</span><span class="p">,</span> <span class="n">tag_defaults</span><span class="p">,</span> <span class="n">combine_op</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">filter_kw</span> <span class="o">=</span> <span class="n">iden_defaults</span>
+    <span class="c">#tag_defaults = get_annot_tag_filterflags(</span>
+    <span class="c">#    None, None, {}, request_defaultkw=True)</span>
+    <span class="c">#filter_kw = ut.dict_union3(iden_defaults, tag_defaults, combine_op=None)</span>
     <span class="k">return</span> <span class="n">filter_kw</span>
 
 </div>
@@ -334,6 +337,35 @@
     <span class="k">return</span> <span class="n">aid_list_</span>
 
 </div>
+<div class="viewcode-block" id="get_acfg_cacheinfo"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.get_acfg_cacheinfo">[docs]</a><span class="k">def</span> <span class="nf">get_acfg_cacheinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+    <span class="c"># Make loading aids a big faster for experiments</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">ibeis</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+        <span class="n">repodir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">))</span>
+        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">repodir</span><span class="p">,</span> <span class="s">&#39;ACFG_CACHE&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="s">&#39;./localdata/ACFG_CACHE&#39;</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">acfg_cachedir</span><span class="p">)</span>
+    <span class="n">acfg_cachename</span> <span class="o">=</span> <span class="s">&#39;ACFG_CACHE&#39;</span>
+
+    <span class="n">RESPECT_INTERNAL_CFGS</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">RESPECT_INTERNAL_CFGS</span><span class="p">:</span>
+        <span class="n">aid_cachestr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">copy</span>
+        <span class="n">relevant_aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span>
+                            <span class="n">cfghelpers</span><span class="o">.</span><span class="n">INTERNAL_CFGKEYS</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span>
+                            <span class="n">cfghelpers</span><span class="o">.</span><span class="n">INTERNAL_CFGKEYS</span><span class="p">)</span>
+        <span class="n">aid_cachestr</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">)))</span>
+    <span class="n">acfg_cacheinfo</span> <span class="o">=</span> <span class="n">acfg_cachedir</span><span class="p">,</span> <span class="n">acfg_cachename</span><span class="p">,</span> <span class="n">aid_cachestr</span>
+    <span class="k">return</span> <span class="n">acfg_cacheinfo</span>
+
+</div>
 <div class="viewcode-block" id="expand_single_acfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.expand_single_acfg">[docs]</a><span class="k">def</span> <span class="nf">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_TESTDATA</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -380,8 +412,7 @@
             <span class="k">return</span> <span class="n">b</span>
         <span class="k">elif</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">a</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
     <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c"># Keep track of seen samples</span>
@@ -410,87 +441,98 @@
             <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmpmin</span><span class="p">(</span><span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">min_dsize</span><span class="p">)</span>
 
         <span class="c"># Expand modified acfgdict</span>
-        <span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
-                                     <span class="n">hack_exclude_keys</span><span class="o">=</span><span class="n">hack_exclude_keys</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%d</span><span class="s">] &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">combox</span><span class="p">,)):</span>
+            <span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                                         <span class="n">hack_exclude_keys</span><span class="o">=</span><span class="n">hack_exclude_keys</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">dcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hack_extra&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
-            <span class="c"># SUCH HACK to get a larger database</span>
-            <span class="n">_aidcfg</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">500</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;require_viewpoint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;exclude_reference&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;right&#39;</span>
-            <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;hack&#39;</span>
-            <span class="n">qaids</span> <span class="o">=</span> <span class="n">expanded_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">daids</span> <span class="o">=</span> <span class="n">expanded_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">dcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hack_extra&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="c"># SUCH HACK to get a larger database</span>
+                <span class="k">assert</span> <span class="bp">False</span>
+                <span class="n">_aidcfg</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">500</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;require_viewpoint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;exclude_reference&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">_aidcfg</span><span class="p">[</span><span class="s">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;right&#39;</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;hack&#39;</span>
+                <span class="n">qaids</span> <span class="o">=</span> <span class="n">expanded_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">daids</span> <span class="o">=</span> <span class="n">expanded_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-            <span class="n">_extra_aids</span> <span class="o">=</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-            <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">remove_groundtrue_aids</span><span class="p">(</span>
-                <span class="n">_extra_aids</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span> <span class="o">+</span> <span class="n">daids</span><span class="p">))</span>
-            <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">_extra_aids</span><span class="p">,</span> <span class="n">_aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
-            <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="p">,</span> <span class="n">_extra_aids</span><span class="p">,</span> <span class="n">_aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
-            <span class="n">daids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">daids</span> <span class="o">+</span> <span class="n">_extra_aids</span><span class="p">)</span>
-            <span class="n">expanded_aids</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+                <span class="n">_extra_aids</span> <span class="o">=</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+                <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">remove_groundtrue_aids</span><span class="p">(</span>
+                    <span class="n">_extra_aids</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span> <span class="o">+</span> <span class="n">daids</span><span class="p">))</span>
+                <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">_extra_aids</span><span class="p">,</span> <span class="n">_aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+                <span class="n">_extra_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">_extra_aids</span><span class="p">,</span> <span class="n">_aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+                <span class="n">daids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">daids</span> <span class="o">+</span> <span class="n">_extra_aids</span><span class="p">)</span>
+                <span class="n">expanded_aids</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
 
-        <span class="n">qsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">dsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">qsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">dsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">min_qsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qsize</span>
-        <span class="k">if</span> <span class="n">min_dsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>  <span class="c"># UNSURE</span>
-            <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsize</span>
+            <span class="c"># &lt;hack for float that should not interfere with other hacks</span>
+            <span class="k">if</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qsize</span><span class="p">:</span>
+                <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;_orig_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dsize</span><span class="p">:</span>
+                <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;_orig_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span>
+            <span class="c"># /--&gt;</span>
 
-        <span class="k">if</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qsize</span><span class="p">:</span>
-            <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;_true_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qsize</span>
-        <span class="k">if</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dsize</span><span class="p">:</span>
-            <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;_true_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsize</span>
+            <span class="k">if</span> <span class="n">min_qsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qsize</span>
+            <span class="k">if</span> <span class="n">min_dsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>  <span class="c"># UNSURE</span>
+                <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsize</span>
 
-        <span class="k">if</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;force_const_size&#39;</span><span class="p">]:</span>
-            <span class="n">min_qsize</span> <span class="o">=</span> <span class="n">tmpmin</span><span class="p">(</span><span class="n">min_qsize</span><span class="p">,</span> <span class="n">qsize</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;force_const_size&#39;</span><span class="p">]:</span>  <span class="c"># UNSURE</span>
-            <span class="n">min_dsize</span> <span class="o">=</span> <span class="n">tmpmin</span><span class="p">(</span><span class="n">min_dsize</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qsize</span><span class="p">:</span>
+                <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;_true_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qsize</span>
+            <span class="k">if</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dsize</span><span class="p">:</span>
+                <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;_true_sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsize</span>
 
-        <span class="c"># so hacky</span>
-        <span class="c"># this has to be after sample_size assignment, otherwise the filtering</span>
-        <span class="c"># is unstable Remove queries that have labeling errors in them.</span>
-        <span class="c"># TODO: fix errors AND remove labels</span>
-        <span class="n">REMOVE_LABEL_ERRORS</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="n">REMOVE_LABEL_ERRORS</span><span class="p">:</span>
-            <span class="n">qaids_</span><span class="p">,</span> <span class="n">daids_</span> <span class="o">=</span> <span class="n">expanded_aids</span>
+            <span class="k">if</span> <span class="n">qcfg</span><span class="p">[</span><span class="s">&#39;force_const_size&#39;</span><span class="p">]:</span>
+                <span class="n">min_qsize</span> <span class="o">=</span> <span class="n">tmpmin</span><span class="p">(</span><span class="n">min_qsize</span><span class="p">,</span> <span class="n">qsize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dcfg</span><span class="p">[</span><span class="s">&#39;force_const_size&#39;</span><span class="p">]:</span>  <span class="c"># UNSURE</span>
+                <span class="n">min_dsize</span> <span class="o">=</span> <span class="n">tmpmin</span><span class="p">(</span><span class="n">min_dsize</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
 
-            <span class="n">partitioned_sets</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">partition_annots_into_corresponding_groups</span><span class="p">(</span>
-                <span class="n">qaids_</span><span class="p">,</span> <span class="n">daids_</span><span class="p">)</span>
-            <span class="n">tup</span> <span class="o">=</span> <span class="n">partitioned_sets</span>
-            <span class="n">query_group</span><span class="p">,</span> <span class="n">data_group</span><span class="p">,</span> <span class="n">unknown_group</span><span class="p">,</span> <span class="n">distract_group</span> <span class="o">=</span> <span class="n">tup</span>
+            <span class="c"># so hacky</span>
+            <span class="c"># this has to be after sample_size assignment, otherwise the filtering</span>
+            <span class="c"># is unstable Remove queries that have labeling errors in them.</span>
+            <span class="c"># TODO: fix errors AND remove labels</span>
+            <span class="c">#REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag(&#39;--noerrors&#39;)</span>
+            <span class="n">REMOVE_LABEL_ERRORS</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="c">#ut.is_developer() or ut.get_argflag(&#39;--noerrors&#39;)</span>
+            <span class="k">if</span> <span class="n">REMOVE_LABEL_ERRORS</span><span class="p">:</span>
+                <span class="n">qaids_</span><span class="p">,</span> <span class="n">daids_</span> <span class="o">=</span> <span class="n">expanded_aids</span>
 
-            <span class="n">unknown_flags</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_filterflags</span><span class="p">,</span> <span class="n">unknown_group</span><span class="p">,</span>
-                <span class="n">filter_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.*error.*&#39;</span><span class="p">]))</span>
-            <span class="c">#data_flags  = ibs.unflat_map(</span>
-            <span class="c">#    ibs.get_annot_tag_filterflags, data_group,</span>
-            <span class="c">#    filter_kw=dict(none_match=[&#39;.*error.*&#39;]))</span>
-            <span class="n">query_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_filterflags</span><span class="p">,</span> <span class="n">query_group</span><span class="p">,</span>
-                <span class="n">filter_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.*error.*&#39;</span><span class="p">]))</span>
+                <span class="n">partitioned_sets</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">partition_annots_into_corresponding_groups</span><span class="p">(</span>
+                    <span class="n">qaids_</span><span class="p">,</span> <span class="n">daids_</span><span class="p">)</span>
+                <span class="n">tup</span> <span class="o">=</span> <span class="n">partitioned_sets</span>
+                <span class="n">query_group</span><span class="p">,</span> <span class="n">data_group</span><span class="p">,</span> <span class="n">unknown_group</span><span class="p">,</span> <span class="n">distract_group</span> <span class="o">=</span> <span class="n">tup</span>
 
-            <span class="n">query_noterror_flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_zipflatten</span><span class="p">(</span>
-                <span class="n">query_flags</span><span class="p">,</span>
-                <span class="c">#data_flags,</span>
-            <span class="p">)))</span>
-            <span class="n">unknown_noterror_flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">))</span>
+                <span class="n">unknown_flags</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_filterflags</span><span class="p">,</span> <span class="n">unknown_group</span><span class="p">,</span>
+                    <span class="n">filter_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.*error.*&#39;</span><span class="p">]))</span>
+                <span class="c">#data_flags  = ibs.unflat_map(</span>
+                <span class="c">#    ibs.get_annot_tag_filterflags, data_group,</span>
+                <span class="c">#    filter_kw=dict(none_match=[&#39;.*error.*&#39;]))</span>
+                <span class="n">query_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_filterflags</span><span class="p">,</span> <span class="n">query_group</span><span class="p">,</span>
+                    <span class="n">filter_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;.*error.*&#39;</span><span class="p">]))</span>
 
-            <span class="n">filtered_queries</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">query_group</span><span class="p">,</span> <span class="n">query_noterror_flags</span><span class="p">))</span>
-            <span class="n">filtered_unknown</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">unknown_group</span><span class="p">,</span> <span class="n">unknown_noterror_flags</span><span class="p">))</span>
+                <span class="n">query_noterror_flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_zipflatten</span><span class="p">(</span>
+                    <span class="n">query_flags</span><span class="p">,</span>
+                    <span class="c">#data_flags,</span>
+                <span class="p">)))</span>
+                <span class="n">unknown_noterror_flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">))</span>
 
-            <span class="n">filtered_qaids_</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filtered_queries</span> <span class="o">+</span> <span class="n">filtered_unknown</span><span class="p">)</span>
+                <span class="n">filtered_queries</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">query_group</span><span class="p">,</span> <span class="n">query_noterror_flags</span><span class="p">))</span>
+                <span class="n">filtered_unknown</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">unknown_group</span><span class="p">,</span> <span class="n">unknown_noterror_flags</span><span class="p">))</span>
 
-            <span class="n">expanded_aids</span> <span class="o">=</span> <span class="p">(</span><span class="n">filtered_qaids_</span><span class="p">,</span> <span class="n">daids_</span><span class="p">)</span>
+                <span class="n">filtered_qaids_</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filtered_queries</span> <span class="o">+</span> <span class="n">filtered_unknown</span><span class="p">)</span>
+
+                <span class="n">expanded_aids</span> <span class="o">=</span> <span class="p">(</span><span class="n">filtered_qaids_</span><span class="p">,</span> <span class="n">daids_</span><span class="p">)</span>
 
         <span class="c">#ibs.print_annotconfig_stats(*expanded_aids)</span>
         <span class="n">expanded_aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">)</span>
@@ -498,35 +540,6 @@
     <span class="c"># Sample afterwords</span>
 
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">acfg_combo</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="p">))</span>
-
-</div>
-<div class="viewcode-block" id="get_acfg_cacheinfo"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.filter_annots.get_acfg_cacheinfo">[docs]</a><span class="k">def</span> <span class="nf">get_acfg_cacheinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
-    <span class="c"># Make loading aids a big faster for experiments</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
-        <span class="kn">import</span> <span class="nn">ibeis</span>
-        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
-        <span class="n">repodir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">))</span>
-        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">repodir</span><span class="p">,</span> <span class="s">&#39;ACFG_CACHE&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">acfg_cachedir</span> <span class="o">=</span> <span class="s">&#39;./localdata/ACFG_CACHE&#39;</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">acfg_cachedir</span><span class="p">)</span>
-    <span class="n">acfg_cachename</span> <span class="o">=</span> <span class="s">&#39;ACFG_CACHE&#39;</span>
-
-    <span class="n">RESPECT_INTERNAL_CFGS</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">RESPECT_INTERNAL_CFGS</span><span class="p">:</span>
-        <span class="n">aid_cachestr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">copy</span>
-        <span class="n">relevant_aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span>
-                            <span class="n">cfghelpers</span><span class="o">.</span><span class="n">INTERNAL_CFGKEYS</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span>
-                            <span class="n">cfghelpers</span><span class="o">.</span><span class="n">INTERNAL_CFGKEYS</span><span class="p">)</span>
-        <span class="n">aid_cachestr</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">relevant_aidcfg</span><span class="p">)))</span>
-    <span class="n">acfg_cacheinfo</span> <span class="o">=</span> <span class="n">acfg_cachedir</span><span class="p">,</span> <span class="n">acfg_cachename</span><span class="p">,</span> <span class="n">aid_cachestr</span>
-    <span class="k">return</span> <span class="n">acfg_cacheinfo</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -579,6 +592,10 @@
 <span class="sd">        utprof.py -m ibeis.dev -e latexsum -t candk -a controlled  --db PZ_Master0 --acfginfo</span>
 
 <span class="sd">        python -m ibeis --tf get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd</span>
+
+<span class="sd">        python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd  --veryverbtd</span>
+<span class="sd">        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd</span>
+
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -815,6 +832,10 @@
 <span class="sd">        &gt;&gt;&gt;                                        prefix, verbose)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;avail_aids = %s&#39; % (str(avail_aids),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        # Testing tag features</span>
+<span class="sd">        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
     <span class="k">if</span> <span class="n">aidcfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -915,6 +936,17 @@
             <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">remove_aids_of_viewpoint</span><span class="p">(</span>
                 <span class="n">avail_aids</span><span class="p">,</span> <span class="n">exclude_view</span><span class="p">)</span>
 
+    <span class="c"># FILTER HACK</span>
+    <span class="c"># TODO: further integrate</span>
+    <span class="k">if</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;has_any&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">aidcfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;has_none&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">filterkw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;has_any&#39;</span><span class="p">,</span> <span class="s">&#39;has_none&#39;</span><span class="p">],</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">get_annot_tag_filterflags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">filterkw</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">VerbosityContext</span><span class="p">(</span><span class="s">&#39;has_any&#39;</span><span class="p">,</span> <span class="s">&#39;has_none&#39;</span><span class="p">):</span>
+            <span class="n">avail_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="c">#avail_aids = ibs.filter_aids_without_name(</span>
+            <span class="c">#    avail_aids, invert=not aidcfg[&#39;is_known&#39;])</span>
+        <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
+
     <span class="n">avail_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
 
     <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">endfilter</span><span class="p">()</span>
@@ -953,7 +985,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">same_encounter</span> <span class="o">=</span> <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;same_encounter&#39;</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">same_encounter</span> <span class="ow">is</span> <span class="bp">True</span>
-        <span class="c">#ut.embed()</span>
         <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_primary_encounter</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span>
         <span class="n">multiprop2_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hierarchical_group_items</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">,</span> <span class="p">[</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">])</span>
@@ -1086,11 +1117,13 @@
         <span class="n">VerbosityContext</span><span class="o">.</span><span class="n">endfilter</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">avail_aids</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">sample_size</span><span class="p">):</span>
         <span class="c"># A float sample size is a interpolations between full data and small</span>
         <span class="c"># data</span>
         <span class="n">sample_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample_size</span> <span class="o">+</span>
                                  <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sample_size</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_aids</span><span class="p">))))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Expanding sample size to: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sample_size</span><span class="p">,))</span>
 
     <span class="c"># This function first partitions aids into a one set that corresonds with</span>
     <span class="c"># the reference set and another that does not correspond with the reference</span>
@@ -1392,7 +1425,7 @@
         <span class="c"># change to dict_union when parsing ors</span>
         <span class="kn">import</span> <span class="nn">functools</span>
         <span class="n">andcombine</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">dict_intersection</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">combine_op</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">and_</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">dict_isect_combine</span><span class="p">,</span> <span class="n">combine_op</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">and_</span><span class="p">)</span>
         <span class="n">expr_nid2_result</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">andcombine</span><span class="p">,</span> <span class="n">prop_nid2_result_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">expr_nid2_result</span>
 
@@ -1523,7 +1556,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

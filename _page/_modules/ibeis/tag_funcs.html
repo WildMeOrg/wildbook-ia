@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tag_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.tag_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -174,6 +174,7 @@
 
     <span class="s">&#39;BadShoulder&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad shoulder match</span>
     <span class="s">&#39;BadTail&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad tail match</span>
+    <span class="s">&#39;TimeDeltaError&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">OLD_ANNOTMATCH_PROPS</span> <span class="o">=</span> <span class="p">[</span>
@@ -239,7 +240,8 @@
         <span class="c">#&#39;quality&#39;: &#39;Quality&#39;,</span>
         <span class="c">#&#39;scoringissue&#39;: &#39;ScoringIssue&#39;,</span>
         <span class="c">#&#39;orientation&#39;: &#39;Orientation&#39;,</span>
-        <span class="s">&#39;orientation&#39;</span><span class="p">:</span> <span class="s">&#39;MildViewpoint&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;orientation&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="s">&#39;orientation&#39;</span><span class="p">:</span> <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
         <span class="c">#&#39;pose&#39;: &#39;SimilarPose&#39;,</span>
         <span class="s">&#39;pose&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
         <span class="c">#&#39;lighting&#39;: &#39;Lighting&#39;,</span>
@@ -253,8 +255,8 @@
         <span class="s">&#39;edgematch&#39;</span><span class="p">:</span> <span class="s">&#39;SimilarPose&#39;</span><span class="p">,</span>
         <span class="s">&#39;badtail&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
         <span class="s">&#39;badshoulder&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="s">&#39;mildviewpoint&#39;</span><span class="p">:</span> <span class="s">&#39;MildViewpoint&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;mildviewpoint&#39;: &#39;Viewpoint&#39;,</span>
+        <span class="c">#&#39;mildviewpoint&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="s">&#39;mildviewpoint&#39;</span><span class="p">:</span> <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
         <span class="c">#&#39;toolargematches&#39;: &#39;CoarseFeatures&#39;,</span>
         <span class="c">#&#39;badcoverage&#39;: &#39;LowCoverage&#39;,</span>
         <span class="c">#&#39;shouldhavemore&#39;: &#39;LowCoverage&#39;,</span>
@@ -1116,7 +1118,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

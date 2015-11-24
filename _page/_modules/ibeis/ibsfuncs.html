@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.ibsfuncs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.ibsfuncs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -148,14 +148,10 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
-<span class="c">#import vtool.image as gtool</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span> <span class="n">set_funcname</span>
-<span class="c">#from vtool import linalg, geometry, image</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="c">#from ibeis import params</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span> <span class="n">set_funcname</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">detecttools.pypascalmarkup</span> <span class="kn">import</span> <span class="n">PascalVOC_Markup_Annotation</span>
@@ -167,28 +163,14 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">annotmatch_funcs</span>  <span class="c"># NOQA</span>
 
 <span class="c"># Inject utool functions</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibsfuncs]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibsfuncs]&#39;</span><span class="p">)</span>
 
 
-<span class="c"># Try to work around circular import</span>
-<span class="c">#from ibeis.control.IBEISControl import IBEISController</span>
 <span class="c"># Must import class before injection</span>
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">))</span>
-<span class="c">#CLASS_INJECT_KEY = (&#39;IBEISController&#39;, &#39;ibsfuncs&#39;)</span>
-<span class="c">#register_ibs_method = ut.make_class_method_decorator(CLASS_INJECT_KEY,</span>
-<span class="c">#__name__)</span>
 
 
-<div class="viewcode-block" id="fix_zero_features"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.fix_zero_features">[docs]</a><span class="k">def</span> <span class="nf">fix_zero_features</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="n">nfeat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">haszero_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nfeat</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nfeat</span> <span class="ow">in</span> <span class="n">nfeat_list</span><span class="p">]</span>
-    <span class="n">haszero_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">haszero_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">haszero_aids</span><span class="p">)</span>
-
-</div>
 <span class="nd">@ut.make_class_postinject_decorator</span><span class="p">(</span><span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">__name__</span><span class="p">)</span>
 <div class="viewcode-block" id="postinject_func"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.postinject_func">[docs]</a><span class="k">def</span> <span class="nf">postinject_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -598,13 +580,25 @@
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
 <span class="sd">        &gt;&gt;&gt; verbose = False</span>
 <span class="sd">        &gt;&gt;&gt; veryverbose = False</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Asserting multiple&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; result = assert_valid_aids(ibs, aid_list, verbose, veryverbose)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Asserting single&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; result = assert_valid_aids(ibs, aid_list[0:1], verbose, veryverbose)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Asserting multiple incorrect&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; try:</span>
 <span class="sd">        &gt;&gt;&gt;    result = assert_valid_aids(ibs, aid_list + [0], verbose, veryverbose)</span>
 <span class="sd">        &gt;&gt;&gt; except AssertionError:</span>
 <span class="sd">        &gt;&gt;&gt;    print(&#39;Correctly got assertion&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; else:</span>
 <span class="sd">        &gt;&gt;&gt;    assert False, &#39;should have failed&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Asserting single incorrect&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;    result = assert_valid_aids(ibs, [0], verbose, veryverbose)</span>
+<span class="sd">        &gt;&gt;&gt; except AssertionError:</span>
+<span class="sd">        &gt;&gt;&gt;    print(&#39;Correctly got assertion&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;    assert False, &#39;should have failed&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#if ut.NO_ASSERTS and not force:</span>
@@ -615,11 +609,13 @@
     <span class="n">isinvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
     <span class="c">#isinvalid_list = [aid not in valid_aids for aid in aid_list]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="s">&#39;invalid aids: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> invalid aids: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isinvalid_list</span><span class="p">),)</span>
         <span class="n">isinvalid_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="s">&#39;invalidly typed aids: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> invalidly typed aids: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isinvalid_list</span><span class="p">),)</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;dbname = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span>
@@ -1037,6 +1033,14 @@
             <span class="n">visual_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">ibs_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs_dup_annots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="fix_zero_features"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.fix_zero_features">[docs]</a><span class="k">def</span> <span class="nf">fix_zero_features</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">nfeat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">haszero_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nfeat</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nfeat</span> <span class="ow">in</span> <span class="n">nfeat_list</span><span class="p">]</span>
+    <span class="n">haszero_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">haszero_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">haszero_aids</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1507,8 +1511,10 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_annot_vecs_cache"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_annot_vecs_cache">[docs]</a><span class="k">def</span> <span class="nf">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; When you have a list with duplicates and you dont want to copy data</span>
-<span class="sd">    creates a reference to each data object indexed by a dict &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    When you have a list with duplicates and you dont want to copy data</span>
+<span class="sd">    creates a reference to each data object indexed by a dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
     <span class="n">unique_desc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">)</span>
     <span class="n">desc_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">,</span> <span class="n">unique_desc</span><span class="p">)))</span>
@@ -1799,9 +1805,14 @@
         <span class="n">vals_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
         <span class="n">key_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
-    <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;tags&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;case_tags&#39;</span>
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
         <span class="n">vals_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
+        <span class="n">key_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;match_tags&#39;</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="n">vals_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_annotmatch_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
         <span class="n">key_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
     <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;name&#39;</span>
@@ -2733,6 +2744,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
 <span class="sd">        &gt;&gt;&gt; [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</span>
@@ -3532,6 +3544,7 @@
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="set_dbnotes"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.set_dbnotes">[docs]</a><span class="k">def</span> <span class="nf">set_dbnotes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">notes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; sets notes for an entire database &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">(),</span> <span class="n">notes</span><span class="p">)</span>
 
@@ -5483,7 +5496,8 @@
     <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">prop_edges</span><span class="p">:</span>
         <span class="n">edge_nid2_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">prop2_nid2_aids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">edge</span><span class="p">]</span>
         <span class="n">isect_nid2_aids</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span>
-            <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_intersection</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="c">#functools.partial(ut.dict_intersection, combine=True),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">dict_isect_combine</span><span class="p">,</span>
             <span class="n">edge_nid2_aids_list</span><span class="p">)</span>
         <span class="n">edge2_nid2_aids</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span> <span class="o">=</span> <span class="n">isect_nid2_aids</span>
         <span class="c">#common_nids = list(isect_nid2_aids.keys())</span>
@@ -6123,7 +6137,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

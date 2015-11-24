@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other package &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.other package &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html"/>
         <link rel="prev" title="ibeis.model.preproc package" href="ibeis.model.preproc.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -185,7 +185,7 @@
 
 <dl class="function">
 <dt id="ibeis.other.dbinfo.get_dbinfo">
-<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">get_dbinfo</code><span class="sig-paren">(</span><em>ibs</em>, <em>verbose=True</em>, <em>with_imgsize=False</em>, <em>with_bytes=False</em>, <em>with_contrib=True</em>, <em>with_agesex=False</em>, <em>with_header=True</em>, <em>short=False</em>, <em>tag='dbinfo'</em>, <em>aid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#get_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.get_dbinfo" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">get_dbinfo</code><span class="sig-paren">(</span><em>ibs</em>, <em>verbose=True</em>, <em>with_imgsize=False</em>, <em>with_bytes=False</em>, <em>with_contrib=True</em>, <em>with_agesex=False</em>, <em>with_header=True</em>, <em>short=False</em>, <em>tag=u'dbinfo'</em>, <em>aid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#get_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.get_dbinfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns dictionary of digestable database information
 Infostr is a string summary of all the stats. Prints infostr in addition to
 returning locals</p>
@@ -398,7 +398,7 @@ python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">new_text</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">tabular_cmd</span><span class="p">,</span> <span class="s">&#39;latex&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">render_latex_text</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\\\</span><span class="s">noindent </span><span class="se">\\\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">tabular_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">render_latex_text</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">noindent </span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">tabular_str</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -438,7 +438,8 @@ python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show --db ly
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">show_image_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
@@ -659,7 +660,7 @@ makeinit.py</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

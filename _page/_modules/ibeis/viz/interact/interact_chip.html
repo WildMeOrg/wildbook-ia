@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_chip &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.interact.interact_chip &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -258,9 +258,6 @@
     <span class="kn">import</span> <span class="nn">guitool</span>
     <span class="n">is_exemplar</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
-    <span class="c"># TODO</span>
-    <span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-
     <span class="k">def</span> <span class="nf">refresh_wrp</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_wrp</span><span class="p">():</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
@@ -408,6 +405,18 @@
         <span class="p">(</span><span class="s">&#39;dev print annot info&#39;</span><span class="p">,</span> <span class="n">print_annot_info</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;dev refresh&#39;</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">),</span>
     <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="k">def</span> <span class="nf">dev_debug</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;config2_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config2_</span><span class="p">,))</span>
+        <span class="k">def</span> <span class="nf">dev_embed</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+            <span class="k">pass</span>
+        <span class="n">callback_list</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;dev chip context embed&#39;</span><span class="p">,</span> <span class="n">dev_embed</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;dev chip context debug&#39;</span><span class="p">,</span> <span class="n">dev_debug</span><span class="p">),</span>
+        <span class="p">]</span>
     <span class="k">return</span> <span class="n">callback_list</span>
 
 
@@ -514,13 +523,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
                 <span class="kn">import</span> <span class="nn">guitool</span>
-                <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                <span class="c">#from ibeis.viz.interact import interact_chip</span>
                 <span class="n">height</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
                 <span class="n">qpoint</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
                 <span class="n">refresh_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_chip_view</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="n">interact_chip</span><span class="o">.</span><span class="n">show_annot_context_menu</span><span class="p">(</span>
-                    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
-                    <span class="n">with_interact_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+
+                <span class="n">callback_list</span> <span class="o">=</span> <span class="n">build_annot_context_options</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
+                    <span class="n">with_interact_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+                <span class="n">qwin</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span>
+                <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">callback_list</span><span class="p">)</span>
+                <span class="c">#interact_chip.show_annot_context_menu(</span>
+                <span class="c">#    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,</span>
+                <span class="c">#    with_interact_chip=False, config2_=config2_)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
                 <span class="n">print_</span><span class="p">(</span><span class="s">&#39;[ic] viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
@@ -601,7 +617,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

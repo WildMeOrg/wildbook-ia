@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui package &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.gui package &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.init package" href="ibeis.init.html"/>
         <link rel="prev" title="ibeis.expt package" href="ibeis.expt.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -1571,6 +1571,123 @@ python -m ibeis.dev -e cases --db PZ_MTEST  -a timectrl -t best --filt :sortdsc<
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.gui.inspect_gui.get_automatch_candidates">
+<code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">get_automatch_candidates</code><span class="sig-paren">(</span><em>cm_list</em>, <em>ranks_lt=5</em>, <em>directed=True</em>, <em>name_scoring=False</em>, <em>ibs=None</em>, <em>filter_reviewed=False</em>, <em>filter_duplicate_namepair_matches=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_automatch_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_automatch_candidates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needs to be moved to a better file. Maybe something to do with
+identification.</p>
+<p>Returns a list of matches that should be inspected
+This function is more lightweight than orgres or allres.
+Used in inspect_gui and interact_qres2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cm_list</strong> (<em>list</em>) &#8211; list of chip match objects</li>
+<li><strong>ranks_lt</strong> (<em>int</em>) &#8211; put all ranks less than this number into the graph</li>
+<li><strong>directed</strong> (<em>bool</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
+python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example0:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example3:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">10</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example4:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.gui.inspect_gui.get_match_status">
 <code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">get_match_status</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_pair</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_match_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_match_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data role for status column
@@ -2227,7 +2344,7 @@ python -m ibeis.gui.newgui --test-testfunc --cmd
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

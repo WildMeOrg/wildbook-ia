@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -425,14 +425,44 @@
     <span class="k">return</span> <span class="n">text_list</span>
 
 </div>
-<div class="viewcode-block" id="get_query_text"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_query_text">[docs]</a><span class="k">def</span> <span class="nf">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; returns title based on the query chip and result &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="get_query_text"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_query_text">[docs]</a><span class="k">def</span> <span class="nf">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns title based on the query chip and result</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        cm (ChipMatch):  object of feature correspondences and scores</span>
+<span class="sd">        aid2 (int):  annotation id</span>
+<span class="sd">        truth (int): 0, 1, 2</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        qaid, score, rawscore, aid2_raw_rank, show_truth, name_score,</span>
+<span class="sd">        name_rank, show_name_score, show_name_rank, show_timedelta</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: query_text</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_helpers --exec-get_query_text</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cm = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]</span>
+<span class="sd">        &gt;&gt;&gt; aid2 = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; truth = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; query_text = get_query_text(ibs, cm, aid2, truth)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;query_text = %s&#39; % (str(query_text),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">text_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span>
-        <span class="n">score</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">rawscore</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">rawscore</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">aid2_raw_rank</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rawscore</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">rawscore</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aid2_raw_rank</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">qaid</span>          <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">score</span>         <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -441,9 +471,9 @@
     <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_truth&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">truth_str</span> <span class="o">=</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">*&#39;</span> <span class="o">%</span> <span class="n">get_truth_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">truth</span><span class="p">)</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rank&#39;</span><span class="p">,</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rank&#39;</span><span class="p">,</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c">#aid2_raw_rank = qres.get_aid_ranks([aid2])[0]</span>
+            <span class="c">#aid2_raw_rank = cm.get_aid_ranks([aid2])[0]</span>
             <span class="n">aid2_rank</span> <span class="o">=</span> <span class="n">aid2_raw_rank</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span>
             <span class="n">rank_str</span> <span class="o">=</span> <span class="s">&#39;rank=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">aid2_rank</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -451,14 +481,14 @@
             <span class="c">#ut.embed()</span>
             <span class="k">raise</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rank_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rawscore&#39;</span><span class="p">,</span> <span class="n">rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="c">#rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rawscore&#39;</span><span class="p">,</span> <span class="n">rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="c">#rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]</span>
         <span class="n">rawscore_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;rawscore=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">rawscore</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">rawscore_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">rawscore_str</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rawscore_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_score&#39;</span><span class="p">,</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="c">#score = qres.get_aid_scores([aid2])[0]</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_score&#39;</span><span class="p">,</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="c">#score = cm.get_aid_scores([aid2])[0]</span>
         <span class="n">score_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">score_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">score_str</span>
@@ -557,7 +587,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -141,7 +141,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="c">#__version__ = &#39;0.1.0.dev1&#39;</span>
-<span class="c">#__version__ = &#39;1.4.3&#39;</span>
+<span class="c">#__version__ = &#39;1.4.7&#39;</span>
 
 <span class="n">utool</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -180,7 +180,7 @@
 
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">_init_numpy</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span>
-                               <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span><span class="p">,</span> <span class="n">opendb_in_background</span><span class="p">)</span>
+                               <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span><span class="p">,</span> <span class="n">opendb_in_background</span><span class="p">,</span> <span class="n">opendb_bg_web</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
 <span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="n">get_workdir</span><span class="p">,</span> <span class="n">set_workdir</span><span class="p">,</span> <span class="n">ensure_pz_mtest</span><span class="p">,</span> <span class="n">ensure_nauts</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
@@ -370,10 +370,12 @@
 
 <span class="kn">from</span> <span class="nn">ibeis.control.DB_SCHEMA_CURRENT</span> <span class="kn">import</span> <span class="n">VERSION_CURRENT</span>
 <span class="n">__version__</span> <span class="o">=</span> <span class="n">VERSION_CURRENT</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.4.4&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.4.7&#39;</span>
 
 <span class="k">if</span> <span class="n">__version__</span> <span class="o">!=</span> <span class="n">VERSION_CURRENT</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;need to update version in __init__ file so setup.py can work nicely&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+        <span class="s">&#39;need to update version in __init__ file from </span><span class="si">%r</span><span class="s"> to </span><span class="si">%r</span><span class="s"> so setup.py can work nicely&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">__version__</span><span class="p">,</span> <span class="n">VERSION_CURRENT</span><span class="p">))</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Regen Command:</span>
@@ -417,7 +419,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

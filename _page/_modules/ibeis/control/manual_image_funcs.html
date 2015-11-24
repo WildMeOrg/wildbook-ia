@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_image_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.manual_image_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -153,11 +153,12 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">normpath</span>
+<span class="c">#from os.path import join, exists, abspath, normpath, isabs</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isabs</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_image]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_image]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -261,14 +262,14 @@
         <span class="c"># Remove images without timestamps</span>
         <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">unixtime</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">unixtime</span> <span class="ow">in</span> <span class="n">unixtime_list</span><span class="p">]</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">require_gps</span><span class="p">:</span>
         <span class="n">isvalid_gps</span> <span class="o">=</span> <span class="p">[</span><span class="n">lat</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">lon</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_gps</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_gps</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">reviewed_list</span><span class="p">]</span>
-        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span>
 
 </div>
@@ -330,7 +331,8 @@
 <span class="nd">@accessor_decors.adder</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/path&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="add_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.add_images">[docs]</a><span class="k">def</span> <span class="nf">add_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="add_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.add_images">[docs]</a><span class="k">def</span> <span class="nf">add_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">sanitize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of image paths to the database.</span>
 
@@ -345,6 +347,8 @@
 <span class="sd">        as_annots (bool): if True, an annotation is automatically added for the entire</span>
 <span class="sd">            image</span>
 <span class="sd">        auto_localize (bool): if None uses the default specified in ibs.cfg</span>
+<span class="sd">        ensure (bool): check to see if the images exist on a \*NIX system.  Defaults to</span>
+<span class="sd">            True</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        gid_list (list of rowids): gids are image rowids</span>
@@ -387,16 +391,17 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] len(gpath_list) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
     <span class="c">#print(&#39;[ibs] gpath_list = %r&#39; % (gpath_list,))</span>
     <span class="c"># Processing an image might fail, yeilding a None instead of a tup</span>
-    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">ensure_unix_gpaths</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sanitize</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">ensure_unix_gpaths</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># Create param_iter</span>
-        <span class="n">params_list</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">preproc_image</span><span class="o">.</span><span class="n">add_images_params_gen</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
+        <span class="n">params_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">preproc_image</span><span class="o">.</span><span class="n">add_images_params_gen</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
     <span class="c"># Error reporting</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="p">[</span><span class="s">&#39; ! Failed reading gpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,)</span> <span class="k">for</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">params_</span><span class="p">)</span>
          <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">params_</span><span class="p">]))</span>
     <span class="c"># Add any unadded images</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;image_uri&#39;</span><span class="p">,</span> <span class="s">&#39;image_original_name&#39;</span><span class="p">,</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;image_uri&#39;</span><span class="p">,</span> <span class="s">&#39;image_uri_original&#39;</span><span class="p">,</span> <span class="s">&#39;image_original_name&#39;</span><span class="p">,</span>
                 <span class="s">&#39;image_ext&#39;</span><span class="p">,</span> <span class="s">&#39;image_width&#39;</span><span class="p">,</span> <span class="s">&#39;image_height&#39;</span><span class="p">,</span>
                 <span class="s">&#39;image_time_posix&#39;</span><span class="p">,</span> <span class="s">&#39;image_gps_lat&#39;</span><span class="p">,</span>
                 <span class="s">&#39;image_gps_lon&#39;</span><span class="p">,</span> <span class="s">&#39;image_note&#39;</span><span class="p">,)</span>
@@ -495,29 +500,56 @@
 <span class="sd">        ibs.vd()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from os.path import isabs</span>
+    <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
     <span class="k">if</span> <span class="n">gid_list_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: you are localizing all gids&#39;</span><span class="p">)</span>
         <span class="n">gid_list_</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">isnone_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">]</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">isnone_list</span><span class="p">))</span>
-    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="c">#gpath_list = ibs.get_image_paths(gid_list)</span>
+    <span class="n">uri_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">url_protos</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;https://&#39;</span><span class="p">,</span> <span class="s">&#39;http://&#39;</span><span class="p">]</span>
+    <span class="n">s3_proto</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;s3://&#39;</span><span class="p">]</span>
+    <span class="n">valid_protos</span> <span class="o">=</span> <span class="n">s3_proto</span> <span class="o">+</span> <span class="n">url_protos</span>
+
+    <span class="k">def</span> <span class="nf">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">uri</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">proto</span><span class="p">)</span> <span class="k">for</span> <span class="n">proto</span> <span class="ow">in</span> <span class="n">valid_protos</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">islocal</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="n">isabs</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">))</span>
+
+    <span class="n">abs_uri_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uri</span> <span class="k">if</span> <span class="n">islocal</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span> <span class="k">else</span>
+                    <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span> <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">uri_list</span><span class="p">]</span>
+
     <span class="n">guuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gext_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_exts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="c"># Build list of image names based on uuid in the ibeis imgdir</span>
     <span class="n">guuid_strs</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">guuid</span><span class="p">)</span> <span class="k">for</span> <span class="n">guuid</span> <span class="ow">in</span> <span class="n">guuid_list</span><span class="p">)</span>
     <span class="n">loc_gname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">guuid</span> <span class="o">+</span> <span class="n">ext</span> <span class="k">for</span> <span class="p">(</span><span class="n">guuid</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">guuid_strs</span><span class="p">,</span> <span class="n">gext_list</span><span class="p">)]</span>
     <span class="n">loc_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">loc_gname_list</span><span class="p">]</span>
+    <span class="c"># Copy any s3/http images first</span>
+    <span class="k">for</span> <span class="n">uri</span><span class="p">,</span> <span class="n">loc_gpath</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uri_list</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">s3_proto</span><span class="p">):</span>
+            <span class="n">s3_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">s3_str_decode_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">grab_s3_contents</span><span class="p">(</span><span class="n">loc_gpath</span><span class="p">,</span> <span class="o">**</span><span class="n">s3_dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">url_protos</span><span class="p">):</span>
+            <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">loc_gpath</span><span class="p">)</span>
     <span class="c"># Copy images to local directory</span>
-    <span class="n">not_localized_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">normpath</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">gp</span><span class="p">))</span> <span class="o">!=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">lgp</span><span class="p">))</span>
-                               <span class="k">for</span> <span class="n">gp</span><span class="p">,</span> <span class="n">lgp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">)]</span>
+    <span class="c">#needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))</span>
+    <span class="c">#                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]</span>
+    <span class="n">needs_copy_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">loc_gpath_list</span><span class="p">]</span>
     <span class="c"># ---</span>
-    <span class="n">loc_gpath_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">loc_gpath_list</span><span class="p">,</span> <span class="n">not_localized_flags</span><span class="p">)</span>
-    <span class="n">loc_gname_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">loc_gname_list</span><span class="p">,</span> <span class="n">not_localized_flags</span><span class="p">)</span>
-    <span class="n">gpath_list_</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">not_localized_flags</span><span class="p">)</span>
-    <span class="n">gid_list_</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">not_localized_flags</span><span class="p">)</span>
+    <span class="n">loc_gpath_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">loc_gpath_list</span><span class="p">,</span> <span class="n">needs_copy_flags</span><span class="p">)</span>
+    <span class="c">#loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)</span>
+    <span class="n">gpath_list_</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">abs_uri_list</span><span class="p">,</span> <span class="n">needs_copy_flags</span><span class="p">)</span>
+    <span class="n">gid_list_</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">needs_copy_flags</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">copy_list</span><span class="p">(</span><span class="n">gpath_list_</span><span class="p">,</span> <span class="n">loc_gpath_list_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Localizing Images: &#39;</span><span class="p">)</span>
     <span class="c"># Update database uris</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">loc_gname_list_</span><span class="p">)</span>
+    <span class="c">#ibs.set_image_uris(gid_list_, loc_gname_list_)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">loc_gname_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">loc_gpath_list</span><span class="p">)),</span> <span class="s">&#39;not all images copied&#39;</span>
 
 
@@ -541,6 +573,35 @@
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">new_gpath</span><span class="p">,)</span> <span class="k">for</span> <span class="n">new_gpath</span> <span class="ow">in</span> <span class="n">new_gpath_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_uri&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/uris_original/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_image_uris_original"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_image_uris_original">[docs]</a><span class="k">def</span> <span class="nf">set_image_uris_original</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">new_gpath_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Sets the (original) image URIs to a new local path.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        overwrite (bool): If overwrite, replace the information in the database.</span>
+<span class="sd">            This ensures that original uris cannot be accidentally overwritten.</span>
+<span class="sd">            Defaults to False.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/image/uris_original/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_invalid</span><span class="p">(</span><span class="n">uri_original</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">current</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="n">current_uri_original_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">new_gpath_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">new</span> <span class="k">if</span> <span class="n">_invalid</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="ow">or</span> <span class="n">overwrite</span> <span class="k">else</span> <span class="n">current</span>
+        <span class="k">for</span> <span class="n">current</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">current_uri_original_list</span><span class="p">,</span> <span class="n">new_gpath_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">new_gpath</span><span class="p">,)</span> <span class="k">for</span> <span class="n">new_gpath</span> <span class="ow">in</span> <span class="n">new_gpath_list_</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_uri_original&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -963,6 +1024,22 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/uris_original/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_uris_original"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_uris_original">[docs]</a><span class="k">def</span> <span class="nf">get_image_uris_original</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of (original) image uris relative to the image dir by gid</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/uris_original/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uri_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_uri_original&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">uri_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/gids_from_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_image_gids_from_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_gids_from_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -1009,8 +1086,8 @@
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; #gpath_list = get_image_paths(ibs, gid_list)</span>
 <span class="sd">        &gt;&gt;&gt; new_gpath = ut.unixpath(ut.grab_test_imgpath(&#39;carl.jpg&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; new_gids = ibs.add_images([new_gpath], auto_localize=False)</span>
-<span class="sd">        &gt;&gt;&gt; new_gpath_list = get_image_paths(ibs, new_gids)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.add_images([new_gpath], auto_localize=False)</span>
+<span class="sd">        &gt;&gt;&gt; new_gpath_list = get_image_paths(ibs, gid_list)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(new_gpath, new_gpath_list[0])</span>
 <span class="sd">        &gt;&gt;&gt; result = str(new_gpath_list)</span>
@@ -1023,6 +1100,7 @@
     <span class="c"># Images should never have null uris</span>
     <span class="c"># If the uri is not absolute then it is infered to be relative to ibs.imgdir</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">uri_list</span><span class="p">,</span> <span class="s">&#39;uri_list&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;uri_list&#39;</span><span class="p">,</span> <span class="s">&#39;gid_list&#39;</span><span class="p">])</span>
+    <span class="c"># Note: join does not prepend anything if the uri is absolute</span>
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span> <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">uri_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">gpath_list</span>
 
@@ -1493,7 +1571,7 @@
     <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
         <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">species_</span> <span class="o">==</span> <span class="n">species</span> <span class="k">for</span> <span class="n">species_</span> <span class="ow">in</span> <span class="n">species_list</span> <span class="p">]</span>
-        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">aid_list</span>
     <span class="c"># Get and filter aids_list</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -1532,6 +1610,43 @@
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/image/</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNPORTED_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.add_images(gpath_list)</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [(0, 0, 100, 100)] * len(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; name_list = [&#39;a&#39;, &#39;b&#39;, &#39;a&#39;, &#39;d&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)</span>
+<span class="sd">        &gt;&gt;&gt; gid = gid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert gid is not None, &quot;gid is None&quot;</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_image_aids(gid)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(aid_list) == 1, &quot;Length of aid_list=%r&quot; % (len(aid_list),)</span>
+<span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert aid is not None, &quot;aid is None&quot;</span>
+<span class="sd">        &gt;&gt;&gt; cid = ibs.get_annot_chip_rowids(aid, ensure=False)</span>
+<span class="sd">        &gt;&gt;&gt; fid = ibs.get_annot_feat_rowids(aid, ensure=False)</span>
+<span class="sd">        &gt;&gt;&gt; assert cid is None, &quot;cid=%r should be None&quot; % (cid,)</span>
+<span class="sd">        &gt;&gt;&gt; assert fid is None, &quot;fid=%r should be None&quot; % (fid,)</span>
+<span class="sd">        &gt;&gt;&gt; cid = ibs.get_annot_chip_rowids(aid, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; fid = ibs.get_annot_feat_rowids(aid, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert cid is not None, &quot;cid should be computed&quot;</span>
+<span class="sd">        &gt;&gt;&gt; assert fid is not None, &quot;fid should be computed&quot;</span>
+<span class="sd">        &gt;&gt;&gt; gthumbpath = ibs.get_image_thumbpath(gid)</span>
+<span class="sd">        &gt;&gt;&gt; athumbpath = ibs.get_annot_chip_thumbpath(aid)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_images(gid)</span>
+<span class="sd">        &gt;&gt;&gt; all_gids = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; all_aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; all_cids = ibs.get_valid_cids()</span>
+<span class="sd">        &gt;&gt;&gt; all_fids = ibs.get_valid_fids()</span>
+<span class="sd">        &gt;&gt;&gt; assert gid not in all_gids, &quot;gid still exists&quot;</span>
+<span class="sd">        &gt;&gt;&gt; assert aid not in all_aids, &quot;rid %r still exists&quot; % aid</span>
+<span class="sd">        &gt;&gt;&gt; assert fid not in all_fids, &quot;fid %r still exists&quot; % fid</span>
+<span class="sd">        &gt;&gt;&gt; assert cid not in all_cids, &quot;cid %r still exists&quot; % cid</span>
+<span class="sd">        &gt;&gt;&gt; assert not utool.checkpath(gthumbpath), &quot;Thumbnail still exists&quot;</span>
+<span class="sd">        &gt;&gt;&gt; assert not utool.checkpath(athumbpath), &quot;ANNOTATION Thumbnail still exists&quot;</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> images&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
@@ -1573,6 +1688,24 @@
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/image/thumbs/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNPORTED_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.add_images(gpath_list)</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [(0, 0, 100, 100)] * len(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; name_list = [&#39;a&#39;, &#39;b&#39;, &#39;a&#39;, &#39;d&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(aid_list) != 0, &quot;No annotations added&quot;</span>
+<span class="sd">        &gt;&gt;&gt; thumbpath_list = ibs.get_image_thumbpath(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; gpath_list = ibs.get_image_paths(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_image_thumbs(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert utool.is_list(thumbpath_list), &quot;thumbpath_list is not a list&quot;</span>
+<span class="sd">        &gt;&gt;&gt; assert utool.is_list(gpath_list), &quot;gpath_list is not a list&quot;</span>
+<span class="sd">        &gt;&gt;&gt; for path in thumbpath_list:</span>
+<span class="sd">        &gt;&gt;&gt;     assert not utool.checkpath(path), &quot;Thumbnail not deleted&quot;</span>
+<span class="sd">        &gt;&gt;&gt; for path in gpath_list:</span>
+<span class="sd">        &gt;&gt;&gt;     utool.assertpath(path)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># print(&#39;gid_list = %r&#39; % (gid_list,))</span>
     <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
@@ -1913,7 +2046,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

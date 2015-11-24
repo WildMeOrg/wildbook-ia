@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_matches &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.viz_matches &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -352,8 +352,8 @@
     <span class="c">#show_query  = kwargs.get(&#39;show_query&#39;, True)</span>
     <span class="n">draw_border</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_border&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="n">draw_lbl</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_lbl&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">notitle</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="c"># List of annotation scores for each annot in the name</span>
-    <span class="n">name_annot_scores</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_annot_scores&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="c">#printDBG(&#39;[viz] annotate_matches3()&#39;)</span>
     <span class="c">#truth = ibs.get_match_truth(aid1, aid2)</span>
@@ -386,6 +386,13 @@
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span> <span class="ow">or</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TRUTH_UNKNOWN</span>
     <span class="n">truth_color</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_truth_color</span><span class="p">(</span><span class="n">truth</span><span class="p">)</span>
+
+    <span class="n">name_annot_scores</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_annot_scores&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># HACK; generalize to multple annots</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">truth</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">notitle</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">draw_lbl</span><span class="p">:</span>
         <span class="c"># Build labels</span>
@@ -461,9 +468,10 @@
         <span class="n">no_matches</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span><span class="bp">True</span> <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">name_fm_list</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">no_matches</span><span class="p">:</span>
             <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
-            <span class="n">axes_bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+            <span class="c">#axes_bbox = (xy[0], xy[1], w, h)</span>
             <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
-                <span class="n">pt</span><span class="o">.</span><span class="n">draw_boxedX</span><span class="p">(</span><span class="n">axes_bbox</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">pass</span>
+                <span class="c">#pt.draw_boxedX(axes_bbox, theta=0)</span>
 
 </div>
 <div class="viewcode-block" id="annotate_matches2"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_matches.annotate_matches2">[docs]</a><span class="k">def</span> <span class="nf">annotate_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
@@ -567,7 +575,8 @@
             <span class="c"># No matches draw a red box</span>
             <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">draw_border</span><span class="p">:</span>
-                    <span class="n">pt</span><span class="o">.</span><span class="n">draw_boxedX</span><span class="p">(</span><span class="n">bbox2</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta2</span><span class="p">)</span>
+                    <span class="k">pass</span>
+                    <span class="c">#pt.draw_boxedX(bbox2, theta=theta2)</span>
 
 
 <span class="c">#@ut.indent_func</span>
@@ -815,7 +824,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

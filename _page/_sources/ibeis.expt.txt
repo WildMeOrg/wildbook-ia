@@ -76,30 +76,6 @@ ibeis.expt.precomputer module
     :undoc-members:
     :show-inheritance:
 
-ibeis.expt.results_all module
------------------------------
-
-.. automodule:: ibeis.expt.results_all
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.expt.results_analyzer module
-----------------------------------
-
-.. automodule:: ibeis.expt.results_analyzer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.expt.results_organizer module
------------------------------------
-
-.. automodule:: ibeis.expt.results_organizer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.expt.test_result module
 -----------------------------
 

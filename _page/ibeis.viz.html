@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz package &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz package &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.viz.interact package" href="ibeis.viz.interact.html"/>
         <link rel="prev" title="ibeis.tests package" href="ibeis.tests.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -230,18 +230,33 @@
 <dd>color (3/4-tuple, ndarray, or str): colors for keypoints</dd>
 </dl>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.viz_chip --test-show_chip --show
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.viz_chip --test-show_chip --show --ecc
 python -c <span class="s2">&quot;import utool as ut; ut.print_auto_docstr(&#39;ibeis.viz.viz_chip&#39;, &#39;show_chip&#39;)&quot;</span>
 python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids <span class="m">14047</span> --no-annote
+python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids <span class="m">14047</span> --no-annote
+
+python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid <span class="m">1</span> --bgmethod<span class="o">=</span>cnn
+python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid <span class="m">1</span> --bgmethod<span class="o">=</span>cnn --scale_max<span class="o">=</span>30
 </pre></div>
 </div>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VIZ_TEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">in_image</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">config2_</span> <span class="o">=</span> <span class="n">testdata_showchip</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ecc&#39;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weights</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">kpts</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">kpts</span><span class="p">[</span><span class="n">weights</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">9</span><span class="p">],</span> <span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ecc</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_kpts_excentricity</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scales</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">s</span> <span class="o">=</span> <span class="n">ecc</span> <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">affine_invariance</span> <span class="k">else</span> <span class="n">scale</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="s">&#39;jet&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colors</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
@@ -549,8 +564,54 @@ python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:1 --zoom<span class="o
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_query_text">
-<code class="descclassname">ibeis.viz.viz_helpers.</code><code class="descname">get_query_text</code><span class="sig-paren">(</span><em>ibs</em>, <em>qres</em>, <em>aid2</em>, <em>truth</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_query_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_query_text" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.viz.viz_helpers.</code><code class="descname">get_query_text</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>aid2</em>, <em>truth</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_query_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_query_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns title based on the query chip and result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>cm</strong> (<em>ChipMatch</em>) &#8211; object of feature correspondences and scores</li>
+<li><strong>aid2</strong> (<em>int</em>) &#8211; annotation id</li>
+<li><strong>truth</strong> (<em>int</em>) &#8211; 0, 1, 2</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>qaid, score, rawscore, aid2_raw_rank, show_truth, name_score,
+name_rank, show_name_score, show_name_rank, show_timedelta</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">query_text</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.viz.viz_helpers --exec-get_query_text
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">truth</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_text</span> <span class="o">=</span> <span class="n">get_query_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">truth</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;query_text = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">query_text</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1418,7 +1479,7 @@ CONVERTING FROM QRES TO CM</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

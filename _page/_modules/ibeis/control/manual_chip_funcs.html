@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.manual_chip_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -192,6 +192,9 @@
 <span class="sd">        returns chip_rowid_list of added (or already existing chips)</span>
 
 <span class="sd">    TemplateInfo:</span>
+<span class="sd">        python -m ibeis.templates.template_generator --key chip --funcname-filter &quot;\&lt;add_annot_chips\&gt;&quot; --modfname=manual_chip_funcs</span>
+<span class="sd">        python -m ibeis.templates.template_generator --key chip --modfname=manual_chip_funcs --funcname-filter &quot;\&lt;add_annot_chip&quot;</span>
+
 <span class="sd">        Tadder_pl_dependant</span>
 <span class="sd">        parent = annot</span>
 <span class="sd">        leaf = chip</span>
@@ -263,7 +266,17 @@
         <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>
                     <span class="s">&#39;chip_uri&#39;</span><span class="p">,</span> <span class="s">&#39;chip_width&#39;</span><span class="p">,</span> <span class="s">&#39;chip_height&#39;</span><span class="p">]</span>
         <span class="c">#chip_rowid_list = ibs.dbcache.add_cleanly(const.CHIP_TABLE, colnames, dirty_params_iter, get_rowid_from_superkey)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">)</span>
+        <span class="n">CHUNKED_ADD</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">CHUNKED_ADD</span><span class="p">:</span>
+            <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">32</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span> <span class="k">else</span> <span class="mi">128</span>
+            <span class="k">for</span> <span class="n">dirty_params_chunk</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">):</span>
+                <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_params_chunk</span><span class="p">)</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
+                    <span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_chunk</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nInput</span> <span class="o">=</span> <span class="n">num_dirty</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span>
+                <span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">dirty_params_iter</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
         <span class="c"># Now that the dirty params are added get the correct order of rowids</span>
         <span class="n">chip_rowid_list</span> <span class="o">=</span> <span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -290,6 +303,7 @@
 <span class="sd">        list: chip_rowid_list</span>
 
 <span class="sd">    TemplateInfo:</span>
+<span class="sd">        python -m ibeis.templates.template_generator --key feat --funcname-filter &quot;\&lt;add_chip_feat\&gt;&quot; --modfname=manual_feat_funcs</span>
 <span class="sd">        Tgetter_pl_dependant_rowids</span>
 <span class="sd">        parent = annot</span>
 <span class="sd">        leaf = chip</span>
@@ -987,7 +1001,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

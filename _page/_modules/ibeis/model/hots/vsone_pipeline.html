@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.vsone_pipeline &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.vsone_pipeline &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -182,7 +182,7 @@
 <span class="sd">    --print-scorediff-mat-stats --print-confusion-stats</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
@@ -199,13 +199,13 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span>  <span class="c"># NOQA</span>
 <span class="c">#profile = ut.profile</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[vsonepipe]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[vsonepipe]&#39;</span><span class="p">)</span>
 
 <span class="c">#from collections import namedtuple</span>
 
 
 <div class="viewcode-block" id="show_post_vsmany_vser"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_post_vsmany_vser">[docs]</a><span class="k">def</span> <span class="nf">show_post_vsmany_vser</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; TESTFUNC just show the input data</span>
+    <span class="sd">r&quot;&quot;&quot; TESTFUNC just show the input data</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --homog</span>
@@ -258,7 +258,7 @@
 
 <span class="c">#@profile</span></div>
 <div class="viewcode-block" id="vsone_reranking"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.vsone_reranking">[docs]</a><span class="k">def</span> <span class="nf">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Driver function</span>
 
 <span class="sd">    CommandLine:</span>
@@ -469,8 +469,80 @@
     <span class="k">return</span> <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span>
 
 </div>
+<div class="viewcode-block" id="vsone_name_independant_hack"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.vsone_name_independant_hack">[docs]</a><span class="k">def</span> <span class="nf">vsone_name_independant_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    show grid of aids with matches inside and between names</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        nid (?):</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_MTEST --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_Master1 --show --nids=5099,5181</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # TODO: testdata_qparams?</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nids = ut.get_argval(&#39;--nids&#39;, type_=list, default=[1])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; result = vsone_name_independant_hack(qreq_.ibs, nids, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">plottool.interactions</span> <span class="kn">import</span> <span class="n">ExpandableInteraction</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">ibeis.viz</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">ExpandableInteraction</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(aids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">wrap_show_func</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_show_func_wrap</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_show_func_wrap</span>
+
+    <span class="c"># TODO: append an optional alternate ishow function</span>
+
+    <span class="c">#for idx1, idx2 in ut.upper_diag_self_prodx(idxs):</span>
+    <span class="k">for</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">self_prodx</span><span class="p">(</span><span class="n">idxs</span><span class="p">):</span>
+        <span class="n">aid1</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
+        <span class="c">#vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">fg_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">cfgdict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span><span class="o">.</span><span class="n">hesaff_params</span><span class="p">)</span>
+        <span class="n">vsone_qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">cm_vsone</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">vsone_qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cm_vsone</span> <span class="o">=</span> <span class="n">cm_vsone</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">vsone_qreq_</span><span class="p">)</span>
+        <span class="c">#cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))</span>
+        <span class="c">#cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="p">(</span><span class="n">idx1</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">+</span> <span class="n">idx2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">show_func</span> <span class="o">=</span> <span class="n">wrap_show_func</span><span class="p">(</span><span class="n">cm_vsone</span><span class="o">.</span><span class="n">show_single_annotmatch</span><span class="p">,</span> <span class="n">vsone_qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">draw_lbl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_name_score</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">ishow_func</span> <span class="o">=</span> <span class="n">wrap_show_func</span><span class="p">(</span><span class="n">cm_vsone</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">,</span> <span class="n">vsone_qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">draw_lbl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">noupdate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">inter</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span><span class="n">show_func</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">ishow_func</span><span class="o">=</span><span class="n">ishow_func</span><span class="p">)</span>
+        <span class="c">#inter.append_plot(cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True), pnum=pnum)</span>
+        <span class="c">#,  pnum=pnum)</span>
+        <span class="c">#cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,</span>
+        <span class="c">#                                fnum=fnum, pnum=pnum)</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="p">(</span><span class="n">idx</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">+</span> <span class="n">idx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">inter</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span><span class="n">wrap_show_func</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">show_chip</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">draw_lbl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">nokpts</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="c">#ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,</span>
+        <span class="c">#                    draw_lbl=False, nokpts=True,</span>
+        <span class="c">#                    fnum=fnum, pnum=pnum)</span>
+    <span class="n">inter</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+
+</div>
 <div class="viewcode-block" id="vsone_independant_pair_hack"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.vsone_independant_pair_hack">[docs]</a><span class="k">def</span> <span class="nf">vsone_independant_pair_hack</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; simple hack convinience func</span>
+    <span class="sd">r&quot;&quot;&quot; simple hack convinience func</span>
 <span class="sd">    Uses vsmany qreq to build a &quot;similar&quot; vsone qreq</span>
 
 <span class="sd">    TODO:</span>
@@ -483,7 +555,7 @@
 <span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --db PZ_MTEST</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --qaid=1 --daid=4</span>
 <span class="sd">        --cmd</span>
 
@@ -507,7 +579,8 @@
     <span class="n">cm_vsone</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">vsone_qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">cm_vsone</span> <span class="o">=</span> <span class="n">cm_vsone</span><span class="o">.</span><span class="n">extend_results</span><span class="p">(</span><span class="n">vsone_qreq_</span><span class="p">)</span>
     <span class="c">#cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)</span>
-    <span class="n">cm_vsone</span><span class="o">.</span><span class="n">ishow_analysis</span><span class="p">(</span><span class="n">vsone_qreq_</span><span class="p">)</span>
+    <span class="c">#cm_vsone.ishow_analysis(vsone_qreq_)</span>
+    <span class="n">cm_vsone</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="n">vsone_qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">)</span>
     <span class="c">#qres_vsone.ishow_analysis(ibs=ibs)</span>
     <span class="c">#rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])</span>
     <span class="c">#matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)</span>
@@ -651,7 +724,7 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="refine_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.refine_matches">[docs]</a><span class="k">def</span> <span class="nf">refine_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog</span>
@@ -852,7 +925,7 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_query_unconstrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_unconstrained_matches">[docs]</a><span class="k">def</span> <span class="nf">compute_query_unconstrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show</span>
@@ -901,7 +974,7 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_query_constrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches">[docs]</a><span class="k">def</span> <span class="nf">compute_query_constrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show</span>
@@ -1152,6 +1225,8 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Search unconstrained ratio test vsone match</span>
 
+<span class="sd">    This still works</span>
+
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 27</span>
@@ -1333,7 +1408,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

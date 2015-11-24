@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.all_imports &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.all_imports &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -132,6 +132,8 @@
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c"># flake8: noqa</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO DEPRICATE</span>
+
 <span class="sd">This file contains most every module I&#39;ve ever used.</span>
 <span class="sd">Serves as a good check to make sure either everything I</span>
 <span class="sd">want to use is imported / exists.</span>
@@ -274,9 +276,6 @@
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_commands</span>
 <span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">dbinfo</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_organizer</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_analyzer</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_all</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_printres</span>
@@ -340,7 +339,7 @@
 <span class="c">#from ibeis.viz.interact import ishow_matches</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">iselect_bbox</span>
 
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[all_imports]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="find_unregisterd"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.find_unregisterd">[docs]</a><span class="k">def</span> <span class="nf">find_unregisterd</span><span class="p">():</span>
@@ -431,7 +430,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

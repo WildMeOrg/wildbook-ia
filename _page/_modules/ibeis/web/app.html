@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.app &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.web.app &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -130,33 +130,29 @@
             
   <h1>Source code for ibeis.web.app</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># HTTP / HTML</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">tornado.wsgi</span>
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">make_response</span><span class="p">,</span> <span class="n">current_app</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
-<span class="c"># IBEIS</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.SQLDatabaseControl</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SQLDatabaseController</span><span class="p">,</span>  <span class="c"># NOQA</span>
                                               <span class="n">SQLAtomicContext</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span><span class="p">,</span> <span class="n">Species</span><span class="p">,</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c"># Web Internal</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">ap</span>
-<span class="c"># Others</span>
-<span class="c"># import numpy as np</span>
-<span class="c"># from scipy.optimize import curve_fit</span>
-<span class="c">#from detecttools.directory import Directory</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">zmq_task_queue</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 
 
 <span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
@@ -292,19 +288,37 @@
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/view&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="view"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.view">[docs]</a><span class="k">def</span> <span class="nf">view</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">_date_list</span><span class="p">(</span><span class="n">gid_list</span><span class="p">):</span>
+        <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">datetime_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">unixtime_to_datetimestr</span><span class="p">(</span><span class="n">unixtime</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unixtime</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span>
+            <span class="s">&#39;UNKNOWN&#39;</span>
+            <span class="k">for</span> <span class="n">unixtime</span> <span class="ow">in</span> <span class="n">unixtime_list</span>
+        <span class="p">]</span>
+        <span class="n">datetime_split_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">datetime</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">datetime</span> <span class="ow">in</span> <span class="n">datetime_list</span> <span class="p">]</span>
+        <span class="n">date_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">datetime_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="s">&#39;UNKNOWN&#39;</span> <span class="k">for</span> <span class="n">datetime_split</span> <span class="ow">in</span> <span class="n">datetime_split_list</span> <span class="p">]</span>
+        <span class="k">return</span> <span class="n">date_list</span>
+
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_count</span><span class="p">()</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="n">datetime_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">unixtime_to_datetimestr</span><span class="p">(</span><span class="n">unixtime</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">unixtime</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span>
-        <span class="s">&#39;UNKNOWN&#39;</span>
-        <span class="k">for</span> <span class="n">unixtime</span> <span class="ow">in</span> <span class="n">unixtime_list</span>
-    <span class="p">]</span>
-    <span class="n">datetime_split_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">datetime</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">datetime</span> <span class="ow">in</span> <span class="n">datetime_list</span> <span class="p">]</span>
-    <span class="n">date_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">datetime_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="s">&#39;UNKNOWN&#39;</span> <span class="k">for</span> <span class="n">datetime_split</span> <span class="ow">in</span> <span class="n">datetime_split_list</span> <span class="p">]</span>
+    <span class="n">date_list</span> <span class="o">=</span> <span class="n">_date_list</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">gid_list_unique</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">date_list_unique</span> <span class="o">=</span> <span class="n">_date_list</span><span class="p">(</span><span class="n">gid_list_unique</span><span class="p">)</span>
+    <span class="n">date_taken_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">date</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list_unique</span><span class="p">,</span> <span class="n">date_list_unique</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">date</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">date_taken_dict</span><span class="p">:</span>
+            <span class="n">date_taken_dict</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">date_taken_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">gid_list_all</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">date_list_all</span> <span class="o">=</span> <span class="n">_date_list</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">date</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">,</span> <span class="n">date_list_all</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">date_taken_dict</span><span class="p">:</span>
+            <span class="n">date_taken_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -319,16 +333,21 @@
         <span class="n">index_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c"># Add to counters</span>
         <span class="k">if</span> <span class="n">date</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">date_seen_dict</span><span class="p">:</span>
-            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
         <span class="k">if</span> <span class="n">nid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_seen_set</span><span class="p">:</span>
             <span class="n">current_seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
-            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">previous_seen_set</span><span class="p">:</span>
-                <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
         <span class="k">if</span> <span class="n">nid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_set</span><span class="p">:</span>
             <span class="n">seen_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
         <span class="c"># Add to register</span>
         <span class="n">value_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="c"># Reset step (per day)</span>
@@ -381,9 +400,12 @@
 
     <span class="n">date_seen_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;UNKNOWN&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">bar_label_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">date_seen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">bar_value_list1</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
-    <span class="n">bar_value_list2</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
-    <span class="n">bar_value_list3</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list1</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_taken_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list2</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_taken_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list3</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list4</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list5</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
+    <span class="n">bar_value_list6</span> <span class="o">=</span> <span class="p">[</span> <span class="n">date_seen_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">bar_label_list</span> <span class="p">]</span>
 
     <span class="c"># label_list += [&#39;Models&#39;] + [&#39;&#39;] * (len(index_list) - len(label_list) - 1)</span>
     <span class="c"># value_list += [0] * (len(index_list) - len(value_list))</span>
@@ -402,9 +424,9 @@
 
     <span class="c"># Calculate the Petersen-Lincoln index form the last two days</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">c1</span> <span class="o">=</span> <span class="n">bar_value_list1</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">c2</span> <span class="o">=</span> <span class="n">bar_value_list1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">c3</span> <span class="o">=</span> <span class="n">bar_value_list3</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">c1</span> <span class="o">=</span> <span class="n">bar_value_list4</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">c2</span> <span class="o">=</span> <span class="n">bar_value_list4</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">c3</span> <span class="o">=</span> <span class="n">bar_value_list6</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">pl_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="p">(</span><span class="n">c1</span> <span class="o">*</span> <span class="n">c2</span><span class="p">)</span> <span class="o">/</span> <span class="n">c3</span> <span class="p">))</span>
         <span class="n">pl_error_num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">c1</span> <span class="o">*</span> <span class="n">c1</span> <span class="o">*</span> <span class="n">c2</span> <span class="o">*</span> <span class="p">(</span><span class="n">c2</span> <span class="o">-</span> <span class="n">c3</span><span class="p">))</span>
         <span class="n">pl_error_dom</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">c3</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
@@ -508,6 +530,9 @@
                        <span class="n">bar_value_list1</span><span class="o">=</span><span class="n">bar_value_list1</span><span class="p">,</span>
                        <span class="n">bar_value_list2</span><span class="o">=</span><span class="n">bar_value_list2</span><span class="p">,</span>
                        <span class="n">bar_value_list3</span><span class="o">=</span><span class="n">bar_value_list3</span><span class="p">,</span>
+                       <span class="n">bar_value_list4</span><span class="o">=</span><span class="n">bar_value_list4</span><span class="p">,</span>
+                       <span class="n">bar_value_list5</span><span class="o">=</span><span class="n">bar_value_list5</span><span class="p">,</span>
+                       <span class="n">bar_value_list6</span><span class="o">=</span><span class="n">bar_value_list6</span><span class="p">,</span>
                        <span class="n">age_list</span><span class="o">=</span><span class="n">age_list</span><span class="p">,</span>
                        <span class="n">age_ambiguous</span><span class="o">=</span><span class="n">age_ambiguous</span><span class="p">,</span>
                        <span class="n">age_unreviewed</span><span class="o">=</span><span class="n">age_unreviewed</span><span class="p">,</span>
@@ -1678,6 +1703,169 @@
     <span class="k">return</span> <span class="n">gid_list</span>
 
 </div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="add_images_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.add_images_json">[docs]</a><span class="k">def</span> <span class="nf">add_images_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uri_list</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">image_width_list</span><span class="p">,</span>
+                    <span class="n">image_height_list</span><span class="p">,</span> <span class="n">image_orig_name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_ext_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">image_time_posix_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_gps_lat_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">image_gps_lon_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/image/json/</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        sudo pip install boto</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uri_list (list) : list of string image uris, most likely HTTP(S) or S3</span>
+<span class="sd">            encoded URLs.  Alternatively, this can be a list of dictionaries (JSON</span>
+<span class="sd">            objects) that specify AWS S3 stored assets.  An example below:</span>
+
+<span class="sd">                image_uri_list = [</span>
+<span class="sd">                    &#39;http://domain.com/example/asset1.png&#39;,</span>
+<span class="sd">                    &#39;/home/example/Desktop/example/asset2.jpg&#39;,</span>
+<span class="sd">                    &#39;s3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif&#39;,</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39;          : &#39;example-bucket-1&#39;,</span>
+<span class="sd">                        &#39;key&#39;             : &#39;example/asset1.png&#39;,</span>
+<span class="sd">                        &#39;auth_domain&#39;     : None,  # Uses localhost</span>
+<span class="sd">                        &#39;auth_access_id&#39;  : None,  # Uses system default</span>
+<span class="sd">                        &#39;auth_secret_key&#39; : None,  # Uses system default</span>
+<span class="sd">                    },</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39; : &#39;example-bucket-1&#39;,</span>
+<span class="sd">                        &#39;key&#39;    : &#39;example/asset2.jpg&#39;,</span>
+<span class="sd">                        # if unspecified, auth uses localhost and system defaults</span>
+<span class="sd">                    },</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;bucket&#39;          : &#39;example-bucket-2&#39;,</span>
+<span class="sd">                        &#39;key&#39;             : &#39;example/asset1-in-bucket-2.tif&#39;,</span>
+<span class="sd">                        &#39;auth_domain&#39;     : &#39;s3.amazon.com&#39;,</span>
+<span class="sd">                        &#39;auth_access_id&#39;  : &#39;____________________&#39;,</span>
+<span class="sd">                        &#39;auth_secret_key&#39; : &#39;________________________________________&#39;,</span>
+<span class="sd">                    },</span>
+<span class="sd">                ]</span>
+
+<span class="sd">            Note that you cannot specify AWS authentication access ids or secret keys</span>
+<span class="sd">            using string uri&#39;s.  For specific authentication methods, please use the</span>
+<span class="sd">            latter list of dictionaries.</span>
+
+<span class="sd">        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS</span>
+<span class="sd">        image_width_list (list of int) : list of image widths</span>
+<span class="sd">        image_height_list (list of int) : list of image heights</span>
+<span class="sd">        image_orig_name_list (list of str): list of original image names</span>
+<span class="sd">        image_ext_list (list of str): list of original image names</span>
+<span class="sd">        image_time_posix_list (list of int): list of image&#39;s POSIX timestamps</span>
+<span class="sd">        image_gps_lat_list (list of float): list of image&#39;s GPS latitude values</span>
+<span class="sd">        image_gps_lon_list (list of float): list of image&#39;s GPS longitude values</span>
+<span class="sd">        image_notes_list (list of str) : optional list of any related notes with</span>
+<span class="sd">            the images</span>
+<span class="sd">        **kwargs : key-value pairs passed to the ibs.add_images() function.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.app --test-add_images_json</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import uuid</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import time</span>
+<span class="sd">        &gt;&gt;&gt; import requests</span>
+<span class="sd">        &gt;&gt;&gt; # Start up the web instance</span>
+<span class="sd">        &gt;&gt;&gt; DEBUG = True</span>
+<span class="sd">        &gt;&gt;&gt; if DEBUG:</span>
+<span class="sd">        &gt;&gt;&gt;     web_instance = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     web_instance = ibeis.opendb_bg_web(db=&#39;testdb1&#39;, wait=10)</span>
+<span class="sd">        &gt;&gt;&gt; _payload = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_uri_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;         {</span>
+<span class="sd">        &gt;&gt;&gt;             &#39;bucket&#39;          : &#39;test-asset-store&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;             &#39;key&#39;             : &#39;caribwhale/20130903-JAC-0002.JPG&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;         },</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_uuid_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.uuid4(),</span>
+<span class="sd">        &gt;&gt;&gt;         uuid.uuid4(),</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_width_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         1992,</span>
+<span class="sd">        &gt;&gt;&gt;         1194,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;image_height_list&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         1328,</span>
+<span class="sd">        &gt;&gt;&gt;         401,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; if DEBUG:</span>
+<span class="sd">        &gt;&gt;&gt;     gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     payload = ut.map_dict_vals(ut.to_json, _payload)</span>
+<span class="sd">        &gt;&gt;&gt;     baseurl = &#39;http://127.0.0.1:5000&#39;</span>
+<span class="sd">        &gt;&gt;&gt;     resp = requests.post(baseurl + &#39;/api/image/json/&#39;, data=payload)</span>
+<span class="sd">        &gt;&gt;&gt;     print(resp)</span>
+<span class="sd">        &gt;&gt;&gt;     web_instance.terminate()</span>
+<span class="sd">        &gt;&gt;&gt;     json_dict = resp.json()</span>
+<span class="sd">        &gt;&gt;&gt;     gid_list = json_dict[&#39;response&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; print(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_uris(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(web_instance.get_image_paths(gid_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
+
+    <span class="k">def</span> <span class="nf">_parse_imageinfo</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_resolve_uri</span><span class="p">():</span>
+            <span class="n">list_</span> <span class="o">=</span> <span class="n">image_uri_list</span>
+            <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">s3_dict_encode_to_str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">def</span> <span class="nf">_resolve</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">assert_</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">return</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">_resolve_uri</span><span class="p">()</span>
+        <span class="n">orig_gname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">_get_standard_ext</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+
+        <span class="n">param_tup</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">uri</span><span class="p">,</span>
+            <span class="n">uri</span><span class="p">,</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_orig_name_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">orig_gname</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_ext_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ext</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_width_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_height_list</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_time_posix_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lat_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lon_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">),</span>
+            <span class="n">_resolve</span><span class="p">(</span><span class="n">image_notes_list</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_tup</span>
+
+    <span class="c"># TODO: FIX ME SO THAT WE DON&#39;T HAVE TO LOCALIZE EVERYTHING</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;auto_localize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auto_localize&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;sanitize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sanitize&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">index_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uri_list</span><span class="p">))</span>
+    <span class="n">params_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">_parse_imageinfo</span><span class="p">,</span> <span class="n">index_list</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">params_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_gen</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_gen</span> <span class="p">]</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="n">params_gen</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span>
+
+</div>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_upload">[docs]</a><span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -1698,7 +1886,7 @@
 <span class="sd">        URL:    /api/image/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.files = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">,))</span>
 
     <span class="n">filestore</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">filestore</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -1726,7 +1914,7 @@
     <span class="k">return</span> <span class="n">gid</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/helloworld/&#39;</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/helloworld/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="hello_world"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.hello_world">[docs]</a><span class="k">def</span> <span class="nf">hello_world</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;------------------ HELLO WORLD ------------------&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Args:&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
@@ -1877,7 +2065,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;methods = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">methods</span><span class="p">,))</span>
             <span class="n">method</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">methods</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1937,6 +2125,8 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
             <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="c"># Start the tornado web handler</span>
+        <span class="c"># WSGI = Web Server Gateway Interface</span>
+        <span class="c"># WSGI is Python standard described in detail in PEP 3333</span>
         <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
             <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">app</span><span class="p">))</span>
         <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
@@ -1951,7 +2141,7 @@
     <span class="n">_start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="start_from_ibeis"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_from_ibeis">[docs]</a><span class="k">def</span> <span class="nf">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">BROWSER</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="start_from_ibeis"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_from_ibeis">[docs]</a><span class="k">def</span> <span class="nf">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">BROWSER</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">start_job_queue</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse command line options and start the server.</span>
 
@@ -1970,7 +2160,17 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">check_chip_existence</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_chips</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">start_job_queue</span><span class="p">:</span>
+        <span class="c">#from ibeis.web import zmq_task_queue</span>
+        <span class="c">#ibs.load_plugin_module(zmq_task_queue)</span>
+        <span class="c">#import time</span>
+        <span class="c">#time.sleep(1)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">initialize_job_manager</span><span class="p">()</span>
+        <span class="c">#time.sleep(10)</span>
+
     <span class="n">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">url_suffix</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">close_job_manager</span><span class="p">()</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -2017,7 +2217,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

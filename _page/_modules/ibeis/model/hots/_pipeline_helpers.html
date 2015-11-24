@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots._pipeline_helpers &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots._pipeline_helpers &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -480,7 +480,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#from ibeis.model import Config</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_list</span> <span class="o">=</span> <span class="n">get_pipeline_testdata2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">locals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;spatial_verification&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">qreq_list</span><span class="p">]</span>
+    <span class="n">locals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;spatial_verification&#39;</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">qreq_list</span><span class="p">]</span>
     <span class="n">cms_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">locals_</span><span class="p">[</span><span class="s">&#39;cm_list_FILT&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">locals_</span> <span class="ow">in</span> <span class="n">locals_list</span><span class="p">]</span>
     <span class="c">#nnfilts_list   = locals_[&#39;nnfilts_list&#39;]</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_list</span><span class="p">,</span> <span class="n">cms_list</span>
@@ -625,7 +626,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

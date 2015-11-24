@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_matches &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.interact.interact_matches &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -219,7 +219,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">dodraw</span><span class="o">=</span><span class="n">dodraw</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MatchInteraction.init_old"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.init_old">[docs]</a>    <span class="k">def</span> <span class="nf">init_old</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; old begin function for working with qres objects &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        old begin function for working with qres objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="o">=</span> <span class="n">qres</span>
             <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_qres</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
@@ -436,6 +438,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
             <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+    <span class="c">#def plot()</span>
+    <span class="c"># define for expandable interaction</span>
 </div>
 <div class="viewcode-block" id="MatchInteraction.chipmatch_view"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_matches.MatchInteraction.chipmatch_view">[docs]</a>    <span class="k">def</span> <span class="nf">chipmatch_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -760,7 +765,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

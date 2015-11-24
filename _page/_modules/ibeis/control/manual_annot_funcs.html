@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.manual_annot_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -149,7 +149,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_annot]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_annot]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -1465,7 +1465,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/uuids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/uuids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_annot_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -2657,9 +2657,35 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns paths to probability images.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+<span class="sd">        config2_ (dict): (default = None)</span>
+
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/annot/probchip_fpath/</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: probchip_fpath_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = ibs.new_query_params({&#39;featweight_detector&#39;: &#39;cnn&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath_list = get_annot_probchip_fpath(ibs, aid_list, config2_)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;probchip_fpath_list = %s&#39; % (str(probchip_fpath_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list, nPerPage=4)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># FIXME: this is implemented very poorly. Caches not robust. IE they are</span>
     <span class="c"># never invalidated. Not all config information is passed through</span>
@@ -3339,7 +3365,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

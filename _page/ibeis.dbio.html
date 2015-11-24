@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio package &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.dbio package &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.expt package" href="ibeis.expt.html"/>
         <link rel="prev" title="ibeis.control package" href="ibeis.control.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -253,7 +253,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">csvtup</span> <span class="o">=</span> <span class="n">get_hots_table_strings</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># hack so hashtag is at the end of each line</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\\\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csvtup</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;#</span><span class="se">\\\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;#&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csvtup</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;#&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go"># image table#</span>
@@ -2143,7 +2143,7 @@ best word i can think of is io. maybe marshall?</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_helpers &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.init.main_helpers &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -131,7 +131,9 @@
   <h1>Source code for ibeis.init.main_helpers</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">The AID configuration selection is getting a mjor update right now</span>
+<span class="sd">This module defines helper functions to access common input needed to test many</span>
+<span class="sd">functions. These functions give a rich command line interface to specifically</span>
+<span class="sd">select subsets of annotations, pipeline configurations, and other filters.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -251,7 +253,15 @@
     <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
                                    <span class="n">default</span><span class="o">=</span><span class="n">default_acfgstr_name_list</span><span class="p">)</span>
     <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_test_cfg_name_list</span><span class="p">)</span>
-    <span class="n">testres_list</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span><span class="p">(</span>
+
+    <span class="c"># Hack a cache here</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">)),</span> <span class="s">&#39;BIG_TESTLIST_CACHE3&#39;</span><span class="p">))</span>
+        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cached_func</span><span class="p">(</span><span class="s">&#39;testreslist&#39;</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">)(</span><span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">load_testres</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations2</span>
+    <span class="n">testres_list</span> <span class="o">=</span> <span class="n">load_testres</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
     <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">combine_testres_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span>
@@ -339,24 +349,28 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="testdata_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_options</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="testdata_aids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_helpers.testdata_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_acfg</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints</span>
 <span class="sd">        python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername=&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
+<span class="sd">        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername=&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
+<span class="sd">        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.init.main_helpers --exec-testdata_aids --show</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.init.filter_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.expt import annotation_configs</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(defaultdb=&#39;PZ_ViewPoints&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; default_options = &#39;&#39;</span>
-<span class="sd">        &gt;&gt;&gt; aidcfg, aids = testdata_aids(ibs=ibs, default_options=default_options)</span>
+<span class="sd">        &gt;&gt;&gt; a = None</span>
+<span class="sd">        &gt;&gt;&gt; adefault = &#39;default:is_known=True&#39;</span>
+<span class="sd">        &gt;&gt;&gt; aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;\n RESULT:&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -364,20 +378,41 @@
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">adefault</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">return_ibs</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">return_ibs</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">if</span> <span class="n">defaultdb</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">defaultdb</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
-    <span class="n">cfgstr_options</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_options</span><span class="p">)</span>
-    <span class="n">base_cfg</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">single_default</span>
-    <span class="n">aidcfg_combo</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">customize_base_cfg</span><span class="p">(</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">cfgstr_options</span><span class="p">,</span>
-                                                 <span class="n">base_cfg</span><span class="p">,</span> <span class="s">&#39;aids&#39;</span><span class="p">,</span>
-                                                 <span class="n">alias_keys</span><span class="o">=</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span><span class="p">)</span>
-    <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">aidcfg_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
-    <span class="n">aids</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">aids</span>
+    <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span>
+                                       <span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">)</span>
+    <span class="n">named_qcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span>
+                                   <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;qcfg&#39;</span><span class="p">)))</span>
+    <span class="c"># Allow command line override</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="s">&#39;--aids&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">aidcfg</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#base_cfg = annotation_configs.single_default</span>
+        <span class="n">aidcfg_combo_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="n">named_qcfg_defaults</span><span class="p">,</span> <span class="s">&#39;acfg&#39;</span><span class="p">,</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span><span class="p">,</span> <span class="n">expand_nested</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c">#aidcfg_combo = cfghelpers.customize_base_cfg(&#39;default&#39;, cfgstr_options,</span>
+        <span class="c">#                                             base_cfg, &#39;aids&#39;,</span>
+        <span class="c">#                                             alias_keys=annotation_configs.ALIAS_KEYS)</span>
+        <span class="n">aidcfg_combo</span> <span class="o">=</span> <span class="n">aidcfg_combo_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
+        <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">aidcfg_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_ibs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span>
+    <span class="k">if</span> <span class="n">return_acfg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aids</span><span class="p">,</span> <span class="n">aidcfg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aids</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -424,7 +459,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

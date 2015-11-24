@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dev &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.dev &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -169,7 +169,6 @@
 <span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="c">#from ibeis.model.hots import smk</span>
-<span class="kn">import</span> <span class="nn">plottool</span>
 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -184,7 +183,6 @@
 <span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">dbinfo</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_all</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span><span class="p">,</span> <span class="n">constants</span>  <span class="c"># NOQA</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dev]&#39;</span><span class="p">)</span>
 
@@ -207,7 +205,7 @@
 <span class="c"># Quick interface into specific registered doctests</span>
 <span class="n">REGISTERED_DOCTEST_EXPERIMENTS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_case_timedeltas&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;timedelta_hist&#39;</span><span class="p">,</span> <span class="s">&#39;timedelta_pie&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_individual_cases&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;draw_cases&#39;</span><span class="p">,</span> <span class="s">&#39;cases&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_match_cases&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;draw_cases&#39;</span><span class="p">,</span> <span class="s">&#39;cases&#39;</span><span class="p">]),</span>
     <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_casetag_hist&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;taghist&#39;</span><span class="p">]),</span>
 
     <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_results&#39;</span><span class="p">),</span>
@@ -220,7 +218,7 @@
     <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_printres&#39;</span><span class="p">,</span> <span class="s">&#39;print_results&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;printres&#39;</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">]),</span>
     <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_printres&#39;</span><span class="p">,</span> <span class="s">&#39;print_latexsum&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;latexsum&#39;</span><span class="p">]),</span>
     <span class="p">(</span><span class="s">&#39;ibeis.dbio.export_subset&#39;</span><span class="p">,</span> <span class="s">&#39;export_annots&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;annotationmatch_scores&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;scores&#39;</span><span class="p">,</span> <span class="s">&#39;scores_good&#39;</span><span class="p">,</span> <span class="s">&#39;scores_all&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span><span class="p">,</span> <span class="s">&#39;draw_score_sep&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;scores&#39;</span><span class="p">,</span> <span class="s">&#39;scores_good&#39;</span><span class="p">,</span> <span class="s">&#39;scores_all&#39;</span><span class="p">]),</span>
 <span class="p">]</span>
 
 
@@ -241,58 +239,6 @@
         <span class="n">devprecmd</span><span class="p">(</span><span class="o">*</span><span class="n">aliases</span><span class="p">)(</span><span class="n">_doctest_func</span><span class="p">)</span>
 
 <span class="n">_register_doctest_precmds</span><span class="p">()</span>
-
-
-<span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;dists&#39;</span><span class="p">,</span> <span class="s">&#39;dist&#39;</span><span class="p">,</span> <span class="s">&#39;vecs_dist&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">vecs_dist</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plots the distances between matching descriptors</span>
-<span class="sd">        with groundtruth (true/false) data</span>
-
-<span class="sd">    True distances are spatially verified descriptor matches</span>
-<span class="sd">    Top false distances distances are spatially verified descriptor matches</span>
-
-<span class="sd">    SeeAlso:</span>
-<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn --show</span>
-<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show</span>
-<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show</span>
-<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport</span>
-
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python dev.py -t vecs_dist --db NAUT_test --allgt -w --show</span>
-<span class="sd">        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show</span>
-<span class="sd">        python dev.py -t vecs_dist --db PZ_Master0 --allgt -w --show</span>
-<span class="sd">        python dev.py -t vecs_dist --db NNP_Maser3 --allgt -w --show</span>
-<span class="sd">        python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show</span>
-<span class="sd">        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] vecs_dist&#39;</span><span class="p">)</span>
-    <span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-    <span class="c"># Get the descriptor distances of true matches</span>
-    <span class="n">orgtype_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;top_false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">]</span>
-    <span class="c">#disttype = &#39;L2&#39;</span>
-    <span class="n">disttype</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
-    <span class="c"># Get descriptor match distances</span>
-    <span class="n">orgres2_distmap</span> <span class="o">=</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
-    <span class="n">results_analyzer</span><span class="o">.</span><span class="n">print_desc_distances_map</span><span class="p">(</span><span class="n">orgres2_distmap</span><span class="p">)</span>
-    <span class="c">#true_desc_dists  = orgres2_distmap[&#39;true&#39;][&#39;L2&#39;]</span>
-    <span class="c">#false_desc_dists = orgres2_distmap[&#39;false&#39;][&#39;L2&#39;]</span>
-    <span class="c">#scores_list = [false_desc_dists, true_desc_dists]</span>
-    <span class="n">dists_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">orgres2_distmap</span><span class="p">[</span><span class="n">orgtype</span><span class="p">][</span><span class="n">disttype</span><span class="p">]</span> <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">]</span>
-    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
-        <span class="n">dists_lbls</span> <span class="o">=</span> <span class="n">orgtype_list</span>
-        <span class="n">dists_markers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;x--&#39;</span><span class="p">,</span> <span class="s">&#39;o--&#39;</span><span class="p">]</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_sorted_scores</span><span class="p">(</span><span class="n">dists_list</span><span class="p">,</span> <span class="n">dists_lbls</span><span class="p">,</span> <span class="n">dists_markers</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">encoder</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">()</span>
-        <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_scores</span> <span class="o">=</span> <span class="n">dists_list</span>
-        <span class="n">name_scores</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">_to_xy</span><span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">)</span>
-        <span class="n">encoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">name_scores</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
-        <span class="n">encoder</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Descriptor Distance&#39;</span><span class="p">)</span>
-
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Descriptor Sorted Distance d(x)</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
-    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;tune&#39;</span><span class="p">,</span> <span class="s">&#39;autotune&#39;</span><span class="p">)</span>
@@ -367,87 +313,11 @@
     <span class="k">return</span> <span class="n">automated_matcher</span><span class="o">.</span><span class="n">incremental_test</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">num_initial</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="viz_allres_annotation_scores"><a class="viewcode-back" href="../../ibeis.html#ibeis.dev.viz_allres_annotation_scores">[docs]</a><span class="k">def</span> <span class="nf">viz_allres_annotation_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    chip vs chip scores</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python dev.py -t viz_allres_annotation_scores --db PZ_Master0 --allgt</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Get the descriptor distances of true matches</span>
-    <span class="c">#orgtype_list = [&#39;false&#39;, &#39;true&#39;]</span>
-    <span class="c">#orgtype_list = [&#39;top_false&#39;, &#39;top_true&#39;]</span>
-    <span class="n">orgtype_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;rank0_false&#39;</span><span class="p">,</span> <span class="s">&#39;rank0_true&#39;</span><span class="p">]</span>
-    <span class="c">#markers_map = {&#39;false&#39;: &#39;o&#39;, &#39;true&#39;: &#39;o-&#39;, &#39;top_true&#39;: &#39;o-&#39;, &#39;top_false&#39;: &#39;o&#39;}</span>
-    <span class="n">markers_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="s">&#39;o&#39;</span><span class="p">)</span>
-    <span class="n">cmatch_scores_map</span> <span class="o">=</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
-    <span class="n">results_analyzer</span><span class="o">.</span><span class="n">print_annotationmatch_scores_map</span><span class="p">(</span><span class="n">cmatch_scores_map</span><span class="p">)</span>
-    <span class="c">#true_cmatch_scores  = cmatch_scores_map[&#39;true&#39;]</span>
-    <span class="c">#false_cmatch_scores = cmatch_scores_map[&#39;false&#39;]</span>
-    <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmatch_scores_map</span><span class="p">[</span><span class="n">orgtype</span><span class="p">]</span> <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">]</span>
-    <span class="n">scores_lbls</span> <span class="o">=</span> <span class="n">orgtype_list</span>
-    <span class="n">scores_markers</span> <span class="o">=</span> <span class="p">[</span><span class="n">markers_map</span><span class="p">[</span><span class="n">orgtype</span><span class="p">]</span> <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">]</span>
-    <span class="n">plottool</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_sorted_scores</span><span class="p">(</span><span class="n">scores_list</span><span class="p">,</span> <span class="n">scores_lbls</span><span class="p">,</span> <span class="n">scores_markers</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Chip-vs-Chip Scores &#39;</span> <span class="o">+</span> <span class="n">allres</span><span class="o">.</span><span class="n">make_title</span><span class="p">())</span>
-    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
-
-</div>
-<span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;vsone_gt&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">vsone_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    dev.py --db PZ_MTEST --allgt --cmd</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fg_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
-    <span class="c">#orgtype_list = [&#39;top_false&#39;, &#39;top_true&#39;]</span>
-    <span class="n">org_top_false</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_orgtype</span><span class="p">(</span><span class="s">&#39;rank0_false&#39;</span><span class="p">)</span>
-    <span class="n">top_false_aid_pairs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">org_top_false</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">org_top_false</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
-    <span class="n">gtaids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">)</span>
-    <span class="c"># Add groundtruth pairs to query</span>
-    <span class="n">qaid2_vsoneaids_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">gtaids_list</span><span class="p">))</span>
-    <span class="n">qaid2_vsoneaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-    <span class="c"># Add problem cases</span>
-    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">top_false_aid_pairs</span><span class="p">:</span>
-        <span class="n">qaid2_vsoneaids</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
-        <span class="n">qaid2_vsoneaids</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">qaid2_vsoneaids_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="p">[]))</span>
-    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">)</span>
-    <span class="n">qaid2_vsoneqres</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">vsoneaids</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_vsoneaids</span><span class="p">):</span>
-        <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">vsoneaids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">qaid2_vsoneqres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres</span>
-    <span class="n">vsone_allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">init_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_vsoneqres</span><span class="p">)</span>
-    <span class="n">viz_allres_annotation_scores</span><span class="p">(</span><span class="n">vsone_allres</span><span class="p">)</span>
-    <span class="c">#cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)</span>
-
-
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;inspect&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">inspect_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;inspect_matches&gt;&#39;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
     <span class="k">return</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">test_inspect_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-
-
-<span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;gv&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">gvcomp</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    GV = With gravity vector</span>
-<span class="sd">    RI = With rotation invariance</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] gvcomp&#39;</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">),</span> <span class="s">&#39;bad input&#39;</span>  <span class="c"># let jedi know whats up</span>
-    <span class="k">def</span> <span class="nf">testcomp</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">):</span>
-        <span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">:</span>
-            <span class="n">qres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_qres</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
-            <span class="n">qres</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Qaid=</span><span class="si">%r</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">allres</span>
-    <span class="n">ibs_GV</span> <span class="o">=</span> <span class="n">ibs</span>
-    <span class="n">ibs_RI</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">clone_handle</span><span class="p">(</span><span class="n">nogravity_hack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="c">#utool.embed()</span>
-
-    <span class="n">allres_GV</span> <span class="o">=</span> <span class="n">testcomp</span><span class="p">(</span><span class="n">ibs_GV</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-    <span class="n">allres_RI</span> <span class="o">=</span> <span class="n">testcomp</span><span class="p">(</span><span class="n">ibs_RI</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="get_ibslist"><a class="viewcode-back" href="../../ibeis.html#ibeis.dev.get_ibslist">[docs]</a><span class="k">def</span> <span class="nf">get_ibslist</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -460,11 +330,11 @@
 
 </div>
 <span class="nd">@devcmd</span><span class="p">(</span><span class="s">&#39;gv_scores&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">compgrav_annotationmatch_scores</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] compgrav_annotationmatch_scores&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compgrav_draw_score_sep</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] compgrav_draw_score_sep&#39;</span><span class="p">)</span>
     <span class="n">ibs_list</span> <span class="o">=</span> <span class="n">get_ibslist</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">ibs_</span> <span class="ow">in</span> <span class="n">ibs_list</span><span class="p">:</span>
-        <span class="n">annotationmatch_scores</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">draw_score_sep</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
 
 <span class="c">#--------------------</span>
 <span class="c"># RUN DEV EXPERIMENTS</span>
@@ -768,7 +638,6 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">cfgstr..&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
     <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()))</span>
-    <span class="c">#allres = results_all.get_allres(ibs, qaid_list)</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="mf">16.0</span> <span class="o">/</span> <span class="mf">3.0</span>
@@ -831,7 +700,7 @@
             <span class="k">print</span><span class="p">(</span><span class="n">get_sortbystr</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">nKpts_list</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="s">&#39;nKpts&#39;</span><span class="p">))</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
     <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-    <span class="c">#locals_.update(annotationmatch_scores(ibs, qaid_list))</span>
+    <span class="c">#locals_.update(draw_score_sep(ibs, qaid_list))</span>
     <span class="k">return</span> <span class="n">locals_</span>
 
 </div>
@@ -1206,7 +1075,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.match_chips4 &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.match_chips4 &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -175,7 +175,7 @@
 <span class="sd">        qaids (?):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple: (qaid2_qres, qreq_)</span>
+<span class="sd">        tuple: (qaid2_cm, qreq_)</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.match_chips4 --test-empty_query</span>
@@ -188,36 +188,36 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; (qaid2_qres, qreq_) = empty_query(ibs, qaids)</span>
+<span class="sd">        &gt;&gt;&gt; (qaid2_cm, qreq_) = empty_query(ibs, qaids)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; result = str((qaid2_qres, qreq_))</span>
+<span class="sd">        &gt;&gt;&gt; result = str((qaid2_cm, qreq_))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaids[0]]</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(qres.get_top_aids()), 0)</span>
+<span class="sd">        &gt;&gt;&gt; cm = qaid2_cm[qaids[0]]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(cm.get_top_aids()), 0)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
-<span class="sd">        &gt;&gt;&gt; qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)</span>
+<span class="sd">        &gt;&gt;&gt; cm.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)</span>
 <span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot as plt</span>
 <span class="sd">        &gt;&gt;&gt; plt.show()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
-    <span class="n">qres_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">make_empty_chip_matches</span><span class="p">()</span>
-    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qres_list</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">make_empty_chip_matches</span><span class="p">()</span>
+    <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">cm</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span>
 
 </div>
 <div class="viewcode-block" id="submit_query_request_nocache"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request_nocache">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request_nocache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39; no current query aids&#39;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] WARNING no daids... returning empty query&#39;</span><span class="p">)</span>
-        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">qaid2_qres</span>
+        <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">qaid2_cm</span>
     <span class="n">save_qcache</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">qaid2_qres</span>
+    <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_cm</span>
 
-
-<span class="c">#@profile</span></div>
+</div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="submit_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                          <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                          <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -227,7 +227,7 @@
 
 <span class="sd">    TODO: rename use_cache to use_qcache</span>
 
-<span class="sd">    Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres</span>
+<span class="sd">    Checks a big cache for qaid2_cm.  If cache miss, tries to load each cm</span>
 <span class="sd">    individually.  On an individual cache miss, it preforms the query.</span>
 
 <span class="sd">    Args:</span>
@@ -238,7 +238,7 @@
 <span class="sd">        use_bigcache (bool):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        qaid2_qres (dict): dict of QueryResult objects</span>
+<span class="sd">        qaid2_cm (dict): dict of QueryResult objects</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.match_chips4 --test-submit_query_request</span>
@@ -253,7 +253,7 @@
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={}, verbose=True)</span>
-<span class="sd">        &gt;&gt;&gt; qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_cm = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get flag defaults if necessary</span>
     <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -307,7 +307,7 @@
 <span class="sd">        use_cache (bool):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        qaid2_qres</span>
+<span class="sd">        qaid2_cm</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1:0</span>
@@ -394,12 +394,12 @@
         <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
         <span class="n">qaids_hit</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">external_qaids</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
         <span class="n">fpaths_hit</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+        <span class="n">fpath_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span>
+            <span class="n">fpaths_hit</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">),</span> <span class="n">enabled</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;loading cache hits&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">cm_hit_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">load_from_fpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">),</span>
-                                         <span class="n">enabled</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
-                                         <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;loading cache hits&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                         <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_iter</span>
         <span class="p">]</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">qaid</span> <span class="o">==</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids_hit</span><span class="p">,</span> <span class="n">cm_hit_list</span><span class="p">)]),</span> <span class="s">&#39;inconsistent&#39;</span>
         <span class="n">qaid2_cm_hit</span> <span class="o">=</span> <span class="p">{</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">:</span> <span class="n">cm</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_hit_list</span><span class="p">}</span>
@@ -408,7 +408,7 @@
             <span class="k">return</span> <span class="n">qaid2_cm_hit</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_cm_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... partial qres cache hit </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... partial cm cache hit </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_cm_hit</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_qaids</span><span class="p">)))</span>
         <span class="n">cachehit_qaids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_cm_hit</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="c"># mask queries that have already been executed</span>
@@ -428,12 +428,13 @@
     <span class="k">return</span> <span class="n">qaid2_cm</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="execute_query2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query2">[docs]</a><span class="k">def</span> <span class="nf">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Breaks up query request into several subrequests</span>
 <span class="sd">    to process &quot;more efficiently&quot; and safer as well.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">)</span>
     <span class="n">all_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(missed_qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">),))</span>
     <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="p">{}</span>
@@ -722,7 +723,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.templates.template_generator &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.templates.template_generator &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.templates" href="../templates.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -358,10 +358,11 @@
 
 <div class="viewcode-block" id="remove_sentinals"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.template_generator.remove_sentinals">[docs]</a><span class="k">def</span> <span class="nf">remove_sentinals</span><span class="p">(</span><span class="n">code_text</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Removes template comments and vim sentinals &quot;&quot;&quot;</span>
-    <span class="n">code_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">r&#39;^ *# STARTBLOCK *$\n&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
-    <span class="n">code_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">r&#39;^ *# ENDBLOCK *$\n?&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
-    <span class="n">code_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">r&#39;^ *# *REM [^\n]*$\n?&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
-    <span class="n">code_text</span> <span class="o">=</span> <span class="n">code_text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">remove_codeblock_syntax_sentinals</span><span class="p">(</span><span class="n">code_text</span><span class="p">)</span>
+    <span class="c">#code_text = ut.regex_replace(r&#39;^ *# STARTBLOCK *$\n&#39;, &#39;&#39;, code_text)</span>
+    <span class="c">#code_text = ut.regex_replace(r&#39;^ *# ENDBLOCK *$\n?&#39;, &#39;&#39;, code_text)</span>
+    <span class="c">#code_text = ut.regex_replace(r&#39;^ *# *REM [^\n]*$\n?&#39;, &#39;&#39;, code_text)</span>
+    <span class="c">#code_text = code_text.rstrip()</span>
     <span class="k">return</span> <span class="n">code_text</span>
 
 </div>
@@ -1539,7 +1540,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

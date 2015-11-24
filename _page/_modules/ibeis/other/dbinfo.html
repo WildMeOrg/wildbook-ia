@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other.dbinfo &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.other.dbinfo &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.other" href="../other.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -137,7 +137,7 @@
 <span class="sd"># This is not the cleanest module</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># TODO: ADD COPYRIGHT TAG</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -740,7 +740,8 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.other.dbinfo import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibeis.testdata_aids(ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ut.unique_unordered(ibs.get_annot_gids(aids))</span>
 <span class="sd">        &gt;&gt;&gt; result = show_image_time_distributions(ibs, gid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
@@ -785,6 +786,36 @@
             <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname_alias</span><span class="p">(),</span>
             <span class="n">num_nan</span><span class="p">,</span> <span class="n">num_total</span><span class="p">))</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">autofmt_xdate</span><span class="p">()</span>
+
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_icon</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">icon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c">#import matplotlib as mpl</span>
+            <span class="c">#import vtool as vt</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+            <span class="c"># Overlay a species icon</span>
+            <span class="c"># http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html</span>
+            <span class="c">#icon = vt.convert_image_list_colorspace([icon], &#39;RGB&#39;, &#39;BGR&#39;)[0]</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">overlay_icon</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">bbox_alignment</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="c">#imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)</span>
+            <span class="c">##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]</span>
+            <span class="c">##ax.set_xlim(1, 100)</span>
+            <span class="c">##ax.set_ylim(0, 100)</span>
+            <span class="c">##x = np.array(ax.get_xlim()).sum() / 2</span>
+            <span class="c">##y = np.array(ax.get_ylim()).sum() / 2</span>
+            <span class="c">##xy = [x, y]</span>
+            <span class="c">##print(&#39;xy = %r&#39; % (xy,))</span>
+            <span class="c">##x = np.nanmin(unixtime_list)</span>
+            <span class="c">##xy = [x, y]</span>
+            <span class="c">##print(&#39;xy = %r&#39; % (xy,))</span>
+            <span class="c">##ax.get_ylim()[0]]</span>
+            <span class="c">#xy = [ax.get_xlim()[0], ax.get_ylim()[1]]</span>
+            <span class="c">#ab = mpl.offsetbox.AnnotationBbox(</span>
+            <span class="c">#    imagebox, xy, xycoords=&#39;data&#39;,</span>
+            <span class="c">#    xybox=(-0., 0.),</span>
+            <span class="c">#    boxcoords=&quot;offset points&quot;,</span>
+            <span class="c">#    box_alignment=(0, 1), pad=0.0)</span>
+            <span class="c">#ax.add_artist(ab)</span>
+
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--contextadjust&#39;</span><span class="p">):</span>
         <span class="c">#pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots2</span><span class="p">(</span><span class="n">use_argv</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -821,9 +852,18 @@
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.render_latex_text(&#39;\\noindent \n&#39; + tabular_str)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># Parse for aids test data</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span> <span class="k">for</span> <span class="n">ibs</span> <span class="ow">in</span> <span class="n">ibs_list</span><span class="p">]</span>
+
+    <span class="c">#dbinfo_list = [get_dbinfo(ibs, with_contrib=False, verbose=False) for ibs in ibs_list]</span>
+    <span class="n">dbinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)]</span>
+
     <span class="c">#title = db_name + &#39; database statistics&#39;</span>
     <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;Database statistics&#39;</span>
-    <span class="n">stat_title</span> <span class="o">=</span> <span class="s">&#39;# Annot per name (multiton)&#39;</span>
+    <span class="n">stat_title</span> <span class="o">=</span> <span class="s">&#39;# Annotations per name (multiton)&#39;</span>
 
     <span class="c">#col_lbls = [</span>
     <span class="c">#    &#39;multiton&#39;,</span>
@@ -854,7 +894,7 @@
         <span class="p">(</span><span class="s">&#39;# Annots&#39;</span><span class="p">,</span> <span class="p">(</span>
             <span class="s">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
             <span class="s">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
-            <span class="s">&#39;num_unknown_annots&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;num_unknown_annots&#39;,</span>
             <span class="s">&#39;num_annots&#39;</span><span class="p">)),</span>
     <span class="p">]</span>
     <span class="c">#multicol_lbls = [(&#39;# Names&#39;, 3), (&#39;# Annots&#39;, 3)]</span>
@@ -868,12 +908,10 @@
     <span class="n">row_values</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c">#stat_col_lbls = [&#39;max&#39;, &#39;min&#39;, &#39;mean&#39;, &#39;std&#39;, &#39;nMin&#39;, &#39;nMax&#39;]</span>
-    <span class="n">stat_col_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">,</span> <span class="s">&#39;std&#39;</span><span class="p">,</span> <span class="s">&#39;median&#39;</span><span class="p">]</span>
+    <span class="n">stat_col_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">,</span> <span class="s">&#39;std&#39;</span><span class="p">,</span> <span class="s">&#39;med&#39;</span><span class="p">]</span>
     <span class="c">#stat_row_lbls = [&#39;# Annot per Name (multiton)&#39;]</span>
     <span class="n">stat_row_lbls</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">stat_row_values</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="n">dbinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">ibs</span> <span class="ow">in</span> <span class="n">ibs_list</span><span class="p">]</span>
 
     <span class="n">SINGLE_TABLE</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">EXTRA</span> <span class="o">=</span> <span class="bp">True</span>
@@ -894,8 +932,10 @@
 
     <span class="n">CENTERLINE</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">AS_TABLE</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">tablekw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">astable</span><span class="o">=</span><span class="n">AS_TABLE</span><span class="p">,</span> <span class="n">centerline</span><span class="o">=</span><span class="n">CENTERLINE</span><span class="p">,</span> <span class="n">FORCE_INT</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                   <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col_sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">multicol_sep</span><span class="o">=</span><span class="s">&#39;|&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">tablekw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">astable</span><span class="o">=</span><span class="n">AS_TABLE</span><span class="p">,</span> <span class="n">centerline</span><span class="o">=</span><span class="n">CENTERLINE</span><span class="p">,</span> <span class="n">FORCE_INT</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col_sep</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">multicol_sep</span><span class="o">=</span><span class="s">&#39;|&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">EXTRA</span><span class="p">:</span>
         <span class="n">extra_keys</span> <span class="o">=</span> <span class="p">[</span>
@@ -904,9 +944,9 @@
             <span class="s">&#39;yawtext2_nAnnots&#39;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="n">extra_titles</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;species2_nAids&#39;</span><span class="p">:</span> <span class="s">&#39;Annots per Species&#39;</span><span class="p">,</span>
-            <span class="s">&#39;qualtext2_nAnnots&#39;</span><span class="p">:</span> <span class="s">&#39;Annots per Quality&#39;</span><span class="p">,</span>
-            <span class="s">&#39;yawtext2_nAnnots&#39;</span><span class="p">:</span> <span class="s">&#39;Annots per Viewpoint&#39;</span><span class="p">,</span>
+            <span class="s">&#39;species2_nAids&#39;</span><span class="p">:</span> <span class="s">&#39;Annotations per species.&#39;</span><span class="p">,</span>
+            <span class="s">&#39;qualtext2_nAnnots&#39;</span><span class="p">:</span> <span class="s">&#39;Annotations per quality.&#39;</span><span class="p">,</span>
+            <span class="s">&#39;yawtext2_nAnnots&#39;</span><span class="p">:</span> <span class="s">&#39;Annotations per viewpoint.&#39;</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">extra_collbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="n">extra_rowvalues</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -932,7 +972,7 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">extra_keys</span><span class="p">:</span>
             <span class="n">extra_tables</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
                 <span class="n">row_lbls</span><span class="p">,</span> <span class="n">extra_collbls</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">extra_rowvalues</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
-                <span class="n">title</span><span class="o">=</span><span class="n">extra_titles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">col_align</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">extra_titles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">col_align</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s">&#39;[h!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
 
     <span class="c">#tabular_str = util_latex.tabular_join(tabular_body_list)</span>
     <span class="k">if</span> <span class="n">SINGLE_TABLE</span><span class="p">:</span>
@@ -940,7 +980,7 @@
         <span class="n">multicol_lbls</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">stat_title</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">stat_col_lbls</span><span class="p">))]</span>
 
     <span class="n">count_tabular_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
-        <span class="n">row_lbls</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">,</span> <span class="n">row_values</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">multicol_lbls</span><span class="o">=</span><span class="n">multicol_lbls</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+        <span class="n">row_lbls</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">,</span> <span class="n">row_values</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">multicol_lbls</span><span class="o">=</span><span class="n">multicol_lbls</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s">&#39;[ht!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
 
     <span class="c">#print(row_lbls)</span>
 
@@ -949,7 +989,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">stat_tabular_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_latex</span><span class="o">.</span><span class="n">make_score_tabular</span><span class="p">(</span>
             <span class="n">stat_row_lbls</span><span class="p">,</span> <span class="n">stat_col_lbls</span><span class="p">,</span> <span class="n">stat_row_values</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">stat_title</span><span class="p">,</span>
-            <span class="n">col_align</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
+            <span class="n">col_align</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">table_position</span><span class="o">=</span><span class="s">&#39;[h!]&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">tablekw</span><span class="p">)</span>
 
         <span class="c"># Make a table of statistics</span>
         <span class="k">if</span> <span class="n">tablekw</span><span class="p">[</span><span class="s">&#39;astable&#39;</span><span class="p">]:</span>
@@ -1198,7 +1238,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

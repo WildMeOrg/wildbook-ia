@@ -28,6 +28,14 @@ ibeis.web.test_api module
     :undoc-members:
     :show-inheritance:
 
+ibeis.web.zmq_task_queue module
+-------------------------------
+
+.. automodule:: ibeis.web.zmq_task_queue
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

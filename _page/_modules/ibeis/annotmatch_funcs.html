@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.annotmatch_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.annotmatch_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -811,7 +811,7 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_Master1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; # Find aids that still need splits</span>
-<span class="sd">        &gt;&gt;&gt; aid_pair_list = ibs.filter_aidpairs_by_tags(&#39;SplitCase&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_pair_list = ibs.filter_aidpairs_by_tags(has_any=&#39;SplitCase&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))</span>
 <span class="sd">        &gt;&gt;&gt; _aid_list = ut.list_compress(aid_pair_list, truth_list)</span>
 <span class="sd">        &gt;&gt;&gt; _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)</span>
@@ -881,7 +881,7 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_Master1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; # Find aids that still need Joins</span>
-<span class="sd">        &gt;&gt;&gt; aid_pair_list = ibs.filter_aidpairs_by_tags(&#39;JoinCase&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_pair_list = ibs.filter_aidpairs_by_tags(has_any=&#39;JoinCase&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; if ibs.get_dbname() == &#39;testdb1&#39;:</span>
 <span class="sd">        &gt;&gt;&gt;     aid_pair_list = [[1, 2]]</span>
 <span class="sd">        &gt;&gt;&gt; truth_list_ = ibs.get_aidpair_truths(*zip(*aid_pair_list))</span>
@@ -964,7 +964,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -198,6 +198,10 @@
         <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
         <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
     <span class="p">},</span>
+    <span class="c">#{</span>
+    <span class="c">#    &#39;score_method&#39;:      [&#39;nsum&#39;],</span>
+    <span class="c">#    &#39;prescore_method&#39;:   [&#39;csum&#39;],</span>
+    <span class="c">#},</span>
     <span class="p">{</span>
         <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
         <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
@@ -236,8 +240,34 @@
                 <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">default</span>
 
+</div>
+<span class="n">featscoremetch</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;dist_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;const_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="c">#{</span>
+    <span class="c">#    &#39;lnbnn_on&#39;: False,</span>
+    <span class="c">#    &#39;lograt_on&#39;: True,</span>
+    <span class="c">#},</span>
+<span class="p">]</span>
 
-<span class="c"># only best for grevys</span></div>
+<span class="c"># only best for grevys</span>
 <span class="n">invarbest</span> <span class="o">=</span> <span class="p">[{</span>
     <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
     <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
@@ -1088,7 +1118,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

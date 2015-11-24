@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.preproc.preproc_probchip &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.preproc.preproc_probchip &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -560,6 +560,8 @@
 <span class="sd">        python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show</span>
 <span class="sd">        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970</span>
 <span class="sd">        python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True</span>
+<span class="sd">        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid 9970 --adapteq=True</span>
+<span class="sd">        python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970</span>
@@ -578,7 +580,9 @@
 <span class="sd">        &gt;&gt;&gt; config2_ = ibs.new_query_params(cfgdict=cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; chip_fpath = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)[0]</span>
 <span class="sd">        &gt;&gt;&gt; chip = vt.imread(chip_fpath)</span>
-<span class="sd">        &gt;&gt;&gt; species = ibs.const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; #species = ibs.const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; species = ibs.get_primary_database_species()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;species = %r&#39; % (species,))</span>
 <span class="sd">        &gt;&gt;&gt; mask_list = list(ibs.generate_species_background_mask([chip_fpath], species))</span>
 <span class="sd">        &gt;&gt;&gt; mask = mask_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; mask2 = postprocess_mask(mask)</span>
@@ -802,7 +806,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

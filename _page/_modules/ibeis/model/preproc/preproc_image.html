@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.preproc.preproc_image &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.preproc.preproc_image &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -234,6 +234,7 @@
     <span class="n">param_tup</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">image_uuid</span><span class="p">,</span>
         <span class="n">gpath</span><span class="p">,</span>
+        <span class="n">gpath</span><span class="p">,</span>
         <span class="n">orig_gname</span><span class="p">,</span>
         <span class="c">#orig_gpath,</span>
         <span class="n">ext</span><span class="p">,</span>
@@ -273,7 +274,7 @@
 <span class="sd">        &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=3) + [&#39;doesnotexist.jpg&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; params_list = list(add_images_params_gen(gpath_list))</span>
 <span class="sd">        &gt;&gt;&gt; assert str(params_list[0][0]) == &#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;, &#39;UUID gen method changed&#39;</span>
-<span class="sd">        &gt;&gt;&gt; assert str(params_list[0][2]) == &#39;easy1.JPG&#39;, &#39;orig name is different&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert str(params_list[0][3]) == &#39;easy1.JPG&#39;, &#39;orig name is different&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert params_list[3] is None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#preproc_args = [(gpath, kwargs) for gpath in gpath_list]</span>
@@ -328,7 +329,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

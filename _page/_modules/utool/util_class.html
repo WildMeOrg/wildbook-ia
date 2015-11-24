@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utool.util_class &mdash; ibeis 1.4.4 documentation</title>
+  <title>utool.util_class &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -234,7 +234,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span> <span class="o">=</span> <span class="n">func</span>
             <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="n">method_name</span><span class="p">,</span>
-                                  <span class="n">allow_override</span><span class="o">=</span><span class="n">allow_override</span><span class="p">)</span>
+                                  <span class="n">allow_override</span><span class="o">=</span><span class="n">allow_override</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ISSUE WHEN INJECTING </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,),</span>
                       <span class="n">iswarning</span><span class="o">=</span><span class="ow">not</span> <span class="n">strict</span><span class="p">)</span>
@@ -267,10 +267,14 @@
 
     <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
-        <span class="n">classkey_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span> <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">classname</span><span class="p">]</span>
+        <span class="n">classkey_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span>
+                         <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">classname</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">injected_modules</span> <span class="o">=</span> <span class="n">get_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">)</span>
-        <span class="n">classkey_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span> <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">injected_modules</span><span class="p">]</span>
+        <span class="c"># the variable must be named CLASS_INJECT_KEY</span>
+        <span class="c"># and only one class can be specified per module.</span>
+        <span class="n">classkey_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span>
+                         <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">injected_modules</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">classkey</span> <span class="ow">in</span> <span class="n">classkey_list</span><span class="p">:</span>
         <span class="n">inject_instance</span><span class="p">(</span>
@@ -554,7 +558,7 @@
 
 
 <span class="k">def</span> <span class="nf">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">allow_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_main</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                          <span class="n">allow_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_main</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Injects a function into an object as a method</span>
 
 <span class="sd">    Wraps func as a bound method of self. Then injects func into self</span>
@@ -590,7 +594,8 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] skipping re-inject of </span><span class="si">%r</span><span class="s"> from __main__&#39;</span> <span class="o">%</span> <span class="n">method_name</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="n">old_method</span> <span class="ow">is</span> <span class="n">new_method</span> <span class="ow">or</span> <span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span> <span class="ow">is</span> <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Injecting the same function twice: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_method</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Injecting the same function twice: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_method</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">allow_override</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
                 <span class="s">&#39;Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
@@ -840,11 +845,16 @@
 
 <span class="k">def</span> <span class="nf">private_rrr_factory</span><span class="p">():</span>
     <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        special class reloading function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span>
         <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">modname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
             <span class="c"># --HACK--</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_on_reload&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_on_reload</span><span class="p">()</span>
@@ -860,27 +870,36 @@
                         <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_class</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">class_list</span>
 
-                <span class="n">_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
-                <span class="n">class_list</span> <span class="o">=</span> <span class="n">find_base_clases</span><span class="p">(</span><span class="n">_class</span><span class="p">,</span> <span class="n">find_base_clases</span><span class="p">)</span>
+                <span class="n">head_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
+                <span class="n">class_list</span> <span class="o">=</span> <span class="n">find_base_clases</span><span class="p">(</span><span class="n">head_class</span><span class="p">,</span> <span class="n">find_base_clases</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">_class</span> <span class="ow">in</span> <span class="n">class_list</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
                         <span class="n">module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
-                            <span class="n">module_</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="kn">import</span> <span class="nn">imp</span>
-                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
-                            <span class="k">try</span><span class="p">:</span>
-                                <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module_</span><span class="p">)</span>
-                            <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
-                                <span class="k">print</span><span class="p">(</span><span class="s">&#39;fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
-                                <span class="c"># one last thing to try. probably used ut.import_module_from_fpath</span>
-                                <span class="c"># when importing this module</span>
-                                <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">(</span><span class="n">module_</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c"># Attempt to find the module that is the main module</span>
+                        <span class="c"># This may be very hacky and potentially break</span>
+                        <span class="n">main_module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span>
+                        <span class="n">main_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">main_module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+                        <span class="n">module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">main_modname</span><span class="p">]</span>
+                        <span class="c">#ut.embed()</span>
+                        <span class="c">#print(&#39;[class!] CANT RELOAD CLASS FROM MAIN MODULE&#39;)</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+                        <span class="n">module_</span><span class="o">.</span><span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="kn">import</span> <span class="nn">imp</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module_</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
+                            <span class="c"># one last thing to try. probably used ut.import_module_from_fpath</span>
+                            <span class="c"># when importing this module</span>
+                            <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">(</span><span class="n">module_</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
                     <span class="n">_newclass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
-                    <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_newclass</span><span class="p">)</span>
+                    <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_newclass</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># --------</span>
                 <span class="c"># Reload the parent module if it is not main</span>
@@ -902,7 +921,7 @@
                 <span class="c">#        base_rrr(verbose=verbose)</span>
                 <span class="c"># Get new class definition</span>
                 <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">)</span>
-                <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">)</span>
+                <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="c"># --HACK--</span>
             <span class="c"># TODO: handle injected definitions</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_initialize_self&#39;</span><span class="p">):</span>
@@ -913,6 +932,7 @@
                 <span class="s">&#39;modname&#39;</span><span class="p">,</span>
                 <span class="s">&#39;module&#39;</span><span class="p">,</span>
                 <span class="s">&#39;class_&#39;</span><span class="p">,</span>
+                <span class="s">&#39;class_list&#39;</span><span class="p">,</span>
                 <span class="s">&#39;self&#39;</span><span class="p">,</span> <span class="p">])</span>
             <span class="c">#print(ut.dict_str(module.__dict__))</span>
             <span class="k">raise</span>
@@ -930,7 +950,7 @@
     <span class="k">return</span> <span class="n">ReloadingMetaclass2</span>
 
 
-<span class="k">def</span> <span class="nf">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rebinds all class methods</span>
 
@@ -945,14 +965,17 @@
 <span class="sd">        &gt;&gt;&gt; result = reload_class_methods(self, class_)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Reloading self=</span><span class="si">%r</span><span class="s"> as class_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Reloading self=</span><span class="si">%r</span><span class="s"> as class_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">))</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span> <span class="o">=</span> <span class="n">class_</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">class_</span><span class="p">):</span>
         <span class="c"># Get unbound reloaded method</span>
         <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
             <span class="c"># inject it into the old instance</span>
-            <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="n">class_</span><span class="p">,</span> <span class="n">allow_override</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="n">class_</span><span class="p">,</span>
+                                  <span class="n">allow_override</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                  <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">get_comparison_methods</span><span class="p">():</span>
@@ -1063,7 +1086,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

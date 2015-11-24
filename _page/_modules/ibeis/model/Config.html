@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.Config &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.Config &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.model" href="../model.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -148,7 +148,7 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfg]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfg]&#39;</span><span class="p">)</span>
 
 <span class="c">#ConfigBase = ut.DynStruct</span>
 <span class="c">#ConfigBase = object</span>
@@ -197,6 +197,28 @@
 <span class="sd">    Like:</span>
 <span class="sd">        get_cfgstr</span>
 <span class="sd">        and the comparison methods</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        from ibeis.model.Config import *  # NOQA</span>
+<span class="sd">        @six.add_metaclass(ConfigMetaclass)</span>
+<span class="sd">        class FooConfig(ConfigBase):</span>
+<span class="sd">            def __init__(cfg):</span>
+<span class="sd">                super(FooConfig, cfg).__init__(name=&#39;FooConfig&#39;)</span>
+<span class="sd">                cfg.initialize_params()</span>
+
+<span class="sd">            def get_param_info_list(cfg):</span>
+<span class="sd">                return [</span>
+<span class="sd">                    ut.ParamInfo(&#39;x&#39;, &#39;y&#39;),</span>
+<span class="sd">                    ut.ParamInfo(&#39;z&#39;, 3),</span>
+<span class="sd">                ]</span>
+<span class="sd">        cfg = FooConfig()</span>
+<span class="sd">        print(cfg.get_cfgstr(ignore_keys=[&#39;x&#39;]))</span>
+<span class="sd">        print(cfg.get_cfgstr(ignore_keys=[]))</span>
+
+<span class="sd">        cfg = GenericConfig()</span>
+<span class="sd">        cfg.x = &#39;y&#39;</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">methods_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_comparison_methods</span><span class="p">()</span>
 
@@ -206,16 +228,30 @@
         <span class="k">return</span> <span class="n">func</span>
 
     <span class="nd">@_register</span>
-    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; default get_cfgstr_list, can be overrided by a config object &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s">&#39;get_param_info_list&#39;</span><span class="p">):</span>
-            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span>
+            <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span> <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">item_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">item_list</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">item_list</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">item_list</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">]</span>
         <span class="n">filtered_itemstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">itemstr_list</span><span class="p">))</span>
         <span class="n">config_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">config_name</span> <span class="p">,</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filtered_itemstr_list</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">]</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filtered_itemstr_list</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">config_name</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initializes config class attributes based on params info list &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">parse_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -286,37 +322,67 @@
 </div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="NNConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig">[docs]</a><span class="k">class</span> <span class="nc">NNConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.Config --exec-NNConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nn_cfg = NNConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = nn_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NNConfig</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">use_k_padding</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># TODO: force to false when in vsone</span>
-        <span class="c">#nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built</span>
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">use_k_padding</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># TODO: force to false when in vsone</span>
+            <span class="c">#nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built</span>
+            <span class="c">#nn_cfg.index_method = &#39;multi&#39;</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;single&#39;</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">800</span>
+            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;last&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c"># number of annots before a new multi-indexer is built</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">max_subindexers</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># number of annots before a new multi-indexer is built</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;single&#39;</span><span class="p">,</span> <span class="s">&#39;multi&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">]</span>
-        <span class="c">#nn_cfg.index_method = &#39;multi&#39;</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;single&#39;</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">800</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;last&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="NNConfig.make_feasible"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">):</span>
         <span class="c"># normalizer rule depends on Knorm</span>
         <span class="k">assert</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="ow">in</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span> <span class="o">=</span> <span class="s">&#39;last&#39;</span>
+        <span class="c">#if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:</span>
+        <span class="c">#    nn_cfg.normalizer_rule = &#39;last&#39;</span>
+
+    <span class="c">#def get_cfgstr_list(nn_cfg, **kwargs):</span>
+    <span class="c">#    nn_cfgstr  = [&#39;_NN(&#39;,</span>
+    <span class="c">#                  nn_cfg.index_method,</span>
+    <span class="c">#                  &#39;,K&#39;, str(nn_cfg.K),</span>
+    <span class="c">#                  &#39;+&#39;, str(nn_cfg.Knorm),</span>
+    <span class="c">#                  &#39;,padk=%r&#39; % (nn_cfg.use_k_padding),</span>
+    <span class="c">#                  &#39;,&#39;, nn_cfg.normalizer_rule,</span>
+    <span class="c">#                  &#39;,cks&#39;, str(nn_cfg.checks),</span>
+    <span class="c">#                  &#39;)&#39;]</span>
+    <span class="c">#    return nn_cfgstr</span>
 </div>
-<div class="viewcode-block" id="NNConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">nn_cfgstr</span>  <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_NN(&#39;</span><span class="p">,</span>
-                      <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span><span class="p">,</span>
-                      <span class="s">&#39;,K&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span><span class="p">),</span>
-                      <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span><span class="p">),</span>
-                      <span class="s">&#39;,padk=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">use_k_padding</span><span class="p">),</span>
-                      <span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span><span class="p">,</span>
-                      <span class="s">&#39;,cks&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span><span class="p">),</span>
-                      <span class="s">&#39;)&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">nn_cfgstr</span>
+<div class="viewcode-block" id="NNConfig.get_param_info_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">):</span>
+        <span class="c"># new way to try and specify config options.</span>
+        <span class="c"># not sure if i like it yet</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
+            <span class="p">[</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;index_method&#39;</span><span class="p">,</span> <span class="s">&#39;single&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;Knorm&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Kn=&#39;</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;use_k_padding&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;padk=&#39;</span><span class="p">),</span>
+                <span class="c">#ut.ParamInfo(&#39;normalizer_rule&#39;, &#39;last&#39;, &#39;&#39;),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;checks&#39;</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="s">&#39;cks&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                <span class="c">#ut.ParamInfo(&#39;ratio_thresh&#39;, None, type_=float, hideif=None),</span>
+            <span class="p">],</span>
+        <span class="p">])</span>
+        <span class="k">return</span> <span class="n">param_info_list</span>
 
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
@@ -335,10 +401,11 @@
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nNameShortlistSVER</span> <span class="o">=</span> <span class="mi">50</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span> <span class="o">=</span> <span class="mi">6</span>
-        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;csum&#39;</span>
-        <span class="c">#sv_cfg.prescore_method = &#39;nsum&#39;</span>
+        <span class="c">#sv_cfg.prescore_method = &#39;csum&#39;</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s">&#39;nsum&#39;</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># BAD CONFIG?</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_output_weighting</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># weight feature scores with sver errors</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span> <span class="o">=</span> <span class="s">&#39;homog&#39;</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">weight_inliers</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># weight feature scores with sver errors</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -358,6 +425,12 @@
             <span class="s">&#39;+ow,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_output_weighting</span><span class="p">,</span>  <span class="c"># chip diag len</span>
             <span class="s">&#39;+wi,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">weight_inliers</span><span class="p">,</span>  <span class="c"># chip diag len</span>
             <span class="s">&#39;+fc,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span> <span class="o">!=</span> <span class="s">&#39;homog&#39;</span><span class="p">:</span>
+            <span class="n">sv_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span><span class="p">]</span>
+
+        <span class="n">sv_cfgstr</span> <span class="o">+=</span> <span class="p">[</span>
             <span class="s">&#39;)&#39;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">sv_cfgstr</span>
@@ -613,20 +686,24 @@
 <span class="sd">        ... ]</span>
 <span class="sd">        &gt;&gt;&gt; result = &#39;\n&#39;.join([cfg.get_cfgstr() for cfg in cfg_list])</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        NNWeight(lnbnn,fg)</span>
-<span class="sd">        NNWeight(lnbnn,fg,sameimg,nosamename)</span>
-<span class="sd">        NNWeight(ratio_thresh=0.625,fg)</span>
+<span class="sd">        _NNWeight(lnbnn,fg)</span>
+<span class="sd">        _NNWeight(lnbnn,fg,sameimg,nosamename)</span>
+<span class="sd">        _NNWeight(ratio_thresh=0.625,fg)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NNWeightConfig</span><span class="p">,</span> <span class="n">nnweight_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;nnweight_cfg&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
         <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#def get_config_name(nnweight_cfg):</span>
     <span class="c">#    return &#39;NNWeight&#39;</span>
 
-<div class="viewcode-block" id="NNWeightConfig.get_param_info_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNWeightConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">):</span>
+    <span class="c">#def make_feasible(nnweight_cfg):</span>
+    <span class="c">#    # normalizer rule depends on Knorm</span>
+    <span class="c">#    #if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:</span>
+    <span class="c">#    #    nn_cfg.normalizer_rule = &#39;last&#39;</span>
+
+<div class="viewcode-block" id="NNWeightConfig.get_param_info_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.NNWeightConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">):</span>
         <span class="c"># new way to try and specify config options.</span>
         <span class="c"># not sure if i like it yet</span>
         <span class="n">param_info_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
@@ -635,14 +712,15 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;lnbnn_on&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;const_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;borda_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
-                <span class="c">#ut.ParamInfoBool(&#39;lograt_on&#39;, False, hideif=False),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;lograt_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+                <span class="c">#ut.ParamInfoBool(&#39;loglnbnn_on&#39;, False,  hideif=False),</span>
                 <span class="c">#ut.ParamInfoBool(&#39;logdist_on&#39;, False,  hideif=False),</span>
                 <span class="c">#ut.ParamInfoBool(&#39;dist_on&#39;, False,  hideif=False),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;normonly_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
-                <span class="c">#ut.ParamInfoBool(&#39;loglnbnn_on&#39;, False,  hideif=False),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;bar_l2_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;cos_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;fg_on&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;normalizer_rule&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
                 <span class="c">#</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;can_match_sameimg&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="s">&#39;sameimg&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;can_match_samename&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;samename&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
@@ -675,8 +753,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RerankVsOneConfig</span><span class="p">,</span> <span class="n">rrvsone_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;rrvsone_cfg&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+        <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
         <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RerankVsOneConfig.get_config_name"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.RerankVsOneConfig.get_config_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_name</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">):</span>
@@ -1030,6 +1107,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">FeatureConfig</span><span class="p">,</span> <span class="n">feat_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;feat_cfg&#39;</span><span class="p">)</span>
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span> <span class="o">=</span> <span class="n">ChipConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">feat_type</span> <span class="o">=</span> <span class="s">&#39;hesaff+sift&#39;</span>
+        <span class="n">feat_cfg</span><span class="o">.</span><span class="n">bgmethod</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">_param_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()))</span>
 
         <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">_iterparams</span><span class="p">():</span>
@@ -1037,6 +1115,13 @@
 
         <span class="c">#feat_cfg.affine_invariance = False  # 9001 # 80</span>
         <span class="c">#feat_cfg.rotation_invariance = True  # 9001 # 80</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # TODO:</span>
+<span class="sd">            multiple features (lists of features to use)</span>
+<span class="sd">            per-chip filtering based on decision (this probably should belong to chip cfg)</span>
+<span class="sd">            optional mask</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">use_adaptive_scale</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># 9001 # 80</span>
         <span class="n">feat_cfg</span><span class="o">.</span><span class="n">nogravity_hack</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># 9001 # 80</span>
@@ -1055,23 +1140,6 @@
             <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">_iterparams</span><span class="p">()</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">dict_args</span>
-
-    <span class="c">#def get(self, key, *d):</span>
-    <span class="c">#    &quot;&quot;&quot; get a paramater value by string</span>
-    <span class="c">#    HUGE HACK. Makes it appear like the chip config string is part of the</span>
-    <span class="c">#    dictionary of this item This is a monkey patch</span>
-    <span class="c">#    &quot;&quot;&quot;</span>
-    <span class="c">#    ERROR_ON_DEFAULT = True</span>
-    <span class="c">#    if ERROR_ON_DEFAULT:</span>
-    <span class="c">#        if key == &#39;feat_cfgstr&#39;:</span>
-    <span class="c">#            return self.get_cfgstr()</span>
-    <span class="c">#        elif key == &#39;feat_cfg_dict&#39;:</span>
-    <span class="c">#            return self.to_dict()</span>
-    <span class="c">#        else:</span>
-    <span class="c">#            #return super(ConfigBase, self).__getitem(key)</span>
-    <span class="c">#            return getattr(self, key)</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        return getattr(self, key, *d)</span>
 </div>
 <div class="viewcode-block" id="FeatureConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.FeatureConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_feat&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
@@ -1081,6 +1149,8 @@
             <span class="c">#feat_cfgstrs += [&#39;,%r_%r&#39; % (feat_cfg.scale_min, feat_cfg.scale_max)]</span>
             <span class="n">feat_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;,adaptive&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">use_adaptive_scale</span>
             <span class="n">feat_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;,nogravity&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">nogravity_hack</span>
+            <span class="k">if</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">bgmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">feat_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;,bg=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">bgmethod</span><span class="p">)]</span>
             <span class="c"># TODO: Named Tuple</span>
             <span class="n">alias</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s">&#39;numberOfScales&#39;</span><span class="p">:</span> <span class="s">&#39;nScales&#39;</span><span class="p">,</span>
@@ -1114,6 +1184,23 @@
             <span class="n">feat_cfgstrs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">feat_cfgstrs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">feat_cfgstrs</span>
+
+    <span class="c">#def get(self, key, *d):</span>
+    <span class="c">#    &quot;&quot;&quot; get a paramater value by string</span>
+    <span class="c">#    HUGE HACK. Makes it appear like the chip config string is part of the</span>
+    <span class="c">#    dictionary of this item This is a monkey patch</span>
+    <span class="c">#    &quot;&quot;&quot;</span>
+    <span class="c">#    ERROR_ON_DEFAULT = True</span>
+    <span class="c">#    if ERROR_ON_DEFAULT:</span>
+    <span class="c">#        if key == &#39;feat_cfgstr&#39;:</span>
+    <span class="c">#            return self.get_cfgstr()</span>
+    <span class="c">#        elif key == &#39;feat_cfg_dict&#39;:</span>
+    <span class="c">#            return self.to_dict()</span>
+    <span class="c">#        else:</span>
+    <span class="c">#            #return super(ConfigBase, self).__getitem(key)</span>
+    <span class="c">#            return getattr(self, key)</span>
+    <span class="c">#    else:</span>
+    <span class="c">#        return getattr(self, key, *d)</span>
 
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
@@ -1524,7 +1611,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

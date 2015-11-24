@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.main_module &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.main_module &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -152,7 +152,8 @@
 
 </div>
 <span class="k">def</span> <span class="nf">_on_ctrl_c</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibeis.main_module] Caught ctrl+c&#39;</span><span class="p">)</span>
+    <span class="n">proc_name</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibeis.main_module] Caught ctrl+c in </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">proc_name</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">_close_parallel</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -206,6 +207,9 @@
 
 <span class="c">#@profile</span>
 <span class="k">def</span> <span class="nf">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Private function that calls code to create an ibeis controller</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
@@ -218,11 +222,17 @@
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printWARN</span><span class="p">(</span><span class="s">&#39;[main!] WARNING args.dbdir is None&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">request_dbversion</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;request_dbversion&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">request_dbversion</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;request_dbversion&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">asproxy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;asproxy&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">request_IBEISController</span><span class="p">(</span>
-            <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
+            <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">,</span>
+            <span class="n">asproxy</span><span class="o">=</span><span class="n">asproxy</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">web</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">web</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">webapp</span>
+            <span class="n">web</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--webapp&#39;</span><span class="p">,</span> <span class="s">&#39;--webapi&#39;</span><span class="p">,</span> <span class="s">&#39;--web&#39;</span><span class="p">,</span> <span class="s">&#39;--browser&#39;</span><span class="p">),</span>
+                                 <span class="n">help_</span><span class="o">=</span><span class="s">&#39;automatically launch the web app / web api&#39;</span><span class="p">)</span>
+            <span class="c">#web = params.args.webapp</span>
         <span class="k">if</span> <span class="n">web</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">app</span>
             <span class="n">port</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">webport</span>
@@ -421,26 +431,49 @@
 
 </div>
 <div class="viewcode-block" id="opendb_in_background"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb_in_background">[docs]</a><span class="k">def</span> <span class="nf">opendb_in_background</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Starts a web server in the background</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">sec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;wait&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sec</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;waiting </span><span class="si">%s</span><span class="s"> seconds for startup&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sec</span><span class="p">,))</span>
     <span class="n">proc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span><span class="p">(</span><span class="n">opendb</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sec</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>  <span class="c"># wait for process to initialize</span>
     <span class="k">return</span> <span class="n">proc</span>
+
+</div>
+<div class="viewcode-block" id="opendb_bg_web"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb_bg_web">[docs]</a><span class="k">def</span> <span class="nf">opendb_bg_web</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around opendb_in_background</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">opendb_in_background</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kw</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="opendb"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.opendb">[docs]</a><span class="k">def</span> <span class="nf">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
            <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
            <span class="n">web</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    main without the preload (except for option to delete database before opening)</span>
+<span class="sd">    main without the preload (except for option to delete database before</span>
+<span class="sd">    opening)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        db (str):  database name in your workdir used only if dbdir is None</span>
 <span class="sd">        dbdir (None): full database path</span>
-<span class="sd">        defaultdb (str): dbdir search stratagy when db is None and dbdir is None</span>
-<span class="sd">        allow_newdir (bool): (default=True) if True errors when opening a nonexisting database</span>
-<span class="sd">        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the entire</span>
+<span class="sd">        defaultdb (str): dbdir search stratagy when db is None and dbdir is</span>
+<span class="sd">            None</span>
+<span class="sd">        allow_newdir (bool): (default=True) if True errors when opening a</span>
+<span class="sd">            nonexisting database</span>
+<span class="sd">        delete_ibsdir (bool): BE CAREFUL! (default=False) if True deletes the</span>
+<span class="sd">            entire</span>
 <span class="sd">        verbose (bool): verbosity flag</span>
 <span class="sd">        web (bool): starts webserver if True (default=param specification)</span>
-<span class="sd">        use_cache (bool): if True will try to return a previously loaded controller</span>
+<span class="sd">        use_cache (bool): if True will try to return a previously loaded</span>
+<span class="sd">            controller</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        IBEISController: ibs</span>
@@ -455,17 +488,21 @@
 <span class="sd">        &gt;&gt;&gt; delete_ibsdir = False</span>
 <span class="sd">        &gt;&gt;&gt; verbose = False</span>
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
-<span class="sd">        &gt;&gt;&gt; ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir, verbose, use_cache)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = opendb(db, dbdir, defaultdb, allow_newdir, delete_ibsdir,</span>
+<span class="sd">        &gt;&gt;&gt;              verbose, use_cache)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(ibs)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span>
+                                  <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">delete_ibsdir</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="s">&#39;must be making new directory if you are deleting everything!&#39;</span>
+        <span class="k">assert</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s">&#39;must be making new directory if you are deleting everything!&#39;</span><span class="p">)</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="n">web</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="n">web</span><span class="p">,</span>
+                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span>
 
 </div>
@@ -604,7 +641,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

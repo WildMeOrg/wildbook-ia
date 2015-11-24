@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -300,6 +300,24 @@
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/name/</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # UNPORTED_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.add_images(gpath_list)</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [(0, 0, 100, 100)]*len(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; name_list = [&#39;a&#39;, &#39;b&#39;, &#39;a&#39;, &#39;d&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(aid_list) != 0, &quot;No annotations added&quot;</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.get_valid_nids()</span>
+<span class="sd">        &gt;&gt;&gt; assert len(nid_list) != 0, &quot;No names added&quot;</span>
+<span class="sd">        &gt;&gt;&gt; nid = nid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert nid is not None, &quot;nid is None&quot;</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_names(nid)</span>
+<span class="sd">        &gt;&gt;&gt; all_nids = ibs.get_valid_nids()</span>
+<span class="sd">        &gt;&gt;&gt; assert nid not in all_nids, &quot;NID not deleted&quot;</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> names&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">))</span>
@@ -1310,7 +1328,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

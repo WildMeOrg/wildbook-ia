@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.preproc.preproc_chip &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.preproc.preproc_chip &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -265,7 +265,7 @@
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> chips need to be computed&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
-    <span class="n">chip_result_list</span> <span class="o">=</span> <span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_aids</span><span class="p">)</span>
+    <span class="n">chip_result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invalid_aids</span><span class="p">))</span>
     <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">chip_result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">chip_fpath_list</span>
 
@@ -377,8 +377,8 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="c"># the old function didn&#39;t even call this</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[generate_chip_properties] Requested params for </span><span class="si">%d</span><span class="s"> chips &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
-        <span class="n">chip_result_list</span> <span class="o">=</span> <span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
         <span class="n">chip_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chipdir</span><span class="p">()</span>
+        <span class="n">chip_result_list</span> <span class="o">=</span> <span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chip_result</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_result_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
             <span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">chip_result</span>
             <span class="n">chip_uri</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">chip_dir</span><span class="p">)</span>
@@ -458,7 +458,7 @@
 <span class="sd">        &gt;&gt;&gt; # ensure they were deleted</span>
 <span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)</span>
 <span class="sd">        &gt;&gt;&gt; assert all([cid is None for cid in cid_list]), &#39;should be gone&#39;</span>
-<span class="sd">        &gt;&gt;&gt; chip_result_list = compute_and_write_chips(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; chip_result_list = list(compute_and_write_chips(ibs, aid_list))</span>
 <span class="sd">        &gt;&gt;&gt; cfpath_list = ut.get_list_column(chip_result_list, 0)</span>
 <span class="sd">        &gt;&gt;&gt; cfname_list = ut.lmap(basename, cfpath_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(cfname_list)</span>
@@ -541,6 +541,8 @@
     <span class="c"># generation causes a freeze</span>
     <span class="c"># utool has a unstable test that reproduces this reliably (BECAUSE OF</span>
     <span class="c"># CV2.WARP_AFFINE WITH BIG OUTPUT)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computing </span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">)))</span>
 
     <span class="n">DO_IMWRITE_IN_WORKER</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">DO_IMWRITE_IN_WORKER</span><span class="p">:</span>
@@ -549,23 +551,24 @@
                                                      <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                                      <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                                      <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">chip_result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chip_result_iter</span><span class="p">)</span>
+        <span class="c">#chip_result_list = list(chip_result_iter)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">chip_result_iter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">_</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Compute chips in asychronous process. Write here</span>
         <span class="n">chip_result_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_chip2</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span>
                                                      <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                                      <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                                      <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">chip_result_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#chip_result_list = []</span>
         <span class="k">for</span> <span class="n">chipBGR</span><span class="p">,</span> <span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="ow">in</span> <span class="n">chip_result_iter</span><span class="p">:</span>
             <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">chipBGR</span><span class="p">)</span>
-            <span class="n">chip_result_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="k">del</span> <span class="n">chipBGR</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
     <span class="c">#print(ut.util_parallel.__POOL__)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Computing </span><span class="si">%d</span><span class="s"> chips&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">)))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Done computing chips&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">chip_result_list</span>
+    <span class="c">#return chip_result_list</span>
 
 </div>
 <div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -794,7 +797,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

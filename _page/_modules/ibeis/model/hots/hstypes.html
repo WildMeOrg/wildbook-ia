@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.hstypes &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.model.hots.hstypes &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -172,14 +172,17 @@
 
 <span class="c">#INTEGER_TYPE = np.int32</span>
 <span class="c">#INDEX_TYPE = np.int32</span>
-<span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span>
+<span class="c">#INDEX_TYPE = np.int64</span>
+<span class="c"># The index type should be the native sytem int, otherwise np.take will fail</span>
+<span class="c"># due to the safe constraint.</span>
+<span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span>
 
 <span class="c">#INTEGER_TYPE = np.int64</span>
 <span class="c">#INTEGER_TYPE = np.int32</span>
-<span class="n">INTEGER_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span>
+<span class="n">INTEGER_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span>
 
 <span class="c">#FLOAT_TYPE = np.float64</span>
-<span class="n">FLOAT_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span>
+<span class="n">FLOAT_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
 <span class="c">#FLOAT_TYPE = np.float32</span>
 
 <span class="n">VEC_DIM</span> <span class="o">=</span> <span class="mi">128</span>
@@ -244,7 +247,8 @@
 <span class="c"># Feature Score datatype</span>
 <span class="n">FS_DTYPE</span>  <span class="o">=</span> <span class="n">FLOAT_TYPE</span>
 <span class="c"># Feature Rank datatype</span>
-<span class="n">FK_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span>
+<span class="c">#FK_DTYPE  = np.int16</span>
+<span class="n">FK_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
 
 
 <div class="viewcode-block" id="FiltKeys"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hstypes.FiltKeys">[docs]</a><span class="k">class</span> <span class="nc">FiltKeys</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -309,7 +313,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_qres2 &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.interact.interact_qres2 &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -147,7 +147,6 @@
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_organizer</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
@@ -223,9 +222,10 @@
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.init_candidates"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.init_candidates">[docs]</a>    <span class="k">def</span> <span class="nf">init_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cand_match_list</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">get_automatch_candidates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">,</span>
-                                                                          <span class="n">ranks_lt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ranks_lt</span><span class="p">,</span>
-                                                                          <span class="n">directed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cand_match_list</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">get_automatch_candidates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">,</span>
+                                                                    <span class="n">ranks_lt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ranks_lt</span><span class="p">,</span>
+                                                                    <span class="n">directed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cand_match_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span>
@@ -527,7 +527,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

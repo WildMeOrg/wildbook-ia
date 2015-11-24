@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_chip &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.viz.viz_chip &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -150,12 +150,15 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
     <span class="n">weight_label</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--weight_label&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;fg_weights&#39;</span><span class="p">)</span>
     <span class="n">annote</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-annote&#39;</span><span class="p">)</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">weight_label</span><span class="o">=</span><span class="n">weight_label</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ori&#39;</span><span class="p">),</span> <span class="n">weight_label</span><span class="o">=</span><span class="n">weight_label</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">FeatureWeightConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_config</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_chip.testdata] cfgdict = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgdict</span><span class="p">,))</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;query_cfgstr = &#39;</span> <span class="o">+</span> <span class="n">config2_</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_cfgstr = &#39;</span> <span class="o">+</span> <span class="n">config2_</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_chip.testdata] aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">config2_</span>
 
 </div>
@@ -200,17 +203,32 @@
 <span class="sd">        color (3/4-tuple, ndarray, or str): colors for keypoints</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --ecc</span>
 <span class="sd">        python -c &quot;import utool as ut; ut.print_auto_docstr(&#39;ibeis.viz.viz_chip&#39;, &#39;show_chip&#39;)&quot;</span>
 <span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote</span>
+
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # VIZ_TEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
 <span class="sd">        &gt;&gt;&gt; in_image = False</span>
 <span class="sd">        &gt;&gt;&gt; ibs, aid_list, kwargs, config2_ = testdata_showchip()</span>
 <span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--ecc&#39;):</span>
+<span class="sd">        &gt;&gt;&gt;     kpts = ibs.get_annot_kpts(aid, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt;     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]</span>
+<span class="sd">        &gt;&gt;&gt;     kpts = ut.random_sample(kpts[weights &gt; .9], 200, seed=0)</span>
+<span class="sd">        &gt;&gt;&gt;     ecc = vt.get_kpts_excentricity(kpts)</span>
+<span class="sd">        &gt;&gt;&gt;     scale = 1 / vt.get_scales(kpts)</span>
+<span class="sd">        &gt;&gt;&gt;     s = ecc if config2_.affine_invariance else scale</span>
+<span class="sd">        &gt;&gt;&gt;     colors = pt.scores_to_color(s, cmap_=&#39;jet&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     kwargs[&#39;color&#39;] = colors</span>
+<span class="sd">        &gt;&gt;&gt;     kwargs[&#39;kpts&#39;] = kpts</span>
 <span class="sd">        &gt;&gt;&gt; show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -380,7 +398,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

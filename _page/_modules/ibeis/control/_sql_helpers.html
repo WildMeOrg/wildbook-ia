@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._sql_helpers &mdash; ibeis 1.4.4 documentation</title>
+  <title>ibeis.control._sql_helpers &mdash; ibeis 1.4.7 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.4.4
+                1.4.7
               </div>
             
           
@@ -142,13 +142,12 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">distutils</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
 
 <span class="c"># =======================</span>
 <span class="c"># Helper Functions</span>
 <span class="c"># =======================</span>
-<span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-sql&#39;</span><span class="p">))</span>
+<span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbsql&#39;</span><span class="p">))</span>
 <span class="c">#AUTODUMP = ut.get_argflag(&#39;--auto-dump&#39;)</span>
 <span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">))</span>
 
@@ -548,9 +547,9 @@
             <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] operation=</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">context</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span>
         <span class="c"># Comment out timeing code</span>
-        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VERBOSE_SQL</span> <span class="ow">or</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">):</span>
-                <span class="n">context</span><span class="o">.</span><span class="n">tt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tic</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">operation_lbl</span><span class="p">)</span>
+        <span class="c">#if __debug__:</span>
+        <span class="c">#    if NOT_QUIET and (VERBOSE_SQL or context.verbose):</span>
+        <span class="c">#        context.tt = ut.tic(context.operation_lbl)</span>
         <span class="k">return</span> <span class="n">context</span>
 
     <span class="c"># --- with SQLExecutionContext: statment code happens here ---</span>
@@ -575,9 +574,9 @@
 <div class="viewcode-block" id="SQLExecutionContext.__exit__"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.SQLExecutionContext.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Finalization of an SQLController call &quot;&quot;&quot;</span>
         <span class="c">#print(&#39;exit context&#39;)</span>
-        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">VERBOSE_SQL</span> <span class="ow">or</span> <span class="n">context</span><span class="o">.</span><span class="n">verbose</span><span class="p">):</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">tt</span><span class="p">)</span>
+        <span class="c">#if __debug__:</span>
+        <span class="c">#    if NOT_QUIET and (VERBOSE_SQL or context.verbose):</span>
+        <span class="c">#        ut.toc(context.tt)</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># An SQLError is a serious offence.</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sql] FATAL ERROR IN QUERY CONTEXT&#39;</span><span class="p">)</span>
@@ -785,7 +784,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.4',
+            VERSION:'1.4.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
