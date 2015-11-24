@@ -25,7 +25,7 @@ from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
 import vtool as vt
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_image]')
+print, rrr, profile = ut.inject2(__name__, '[manual_image]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
