@@ -128,14 +128,14 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, require_gps=None, revi
         # Remove images without timestamps
         unixtime_list = ibs.get_image_unixtime(gid_list)
         isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
-        gid_list = ut.list_compress(gid_list, isvalid_list)
+        gid_list = ut.compress(gid_list, isvalid_list)
     if require_gps:
         isvalid_gps = [lat != -1 and lon != -1 for lat, lon in ibs.get_image_gps(gid_list)]
-        gid_list = ut.list_compress(gid_list, isvalid_gps)
+        gid_list = ut.compress(gid_list, isvalid_gps)
     if reviewed is not None:
         reviewed_list = ibs.get_image_reviewed(gid_list)
         isvalid_list = [reviewed == flag for flag in reviewed_list]
-        gid_list = ut.list_compress(gid_list, isvalid_list)
+        gid_list = ut.compress(gid_list, isvalid_list)
     return gid_list
 
 
@@ -371,21 +371,48 @@ def localize_images(ibs, gid_list_=None):
         gid_list_  = ibs.get_valid_gids()
     isnone_list = [gid is None for gid in gid_list_]
     gid_list = ut.unique_keep_order(ut.filterfalse_items(gid_list_, isnone_list))
-    gpath_list = ibs.get_image_paths(gid_list)
+
+    #gpath_list = ibs.get_image_paths(gid_list)
+    uri_list = ibs.get_image_uris(gid_list)
+
+    from os.path import isabs
+    from six.moves import urllib
+
+    url_protos = ['https://', 'http://']
+    s3_proto = ['s3://']
+    valid_protos = s3_proto + url_protos
+
+    def isproto(uri, valid_protos):
+        return any(uri.startswith(proto) for proto in valid_protos)
+
+    def islocal(uri):
+        return not (isabs(uri) and isproto(uri, valid_protos))
+
+    abs_uri_list = [uri if islocal(uri) else
+                    join(ibs.imgdir, uri) for uri in uri_list]
+
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)
     # Build list of image names based on uuid in the ibeis imgdir
     guuid_strs = (str(guuid) for guuid in guuid_list)
     loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
+    # Copy any s3/http images first
+    for uri, loc_gpath in zip(uri_list, loc_gpath_list):
+        if isproto(uri, s3_proto):
+            s3_dict = ut.s3_str_decode_to_dict(uri)
+            ut.grab_s3_contents(loc_gpath, **s3_dict)
+        if isproto(uri, url_protos):
+            urllib.request.urlretrieve(uri, filename=loc_gpath)
     # Copy images to local directory
-    not_localized_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
-                               for gp, lgp in zip(gpath_list, loc_gpath_list)]
+    #needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
+    #                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]
+    needs_copy_flags = [not exists(gpath) for gpath in loc_gpath_list]
     # ---
-    loc_gpath_list_ = ut.list_compress(loc_gpath_list, not_localized_flags)
-    loc_gname_list_ = ut.list_compress(loc_gname_list, not_localized_flags)
-    gpath_list_     = ut.list_compress(gpath_list, not_localized_flags)
-    gid_list_       = ut.list_compress(gid_list, not_localized_flags)
+    loc_gpath_list_ = ut.compress(loc_gpath_list, needs_copy_flags)
+    loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)
+    gpath_list_     = ut.compress(abs_uri_list, needs_copy_flags)
+    gid_list_       = ut.compress(gid_list, needs_copy_flags)
     ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
     # Update database uris
     ibs.set_image_uris(gid_list_, loc_gname_list_)
@@ -1410,7 +1437,7 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
     def _filter(aid_list):
         species_list = ibs.get_annot_species(aid_list)
         isvalid_list = [ species_ == species for species_ in species_list ]
-        aid_list = ut.list_compress(aid_list, isvalid_list)
+        aid_list = ut.compress(aid_list, isvalid_list)
         return aid_list
     # Get and filter aids_list
     aids_list = ibs.get_image_aids(gid_list)
