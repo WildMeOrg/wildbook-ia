@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from os.path import join, exists, abspath, normpath
+from os.path import join, exists
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -291,6 +291,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
+    print(params_list)
     gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
                                   ibs.get_image_gids_from_uuid)
 
