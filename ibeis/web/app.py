@@ -1681,6 +1681,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>> print(gid_list)
         >>> print(web_instance.get_image_uris(gid_list))
         >>> print(web_instance.get_image_paths(gid_list))
+        >>> print(web_instance.get_image_uris_original(gid_list))
     """
     def _get_standard_ext(gpath):
         ext = splitext(gpath)[1].lower()
