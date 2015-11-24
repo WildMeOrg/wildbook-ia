@@ -410,12 +410,13 @@ def localize_images(ibs, gid_list_=None):
     needs_copy_flags = [not exists(gpath) for gpath in loc_gpath_list]
     # ---
     loc_gpath_list_ = ut.compress(loc_gpath_list, needs_copy_flags)
-    loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)
+    #loc_gname_list_ = ut.compress(loc_gname_list, needs_copy_flags)
     gpath_list_     = ut.compress(abs_uri_list, needs_copy_flags)
     gid_list_       = ut.compress(gid_list, needs_copy_flags)
     ut.copy_list(gpath_list_, loc_gpath_list_, lbl='Localizing Images: ')
     # Update database uris
-    ibs.set_image_uris(gid_list_, loc_gname_list_)
+    #ibs.set_image_uris(gid_list_, loc_gname_list_)
+    ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
 
