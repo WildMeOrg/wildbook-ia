@@ -4,7 +4,7 @@ Dependencies: flask, tornado
 """
 from __future__ import absolute_import, division, print_function
 import random
-from os.path import join, exists
+from os.path import join, exists, splitext, basename
 import zipfile
 import time
 import math
@@ -1680,7 +1680,12 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>     gid_list = json_dict['response']
         >>> print(gid_list)
         >>> print(web_instance.get_image_uris(gid_list))
+        >>> print(web_instance.get_image_paths(gid_list))
     """
+    def _get_standard_ext(gpath):
+        ext = splitext(gpath)[1].lower()
+        return '.jpg' if ext == '.jpeg' else ext
+
     def _parse_imageinfo(index):
         def _resolve_uri():
             list_ = image_uri_list
@@ -1698,12 +1703,16 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
                 return default
             return list_[index]
 
+        uri = _resolve_uri()
+        orig_gname = basename(uri)
+        ext = _get_standard_ext(uri)
+
         param_tup = (
             _resolve(image_uuid_list, assert_=True),
-            _resolve_uri(),
-            _resolve_uri(),
-            _resolve(image_orig_name_list),
-            _resolve(image_ext_list),
+            uri,
+            uri,
+            _resolve(image_orig_name_list, default=orig_gname),
+            _resolve(image_ext_list, default=ext),
             _resolve(image_width_list, assert_=True),
             _resolve(image_height_list, assert_=True),
             _resolve(image_time_posix_list, default=-1),
