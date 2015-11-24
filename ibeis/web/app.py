@@ -1680,7 +1680,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>     gid_list = json_dict['response']
         >>> print(gid_list)
         >>> print(web_instance.get_image_uris(gid_list))
-        >>> print(web_instance.get_image_gpaths(gid_list))
+        >>> print(web_instance.get_image_paths(gid_list))
     """
     def _parse_imageinfo(index):
         def _resolve_uri():
