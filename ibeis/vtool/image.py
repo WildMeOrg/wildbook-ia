@@ -52,28 +52,9 @@ def imread_remote_s3(img_fpath, grayscale=False):
     import cv2
     import utool as ut
     import numpy as np
-    import boto
-    from boto.s3.connection import S3Connection
-
     try:
         s3_dict = ut.s3_str_decode_to_dict(img_fpath)
-
-        auth_access_id = s3_dict['auth_access_id']
-        auth_secret_key = s3_dict['auth_secret_key']
-        bucket = s3_dict['bucket']
-        key = s3_dict['key']
-
-        if auth_access_id is not None and auth_secret_key is not None:
-            conn = S3Connection(auth_access_id, auth_secret_key)
-            bucket = conn.get_bucket(bucket)
-        else:
-            # Use system defaults, located in /etc/boto.cfg
-            # Alternatively, use user defaults, located in ~/.boto
-            s3 = boto.connect_s3()
-            bucket = s3.get_bucket(bucket)
-
-        key = bucket.get_key(key)
-        contents = key.get_contents_as_string()
+        contents = ut.read_s3_contents(**s3_dict)
         btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
         imgBGR = cv2.imdecode(btyedata, -1)
     except AttributeError:
