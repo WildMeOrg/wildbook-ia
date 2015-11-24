@@ -48,8 +48,29 @@ IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IM
 #cv2.IMREAD_UNCHANGED
 
 
+def imread_remote(img_fpath, grayscale=False):
+    from six.moves import urllib
+    import io
+    addinfourl = urllib.request.urlopen(img_fpath)
+    try:
+        with io.BytesIO(addinfourl.read()) as image_file:
+            with Image.open(image_file) as pil_img:
+                if grayscale:
+                    pil_img.convert('LA')
+                else:
+                    imgRGB = np.array(pil_img)
+                    imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
+    except IOError:
+        pass
+    finally:
+        addinfourl.close()
+    return imgBGR
+
+
 def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
     r"""
+    Wrapper around the opencv imread function. Handles remote uris.
+
     Args:
         img_fpath (?):
         delete_if_corrupted (bool):
@@ -60,64 +81,89 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
 
     CommandLine:
         python -m vtool.image --test-imread
-
+        python -m vtool.image --test-imread:2
 
     References:
         http://docs.opencv.org/modules/core/doc/utility_and_system_functions_and_macros.html#error
         http://stackoverflow.com/questions/23572241/cv2-threshold-error-210
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> # build test data
-        >>> img_fpath = '?'
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> delete_if_corrupted = False
         >>> grayscale = False
-        >>> # execute function
         >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> # verify results
-        >>> result = str(imgBGR)
+        >>> result = str(imgBGR.shape)
         >>> print(result)
+        (512, 512, 3)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> delete_if_corrupted = False
+        >>> grayscale = True
+        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
+        >>> result = str(imgBGR.shape)
+        >>> print(result)
+        (512, 512)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_fpath = 'http://images.summitpost.org/original/769474.JPG'
+        >>> local_fpath = ut.grab_file_url(img_fpath)
+        >>> delete_if_corrupted = False
+        >>> grayscale = False
+        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
+        >>> imgBGR2 = imread(local_fpath, delete_if_corrupted, grayscale)
+        >>> result = str(imgBGR.shape)
+        >>> print(result)
+        >>> assert np.all(imgBGR2 == imgBGR)
+        (512, 512)
     """
-    try:
-        if grayscale:
-            imgBGR = cv2.imread(img_fpath, flags=cv2.IMREAD_GRAYSCALE)
-        else:
-            # opencv always reads in BGR mode (fastest load time?)
-            imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
-    except cv2.error as cv2ex:
-        ut.printex(cv2ex, iswarning=True)
-        #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
-        #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
-        #print('cv2error args = ' + repr(cv2ex.args))
-        #print('cv2error message = ' + repr(cv2ex.message))
-        #cv2error args =
-        #('c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
-        # (-4) Failed to allocate 22311168 bytes in function
-        # OutOfMemoryError\n',)
-        #cv2error message =
-        #'c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
-        #(-4) #Failed to allocate 22311168 bytes in function
-        #OutOfMemoryError\n'
-        imgBGR = None
-        #ismem_error = cv2ex.message.find('error: (-4)') > -1
-        ismem_error = cv2ex.message.find('OutOfMemoryError') > -1
-        if ismem_error:
-            raise MemoryError('Memory Error while reading img_fpath=%s' % img_fpath)
-    except Exception as ex:
-        ut.printex(ex, iswarning=True)
-        imgBGR = None
-    if imgBGR is None:
-        #if not exists(img_fpath):
-        if not ut.checkpath(img_fpath, verbose=True):
-            raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
-        else:
-            msg = 'cannot read img_fpath=%s seems corrupted or memory error.' % img_fpath
-            print('[gtool] ' + msg)
-            if delete_if_corrupted:
-                print('[gtool] deleting corrupted image')
-                ut.delete(img_fpath)
-            raise IOError(msg)
+    if img_fpath.startswith('http://'):
+        imgBGR = imread_remote(img_fpath, grayscale=grayscale)
+    else:
+        try:
+            if grayscale:
+                imgBGR = cv2.imread(img_fpath, flags=cv2.IMREAD_GRAYSCALE)
+            else:
+                imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
+        except cv2.error as cv2ex:
+            ut.printex(cv2ex, iswarning=True)
+            #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
+            #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
+            #print('cv2error args = ' + repr(cv2ex.args))
+            #print('cv2error message = ' + repr(cv2ex.message))
+            #cv2error args =
+            #('c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
+            # (-4) Failed to allocate 22311168 bytes in function
+            # OutOfMemoryError\n',)
+            #cv2error message =
+            #'c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error:
+            #(-4) #Failed to allocate 22311168 bytes in function
+            #OutOfMemoryError\n'
+            imgBGR = None
+            #ismem_error = cv2ex.message.find('error: (-4)') > -1
+            ismem_error = cv2ex.message.find('OutOfMemoryError') > -1
+            if ismem_error:
+                raise MemoryError('Memory Error while reading img_fpath=%s' % img_fpath)
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
+            imgBGR = None
+        if imgBGR is None:
+            #if not exists(img_fpath):
+            if not ut.checkpath(img_fpath, verbose=True):
+                raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
+            else:
+                msg = 'cannot read img_fpath=%s seems corrupted or memory error.' % img_fpath
+                print('[gtool] ' + msg)
+                if delete_if_corrupted:
+                    print('[gtool] deleting corrupted image')
+                    ut.delete(img_fpath)
+                raise IOError(msg)
     return imgBGR
 
 
