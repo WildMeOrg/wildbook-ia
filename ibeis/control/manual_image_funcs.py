@@ -197,7 +197,8 @@ def get_num_images(ibs, **kwargs):
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/path', methods=['POST'])
-def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None):
+def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None,
+               sanitize=True, **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -212,6 +213,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         as_annots (bool): if True, an annotation is automatically added for the entire
             image
         auto_localize (bool): if None uses the default specified in ibs.cfg
+        ensure (bool): check to see if the images exist on a \*NIX system.  Defaults to
+            True
 
     Returns:
         gid_list (list of rowids): gids are image rowids
@@ -254,16 +257,17 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
     #print('[ibs] gpath_list = %r' % (gpath_list,))
     # Processing an image might fail, yeilding a None instead of a tup
-    gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
+    if sanitize:
+        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
     if params_list is None:
         # Create param_iter
-        params_list  = list(preproc_image.add_images_params_gen(gpath_list))
+        params_list = list(preproc_image.add_images_params_gen(gpath_list))
     # Error reporting
     print('\n'.join(
         [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params_)
          in zip(gpath_list, params_list) if not params_]))
     # Add any unadded images
-    colnames = ('image_uuid', 'image_uri', 'image_original_name',
+    colnames = ('image_uuid', 'image_uri', 'image_uri_original', 'image_original_name',
                 'image_ext', 'image_width', 'image_height',
                 'image_time_posix', 'image_gps_lat',
                 'image_gps_lon', 'image_note',)
@@ -287,6 +291,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
+    print(params_list)
     gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list,
                                   ibs.get_image_gids_from_uuid)
 
@@ -408,6 +413,35 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((new_gpath,) for new_gpath in new_gpath_list)
     ibs.db.set(const.IMAGE_TABLE, ('image_uri',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/image/uris_original/', methods=['PUT'])
+def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
+    r"""
+    Sets the (original) image URIs to a new local path.
+
+    Args:
+        overwrite (bool): If overwrite, replace the information in the database.
+            This ensures that original uris cannot be accidentally overwritten.
+            Defaults to False.
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/uris_original/
+    """
+    def _invalid(uri_original):
+        return current is None or len(current) == 0
+
+    current_uri_original_list = ibs.get_image_uris_original(gid_list)
+    new_gpath_list_ = [
+        new if _invalid(current) or overwrite else current
+        for current, new in zip(current_uri_original_list, new_gpath_list)
+    ]
+    id_iter = ((gid,) for gid in gid_list)
+    val_list = ((new_gpath,) for new_gpath in new_gpath_list_)
+    ibs.db.set(const.IMAGE_TABLE, ('image_uri_original',), val_list, id_iter)
 
 
 @register_ibs_method
@@ -825,6 +859,22 @@ def get_image_uris(ibs, gid_list):
         URL:    /api/image/uris/
     """
     uri_list = ibs.db.get(const.IMAGE_TABLE, ('image_uri',), gid_list)
+    return uri_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/uris_original/', methods=['GET'])
+def get_image_uris_original(ibs, gid_list):
+    r"""
+    Returns:
+        list_ (list): a list of (original) image uris relative to the image dir by gid
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/uris_original/
+    """
+    uri_list = ibs.db.get(const.IMAGE_TABLE, ('image_uri_original',), gid_list)
     return uri_list
 
 

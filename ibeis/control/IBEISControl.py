@@ -426,13 +426,13 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.4.6'
+            ibs.db_version_expected = '1.4.7'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.6')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.7')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
@@ -1470,46 +1470,6 @@ class IBEISController(BASE_CLASS):
         icon = vt.imread(ut.grab_file_url(url))
         icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/add_images_json/', methods=['POST'])
-    def add_images_json(ibs, json_image_list, json_annot_list):
-        """
-        REST:
-            Method: GET
-            URL: /api/core/add_images_json/
-
-        Ignore:
-            sudo apt-get install rabbitmq-server
-            sudo pip install celery
-
-        Args:
-            json_image_list (list) : list of image json objects
-            json_annot_list (list) : list of image annotation objects
-
-        CommandLine:
-            python -m ibeis.control.SQLDatabaseControl --exec-make_json_table_definition
-
-        Example:
-            >>> # WEB_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import time
-            >>> import requests
-            >>> # Start up the web instance
-            >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
-            >>> baseurl = 'http://127.0.1.1:5000'
-            >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
-            >>> payload = ut.map_dict_vals(ut.to_json, _payload)
-            >>> resp = requests.post(baseurl + '/api/core/helloworld/?f=b', data=payload)
-            >>> resp = requests.post(baseurl + '/api/core/add_images_json/', data=payload)
-            >>> print(resp)
-            >>> web_instance.terminate()
-            >>> json_dict = resp.json()
-            >>> text = json_dict['response']
-            >>> print(text)
-        """
-        print('FOOBAR')
-        raise NotImplementedError('add_images_json')
 
 
 if __name__ == '__main__':

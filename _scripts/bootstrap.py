@@ -210,6 +210,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'scikit-image',
         'sphinxcontrib-napoleon',
         'virtualenv',
+        'boto',
     ]
 
     if with_optional:

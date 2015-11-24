@@ -99,6 +99,7 @@ def parse_imageinfo(gpath):
     param_tup = (
         image_uuid,
         gpath,
+        gpath,
         orig_gname,
         #orig_gpath,
         ext,
@@ -138,7 +139,7 @@ def add_images_params_gen(gpath_list, **kwargs):
         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
         >>> params_list = list(add_images_params_gen(gpath_list))
         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
-        >>> assert str(params_list[0][2]) == 'easy1.JPG', 'orig name is different'
+        >>> assert str(params_list[0][3]) == 'easy1.JPG', 'orig name is different'
         >>> assert params_list[3] is None
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]

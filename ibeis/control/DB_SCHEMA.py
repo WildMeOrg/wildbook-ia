@@ -1157,6 +1157,27 @@ def update_1_4_6(db, ibs=None):
 
 
 def update_1_4_7(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (4, 'image_uri_original', 'TEXT', None),
+    ))
+
+
+def post_1_4_7(db, ibs=None):
+    if ibs is not None:
+        gid_list = ibs._get_all_gids()
+        image_uri_list = ibs.get_image_uris(gid_list)
+        ibs.set_image_uris_original(gid_list, image_uri_list, overwrite=True)
+
+    db.modify_table(
+        const.IMAGE_TABLE,
+        [
+            # change type of annot_visual_uuid
+            ('image_uri_original', '', 'TEXT NOT NULL', None),
+        ],
+    )
+
+
+def update_1_4_8(db, ibs=None):
     """
     Need to;
         change notes to tag_text_data
@@ -1238,7 +1259,8 @@ VALID_VERSIONS = ut.odict([
     ('1.4.4',    (None,                 update_1_4_4,       None                )),
     ('1.4.5',    (None,                 update_1_4_5,       None                )),
     ('1.4.6',    (None,                 update_1_4_6,       None                )),
-    #('1.4.7',    (None,                 update_1_4_7,       None                )),
+    ('1.4.7',    (None,                 update_1_4_7,       post_1_4_7          )),
+    #('1.4.8',    (None,                 update_1_4_8,       None                )),
 ])
 
 

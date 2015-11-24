@@ -1572,6 +1572,160 @@ def image_upload_zip(**kwargs):
     return gid_list
 
 
+@register_api('/api/image/json/', methods=['POST'])
+def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
+                    image_height_list, image_orig_name_list=None, image_ext_list=None,
+                    image_time_posix_list=None, image_gps_lat_list=None,
+                    image_gps_lon_list=None, image_notes_list=None, **kwargs):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Ignore:
+        sudo pip install boto
+
+    Args:
+        image_uri_list (list) : list of string image uris, most likely HTTP(S) or S3
+            encoded URLs.  Alternatively, this can be a list of dictionaries (JSON
+            objects) that specify AWS S3 stored assets.  An example below:
+
+                image_uri_list = [
+                    'http://domain.com/example/asset1.png',
+                    '/home/example/Desktop/example/asset2.jpg',
+                    's3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif',
+                    {
+                        'bucket'          : 'example-bucket-1',
+                        'key'             : 'example/asset1.png',
+                        'auth_domain'     : None,  # Uses localhost
+                        'auth_access_id'  : None,  # Uses system default
+                        'auth_secret_key' : None,  # Uses system default
+                    },
+                    {
+                        'bucket' : 'example-bucket-1',
+                        'key'    : 'example/asset2.jpg',
+                        # if unspecified, auth uses localhost and system defaults
+                    },
+                    {
+                        'bucket'          : 'example-bucket-2',
+                        'key'             : 'example/asset1-in-bucket-2.tif',
+                        'auth_domain'     : 's3.amazon.com',
+                        'auth_access_id'  : '____________________',
+                        'auth_secret_key' : '________________________________________',
+                    },
+                ]
+
+            Note that you cannot specify AWS authentication access ids or secret keys
+            using string uri's.  For specific authentication methods, please use the
+            latter list of dictionaries.
+
+        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS
+        image_width_list (list of int) : list of image widths
+        image_height_list (list of int) : list of image heights
+        image_orig_name_list (list of str): list of original image names
+        image_ext_list (list of str): list of original image names
+        image_time_posix_list (list of int): list of image's POSIX timestamps
+        image_gps_lat_list (list of float): list of image's GPS latitude values
+        image_gps_lon_list (list of float): list of image's GPS longitude values
+        image_notes_list (list of str) : optional list of any related notes with
+            the images
+        **kwargs : key-value pairs passed to the ibs.add_images() function.
+
+    CommandLine:
+        python -m ibeis.web.app --test-add_images_json
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> import ibeis
+        >>> import uuid
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import time
+        >>> import requests
+        >>> # Start up the web instance
+        >>> DEBUG = True
+        >>> if DEBUG:
+        >>>     web_instance = ibeis.opendb(db='testdb1')
+        >>> else:
+        >>>     web_instance = ibeis.opendb_bg_web(db='testdb1', wait=10)
+        >>> _payload = {
+        >>>     'image_uri_list': [
+        >>>         'https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg',
+        >>>         {
+        >>>             'bucket'          : 'test-asset-store',
+        >>>             'key'             : 'caribwhale/20130903-JAC-0002.JPG',
+        >>>         },
+        >>>     ],
+        >>>     'image_uuid_list': [
+        >>>         uuid.uuid4(),
+        >>>         uuid.uuid4(),
+        >>>     ],
+        >>>     'image_width_list': [
+        >>>         1992,
+        >>>         1194,
+        >>>     ],
+        >>>     'image_height_list': [
+        >>>         1328,
+        >>>         401,
+        >>>     ],
+        >>> }
+        >>> if DEBUG:
+        >>>     gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)
+        >>> else:
+        >>>     payload = ut.map_dict_vals(ut.to_json, _payload)
+        >>>     baseurl = 'http://127.0.0.1:5000'
+        >>>     resp = requests.post(baseurl + '/api/image/json/', data=payload)
+        >>>     print(resp)
+        >>>     web_instance.terminate()
+        >>>     json_dict = resp.json()
+        >>>     gid_list = json_dict['response']
+        >>> print(gid_list)
+        >>> print(web_instance.get_image_uris(gid_list))
+    """
+    def _parse_imageinfo(index):
+        def _resolve_uri():
+            list_ = image_uri_list
+            if list_ is None or index >= len(list_) or list_[index] is None:
+                raise ValueError('Must specify all required fields')
+            value = list_[index]
+            if isinstance(value, dict):
+                value = ut.s3_dict_encode_to_str(value)
+            return value
+
+        def _resolve(list_, default='', assert_=False):
+            if list_ is None or index >= len(list_) or list_[index] is None:
+                if assert_:
+                    raise ValueError('Must specify all required fields')
+                return default
+            return list_[index]
+
+        param_tup = (
+            _resolve(image_uuid_list, assert_=True),
+            _resolve_uri(),
+            _resolve_uri(),
+            _resolve(image_orig_name_list),
+            _resolve(image_ext_list),
+            _resolve(image_width_list, assert_=True),
+            _resolve(image_height_list, assert_=True),
+            _resolve(image_time_posix_list, default=-1),
+            _resolve(image_gps_lat_list, default=-1.0),
+            _resolve(image_gps_lon_list, default=-1.0),
+            _resolve(image_notes_list),
+        )
+        return param_tup
+
+    # TODO: FIX ME SO THAT WE DON'T HAVE TO LOCALIZE EVERYTHING
+    kwargs['auto_localize'] = kwargs.get('auto_localize', True)
+    kwargs['sanitize'] = kwargs.get('sanitize', False)
+
+    index_list = range(len(image_uri_list))
+    params_gen = ut.generate(_parse_imageinfo, index_list, adjust=True,
+                             force_serial=True, **kwargs)
+    params_gen = list(params_gen)
+    gpath_list = [ _[0] for _ in params_gen ]
+    gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)
+    return gid_list
+
+
 @register_api('/api/image/', methods=['POST'])
 def image_upload(cleanup=True, **kwargs):
     r"""
