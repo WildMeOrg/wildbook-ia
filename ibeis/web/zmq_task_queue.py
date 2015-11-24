@@ -226,8 +226,14 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> print('response2 = %s' % (response2,))
         >>> cmdict = ut.from_json(response2['json_result'])[0]
         >>> print('Finished test')
-        >>> #import signal
+        >>> import signal
+        >>> import os
         >>> #os.kill(web_instance.pid, signal.SIGINT)
+        >>> #web_instance.join()
+        >>> webproc = psutil.Process(pid=web_instance.pid)
+        >>> child_proces = webproc.children()
+        >>> [x.terminate() for x in child_proces]
+        >>> web_instance.terminate()
         >>> # FIXME! This orphans the background processes
         >>> #web_instance.terminate()
 
