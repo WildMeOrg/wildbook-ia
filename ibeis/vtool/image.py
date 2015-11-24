@@ -48,7 +48,40 @@ IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IM
 #cv2.IMREAD_UNCHANGED
 
 
-def imread_remote(img_fpath, grayscale=False):
+def imread_remote_s3(img_fpath, grayscale=False):
+    import cv2
+    import utool as ut
+    import numpy as np
+    import boto
+    from boto.s3.connection import S3Connection
+
+    try:
+        s3_dict = ut.s3_str_decode_to_dict(img_fpath)
+
+        auth_access_id = s3_dict['auth_access_id']
+        auth_secret_key = s3_dict['auth_secret_key']
+        bucket = s3_dict['bucket']
+        key = s3_dict['key']
+
+        if auth_access_id is not None and auth_secret_key is not None:
+            conn = S3Connection(auth_access_id, auth_secret_key)
+            bucket = conn.get_bucket(bucket)
+        else:
+            # Use system defaults, located in /etc/boto.cfg
+            # Alternatively, use user defaults, located in ~/.boto
+            s3 = boto.connect_s3()
+            bucket = s3.get_bucket(bucket)
+
+        key = bucket.get_key(key)
+        contents = key.get_contents_as_string()
+        btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
+        imgBGR = cv2.imdecode(btyedata, -1)
+    except AttributeError:
+        pass
+    return imgBGR
+
+
+def imread_remote_url(img_fpath, grayscale=False):
     from six.moves import urllib
     import io
     addinfourl = urllib.request.urlopen(img_fpath)
@@ -123,8 +156,10 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
         >>> assert np.all(imgBGR2 == imgBGR)
         (512, 512)
     """
-    if img_fpath.startswith('http://'):
-        imgBGR = imread_remote(img_fpath, grayscale=grayscale)
+    if img_fpath.startswith('http://') or img_fpath.startswith('https://'):
+        imgBGR = imread_remote_url(img_fpath, grayscale=grayscale)
+    elif img_fpath.startswith('s3://'):
+        imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale)
     else:
         try:
             if grayscale:
