@@ -1449,6 +1449,43 @@ def delete_images(ibs, gid_list, trash_images=True):
     RESTful:
         Method: DELETE
         URL:    /api/image/
+
+
+    Example:
+        >>> # UNPORTED_DOCTEST
+        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gid_list = ibs.add_images(gpath_list)
+        >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
+        >>> name_list = ['a', 'b', 'a', 'd']
+        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
+        >>> gid = gid_list[0]
+        >>> assert gid is not None, "gid is None"
+        >>> aid_list = ibs.get_image_aids(gid)
+        >>> assert len(aid_list) == 1, "Length of aid_list=%r" % (len(aid_list),)
+        >>> aid = aid_list[0]
+        >>> assert aid is not None, "aid is None"
+        >>> cid = ibs.get_annot_chip_rowids(aid, ensure=False)
+        >>> fid = ibs.get_annot_feat_rowids(aid, ensure=False)
+        >>> assert cid is None, "cid=%r should be None" % (cid,)
+        >>> assert fid is None, "fid=%r should be None" % (fid,)
+        >>> cid = ibs.get_annot_chip_rowids(aid, ensure=True)
+        >>> fid = ibs.get_annot_feat_rowids(aid, ensure=True)
+        >>> assert cid is not None, "cid should be computed"
+        >>> assert fid is not None, "fid should be computed"
+        >>> gthumbpath = ibs.get_image_thumbpath(gid)
+        >>> athumbpath = ibs.get_annot_chip_thumbpath(aid)
+        >>> ibs.delete_images(gid)
+        >>> all_gids = ibs.get_valid_gids()
+        >>> all_aids = ibs.get_valid_aids()
+        >>> all_cids = ibs.get_valid_cids()
+        >>> all_fids = ibs.get_valid_fids()
+        >>> assert gid not in all_gids, "gid still exists"
+        >>> assert aid not in all_aids, "rid %r still exists" % aid
+        >>> assert fid not in all_fids, "fid %r still exists" % fid
+        >>> assert cid not in all_cids, "cid %r still exists" % cid
+        >>> assert not utool.checkpath(gthumbpath), "Thumbnail still exists"
+        >>> assert not utool.checkpath(athumbpath), "ANNOTATION Thumbnail still exists"
+
     """
     if ut.NOT_QUIET:
         print('[ibs] deleting %d images' % len(gid_list))
@@ -1490,6 +1527,24 @@ def delete_image_thumbs(ibs, gid_list, quiet=False):
     RESTful:
         Method: DELETE
         URL:    /api/image/thumbs/
+
+    Example:
+        >>> # UNPORTED_DOCTEST
+        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gid_list = ibs.add_images(gpath_list)
+        >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
+        >>> name_list = ['a', 'b', 'a', 'd']
+        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
+        >>> assert len(aid_list) != 0, "No annotations added"
+        >>> thumbpath_list = ibs.get_image_thumbpath(gid_list)
+        >>> gpath_list = ibs.get_image_paths(gid_list)
+        >>> ibs.delete_image_thumbs(gid_list)
+        >>> assert utool.is_list(thumbpath_list), "thumbpath_list is not a list"
+        >>> assert utool.is_list(gpath_list), "gpath_list is not a list"
+        >>> for path in thumbpath_list:
+        >>>     assert not utool.checkpath(path), "Thumbnail not deleted"
+        >>> for path in gpath_list:
+        >>>     utool.assertpath(path)
     """
     # print('gid_list = %r' % (gid_list,))
     thumbpath_list = ibs.get_image_thumbpath(gid_list)
