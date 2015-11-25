@@ -1670,6 +1670,10 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>> }
         >>> if DEBUG:
         >>>     gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)
+        >>>     print(gid_list)
+        >>>     print(web_instance.get_image_uris(gid_list))
+        >>>     print(web_instance.get_image_paths(gid_list))
+        >>>     print(web_instance.get_image_uris_original(gid_list))
         >>> else:
         >>>     payload = ut.map_dict_vals(ut.to_json, _payload)
         >>>     baseurl = 'http://127.0.0.1:5000'
@@ -1678,11 +1682,10 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>     web_instance.terminate()
         >>>     json_dict = resp.json()
         >>>     gid_list = json_dict['response']
-        >>> print(gid_list)
-        >>> print(web_instance.get_image_uris(gid_list))
-        >>> print(web_instance.get_image_paths(gid_list))
-        >>> print(web_instance.get_image_uris_original(gid_list))
+        >>>     print(gid_list)
     """
+    import uuid
+
     def _get_standard_ext(gpath):
         ext = splitext(gpath)[1].lower()
         return '.jpg' if ext == '.jpeg' else ext
@@ -1708,8 +1711,12 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         orig_gname = basename(uri)
         ext = _get_standard_ext(uri)
 
+        uuid_ = _resolve(image_uuid_list, assert_=True)
+        if isinstance(uuid_, str):
+            uuid_ = uuid.UUID(uuid_)
+
         param_tup = (
-            _resolve(image_uuid_list, assert_=True),
+            uuid_,
             uri,
             uri,
             _resolve(image_orig_name_list, default=orig_gname),
