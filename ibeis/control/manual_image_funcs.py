@@ -959,7 +959,8 @@ def get_image_paths(ibs, gid_list):
         >>> ut.assert_eq(new_gpath, new_gpath_list[0])
         >>> result = str(new_gpath_list)
         >>> # clean up the database!
-        >>> ibs.delete_images(new_gids)
+        >>> ibs.delete_images(gid_list)
+        >>> # ibs.delete_images(new_gids)
         >>> print(result)
         """
     ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])

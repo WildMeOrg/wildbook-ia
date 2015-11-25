@@ -1619,7 +1619,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             using string uri's.  For specific authentication methods, please use the
             latter list of dictionaries.
 
-        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS
+        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA
         image_width_list (list of int) : list of image widths
         image_height_list (list of int) : list of image heights
         image_orig_name_list (list of str): list of original image names
@@ -1636,17 +1636,10 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
 
     Example:
         >>> # WEB_DOCTEST
-        >>> import ibeis
         >>> import uuid
+        >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import time
-        >>> import requests
-        >>> # Start up the web instance
-        >>> DEBUG = True
-        >>> if DEBUG:
-        >>>     web_instance = ibeis.opendb(db='testdb1')
-        >>> else:
-        >>>     web_instance = ibeis.opendb_bg_web(db='testdb1', wait=10)
+        >>> web_instance = ibeis.opendb(db='testdb1')
         >>> _payload = {
         >>>     'image_uri_list': [
         >>>         'https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg',
@@ -1656,8 +1649,8 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>         },
         >>>     ],
         >>>     'image_uuid_list': [
-        >>>         uuid.uuid4(),
-        >>>         uuid.uuid4(),
+        >>>         uuid.UUID('7fea8101-7dec-44e3-bf5d-b8287fd231e2'),
+        >>>         uuid.UUID('c081119a-e08e-4863-a710-3210171d27d6'),
         >>>     ],
         >>>     'image_width_list': [
         >>>         1992,
@@ -1668,20 +1661,15 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>>         401,
         >>>     ],
         >>> }
-        >>> if DEBUG:
-        >>>     gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)
-        >>> else:
-        >>>     payload = ut.map_dict_vals(ut.to_json, _payload)
-        >>>     baseurl = 'http://127.0.0.1:5000'
-        >>>     resp = requests.post(baseurl + '/api/image/json/', data=payload)
-        >>>     print(resp)
-        >>>     web_instance.terminate()
-        >>>     json_dict = resp.json()
-        >>>     gid_list = json_dict['response']
+        >>> gid_list = ibeis.web.app.add_images_json(web_instance, **_payload)
         >>> print(gid_list)
+        >>> print(web_instance.get_image_uuids(gid_list))
         >>> print(web_instance.get_image_uris(gid_list))
         >>> print(web_instance.get_image_paths(gid_list))
+        >>> print(web_instance.get_image_uris_original(gid_list))
     """
+    import uuid
+
     def _get_standard_ext(gpath):
         ext = splitext(gpath)[1].lower()
         return '.jpg' if ext == '.jpeg' else ext
@@ -1707,8 +1695,12 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         orig_gname = basename(uri)
         ext = _get_standard_ext(uri)
 
+        uuid_ = _resolve(image_uuid_list, assert_=True)
+        if isinstance(uuid_, str):
+            uuid_ = uuid.UUID(uuid_)
+
         param_tup = (
-            _resolve(image_uuid_list, assert_=True),
+            uuid_,
             uri,
             uri,
             _resolve(image_orig_name_list, default=orig_gname),
@@ -1733,6 +1725,74 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
     gpath_list = [ _[0] for _ in params_gen ]
     gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)
     return gid_list
+
+
+@register_api('/api/annot/json/', methods=['POST'])
+def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
+                    annot_theta_list=None, annot_species_list=None,
+                    annot_name_list=None, annot_notes_list=None, **kwargs):
+    """
+    REST:
+        Method: POST
+        URL: /api/annot/json/
+
+    Ignore:
+        sudo pip install boto
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be used in IBEIS IA
+        annot_uuid_list (list of str) : list of annotations UUIDs to be used in IBEIS IA
+        annot_bbox_list (list of 4-tuple) : list of bounding box coordinates encoded as
+            a 4-tuple of the values (xtl, ytl, width, height) where xtl is the
+            'top left corner, x value' and ytl is the 'top left corner, y value'.
+        annot_theta_list (list of float) : list of radian rotation around center.
+            Defaults to 0.0 (no rotation).
+        annot_species_list (list of str) : list of species for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+        annot_name_list (list of str) : list of names for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+        annot_notes_list (list of str) : list of notes to be added to the annotation.
+        **kwargs : key-value pairs passed to the ibs.add_annots() function.
+
+    CommandLine:
+        python -m ibeis.web.app --test-add_annots_json
+
+    Example:
+        >>> import uuid
+        >>> import ibeis
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> web_instance = ibeis.opendb(db='testdb1')
+        >>> _payload = {
+        >>>     'image_uuid_list': [
+        >>>         uuid.UUID('7fea8101-7dec-44e3-bf5d-b8287fd231e2'),
+        >>>         uuid.UUID('c081119a-e08e-4863-a710-3210171d27d6'),
+        >>>     ],
+        >>>     'annot_uuid_list': [
+        >>>         uuid.UUID('fe1547c5-1425-4757-9b8f-b2b4a47f552d'),
+        >>>         uuid.UUID('86d3959f-7167-4822-b99f-42d453a50745'),
+        >>>     ],
+        >>>     'annot_bbox_list': [
+        >>>         [0, 0, 1992, 1328],
+        >>>>        [0, 0, 1194, 401],
+        >>>     ],
+        >>> }
+        >>> aid_list = ibeis.web.app.add_annots_json(web_instance, **_payload)
+        >>> print(aid_list)
+        >>> print(web_instance.get_annot_image_uuids(aid_list))
+        >>> print(web_instance.get_annot_uuids(aid_list))
+        >>> print(web_instance.get_annot_bboxes(aid_list))
+    """
+    import uuid
+
+    image_uuid_list = [
+        uuid.UUID(uuid_) if isinstance(uuid_, str) else uuid_
+        for uuid_ in image_uuid_list
+    ]
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.add_annots(gid_list, annot_uuid_list=annot_uuid_list,
+                          bbox_list=annot_bbox_list, theta_list=annot_theta_list,
+                          species_list=annot_species_list, name_list=annot_name_list,
+                          notes_list=annot_notes_list, **kwargs)
 
 
 @register_api('/api/image/', methods=['POST'])

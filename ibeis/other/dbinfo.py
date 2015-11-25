@@ -933,7 +933,7 @@ def get_short_infostr(ibs):
         >>> infostr = get_short_infostr(ibs)
         >>> result = str(infostr)
         >>> print(result)
-        dbname = 'testdb1'
+        dbname = u'testdb1'
         num_images = 13
         num_annotations = 13
         num_names = 7
