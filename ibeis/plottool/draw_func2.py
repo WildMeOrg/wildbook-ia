@@ -26,7 +26,11 @@ import pylab
 import warnings
 import numpy as np
 import vtool as vt
-import cv2
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR PLOTTOOL CANNOT IMPORT CV2')
+    print(ex)
 from plottool import mpl_keypoint as mpl_kp
 from plottool import color_funcs as color_fns  # NOQA
 from plottool import custom_constants  # NOQA
