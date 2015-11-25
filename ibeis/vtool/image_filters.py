@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 # LICENCE
 from __future__ import absolute_import, division, print_function
 from six.moves import range
-# Science
 import numpy as np
-import cv2
+import utool as ut
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR: import cv2 is failing!')
 # ---------------
 # Preprocessing funcs
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(
-    __name__, '[gfilt]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[gfilt]')
 
 
 def adapteq_fn(chipBGR):

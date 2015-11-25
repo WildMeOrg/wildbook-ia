@@ -7,12 +7,16 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 from numpy.core.umath_tests import matrix_multiply
 import scipy.signal as spsignal
-import cv2
 import numpy as np
 from vtool import keypoint as ktool
 from vtool import image as gtool
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ellipse]', DEBUG=False)
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR: import cv2 is failing!')
+    cv2 = ut.DynStruct()
+(print, rrr, profile) = ut.inject2(__name__, '[ellipse]', DEBUG=False)
 
 
 @profile

@@ -37,7 +37,10 @@ from __future__ import absolute_import, division, print_function
 #import sys
 #sys.exit(1)
 # THE NUMPY ERROR HAPPENS BECAUSE OF OPENCV
-import cv2
+try:
+    import cv2
+except ImportError as ex:
+    print('WARNING: import cv2 is failing!')
 #import six
 #import functools
 import numpy as np

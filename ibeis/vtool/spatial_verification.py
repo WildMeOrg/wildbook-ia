@@ -38,7 +38,10 @@ from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import vtool.distance as dtool
-import cv2  # NOQA
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR: import cv2 is failing!')
 
 try:
     #if ut.WIN32:

@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
 # LICENCE
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
 import numpy as np
 import utool as ut
-import cv2
+try:
+    import cv2
+except ImportError as ex:
+    print('WARNING: import cv2 is failing!')
 (print, rrr, profile) = ut.inject2(__name__, '[geom]', DEBUG=False)
 
 

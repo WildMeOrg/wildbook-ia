@@ -3,9 +3,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
 from six.moves import zip, map, range
-import cv2
 import numpy as np
 from PIL import Image
+try:
+    import cv2
+except ImportError as ex:
+    print('WARNING: import cv2 is failing!')
+    cv2 = None
 from vtool import linalg
 from vtool import geometry
 import utool as ut
@@ -15,19 +19,30 @@ import utool as ut
 
 TAU = np.pi * 2
 
+if cv2 is not None:
 
-CV2_INTERPOLATION_TYPES = {
-    'nearest': cv2.INTER_NEAREST,
-    'linear':  cv2.INTER_LINEAR,
-    'area':    cv2.INTER_AREA,
-    'cubic':   cv2.INTER_CUBIC,
-    'lanczos': cv2.INTER_LANCZOS4
-}
+    CV2_INTERPOLATION_TYPES = {
+        'nearest': cv2.INTER_NEAREST,
+        'linear':  cv2.INTER_LINEAR,
+        'area':    cv2.INTER_AREA,
+        'cubic':   cv2.INTER_CUBIC,
+        'lanczos': cv2.INTER_LANCZOS4
+    }
 
-CV2_WARP_KWARGS = {
-    'flags': CV2_INTERPOLATION_TYPES['lanczos'],
-    'borderMode': cv2.BORDER_CONSTANT
-}
+    CV2_WARP_KWARGS = {
+        'flags': CV2_INTERPOLATION_TYPES['lanczos'],
+        'borderMode': cv2.BORDER_CONSTANT
+    }
+
+    IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
+else:
+    # Hacks
+    cv2 = ut.DynStruct()
+    cv2.BORDER_CONSTANT = None
+    cv2.INTER_LANCZOS4 = None
+    cv2.CV_AA = None
+    cv2.FONT_HERSHEY_SIMPLEX = None
+    cv2.INTER_NEAREST = None
 
 #cv2.BORDER_CONSTANT     cv2.BORDER_REFLECT      cv2.BORDER_REPLICATE
 #cv2.BORDER_DEFAULT      cv2.BORDER_REFLECT101   cv2.BORDER_TRANSPARENT
@@ -36,9 +51,6 @@ CV2_WARP_KWARGS = {
 
 EXIF_TAG_GPS      = 'GPSInfo'
 EXIF_TAG_DATETIME = 'DateTimeOriginal'
-
-
-IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
 
 
 # References:
@@ -425,7 +437,9 @@ def print_image_checks(img_fpath):
     return hasimg
 
 
-def resize(img, dsize, interpolation=cv2.INTER_LANCZOS4):
+def resize(img, dsize, interpolation=None):
+    if interpolation is None:
+        interpolation = cv2.INTER_LANCZOS4
     return cv2.resize(img, dsize, interpolation=interpolation)
 
 

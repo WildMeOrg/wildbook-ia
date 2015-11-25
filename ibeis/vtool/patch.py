@@ -8,7 +8,6 @@ from six.moves import zip
 #    from functools32 import lru_cache  # Python2.7 support
 #elif six.PY3:
 #    from functools import lru_cache  # Python3 only
-import cv2
 import numpy as np
 from vtool import histogram as htool
 from vtool import keypoint as ktool
@@ -16,6 +15,15 @@ from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import trig
 import utool as ut
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR: import cv2 is failing!')
+    cv2 = ut.DynStruct()
+    cv2.INTER_LANCZOS4 = None
+    cv2.INTER_CUBIC = None
+    cv2.BORDER_CONSTANT = None
+    cv2.BORDER_REPLICATE = None
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[patch]', DEBUG=False)
 
 

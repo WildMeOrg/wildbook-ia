@@ -8,8 +8,13 @@ from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import image_filters as gfilt_tool
 import utool as ut
-import cv2
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[chip]', DEBUG=False)
+try:
+    import cv2
+except ImportError as ex:
+    print('ERROR: import cv2 is failing!')
+    cv2 = ut.DynStruct()
+    cv2.INTER_LANCZOS4 = None
+(print, rrr, profile) = ut.inject2(__name__, '[chip]', DEBUG=False)
 
 
 @profile
