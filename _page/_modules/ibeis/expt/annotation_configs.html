@@ -1,0 +1,902 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.annotation_configs &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.annotation_configs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.annotation_configs</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Definitions for common aid configurations</span>
+
+<span class="sd">Rename to annot_cfgdef</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[aidcfg]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># easier to type names to alias some of these options</span>
+<span class="n">ALIAS_KEYS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c">#&#39;aids&#39;     : &#39;default_aids&#39;,</span>
+    <span class="s">&#39;pername&#39;</span>  <span class="p">:</span> <span class="s">&#39;sample_per_name&#39;</span><span class="p">,</span>
+    <span class="s">&#39;offset&#39;</span>   <span class="p">:</span> <span class="s">&#39;sample_offset&#39;</span><span class="p">,</span>
+    <span class="s">&#39;refrule&#39;</span>  <span class="p">:</span> <span class="s">&#39;sample_rule_ref&#39;</span><span class="p">,</span>
+    <span class="s">&#39;rule&#39;</span>     <span class="p">:</span> <span class="s">&#39;sample_rule&#39;</span><span class="p">,</span>
+    <span class="s">&#39;size&#39;</span>     <span class="p">:</span> <span class="s">&#39;sample_size&#39;</span><span class="p">,</span>
+    <span class="s">&#39;mingt&#39;</span>    <span class="p">:</span> <span class="s">&#39;min_pername&#39;</span><span class="p">,</span>
+    <span class="s">&#39;excluderef&#39;</span><span class="p">:</span> <span class="s">&#39;exclude_reference&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">OTHER_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;force_const_size&#39;</span>    <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># forces a consistnet sample size across combinations</span>
+    <span class="c">#&#39;hack_extra&#39; : None,  # hack param to make bigger db sizes</span>
+    <span class="c">#&#39;hack_encounter&#39;: None,</span>
+<span class="p">}</span>
+
+<span class="c"># Defaults for the independent filter</span>
+<span class="c"># THese filters are orderless</span>
+<span class="n">INDEPENDENT_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c">#&#39;species&#39;             : &#39;primary&#39;,  # specify the species</span>
+    <span class="s">&#39;species&#39;</span>             <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># Timedelta Params</span>
+    <span class="s">&#39;require_timestamp&#39;</span>   <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;contrib_contains&#39;</span>    <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># Quality Params</span>
+    <span class="s">&#39;require_quality&#39;</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># if True unknown qualities are removed</span>
+    <span class="c">#&#39;minqual&#39;             : &#39;poor&#39;,</span>
+    <span class="s">&#39;minqual&#39;</span>             <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;been_adjusted&#39;</span>       <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># HACK PARAM</span>
+    <span class="c"># Viewpoint params</span>
+    <span class="s">&#39;require_viewpoint&#39;</span>   <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;view&#39;</span>                <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;view_ext&#39;</span>            <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>      <span class="c"># num viewpoints to extend in dir1 and dir2</span>
+    <span class="s">&#39;view_ext1&#39;</span>           <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>   <span class="c"># num viewpoints to extend in dir1</span>
+    <span class="s">&#39;view_ext2&#39;</span>           <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>   <span class="c"># num viewpoints to extend in dir2</span>
+    <span class="s">&#39;is_known&#39;</span>            <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># maximum number of features detected by default config</span>
+    <span class="s">&#39;min_numfeat&#39;</span>         <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># minimum number of features detected by default config</span>
+    <span class="s">&#39;max_numfeat&#39;</span>         <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c"># HACK</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>  <span class="c"># NOQA  #</span>
+<span class="c"># Build Filters</span>
+<span class="n">filter_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_kwargs</span><span class="p">(</span><span class="n">tag_funcs</span><span class="o">.</span><span class="n">filterflags_general_tags</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">filter_keys</span><span class="p">:</span>
+    <span class="n">INDEPENDENT_DEFAULTS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+<span class="n">INTRAGROUP_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c"># if True all annots must belong to the same encounter</span>
+    <span class="s">&#39;same_encounter&#39;</span>      <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;view_pername&#39;</span>        <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># formatted string filtering the viewpoints</span>
+    <span class="s">&#39;min_timedelta&#39;</span>       <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># minimum number of aids for each name in sample</span>
+    <span class="s">&#39;min_pername&#39;</span>         <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">INDEPENDENT_DEFAULTS</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">INTRAGROUP_DEFAULTS</span><span class="p">)</span>  <span class="c"># hack</span>
+
+<span class="n">SUBINDEX_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c"># Final indexing</span>
+    <span class="s">&#39;shuffle&#39;</span>             <span class="p">:</span> <span class="bp">False</span><span class="p">,</span>  <span class="c"># randomize order before indexing</span>
+    <span class="s">&#39;index&#39;</span>               <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>   <span class="c"># choose only a subset</span>
+<span class="p">}</span>
+
+<span class="n">SAMPLE_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;sample_size&#39;</span>         <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="c"># Gets as close to sample size without removing other props</span>
+    <span class="c"># Per Name / Exemplar Params</span>
+    <span class="s">&#39;sample_per_name&#39;</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># Choos num_annots to sample from each name.</span>
+    <span class="s">&#39;sample_rule&#39;</span>         <span class="p">:</span> <span class="s">&#39;random&#39;</span><span class="p">,</span>
+    <span class="s">&#39;sample_offset&#39;</span>       <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>  <span class="c"># UNUSED</span>
+<span class="p">}</span>
+
+<span class="n">SAMPLE_REF_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c"># excludes any aids specified in a reference set (ie qaids)</span>
+    <span class="s">&#39;exclude_reference&#39;</span>   <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s">&#39;sample_rule_ref&#39;</span>     <span class="p">:</span> <span class="s">&#39;random&#39;</span><span class="p">,</span>
+    <span class="c"># when sampling daids, choose this many correct matches per query</span>
+    <span class="s">&#39;sample_per_ref_name&#39;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c"># Base common settings, but some default settings will be different</span>
+<span class="c"># for query and database annotations</span>
+<span class="n">DEFAULT_AIDCFG</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">merge_dicts</span><span class="p">(</span><span class="n">OTHER_DEFAULTS</span><span class="p">,</span> <span class="n">INDEPENDENT_DEFAULTS</span><span class="p">,</span>
+                                <span class="n">SAMPLE_DEFAULTS</span><span class="p">,</span> <span class="n">SAMPLE_REF_DEFAULTS</span><span class="p">,</span>
+                                <span class="n">SUBINDEX_DEFAULTS</span><span class="p">)</span>
+<span class="n">__default_aidcfg</span> <span class="o">=</span> <span class="n">DEFAULT_AIDCFG</span>
+
+
+<div class="viewcode-block" id="compress_aidcfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.compress_aidcfg">[docs]</a><span class="k">def</span> <span class="nf">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">,</span> <span class="n">filter_nones</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">force_noncommon</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        acfg (dict):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: acfg</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf compress_aidcfg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.annotation_configs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; acfg = default</span>
+<span class="sd">        &gt;&gt;&gt; acfg = compress_aidcfg(acfg)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;acfg = %s&#39; % (ut.dict_str(acfg),))</span>
+<span class="sd">        &gt;&gt;&gt; print(default)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">copy</span>
+    <span class="k">if</span> <span class="s">&#39;qcfg&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">acfg</span> <span class="ow">or</span> <span class="s">&#39;dcfg&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">acfg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">acfg</span>
+    <span class="n">acfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span>
+    <span class="n">common_cfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_intersection</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">])</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">common_cfg</span><span class="p">,</span> <span class="n">force_noncommon</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="n">common_cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="n">common_cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;common&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_cfg</span>
+    <span class="k">if</span> <span class="n">filter_nones</span><span class="p">:</span>
+        <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;common&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_filter_nones</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;common&#39;</span><span class="p">])</span>
+        <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_filter_nones</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">])</span>
+        <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_filter_nones</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">filter_empty</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;common&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;common&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">acfg</span>
+
+</div>
+<div class="viewcode-block" id="partition_acfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.partition_acfg_list">[docs]</a><span class="k">def</span> <span class="nf">partition_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">],</span> <span class="p">(</span>
+            <span class="s">&#39;should be the same for now&#39;</span><span class="p">)</span>
+
+    <span class="c"># Hack to make common params between q and d appear the same</span>
+    <span class="n">_acfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">]</span>
+
+    <span class="n">flat_acfg_list</span> <span class="o">=</span> <span class="n">flatten_acfg_list</span><span class="p">(</span><span class="n">_acfg_list</span><span class="p">)</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">partition_varied_cfg_list</span><span class="p">(</span><span class="n">flat_acfg_list</span><span class="p">)</span>
+    <span class="n">flat_nonvaried_dict</span><span class="p">,</span> <span class="n">flat_varied_acfg_list</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">nonvaried_dict</span> <span class="o">=</span> <span class="n">unflatten_acfgdict</span><span class="p">(</span><span class="n">flat_nonvaried_dict</span><span class="p">)</span>
+    <span class="n">varied_acfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">unflatten_acfgdict</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">flat_varied_acfg_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nonvaried_dict</span><span class="p">,</span> <span class="n">varied_acfg_list</span>
+
+</div>
+<div class="viewcode-block" id="get_varied_acfg_labels"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.get_varied_acfg_labels">[docs]</a><span class="k">def</span> <span class="nf">get_varied_acfg_labels</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">mainkey</span><span class="o">=</span><span class="s">&#39;_cfgname&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.annotation_configs import *  # NOQA</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#print(ut.list_str(varied_acfg_list, nl=2))</span>
+    <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">],</span> <span class="p">(</span>
+            <span class="s">&#39;should be the same for now&#39;</span><span class="p">)</span>
+    <span class="n">cfgname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">]</span>
+
+    <span class="c"># Hack to make common params between q and d appear the same</span>
+    <span class="n">_acfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">]</span>
+
+    <span class="n">flat_acfg_list</span> <span class="o">=</span> <span class="n">flatten_acfg_list</span><span class="p">(</span><span class="n">_acfg_list</span><span class="p">)</span>
+    <span class="n">nonvaried_dict</span><span class="p">,</span> <span class="n">varied_acfg_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">partition_varied_cfg_list</span><span class="p">(</span>
+        <span class="n">flat_acfg_list</span><span class="p">)</span>
+
+    <span class="n">SUPER_HACK</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">SUPER_HACK</span><span class="p">:</span>
+        <span class="c"># SUPER HACK, recompress remake the varied list after knownig what is varied</span>
+        <span class="n">_varied_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                 <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">unflatten_acfgdict</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="p">))</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">varied_acfg_list</span><span class="p">]</span>
+        <span class="p">)))</span>
+        <span class="n">_acfg_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">,</span> <span class="n">force_noncommon</span><span class="o">=</span><span class="n">_varied_keys</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">]</span>
+        <span class="n">flat_acfg_list</span> <span class="o">=</span> <span class="n">flatten_acfg_list</span><span class="p">(</span><span class="n">_acfg_list</span><span class="p">)</span>
+        <span class="n">nonvaried_dict</span><span class="p">,</span> <span class="n">varied_acfg_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">partition_varied_cfg_list</span><span class="p">(</span>
+            <span class="n">flat_acfg_list</span><span class="p">)</span>
+
+    <span class="n">shortened_cfg_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c">#{shorten_to_alias_labels(key): val for key, val in _dict.items()}</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span><span class="n">shorten_to_alias_labels</span><span class="p">,</span> <span class="n">_dict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_dict</span> <span class="ow">in</span> <span class="n">varied_acfg_list</span><span class="p">]</span>
+    <span class="n">nonlbl_keys</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">INTERNAL_CFGKEYS</span>
+    <span class="n">nonlbl_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span> <span class="o">+</span>  <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">nonlbl_keys</span>
+                   <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">]]</span>
+    <span class="c"># hack for sorting by q/d stuff first</span>
+
+    <span class="k">def</span> <span class="nf">get_key_order</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nonlbl_keys</span><span class="p">]</span>
+        <span class="n">sortorder</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;q&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">sortorder</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">shortened_lbl_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">cfghelpers</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">nonlbl_keys</span><span class="p">,</span> <span class="n">key_order</span><span class="o">=</span><span class="n">get_key_order</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">shortened_cfg_list</span><span class="p">,</span> <span class="n">cfgname_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">shortened_lbl_list</span>
+
+</div>
+<div class="viewcode-block" id="shorten_to_alias_labels"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.shorten_to_alias_labels">[docs]</a><span class="k">def</span> <span class="nf">shorten_to_alias_labels</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">search_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALIAS_KEYS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;qcfg_&#39;</span><span class="p">,</span> <span class="s">&#39;dcfg_&#39;</span><span class="p">,</span> <span class="s">&#39;common_&#39;</span><span class="p">]</span>
+    <span class="n">repl_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ALIAS_KEYS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">multi_replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">search_list</span><span class="p">,</span> <span class="n">repl_list</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="flatten_acfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.flatten_acfg_list">[docs]</a><span class="k">def</span> <span class="nf">flatten_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">):</span>
+    <span class="n">flat_acfg_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">acfg</span> <span class="ow">in</span> <span class="n">acfg_list</span><span class="p">:</span>
+        <span class="n">flat_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">:</span> <span class="n">val</span>
+            <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">subdict</span> <span class="ow">in</span> <span class="n">acfg</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">subdict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">flat_acfg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flat_acfg_list</span>
+
+</div>
+<div class="viewcode-block" id="compress_acfg_list_for_printing"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.compress_acfg_list_for_printing">[docs]</a><span class="k">def</span> <span class="nf">compress_acfg_list_for_printing</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf compress_acfg_list_for_printing</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.annotation_configs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qcfg_list = [{&#39;f&#39;: 1, &#39;b&#39;: 1}, {&#39;f&#39;: 2, &#39;b&#39;: 1}, {&#39;f&#39;: 3, &#39;b&#39;: 1, &#39;z&#39;: 4}]</span>
+<span class="sd">        &gt;&gt;&gt; acfg_list = [{&#39;qcfg&#39;: qcfg} for qcfg in qcfg_list]</span>
+<span class="sd">        &gt;&gt;&gt; nonvaried_dict, varied_dicts = compress_acfg_list_for_printing(acfg_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;varied_dicts = %s\n&#39; % (ut.list_str(varied_dicts),))</span>
+<span class="sd">        &gt;&gt;&gt; result += (&#39;nonvaried_dict = %s&#39; % (ut.dict_str(nonvaried_dict),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flat_acfg_list</span> <span class="o">=</span> <span class="n">flatten_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">partition_varied_cfg_list</span><span class="p">(</span><span class="n">flat_acfg_list</span><span class="p">)</span>
+    <span class="n">nonvaried_dict</span><span class="p">,</span> <span class="n">varied_acfg_list</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="n">nonvaried_compressed_dict</span> <span class="o">=</span> <span class="n">compress_aidcfg</span><span class="p">(</span>
+        <span class="n">unflatten_acfgdict</span><span class="p">(</span><span class="n">nonvaried_dict</span><span class="p">),</span> <span class="n">filter_nones</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">varied_compressed_dict_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">unflatten_acfgdict</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span> <span class="n">filter_empty</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">varied_acfg_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nonvaried_compressed_dict</span><span class="p">,</span> <span class="n">varied_compressed_dict_list</span>
+
+</div>
+<div class="viewcode-block" id="print_acfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.print_acfg_list">[docs]</a><span class="k">def</span> <span class="nf">print_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">combined</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">_tup</span> <span class="o">=</span> <span class="n">compress_acfg_list_for_printing</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
+    <span class="n">nonvaried_compressed_dict</span><span class="p">,</span> <span class="n">varied_compressed_dict_list</span> <span class="o">=</span> <span class="n">_tup</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;+=== &lt;Info acfg_list&gt; ===&#39;</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+    <span class="c">#print(&#39;Printing acfg_list info. len(acfg_list) = %r&#39; % (len(acfg_list),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;non-varied aidcfg = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">nonvaried_compressed_dict</span><span class="p">))</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="c"># get default kwkeys for annot info</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">annotstats_kw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">kwkeys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_func_kwarg_keys</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_stats_dict</span><span class="p">)</span>
+        <span class="n">annotstats_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">kwkeys</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwkeys</span><span class="p">))),</span> <span class="n">only_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">acfgx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)):</span>
+        <span class="n">acfg</span> <span class="o">=</span> <span class="n">acfg_list</span><span class="p">[</span><span class="n">acfgx</span><span class="p">]</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;q_cfgname=&#39;</span> <span class="o">+</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">+</span>
+                 <span class="s">&#39; d_cfgname=&#39;</span> <span class="o">+</span> <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">][</span><span class="s">&#39;_cfgname&#39;</span><span class="p">])</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;+--- acfg </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> -- </span><span class="si">%s</span><span class="s"> ---- &#39;</span> <span class="o">%</span>
+                      <span class="p">(</span><span class="n">acfgx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">),</span> <span class="n">title</span><span class="p">),</span> <span class="s">&#39;lightgray&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;acfg = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">varied_compressed_dict_list</span><span class="p">[</span><span class="n">acfgx</span><span class="p">],</span>
+                                      <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">expanded_aids_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="n">acfgx</span><span class="p">]</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="s">&#39;qaids&#39;</span><span class="p">),</span>
+                   <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;daids&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">seen_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">acfgx</span><span class="p">)</span>
+                    <span class="n">annotconfig_stats_strs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotconfig_stats</span><span class="p">(</span>
+                        <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">combined</span><span class="o">=</span><span class="n">combined</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">annotstats_kw</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dupindex</span> <span class="o">=</span> <span class="n">seen_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;DUPLICATE of index </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dupindex</span><span class="p">,))</span>
+                <span class="n">dupdict</span> <span class="o">=</span> <span class="n">varied_compressed_dict_list</span><span class="p">[</span><span class="n">dupindex</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;DUP OF acfg = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">dupdict</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;L___ &lt;/Info acfg_list&gt; ___&#39;</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="print_acfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.print_acfg">[docs]</a><span class="k">def</span> <span class="nf">print_acfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">,</span> <span class="n">expanded_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;acfg = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">compress_aidcfg</span><span class="p">(</span><span class="n">acfg</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">expanded_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;expanded_aids = &#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="unflatten_acfgdict"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.unflatten_acfgdict">[docs]</a><span class="k">def</span> <span class="nf">unflatten_acfgdict</span><span class="p">(</span><span class="n">flat_dict</span><span class="p">,</span> <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">,</span> <span class="s">&#39;qcfg&#39;</span><span class="p">]):</span>
+    <span class="n">acfg</span> <span class="o">=</span> <span class="p">{</span><span class="n">prefix</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefix_list</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefix_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span><span class="p">):</span>
+                <span class="n">acfg</span><span class="p">[</span><span class="n">prefix</span><span class="p">][</span><span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">acfg</span>
+
+</div>
+<div class="viewcode-block" id="apply_timecontrol"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.apply_timecontrol">[docs]</a><span class="k">def</span> <span class="nf">apply_timecontrol</span><span class="p">(</span><span class="n">acfg</span><span class="p">,</span> <span class="n">min_timedelta</span><span class="o">=</span><span class="s">&#39;6h&#39;</span><span class="p">,</span> <span class="n">require_timestamp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+            <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+                <span class="s">&#39;require_timestamp&#39;</span><span class="p">:</span> <span class="n">require_timestamp</span><span class="p">,</span>
+                <span class="s">&#39;min_timedelta&#39;</span><span class="p">:</span> <span class="n">min_timedelta</span><span class="p">,</span>
+            <span class="p">}),</span>
+
+        <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+            <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+                <span class="s">&#39;require_timestamp&#39;</span><span class="p">:</span> <span class="n">require_timestamp</span><span class="p">,</span>
+                <span class="s">&#39;min_timedelta&#39;</span><span class="p">:</span> <span class="n">min_timedelta</span><span class="p">,</span>
+            <span class="p">}),</span>
+    <span class="p">}</span>
+
+</div>
+<div class="viewcode-block" id="apply_qualcontrol"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.annotation_configs.apply_qualcontrol">[docs]</a><span class="k">def</span> <span class="nf">apply_qualcontrol</span><span class="p">(</span><span class="n">acfg</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+            <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+                <span class="s">&#39;require_quality&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="p">}),</span>
+
+        <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+            <span class="n">acfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+                <span class="s">&#39;require_quality&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="p">}),</span>
+    <span class="p">}</span>
+
+</div>
+<span class="n">__baseline_aidcfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span><span class="n">__default_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">&#39;is_known&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+    <span class="s">&#39;minqual&#39;</span><span class="p">:</span> <span class="s">&#39;ok&#39;</span><span class="p">,</span>
+    <span class="s">&#39;view&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+    <span class="s">&#39;view_ext&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">})</span>
+
+
+<span class="n">__controlled_aidcfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span><span class="n">__baseline_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+    <span class="c">#&#39;require_timestamp&#39;: True,</span>
+    <span class="s">&#39;view_ext&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s">&#39;minqual&#39;</span><span class="p">:</span> <span class="s">&#39;ok&#39;</span><span class="p">,</span>
+    <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+    <span class="s">&#39;is_known&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="n">single_default</span> <span class="o">=</span> <span class="n">__default_aidcfg</span>
+
+<span class="n">exclude_vars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>   <span class="c"># this line is before tests</span>
+<span class="n">exclude_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;exclude_vars&#39;</span><span class="p">)</span>
+
+<span class="n">default</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">single_default</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: (1,)</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">single_default</span><span class="p">,</span> <span class="p">{</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a unctrl</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">unctrl</span> <span class="o">=</span> <span class="n">uncontrolled</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__baseline_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;allgt&#39;,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__baseline_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="c"># Uncontrolled but comparable to controlled</span>
+<span class="n">unctrl_comp</span> <span class="o">=</span>  <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__baseline_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;allgt&#39;,</span>
+            <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s">&#39;view_ext&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__baseline_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;primary&#39;</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a ctrl</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl:qpername=1,qview_ext=0</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a unctrl ctrl::unctrl_comp</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">ctrl</span> <span class="o">=</span> <span class="n">controlled</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;allgt&#39;,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;all&#39;,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;exclude_reference&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c"># allows for singletons to be in the database</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a timectrl</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">timectrl</span> <span class="o">=</span> <span class="n">timecontrolled</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">ctrl</span><span class="p">)</span>
+<span class="n">timectrl1h</span> <span class="o">=</span> <span class="n">timecontrolled</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s">&#39;1h&#39;</span><span class="p">)</span>
+
+<span class="n">timectrlL</span> <span class="o">=</span> <span class="n">timecontrolled</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="n">require_timestamp</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a timequalctrl</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">timequalctrl</span> <span class="o">=</span> <span class="n">timequalcontrolled</span> <span class="o">=</span> <span class="n">apply_qualcontrol</span><span class="p">(</span><span class="n">timectrl</span><span class="p">)</span>
+
+
+<span class="c"># Just vary the samples per name without messing with the number of annots in</span>
+<span class="c"># the database</span>
+<span class="n">varypername</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="c"># ensures each query will have a correct example for the groundtruth</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+            <span class="c">#&#39;sample_per_name&#39;: [1, 3],</span>
+            <span class="c">#&#39;sample_per_ref_name&#39;: [1, 2, 3],</span>
+            <span class="c">#&#39;sample_per_ref_name&#39;: [1, 3],</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="n">varypername2</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+<span class="n">varypername2_td</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varypername2</span><span class="p">)</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a ctrl2</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a timectrl2</span>
+<span class="sd">ibeis -e rank_cdf --db PZ_Master1 -a timectrl2 -t invarbest</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">ctrl2</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="c">#&#39;force_const_size&#39;: True,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+<span class="n">timectrl2</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">ctrl2</span><span class="p">)</span>
+
+
+<span class="n">varypername_td</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varypername</span><span class="p">)</span>
+<span class="n">varypername_td1h</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varypername</span><span class="p">,</span> <span class="s">&#39;1h&#39;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg --db PZ_Master1 -a varypername_tdqual</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">varypername_tdqual</span> <span class="o">=</span> <span class="n">apply_qualcontrol</span><span class="p">(</span><span class="n">varypername_td</span><span class="p">)</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -m ibeis --tf get_num_annots_per_name --db PZ_Master1</span>
+<span class="sd">ibeis -e print_acfg -a varysize2 --db PZ_Master1 --verbtd --nocache</span>
+<span class="sd">ibeis -e print_acfg -a varysize2 --db NNP_MasterGIRM_core --verbtd --nocache</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">varysize</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;allgt&#39;,</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="c">#&#39;force_const_size&#39;: True,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;all&#39;,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+            <span class="c">#&#39;sample_per_name&#39;: [1, 3],</span>
+            <span class="s">&#39;exclude_reference&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">],</span>  <span class="c"># .95], 1.0],</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg -a varysize2_td --db PZ_Master1 --verbtd --nocache</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">varysize_td</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varysize</span><span class="p">)</span>
+<span class="n">varysize_td1h</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varysize</span><span class="p">,</span> <span class="s">&#39;1h&#39;</span><span class="p">)</span>
+<span class="n">varysize_tdqual</span> <span class="o">=</span> <span class="n">apply_qualcontrol</span><span class="p">(</span><span class="n">varysize_td</span><span class="p">)</span>
+
+
+<span class="n">varynannots</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;allgt&#39;,</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="c">#&#39;force_const_size&#39;: True,</span>
+            <span class="c">#&#39;min_pername&#39;: 4,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">__controlled_aidcfg</span><span class="p">,</span> <span class="p">{</span>
+            <span class="c">#&#39;default_aids&#39;: &#39;all&#39;,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="c">#&#39;sample_per_name&#39;: [1, 3],</span>
+            <span class="s">&#39;exclude_reference&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="c">#&#39;sample_size&#39;: [.01, .125, 0.25, .375, 0.5, .625, 0.75],  # , .875],  # .95], 1.0],</span>
+            <span class="c">#&#39;sample_size&#39;: [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">125</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="o">.</span><span class="mi">375</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="o">.</span><span class="mi">875</span><span class="p">,</span> <span class="o">.</span><span class="mi">95</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+            <span class="c">#&#39;sample_size&#39;: [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],</span>
+            <span class="c">#&#39;sample_size&#39;: ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),</span>
+            <span class="c">#(10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(np.int) / 1000,</span>
+            <span class="s">&#39;min_pername&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+<span class="n">varynannots_td</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varynannots</span><span class="p">)</span>
+<span class="n">varynannots_td1h</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">varynannots</span><span class="p">,</span> <span class="s">&#39;1h&#39;</span><span class="p">)</span>
+<span class="c">#varysize_tdqual = apply_qualcontrol(varysize_td)</span>
+
+
+<span class="c"># Compare query of frontleft animals when database has only left sides</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg -a viewpoint_compare --db PZ_Master1 --verbtd --nocache</span>
+<span class="sd">python -m ibeis --tf parse_acfg_combo_list -a viewpoint_compare</span>
+<span class="sd">python -m ibeis --tf get_annotcfg_list --db PZ_Master1 -a viewpoint_compare \</span>
+<span class="sd">        --verbtd</span>
+<span class="sd"># Check composition of names per viewpoint</span>
+<span class="sd">python -m ibeis --tf group_annots_by_multi_prop --db PZ_Master1 \</span>
+<span class="sd">        --props=yaw_texts,name_rowids --keys1 frontleft</span>
+<span class="sd">python -m ibeis --tf get_annot_stats_dict --db PZ_Master1 \</span>
+<span class="sd">        --per_name_vpedge=True</span>
+
+
+<span class="sd">TODO: Need to explicitly setup the common config I think?</span>
+<span class="sd">ibeis -e print_acfg -a viewdiff:min_timedelta=1h --db PZ_Master1 --verbtd --nocache-aid</span>
+<span class="sd">ibeis --tf get_annotcfg_list -a viewdiff:min_timedelta=1h --db PZ_Master1 \</span>
+<span class="sd">        --verbtd --nocache-aid</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">viewpoint_compare</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="c"># To be a query you must have at least two primary1 views and at</span>
+            <span class="c"># least one primary view</span>
+            <span class="s">&#39;view_pername&#39;</span><span class="p">:</span> <span class="s">&#39;#primary&gt;0&amp;#primary1&gt;1&#39;</span><span class="p">,</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;view&#39;</span><span class="p">:</span> <span class="s">&#39;primary1&#39;</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="c">#&#39;min_pername&#39;: 2,</span>
+        <span class="p">}),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;view&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;primary1&#39;</span><span class="p">,</span> <span class="s">&#39;primary&#39;</span><span class="p">],</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="c"># To be a query you must have at least two primary1 views and at</span>
+            <span class="c"># least one primary view</span>
+            <span class="s">&#39;view_pername&#39;</span><span class="p">:</span> <span class="s">&#39;#primary&gt;0&amp;#primary1&gt;1&#39;</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_ref_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="c"># TODO: need to make this consistent accross both experiment modes</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="n">viewdiff</span> <span class="o">=</span> <span class="n">vp</span> <span class="o">=</span> <span class="n">viewpoint_compare</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s">&#39;sample_size&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="c"># To be a query you must have at least two primary1 views and at</span>
+            <span class="c"># least one primary view</span>
+            <span class="p">(</span><span class="s">&#39;view_pername&#39;</span><span class="p">,</span> <span class="s">&#39;#primary&gt;0&amp;#primary1&gt;0&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;force_const_size&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;view&#39;</span><span class="p">,</span> <span class="s">&#39;primary1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;sample_per_name&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">])),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">ctrl</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+            <span class="s">&#39;view&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;primary&#39;</span><span class="p">],</span>
+            <span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_ref_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;sample_per_name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c"># None this seems to produce odd results</span>
+                                   <span class="c"># where the per_ref is still more then 1</span>
+            <span class="s">&#39;sample_size&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;view_pername&#39;</span><span class="p">:</span> <span class="s">&#39;#primary&gt;0&amp;#primary1&gt;0&#39;</span><span class="p">,</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="c"># Use tags to find a small set of difficult cases</span>
+<span class="n">timectrlhard</span> <span class="o">=</span> <span class="n">viewpoint_compare</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">timectrl</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s">&#39;has_any&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;needswork&#39;</span><span class="p">,</span> <span class="s">&#39;correctable&#39;</span><span class="p">,</span> <span class="s">&#39;mildviewpoint&#39;</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s">&#39;has_none&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;photobomb&#39;</span><span class="p">,</span> <span class="s">&#39;error:viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;quality&#39;</span><span class="p">)),</span>
+        <span class="p">])),</span>
+
+    <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">augdict</span><span class="p">(</span>
+        <span class="n">timectrl</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="p">{</span>
+        <span class="p">}),</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ibeis -e print_acfg -a viewdiff --db PZ_Master1 --verbtd --nocache --per_vp=True</span>
+<span class="sd">ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=True</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">viewdiff_td</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">viewdiff</span><span class="p">)</span>
+<span class="n">viewdiff_td1h</span> <span class="o">=</span> <span class="n">apply_timecontrol</span><span class="p">(</span><span class="n">viewdiff</span><span class="p">,</span> <span class="s">&#39;1h&#39;</span><span class="p">)</span>
+
+<span class="c"># THIS IS A GOOD START</span>
+<span class="c"># NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1</span>
+
+<span class="n">include_vars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  <span class="c"># this line is after tests</span>
+
+<span class="c"># List of all valid tests</span>
+<span class="n">TEST_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">include_vars</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">exclude_vars</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.annotation_configs</span>
+<span class="sd">        python -m ibeis.expt.annotation_configs --allexamples</span>
+<span class="sd">        python -m ibeis.expt.annotation_configs --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

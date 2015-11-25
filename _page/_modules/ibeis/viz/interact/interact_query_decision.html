@@ -1,0 +1,614 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.interact.interact_query_decision &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../viz.html">ibeis.viz</a> &raquo;</li>
+      
+          <li><a href="../interact.html">ibeis.viz.interact</a> &raquo;</li>
+      
+    <li>ibeis.viz.interact.interact_query_decision</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.interact.interact_query_decision</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>  <span class="c"># NOQA</span>
+<span class="c"># from ibeis.gui import guiback</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">guitool</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
+<span class="kn">from</span> <span class="nn">plottool.abstract_interaction</span> <span class="kn">import</span> <span class="n">AbstractInteraction</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[interact_query_decision]&#39;</span><span class="p">)</span>
+<span class="c">#(print, print_, printDBG, rrr, profile) = ut.inject(__name__,</span>
+<span class="c">#                                                       &#39;[interact_query_decision]&#39;, DEBUG=False)</span>
+
+
+<span class="c">#==========================</span>
+<span class="c"># query interaction</span>
+<span class="c">#==========================</span>
+
+<span class="n">NUM_TOP</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<div class="viewcode-block" id="QueryVerificationInteraction"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction">[docs]</a><span class="k">class</span> <span class="nc">QueryVerificationInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show</span>
+<span class="sd">        python -m ibeis --eid 2 --inc-query --yes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_query_decision import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; cm, qreq_ = ibeis.testdata_cm()</span>
+<span class="sd">        &gt;&gt;&gt; comp_aids = cm.get_top_aids(NUM_TOP)</span>
+<span class="sd">        &gt;&gt;&gt; suggest_aids = comp_aids[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; qvi = QueryVerificationInteraction(</span>
+<span class="sd">        &gt;&gt;&gt;     qreq_, cm, comp_aids, suggest_aids, progress_current=42, progress_total=1337)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">comp_aids</span><span class="p">,</span> <span class="n">suggest_aids</span><span class="p">,</span> <span class="n">progress_current</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">progress_total</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">backend_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_decision_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QueryVerificationInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] comp_aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">comp_aids</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] suggest_aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">suggest_aids</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="o">=</span> <span class="n">cm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">comp_aids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">suggest_aids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span><span class="p">,),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comp_aids</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">NUM_TOP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span> <span class="o">=</span> <span class="n">comp_aids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span> <span class="o">=</span> <span class="n">suggest_aids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># HACK TO TURN OFF SUGGESTIONS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_current</span> <span class="o">=</span> <span class="n">progress_current</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_total</span> <span class="o">=</span> <span class="n">progress_total</span>
+        <span class="k">def</span> <span class="nf">_nonefn</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">def</span> <span class="nf">_nonefn2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">update_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">update_callback</span> <span class="o">=</span> <span class="n">_nonefn</span>
+        <span class="k">if</span> <span class="n">backend_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">_nonefn</span>
+        <span class="k">if</span> <span class="n">name_decision_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">name_decision_callback</span> <span class="o">=</span> <span class="n">_nonefn2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span> <span class="o">=</span> <span class="n">update_callback</span>  <span class="c"># if something like qt needs a manual refresh on change</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span> <span class="o">=</span> <span class="n">backend_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_decision_callback</span> <span class="o">=</span> <span class="n">name_decision_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;none&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;junk&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qres_callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infer_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="n">bring_to_front</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QueryVerificationInteraction.infer_data"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.infer_data">[docs]</a>    <span class="k">def</span> <span class="nf">infer_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize data related to the input aids &quot;&quot;&quot;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span>
+
+        <span class="c"># cm = ibs.query_chips(query_aid,)</span>
+
+        <span class="c">#HACK: make sure that comp_aids is of length NUM_TOP</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">)</span> <span class="o">!=</span> <span class="n">NUM_TOP</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_TOP</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">))]</span>
+
+        <span class="c">#column for each comparasion + the none button</span>
+        <span class="c">#row for the query, row for the comparasions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="mi">2</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.prepare_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">figkw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="s">&#39;doclf&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;docla&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">figkw</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_clicked</span><span class="p">)</span>
+        <span class="c"># ih.connect_callback(self.fig, &#39;button_press_event&#39;, self.figure_clicked)</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.show_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_page">[docs]</a>    <span class="k">def</span> <span class="nf">show_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bring_to_front</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plots all subaxes on a page &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[querydec] show_page()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prepare_page</span><span class="p">()</span>
+        <span class="c"># Variables we will work with to paint a pretty picture</span>
+        <span class="c">#ibs = self.ibs</span>
+        <span class="n">nRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span>
+        <span class="n">nCols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span>
+
+        <span class="c">#Plot the Comparisions</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">c_aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">c_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">px</span> <span class="o">=</span> <span class="n">nCols</span> <span class="o">+</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">title_suffix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">c_aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span><span class="p">:</span>
+                    <span class="n">title_suffix</span> <span class="o">=</span> <span class="s">&#39;SUGGESTED BY IBEIS&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_chip</span><span class="p">(</span><span class="n">c_aid</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">title_suffix</span><span class="o">=</span><span class="n">title_suffix</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">+</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;NO RESULT&#39;</span><span class="p">)</span>
+
+        <span class="c">#Plot the Query Chip last</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">EmbedOnException</span><span class="p">():</span>
+            <span class="n">query_title</span> <span class="o">=</span> <span class="s">&#39;Identify This Animal&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_chip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query_aid</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">title_suffix</span><span class="o">=</span><span class="n">query_title</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_hud</span><span class="p">()</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots_safe</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.88</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.12</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bring_to_front</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">()</span>
+        <span class="c">#self.update()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.plot_chip"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.plot_chip">[docs]</a>    <span class="k">def</span> <span class="nf">plot_chip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plots an individual chip in a subaxis &quot;&quot;&quot;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">enable_chip_title_prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+        <span class="c">#enable_chip_title_prefix = False</span>
+        <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">:</span>
+            <span class="n">score</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_annot_scores</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">rawscore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_annot_scores</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">title_suf</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;title_suffix&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">score</span> <span class="o">!=</span> <span class="n">rawscore</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">title_suf</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> score=____&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">title_suf</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> score=</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">score</span>
+            <span class="n">title_suf</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> rawscore=</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rawscore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">title_suf</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;title_suffix&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">enable_chip_title_prefix</span><span class="p">:</span>
+                <span class="n">title_suf</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">title_suf</span>
+
+        <span class="c">#nid = ibs.get_annot_name_rowids(aid)</span>
+        <span class="n">viz_chip_kw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="s">&#39;pnum&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">),</span>
+            <span class="s">&#39;nokpts&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_gname&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;show_exemplar&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;show_num_gt&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;show_gname&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;title_suffix&#39;</span><span class="p">:</span> <span class="n">title_suf</span><span class="p">,</span>
+            <span class="c"># &#39;text_color&#39;: kwargs.get(&#39;color&#39;),</span>
+            <span class="c">###</span>
+            <span class="c">#&#39;show_name&#39;: False,</span>
+            <span class="c">#&#39;show_aidstr&#39;: False,</span>
+            <span class="s">&#39;enable_chip_title_prefix&#39;</span><span class="p">:</span> <span class="n">enable_chip_title_prefix</span><span class="p">,</span>
+            <span class="s">&#39;show_name&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_aidstr&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_yawtext&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_quality_text&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">viz_chip_kw</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;make_buttons&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="n">divider</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_divider</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">butkw</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;divider&#39;</span><span class="p">:</span> <span class="n">divider</span><span class="p">,</span>
+                <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="s">&#39;13%&#39;</span>
+            <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid2_ax</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid2_border</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">:</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;Select This Animal&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+            <span class="c">#Hack to toggle colors</span>
+            <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">:</span>
+                <span class="c">#If we are selecting it, then make it green, otherwise change it back to grey</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]:</span>
+                    <span class="n">border</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">border</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">aid2_border</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">border</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;Examine&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">examine</span><span class="p">,</span> <span class="n">aid</span><span class="p">),</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.examine"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.examine">[docs]</a>    <span class="k">def</span> <span class="nf">examine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; examining aid </span><span class="si">%r</span><span class="s"> against the query result&#39;</span> <span class="o">%</span> <span class="n">aid</span><span class="p">)</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Examine a specific image against the query&#39;</span>
+
+        <span class="c">#fnum = 510</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c"># can cause freezes should be False</span>
+        <span class="n">INTERACT_EXAMINE</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">INTERACT_EXAMINE</span><span class="p">:</span>
+            <span class="c">#fig = interact_matches.ishow_matches(self.ibs, self.cm, aid, figtitle=figtitle, fnum=fnum)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Finished interact&#39;</span><span class="p">)</span>
+            <span class="c"># this is only relevant to matplotlib.__version__ &lt; 1.4.2</span>
+            <span class="c">#raise Exception(</span>
+            <span class="c">#    &#39;BLACK MAGIC: error intentionally included as a workaround that seems&#39;</span>
+            <span class="c">#    &#39;to fix a gui hang on certain computers.&#39;)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.select"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; selected aid </span><span class="si">%r</span><span class="s"> as best choice&#39;</span> <span class="o">%</span> <span class="n">aid</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">state</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.select_none"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select_none">[docs]</a>    <span class="k">def</span> <span class="nf">select_none</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;junk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.select_junk"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select_junk">[docs]</a>    <span class="k">def</span> <span class="nf">select_junk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;junk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.quit"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.quit">[docs]</a>    <span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.show_hud"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_hud">[docs]</a>    <span class="k">def</span> <span class="nf">show_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates heads up display &quot;&quot;&quot;</span>
+        <span class="c"># Button positioners</span>
+        <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">16</span><span class="p">,</span>
+                                                     <span class="n">h</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI_B</span> <span class="o">**</span> <span class="mi">4</span><span class="p">,</span>
+                                                     <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">select_none_text</span> <span class="o">=</span> <span class="s">&#39;None of these&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suggest_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">select_none_text</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">(SUGGESTED BY IBEIS)&#39;</span>
+        <span class="n">none_tup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">select_none_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select_none</span><span class="p">),</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="c">#Draw boarder around the None of these button</span>
+        <span class="n">none_button_axis</span> <span class="o">=</span> <span class="n">none_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">]:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">none_button_axis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">none_button_axis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">select_junk_text</span> <span class="o">=</span> <span class="s">&#39;Junk Query Image&#39;</span>
+        <span class="n">junk_tup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">select_junk_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select_junk</span><span class="p">),</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="c">#Draw boarder around the None of these button</span>
+        <span class="n">junk_button_axis</span> <span class="o">=</span> <span class="n">junk_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;junk&#39;</span><span class="p">]:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">junk_button_axis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">junk_button_axis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="o">.</span><span class="mi">7</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="c">#Add other HUD buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;Quit&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">),</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;Confirm Selection&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">confirm</span><span class="p">),</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progress_current</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progress_total</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progress_string</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">figtitle_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Animal Identification {progress_string}</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="n">figtitle_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>  <span class="c"># sexy: using obj dict as fmtkw</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.confirm"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm">[docs]</a>    <span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_query_decision --test-confirm</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz.interact.interact_query_decision import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; self = ibs</span>
+<span class="sd">            &gt;&gt;&gt; self.ibs = ibs</span>
+<span class="sd">            &gt;&gt;&gt; selected_aids = ut.get_list_column(ibs.get_name_aids(ibs.get_valid_nids()), 0)</span>
+<span class="sd">            &gt;&gt;&gt; comfirm_res = &#39;jeff&#39;</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; #result = self.confirm(event)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; #print(result)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Confirming selected animals.&#39;</span><span class="p">)</span>
+
+        <span class="n">selected_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_aids</span>
+                         <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid_checkbox_states</span><span class="p">[</span><span class="n">aid</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Confirming no match.&#39;</span><span class="p">)</span>
+            <span class="n">chosen_aids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">]:</span>
+                <span class="n">chosen_aids</span> <span class="o">=</span> <span class="s">&#39;newname&#39;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_checkbox_states</span><span class="p">[</span><span class="s">&#39;junk&#39;</span><span class="p">]:</span>
+                <span class="n">chosen_aids</span> <span class="o">=</span> <span class="s">&#39;junk&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;INTERACT_QUERY_DECISION IMPOSSIBLE STATE&#39;</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Confirming single match&#39;</span><span class="p">)</span>
+            <span class="n">chosen_aids</span> <span class="o">=</span> <span class="n">selected_aids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Confirming merge&#39;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                You have selected more than one animal as a match to the query</span>
+<span class="sd">                animal.  By doing this you are telling IBEIS that these are ALL</span>
+<span class="sd">                the SAME ANIMAL.  \n\n\nIf this is not what you want, click</span>
+<span class="sd">                Cancel.  If it is what you want, choose one of the names below</span>
+<span class="sd">                as the name to keep.</span>
+<span class="sd">                &#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">selected_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">selected_aids</span><span class="p">)</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">selected_names</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;Confirm Merge&#39;</span>
+            <span class="n">merge_name</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">user_option</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                                             <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">merge_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] cancelled merge&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] confirmed merge&#39;</span><span class="p">)</span>
+                <span class="n">is_merge_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">merge_name</span> <span class="o">==</span> <span class="n">name_</span> <span class="k">for</span> <span class="n">name_</span> <span class="ow">in</span> <span class="n">selected_names</span><span class="p">]</span>
+                <span class="n">chosen_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">selected_aids</span><span class="p">,</span> <span class="n">is_merge_name</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Calling update callbacks&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] Calling decision callback&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] self.name_decision_callback = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_decision_callback</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chosen_aids</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="c"># hack for string non-match commands</span>
+            <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">chosen_aids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chosen_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">chosen_aids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_decision_callback</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_query_decision] sent name_decision_callback(chosen_names=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chosen_names</span><span class="p">,))</span>
+</div>
+<div class="viewcode-block" id="QueryVerificationInteraction.figure_clicked"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.figure_clicked">[docs]</a>    <span class="k">def</span> <span class="nf">figure_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+        <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;chip&#39;</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... aid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+                    <span class="n">qpoint</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">interact_chip</span><span class="o">.</span><span class="n">show_annot_context_menu</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">)</span>
+                    <span class="c">#self.show_page()</span>
+                    <span class="c">#ibs.print_annotation_table()</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_query_decision</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_query_decision --allexamples</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_query_decision --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

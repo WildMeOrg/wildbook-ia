@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_hough &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_hough</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_hough</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">viz_image2</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_hough]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="show_hough_image"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_hough.show_hough_image">[docs]</a><span class="k">def</span> <span class="nf">show_hough_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;Hough Image: &#39;</span> <span class="o">+</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_image_titles</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span>
+    <span class="n">src_gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_detectpaths</span><span class="p">([</span><span class="n">gid</span><span class="p">])</span>
+    <span class="n">dst_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">src_gpath_list</span><span class="p">]</span>
+    <span class="n">hough_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">species</span> <span class="o">+</span> <span class="s">&#39;_hough.png&#39;</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">dst_gpath_list</span><span class="p">]</span>
+    <span class="c"># Detect with hough</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">hough_gpath_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">src_gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="c"># Get path</span>
+    <span class="n">hough_gpath</span> <span class="o">=</span> <span class="n">hough_gpath_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">hough_gpath</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">viz_image2</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
+
+</div>
+<div class="viewcode-block" id="show_probability_chip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_hough.show_probability_chip">[docs]</a><span class="k">def</span> <span class="nf">show_probability_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: allow species override in controller</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show</span>
+<span class="sd">        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1</span>
+<span class="sd">        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1 --aid 9970</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_hough import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz import viz_chip</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list, kwargs, config2_ = viz_chip.testdata_showchip()</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; species = None</span>
+<span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; fig, ax = show_probability_chip(ibs, aid, species, fnum, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;Probability Chip: &#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vh</span><span class="o">.</span><span class="n">get_annot_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+    <span class="n">hough_cpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">hough_cpath</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">viz_image2</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_hough</span>
+<span class="sd">        python -m ibeis.viz.viz_hough --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_hough --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA ut.doctest_funcs()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

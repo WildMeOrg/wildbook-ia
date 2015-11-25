@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_sver &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_sver</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_sver</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">plottool.draw_sv</span> <span class="kn">as</span> <span class="nn">draw_sv</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_sver]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="n">WRITE_SV_DEBUG</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--write-sv-debug&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Compiles IBEIS information into info suitable for plottool &quot;&quot;&quot;</span>
+    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">aid2_fm</span> <span class="o">=</span> <span class="n">chipmatch_FILT</span><span class="o">.</span><span class="n">aid2_fm</span>
+    <span class="c">#aid2_fs = chipmatch_FILT.aid2_fs</span>
+    <span class="c">#aid2_fk = chipmatch_FILT.aid2_fk</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_err</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">aff_err</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">aid2_svtup</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+    <span class="n">homog_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
+    <span class="n">aff_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span>
+    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span>
+    <span class="k">return</span> <span class="n">sv_vartup</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; If spatial-verfication dbginfo is not in we need to compute it &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">with_metadata</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to search&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to query&#39;</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
+    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_svtups</span>         <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
+    <span class="n">chipmatch_FILT</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_FILT</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="n">aid2_svtup</span>     <span class="o">=</span> <span class="n">qaid2_svtups</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span>
+
+
+<span class="nd">@ut.indent_func</span>
+<div class="viewcode-block" id="show_sver"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_sver">[docs]</a><span class="k">def</span> <span class="nf">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compiles IBEIS information and sends it to plottool</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --test-show_sver --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_sver import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = aid_list[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; chipmatch_FILT = None</span>
+<span class="sd">        &gt;&gt;&gt; aid2_svtup = None</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; show_sver(ibs, aid1, aid2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; exec(pt.present())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[show_sver] ====================== [show_sver]&#39;</span><span class="p">)</span>
+    <span class="c">#print(ut.func_str(show_sv, kwargs=locals()))</span>
+    <span class="k">if</span> <span class="n">chipmatch_FILT</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aid2_svtup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span> <span class="o">=</span> <span class="n">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
+    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_vartup</span>
+    <span class="k">if</span> <span class="n">WRITE_SV_DEBUG</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;chip1&#39;</span><span class="p">,</span> <span class="s">&#39;chip2&#39;</span><span class="p">,</span> <span class="s">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s">&#39;kpts2&#39;</span><span class="p">,</span> <span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="s">&#39;homog_tup&#39;</span><span class="p">,</span> <span class="s">&#39;aff_tup&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">save_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[vizsv] write test info&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">qflag</span><span class="p">()</span>
+    <span class="n">draw_sv</span><span class="o">.</span><span class="n">show_sv</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="o">=</span><span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="o">=</span><span class="n">aff_tup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --allexamples --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

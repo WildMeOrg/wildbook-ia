@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.interact.interact_image &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../viz.html">ibeis.viz</a> &raquo;</li>
+      
+          <li><a href="../interact.html">ibeis.viz.interact</a> &raquo;</li>
+      
+    <li>ibeis.viz.interact.interact_image</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.interact.interact_image</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span>
+                                                       <span class="s">&#39;[interact_img]&#39;</span><span class="p">,</span>
+                                                       <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c">#@ut.indent_func</span>
+<div class="viewcode-block" id="ishow_image"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_image.ishow_image">[docs]</a><span class="k">def</span> <span class="nf">ishow_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">select_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[interact_image] gid=</span><span class="si">%r</span><span class="s"> fnum=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="c"># TODO: change to class based structure</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span> <span class="o">=</span> <span class="n">fnum</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;image&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+    <span class="c">#printDBG(utool.func_str(interact_image, [], locals()))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;draw_lbls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_lbls&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_image_view</span><span class="p">(</span><span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">viz</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Image View&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">))</span>
+            <span class="k">raise</span>
+
+    <span class="c"># Create callback wrapper</span>
+    <span class="k">def</span> <span class="nf">_on_image_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[inter] clicked image&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_outside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="c"># Toggle draw lbls</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;draw_lbls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_lbls&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="n">_image_view</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span>          <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+            <span class="n">viztype</span>     <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
+            <span class="n">annotation_centers</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;annotation_centers&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+            <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39; annotation_centers=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">annotation_centers</span><span class="p">)</span>
+            <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39; viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation_centers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39; ...no chips exist to click&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+            <span class="c"># Find ANNOTATION center nearest to the clicked point</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+            <span class="n">centx</span><span class="p">,</span> <span class="n">_dist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">annotation_centers</span><span class="p">)</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">centx</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; ...clicked aid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">select_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># HACK, should just implement this correctly here</span>
+                <span class="n">select_callback</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_image_view</span><span class="p">(</span><span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">])</span>
+
+        <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+    <span class="n">_image_view</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_image_click</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

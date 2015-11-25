@@ -1,0 +1,1684 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.control.IBEISControl &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.control" href="../control.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../control.html">ibeis.control</a> &raquo;</li>
+      
+    <li>ibeis.control.IBEISControl</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.control.IBEISControl</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the definition of IBEISController. This object</span>
+<span class="sd">allows access to a single database. Construction of this object should be</span>
+<span class="sd">done using ibeis.opendb().</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    Module Licence and docstring</span>
+
+<span class="sd">Note:</span>
+<span class="sd">    There are functions that are injected into the controller that are not</span>
+<span class="sd">      defined in this module.</span>
+<span class="sd">    Functions in the IBEISController have been split up into several</span>
+<span class="sd">      submodules.</span>
+<span class="sd">    look at the modules listed in autogenmodname_list to see the full list of</span>
+<span class="sd">      functions that will be injected into an IBEISController object</span>
+
+<span class="sd">    Recently, these functions have been enumerated in</span>
+<span class="sd">      ibeis.control._autogen_explicit_controller.py,</span>
+<span class="sd">      and explicitly added to the</span>
+
+<span class="sd">    controller using subclassing.</span>
+<span class="sd">    This submodule only provides function headers, the source code still</span>
+<span class="sd">      resides in the injected modules.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="c">#import sys</span>
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="c">#import ibeis  # NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">ET</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="c"># Inject utool functions</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibs]&#39;</span><span class="p">)</span>
+
+<span class="c"># Import modules which define injectable functions</span>
+
+<span class="c"># tuples represent conditional imports with the flags in the first part of the</span>
+<span class="c"># tuple and the modname in the second</span>
+<span class="n">AUTOLOAD_PLUGIN_MODNAMES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;ibeis.annotmatch_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.tag_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.ibsfuncs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.init.filter_annots&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control._autogen_featweight_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control._autogen_party_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control._autogen_annotmatch_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_ibeiscontrol_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_wildbook_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_meta_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_lbltype_funcs&#39;</span><span class="p">,</span>   <span class="c"># DEPRICATE</span>
+    <span class="s">&#39;ibeis.control.manual_lblannot_funcs&#39;</span><span class="p">,</span>  <span class="c"># DEPRICATE</span>
+    <span class="s">&#39;ibeis.control.manual_lblimage_funcs&#39;</span><span class="p">,</span>  <span class="c"># DEPRICATE</span>
+    <span class="s">&#39;ibeis.control.manual_image_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_encounter_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_egrelate_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_garelate_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_annot_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_name_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_species_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_annotgroup_funcs&#39;</span><span class="p">,</span>
+    <span class="c">#&#39;ibeis.control.manual_dependant_funcs&#39;,</span>
+    <span class="s">&#39;ibeis.control.manual_chip_funcs&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ibeis.control.manual_feat_funcs&#39;</span><span class="p">,</span>
+    <span class="p">((</span><span class="s">&#39;--no-cnn&#39;</span><span class="p">,</span> <span class="s">&#39;--nocnn&#39;</span><span class="p">),</span> <span class="s">&#39;ibeis_cnn&#39;</span><span class="p">),</span>
+    <span class="p">((</span><span class="s">&#39;--no-cnn&#39;</span><span class="p">,</span> <span class="s">&#39;--nocnn&#39;</span><span class="p">),</span> <span class="s">&#39;ibeis_cnn._plugin&#39;</span><span class="p">),</span>
+    <span class="s">&#39;ibeis.web.zmq_task_queue&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">AUTOLOAD_PLUGIN_MODNAMES</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">flag</span><span class="p">,</span> <span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
+            <span class="k">continue</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">import_modname</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+
+<span class="c"># NOTE: new plugin code needs to be hacked in here currently</span>
+<span class="c"># this is not a long term solution.  THE Long term solution is to get these</span>
+<span class="c"># working (which are partially integrated)</span>
+<span class="c">#     python -m ibeis --tf dev_autogen_explicit_imports</span>
+<span class="c">#     python -m ibeis --tf dev_autogen_explicit_injects</span>
+
+<span class="c"># Ensure that all injectable modules are imported before constructing the</span>
+<span class="c"># class instance</span>
+
+<span class="c"># Explicit Inject Subclass</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dyn&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        python -m ibeis --tf dev_autogen_explicit_injects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_explicit_controller</span>
+        <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="n">_autogen_explicit_controller</span><span class="o">.</span><span class="n">ExplicitInjectIBEISController</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="nb">object</span>
+
+
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">__ALL_CONTROLLERS__</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Global variable containing all created controllers</span>
+<span class="n">__IBEIS_CONTROLLER_CACHE__</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="request_IBEISController"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.request_IBEISController">[docs]</a><span class="k">def</span> <span class="nf">request_IBEISController</span><span class="p">(</span>
+        <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">asproxy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Alternative to directory instantiating a new controller object. Might</span>
+<span class="sd">    return a memory cached object</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dbdir     (str): databse directory</span>
+<span class="sd">        ensure    (bool):</span>
+<span class="sd">        wbaddr    (None):</span>
+<span class="sd">        verbose   (bool):</span>
+<span class="sd">        use_cache (bool): use the global ibeis controller cache.</span>
+<span class="sd">            Make sure this is false if calling from a Thread. (default=True)</span>
+<span class="sd">        request_dbversion (str): developer flag. Do not use.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        IBEISController: ibs</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-request_IBEISController</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dbdir = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; wbaddr = None</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = False</span>
+<span class="sd">        &gt;&gt;&gt; ibs = request_IBEISController(dbdir, ensure, wbaddr, verbose,</span>
+<span class="sd">        &gt;&gt;&gt;                               use_cache)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span>
+    <span class="k">if</span> <span class="n">asproxy</span><span class="p">:</span>
+        <span class="c"># Not sure if this is the correct way to do a controller proxy</span>
+        <span class="kn">from</span> <span class="nn">multiprocessing.managers</span> <span class="kn">import</span> <span class="n">BaseManager</span>
+        <span class="k">class</span> <span class="nc">IBEISManager</span><span class="p">(</span><span class="n">BaseManager</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="n">IBEISManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;IBEISController&#39;</span><span class="p">),</span> <span class="n">IBEISController</span><span class="p">)</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">IBEISManager</span><span class="p">()</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">(</span>
+            <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+            <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ibs</span>
+
+    <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">and</span> <span class="n">dbdir</span> <span class="ow">in</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[request_IBEISController] returning cached controller&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">[</span><span class="n">dbdir</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Convert hold hotspotter dirs if necessary</span>
+        <span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
+        <span class="k">if</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">check_unconverted_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
+            <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_hsdb</span><span class="o">.</span><span class="n">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span>
+                                                    <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span>
+                                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISController</span><span class="p">(</span>
+                <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
+        <span class="n">__IBEIS_CONTROLLER_CACHE__</span><span class="p">[</span><span class="n">dbdir</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span>
+    <span class="k">return</span> <span class="n">ibs</span>
+
+</div>
+<span class="nd">@atexit.register</span>
+<span class="k">def</span> <span class="nf">__cleanup</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; prevents flann errors (not for cleaning up individual objects) &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__ALL_CONTROLLERS__</span>
+    <span class="k">global</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">__ALL_CONTROLLERS__</span>
+        <span class="k">del</span> <span class="n">__IBEIS_CONTROLLER_CACHE__</span>
+    <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;cannot cleanup IBEISController&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+
+<span class="c">#-----------------</span>
+<span class="c"># IBEIS CONTROLLER</span>
+<span class="c">#-----------------</span>
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="IBEISController"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController">[docs]</a><span class="k">class</span> <span class="nc">IBEISController</span><span class="p">(</span><span class="n">BASE_CLASS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    IBEISController docstring</span>
+
+<span class="sd">    NameingConventions:</span>
+<span class="sd">        chip  - cropped region of interest in an image, maps to one animal</span>
+<span class="sd">        cid   - chip unique id</span>
+<span class="sd">        gid   - image unique id (could just be the relative file path)</span>
+<span class="sd">        name  - name unique id</span>
+<span class="sd">        eid   - encounter unique id</span>
+<span class="sd">        aid   - region of interest unique id</span>
+<span class="sd">        annot - an annotation i.e. region of interest for a chip</span>
+<span class="sd">        theta - angle of rotation for a chip</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#-------------------------------</span>
+    <span class="c"># --- CONSTRUCTOR / PRIVATES ---</span>
+    <span class="c">#-------------------------------</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">wbaddr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">request_dbversion</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new IBEIS Controller associated with one database &quot;&quot;&quot;</span>
+        <span class="c">#if verbose and ut.VERBOSE:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[ibs.__init__] new IBEISController&#39;</span><span class="p">)</span>
+        <span class="c"># an dict to hack in temporary state</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">const</span> <span class="o">=</span> <span class="n">const</span>
+        <span class="c">#ibs.allow_override = &#39;override+warn&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># observer_weakref_list keeps track of the guibacks connected to this</span>
+        <span class="c"># controller</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># not completely working decorator cache</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_initialize_self</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_dirs</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+        <span class="c"># _send_wildbook_request will do nothing if no wildbook address is</span>
+        <span class="c"># specified</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_send_wildbook_request</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sql</span><span class="p">(</span><span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_config</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.__init__] END new IBEISController</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IBEISController.reset_table_cache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.reset_table_cache">[docs]</a>    <span class="k">def</span> <span class="nf">reset_table_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">accessor_decors</span><span class="o">.</span><span class="n">init_tablecache</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="IBEISController.clear_table_cache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.clear_table_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_table_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] clearing table_cache[</span><span class="si">%r</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_cachestats_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_cachestats_str">[docs]</a>    <span class="k">def</span> <span class="nf">get_cachestats_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns info about the underlying SQL cache memory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_size_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">,</span>
+                                                <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;size(table_cache): &#39;</span><span class="p">)</span>
+        <span class="n">total_size_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">len(table_cache) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">))</span>
+        <span class="n">table_size_str_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;size(table_cache[</span><span class="si">%s</span><span class="s">]): &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">)]</span>
+        <span class="n">cachestats_str</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">total_size_str</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">table_size_str_list</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cachestats_str</span>
+</div>
+<div class="viewcode-block" id="IBEISController.print_cachestats_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.print_cachestats_str">[docs]</a>    <span class="k">def</span> <span class="nf">print_cachestats_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">cachestats_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachestats_str</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;IBEIS Controller Cache Stats:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">cachestats_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cachestats_str</span>
+</div>
+    <span class="k">def</span> <span class="nf">_initialize_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Injects code from plugin modules into the controller</span>
+
+<span class="sd">        Used in utools auto reload.  Called after reload.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] _initialize_self()&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">util_class</span><span class="o">.</span><span class="n">inject_all_external_modules</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">,</span>
+            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;get_database_species&#39;</span><span class="p">),</span> <span class="s">&#39;issue with ibsfuncs&#39;</span>
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;get_annot_pair_timdelta&#39;</span><span class="p">),</span> <span class="p">(</span>
+            <span class="s">&#39;issue with annotmatch_funcs&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">register_controller</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_on_reload</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For utools auto reload (rrr).</span>
+<span class="sd">        Called before reload</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Reloading breaks flask, turn it off</span>
+        <span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_ENABLED</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c"># Only warn on first load. Overrideing while reloading is ok</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">unregister_controller</span><span class="p">()</span>
+        <span class="c"># Reload dependent modules</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">reload_injected_modules</span><span class="p">(</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">CONTROLLER_CLASSNAME</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IBEISController.load_plugin_module"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.load_plugin_module">[docs]</a>    <span class="k">def</span> <span class="nf">load_plugin_module</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">classkey</span><span class="o">=</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span><span class="p">,</span>
+            <span class="n">allow_override</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">allow_override</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c"># We should probably not implement __del__</span>
+    <span class="c"># see: https://docs.python.org/2/reference/datamodel.html#object.__del__</span>
+    <span class="c">#def __del__(ibs):</span>
+    <span class="c">#    ibs.cleanup()</span>
+
+    <span class="c"># ------------</span>
+    <span class="c"># SELF REGISTRATION</span>
+    <span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="IBEISController.register_controller"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.register_controller">[docs]</a>    <span class="k">def</span> <span class="nf">register_controller</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; registers controller with global list &quot;&quot;&quot;</span>
+        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.unregister_controller"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.unregister_controller">[docs]</a>    <span class="k">def</span> <span class="nf">unregister_controller</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">ibs_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">__ALL_CONTROLLERS__</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ibs_weakref</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c"># ------------</span>
+    <span class="c"># OBSERVER REGISTRATION</span>
+    <span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="IBEISController.cleanup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; call on del? &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.cleanup] Observers (if any) notified [controller killed]&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
+            <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify_controller_killed</span><span class="p">()</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.register_observer"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.register_observer">[docs]</a>    <span class="k">def</span> <span class="nf">register_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[register_observer] Observer registered: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">observer_weakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer_weakref</span><span class="p">)</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.remove_observer"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.remove_observer">[docs]</a>    <span class="k">def</span> <span class="nf">remove_observer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[remove_observer] Observer removed: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.notify_observers"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.notify_observers">[docs]</a>    <span class="k">def</span> <span class="nf">notify_observers</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[notify_observers] Observers (if any) notified&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">observer_weakref</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">observer_weakref_list</span><span class="p">:</span>
+            <span class="n">observer_weakref</span><span class="p">()</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+    <span class="c"># ------------</span>
+</div>
+    <span class="k">def</span> <span class="nf">_init_rowid_constants</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="c"># ADD TO CONSTANTS</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;MANUAL_CONFIG&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span><span class="p">)</span>
+        <span class="c"># duct_tape.fix_compname_configs(ibs)</span>
+        <span class="c"># duct_tape.remove_database_slag(ibs)</span>
+        <span class="c"># duct_tape.fix_nulled_yaws(ibs)</span>
+        <span class="n">lbltype_names</span>    <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">lbltype_defaults</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">lbltype_ids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_lbltype</span><span class="p">(</span><span class="n">lbltype_names</span><span class="p">,</span> <span class="n">lbltype_defaults</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lbltype_names</span><span class="p">,</span> <span class="n">lbltype_ids</span><span class="p">))</span>
+
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="k">def</span> <span class="nf">_init_sql</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Load or create sql database &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">duct_tape</span>  <span class="c"># NOQA</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbcore</span><span class="p">(</span><span class="n">request_dbversion</span><span class="o">=</span><span class="n">request_dbversion</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_sqldbcache</span><span class="p">()</span>
+        <span class="c"># ibs.db.dump_schema()</span>
+        <span class="c"># ibs.db.dump()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_init_rowid_constants</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_init_sqldbcore</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">request_dbversion</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_Master0&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_Master0&#39;)</span>
+
+<span class="sd">        Ignore:</span>
+<span class="sd">            aid_list = ibs.get_valid_aids()</span>
+<span class="sd">            #ibs.update_annot_visual_uuids(aid_list)</span>
+<span class="sd">            vuuid_list = ibs.get_annot_visual_uuids(aid_list)</span>
+<span class="sd">            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)</span>
+<span class="sd">            assert aid_list2 == aid_list</span>
+<span class="sd">            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s</span>
+<span class="sd">            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)</span>
+<span class="sd">            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms</span>
+
+<span class="sd">            ibs.print_encounter_table(exclude_columns=[&#39;encounter_uuid&#39;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
+        <span class="c"># Before load, ensure database has been backed up for the day</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nobackup&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
+                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
+                                                          <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span>
+                    <span class="s">&#39;Failed making daily backup. &#39;</span>
+                    <span class="s">&#39;Run with --nobackup to disable&#39;</span><span class="p">))</span>
+                <span class="k">raise</span>
+        <span class="c"># IBEIS SQL State Database</span>
+        <span class="c">#ibs.db_version_expected = &#39;1.1.1&#39;</span>
+        <span class="k">if</span> <span class="n">request_dbversion</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.4.7&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="n">request_dbversion</span>
+        <span class="c"># TODO: add this functionality to SQLController</span>
+        <span class="n">new_version</span><span class="p">,</span> <span class="n">new_fname</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">dev_test_new_schema_version</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span> <span class="n">version_next</span><span class="o">=</span><span class="s">&#39;1.4.7&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
+                                              <span class="n">text_factory</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">,</span>
+                                              <span class="n">inmemory</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="p">)</span>
+        <span class="c"># Ensure correct schema versions</span>
+        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_correct_version</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span>
+            <span class="n">DB_SCHEMA</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c">#print(ibs.sqldbcache_fname)</span>
+        <span class="c">#import sys</span>
+        <span class="c">#sys.exit(1)</span>
+
+    <span class="k">def</span> <span class="nf">_init_sqldbcache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Need to reinit this sometimes if cache is ever deleted &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DBCACHE_SCHEMA</span>
+        <span class="c"># IBEIS SQL Features &amp; Chips database</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.0.4&#39;</span>
+        <span class="c"># Test a new schema if developer</span>
+        <span class="n">new_version</span><span class="p">,</span> <span class="n">new_fname</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">dev_test_new_schema_version</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">sqldbcache_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache_version_expected</span><span class="p">,</span>
+            <span class="n">version_next</span><span class="o">=</span><span class="s">&#39;1.0.4&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">sqldbcache_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
+        <span class="c"># Create cache sql database</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldbcache_fname</span><span class="p">,</span>
+            <span class="n">text_factory</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">)</span>
+        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_correct_version</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache_version_expected</span><span class="p">,</span>
+            <span class="n">DBCACHE_SCHEMA</span><span class="p">,</span>
+            <span class="n">dobackup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>  <span class="c"># Everything in dbcache can be regenerated.</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_close_sqldbcache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="IBEISController.disconnect_sqldatabase"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.disconnect_sqldatabase">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect_sqldatabase</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;disconnecting from sql database&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.clone_handle"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.clone_handle">[docs]</a>    <span class="k">def</span> <span class="nf">clone_handle</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">ibs2</span> <span class="o">=</span> <span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ibs2</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c">#if ibs.qreq is not None:</span>
+        <span class="c">#    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)</span>
+        <span class="k">return</span> <span class="n">ibs2</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.backup_database"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.backup_database">[docs]</a>    <span class="k">def</span> <span class="nf">backup_database</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
+        <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>
+                                     <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="k">def</span> <span class="nf">_send_wildbook_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wbaddr</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">wbaddr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">payload</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">wbaddr</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+        <span class="c"># except requests.MissingSchema:</span>
+        <span class="c">#     print(&#39;[ibs._send_wildbook_request] Invalid URL: %r&#39; % wbaddr)</span>
+        <span class="c">#     return None</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wb_reqst] Could not connect to Wildbook server at </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                  <span class="n">wbaddr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="k">def</span> <span class="nf">_init_dirs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb_1&#39;</span><span class="p">,</span>
+                   <span class="n">workdir</span><span class="o">=</span><span class="s">&#39;~/ibeis_workdir&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define ibs directories</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">PATH_NAMES</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span>
+        <span class="n">REL_PATHS</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">REL_PATHS</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs._init_dirs] ibs.dbdir = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dbdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">workdir</span><span class="p">,</span> <span class="n">dbname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">dbname</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">sqldb</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">sqldbcache_fname</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">sqldbcache</span>
+
+        <span class="c"># Make sure you are not nesting databases</span>
+        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dirsplit</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">),</span> \
+            <span class="s">&#39;cannot work in _ibsdb internals&#39;</span>
+        <span class="k">assert</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span> <span class="o">!=</span> <span class="n">dbname</span><span class="p">,</span>\
+            <span class="s">&#39;cannot create db in _ibsdb internals&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">)</span>
+        <span class="c"># All internal paths live in &lt;dbdir&gt;/_ibsdb</span>
+        <span class="c"># TODO: constantify these</span>
+        <span class="c"># so non controller objects (like in score normalization) have access</span>
+        <span class="c"># to these</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span>      <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">trashdir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">trashdir</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span>      <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">treesdir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">uploadsdir</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
+        <span class="c"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">bigcache</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_directories</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify database directory&#39;</span>
+
+<div class="viewcode-block" id="IBEISController.ensure_directories"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.ensure_directories">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_directories</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes sure the core directores for the controller exist</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span>    <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">,</span>   <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span><span class="p">,</span>      <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span><span class="p">,</span>    <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span><span class="p">,</span>     <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">_verbose</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_smart_patrol_dir</span><span class="p">()</span>
+
+    <span class="c">#--------------</span>
+    <span class="c"># --- DIRS ----</span>
+    <span class="c">#--------------</span>
+</div>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/dbname/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.get_dbname"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_dbname">[docs]</a>    <span class="k">def</span> <span class="nf">get_dbname</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): database name</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/dbname/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_logdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_logdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_logdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_logging_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_dbdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_dbdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_dbdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): database dir with ibs internal directory &quot;&quot;&quot;</span>
+        <span class="c">#return join(ibs.workdir, ibs.dbname)</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_db_core_path"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_db_core_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_core_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            path (str): path of the sqlite3 core database file &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_db_cache_path"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_db_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_cache_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            path (str): path of the sqlite3 cache database file &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbcache</span><span class="o">.</span><span class="n">fpath</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_trashdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_trashdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_trashdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">trashdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_ibsdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_ibsdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_ibsdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_chipdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_chipdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_chipdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">chipdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_probchip_dir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_probchip_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_probchip_dir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;prob_chips&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_fig_dir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_fig_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_fig_dir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="s">&#39;figures&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_imgdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_imgdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_imgdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">imgdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_treesdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_treesdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_treesdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">treesdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_uploadsdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_uploadsdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_uploadsdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">uploadsdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_thumbdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_thumbdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_thumbdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): database directory where thumbnails are cached &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_workdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_workdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_workdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): directory where databases are saved to &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">workdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list_ (list): database directory of all cached files &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_match_thumbdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_match_thumbdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_match_thumbdir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">match_thumb_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;match_thumbs&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">match_thumb_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">match_thumb_dir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_ibeis_resource_dir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_ibeis_resource_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_ibeis_resource_dir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; returns the global resource dir in .config or AppData or whatever &quot;&quot;&quot;</span>
+        <span class="n">resource_dir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">resource_dir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_global_species_scorenorm_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_global_species_scorenorm_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            species_text (str):</span>
+<span class="sd">            ensure       (bool):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: species_cachedir</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; species_text = ibeis.const.Species.ZEB_GREVY</span>
+<span class="sd">            &gt;&gt;&gt; ensure = True</span>
+<span class="sd">            &gt;&gt;&gt; species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)</span>
+<span class="sd">            &gt;&gt;&gt; resourcedir = ibs.get_ibeis_resource_dir()</span>
+<span class="sd">            &gt;&gt;&gt; result = ut.relpath_unix(species_cachedir, resourcedir)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            scorenorm/zebra_grevys</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scorenorm_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">(),</span>
+                                  <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">scorenormdir</span><span class="p">)</span>
+        <span class="n">species_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">scorenorm_cachedir</span><span class="p">,</span> <span class="n">species_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">scorenorm_cachedir</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">species_cachedir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">species_cachedir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_local_species_scorenorm_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_local_species_scorenorm_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_local_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scorenorm_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span>
+                                  <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">scorenormdir</span><span class="p">)</span>
+        <span class="n">species_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">scorenorm_cachedir</span><span class="p">,</span> <span class="n">species_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">scorenorm_cachedir</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">species_cachedir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">species_cachedir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_global_distinctiveness_modeldir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_global_distinctiveness_modeldir">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_distinctiveness_modeldir</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            global_distinctdir (str): ibs internal directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">global_distinctdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_global_distinctiveness_modeldir</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">global_distinctdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_local_distinctiveness_modeldir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_local_distinctiveness_modeldir">[docs]</a>    <span class="k">def</span> <span class="nf">get_local_distinctiveness_modeldir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            distinctdir (str): ibs internal directory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">distinctdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_detect_modeldir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_detect_modeldir">[docs]</a>    <span class="k">def</span> <span class="nf">get_detect_modeldir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">(),</span> <span class="s">&#39;detectmodels&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_detectimg_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_detectimg_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_detectimg_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            detectimgdir (str): database directory of image resized for</span>
+<span class="sd">                detections</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">detectimg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_flann_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_flann_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            flanndir (str): database directory where the FLANN KD-Tree is</span>
+<span class="sd">                stored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">flanndir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_qres_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_qres_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_qres_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            qresdir (str): database directory where query results are stored &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">qresdir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_neighbor_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_neighbor_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_neighbor_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="n">neighbor_cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;neighborcache2&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">neighbor_cachedir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_big_cachedir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_big_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_big_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bigcachedir (str): database directory where aggregate results are</span>
+<span class="sd">                stored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span>
+</div>
+<div class="viewcode-block" id="IBEISController.get_smart_patrol_dir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_smart_patrol_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_smart_patrol_dir</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ensure (bool):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str smart_patrol_dpath</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-get_smart_patrol_dir</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ensure = True</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; smart_patrol_dpath = ibs.get_smart_patrol_dir(ensure)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; ut.assertpath(smart_patrol_dpath, verbose=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">smart_patrol_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">smartpatrol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">smart_patrol_dpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">smart_patrol_dpath</span>
+
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c">#------------------</span>
+    <span class="c"># --- DETECTION ---</span>
+    <span class="c">#------------------</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="nd">@accessor_decors.getter_1to1</span>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/detect_random_forest/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.detect_random_forest"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.detect_random_forest">[docs]</a>    <span class="k">def</span> <span class="nf">detect_random_forest</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs animal detection in each image. Adds annotations to the database</span>
+<span class="sd">        as they are found.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gid_list (list): list of image ids to run detection on</span>
+<span class="sd">            species (str): string text of the species to identify</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="sd">                image</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-detect_random_forest --show</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: PUT</span>
+<span class="sd">            URL:    /api/core/detect_random_forest/</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:2]</span>
+<span class="sd">            &gt;&gt;&gt; species = ibeis.const.Species.ZEB_PLAIN</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; aids_list = ibs.detect_random_forest(gid_list, species)</span>
+<span class="sd">            &gt;&gt;&gt; # Visualize results</span>
+<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">            &gt;&gt;&gt;     import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt;     from ibeis.viz import viz_image</span>
+<span class="sd">            &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="sd">            &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="sd">            &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">            &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="sd">            &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># TODO: Return confidence here as well</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] detecting using random forests&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>  <span class="c"># NOQA</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid_list</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;TYPE:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;GID_LIST:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+        <span class="n">detect_gen</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gid_list_with_species</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c"># ibs.cfg.other_cfg.ensure_attr(&#39;detect_add_after&#39;, 1)</span>
+        <span class="c"># ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;TYPE:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">detect_gen</span><span class="p">)))</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">detect_gen</span><span class="p">):</span>
+            <span class="n">aids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+                <span class="c"># Ideally, species will come from the detector with confidences</span>
+                <span class="c"># that actually mean something</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;ytl&#39;</span><span class="p">],</span>
+                        <span class="n">result</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;height&#39;</span><span class="p">])</span>
+                <span class="p">(</span><span class="n">aid</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">gid</span><span class="p">],</span> <span class="p">[</span><span class="n">bbox</span><span class="p">],</span> <span class="n">notes_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;rfdetect&#39;</span><span class="p">],</span>
+                    <span class="n">species_list</span><span class="o">=</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">detect_confidence_list</span><span class="o">=</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;confidence&#39;</span><span class="p">]])</span>
+                <span class="n">aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aids_list</span>
+
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c">#-----------------------------</span>
+    <span class="c"># --- ENCOUNTER CLUSTERING ---</span>
+    <span class="c">#-----------------------------</span>
+</div>
+    <span class="k">def</span> <span class="nf">_parse_smart_xml</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c"># Storage for the patrol encounters</span>
+        <span class="n">xml_dir</span><span class="p">,</span> <span class="n">xml_name</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
+        <span class="n">encounter_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">last_photo_number</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">last_encounter_info</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c"># Parse the XML file for the information</span>
+        <span class="n">patrol_tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="s">&#39;{http://www.smartconservationsoftware.org/xml/1.1/patrol}&#39;</span>
+        <span class="c"># Load all waypoint elements</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="s">&#39;.//</span><span class="si">%s</span><span class="s">waypoints&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">waypoint_list</span> <span class="o">=</span> <span class="n">patrol_tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">waypoint_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># raise IOError(&#39;There are no observations (waypoints) in this</span>
+            <span class="c"># Patrol XML file: %r&#39; % (xml_path, ))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are no observations (waypoints) in this Patrol XML file: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">for</span> <span class="n">waypoint</span> <span class="ow">in</span> <span class="n">waypoint_list</span><span class="p">:</span>
+            <span class="c"># Get the relevant information about the waypoint</span>
+            <span class="n">waypoint_id</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">waypoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">))</span>
+            <span class="n">waypoint_lat</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">waypoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">))</span>
+            <span class="n">waypoint_lon</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">waypoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">))</span>
+            <span class="n">waypoint_time</span> <span class="o">=</span> <span class="n">waypoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">waypoint_info</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">xml_name</span><span class="p">,</span>
+                <span class="n">waypoint_id</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">waypoint_lat</span><span class="p">,</span> <span class="n">waypoint_lon</span><span class="p">),</span>
+                <span class="n">waypoint_time</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="bp">None</span> <span class="ow">in</span> <span class="n">waypoint_info</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                    <span class="s">&#39;The observation (waypoint) is missing information: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">waypoint_info</span><span class="p">,</span> <span class="p">))</span>
+            <span class="c"># Get all of the waypoint&#39;s observations (we expect only one</span>
+            <span class="c"># normally)</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="s">&#39;.//</span><span class="si">%s</span><span class="s">observations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">observation_list</span> <span class="o">=</span> <span class="n">waypoint</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="c"># if len(observation_list) == 0:</span>
+            <span class="c">#     raise IOError(&#39;There are no observations in this waypoint,</span>
+            <span class="c">#     waypoint_id: %r&#39; % (waypoint_id, ))</span>
+            <span class="k">for</span> <span class="n">observation</span> <span class="ow">in</span> <span class="n">observation_list</span><span class="p">:</span>
+                <span class="c"># Filter the observations based on type, we only care</span>
+                <span class="c"># about certain types</span>
+                <span class="n">categoryKey</span> <span class="o">=</span> <span class="n">observation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;categoryKey&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">categoryKey</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;animals.liveanimals&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                      <span class="n">categoryKey</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;animals.problemanimal&#39;</span><span class="p">)):</span>
+                    <span class="c"># Get the photonumber attribute for the waypoint&#39;s</span>
+                    <span class="c"># observation</span>
+                    <span class="n">element</span> <span class="o">=</span> <span class="s">&#39;.//</span><span class="si">%s</span><span class="s">attributes[@attributeKey=&quot;photonumber&quot;]&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">namespace</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">photonumber</span> <span class="o">=</span> <span class="n">observation</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">photonumber</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">element</span> <span class="o">=</span> <span class="s">&#39;.//</span><span class="si">%s</span><span class="s">sValue&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="c"># Get the value for photonumber</span>
+                        <span class="n">sValue</span>  <span class="o">=</span> <span class="n">photonumber</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">sValue</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                                <span class="p">(</span><span class="s">&#39;The photonumber sValue is missing from &#39;</span>
+                                 <span class="s">&#39;photonumber, waypoint_id: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+                                <span class="p">(</span><span class="n">waypoint_id</span><span class="p">,</span> <span class="p">))</span>
+                        <span class="c"># Python cast the value</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">photo_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">sValue</span><span class="o">.</span><span class="n">text</span><span class="p">))</span> <span class="o">-</span> <span class="n">offset</span>
+                        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                            <span class="c"># raise IOError(&#39;The photonumber sValue is invalid,</span>
+                            <span class="c"># waypoint_id: %r&#39; % (waypoint_id, ))</span>
+                            <span class="k">print</span><span class="p">((</span><span class="s">&#39;[ibs]     &#39;</span>
+                                   <span class="s">&#39;Skipped Invalid Observation with &#39;</span>
+                                   <span class="s">&#39;photonumber: </span><span class="si">%r</span><span class="s">, waypoint_id: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span>
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">sValue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,</span> <span class="p">))</span>
+                            <span class="k">continue</span>
+                        <span class="c"># Check that the photo_number is within the acceptable bounds</span>
+                        <span class="k">if</span> <span class="n">photo_number</span> <span class="o">&gt;=</span> <span class="n">nTotal</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                                <span class="s">&#39;The Patrol XML file is looking for images &#39;</span>
+                                <span class="s">&#39;that do not exist (too few images given)&#39;</span><span class="p">)</span>
+                        <span class="c"># Keep track of the last waypoint that was processed</span>
+                        <span class="c"># becuase we only have photono, which indicates start</span>
+                        <span class="c"># indices and doesn&#39;t specify the end index.  The</span>
+                        <span class="c"># ending index is extracted as the next waypoint&#39;s</span>
+                        <span class="c"># photonum minus 1.</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">last_photo_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span>
+                             <span class="n">last_encounter_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+                            <span class="n">encounter_info</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">last_encounter_info</span> <span class="o">+</span> <span class="p">[(</span><span class="n">last_photo_number</span><span class="p">,</span>
+                                                        <span class="n">photo_number</span><span class="p">)])</span>
+                            <span class="n">encounter_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encounter_info</span><span class="p">)</span>
+                        <span class="n">last_photo_number</span> <span class="o">=</span> <span class="n">photo_number</span>
+                        <span class="n">last_encounter_info</span> <span class="o">=</span> <span class="n">waypoint_info</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c"># raise IOError(&#39;The photonumber value is missing from</span>
+                        <span class="c"># waypoint, waypoint_id: %r&#39; % (waypoint_id, ))</span>
+                        <span class="k">print</span><span class="p">((</span><span class="s">&#39;[ibs]     Skipped Empty Observation with&#39;</span>
+                               <span class="s">&#39;&quot;categoryKey&quot;: </span><span class="si">%r</span><span class="s">, waypoint_id: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+                              <span class="p">(</span><span class="n">categoryKey</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,</span> <span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[ibs]     &#39;</span>
+                           <span class="s">&#39;Skipped Incompatible Observation with &#39;</span>
+                           <span class="s">&#39;&quot;categoryKey&quot;: </span><span class="si">%r</span><span class="s">, waypoint_id: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="n">categoryKey</span><span class="p">,</span> <span class="n">waypoint_id</span><span class="p">,</span> <span class="p">))</span>
+        <span class="c"># Append the last photo_number</span>
+        <span class="k">if</span> <span class="n">last_photo_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">last_encounter_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">encounter_info</span> <span class="o">=</span> <span class="n">last_encounter_info</span> <span class="o">+</span> <span class="p">[(</span><span class="n">last_photo_number</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">)]</span>
+            <span class="n">encounter_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encounter_info</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">encounter_info_list</span>
+
+    <span class="c">#@ut.indent_func(&#39;[ibs.compute_encounters]&#39;)</span>
+<div class="viewcode-block" id="IBEISController.compute_encounters_smart"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.compute_encounters_smart">[docs]</a>    <span class="k">def</span> <span class="nf">compute_encounters_smart</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">smart_xml_fpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to load and process a SMART patrol XML file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Get file and copy to ibeis database folder</span>
+        <span class="n">xml_dir</span><span class="p">,</span> <span class="n">xml_name</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">smart_xml_fpath</span><span class="p">)</span>
+        <span class="n">dst_xml_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_smart_patrol_dir</span><span class="p">(),</span> <span class="n">xml_name</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">smart_xml_fpath</span><span class="p">,</span> <span class="n">dst_xml_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c"># Process the XML File</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Processing Patrol XML file: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dst_xml_path</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">encounter_info_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_parse_smart_xml</span><span class="p">(</span><span class="n">dst_xml_path</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">((</span><span class="s">&#39;[ibs] ERROR: Parsing Patrol XML file failed, &#39;</span>
+                   <span class="s">&#39;rolling back by deleting </span><span class="si">%d</span><span class="s"> images...&#39;</span><span class="p">)</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">)))</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Sanity check</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">encounter_info_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+                <span class="p">(</span><span class="s">&#39;Trying to added </span><span class="si">%d</span><span class="s"> images, but the Patrol  &#39;</span>
+                 <span class="s">&#39;XML file has no observations&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">))</span>
+        <span class="c"># Display the patrol encounters</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">encounter_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">encounter_info_list</span><span class="p">):</span>
+            <span class="n">smart_xml_fname</span><span class="p">,</span> <span class="n">smart_waypoint_id</span><span class="p">,</span> <span class="n">gps</span><span class="p">,</span> <span class="n">local_time</span><span class="p">,</span> <span class="n">range_</span> <span class="o">=</span> <span class="n">encounter_info</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">range_</span>
+            <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs]     Found Patrol Encounter: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">encounter_info</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs]         GIDs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs]         SKIPPING EMPTY ENCOUNTER&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c"># Add the GPS data to the iamges</span>
+            <span class="n">gps_list</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">gps</span> <span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">gps_list</span><span class="p">)</span>
+            <span class="c"># Create a new encounter</span>
+            <span class="n">enctext</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> Waypoint </span><span class="si">%03d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xml_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.xml&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_encounters</span><span class="p">(</span><span class="n">enctext</span><span class="p">)</span>
+            <span class="c"># Add images to the encounters</span>
+            <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+            <span class="c"># Set the encounter&#39;s smart fields</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_smart_xml_fnames</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="n">smart_xml_fname</span><span class="p">])</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_smart_waypoint_ids</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="n">smart_waypoint_id</span><span class="p">])</span>
+            <span class="c"># Set the encounter&#39;s time based on the images</span>
+            <span class="n">unixtime_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">unixtime_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">unixtime_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_start_time_posix</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="n">start_time</span><span class="p">])</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_end_time_posix</span><span class="p">([</span><span class="n">eid</span><span class="p">],</span> <span class="p">[</span><span class="n">end_time</span><span class="p">])</span>
+        <span class="c"># Complete</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] ...Done processing Patrol XML file&#39;</span><span class="p">)</span>
+
+    <span class="c">#@ut.indent_func(&#39;[ibs.compute_encounters]&#39;)</span></div>
+<div class="viewcode-block" id="IBEISController.compute_encounters"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.compute_encounters">[docs]</a>    <span class="k">def</span> <span class="nf">compute_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clusters ungrouped images into encounters</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-compute_encounters</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; # Now we want to remove some images from a non-special encounter</span>
+<span class="sd">            &gt;&gt;&gt; nonspecial_eids = [i for i in ibs.get_valid_eids() if i not in ibs.get_special_eids()]</span>
+<span class="sd">            &gt;&gt;&gt; images_to_remove = ibs.get_encounter_gids(nonspecial_eids[0:1])[0][0:1]</span>
+<span class="sd">            &gt;&gt;&gt; ibs.unrelate_images_and_encounters(images_to_remove,nonspecial_eids[0:1] * len(images_to_remove))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)</span>
+<span class="sd">            &gt;&gt;&gt; ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]</span>
+<span class="sd">            &gt;&gt;&gt; #Now let&#39;s make sure that when we recompute encounters, our non-special eid remains the same</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;PRE COMPUTE: Encounters are %r&#39; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;Containing: %r&#39; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;COMPUTE: New encounters are %r&#39; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;Containing: %r&#39; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; ibs.update_special_encounters()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;UPDATE SPECIAL: New encounters are %r&#39; % ibs.get_valid_eids())</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;Containing: %r&#39; % ibs.get_encounter_gids(ibs.get_valid_eids()))</span>
+<span class="sd">            &gt;&gt;&gt; assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_encounter</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Computing and adding encounters.&#39;</span><span class="p">)</span>
+        <span class="c">#gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)</span>
+        <span class="c"># only cluster ungrouped images</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ungrouped_gids</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;computing encounters&#39;</span><span class="p">):</span>
+            <span class="n">flat_eids</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">preproc_encounter</span><span class="o">.</span><span class="n">ibeis_compute_encounters</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">valid_eids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+        <span class="n">eid_offset</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_eids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">valid_eids</span><span class="p">)</span>
+        <span class="c"># This way we can make sure that manually separated encounters</span>
+        <span class="n">flat_eids_offset</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span> <span class="o">+</span> <span class="n">eid_offset</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">flat_eids</span><span class="p">]</span>
+        <span class="c"># remain untouched, and ensure that new encounters are created</span>
+        <span class="n">enctext_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Encounter &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">flat_eids_offset</span><span class="p">]</span>
+        <span class="c">#print(&#39;enctext_list: %r; flat_gids: %r&#39; % (enctext_list, flat_gids))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Finished computing, about to add encounter.&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_enctext</span><span class="p">(</span><span class="n">flat_gids</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">)</span>
+        <span class="c"># HACK TO UPDATE ENCOUNTER POSIX TIMES</span>
+        <span class="c"># CAREFUL THIS BLOWS AWAY SMART DATA</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">update_encounter_info</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] Finished computing and adding encounters.&#39;</span><span class="p">)</span>
+
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c">#-----------------------</span>
+    <span class="c"># --- IDENTIFICATION ---</span>
+    <span class="c">#-----------------------</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/get_current_log_text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.get_current_log_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_current_log_text">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_log_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import time</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; import requests</span>
+<span class="sd">            &gt;&gt;&gt; # Start up the web instance</span>
+<span class="sd">            &gt;&gt;&gt; web_instance = ibeis.opendb_in_background(db=&#39;testdb1&#39;, web=True, browser=False)</span>
+<span class="sd">            &gt;&gt;&gt; time.sleep(.5)</span>
+<span class="sd">            &gt;&gt;&gt; baseurl = &#39;http://127.0.1.1:5000&#39;</span>
+<span class="sd">            &gt;&gt;&gt; resp = requests.get(baseurl + &#39;/api/core/get_current_log_text/&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; print(resp)</span>
+<span class="sd">            &gt;&gt;&gt; web_instance.terminate()</span>
+<span class="sd">            &gt;&gt;&gt; json_dict = resp.json()</span>
+<span class="sd">            &gt;&gt;&gt; text = json_dict[&#39;response&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; print(text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_log_text</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">text</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/recognition_query_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.get_recognition_query_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_recognition_query_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_recognition_query_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">is_known</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        DEPCIRATE</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/recognition_query_aids/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="n">is_known</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">qaid_list</span>
+</div>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/query_chips_simple_dict/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.query_chips_simple_dict"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_chips_simple_dict">[docs]</a>    <span class="k">def</span> <span class="nf">query_chips_simple_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Runs query_chips, but returns a json compatible dictionary</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            same as query_chips</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/query_chips_simple_dict/</span>
+
+<span class="sd">        SeeAlso:</span>
+<span class="sd">            query_chips</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1</span>
+
+<span class="sd">            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0 --humpbacks</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; #qaid = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">            &gt;&gt;&gt; qaids = ibs.get_valid_aids()</span>
+<span class="sd">            &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
+<span class="sd">            &gt;&gt;&gt; dict_list = ibs.query_chips_simple_dict(qaids, daids, return_cm=True)</span>
+<span class="sd">            &gt;&gt;&gt; qgids = ibs.get_annot_image_rowids(qaids)</span>
+<span class="sd">            &gt;&gt;&gt; qnids = ibs.get_annot_name_rowids(qaids)</span>
+<span class="sd">            &gt;&gt;&gt; for dict_, qgid, qnid in zip(dict_list, qgids, qnids):</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;qgid&#39;] = qgid</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;qnid&#39;] = qnid</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;dgid_list&#39;] = ibs.get_annot_image_rowids(dict_[&#39;daid_list&#39;])</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;dnid_list&#39;] = ibs.get_annot_name_rowids(dict_[&#39;daid_list&#39;])</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;dgname_list&#39;] = ibs.get_image_gnames(dict_[&#39;dgid_list&#39;])</span>
+<span class="sd">            &gt;&gt;&gt;     dict_[&#39;qgname&#39;] = ibs.get_image_gnames(dict_[&#39;qgid&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)</span>
+<span class="sd">            &gt;&gt;&gt; result = result.replace(&#39;u\&#39;&#39;, &#39;&quot;&#39;).replace(&#39;\&#39;&#39;, &#39;&quot;&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import time</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; import requests</span>
+<span class="sd">            &gt;&gt;&gt; # Start up the web instance</span>
+<span class="sd">            &gt;&gt;&gt; web_instance = ibeis.opendb_in_background(db=&#39;testdb1&#39;, web=True, browser=False)</span>
+<span class="sd">            &gt;&gt;&gt; time.sleep(.5)</span>
+<span class="sd">            &gt;&gt;&gt; baseurl = &#39;http://127.0.1.1:5000&#39;</span>
+<span class="sd">            &gt;&gt;&gt; data = dict(qaid_list=[1])</span>
+<span class="sd">            &gt;&gt;&gt; resp = requests.get(baseurl + &#39;/api/core/query_chips_simple_dict/&#39;, data=data)</span>
+<span class="sd">            &gt;&gt;&gt; print(resp)</span>
+<span class="sd">            &gt;&gt;&gt; web_instance.terminate()</span>
+<span class="sd">            &gt;&gt;&gt; json_dict = resp.json()</span>
+<span class="sd">            &gt;&gt;&gt; cmdict_list = json_dict[&#39;response&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; assert &#39;score_list&#39; in cmdict_list[0]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;return_cm_simple_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/query_chips_dict/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.query_chips_dict"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_chips_dict">[docs]</a>    <span class="k">def</span> <span class="nf">query_chips_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs query_chips, but returns a json compatible dictionary</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/query_chips_dict/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;return_cm_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/query_chips/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.query_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.query_chips">[docs]</a>    <span class="k">def</span> <span class="nf">query_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span>
+                    <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">prog_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">return_cm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">return_cm_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">return_cm_simple_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Submits a query request to the hotspotter recognition pipeline. Returns</span>
+<span class="sd">        a list of QueryResult objects.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            In the future the QueryResult objects will be replaced by ChipMatch</span>
+<span class="sd">            objects</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qaid_list (list): a list of annotation ids to be submitted as</span>
+<span class="sd">                queries</span>
+<span class="sd">            daid_list (list): a list of annotation ids used as the database</span>
+<span class="sd">                that will be searched</span>
+<span class="sd">            cfgdict (dict): dictionary of configuration options used to create</span>
+<span class="sd">                a new QueryRequest if not already specified</span>
+<span class="sd">            use_cache (bool): turns on/off chip match cache (default: True)</span>
+<span class="sd">            use_bigcache (bool): turns one/off chunked chip match cache (default: True)</span>
+<span class="sd">            qreq_ (QueryRequest): optional, a QueryRequest object that</span>
+<span class="sd">                overrides all previous settings</span>
+<span class="sd">            return_request (bool): returns the request which will be created if</span>
+<span class="sd">                one is not already specified</span>
+<span class="sd">            verbose (bool): default=False, turns on verbose printing</span>
+<span class="sd">            return_cm (bool): default=True, if true converts QueryResult</span>
+<span class="sd">                objects into serializable ChipMatch2 objects (in the future</span>
+<span class="sd">                this will be defaulted to True)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: a list of ChipMatch2 objects containing the matching</span>
+<span class="sd">                annotations, scores, and feature matches</span>
+
+<span class="sd">        Returns(2):</span>
+<span class="sd">            tuple: (cm_list, qreq_) - a list of query results and optionally the QueryRequest object used</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-query_chips</span>
+
+<span class="sd">            # Test speed of single query</span>
+<span class="sd">            python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \</span>
+<span class="sd">                -a default:qindex=0:1,dindex=0:500 --nocache-hs</span>
+
+<span class="sd">            python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \</span>
+<span class="sd">                -a default:qindex=0:1,dindex=0:3000 --nocache-hs</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: PUT</span>
+<span class="sd">            URL:    /api/core/query_chips/</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_()</span>
+<span class="sd">            &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">            &gt;&gt;&gt; cm_list = ibs.query_chips(qreq_=qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">return_cm</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">return_cm</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># The qaid and daid objects are allowed to be None if qreq_ is</span>
+        <span class="c"># specified</span>
+        <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+        <span class="n">qaid_list</span><span class="p">,</span> <span class="n">was_scalar</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_iterable</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+
+        <span class="c"># Wrapped call to the main entrypoint in the API to the hotspotter</span>
+        <span class="c"># pipeline</span>
+        <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+            <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">use_bigcache</span><span class="o">=</span><span class="n">use_bigcache</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+            <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span>
+            <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
+
+        <span class="c"># Return a list of query results instead of that awful dictionary</span>
+        <span class="c"># that will be depricated in future version of hotspotter.</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_cm</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">return_cm</span> <span class="ow">or</span> <span class="n">return_cm_dict</span> <span class="ow">or</span> <span class="n">return_cm_simple_dict</span><span class="p">:</span>
+            <span class="c"># Convert to cm_list</span>
+            <span class="k">if</span> <span class="n">return_cm_simple_dict</span><span class="p">:</span>
+                <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">as_simple_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">return_cm_dict</span><span class="p">:</span>
+                <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list</span>
+        <span class="c">#else:</span>
+        <span class="c">#    cm_list = [</span>
+        <span class="c">#        cm.as_qres2(qreq_)</span>
+        <span class="c">#        for cm in cm_list</span>
+        <span class="c">#    ]</span>
+
+        <span class="k">if</span> <span class="n">was_scalar</span><span class="p">:</span>
+            <span class="c"># hack for scalar input</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cm_list</span>
+</div>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/query_chips4/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">_query_chips4</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                      <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span>
+                      <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">prog_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        submits a query request</span>
+<span class="sd">        main entrypoint in the IBIES API to the hotspotter pipeline</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.IBEISControl --test-_query_chips4 --show</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: PUT</span>
+<span class="sd">            URL:    /api/core/query_chips4/</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; #from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">            &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.test_main(db=&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaid_list, daid_list)</span>
+<span class="sd">            &gt;&gt;&gt; cm = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+        <span class="c"># Check fo empty queries</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no database chips&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are no query chips&#39;</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Impossible query request&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">,</span> <span class="s">&#39;daid_list&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qaid_list</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Check for consistency</span>
+            <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">(),</span> <span class="n">qaid_list</span><span class="p">,</span>
+                    <span class="s">&#39;qaids do not agree with qreq_&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">(),</span> <span class="n">daid_list</span><span class="p">,</span>
+                    <span class="s">&#39;daids do not agree with qreq_&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                                              <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="c"># Send query to hotspotter (runs the query)</span>
+            <span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="p">,</span>  <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="p">,</span>
+                <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qaid2_cm</span><span class="p">,</span> <span class="n">qreq_</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qaid2_cm</span>
+
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/has_species_detector/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.has_species_detector"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.has_species_detector">[docs]</a>    <span class="k">def</span> <span class="nf">has_species_detector</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO: extend to use non-constant species</span>
+
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/has_species_detector/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># FIXME: infer this</span>
+        <span class="k">return</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+    <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/species_with_detectors/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="IBEISController.get_species_with_detectors"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_species_with_detectors">[docs]</a>    <span class="k">def</span> <span class="nf">get_species_with_detectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        RESTful:</span>
+<span class="sd">            Method: GET</span>
+<span class="sd">            URL:    /api/core/species_with_detectors/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># FIXME: infer this</span>
+        <span class="k">return</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span>
+</div>
+    <span class="nd">@accessor_decors.default_decorator</span>
+<div class="viewcode-block" id="IBEISController.get_database_icon"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_database_icon">[docs]</a>    <span class="k">def</span> <span class="nf">get_database_icon</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">max_dsize</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">192</span><span class="p">)):</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE_MASAI</span><span class="p">:</span> <span class="s">&#39;http://i.imgur.com/tGDVaKC.png&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">:</span> <span class="s">&#39;http://i.imgur.com/2Ge1PRg.png&#39;</span><span class="p">,</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">:</span> <span class="s">&#39;http://i.imgur.com/PaUT45f.png&#39;</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="c">#icon = vt.imread(ut.grab_test_imgpath(&#39;star.png&#39;))</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_to_maxdims</span><span class="p">(</span><span class="n">icon</span><span class="p">,</span> <span class="n">max_dsize</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">icon</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Issue when running on windows:</span>
+<span class="sd">    python ibeis/control/IBEISControl.py</span>
+<span class="sd">    python -m ibeis.control.IBEISControl --verbose --very-verbose --veryverbose --nodyn --quietclass</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.IBEISControl</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --allexamples</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from ibeis.control import IBEISControl</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

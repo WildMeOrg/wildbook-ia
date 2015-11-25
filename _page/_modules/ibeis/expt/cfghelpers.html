@@ -1,0 +1,753 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.cfghelpers &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.cfghelpers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.cfghelpers</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helper module that helps expand parameters for grid search</span>
+
+<span class="sd">TODO: move to utool?</span>
+
+<span class="sd">It turns out a lot of the commandlines made possible here can be generatd by</span>
+<span class="sd">using bash brace expansion.</span>
+<span class="sd">http://www.linuxjournal.com/content/bash-brace-expansion</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfghelpers]&#39;</span><span class="p">)</span>
+
+
+<span class="n">INTERNAL_CFGKEYS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">,</span> <span class="s">&#39;_cfgname&#39;</span><span class="p">,</span> <span class="s">&#39;_cfgtype&#39;</span><span class="p">,</span> <span class="s">&#39;_cfgindex&#39;</span><span class="p">]</span>
+
+<span class="c">#NAMEVARSEP = &#39;^&#39;</span>
+<span class="n">NAMEVARSEP</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span>
+
+
+<div class="viewcode-block" id="remove_prefix_hack"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.remove_prefix_hack">[docs]</a><span class="k">def</span> <span class="nf">remove_prefix_hack</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">cfg_options</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cfgtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">cfgtype</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">,</span> <span class="s">&#39;dcfg&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c"># check if key is nonstandard</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">):</span>
+                <span class="c"># does removing prefix make it stanard?</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="n">cfgtype</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+                    <span class="n">key_</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">):]</span>
+                    <span class="k">if</span> <span class="n">key_</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key_</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">:</span>
+                        <span class="c"># remove prefix</span>
+                        <span class="n">cfg_options</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">,</span> <span class="p">(</span>
+                        <span class="s">&#39;key=</span><span class="si">%r</span><span class="s">, key[1:] =</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">))</span>
+                <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Parse Error Customize Cfg Base &#39;</span><span class="p">,</span>
+                               <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="s">&#39;alias_keys&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;cfgstr_options&#39;</span><span class="p">,</span> <span class="s">&#39;cfgtype&#39;</span><span class="p">])</span>
+                    <span class="k">raise</span>
+                <span class="k">del</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="get_varied_cfg_lbls"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.get_varied_cfg_lbls">[docs]</a><span class="k">def</span> <span class="nf">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">default_cfg</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mainkey</span><span class="o">=</span><span class="s">&#39;_cfgname&#39;</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cfg_list (list):</span>
+<span class="sd">        default_cfg (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cfglbl_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-get_varied_cfg_lbls</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list = [{&#39;_cfgname&#39;: &#39;test&#39;, &#39;f&#39;: 1, &#39;b&#39;: 1},</span>
+<span class="sd">        &gt;&gt;&gt;             {&#39;_cfgname&#39;: &#39;test&#39;, &#39;f&#39;: 2, &#39;b&#39;: 1},</span>
+<span class="sd">        &gt;&gt;&gt;             {&#39;_cfgname&#39;: &#39;test&#39;, &#39;f&#39;: 3, &#39;b&#39;: 1, &#39;z&#39;: 4}]</span>
+<span class="sd">        &gt;&gt;&gt; default_cfg = None</span>
+<span class="sd">        &gt;&gt;&gt; cfglbl_list = get_varied_cfg_lbls(cfg_list, default_cfg)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfglbl_list = %s&#39; % (str(cfglbl_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        cfglbl_list = [&#39;test:f=1&#39;, &#39;test:f=2&#39;, &#39;test:f=3,z=4&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfgname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg</span><span class="p">[</span><span class="n">mainkey</span><span class="p">]</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">]</span>
+    <span class="n">nonvaried_cfg</span><span class="p">,</span> <span class="n">varied_cfg_list</span> <span class="o">=</span> <span class="n">partition_varied_cfg_list</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">default_cfg</span><span class="p">)</span>
+    <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varied_cfg_list</span><span class="p">,</span> <span class="n">cfgname_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">cfglbl_list</span>
+
+</div>
+<div class="viewcode-block" id="partition_varied_cfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.partition_varied_cfg_list">[docs]</a><span class="k">def</span> <span class="nf">partition_varied_cfg_list</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">default_cfg</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    TODO: partition nested configs</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-partition_varied_cfg_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list = [{&#39;f&#39;: 1, &#39;b&#39;: 1}, {&#39;f&#39;: 2, &#39;b&#39;: 1}, {&#39;f&#39;: 3, &#39;b&#39;: 1, &#39;z&#39;: 4}]</span>
+<span class="sd">        &gt;&gt;&gt; nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=[&#39;nonvaried_cfg&#39;, &#39;varied_cfg_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        nonvaried_cfg = {&#39;b&#39;: 1}</span>
+<span class="sd">        varied_cfg_list = [{&#39;f&#39;: 1}, {&#39;f&#39;: 2}, {&#39;f&#39;: 3, &#39;z&#39;: 4}]</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list = [{&#39;q1&#39;: 1, &#39;f1&#39;: {&#39;a2&#39;: {&#39;x3&#39;: 1, &#39;y3&#39;: 2}, &#39;b2&#39;: 1}}, {&#39;q1&#39;: 1, &#39;f1&#39;: {&#39;a2&#39;: {&#39;x3&#39;: 1, &#39;y3&#39;:1}, &#39;b2&#39;: 1}, &#39;e1&#39;: 1}]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.list_str(cfg_list, nl=True))</span>
+<span class="sd">        &gt;&gt;&gt; nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=[&#39;nonvaried_cfg&#39;, &#39;varied_cfg_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        nonvaried_cfg = {&#39;f1&#39;: {&#39;a2&#39;: {&#39;x3&#39;: 1}, &#39;b2&#39;: 1}, &#39;q1&#39;: 1}</span>
+<span class="sd">        varied_cfg_list = [{&#39;f1&#39;: {&#39;a2&#39;: {&#39;y3&#39;: 2}}}, {&#39;e1&#39;: 1, &#39;f1&#39;: {&#39;a2&#39;: {&#39;y3&#39;: 1}}}]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">default_cfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">nonvaried_cfg</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_intersection</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nonvaried_cfg</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_intersection</span><span class="p">,</span> <span class="p">[</span><span class="n">default_cfg</span><span class="p">]</span> <span class="o">+</span> <span class="n">cfg_list</span><span class="p">)</span>
+    <span class="n">nonvaried_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nonvaried_cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">varied_cfg_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">nonvaried_keys</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="c"># Find which varied keys have dict values</span>
+        <span class="n">varied_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">key</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">varied_cfg_list</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">]))</span>
+        <span class="n">varied_vals_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">varied_cfg_list</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">varied_keys</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">varied_vals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varied_keys</span><span class="p">,</span> <span class="n">varied_vals_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">varied_vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">varied_vals</span><span class="p">]):</span>
+                    <span class="n">nonvaried_subdict</span><span class="p">,</span> <span class="n">varied_subdicts</span> <span class="o">=</span> <span class="n">partition_varied_cfg_list</span><span class="p">(</span><span class="n">varied_vals</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">)</span>
+                    <span class="n">nonvaried_cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonvaried_subdict</span>
+                    <span class="k">for</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">subdict</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varied_cfg_list</span><span class="p">,</span> <span class="n">varied_subdicts</span><span class="p">):</span>
+                        <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">subdict</span>
+    <span class="k">return</span> <span class="n">nonvaried_cfg</span><span class="p">,</span> <span class="n">varied_cfg_list</span>
+
+</div>
+<div class="viewcode-block" id="get_cfg_lbl"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.get_cfg_lbl">[docs]</a><span class="k">def</span> <span class="nf">get_cfg_lbl</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nonlbl_keys</span><span class="o">=</span><span class="n">INTERNAL_CFGKEYS</span><span class="p">,</span> <span class="n">key_order</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Formats a flat configuration dict into a short string label</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cfg (dict):</span>
+<span class="sd">        name (str): (default = None)</span>
+<span class="sd">        nonlbl_keys (list): (default = INTERNAL_CFGKEYS)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: cfg_lbl</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-get_cfg_lbl</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = {&#39;_cfgname&#39;: &#39;test&#39;, &#39;var1&#39;: &#39;val1&#39;, &#39;var2&#39;: &#39;val2&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; name = None</span>
+<span class="sd">        &gt;&gt;&gt; nonlbl_keys = [&#39;_cfgstr&#39;, &#39;_cfgname&#39;, &#39;_cfgtype&#39;, &#39;_cfgindex&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfg_lbl = %s&#39; % (str(cfg_lbl),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        cfg_lbl = test:var1=val1,var2=val2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = {&#39;_cfgname&#39;: &#39;test:K=[1,2,3]&#39;, &#39;K&#39;: &#39;1&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; name = None</span>
+<span class="sd">        &gt;&gt;&gt; nonlbl_keys = [&#39;_cfgstr&#39;, &#39;_cfgname&#39;, &#39;_cfgtype&#39;, &#39;_cfgindex&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; cfg_lbl = get_cfg_lbl(cfg, name, nonlbl_keys)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfg_lbl = %s&#39; % (str(cfg_lbl),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        cfg_lbl = test:K=1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;_cfgname&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">_search</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dict(&#39;</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">]</span>
+    <span class="n">_repl</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">_search</span><span class="p">)</span>
+
+    <span class="c"># remove keys that should not belong to the label</span>
+    <span class="n">_clean_cfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">nonlbl_keys</span><span class="p">)</span>
+    <span class="n">_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_clean_cfg</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">key_order</span><span class="o">=</span><span class="n">key_order</span><span class="p">)</span>
+    <span class="n">_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">multi_replace</span><span class="p">(</span><span class="n">_lbl</span><span class="p">,</span> <span class="n">_search</span><span class="p">,</span> <span class="n">_repl</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">NAMEVARSEP</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="c"># hack for when name contains a little bit of the _lbl</span>
+        <span class="c"># VERY HACKY TO PARSE OUT PARTS OF THE GIVEN NAME.</span>
+        <span class="n">hacked_name</span><span class="p">,</span> <span class="n">_cfgstr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">parse_cfgstr_name_options</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">_cfgstr_options_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+            <span class="s">r&#39;,\s*&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="s">r&#39;[^\[\]]*\]&#39;</span><span class="p">),</span> <span class="n">_cfgstr</span><span class="p">)</span>
+        <span class="c">#cfgstr_options_list = cfgopt_strs.split(&#39;,&#39;)</span>
+        <span class="n">_cfg_options</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span>
+            <span class="n">_cfgstr_options_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c">#</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete_keys</span><span class="p">(</span><span class="n">_cfg_options</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">_preflbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_cfg_options</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">_preflbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">multi_replace</span><span class="p">(</span><span class="n">_preflbl</span><span class="p">,</span> <span class="n">_search</span><span class="p">,</span> <span class="n">_repl</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">hacked_name</span> <span class="o">+=</span> <span class="n">NAMEVARSEP</span> <span class="o">+</span> <span class="n">_preflbl</span>
+        <span class="c">###</span>
+        <span class="n">cfg_lbl</span> <span class="o">=</span> <span class="n">hacked_name</span> <span class="o">+</span> <span class="n">_lbl</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cfg_lbl</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">NAMEVARSEP</span> <span class="o">+</span> <span class="n">_lbl</span>
+    <span class="k">return</span> <span class="n">cfg_lbl</span>
+
+
+<span class="c">#def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, cfg_combos, strict):</span>
+<span class="c">#    try:</span>
+<span class="c">#        cfg_combo = customize_base_cfg(</span>
+<span class="c">#            cfgname, cfgopt_strs, base_cfg, cfgtype,</span>
+<span class="c">#            alias_keys=alias_keys, valid_keys=valid_keys,</span>
+<span class="c">#            offset=len(cfg_combos), strict=strict)</span>
+<span class="c">#        return cfg_combo</span>
+<span class="c">#    except Exception as ex:</span>
+<span class="c">#        ut.printex(ex, &#39;Parse Error CfgstrList2&#39;,</span>
+<span class="c">#                   keys=[&#39;cfgname&#39;, &#39;cfgopt_strs&#39;, &#39;base_cfg&#39;,</span>
+<span class="c">#                         &#39;cfgtype&#39;, &#39;alias_keys&#39;, &#39;valid_keys&#39;])</span>
+<span class="c">#        raise</span>
+
+</div>
+<span class="nd">@ut.on_exception_report_input</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cfgname&#39;</span><span class="p">,</span> <span class="s">&#39;cfgopt_strs&#39;</span><span class="p">,</span> <span class="s">&#39;base_cfg&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;cfgtype&#39;</span><span class="p">,</span> <span class="s">&#39;alias_keys&#39;</span><span class="p">,</span> <span class="s">&#39;valid_keys&#39;</span><span class="p">],</span>
+                              <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="viewcode-block" id="customize_base_cfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.customize_base_cfg">[docs]</a><span class="k">def</span> <span class="nf">customize_base_cfg</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span>
+                       <span class="n">alias_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cfgname (str): config name</span>
+<span class="sd">        cfgopt_strs (str): mini-language defining key variations</span>
+<span class="sd">        base_cfg (dict): specifies the default cfg to customize</span>
+<span class="sd">        cfgtype (?):</span>
+<span class="sd">        alias_keys (None): (default = None)</span>
+<span class="sd">        valid_keys (None): if base_cfg is not specied, this defines the valid</span>
+<span class="sd">            keys (default = None)</span>
+<span class="sd">        offset (int): (default = 0)</span>
+<span class="sd">        strict (bool): (default = True)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cfg_combo - list of config dicts defining customized configs</span>
+<span class="sd">            based on cfgopt_strs. customized configs always are given an</span>
+<span class="sd">            _cfgindex, _cfgstr, and _cfgname key.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-_customize_base_cfg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgname = &#39;default&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfgopt_strs = &#39;dsize=1000,per_name=[1,2]&#39;</span>
+<span class="sd">        &gt;&gt;&gt; base_cfg = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfgtype = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; alias_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; valid_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; offset = 0</span>
+<span class="sd">        &gt;&gt;&gt; strict = True</span>
+<span class="sd">        &gt;&gt;&gt; cfg_combo = customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys, valid_keys, offset, strict)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfg_combo = %s&#39; % (str(cfg_combo),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">base_cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c"># Parse dict out of a string</span>
+    <span class="c">#ANYTHING_NOT_BRACE = r&#39;[^\[\]]*\]&#39;</span>
+    <span class="n">ANYTHING_NOT_PAREN_OR_BRACE</span> <span class="o">=</span> <span class="s">r&#39;[^()\[\]]*[\]\)]&#39;</span>
+    <span class="n">cfgstr_options_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+        <span class="s">r&#39;,\s*&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_lookahead</span><span class="p">(</span><span class="n">ANYTHING_NOT_PAREN_OR_BRACE</span><span class="p">),</span> <span class="n">cfgopt_strs</span><span class="p">)</span>
+    <span class="c">#cfgstr_options_list = cfgopt_strs.split(&#39;,&#39;)</span>
+    <span class="n">cfg_options</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span>
+        <span class="n">cfgstr_list</span><span class="o">=</span><span class="n">cfgstr_options_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c"># Hack for q/d-prefix specific configs</span>
+    <span class="n">remove_prefix_hack</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">cfg_options</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
+    <span class="c"># Remap keynames based on aliases</span>
+    <span class="k">if</span> <span class="n">alias_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Use new standard keys and remove old aliased keys</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">alias_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg_options</span><span class="p">:</span>
+                <span class="n">cfg_options</span><span class="p">[</span><span class="n">alias_keys</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="c"># Ensure that nothing bad is being updated</span>
+    <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+        <span class="n">parsed_keys</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">valid_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">parsed_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="p">,</span>
+                             <span class="s">&#39;keys specified not in valid set&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_in</span><span class="p">(</span><span class="n">parsed_keys</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                             <span class="s">&#39;keys specified not in default options&#39;</span><span class="p">)</span>
+    <span class="c"># Finalize configuration dict</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cfg_options</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgtype</span>
+    <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgname</span>
+    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="c">#if len(cfg_combo) &gt; 1:</span>
+    <span class="k">for</span> <span class="n">combox</span><span class="p">,</span> <span class="n">cfg_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">offset</span><span class="p">):</span>
+        <span class="c">#cfg_[&#39;_cfgname&#39;] += &#39;;&#39; + str(combox)</span>
+        <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgindex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">combox</span>
+    <span class="k">for</span> <span class="n">cfg_</span> <span class="ow">in</span> <span class="n">cfg_combo</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgopt_strs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">NAMEVARSEP</span> <span class="o">+</span> <span class="n">cfgopt_strs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg_</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">cfg_combo</span>
+
+</div>
+<div class="viewcode-block" id="parse_cfgstr_name_options"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.parse_cfgstr_name_options">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_name_options</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cfgstr (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (cfgname, cfgopt_strs, subx)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --test-parse_cfgstr_name_options</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = &#39;default&#39; + NAMEVARSEP + &#39;myvar1=myval1,myvar2=myval2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(cfgname, cfg_optstrs, subx) = %s&#39; % (ut.repr2((cfgname, cfgopt_strs, subx)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (cfgname, cfg_optstrs, subx) = (&#39;default&#39;, &#39;myvar1=myval1,myvar2=myval2&#39;, None)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = &#39;default[0:1]&#39; + NAMEVARSEP + &#39;myvar1=myval1,myvar2=myval2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(cfgname, cfg_optstrs, subx) = %s&#39; % (ut.repr2((cfgname, cfgopt_strs, subx)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (cfgname, cfg_optstrs, subx) = (&#39;default&#39;, &#39;myvar1=myval1,myvar2=myval2&#39;, slice(0, 1, None))</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = &#39;default[0]&#39; + NAMEVARSEP + &#39;myvar1=myval1,myvar2=myval2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(cfgname, cfg_optstrs, subx) = %s&#39; % (ut.repr2((cfgname, cfgopt_strs, subx)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (cfgname, cfg_optstrs, subx) = (&#39;default&#39;, &#39;myvar1=myval1,myvar2=myval2&#39;, [0])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="c">#cfgname_regex = ut.named_field(&#39;cfgname&#39;, r&#39;[^\[:]+&#39;)  # name is not optional</span>
+    <span class="n">cfgname_regex</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;cfgname&#39;</span><span class="p">,</span> <span class="s">r&#39;[^\[:]*&#39;</span><span class="p">)</span>  <span class="c"># name is optional</span>
+    <span class="n">subx_regex</span> <span class="o">=</span> <span class="s">r&#39;\[&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;subx&#39;</span><span class="p">,</span> <span class="s">r&#39;[^\]]*&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">r&#39;\]&#39;</span>
+    <span class="n">cfgopt_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">NAMEVARSEP</span><span class="p">)</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;cfgopt&#39;</span><span class="p">,</span> <span class="s">&#39;.*&#39;</span><span class="p">)</span>
+    <span class="n">regex_str</span> <span class="o">=</span> <span class="n">cfgname_regex</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;(</span><span class="si">%s</span><span class="s">)?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subx_regex</span><span class="p">,))</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;(</span><span class="si">%s</span><span class="s">)?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgopt_regex</span><span class="p">,))</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">regex_str</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;parsing of cfgstr failed&#39;</span>
+    <span class="n">groupdict</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span>
+    <span class="n">cfgname</span> <span class="o">=</span> <span class="n">groupdict</span><span class="p">[</span><span class="s">&#39;cfgname&#39;</span><span class="p">]</span>
+    <span class="n">cfgopt_strs</span> <span class="o">=</span> <span class="n">groupdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cfgopt&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">subx_str</span> <span class="o">=</span> <span class="n">groupdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;subx&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cfgopt_strs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cfgopt_strs</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">subx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">fuzzy_subset</span><span class="p">(</span><span class="n">subx_str</span><span class="p">)</span>
+    <span class="c">##regex_str = ut.negative_lookbehind(r&#39;\:&#39;)</span>
+    <span class="c">#cfgstr_split = cfgstr.split(NAMEVARSEP)</span>
+    <span class="c">#cfgname_fmt = cfgstr_split[0]</span>
+    <span class="c">#cfgopt_strs =  NAMEVARSEP.join(cfgstr_split[1:])</span>
+    <span class="c">#if cfgname_fmt.endswith(&#39;]&#39;):</span>
+    <span class="c">#    # Parse out subindexes</span>
+    <span class="c">#    cfgname, subx_str = cfgname_fmt.split(&#39;[&#39;)</span>
+    <span class="c">#else:</span>
+    <span class="c">#    cfgname = cfgname_fmt</span>
+    <span class="c">#subx = None</span>
+    <span class="k">return</span> <span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">subx</span>
+
+</div>
+<div class="viewcode-block" id="lookup_base_cfg_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.lookup_base_cfg_list">[docs]</a><span class="k">def</span> <span class="nf">lookup_base_cfg_list</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">named_defaults_dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">named_defaults_dict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">base_cfg_list</span> <span class="o">=</span> <span class="p">[{}]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">base_cfg_list</span> <span class="o">=</span> <span class="n">named_defaults_dict</span><span class="p">[</span><span class="n">cfgname</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Unknown configuration name&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cfgname&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">base_cfg_list</span><span class="p">):</span>
+        <span class="c"># make callable function</span>
+        <span class="n">base_cfg_list</span> <span class="o">=</span> <span class="n">base_cfg_list</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_cfg_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">base_cfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_cfg_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">base_cfg_list</span>
+
+</div>
+<div class="viewcode-block" id="parse_cfgstr_list2"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.parse_cfgstr_list2">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_list2</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">named_defaults_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">alias_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">expand_nested</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">special_join_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Parses config strings. By looking up name in a dict of configs</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cfgstr_list (list):</span>
+<span class="sd">        named_defaults_dict (dict): (default = None)</span>
+<span class="sd">        cfgtype (None): (default = None)</span>
+<span class="sd">        alias_keys (None): (default = None)</span>
+<span class="sd">        valid_keys (None): (default = None)</span>
+<span class="sd">        expand_nested (bool): (default = True)</span>
+<span class="sd">        strict (bool): (default = True)</span>
+<span class="sd">        is_nestedcfgtype - used for annot configs so special joins arent geometrically combined</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Normal Case:</span>
+<span class="sd">            --flag name</span>
+
+<span class="sd">        Custom Arugment Cases:</span>
+<span class="sd">            --flag name:custom_key1=custom_val1,custom_key2=custom_val2</span>
+
+<span class="sd">        Multiple Config Case:</span>
+<span class="sd">            --flag name1:custom_args1 name2:custom_args2</span>
+
+<span class="sd">        Multiple Config (special join) Case:</span>
+<span class="sd">            (here name2 and name3 have some special interaction)</span>
+<span class="sd">            --flag name1:custom_args1 name2:custom_args2::name3:custom_args3</span>
+
+<span class="sd">        Varied Argument Case:</span>
+<span class="sd">            --flag name:key1=[val1,val2]</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cfg_combos_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-parse_cfgstr_list2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr_list = [&#39;name&#39;, &#39;name:f=1&#39;, &#39;name:b=[1,2]&#39;, &#39;name1:f=1::name2:f=1,b=2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; #cfgstr_list = [&#39;name&#39;, &#39;name1:f=1::name2:f=1,b=2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; named_defaults_dict = None</span>
+<span class="sd">        &gt;&gt;&gt; cfgtype = None</span>
+<span class="sd">        &gt;&gt;&gt; alias_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; valid_keys = None</span>
+<span class="sd">        &gt;&gt;&gt; expand_nested = True</span>
+<span class="sd">        &gt;&gt;&gt; strict = False</span>
+<span class="sd">        &gt;&gt;&gt; special_join_dict = {&#39;joined&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; cfg_combos_list = parse_cfgstr_list2(cfgstr_list, named_defaults_dict,</span>
+<span class="sd">        &gt;&gt;&gt;                                      cfgtype, alias_keys, valid_keys,</span>
+<span class="sd">        &gt;&gt;&gt;                                      expand_nested, strict,</span>
+<span class="sd">        &gt;&gt;&gt;                                      special_join_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;cfg_combos_list = %s&#39; % (ut.list_str(cfg_combos_list, nl=2),))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.depth_profile(cfg_combos_list))</span>
+<span class="sd">        &gt;&gt;&gt; result = (get_varied_cfg_lbls(ut.flatten(cfg_combos_list)))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;name:&#39;, &#39;name:f=1&#39;, &#39;name:b=1&#39;, &#39;name:b=2&#39;, &#39;name1:f=1,joined=True&#39;, &#39;name2:b=2,f=1,joined=True&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;    &#39;</span><span class="p">):</span>
+        <span class="n">cfg_combos_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cfgstr</span> <span class="ow">in</span> <span class="n">cfgstr_list</span><span class="p">:</span>
+            <span class="n">cfg_combos</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c"># Parse special joined cfg case</span>
+            <span class="k">if</span> <span class="n">cfgstr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;::&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">special_cfgstr_list</span> <span class="o">=</span> <span class="n">cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;::&#39;</span><span class="p">)</span>
+                <span class="n">special_combo_list</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span>
+                    <span class="n">special_cfgstr_list</span><span class="p">,</span>
+                    <span class="n">named_defaults_dict</span><span class="o">=</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="n">cfgtype</span><span class="o">=</span><span class="n">cfgtype</span><span class="p">,</span>
+                    <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span> <span class="n">valid_keys</span><span class="o">=</span><span class="n">valid_keys</span><span class="p">,</span>
+                    <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span> <span class="n">expand_nested</span><span class="o">=</span><span class="n">expand_nested</span><span class="p">,</span>
+                    <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+                <span class="n">OLD</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">if</span> <span class="n">OLD</span><span class="p">:</span>
+                    <span class="n">special_combo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">special_combo_list</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">special_join_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">special_combo</span><span class="p">:</span>
+                            <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">special_join_dict</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">special_join_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">special_combo</span> <span class="ow">in</span> <span class="n">special_combo_list</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">special_combo</span><span class="p">:</span>
+                                <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">special_join_dict</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_nestedcfgtype</span><span class="p">:</span>
+                    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">combo</span> <span class="k">for</span> <span class="n">combo</span> <span class="ow">in</span> <span class="n">special_combo_list</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># not sure if this is right</span>
+                    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">special_combo_list</span>
+                <span class="c"># FIXME DUPLICATE CODE</span>
+                <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
+                    <span class="n">cfg_combos</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c">#print(&#39;Appending: &#39; + str(ut.depth_profile(cfg_combo)))</span>
+                    <span class="c">#if ut.depth_profile(cfg_combo) == [1, 9]:</span>
+                    <span class="c">#    ut.embed()</span>
+                    <span class="n">cfg_combos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">subx</span> <span class="o">=</span> <span class="n">parse_cfgstr_name_options</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+                <span class="c"># --</span>
+                <span class="c"># Lookup named default settings</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">base_cfg_list</span> <span class="o">=</span> <span class="n">lookup_base_cfg_list</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">named_defaults_dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cfgstr_list&#39;</span><span class="p">])</span>
+                    <span class="k">raise</span>
+                <span class="c"># --</span>
+                <span class="k">for</span> <span class="n">base_cfg</span> <span class="ow">in</span> <span class="n">base_cfg_list</span><span class="p">:</span>
+                    <span class="n">cfg_combo</span> <span class="o">=</span> <span class="n">customize_base_cfg</span><span class="p">(</span>
+                        <span class="n">cfgname</span><span class="p">,</span> <span class="n">cfgopt_strs</span><span class="p">,</span> <span class="n">base_cfg</span><span class="p">,</span> <span class="n">cfgtype</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">,</span>
+                        <span class="n">valid_keys</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_combos</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">is_nestedcfgtype</span><span class="p">:</span>
+                        <span class="n">cfg_combo</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg_combo</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
+                        <span class="n">cfg_combos</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cfg_combos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_combo</span><span class="p">)</span>
+            <span class="c"># SUBX Cannot work here because of acfg hackiness</span>
+            <span class="c">#if subx is not None:</span>
+            <span class="c">#    cfg_combo = ut.list_take(cfg_combo, subx)</span>
+            <span class="k">if</span> <span class="n">expand_nested</span><span class="p">:</span>
+                <span class="n">cfg_combos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_combos</span><span class="p">)</span>
+        <span class="c">#    print(&#39;Updated to: &#39; + str(ut.depth_profile(cfg_combos_list)))</span>
+        <span class="c">#print(&#39;Returning len(cfg_combos_list) = %r&#39; % (len(cfg_combos_list),))</span>
+    <span class="k">return</span> <span class="n">cfg_combos_list</span>
+
+</div>
+<div class="viewcode-block" id="parse_argv_cfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.cfghelpers.parse_argv_cfg">[docs]</a><span class="k">def</span> <span class="nf">parse_argv_cfg</span><span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">],</span> <span class="n">named_defaults_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                   <span class="n">valid_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; simple configs</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        argname (?):</span>
+<span class="sd">        default (list): (default = [])</span>
+<span class="sd">        named_defaults_dict (dict): (default = None)</span>
+<span class="sd">        valid_keys (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: cfg_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg --filt :foo=bar</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.cfghelpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; argname = &#39;--filt&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list = parse_argv_cfg(argname)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;cfg_list = %s&#39; % (str(cfg_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_jupyter_notebook</span><span class="p">():</span>
+        <span class="c"># dont parse argv in ipython notebook</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="n">default</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cfgstr_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">cfg_combos_list</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span>
+                                         <span class="n">named_defaults_dict</span><span class="o">=</span><span class="n">named_defaults_dict</span><span class="p">,</span>
+                                         <span class="n">valid_keys</span><span class="o">=</span><span class="n">valid_keys</span><span class="p">,</span>
+                                         <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">cfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">cfg_combos_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cfg_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --allexamples</span>
+<span class="sd">        python -m ibeis.expt.cfghelpers --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

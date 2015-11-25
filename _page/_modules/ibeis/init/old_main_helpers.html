@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.init.old_main_helpers &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.init.old_main_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.init.old_main_helpers</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: Rename to ibeis/init/commands.py</span>
+
+<span class="sd">The AID configuration selection is getting a mjor update right now</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[main_helpers]&#39;</span><span class="p">)</span>
+
+
+<span class="n">VERB_TESTDATA</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-testdata&#39;</span><span class="p">,</span> <span class="s">&#39;--verbtd&#39;</span><span class="p">))</span>
+<span class="n">VERB_MAIN_HELPERS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-main-helpers&#39;</span><span class="p">,</span> <span class="s">&#39;--verbmhelp&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERB_TESTDATA</span>
+
+
+<div class="viewcode-block" id="define_named_aid_cfgs"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.define_named_aid_cfgs">[docs]</a><span class="k">def</span> <span class="nf">define_named_aid_cfgs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Definitions for common aid configurations</span>
+<span class="sd">    TODO: potentially move to experiment configs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+    <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">)</span>
+    <span class="n">named_qcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;qcfg&#39;</span><span class="p">)))</span>
+    <span class="n">named_dcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;dcfg&#39;</span><span class="p">)))</span>
+    <span class="n">alias_keys</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">alias_keys</span>
+    <span class="n">named_cfg_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;qcfg&#39;</span><span class="p">:</span> <span class="n">named_qcfg_defaults</span><span class="p">,</span>
+        <span class="s">&#39;dcfg&#39;</span><span class="p">:</span> <span class="n">named_dcfg_defaults</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">named_cfg_dict</span><span class="p">,</span> <span class="n">alias_keys</span>
+
+</div>
+<div class="viewcode-block" id="get_commandline_aidcfg"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.get_commandline_aidcfg">[docs]</a><span class="k">def</span> <span class="nf">get_commandline_aidcfg</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse the command line for &quot;THE NEW AND IMPROVED&quot; cannonical annotation</span>
+<span class="sd">    configuration dictionaries</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default:shuffle=True,index=0:25 --dcfg default</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg default --dcfg default</span>
+
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --qcfg controlled --dcfg controlled</span>
+
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled</span>
+
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg varydbsize</span>
+
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_commandline_aidcfg --acfg controlled:qindex=0:10</span>
+
+
+<span class="sd">        --aidcfg=controlled=True,species=primary</span>
+<span class="sd">        --aidcfg=controlled=True,species=primary,annot_per_name=2</span>
+<span class="sd">        --aidcfg=controlled=True,species=primary,annot_per_name=3</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; aidcfg = get_commandline_aidcfg()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;aidcfg = &#39; + ut.dict_str(aidcfg))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">parse_cfgstr_list2</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">named_dcfgs_dict</span><span class="p">,</span> <span class="n">cfgtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alias_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse a genetic cfgstr --flag name1:custom_args1 name2:custom_args2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cfgstr</span> <span class="ow">in</span> <span class="n">cfgstr_list</span><span class="p">:</span>
+            <span class="n">cfgstr_split</span> <span class="o">=</span> <span class="n">cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">cfgname</span> <span class="o">=</span> <span class="n">cfgstr_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">named_dcfgs_dict</span><span class="p">[</span><span class="n">cfgname</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c"># Parse dict out of a string</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstr_split</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cfgstr_options</span> <span class="o">=</span>  <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_split</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">cfg_options</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_options</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cfg_options</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c"># Hack for q/d specific configs</span>
+            <span class="k">if</span> <span class="n">cfgtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cfg_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="c"># check if key is nonstandard</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">):</span>
+                        <span class="c"># does removing prefix make it stanard?</span>
+                        <span class="n">prefix</span> <span class="o">=</span> <span class="n">cfgtype</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+                            <span class="n">key_</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">):]</span>
+                            <span class="k">if</span> <span class="n">key_</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key_</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">:</span>
+                                <span class="c"># remove prefix</span>
+                                <span class="n">cfg_options</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="k">assert</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">in</span> <span class="n">cfg</span> <span class="ow">or</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="p">,</span> <span class="s">&#39;key=</span><span class="si">%r</span><span class="s">, key[1:] =</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="s">&#39;alias_keys&#39;</span><span class="p">])</span>
+                            <span class="k">raise</span>
+                        <span class="k">del</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="c"># Remap keynames based on aliases</span>
+            <span class="k">if</span> <span class="n">alias_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">alias_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg_options</span><span class="p">:</span>
+                        <span class="c"># use standard new key</span>
+                        <span class="n">cfg_options</span><span class="p">[</span><span class="n">alias_keys</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="c"># remove old alised key</span>
+                        <span class="k">del</span> <span class="n">cfg_options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="c"># Finalize configuration dict</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">update_existing</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfg_options</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">assert_exists</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgtype</span>
+            <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgname</span>
+            <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfgstr</span>
+            <span class="n">cfg_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">cfg</span><span class="p">))</span>
+            <span class="k">break</span>  <span class="c"># FIXME: do more than one eventually</span>
+        <span class="k">return</span> <span class="n">cfg</span>
+
+    <span class="n">named_cfg_dict</span><span class="p">,</span> <span class="n">alias_keys</span> <span class="o">=</span> <span class="n">define_named_aid_cfgs</span><span class="p">()</span>
+
+    <span class="c"># Parse the cfgstr list from the command line</span>
+    <span class="n">qcfgstr_list</span><span class="p">,</span> <span class="n">has_qcfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--qcfg&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span> <span class="n">return_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">dcfgstr_list</span><span class="p">,</span> <span class="n">has_dcfg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dcfg&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span> <span class="n">return_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_qcfg</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_dcfg</span><span class="p">:</span>
+        <span class="c"># TODO: Specify both with one flag</span>
+        <span class="n">acfgstr_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">])</span>
+        <span class="n">aidcfg</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">acfgstr_list</span><span class="p">,</span> <span class="n">named_cfg_dict</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="s">&#39;qcfg&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">acfgstr_list</span><span class="p">,</span> <span class="n">named_cfg_dict</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="s">&#39;dcfg&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aidcfg</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">qcfgstr_list</span><span class="p">,</span> <span class="n">named_cfg_dict</span><span class="p">[</span><span class="s">&#39;qcfg&#39;</span><span class="p">],</span> <span class="s">&#39;qcfg&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
+        <span class="n">aidcfg</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_cfgstr_list2</span><span class="p">(</span><span class="n">dcfgstr_list</span><span class="p">,</span> <span class="n">named_cfg_dict</span><span class="p">[</span><span class="s">&#39;dcfg&#39;</span><span class="p">],</span> <span class="s">&#39;dcfg&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aidcfg</span>
+
+</div>
+<div class="viewcode-block" id="ensure_flatiterable"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.ensure_flatiterable">[docs]</a><span class="k">def</span> <span class="nf">ensure_flatiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">input_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">fuzzy_int</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">input_</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="c">#print(input_)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">input_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;cannot ensure </span><span class="si">%r</span><span class="s"> input_=</span><span class="si">%r</span><span class="s"> is iterable&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">),</span> <span class="n">input_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="ensure_flatlistlike"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.ensure_flatlistlike">[docs]</a><span class="k">def</span> <span class="nf">ensure_flatlistlike</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="c">#if isinstance(input_, slice):</span>
+    <span class="c">#    pass</span>
+    <span class="n">iter_</span> <span class="o">=</span> <span class="n">ensure_flatiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iter_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_test_qaids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.get_test_qaids">[docs]</a><span class="k">def</span> <span class="nf">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aidcfg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets test annot_rowids based on command line arguments</span>
+
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        default_qaids (None): if list then used only if no other aids are available (default = [1])</span>
+<span class="sd">           as a string it mimics the command line</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: available_qaids</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0 --qaid 1</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --allgt --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --qaid 4 5 8  --verbmhelp</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST --qaid 2 --verbmhelp</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_MTEST --qaid 2</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_qaids --controlled --db PZ_Master0 --qindex 0:10 --verbmhelp</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_test_qaids --controlled --db PZ_Master0 --exec-mode</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_test_qaids --db testdb1 --allgt --qindex 0:256</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; default_qaids = None</span>
+<span class="sd">        &gt;&gt;&gt; available_qaids = get_test_qaids(ibs, default_qaids)</span>
+<span class="sd">        &gt;&gt;&gt; ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_qaids, with_contrib=False, short=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;available_qaids = &#39; + ut.obj_str(available_qaids, truncate=True, nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;len(available_qaids) = %d&#39; % len(available_qaids))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        available_qaids = [1]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qaid_request_info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] + --- GET_TEST_QAIDS ---&#39;</span><span class="p">)</span>
+
+    <span class="c"># Old version of this function</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] + --- GET_TEST_QAIDS ---&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * default_qaids = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)))</span>
+
+    <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] WARNING no annotations available&#39;</span><span class="p">)</span>
+
+    <span class="c"># ---- INCLUDING STEP</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * include step&#39;</span><span class="p">)</span>
+
+    <span class="n">available_qaids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#ut.get_argflag((&#39;--all-cases&#39;, &#39;--all&#39;))</span>
+    <span class="c">#ut.get_argflag((&#39;--all-gt-cases&#39;, &#39;--allgt&#39;))</span>
+    <span class="c">#ut.get_argflag((&#39;--all-hard-cases&#39;, &#39;--allhard&#39;))</span>
+    <span class="c">#ut.get_argflag((&#39;--qaid&#39;, &#39;--qaids&#39;))</span>
+    <span class="c">#ut.get_argflag(&#39;--controlled&#39;) or ut.get_argflag(&#39;--controlled_qaids&#39;)</span>
+    <span class="c">#not ut.get_argflag(&#39;--junk&#39;)</span>
+
+    <span class="n">ALL_CASES</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_cases</span> <span class="ow">or</span> <span class="n">default_qaids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span>
+    <span class="n">GT_CASES</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_gt_cases</span> <span class="ow">or</span> <span class="n">default_qaids</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span>
+    <span class="n">HARD_CASES</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_hard_cases</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--all-hard-cases&#39;</span><span class="p">,</span> <span class="s">&#39;--allhard&#39;</span><span class="p">,</span> <span class="s">&#39;--hard&#39;</span><span class="p">))</span>
+    <span class="n">NO_JUNK</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--junk&#39;</span><span class="p">)</span>
+    <span class="n">CONTROLLED_CASES</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--controlled&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--controlled_qaids&#39;</span><span class="p">)</span>
+    <span class="n">NO_REVIEWED</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--unreviewed&#39;</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">)</span>
+    <span class="c">#QAID = params.args.qaid</span>
+    <span class="n">QAID</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">QINDEX</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">qindex</span>
+    <span class="n">QSHUFFLE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--qshuffle&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">QAID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including cmdline specified qaids&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">args_qaid</span> <span class="o">=</span> <span class="n">ensure_flatlistlike</span><span class="p">(</span><span class="n">QAID</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">args_qaid</span> <span class="o">=</span> <span class="n">QAID</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args_qaid</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;custom_commandline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args_qaid</span>
+
+    <span class="k">if</span> <span class="n">ALL_CASES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including all qaids&#39;</span><span class="p">)</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;all_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">HARD_CASES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including hard qaids&#39;</span><span class="p">)</span>
+        <span class="n">is_hard_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_is_hard</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">hard_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">is_hard_list</span><span class="p">)</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hard_aids</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;hard_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">GT_CASES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including groundtruth qaids&#39;</span><span class="p">)</span>
+        <span class="n">has_gt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">hasgt_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">has_gt_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] Adding all </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> ground-truthed test cases&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)))</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;gt_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">CONTROLLED_CASES</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Including controlled qaids&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+        <span class="c"># Override all other gts with controlled</span>
+        <span class="n">controlled_qaids</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_two_annots_per_name_and_singletons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">onlygt</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">controlled_qaids</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;controlled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;controlled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c"># ---- CHECK_DEFAULTS QUERY</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * len(available_qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * ... defaulting, no available qaids on command line.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">valid_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;default_one&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default_qaids</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">default_qaids</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span> <span class="ow">or</span> <span class="n">default_qaids</span> <span class="o">==</span> <span class="s">&#39;allgt&#39;</span><span class="p">:</span>
+                <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">hasgt</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;default_gt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">default_qaids</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * ... not defaulting&#39;</span><span class="p">)</span>
+
+    <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+
+    <span class="c"># ---- EXCLUSION STEP</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * len(available_qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * exclude step&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">NO_JUNK</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Filtering junk&#39;</span><span class="p">)</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_junk_annotations</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;has_junk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">NO_REVIEWED</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Filtering unreviewed&#39;</span><span class="p">)</span>
+        <span class="n">isreviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">isreviewed_list</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;has_unreviewed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s">&#39;primary&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Finiding primary species&#39;</span><span class="p">)</span>
+            <span class="c">#species = ibs.get_primary_database_species(available_qaids)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
+            <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;primary_species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Filtering to species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">))</span> <span class="o">==</span> <span class="n">species</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;species_filter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species</span>
+
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * len(available_qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * subindex step&#39;</span><span class="p">)</span>
+
+    <span class="c"># ---- INDEX SUBSET</span>
+
+    <span class="c">#ut.get_argval(&#39;--qshuffle&#39;)</span>
+    <span class="k">if</span> <span class="n">QSHUFFLE</span><span class="p">:</span>
+        <span class="c"># Determenistic shuffling</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">))</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;shuffled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># Sample a large pool of chosen query qindexes</span>
+    <span class="k">if</span> <span class="n">QINDEX</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># FIXME: should use a slice of the list or a sublist</span>
+        <span class="n">qindexes</span> <span class="o">=</span> <span class="n">ensure_flatlistlike</span><span class="p">(</span><span class="n">QINDEX</span><span class="p">)</span>
+        <span class="n">_test_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">available_qaids</span><span class="p">[</span><span class="n">qx</span><span class="p">]</span> <span class="k">for</span> <span class="n">qx</span> <span class="ow">in</span> <span class="n">qindexes</span> <span class="k">if</span> <span class="n">qx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] Chose subset of size </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_test_qaids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)))</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">_test_qaids</span>
+        <span class="n">qaid_request_info</span><span class="p">[</span><span class="s">&#39;subset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qindexes</span>
+
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * len(available_qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] L ___ GET_TEST_QAIDS ___&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_annot_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">available_qaids</span><span class="p">,</span> <span class="n">qaid_request_info</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">available_qaids</span>
+
+</div>
+<div class="viewcode-block" id="get_test_daids"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.old_main_helpers.get_test_daids">[docs]</a><span class="k">def</span> <span class="nf">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="s">&#39;all&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_annot_info</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aidcfg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets database annot_rowids based on command line arguments</span>
+
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py --db PZ_MTEST -t best --exclude-query --qaid 72 -r 0 -c 0 --show --va --vf --dump-extra</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        default_daids (str): (default = &#39;all&#39;)</span>
+<span class="sd">        qaid_list (list): list of chosen qaids that may affect daids (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: available_daids</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST  --verbmhelp</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --exclude-query</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --daid-exclude 2 3 4</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_MTEST --species=zebra_grevys</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_Master0 --species=zebra_grevys</span>
+<span class="sd">        python -m ibeis.init.main_helpers --test-get_test_daids --db PZ_Master0 --controlled --verbmhelp</span>
+<span class="sd">        python -m ibeis.init.main_helpers --exec-get_test_daids --controlled --db PZ_Master0 --exec-mode</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; default_daids = &#39;all&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; available_daids = get_test_daids(ibs, default_daids, qaid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_daids, with_contrib=False, short=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;available_daids = &#39; + ut.obj_str(available_daids, truncate=True, nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;len(available_daids) %d&#39; % len(available_daids))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        available_daids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daid_request_info</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] + --- GET_TEST_DAIDS ---&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * default_daids = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">default_daids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * qaid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)))</span>
+
+    <span class="c"># ---- INCLUDING STEP</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * include step&#39;</span><span class="p">)</span>
+
+    <span class="n">available_daids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">CONTROLLED_CASES</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--controlled&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--controlled_daids&#39;</span><span class="p">)</span>
+    <span class="n">DSHUFFLE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dshuffle&#39;</span><span class="p">)</span>
+    <span class="n">DINDEX</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dindex</span>
+    <span class="n">NO_JUNK</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--junk&#39;</span><span class="p">)</span>
+    <span class="n">EXCLUDE_QUERY</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--exclude-query&#39;</span><span class="p">)</span>
+    <span class="c">#daids_exclude = params.args.daid_exclude</span>
+    <span class="n">daids_exclude</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">CONTROLLED_CASES</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Including controlled daids&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+        <span class="n">controlled_daids</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_two_annots_per_name_and_singletons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">onlygt</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">available_daids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">controlled_daids</span><span class="p">)</span>
+        <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;controlled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;controlled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c"># ---- CHECK_DEFAULTS DATA</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * len(available_daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * ... defaulting, no available daids on command line.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default_daids</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">default_daids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+                <span class="n">default_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+                <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;default_daids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;all&#39;</span>
+            <span class="k">elif</span> <span class="n">default_daids</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span><span class="p">:</span>
+                <span class="n">default_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+                <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;default_daids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;gt&#39;</span>
+        <span class="c">#available_qaids = valid_aids[0:1]</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">default_daids</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * ... not defaulting&#39;</span><span class="p">)</span>
+
+    <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span>
+
+    <span class="c"># ---- EXCLUSION STEP</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * len(available_daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * exclude step&#39;</span><span class="p">)</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">NO_JUNK</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Filtering junk&#39;</span><span class="p">)</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_junk_annotations</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">EXCLUDE_QUERY</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Excluding query qaids&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify qaids to exclude&#39;</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">daids_exclude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Excluding specified daids&#39;</span><span class="p">)</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">daids_exclude</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s">&#39;primary&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_qaids] * Finiding primary species&#39;</span><span class="p">)</span>
+            <span class="c">#species = ibs.get_primary_database_species(available_daids)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * Filtering to species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">available_daids</span><span class="p">))</span> <span class="o">==</span> <span class="n">species</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+
+    <span class="c"># ---- SUBINDEXING STEP</span>
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * len(available_daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * subindex step&#39;</span><span class="p">)</span>
+
+    <span class="c">#ut.get_argval(&#39;--qshuffle&#39;)</span>
+    <span class="k">if</span> <span class="n">DSHUFFLE</span><span class="p">:</span>
+        <span class="c"># Determenistic shuffling</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_indexes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">43</span><span class="p">))</span>
+        <span class="n">daid_request_info</span><span class="p">[</span><span class="s">&#39;shuffled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">DINDEX</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">dindexes</span> <span class="o">=</span> <span class="n">ensure_flatlistlike</span><span class="p">(</span><span class="n">DINDEX</span><span class="p">)</span>
+        <span class="n">_test_daids</span> <span class="o">=</span> <span class="p">[</span><span class="n">available_daids</span><span class="p">[</span><span class="n">dx</span><span class="p">]</span> <span class="k">for</span> <span class="n">dx</span> <span class="ow">in</span> <span class="n">dindexes</span> <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] Chose subset of size </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_test_daids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)))</span>
+        <span class="n">available_daids</span> <span class="o">=</span> <span class="n">_test_daids</span>
+
+    <span class="k">if</span> <span class="n">VERB_MAIN_HELPERS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] * len(available_daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_test_daids] L ___ GET_TEST_DAIDS ___&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_annot_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">available_daids</span><span class="p">,</span> <span class="n">daid_request_info</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">available_daids</span>
+
+
+<span class="c">#def expand_aidcfg_dict(ibs, aidcfg=None, reference_aids=None):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    DEPRICATE</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+
+<span class="c">#    # ---- INCLUDING STEP</span>
+<span class="c">#    available_aids = expand_to_default_aids(ibs, aidcfg)</span>
+
+<span class="c">#    # ---- FILTERING STEP</span>
+<span class="c">#    available_aids = filter_independent_properties(ibs, available_aids, aidcfg)</span>
+
+<span class="c">#    # ---- FILTERING WITH RESPECT TO WHAT GROUNDTRUTH IS ABAILABLE (what the daid will contain)</span>
+
+<span class="c">#    available_aids = filter_reference_properties(ibs, available_aids, aidcfg, reference_aids)</span>
+
+<span class="c">#    # ---- SAMPLE SELECTION</span>
+<span class="c">#    available_aids = sample_available_aids(ibs, available_aids, aidcfg, reference_aids)</span>
+
+<span class="c">#    return available_aids</span>
+
+<span class="c">## ------</span>
+<span class="c">#    if OLD:</span>
+<span class="c">#        # extract qaid list</span>
+<span class="c">#        if VERB_MAIN_HELPERS:</span>
+<span class="c">#            print(&#39;\n[expand_aidcfg] + --- GET_TEST_QAIDS ---&#39;)</span>
+<span class="c">#        qaid_list = expand_aidcfg_dict(ibs, aidcfg=qcfg)</span>
+<span class="c">#        if VERB_MAIN_HELPERS:</span>
+<span class="c">#            print(&#39;[expand_aidcfg] L ___ GET_TEST_QAIDS&#39;)</span>
+
+<span class="c">#        # extract daid list</span>
+<span class="c">#        if VERB_MAIN_HELPERS:</span>
+<span class="c">#            print(&#39;[expand_aidcfg] + --- GET_TEST_DAIDS ---&#39;)</span>
+<span class="c">#        daid_list = expand_aidcfg_dict(ibs, aidcfg=dcfg, reference_aids=qaid_list)</span>
+<span class="c">#        if VERB_MAIN_HELPERS:</span>
+<span class="c">#            print(&#39;[expand_aidcfg] L ___ GET_TEST_DAIDS \n&#39;)</span>
+<span class="c">#    else:</span>
+
+<span class="c">#def register_utool_aliases():</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    registers commmon class names with utool so they are printed nicely</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    #print(&#39;REGISTER UTOOL ALIASES&#39;)</span>
+<span class="c">#    import utool as ut</span>
+<span class="c">#    import matplotlib as mpl</span>
+<span class="c">#    from ibeis.control import IBEISControl, SQLDatabaseControl</span>
+<span class="c">#    from ibeis.gui import guiback</span>
+<span class="c">#    #from ibeis.gui import guifront</span>
+<span class="c">#    ut.extend_global_aliases([</span>
+<span class="c">#        (SQLDatabaseControl.SQLDatabaseController, &#39;sqldb&#39;),</span>
+<span class="c">#        (IBEISControl.IBEISController, &#39;ibs&#39;),</span>
+<span class="c">#        (guiback.MainWindowBackend, &#39;back&#39;),</span>
+<span class="c">#        #(guifront.MainWindowFrontend, &#39;front&#39;),</span>
+<span class="c">#        (mpl.figure.Figure, &#39;fig&#39;)</span>
+<span class="c">#    ])</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

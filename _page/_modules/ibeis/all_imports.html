@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.all_imports &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.all_imports</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.all_imports</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># flake8: noqa</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO DEPRICATE</span>
+
+<span class="sd">This file contains most every module I&#39;ve ever used.</span>
+<span class="sd">Serves as a good check to make sure either everything I</span>
+<span class="sd">want to use is imported / exists.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span>
+                     <span class="n">expanduser</span><span class="p">,</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">isabs</span><span class="p">,</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">cycle</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="n">zip_longest</span><span class="p">,</span> <span class="n">builtins</span><span class="p">,</span> <span class="n">cPickle</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">iprod</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">colorsys</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">decimal</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">imp</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">site</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">resource</span>
+<span class="c"># PIPI</span>
+<span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">functools32</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="c"># Qt</span>
+<span class="kn">import</span> <span class="nn">sip</span>
+<span class="kn">from</span> <span class="nn">guitool</span> <span class="kn">import</span> <span class="n">__PYQT__</span>
+<span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+<span class="c"># Matplotlib</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">__MPL_INIT__</span>
+<span class="n">__MPL_INIT__</span><span class="o">.</span><span class="n">init_matplotlib</span><span class="p">()</span>
+<span class="c">#mpl.use(&#39;Qt4Agg&#39;)  # pyinstaller hack</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="c"># Scientific</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">npl</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">rollaxis</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">ones</span><span class="p">,</span> <span class="n">diag</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="kn">import</span> <span class="n">matrix_multiply</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">PIL.ExifTags</span> <span class="kn">import</span> <span class="n">TAGS</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">fclusterdata</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
+<span class="c">#import statsmodels</span>
+<span class="c">#import pandas as pd</span>
+<span class="c">#import networkx as netx</span>
+<span class="c">#try:</span>
+<span class="c">#    import graph_tool</span>
+<span class="c">#except ImportError as ex:</span>
+<span class="c">#    #print(&#39;Warning: %r&#39; % ex)</span>
+<span class="c">#    pass</span>
+
+<span class="c"># WEB</span>
+<span class="kn">import</span> <span class="nn">tornado</span>
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">import</span> <span class="nn">simplejson</span>
+
+<span class="c"># Tools</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">detecttools</span>
+<span class="kn">import</span> <span class="nn">vtool</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">plottool</span>
+<span class="kn">import</span> <span class="nn">guitool</span>
+
+<span class="kn">import</span> <span class="nn">pyrf</span>
+<span class="kn">import</span> <span class="nn">pyhesaff</span>
+<span class="kn">import</span> <span class="nn">pyflann</span>
+
+<span class="c"># VTool</span>
+<span class="kn">import</span> <span class="nn">vtool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">chip</span> <span class="k">as</span> <span class="n">ctool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">histogram</span> <span class="k">as</span> <span class="n">htool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">patch</span> <span class="k">as</span> <span class="n">ptool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">keypoint</span> <span class="k">as</span> <span class="n">ktool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">ltool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">linalg</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">segmentation</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">spatial_verification</span> <span class="k">as</span> <span class="n">sverif</span>
+<span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
+
+<span class="c"># PlotTool</span>
+<span class="kn">import</span> <span class="nn">plottool</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">viz_keypoints</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">viz_image2</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
+
+<span class="c"># IBEIS</span>
+<span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">model</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">control</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">gui</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">main_module</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">interact</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">hots</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">preproc</span>
+<span class="c"># IBEIS DEV</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_commands</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">dbinfo</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_printres</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
+<span class="c"># IBEIS CONTROl</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">__SQLITE3__</span> <span class="k">as</span> <span class="n">lite</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
+<span class="c"># IBEIS EXPORT</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_hsdb</span>
+<span class="c"># IBEIS INGEST</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_hsdb</span>
+<span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">ingest_database</span>
+<span class="c"># IBEIS MODEL</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">preproc</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">hots</span>
+<span class="c"># IBEIS MODEL PREPROCESSING</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_feat</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_detectimg</span>
+<span class="c"># IBEIS MODEL HOTSPOTTER</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span> <span class="k">as</span> <span class="n">hspipe</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_helpers</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hots_query_result</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">score_normalization</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.hots_query_result</span> <span class="kn">import</span> <span class="n">QueryResult</span>
+<span class="c"># IBEIS MODEL DETECT</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+<span class="c"># IBEIS VIEW GUI</span>
+<span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">newgui</span>
+<span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guiback</span>
+<span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guimenus</span>
+<span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guiheaders</span>
+<span class="c"># IBEIS VIEW VIZ</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_sver</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_hough</span>
+<span class="c"># IBEIS VIEW INTERACT</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_name</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_qres</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
+<span class="c">#from ibeis.viz.interact import ishow_matches</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">iselect_bbox</span>
+
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[all_imports]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="find_unregisterd"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.find_unregisterd">[docs]</a><span class="k">def</span> <span class="nf">find_unregisterd</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">all_imports</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+    <span class="n">sys_module_strs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">)))</span>
+    <span class="n">all_module_strs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">all_imports</span><span class="p">):</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">all_imports</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">module</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">):</span>
+            <span class="c">#print(attr)</span>
+            <span class="n">sys_module_strs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+    <span class="nb">set</span><span class="p">(</span><span class="n">sys_module_strs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_module_strs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="reload_all"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.reload_all">[docs]</a><span class="k">def</span> <span class="nf">reload_all</span><span class="p">():</span>
+    <span class="c"># reload self</span>
+    <span class="n">rrr</span><span class="p">()</span>
+    <span class="c"># This should reload modules roughtly in the order they were imported</span>
+    <span class="c"># reload utool first so class functions will be reregistered</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="n">guiback</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+    <span class="n">vtool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="n">plottool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+    <span class="c"># reload ibeis last</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="class_reload"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.class_reload">[docs]</a><span class="k">def</span> <span class="nf">class_reload</span><span class="p">():</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">change_class</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
+    <span class="n">IBEISControl</span><span class="o">.</span><span class="n">__ALL_CONTROLLERS__</span>
+
+    <span class="n">mod_id_0</span>   <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">)</span>
+    <span class="n">class_id_0</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_0&#39;</span><span class="p">)</span>
+
+    <span class="n">reload_all</span><span class="p">()</span>
+
+    <span class="n">mod_id_1</span>   <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">)</span>
+    <span class="n">class_id_1</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_1&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_1&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_0&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="embed"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.embed">[docs]</a><span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allows for embedding in an environment with all imports &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">front</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">front</span>
+    <span class="n">ibswgt</span> <span class="o">=</span> <span class="n">front</span>
+    <span class="c">#import IPython</span>
+    <span class="c">#IPython.embed()</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

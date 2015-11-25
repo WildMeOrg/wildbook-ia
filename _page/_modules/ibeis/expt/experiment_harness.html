@@ -1,0 +1,705 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.experiment_harness &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.experiment_harness</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.experiment_harness</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Runs many queries and keeps track of some results</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+<span class="c">#from ibeis.expt import experiment_configs</span>
+<span class="c">#from ibeis.expt import experiment_printres</span>
+<span class="c">#from ibeis.expt import experiment_drawing</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">test_result</span>
+<span class="c">#from ibeis.expt import annotation_configs</span>
+<span class="c">#from ibeis.expt import cfghelpers</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_harn]&#39;</span><span class="p">)</span>
+
+<span class="n">NOMEMORY</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nomemory&#39;</span><span class="p">)</span>
+<span class="n">TESTRES_VERBOSITY</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">)</span>
+<span class="n">NOCACHE_TESTRES</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-testres&#39;</span><span class="p">,</span> <span class="s">&#39;--nocache-big&#39;</span><span class="p">),</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">USE_BIG_TEST_CACHE</span> <span class="o">=</span> <span class="p">(</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--no-use-testcache&#39;</span><span class="p">,</span>
+                                          <span class="s">&#39;--nocache-test&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_CACHE</span> <span class="ow">and</span>
+                      <span class="ow">not</span> <span class="n">NOCACHE_TESTRES</span><span class="p">)</span>
+<span class="n">TEST_INFO</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">DRY_RUN</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dryrun&#39;</span><span class="p">,</span> <span class="s">&#39;--dry&#39;</span><span class="p">))</span>  <span class="c"># dont actually query. Just print labels and stuff</span>
+
+
+<div class="viewcode-block" id="run_test_configurations2"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_harness.run_test_configurations2">[docs]</a><span class="k">def</span> <span class="nf">run_test_configurations2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">,</span>
+                             <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loops over annot configs.</span>
+
+<span class="sd">    Try and use this function as a starting point to clean up this module.</span>
+<span class="sd">    The code is getting too untenable.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_harness import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; default_acfgstrs = [&#39;controlled:qsize=20,dpername=1,dsize=10&#39;, &#39;controlled:qsize=20,dpername=10,dsize=100&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; acfg_name_list = ut.get_argval((&#39;--aidcfg&#39;, &#39;--acfg&#39;, &#39;-a&#39;), type_=list, default=default_acfgstrs)</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = ut.get_argval(&#39;-t&#39;, type_=list, default=[&#39;custom&#39;, &#39;custom:fg_on=False&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = False</span>
+<span class="sd">        &gt;&gt;&gt; testres_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">testnameid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[harn] TEST_CFG &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span>
+
+    <span class="c"># Generate list of database annotation configurations</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;must give acfg name list&#39;</span><span class="p">)</span>
+
+    <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
+    <span class="c"># Generate list of query pipeline param configs</span>
+    <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span>
+        <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+
+    <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+
+<span class="s">        [harn]================</span>
+<span class="s">        [harn] experiment_harness.test_configurations2()&quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;[harn] Running </span><span class="si">%s</span><span class="s"> using </span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">quantity_str</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">)),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">quantity_str</span><span class="p">(</span><span class="s">&#39;pipeline config&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">)),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">quantity_str</span><span class="p">(</span><span class="s">&#39;annot config&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+
+    <span class="n">testres_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">nAcfg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
+
+    <span class="n">expanded_aids_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span>
+                                         <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;annot config&#39;</span><span class="p">,</span>
+                                         <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                         <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">)</span>
+
+    <span class="c">#if ut.get_argflag((&#39;--pcfginfo&#39;, &#39;--pipecfginfo&#39;)):</span>
+    <span class="c">#    ut.colorprint(&#39;Requested PcfgInfo for tests... &#39;, &#39;red&#39;)</span>
+    <span class="c">#    for pcfgx, pipecfg in enumerate(pipecfg_list):</span>
+    <span class="c">#        print(&#39;+--- %d / %d ===&#39; % (pcfgx, (len(pipecfg_list))))</span>
+    <span class="c">#        print(pipecfg.get_cfgstr())</span>
+    <span class="c">#        print(&#39;L___&#39;)</span>
+    <span class="c">#    ut.colorprint(&#39;Finished Reporting PcfgInfo. Exiting&#39;, &#39;red&#39;)</span>
+    <span class="c">#    sys.exit(1)</span>
+
+    <span class="c">#if ut.get_argflag((&#39;--acfginfo&#39;, &#39;--aidcfginfo&#39;)):</span>
+    <span class="c">#    # Print info about annots for the test</span>
+    <span class="c">#    ut.colorprint(&#39;Requested AcfgInfo for tests... &#39;, &#39;red&#39;)</span>
+    <span class="c">#    annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)</span>
+    <span class="c">#    ut.colorprint(&#39;Finished Reporting AcfgInfo. Exiting&#39;, &#39;red&#39;)</span>
+    <span class="c">#    sys.exit(1)</span>
+
+    <span class="k">for</span> <span class="n">acfgx</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">expanded_aids_iter</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s">&#39;[harness] No query annotations specified&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s">&#39;[harness] No database annotations specified&#39;</span><span class="p">)</span>
+        <span class="n">acfg</span> <span class="o">=</span> <span class="n">acfg_list</span><span class="p">[</span><span class="n">acfgx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">---Annot config testnameid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">testnameid</span><span class="p">,),</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+        <span class="n">subindexer_partial</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">,</span> <span class="n">parent_index</span><span class="o">=</span><span class="n">acfgx</span><span class="p">,</span>
+                                     <span class="n">parent_nTotal</span><span class="o">=</span><span class="n">nAcfg</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">)</span>
+        <span class="n">testres</span> <span class="o">=</span> <span class="n">run_test_configurations</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">,</span>
+            <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span>
+            <span class="n">testnameid</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+            <span class="n">subindexer_partial</span><span class="o">=</span><span class="n">subindexer_partial</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">testres</span><span class="o">.</span><span class="n">acfg</span> <span class="o">=</span> <span class="n">acfg</span>
+        <span class="n">testres</span><span class="o">.</span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">test_cfg_name_list</span>
+        <span class="n">testres_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;DRYRUN: Cannot continue past run_test_configurations2&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">testres_list</span>
+
+</div>
+<div class="viewcode-block" id="get_big_test_cache_info"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_harness.get_big_test_cache_info">[docs]</a><span class="k">def</span> <span class="nf">get_big_test_cache_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">ibeis</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+        <span class="n">repodir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">))</span>
+        <span class="n">bt_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">repodir</span><span class="p">,</span> <span class="s">&#39;BIG_TEST_CACHE2&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bt_cachedir</span> <span class="o">=</span> <span class="s">&#39;./localdata/BIG_TEST_CACHE2&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">bt_cachedir</span><span class="p">)</span>
+    <span class="n">bt_cachestr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">([</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">cfgx2_qreq_</span><span class="p">],</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_cfgs&#39;</span><span class="p">)</span>
+    <span class="n">bt_cachename</span> <span class="o">=</span> <span class="s">&#39;BIGTESTCACHE2&#39;</span>
+    <span class="k">return</span> <span class="n">bt_cachedir</span><span class="p">,</span> <span class="n">bt_cachename</span><span class="p">,</span> <span class="n">bt_cachestr</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="run_test_configurations"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_harness.run_test_configurations">[docs]</a><span class="k">def</span> <span class="nf">run_test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span>
+                            <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span>
+                            <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">subindexer_partial</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --exec-run_test_configurations2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfgslice</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">cfgslice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">pipecfg_list</span><span class="p">[</span><span class="n">cfgslice</span><span class="p">]</span>
+
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Constructing query requests&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_qreq_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">query_cfg</span><span class="o">=</span><span class="n">pipe_cfg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pipe_cfg</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Building qreq_&#39;</span><span class="p">,</span>
+                                        <span class="n">enabled</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">use_cache</span> <span class="o">=</span> <span class="n">USE_BIG_TEST_CACHE</span>
+
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="n">get_big_test_cache_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cachetup</span> <span class="o">=</span> <span class="n">get_big_test_cache_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">)</span>
+            <span class="n">testres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="o">*</span><span class="n">cachetup</span><span class="p">)</span>
+            <span class="n">testres</span><span class="o">.</span><span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">cfgdict_list</span>
+            <span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">cfgx2_lbl</span>  <span class="c"># hack override</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;Experiment Harness Cache Hit... Returning&#39;</span><span class="p">,</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">testres</span>
+
+    <span class="n">cfgx2_cfgresinfo</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#nPipeCfg = len(pipecfg_list)</span>
+    <span class="n">cfgiter</span> <span class="o">=</span> <span class="n">subindexer_partial</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_qreq_</span><span class="p">)),</span>
+                                 <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;query config&#39;</span><span class="p">,</span>
+                                 <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">separate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># Run each pipeline configuration</span>
+    <span class="n">prev_feat_cfgstr</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">cfgx</span> <span class="ow">in</span> <span class="n">cfgiter</span><span class="p">:</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;testnameid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">testnameid</span><span class="p">,),</span> <span class="s">&#39;green&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;annot_cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="bp">False</span><span class="p">),),</span> <span class="s">&#39;yellow&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;pipe_cfgstr= </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_data</span><span class="o">=</span><span class="bp">False</span><span class="p">),),</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;pipe_hashstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_hashstr</span><span class="p">(),),</span> <span class="s">&#39;teal&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">indent_prefix</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="s"> cfg </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">dbname</span><span class="p">,</span>
+            <span class="c"># cfgiter.count (doesnt work when quiet)</span>
+            <span class="p">(</span><span class="n">cfgiter</span><span class="o">.</span><span class="n">parent_index</span> <span class="o">*</span> <span class="n">cfgiter</span><span class="o">.</span><span class="n">nTotal</span><span class="p">)</span> <span class="o">+</span> <span class="n">cfgx</span> <span class="p">,</span>
+            <span class="n">cfgiter</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">*</span> <span class="n">cfgiter</span><span class="o">.</span><span class="n">parent_nTotal</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="n">indent_prefix</span><span class="p">):</span>
+            <span class="c"># Run the test / read cache</span>
+            <span class="n">_need_compute</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+                <span class="c"># smaller cache for individual configuration runs</span>
+                <span class="n">st_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_query</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">bt_cachedir</span> <span class="o">=</span> <span class="n">cachetup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">st_cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">bt_cachedir</span><span class="p">,</span> <span class="s">&#39;small_tests&#39;</span><span class="p">)</span>
+                <span class="n">st_cachename</span> <span class="o">=</span> <span class="s">&#39;smalltest&#39;</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">st_cachedir</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">st_cachedir</span><span class="p">,</span> <span class="n">st_cachename</span><span class="p">,</span> <span class="n">st_cfgstr</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                    <span class="n">_need_compute</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_need_compute</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="n">_need_compute</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prev_feat_cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">prev_feat_cfgstr</span> <span class="o">!=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">:</span>
+                    <span class="c"># Clear features to preserve memory</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">clear_table_cache</span><span class="p">()</span>
+                    <span class="c">#qreq_.ibs.print_cachestats_str()</span>
+                <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">get_query_result_info</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+                <span class="c"># record previous feature configuration</span>
+                <span class="n">prev_feat_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+                <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">st_cachedir</span><span class="p">,</span> <span class="n">st_cachename</span><span class="p">,</span> <span class="n">st_cfgstr</span><span class="p">,</span> <span class="n">cfgres_info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">NOMEMORY</span><span class="p">:</span>
+            <span class="c"># Store the results</span>
+            <span class="n">cfgx2_cfgresinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfgres_info</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[harn] Completed running test configurations&#39;</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DRY_RUN</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ran tests dryrun mode.&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">NOMEMORY</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ran tests in memory savings mode. Cannot Print. exiting&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c"># Store all pipeline config results in a test result object</span>
+    <span class="n">testres</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">TestResult</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">)</span>
+    <span class="n">testres</span><span class="o">.</span><span class="n">testnameid</span> <span class="o">=</span> <span class="n">testnameid</span>
+    <span class="n">testres</span><span class="o">.</span><span class="n">lbl</span> <span class="o">=</span> <span class="n">lbl</span>
+    <span class="n">testres</span><span class="o">.</span><span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">cfgdict_list</span>
+    <span class="n">testres</span><span class="o">.</span><span class="n">aidcfg</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">cachetup</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">testres</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">testres</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_qres_name_result_info"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_harness.get_qres_name_result_info">[docs]</a><span class="k">def</span> <span class="nf">get_qres_name_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    these are results per query we care about</span>
+<span class="sd">     * gt (best correct match) and gf (best incorrect match) rank, their score</span>
+<span class="sd">       and the difference</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">qres</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="n">qnid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qnid</span>
+        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_ranked_nids_and_aids</span><span class="p">()</span>
+        <span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscores</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span> <span class="o">=</span> <span class="n">nscoretup</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_qaid</span><span class="p">()</span>
+        <span class="n">qnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_nscoretup</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscores</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">)</span>  <span class="o">=</span> <span class="n">nscoretup</span>
+        <span class="n">sorted_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">)</span>
+        <span class="c">#sorted_score_diff = -np.diff(sorted_nscores.tolist())</span>
+
+    <span class="n">is_positive</span> <span class="o">=</span> <span class="n">sorted_nids</span> <span class="o">==</span> <span class="n">qnid</span>
+    <span class="n">is_negative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">is_positive</span><span class="p">,</span> <span class="n">sorted_nids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">gt_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">gf_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">gt_rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gf_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">):</span>
+            <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">())</span>
+            <span class="c">#gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.get_external_daids())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_groundtruth_daids</span><span class="p">()</span>
+            <span class="c">#gf_aids = ibs.get_annot_groundfalse(qres.get_qaid(), daid_list=qres.get_daids())</span>
+        <span class="c">#gt_aids = qres.get_groundtruth_aids(ibs)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">get_groundtruth_daids</span><span class="p">()</span>
+        <span class="n">gt_aid</span> <span class="o">=</span> <span class="n">gt_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">None</span>
+        <span class="n">gf_aid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">gf_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">scorediff</span> <span class="o">=</span> <span class="n">scorefactor</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c">#scorelogfactor = scoreexpdiff = None</span>
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">gt_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gf_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">]</span>
+        <span class="n">gf_raw_score</span> <span class="o">=</span> <span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">]</span>
+        <span class="c"># different comparison methods</span>
+        <span class="n">scorediff</span>      <span class="o">=</span> <span class="n">gt_raw_score</span> <span class="o">-</span> <span class="n">gf_raw_score</span>
+        <span class="n">scorefactor</span>    <span class="o">=</span> <span class="n">gt_raw_score</span> <span class="o">/</span> <span class="n">gf_raw_score</span>
+        <span class="c">#scorelogfactor = np.log(gt_raw_score) / np.log(gf_raw_score)</span>
+        <span class="c">#scoreexpdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)</span>
+
+        <span class="c"># TEST SCORE COMPARISON METHODS</span>
+        <span class="c">#truescore  = np.random.rand(4)</span>
+        <span class="c">#falsescore = np.random.rand(4)</span>
+        <span class="c">#score_diff      = truescore - falsescore</span>
+        <span class="c">#scorefactor    = truescore / falsescore</span>
+        <span class="c">#scorelogfactor = np.log(truescore) / np.log(falsescore)</span>
+        <span class="c">#scoreexpdiff   = np.exp(truescore) - np.exp(falsescore)</span>
+        <span class="c">#for x in [score_diff, scorefactor, scorelogfactor, scoreexpdiff]:</span>
+        <span class="c">#    print(x.argsort())</span>
+
+    <span class="n">qresinfo_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">bestranks</span><span class="o">=</span><span class="n">gt_rank</span><span class="p">,</span>
+        <span class="n">next_bestranks</span><span class="o">=</span><span class="n">gf_rank</span><span class="p">,</span>
+        <span class="c"># TODO remove prev dup entries</span>
+        <span class="n">gt_rank</span><span class="o">=</span><span class="n">gt_rank</span><span class="p">,</span>
+        <span class="n">gf_rank</span><span class="o">=</span><span class="n">gf_rank</span><span class="p">,</span>
+        <span class="n">gt_aid</span><span class="o">=</span><span class="n">gt_aid</span><span class="p">,</span>
+        <span class="n">gf_aid</span><span class="o">=</span><span class="n">gf_aid</span><span class="p">,</span>
+        <span class="n">gt_raw_score</span><span class="o">=</span><span class="n">gt_raw_score</span><span class="p">,</span>
+        <span class="n">gf_raw_score</span><span class="o">=</span><span class="n">gf_raw_score</span><span class="p">,</span>
+        <span class="n">scorediff</span><span class="o">=</span><span class="n">scorediff</span><span class="p">,</span>
+        <span class="n">scorefactor</span><span class="o">=</span><span class="n">scorefactor</span><span class="p">,</span>
+        <span class="c">#scorelogfactor=scorelogfactor,</span>
+        <span class="c">#scoreexpdiff=scoreexpdiff</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">qresinfo_dict</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_query_result_info"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_harness.get_query_result_info">[docs]</a><span class="k">def</span> <span class="nf">get_query_result_info</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function.</span>
+
+<span class="sd">    Runs queries of a specific configuration returns the best rank of each query</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaids (list) : query annotation ids</span>
+<span class="sd">        daids (list) : database annotation ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qx2_bestranks</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --test-get_query_result_info</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --test-get_query_result_info:1</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --test-get_query_result_info:0 --db lynx -a default:qsame_encounter=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_harness import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.main_helpers.testdata_qreq_(a=[&#39;default:qindex=0:3,dindex=0:5&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #qaids = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; #daids = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})</span>
+<span class="sd">        &gt;&gt;&gt; cfgres_info = get_query_result_info(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(cfgres_info))</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_harness import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #cfgdict = dict(codename=&#39;vsone&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # ibs.cfg.query_cfg.codename = &#39;vsone&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})</span>
+<span class="sd">        &gt;&gt;&gt; cfgres_info = get_query_result_info(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(cfgres_info))</span>
+
+<span class="sd">    Ignore:</span>
+
+<span class="sd">        for qaid, qres in six.iteritems(qaid2_qres):</span>
+<span class="sd">            break</span>
+<span class="sd">        for qaid, qres in six.iteritems(qaid2_qres):</span>
+<span class="sd">            qres.ishow_top(ibs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Execute or load query</span>
+    <span class="c">#ibs.get_annot_name_rowids(qaids)</span>
+    <span class="c">#ibs.get_annot_name_rowids(daids)</span>
+
+    <span class="c">#qreq_ = ibs.new_query_request(qaids, daids, verbose=True)</span>
+    <span class="c">#qx2_qres = ibs.query_chips(qreq_=qreq_)</span>
+    <span class="c">#assert [x.qaid for x in qx2_qres] == qaids, &#39;request missmatch&#39;</span>
+    <span class="c">#qx2_qres = ut.dict_take(qaid2_qres, qaids)</span>
+    <span class="c"># Get the groundtruth that could have been matched in this experiment</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="c"># TODO: change qres to chipmatch and make multi-chipmatch</span>
+        <span class="c">#ut.embed()</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">qx2_qres</span> <span class="o">=</span> <span class="n">cm_list</span>
+        <span class="c">#cm_list = [qres.as_chipmatch() for qres in qx2_qres]</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+        <span class="n">qnids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+
+        <span class="n">unique_dnids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()))</span>
+
+        <span class="n">unique_qnids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">qnids</span><span class="p">)</span>
+        <span class="n">cm_group_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">qnid2_aggnamescores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">qnx2_nameres_info</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">nameres_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">cm_group</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_qnids</span><span class="p">,</span> <span class="n">cm_group_list</span><span class="p">):</span>
+            <span class="n">nid2_name_score_group</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">dict</span><span class="p">([(</span><span class="n">nid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span><span class="p">[</span><span class="n">nidx</span><span class="p">])</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nidx</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">nid2_nidx</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+                <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_group</span>
+            <span class="p">]</span>
+            <span class="n">aligned_name_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">nid2_name_score</span><span class="p">,</span> <span class="n">unique_dnids</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">nid2_name_score</span> <span class="ow">in</span> <span class="n">nid2_name_score_group</span>
+            <span class="p">])</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">name_score_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">aligned_name_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">qnid2_aggnamescores</span><span class="p">[</span><span class="n">qnid</span><span class="p">]</span> <span class="o">=</span> <span class="n">name_score_list</span>
+            <span class="c"># sort</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="n">name_score_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sorted_namescores</span> <span class="o">=</span> <span class="n">name_score_list</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+            <span class="n">sorted_dnids</span> <span class="o">=</span> <span class="n">unique_dnids</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+
+            <span class="c">## infer agg name results</span>
+            <span class="n">is_positive</span> <span class="o">=</span> <span class="n">sorted_dnids</span> <span class="o">==</span> <span class="n">qnid</span>
+            <span class="n">is_negative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">is_positive</span><span class="p">,</span> <span class="n">sorted_dnids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">gt_name_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">gf_name_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">gt_nid</span> <span class="o">=</span> <span class="n">sorted_dnids</span><span class="p">[</span><span class="n">gt_name_rank</span><span class="p">]</span>
+            <span class="n">gf_nid</span> <span class="o">=</span> <span class="n">sorted_dnids</span><span class="p">[</span><span class="n">gf_name_rank</span><span class="p">]</span>
+            <span class="n">gt_name_score</span> <span class="o">=</span> <span class="n">sorted_namescores</span><span class="p">[</span><span class="n">gt_name_rank</span><span class="p">]</span>
+            <span class="n">gf_name_score</span> <span class="o">=</span> <span class="n">sorted_namescores</span><span class="p">[</span><span class="n">gf_name_rank</span><span class="p">]</span>
+            <span class="n">qnx2_nameres_info</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;qnid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qnid</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gt_nid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_nid</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gf_nid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gf_nid</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gt_name_rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_name_rank</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gf_name_rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gf_name_rank</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gt_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_name_score</span>
+            <span class="n">qnx2_nameres_info</span><span class="p">[</span><span class="s">&#39;gf_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gf_name_score</span>
+
+            <span class="n">nameres_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qnx2_nameres_info</span><span class="p">)</span>
+            <span class="n">nameres_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_stack</span><span class="p">(</span><span class="n">nameres_info_list</span><span class="p">,</span> <span class="s">&#39;qnx2_&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qx2_qres</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+    <span class="n">qx2_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daids</span><span class="p">)</span>
+    <span class="c"># Get the groundtruth ranks and accuracy measures</span>
+    <span class="n">qx2_qresinfo</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_qres_name_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qx2_qres</span><span class="p">]</span>
+
+    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_stack</span><span class="p">(</span><span class="n">qx2_qresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_&#39;</span><span class="p">)</span>
+    <span class="c">#for key in qx2_qresinfo[0].keys():</span>
+    <span class="c">#    &#39;qx2_&#39; + key</span>
+    <span class="c">#    ut.get_list_column(qx2_qresinfo, key)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">qres</span><span class="o">.</span><span class="n">get_average_percision</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span> <span class="k">for</span>
+             <span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qx2_qres</span><span class="p">,</span> <span class="n">qx2_gtaids</span><span class="p">)])</span>
+        <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_avepercision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qx2_avepercision</span>
+    <span class="c"># Compute mAP score  # TODO: use mAP score</span>
+    <span class="c"># (Actually map score doesn&#39;t make much sense if using name scoring</span>
+    <span class="c">#mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA</span>
+    <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_bestranks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_bestranks&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cfgres_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">nameres_info</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cfgres_info</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness</span>
+<span class="sd">        python -m ibeis.expt.experiment_harness --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

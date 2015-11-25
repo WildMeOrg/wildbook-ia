@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.__main__ &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.__main__</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.__main__</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Runs IBIES gui</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">ibeis</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">CMD</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--cmd&#39;</span><span class="p">)</span>
+
+
+<span class="c"># For Pyinstaller</span>
+<span class="c">#from ibeis.all_imports import *  # NOQA</span>
+
+
+<div class="viewcode-block" id="dependencies_for_myprogram"><a class="viewcode-back" href="../../ibeis.html#ibeis.__main__.dependencies_for_myprogram">[docs]</a><span class="k">def</span> <span class="nf">dependencies_for_myprogram</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Let pyintaller find these modules</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>  <span class="c"># Pyinstaller hacks  # NOQA</span>
+    <span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>  <span class="c"># NOQA</span>
+    <span class="c">#from PyQt4 import QtCore, QtGui  # NOQA</span>
+    <span class="kn">from</span> <span class="nn">scipy.sparse.csgraph</span> <span class="kn">import</span> <span class="n">_validation</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">_ufuncs_cxx</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1</span> <span class="kn">import</span> <span class="n">make_axes_locatable</span>  <span class="c"># NOQA</span>
+    <span class="c">#import lru  # NOQA</span>
+    <span class="c"># Workaround for mpl_toolkits</span>
+    <span class="kn">import</span> <span class="nn">importlib</span>
+    <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s">&#39;mpl_toolkits&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">__path__</span>
+
+</div>
+<div class="viewcode-block" id="run_ibeis"><a class="viewcode-back" href="../../ibeis.html#ibeis.__main__.run_ibeis">[docs]</a><span class="k">def</span> <span class="nf">run_ibeis</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis</span>
+<span class="sd">        python -m ibeis --tf find_installed_tomcat</span>
+<span class="sd">        python -m ibeis --tf get_annot_groundtruth:1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#ut.set_process_title(&#39;IBEIS_main&#39;)</span>
+    <span class="c">#main_locals = ibeis.main()</span>
+    <span class="c">#ibeis.main_loop(main_locals)</span>
+    <span class="c">#ut.set_process_title(&#39;IBEIS_main&#39;)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--devcmd&#39;</span><span class="p">):</span>
+        <span class="c"># Hack to let devs mess around when using an installer version</span>
+        <span class="c"># TODO: add more hacks</span>
+        <span class="c">#import utool.tests.run_tests</span>
+        <span class="c">#utool.tests.run_tests.run_tests()</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run-utool-tests&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool.tests.run_tests</span>
+        <span class="n">retcode</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run-vtool-tests&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">vtool.tests.run_tests</span>
+        <span class="n">retcode</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--run-ibeis-tests&#39;</span><span class="p">,</span> <span class="s">&#39;--run-tests&#39;</span><span class="p">)):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.tests</span> <span class="kn">import</span> <span class="n">run_tests</span>
+        <span class="n">retcode</span> <span class="o">=</span> <span class="n">run_tests</span><span class="o">.</span><span class="n">run_tests</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;-e&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ibeis -e print -a default -t default</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Run dev script if -e given</span>
+        <span class="kn">import</span> <span class="nn">ibeis.dev</span>  <span class="c"># NOQA</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">devmain</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c">#if ut.get_argflag(&#39;-e&#39;):</span>
+    <span class="c">#    import ibeis</span>
+    <span class="c">#    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),</span>
+    <span class="c">#    prefix_list=[&#39;--&#39;, &#39;-&#39;])</span>
+    <span class="c">#    ibeis.run_experiment(**expt_kw)</span>
+    <span class="c">#    sys.exit(0)</span>
+
+    <span class="c"># Attempt to run a test using the funciton name alone</span>
+    <span class="c"># with the --tf flag</span>
+    <span class="kn">import</span> <span class="nn">ibeis.tests.run_tests</span>
+    <span class="kn">import</span> <span class="nn">ibeis.tests.reset_testdbs</span>
+    <span class="n">ignore_prefix</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c">#&#39;ibeis.tests&#39;,</span>
+        <span class="s">&#39;ibeis.control.__SQLITE3__&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_autogen_explicit_controller&#39;</span><span class="p">]</span>
+    <span class="n">ignore_suffix</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_grave&#39;</span><span class="p">]</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">main_function_tester</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="n">ignore_prefix</span><span class="p">,</span> <span class="n">ignore_suffix</span><span class="p">)</span>
+
+    <span class="n">doctest_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;--doctest-module&#39;</span><span class="p">,</span> <span class="s">&#39;--tmod&#39;</span><span class="p">,</span> <span class="s">&#39;-tm&#39;</span><span class="p">,</span> <span class="s">&#39;--testmod&#39;</span><span class="p">),</span>
+        <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify a module to doctest&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doctest_modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allow any doctest to be run the main ibeis script</span>
+
+<span class="sd">        python -m ibeis --tmod utool.util_str --test-align:0</span>
+<span class="sd">        python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show</span>
+<span class="sd">        python -m ibeis --tf request_ibeis_query_L0:0 --show</span>
+<span class="sd">        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA</span>
+<span class="sd">        ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0</span>
+<span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0</span>
+<span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests</span>
+<span class="sd">        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibeis] Testing module&#39;</span><span class="p">)</span>
+        <span class="n">mod_alias_list</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;exptdraw&#39;</span><span class="p">:</span> <span class="s">&#39;ibeis.expt.experiment_drawing&#39;</span>
+        <span class="p">}</span>
+        <span class="n">doctest_modname</span> <span class="o">=</span> <span class="n">mod_alias_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">doctest_modname</span><span class="p">,</span> <span class="n">doctest_modname</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_modname</span><span class="p">(</span><span class="n">doctest_modname</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">failed_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">)</span>
+        <span class="n">retcode</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c">#print(module)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_loop</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
+    <span class="c"># &lt;DEBUG CODE&gt;</span>
+    <span class="k">if</span> <span class="s">&#39;back&#39;</span> <span class="ow">in</span> <span class="n">main_locals</span> <span class="ow">and</span> <span class="n">CMD</span><span class="p">:</span>
+        <span class="c">#from ibeis.all_imports import *  # NOQA</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;back&#39;</span><span class="p">]</span>
+        <span class="n">front</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="s">&#39;front&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># NOQA</span>
+        <span class="c">#front = back.front</span>
+        <span class="c">#ui = front.ui</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>  <span class="c"># NOQA</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+    <span class="c"># &lt;/DEBUG CODE&gt;</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="n">run_ibeis</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

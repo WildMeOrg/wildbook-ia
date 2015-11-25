@@ -1,0 +1,1336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.score_normalization &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.score_normalization</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.model.hots.score_normalization</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">GOALS:</span>
+<span class="sd">    1) vsmany</span>
+<span class="sd">       * works resaonable for very few and very many</span>
+<span class="sd">       * stars with small k and then k becomes a percent or log percent</span>
+<span class="sd">       * distinctiveness from different location</span>
+
+<span class="sd">    2) 1-vs-1</span>
+<span class="sd">       * uses distinctiveness and foreground when available</span>
+<span class="sd">       * start with ratio test and ransac</span>
+
+<span class="sd">    3) First N decision are interactive until we learn a good threshold</span>
+
+<span class="sd">    4) Always show numbers between 0 and 1 spatial verification is based on</span>
+<span class="sd">    single best exemplar</span>
+
+<span class="sd">       x - build normalizer</span>
+<span class="sd">       x - test normalizer</span>
+<span class="sd">       x - monotonicity (both nondecreasing and strictly increasing)</span>
+<span class="sd">       x - cache normalizer</span>
+<span class="sd">       x - cache maitainance (deleters and listers)</span>
+<span class="sd">       o - Incemental learning</span>
+<span class="sd">       o - Spceies sensitivity</span>
+
+
+<span class="sd">    * Add ability for user to relearn normalizer from labeled database.</span>
+
+
+<span class="sd">TODO:</span>
+<span class="sd">    move scorenorm functionality to vtool</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[scorenorm]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c"># NORMALIZER STORAGE AND CACHINE CLASS</span>
+<span class="n">USE_NORMALIZER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--no-normalizer-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--no-normcache&#39;</span><span class="p">))</span>
+<span class="c"># IBEIS FUNCTIONS</span>
+<span class="n">MAX_NORMALIZER_CACHE_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">NORMALIZER_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_lru_cache</span><span class="p">(</span><span class="n">MAX_NORMALIZER_CACHE_SIZE</span><span class="p">)</span>
+<span class="c">#NORMALIZER_CACHE = {}</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="ScoreNormalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer">[docs]</a><span class="k">class</span> <span class="nc">ScoreNormalizer</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">Cachable</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        normalizer       (?):</span>
+<span class="sd">        cfgstr           (None):</span>
+<span class="sd">        score_domain     (None):</span>
+<span class="sd">        p_tp_given_score (None):</span>
+<span class="sd">        tp_support       (None):</span>
+<span class="sd">        tn_support       (None):</span>
+<span class="sd">        tp_labels        (None):</span>
+<span class="sd">        tn_labels        (None):</span>
+<span class="sd">        clip_score        (None):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-ScoreNormalizer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = None</span>
+<span class="sd">        &gt;&gt;&gt; score_domain = None</span>
+<span class="sd">        &gt;&gt;&gt; p_tp_given_score = None</span>
+<span class="sd">        &gt;&gt;&gt; tp_support = None</span>
+<span class="sd">        &gt;&gt;&gt; tn_support = None</span>
+<span class="sd">        &gt;&gt;&gt; tp_labels = None</span>
+<span class="sd">        &gt;&gt;&gt; tn_labels = None</span>
+<span class="sd">        &gt;&gt;&gt; normalizer = ScoreNormalizer(cfgstr, score_domain, p_tp_given_score,</span>
+<span class="sd">        ...                              tp_support, tn_support, tp_labels,</span>
+<span class="sd">        ...                              tn_labels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prefix2</span> <span class="o">=</span> <span class="s">&#39;_normalizer_&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">score_domain</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">p_tp_given_score</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tp_support</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tn_support</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">tp_labels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tn_labels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">clip_score</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">timestamp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScoreNormalizer</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">prefix1</span> <span class="o">=</span> <span class="n">prefix</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="o">=</span> <span class="n">score_domain</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span> <span class="o">=</span> <span class="n">p_tp_given_score</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">tp_support</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">tn_support</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span> <span class="o">=</span> <span class="n">tp_labels</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span> <span class="o">=</span> <span class="n">tn_labels</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">timestamp</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">clip_score</span> <span class="o">=</span> <span class="n">clip_score</span>
+        <span class="c">#normalizer.set_values(score_domain, p_tp_given_score, tp_support,</span>
+        <span class="c">#                      tn_support, tp_labels, tn_labels)</span>
+
+<div class="viewcode-block" id="ScoreNormalizer.get_prefix"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.get_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_prefix</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">prefix1</span> <span class="o">+</span> <span class="n">ScoreNormalizer</span><span class="o">.</span><span class="n">prefix2</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">cfgstr</span>
+
+    <span class="c">#def load(normalizer, *args, **kwargs):</span>
+    <span class="c">#    # Inherited method</span>
+    <span class="c">#    super(ScoreNormalizer, normalizer).load(*args, **kwargs)</span>
+
+    <span class="c">#def save(normalizer, *args, **kwargs):</span>
+    <span class="c">#    # Inherited method</span>
+    <span class="c">#    super(ScoreNormalizer, normalizer).save(*args, **kwargs)</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.normalize_score_"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.normalize_score_">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_score_</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; for internal use only &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;user normalize score list&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">.</span><span class="mi">5</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c"># clip scores at 0</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c"># interpolate between max probability and one</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># use normalizer to get scores</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="o">&lt;=</span> <span class="n">score</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">indexes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="c">#if prob &gt;= 1:</span>
+        <span class="c">#    ut.embed()</span>
+        <span class="k">return</span> <span class="n">prob</span>
+</div>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ScoreNormalizer.normalize_score_list"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.normalize_score_list">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_score_list</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">get_num_training_pairs</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c">#prob_list = normalizer.empty_normalize_score_list_46(score_list)</span>
+            <span class="n">prob_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">empty_normalize_score_list_None</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prob_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">score_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">prob_list</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.empty_normalize_score_list_None"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.empty_normalize_score_list_None">[docs]</a>    <span class="k">def</span> <span class="nf">empty_normalize_score_list_None</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.empty_normalize_score_list_46"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.empty_normalize_score_list_46">[docs]</a>    <span class="k">def</span> <span class="nf">empty_normalize_score_list_46</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # HACK</span>
+<span class="sd">        # return scores from .4 to .6 if we have no idea</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_arr</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">==</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">score_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prob_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">norm_zero_one</span><span class="p">(</span><span class="n">score_arr</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="o">.</span><span class="mi">4</span>
+        <span class="k">return</span> <span class="n">prob_list</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.normalizer_score_list2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.normalizer_score_list2">[docs]</a>    <span class="k">def</span> <span class="nf">normalizer_score_list2</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        linear combination of probability and original score based on num</span>
+<span class="sd">        support cases</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_train_pairs</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">get_num_training_pairs</span><span class="p">()</span>
+        <span class="n">score_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+        <span class="n">prob_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+        <span class="n">NUM_SUPPORT_THRESH</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">num_train_pairs</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">NUM_SUPPORT_THRESH</span><span class="p">))</span>
+        <span class="n">prob_list2</span> <span class="o">=</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">score_list</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">prob_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prob_list2</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.get_num_training_pairs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.get_num_training_pairs">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_training_pairs</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">num_train_pairs</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_train_pairs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num_train_pairs</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.get_infostr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.get_infostr">[docs]</a>    <span class="k">def</span> <span class="nf">get_infostr</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;empty normalizer&#39;</span>
+        <span class="n">infostr_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;tp_support&#39;</span><span class="p">,</span> <span class="n">exclude_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;nMin&#39;</span><span class="p">,</span> <span class="s">&#39;nMax&#39;</span><span class="p">]),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;tn_support&#39;</span><span class="p">,</span> <span class="n">exclude_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;nMin&#39;</span><span class="p">,</span> <span class="s">&#39;nMax&#39;</span><span class="p">]),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;p_tp_given_score&#39;</span><span class="p">,</span> <span class="n">exclude_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;nMin&#39;</span><span class="p">,</span> <span class="s">&#39;nMax&#39;</span><span class="p">]),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="s">&#39;shape&#39;</span><span class="p">],</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;score_domain&#39;</span><span class="p">),</span>
+            <span class="s">&#39;clip_score = </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">clip_score</span><span class="p">,</span>
+            <span class="s">&#39;cfgstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">,</span>
+            <span class="s">&#39;timestamp = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">infostr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">infostr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">infostr</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.add_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.add_support">[docs]</a>    <span class="k">def</span> <span class="nf">add_support</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.model.hots.score_normalization --test-add_support --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; normalizer = ScoreNormalizer(&#39;testnorm&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; tp_scores = [100, 100, 70, 60, 60, 60, 100]</span>
+<span class="sd">            &gt;&gt;&gt; tn_scores = [10, 10, 20, 30, 30, 30, 10]</span>
+<span class="sd">            &gt;&gt;&gt; tp_labels = list(map(ut.deterministic_uuid, [110, 110, 111, 112, 112, 112, 110]))</span>
+<span class="sd">            &gt;&gt;&gt; tn_labels = list(map(ut.deterministic_uuid, [10, 10, 11, 12, 12, 12, 10]))</span>
+<span class="sd">            &gt;&gt;&gt; # call test function</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.retrain()</span>
+<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">            &gt;&gt;&gt;      normalizer.visualize()</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; tp_scores = np.random.randint(100, size=100)</span>
+<span class="sd">            &gt;&gt;&gt; tn_scores = np.random.randint(50, size=100)</span>
+<span class="sd">            &gt;&gt;&gt; tp_labels = list(map(ut.deterministic_uuid, np.arange(1000, 1100)))</span>
+<span class="sd">            &gt;&gt;&gt; tn_labels = list(map(ut.deterministic_uuid, np.arange(2000, 2100)))</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.retrain()</span>
+<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">            &gt;&gt;&gt;     import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt;     normalizer.visualize()</span>
+<span class="sd">            &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Initialize support if empty</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="c"># Ensure that incoming data is unique w.r.t. data that already exists</span>
+        <span class="k">def</span> <span class="nf">filter_seen_data</span><span class="p">(</span><span class="n">seen_labels</span><span class="p">,</span> <span class="n">input_labels</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            seen_labels, input_labels, input_data = normalizer.tp_labels, tp_labels, tp_scores</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">unique_labels</span><span class="p">,</span> <span class="n">unique_indiceis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">input_labels</span><span class="p">,</span>  <span class="n">return_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">unique_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_indiceis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">isold_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">seen_labels</span><span class="p">)</span>
+            <span class="n">isnew_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">isold_flags</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">isold_flags</span><span class="p">)</span>
+            <span class="n">filtered_labels</span> <span class="o">=</span> <span class="n">unique_labels</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isnew_flags</span><span class="p">)</span>
+            <span class="n">filtered_data</span> <span class="o">=</span> <span class="n">unique_data</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isnew_flags</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">filtered_labels</span><span class="p">,</span> <span class="n">filtered_data</span>
+        <span class="n">filtered_tp_labels</span><span class="p">,</span> <span class="n">filtered_tp_scores</span> <span class="o">=</span> <span class="n">filter_seen_data</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tp_scores</span><span class="p">)</span>
+        <span class="n">filtered_tn_labels</span><span class="p">,</span> <span class="n">filtered_tn_scores</span> <span class="o">=</span> <span class="n">filter_seen_data</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">)</span>
+
+        <span class="c"># Ensure input in list format</span>
+        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">,</span> <span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">))),</span> <span class="p">(</span><span class="s">&#39;unequal lengths&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_tp_scores</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">filtered_tp_scores</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">filtered_tn_scores</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">filtered_tp_labels</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_label</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span><span class="p">,</span> <span class="n">filtered_tn_labels</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.retrain"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.retrain">[docs]</a>    <span class="k">def</span> <span class="nf">retrain</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
+        <span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">)</span>
+        <span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">)</span>
+        <span class="n">learnkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">learntup</span> <span class="o">=</span> <span class="n">learn_score_normalization</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span>
+                                             <span class="n">return_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">)</span> <span class="o">=</span> <span class="n">learntup</span>
+        <span class="c"># DONT Make a new custom cfg</span>
+        <span class="c">#cfgstr = ut.hashstr((tp_support, tn_support))</span>
+        <span class="c">#normalizer.cfgstr = cfgstr</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="o">=</span> <span class="n">score_domain</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span> <span class="o">=</span> <span class="n">p_tp_given_score</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">clip_score</span> <span class="o">=</span> <span class="n">clip_score</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.visualize"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.model.hots.score_normalization --test-visualize --index 0</span>
+<span class="sd">            --cmd</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; #import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; index = ut.get_argval(&#39;--index&#39;, type_=int, default=0)</span>
+<span class="sd">            &gt;&gt;&gt; normalizer = load_precomputed_normalizer(index, with_global=False)</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.visualize()</span>
+<span class="sd">            &gt;&gt;&gt; six.exec_(pt.present(), globals(), locals())</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">visualize_probs</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">visualize_support</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.visualize_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.visualize_support">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_support</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">plot_support</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ScoreNormalizer.visualize_probs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.visualize_probs">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_probs</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">plot_postbayes_pdf</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">score_domain</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="p">,</span>
+                           <span class="n">normalizer</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="p">,</span>
+                           <span class="n">cfgstr</span><span class="o">=</span><span class="n">normalizer</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+
+<span class="c"># DEVELOPER FUNCTIONS</span>
+
+</div></div>
+<div class="viewcode-block" id="parse_available_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.parse_available_normalizers">[docs]</a><span class="k">def</span> <span class="nf">parse_available_normalizers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">parse</span>
+    <span class="n">normalizers_fpaths</span> <span class="o">=</span> <span class="n">list_available_score_normalizers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">parsestr</span> <span class="o">=</span> <span class="s">&#39;{cachedir}/{prefix1}&#39;</span> <span class="o">+</span> <span class="n">ScoreNormalizer</span><span class="o">.</span><span class="n">prefix2</span> <span class="o">+</span> <span class="s">&#39;{cfgstr}&#39;</span> <span class="o">+</span> <span class="n">ScoreNormalizer</span><span class="o">.</span><span class="n">ext</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">parsestr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">normalizers_fpaths</span><span class="p">]</span>
+    <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;cfgstr&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+    <span class="n">prefix1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;prefix1&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+    <span class="n">cachedir_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="s">&#39;cachedir&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">cachedir_list</span><span class="p">,</span> <span class="n">prefix1_list</span>
+
+</div>
+<div class="viewcode-block" id="load_precomputed_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.load_precomputed_normalizer">[docs]</a><span class="k">def</span> <span class="nf">load_precomputed_normalizer</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m ibeis.model.hots.score_normalization --test-load_precomputed_normalizer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; normalizer = load_precomputed_normalizer(None)</span>
+<span class="sd">        &gt;&gt;&gt; normalizer.visualize()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; six.exec_(pt.present(), globals(), locals())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">cachedir_list</span><span class="p">,</span> <span class="n">prefix1_list</span> <span class="o">=</span> <span class="n">parse_available_normalizers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Avaliable indexes:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">))))</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s">&#39;what index?&#39;</span><span class="p">))</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">cachedir_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="c">#prefix1 = prefix1_list[index]</span>
+    <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
+    <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+</div>
+<div class="viewcode-block" id="testload_myscorenorm"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.testload_myscorenorm">[docs]</a><span class="k">def</span> <span class="nf">testload_myscorenorm</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-testload_myscorenorm</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; testload_myscorenorm()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; six.exec_(pt.present(), globals(), locals())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="s">&#39;gzbase&#39;</span><span class="p">)</span>
+    <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/Dropbox/IBEIS&#39;</span><span class="p">))</span>
+    <span class="n">normalizer</span><span class="o">.</span><span class="n">visualize</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="list_available_score_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.list_available_score_normalizers">[docs]</a><span class="k">def</span> <span class="nf">list_available_score_normalizers</span><span class="p">(</span><span class="n">with_global</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_local</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-list_available_score_normalizers</span>
+
+<span class="sd">    Ignore::</span>
+<span class="sd">        cp /media/raid/work/_INCTEST_arr((666)7xcu21@fcschv2@m)_GZ_ALL/_ibsdb/_ibeis_cache/scorenorm/zebra_grevys/zebra_grevys_normalizer_bi+i4y&amp;3dl8!xb!+.cPkl</span>
+<span class="sd">        mkdir ~/Dropbox/IBEIS</span>
+<span class="sd">        cp &#39;/media/raid/work/_INCTEST_arr((666)7xcu21@fcschv2@m)_GZ_ALL/_ibsdb/_ibeis_cache/scorenorm/zebra_grevys/zebra_grevys_normalizer_bi+i4y&amp;3dl8!xb!+.cPkl&#39; ~/Dropbox/IBEIS/normalizer.cPkl</span>
+<span class="sd">        mv ~/Dropbox/IBEIS/normalizer.cPkl ~/Dropbox/IBEIS/_normalizer_gzbase.cPkl</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; local_normalizers_fpaths = list_available_score_normalizers(with_global=False)</span>
+<span class="sd">        &gt;&gt;&gt; global_normalizers_fpaths = list_available_score_normalizers(with_local=False)</span>
+<span class="sd">        &gt;&gt;&gt; # quote them</span>
+<span class="sd">        &gt;&gt;&gt; # local_normalizers_fpaths = [&#39;&quot;%s&quot;&#39; % fpath for fpath in local_normalizers_fpaths]</span>
+<span class="sd">        &gt;&gt;&gt; # global_normalizers_fpaths = [&#39;&quot;%s&quot;&#39; % fpath for fpath in global_normalizers_fpaths]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Available LOCAL normalizers: &#39; + ut.indentjoin(local_normalizers_fpaths, &#39;\n  &#39;))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Available GLOBAL normalizers: &#39; + ut.indentjoin(global_normalizers_fpaths, &#39;\n  &#39;))</span>
+<span class="sd">        &gt;&gt;&gt; print(list(map(ut.get_file_nBytes_str, local_normalizers_fpaths)))</span>
+<span class="sd">        &gt;&gt;&gt; print(list(map(ut.get_file_nBytes_str, global_normalizers_fpaths)))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+    <span class="c">#from os.path import join</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="n">ScoreNormalizer</span><span class="o">.</span><span class="n">prefix2</span> <span class="o">+</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="n">ScoreNormalizer</span><span class="o">.</span><span class="n">ext</span>
+    <span class="n">ibeis_resdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">()</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+
+    <span class="n">normalizer_fpaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">with_global</span><span class="p">:</span>
+        <span class="n">global_normalizers</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">ibeis_resdir</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">normalizer_fpaths</span> <span class="o">+=</span> <span class="n">global_normalizers</span>
+    <span class="k">if</span> <span class="n">with_local</span><span class="p">:</span>
+        <span class="n">ibsdbdir_list</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="n">searchdirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdbdir</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">ibsdbdir</span> <span class="ow">in</span> <span class="n">ibsdbdir_list</span><span class="p">]</span>
+        <span class="n">local_normalizers_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span>  <span class="n">searchdirs</span><span class="p">]</span>
+        <span class="n">local_normalizers</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">local_normalizers_list</span><span class="p">)</span>
+        <span class="n">normalizer_fpaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">local_normalizers</span><span class="p">)</span>
+    <span class="c"># Just search localdb cachedirs (otherwise it will take forever)</span>
+    <span class="k">return</span> <span class="n">normalizer_fpaths</span>
+
+</div>
+<div class="viewcode-block" id="delete_all_learned_normalizers"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.delete_all_learned_normalizers">[docs]</a><span class="k">def</span> <span class="nf">delete_all_learned_normalizers</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    DELETES ALL CACHED NORMALIZERS IN ALL DATABASES</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-delete_all_learned_normalizers</span>
+<span class="sd">        #-y</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import score_normalization</span>
+<span class="sd">        &gt;&gt;&gt; score_normalization.delete_all_learned_normalizers()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">score_normalization</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;DELETE_ALL_LEARNED_NORMALIZERS&#39;</span><span class="p">)</span>
+    <span class="n">normalizer_fpath_list</span> <span class="o">=</span> <span class="n">score_normalization</span><span class="o">.</span><span class="n">list_available_score_normalizers</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;The following normalizers will be deleted: &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">normalizer_fpath_list</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  &#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="s">&#39;Deleting all learned normalizers&#39;</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">remove_fpaths</span><span class="p">(</span><span class="n">normalizer_fpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="c"># TRAINING FUNCTIONS</span>
+
+</div>
+<div class="viewcode-block" id="train_baseline_for_all_dbs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.train_baseline_for_all_dbs">[docs]</a><span class="k">def</span> <span class="nf">train_baseline_for_all_dbs</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Runs unnormalized queries to compute normalized queries</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-train_baseline_for_all_dbs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; train_baseline_for_all_dbs()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c">#from ibeis.model.hots import score_normalization</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;GZ_ALL&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;PZ_MTEST&#39;</span>
+    <span class="n">dbname_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;GZ_ALL&#39;,</span>
+    <span class="p">]</span>
+    <span class="n">learnkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="n">dbname_list</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+        <span class="n">train_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="train_baseline_ibeis_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.train_baseline_ibeis_normalizer">[docs]</a><span class="k">def</span> <span class="nf">train_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Runs unnormalized queries to compute normalized queries</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ScoreNormalizer: normalizer</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-train_baseline_ibeis_normalizer --cmd</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-train_baseline_ibeis_normalizer --noshow</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import score_normalization</span>
+<span class="sd">        &gt;&gt;&gt; #score_normalization.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; dbname = &#39;GZ_ALL&#39;</span>
+<span class="sd">        &gt;&gt;&gt; dbname = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(dbname)</span>
+<span class="sd">        &gt;&gt;&gt; learnkw = dict()</span>
+<span class="sd">        &gt;&gt;&gt; normalizer = score_normalization.train_baseline_ibeis_normalizer(ibs, use_cache=False, **learnkw)</span>
+<span class="sd">        &gt;&gt;&gt; normalizer.visualize()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(normalizer)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; exec(pt.present())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+    <span class="c"># TRAIN BASELINE</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="s">&#39;&lt;TRAINING&gt; &#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s">&#39;Begning Training&#39;</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+        <span class="c">#with utool.Indenter(&#39;TRAIN &gt;&gt;&gt; &#39;):</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="c">#cfgdict = dict(codename=&#39;nsum_unnorm&#39;)</span>
+        <span class="n">codename</span> <span class="o">=</span> <span class="s">&#39;vsone_unnorm&#39;</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">use_qcache</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_qcache</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">cached_ibeis_score_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
+                                                   <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                                                   <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
+        <span class="c"># Save as baseline for this species</span>
+        <span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c"># HACK</span>
+        <span class="n">baseline_cfgstr</span> <span class="o">=</span> <span class="s">&#39;baseline_&#39;</span> <span class="o">+</span> <span class="n">species_text</span>
+        <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_global_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">baseline_cfgstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s">&#39;Finished Training&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+</div>
+<div class="viewcode-block" id="try_download_baseline_ibeis_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.try_download_baseline_ibeis_normalizer">[docs]</a><span class="k">def</span> <span class="nf">try_download_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    tries to download a baseline normalizer for some species.</span>
+<span class="sd">    creates an empty normalizer if it cannot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">baseline_url_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c"># TODO: Populate</span>
+    <span class="p">}</span>
+    <span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c"># HACK</span>
+    <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_global_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">species_text</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
+    <span class="n">baseline_url</span> <span class="o">=</span> <span class="n">baseline_url_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">baseline_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_global_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">baseline_cachedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="s">&#39;baseline&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">baseline_cachedir</span><span class="p">)</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">query_cfgstr</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">baseline_cachedir</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">normalizer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">([</span><span class="s">&#39;hyrule&#39;</span><span class="p">]):</span>
+            <span class="c"># train new normalizer. only do this on hyrule</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Baseline does not exist and cannot be downlaoded. Training baseline&#39;</span><span class="p">)</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="n">train_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># return empty score normalizer</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">query_cfgstr</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;returning empty normalizer&#39;</span><span class="p">)</span>
+            <span class="c">#raise NotImplementedError(&#39;return the nodata noramlizer with 1/2 default&#39;)</span>
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="request_ibeis_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.request_ibeis_normalizer">[docs]</a><span class="k">def</span> <span class="nf">request_ibeis_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    FIXME: do what is in the docstr</span>
+
+<span class="sd">    Any loaded normalizer must be configured on the query_cfg of the query</span>
+<span class="sd">    request. This ensures that all of the support data fed to the normalizer is</span>
+<span class="sd">    consistent.</span>
+
+<span class="sd">    First try to lod the normalizer from the in-memory cache.</span>
+<span class="sd">    If that fails try to load a custom normalizer from the local directory</span>
+<span class="sd">    If that fails try to load a custom normalizer from the global directory</span>
+<span class="sd">    If that fails try to (download and) load the baseline normalizer from the global directory</span>
+<span class="sd">    If that fails return empty score normalizer.</span>
+<span class="sd">    As queries are run the normalizer should be udpated and saved under the</span>
+<span class="sd">    custom normalizer in the local directory.</span>
+
+<span class="sd">    Tries to load the best possible normalizer for this query request.</span>
+<span class="sd">    If none are found then a it tries to load a downloaded baseline. If</span>
+<span class="sd">    none exists then it starts to compute a custom baseline.</span>
+
+<span class="sd">    The basline probability for an empty normalizer should be 1/2.</span>
+<span class="sd">    The probability of a baseline normalizer should be regularized to</span>
+<span class="sd">    stay close to 1/2 when there is little support.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ScoreNormalizer: cached or prebuilt score normalizer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import query_request</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(codename=&#39;vsone_unnorm&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #cfgdict = dict(codename=&#39;vsone_unnorm&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; normalizer = request_ibeis_normalizer(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; normalizer.add_support([100], [10], [1], [2])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">NORMALIZER_CACHE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">USE_NORMALIZER_CACHE</span><span class="p">:</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">try_download_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">normalizer</span>
+    <span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c"># HACK</span>
+    <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">()</span>
+
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">species_text</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
+
+    <span class="k">if</span> <span class="n">NORMALIZER_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>  <span class="c"># NOQA</span>
+        <span class="c"># use memory cache</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">NORMALIZER_CACHE</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scorenorm] returning memorycache normalizer&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">normalizer</span>
+
+    <span class="k">def</span> <span class="nf">try_custom_local</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_local_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">query_cfgstr</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scorenorm] returning local custom normalizer&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">normalizer</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">try_custom_global</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_global_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="o">=</span><span class="n">query_cfgstr</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">species_text</span><span class="p">)</span>
+            <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scorenorm] returning global custom normalizer&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">normalizer</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">normalizer</span> <span class="o">=</span> <span class="n">try_custom_local</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">normalizer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">try_custom_global</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">normalizer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">try_download_baseline_ibeis_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scorenorm] returning baseline normalizer&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">normalizer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;something failed&#39;</span>
+    <span class="c"># Save to memory cache</span>
+    <span class="n">NORMALIZER_CACHE</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalizer</span>
+
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+</div>
+<div class="viewcode-block" id="cached_ibeis_score_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.cached_ibeis_score_normalizer">[docs]</a><span class="k">def</span> <span class="nf">cached_ibeis_score_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
+                                  <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Builds a normalizer trained on query results for a database</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_qres (int): query annotation id</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ScoreNormalizer: cached or freshly trained score normalizer</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-cached_ibeis_score_normalizer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibeis._init_numpy()</span>
+<span class="sd">        &gt;&gt;&gt; dbname = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(dbname)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = daid_list = ibs.get_valid_aids()[1:14:2]</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(codename=&#39;vsone_unnorm&#39;, prescore_method=&#39;nsum&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = True</span>
+<span class="sd">        &gt;&gt;&gt; cm_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True, return_cm=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert cm_list[0].qaid == qaid_list[0], &#39;inconsistent&#39;</span>
+<span class="sd">        &gt;&gt;&gt; score_normalizer = cached_ibeis_score_normalizer(ibs, cm_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = score_normalizer.get_fname()</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;\n&#39; + score_normalizer.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    zebra_plains_normalizer_4rauirubzfudap8h.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks704)_NNWeight(ratio_thresh=0.625,fg)_SV(0.01;2.0;1.57minIn=4,nNRR=50,nARR=6,nsum,cdl,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+
+<span class="sd">    zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks704)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+<span class="sd">    zebra_plains_normalizer_n%w@df%th@i@seel.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+<span class="sd">    normalizer_5cv1%3s&amp;.cPkl</span>
+<span class="sd">    PZ_MTEST_DSUUIDS((9)67j%dr%&amp;bl%4oh4+)_QSUUIDS((9)67j%dr%&amp;bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+<span class="sd">    normalizer_PZ_MTEST_SUUIDS((9)67j%dr%&amp;bl%4oh4+).cPkl</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Collect training data</span>
+    <span class="c">#cfgstr = ibs.get_dbname() + ibs.get_annot_hashid_semantic_uuid(qaid_list)</span>
+    <span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c"># HACK</span>
+    <span class="c">#data_hashid = qreq_.get_data_hashid()</span>
+    <span class="c">#query_hashid = qreq_.get_query_hashid()</span>
+    <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">()</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">species_text</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">query_cfgstr</span>
+    <span class="c">#ibs.get_dbname() + data_hashid + query_hashid + species_text + query_cfgstr</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_local_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;forced normalizer cache miss&#39;</span><span class="p">)</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;returning cached normalizer&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;cannot load noramlizer so computing on instead&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c">#qaid_list = qreq_.get_external_qaids()</span>
+        <span class="n">normalizer</span> <span class="o">=</span> <span class="n">learn_ibeis_score_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span>
+                                                  <span class="n">prefix</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+
+<span class="c"># LEARNING FUNCTIONS</span>
+
+</div>
+<div class="viewcode-block" id="learn_ibeis_score_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.learn_ibeis_score_normalizer">[docs]</a><span class="k">def</span> <span class="nf">learn_ibeis_score_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes the result of queries and trains a score normalizer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs       (IBEISController):</span>
+<span class="sd">        cm_list (list):  object of feature correspondences and scores</span>
+<span class="sd">        cfgstr    (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ScoreNormalizer: freshly trained score normalizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;learning normalizer&#39;</span><span class="p">)</span>
+    <span class="c"># Get support</span>
+    <span class="n">datatup</span> <span class="o">=</span> <span class="n">get_ibeis_score_training_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support_labels</span><span class="p">,</span> <span class="n">tn_support_labels</span><span class="p">)</span> <span class="o">=</span> <span class="n">datatup</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tp_support</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tn_support</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(tp_support) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp_support</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(tn_support) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tn_support</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: [score_normalization] not enough data&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Warning: [score_normalization] not enough data&#39;</span><span class="p">)</span>
+    <span class="c"># Train normalizer</span>
+    <span class="n">learntup</span> <span class="o">=</span> <span class="n">learn_score_normalization</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span>
+                                         <span class="n">return_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">)</span> <span class="o">=</span> <span class="n">learntup</span>
+    <span class="c"># Return normalizer structure</span>
+    <span class="c"># NOTE: this is the only place that the normalizer is construct with</span>
+    <span class="c"># noncache args keep it that way.</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_printable_timestamp</span><span class="p">()</span>
+    <span class="n">normalizer</span> <span class="o">=</span> <span class="n">ScoreNormalizer</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span>
+                                 <span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support_labels</span><span class="p">,</span>
+                                 <span class="n">tn_support_labels</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span>
+                                 <span class="n">prefix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">normalizer</span>
+
+</div>
+<div class="viewcode-block" id="get_ibeis_score_training_data"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.get_ibeis_score_training_data">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_score_training_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns &quot;good&quot; taining examples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">good_tp_nscores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">good_tn_nscores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">good_tp_aidnid_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">good_tn_aidnid_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">qx</span><span class="p">,</span> <span class="n">cm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cm_list</span><span class="p">):</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="c">#if not cm.is_nsum():</span>
+        <span class="c">#    raise AssertionError(&#39;must be nsum&#39;)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">qnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+
+        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_nscoretup</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscores</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">)</span> <span class="o">=</span> <span class="n">nscoretup</span>
+
+        <span class="n">sorted_ndiff</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sorted_nscores</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">sorted_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">)</span>
+        <span class="n">is_positive</span>  <span class="o">=</span> <span class="n">sorted_nids</span> <span class="o">==</span> <span class="n">qnid</span>
+        <span class="n">is_negative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">is_positive</span><span class="p">,</span> <span class="n">sorted_nids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c"># Only take data from results with positive and negative examples</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_negative</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">gt_rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gf_rank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># Only take correct groundtruth scores</span>
+        <span class="k">if</span> <span class="n">gt_rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_nscores</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">gf_rank</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_ndiff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">gf_rank</span><span class="p">:</span>
+                <span class="n">good_tp_nscores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">])</span>
+                <span class="n">good_tn_nscores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">])</span>
+                <span class="n">good_tp_aidnid_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">qaid</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">]))</span>
+                <span class="n">good_tn_aidnid_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">qaid</span><span class="p">,</span> <span class="n">sorted_nids</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">]))</span>
+    <span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">good_tp_nscores</span><span class="p">)</span>
+    <span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">good_tn_nscores</span><span class="p">)</span>
+    <span class="n">tp_support_labels</span> <span class="o">=</span> <span class="n">good_tp_aidnid_pairs</span>
+    <span class="n">tn_support_labels</span> <span class="o">=</span> <span class="n">good_tp_aidnid_pairs</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support_labels</span><span class="p">,</span> <span class="n">tn_support_labels</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="learn_score_normalization"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.learn_score_normalization">[docs]</a><span class="k">def</span> <span class="nf">learn_score_normalization</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                              <span class="n">adjust</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">return_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">monotonize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">clip_factor</span><span class="o">=</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">PHI</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Takes collected data and applys parzen window density estimation and bayes rule.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tp_support (ndarray):</span>
+<span class="sd">        tn_support (ndarray):</span>
+<span class="sd">        gridsize       (int): default 512</span>
+<span class="sd">        adjust         (int): default 8</span>
+<span class="sd">        return_all     (bool): default False</span>
+<span class="sd">        monotonize     (bool): default True</span>
+<span class="sd">        clip_factor    (float): default phi ** 2</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, clip_score)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tp_support = np.linspace(100, 10000, 512)</span>
+<span class="sd">        &gt;&gt;&gt; tn_support = np.linspace(0, 120, 512)</span>
+<span class="sd">        &gt;&gt;&gt; (score_domain, p_tp_given_score, clip_score) = learn_score_normalization(tp_support, tn_support)</span>
+<span class="sd">        &gt;&gt;&gt; result = int(p_tp_given_score.sum())</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        92</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Estimate true positive density</span>
+    <span class="n">score_tp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">estimate_pdf</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="n">adjust</span><span class="p">)</span>
+    <span class="n">score_tn_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">estimate_pdf</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="n">adjust</span><span class="p">)</span>
+    <span class="c"># Find good maximum score (for domain not learning)</span>
+    <span class="c">#clip_score = 2000</span>
+    <span class="n">clip_score</span> <span class="o">=</span> <span class="n">find_score_maxclip</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">clip_factor</span><span class="p">)</span>
+    <span class="n">score_domain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="c"># Evaluate true negative density</span>
+    <span class="n">p_score_given_tp</span> <span class="o">=</span> <span class="n">score_tp_pdf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">score_domain</span><span class="p">)</span>
+    <span class="n">p_score_given_tn</span> <span class="o">=</span> <span class="n">score_tn_pdf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">score_domain</span><span class="p">)</span>
+    <span class="c"># Average to get probablity of any score</span>
+    <span class="n">p_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_score_given_tp</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p_score_given_tn</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="c"># Apply bayes</span>
+    <span class="n">p_tp</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+    <span class="n">p_tp_given_score</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bayes_rule</span><span class="p">(</span><span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_tp</span><span class="p">,</span> <span class="n">p_score</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">monotonize</span><span class="p">:</span>
+        <span class="n">p_tp_given_score</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ensure_monotone_strictly_increasing</span><span class="p">(</span>
+            <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">zerohack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">onehack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_all</span><span class="p">:</span>
+        <span class="n">p_tn_given_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">p_tp_given_score</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">p_tn_given_score</span><span class="p">,</span>
+                <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span> <span class="n">p_score</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="find_score_maxclip"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.find_score_maxclip">[docs]</a><span class="k">def</span> <span class="nf">find_score_maxclip</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">clip_factor</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">PHI</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns score to clip true positives past.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tp_support (ndarray):</span>
+<span class="sd">        tn_support (ndarray):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: clip_score</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tp_support = np.array([100, 200, 50000])</span>
+<span class="sd">        &gt;&gt;&gt; tn_support = np.array([10, 30, 110])</span>
+<span class="sd">        &gt;&gt;&gt; clip_score = find_score_maxclip(tp_support, tn_support)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(clip_score)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        287.983738762</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_true_positive_score</span> <span class="o">=</span> <span class="n">tp_support</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">max_true_negative_score</span> <span class="o">=</span> <span class="n">tn_support</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">clip_factor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">clip_score</span> <span class="o">=</span> <span class="n">max_true_positive_score</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">overshoot_factor</span> <span class="o">=</span> <span class="n">max_true_positive_score</span> <span class="o">/</span> <span class="n">max_true_negative_score</span>
+        <span class="k">if</span> <span class="n">overshoot_factor</span> <span class="o">&gt;</span> <span class="n">clip_factor</span><span class="p">:</span>
+            <span class="n">clip_score</span> <span class="o">=</span> <span class="n">max_true_negative_score</span> <span class="o">*</span> <span class="n">clip_factor</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">clip_score</span> <span class="o">=</span> <span class="n">max_true_positive_score</span>
+    <span class="k">return</span> <span class="n">clip_score</span>
+
+
+<span class="c"># DEBUGGING FUNCTIONS</span>
+
+</div>
+<div class="viewcode-block" id="test_score_normalization"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.test_score_normalization">[docs]</a><span class="k">def</span> <span class="nf">test_score_normalization</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/model/hots/score_normalization.py --test-test_score_normalization</span>
+
+<span class="sd">        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va</span>
+<span class="sd">        python dev.py -t custom --cfg codename:vsone_unnorm --db PZ_MTEST --allgt --vf --va --index 0:8:3 --dindex 0:10 --verbose</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; #from ibeis.model.hots import score_normalization</span>
+<span class="sd">        &gt;&gt;&gt; #score_normalization.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = test_score_normalization()</span>
+<span class="sd">        &gt;&gt;&gt; execstr = ut.execstr_dict(locals_)</span>
+<span class="sd">        &gt;&gt;&gt; #print(execstr)</span>
+<span class="sd">        &gt;&gt;&gt; exec(execstr)</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; exec(pt.present())</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+
+    <span class="c"># Load IBEIS database</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;PZ_MTEST&#39;</span>
+    <span class="c">#dbname = &#39;GZ_ALL&#39;</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+    <span class="c"># Get unnormalized query results</span>
+    <span class="c">#cfgdict = dict(codename=&#39;nsum_unnorm&#39;)</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone_unnorm&#39;</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># Get a training sample</span>
+    <span class="n">datatup</span> <span class="o">=</span> <span class="n">get_ibeis_score_training_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support_labels</span><span class="p">,</span> <span class="n">tn_support_labels</span><span class="p">)</span> <span class="o">=</span> <span class="n">datatup</span>
+
+    <span class="c"># Print raw score statistics</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;tp_support&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;tn_support&#39;</span><span class="p">)</span>
+
+    <span class="n">normkw_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_dict</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s">&#39;monotonize&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># [True, False],</span>
+            <span class="c">#&#39;adjust&#39;: [1, 4, 8],</span>
+            <span class="s">&#39;adjust&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+            <span class="c">#&#39;adjust&#39;: [8],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">normkw_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">32</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Too many plots to test!&#39;</span><span class="p">)</span>
+
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">true_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span>  <span class="c"># pt.TRUE_GREEN</span>
+    <span class="n">false_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span>
+    <span class="n">unknown_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_sorted_scores</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;true negative scores&#39;</span><span class="p">,</span> <span class="s">&#39;true positive scores&#39;</span><span class="p">),</span>
+        <span class="n">score_colors</span><span class="o">=</span><span class="p">(</span><span class="n">false_color</span><span class="p">,</span> <span class="n">true_color</span><span class="p">),</span>
+        <span class="c">#logscale=True,</span>
+        <span class="n">logscale</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;sorted nscores&#39;</span><span class="p">,</span>
+        <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">normkw</span> <span class="ow">in</span> <span class="n">normkw_list</span><span class="p">:</span>
+        <span class="c"># Learn the appropriate normalization</span>
+        <span class="c">#normkw = {}  # dict(gridsize=1024, adjust=8, clip_factor=ut.PHI + 1, return_all=True)</span>
+        <span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span>
+         <span class="n">p_score</span><span class="p">,</span> <span class="n">clip_score</span><span class="p">)</span> <span class="o">=</span> <span class="n">learn_score_normalization</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span> <span class="n">return_all</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">normkw</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">clip_score</span> <span class="o">&gt;</span> <span class="n">tn_support</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="n">inspect_pdfs</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">,</span> <span class="n">score_domain</span><span class="p">,</span>
+                     <span class="n">p_tp_given_score</span><span class="p">,</span> <span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span> <span class="n">p_score</span><span class="p">)</span>
+
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;ScoreNorm &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">normkw</span><span class="p">))</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">locals_</span>
+
+</div>
+<div class="viewcode-block" id="inspect_pdfs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.inspect_pdfs">[docs]</a><span class="k">def</span> <span class="nf">inspect_pdfs</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">,</span> <span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span>
+                 <span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span> <span class="n">p_score</span><span class="p">,</span>
+                 <span class="n">with_scores</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">nRows</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">with_scores</span>
+    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="o">=</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c">#pnum_ = pt.get_pnum_func(nRows=3, nCols=1)</span>
+    <span class="c">#def next_pnum():</span>
+    <span class="c">#    return pnum_(</span>
+
+    <span class="k">def</span> <span class="nf">generate_pnum</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">px</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRows</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">)</span>
+
+    <span class="n">_pnumiter</span> <span class="o">=</span> <span class="n">generate_pnum</span><span class="p">()</span><span class="o">.</span><span class="n">next</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">with_scores</span><span class="p">:</span>
+        <span class="n">plot_support</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">_pnumiter</span><span class="p">())</span>
+
+    <span class="n">plot_prebayes_pdf</span><span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span> <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score</span><span class="p">,</span>
+                      <span class="n">cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">_pnumiter</span><span class="p">())</span>
+
+    <span class="n">plot_postbayes_pdf</span><span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span>
+                       <span class="n">cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">_pnumiter</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="plot_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.plot_support">[docs]</a><span class="k">def</span> <span class="nf">plot_support</span><span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        tn_support (ndarray):</span>
+<span class="sd">        tp_support (ndarray):</span>
+<span class="sd">        fnum (int):  figure number</span>
+<span class="sd">        pnum (tuple):  plot number</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --test-plot_support</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tn_support = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; tp_support = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fnum = None</span>
+<span class="sd">        &gt;&gt;&gt; pnum = (1, 1, 1)</span>
+<span class="sd">        &gt;&gt;&gt; result = plot_support(tn_support, tp_support, fnum, pnum)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">true_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span>  <span class="c"># pt.TRUE_GREEN</span>
+    <span class="n">false_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_sorted_scores</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tp_support</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;trueneg scores&#39;</span><span class="p">,</span> <span class="s">&#39;truepos scores&#39;</span><span class="p">),</span>
+        <span class="n">score_colors</span><span class="o">=</span><span class="p">(</span><span class="n">false_color</span><span class="p">,</span> <span class="n">true_color</span><span class="p">),</span>
+        <span class="c">#logscale=True,</span>
+        <span class="n">logscale</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;sorted nscores&#39;</span><span class="p">,</span>
+        <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+        <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="plot_prebayes_pdf"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.plot_prebayes_pdf">[docs]</a><span class="k">def</span> <span class="nf">plot_prebayes_pdf</span><span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_score_given_tn</span><span class="p">,</span> <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score</span><span class="p">,</span>
+                      <span class="n">cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">true_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span>  <span class="c"># pt.TRUE_GREEN</span>
+    <span class="n">false_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span>
+    <span class="n">unknown_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">p_score_given_tn</span><span class="p">,</span>  <span class="n">p_score_given_tp</span><span class="p">,</span> <span class="n">p_score</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;p(score | tn)&#39;</span><span class="p">,</span> <span class="s">&#39;p(score | tp)&#39;</span><span class="p">,</span> <span class="s">&#39;p(score)&#39;</span><span class="p">),</span>
+        <span class="n">prob_colors</span><span class="o">=</span><span class="p">(</span><span class="n">false_color</span><span class="p">,</span> <span class="n">true_color</span><span class="p">,</span> <span class="n">unknown_color</span><span class="p">),</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;pre_bayes pdf score&#39;</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="o">=</span><span class="n">score_domain</span><span class="p">,</span>
+        <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+        <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="plot_postbayes_pdf"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.plot_postbayes_pdf">[docs]</a><span class="k">def</span> <span class="nf">plot_postbayes_pdf</span><span class="p">(</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">,</span>
+                       <span class="n">cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">true_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span>  <span class="c"># pt.TRUE_GREEN</span>
+    <span class="n">false_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">plots</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">p_tn_given_score</span><span class="p">,</span> <span class="n">p_tp_given_score</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;p(tn | score)&#39;</span><span class="p">,</span> <span class="s">&#39;p(tp | score)&#39;</span><span class="p">),</span>
+        <span class="n">prob_colors</span><span class="o">=</span><span class="p">(</span><span class="n">false_color</span><span class="p">,</span> <span class="n">true_color</span><span class="p">,),</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;post_bayes pdf score &#39;</span> <span class="o">+</span> <span class="n">cfgstr</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="o">=</span><span class="n">score_domain</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from ibeis.model.hots import query_request</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;codename&#39;</span><span class="p">:</span> <span class="s">&#39;nsum&#39;</span><span class="p">}</span>
+    <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">load_score_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">normalizer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span>
+
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">))</span>
+        <span class="n">score_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">))</span>
+        <span class="c">#normalizer  = normalizer</span>
+        <span class="n">prob_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">qaid2_score</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">prob_list</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid2_score</span><span class="p">)))</span>
+
+        <span class="c">#aid2_score = {aid: normalizer.no(score) for aid, score in }</span>
+        <span class="k">pass</span>
+
+
+<span class="c"># DOCTEST MAIN</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.score_normalization --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

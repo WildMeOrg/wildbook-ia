@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.test_sql_numpy &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.test_sql_numpy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.tests.test_sql_numpy</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span> <span class="k">as</span> <span class="n">sqldbc</span>
+<span class="kn">from</span> <span class="nn">ibeis.control._sql_helpers</span> <span class="kn">import</span> <span class="n">_results_gen</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_SQL_NUMPY] &#39;</span><span class="p">)</span>
+
+
+<span class="c"># list of 10,000 chips with 3,000 features apeice.</span>
+<div class="viewcode-block" id="grab_numpy_testdata"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_numpy.grab_numpy_testdata">[docs]</a><span class="k">def</span> <span class="nf">grab_numpy_testdata</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mf">3e3</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">):</span>
+    <span class="n">ndata</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ndata&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] build ndata=</span><span class="si">%d</span><span class="s"> numpy arrays with shape=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ndata</span><span class="p">,</span> <span class="n">shape</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * expected_memory(table_list) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ndata</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">shape</span><span class="p">)))</span>
+    <span class="n">table_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndata</span><span class="p">)]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * memory+overhead(table_list) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_object_size</span><span class="p">(</span><span class="n">table_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">table_list</span>
+
+</div>
+<div class="viewcode-block" id="TEST_SQL_NUMPY"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_numpy.TEST_SQL_NUMPY">[docs]</a><span class="k">def</span> <span class="nf">TEST_SQL_NUMPY</span><span class="p">():</span>
+    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s">&#39;temp_test_sql_numpy.sqlite3&#39;</span>
+    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;testfiles&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">,</span> <span class="n">sqldb_fname</span><span class="p">),</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="o">=</span><span class="n">sqldb_dpath</span><span class="p">,</span>
+                                      <span class="n">sqldb_fname</span><span class="o">=</span><span class="n">sqldb_fname</span><span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;temp&#39;</span><span class="p">,</span>    <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;temp_id&#39;</span><span class="p">,</span>      <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;temp_hash&#39;</span><span class="p">,</span>    <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
+    <span class="p">])</span>
+
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">feats_list</span> <span class="o">=</span> <span class="n">grab_numpy_testdata</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mf">3e3</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * numpy.new time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] insert numpy arrays&#39;</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">feats_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">feats</span><span class="p">,</span> <span class="p">)</span> <span class="k">for</span> <span class="n">feats</span> <span class="ow">in</span> <span class="n">feats_list</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        INSERT</span>
+<span class="s">        INTO temp</span>
+<span class="s">        (</span>
+<span class="s">            temp_hash</span>
+<span class="s">        )</span>
+<span class="s">        VALUES (?)</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">params_iter</span><span class="o">=</span><span class="n">feats_iter</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * execute insert time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] save sql database&#39;</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="c">#db.cur.commit()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * commit time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] read from sql database&#39;</span><span class="p">)</span>
+
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT temp_hash FROM temp&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * execute select time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">_results_gen</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">cur</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * iter results time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * memory(result_list) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">get_object_size</span><span class="p">(</span><span class="n">result_list</span><span class="p">)))</span>
+    <span class="k">del</span> <span class="n">result_list</span>
+    <span class="c">#print(&#39;[TEST] result_list=%r&#39; % result_list)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] dump sql database&#39;</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="s">&#39;temp.dump.txt&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * dump time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+    <span class="c">#with open(&#39;temp.dump.txt&#39;) as file_:</span>
+    <span class="c">#    print(file_.read())</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For win32</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_NUMPY</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

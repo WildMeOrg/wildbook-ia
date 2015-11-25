@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.scripts.rsync_ibeisdb &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.scripts.rsync_ibeisdb</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.scripts.rsync_ibeisdb</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m ibeis.scripts.rsync_ibeisdb</span>
+<span class="sd">    python -m ibeis.scripts.rsync_ibeisdb --dryrun</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<div class="viewcode-block" id="rsync"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.rsync_ibeisdb.rsync">[docs]</a><span class="k">def</span> <span class="nf">rsync</span><span class="p">(</span><span class="n">src_uri</span><span class="p">,</span> <span class="n">dst_uri</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="p">[],</span> <span class="n">port</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    General function to push or pull a directory from a remote server to a local path</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</span>
+<span class="sd">        http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible</span>
+
+<span class="sd">    Notes (rsync commandline options):</span>
+<span class="sd">        rsync [OPTION]... SRC [SRC]... DEST</span>
+<span class="sd">        -v : verbose</span>
+<span class="sd">        -r : copies data recursively (but dont preserve timestamps and</span>
+<span class="sd">                permission while transferring data</span>
+<span class="sd">        -a : archive mode, allows recursive copying and preserves symlinks,</span>
+<span class="sd">                permissions, user and group ownerships, and timestamps</span>
+<span class="sd">        -z : compress file data</span>
+<span class="sd">        -i, --itemize-changes       output a change-summary for all updates</span>
+<span class="sd">        -s, --protect-args :        no space-splitting; only wildcard special-chars</span>
+<span class="sd">        -h : human-readable, output numbers in a human-readable format</span>
+<span class="sd">        -P                          same as --partial --progress</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rsync_exe</span> <span class="o">=</span> <span class="s">&#39;rsync&#39;</span>
+    <span class="n">rsync_options</span> <span class="o">=</span> <span class="s">&#39;-avhzP&#39;</span>
+    <span class="c">#rsync_options += &#39; --port=%d&#39; % (port,)</span>
+    <span class="n">rsync_options</span> <span class="o">+=</span> <span class="s">&#39; -e &quot;ssh -p </span><span class="si">%d</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exclude_dirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">exclude_tup</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--exclude &#39;</span> <span class="o">+</span> <span class="n">dir_</span> <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">exclude_dirs</span><span class="p">]</span>
+        <span class="n">exclude_opts</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_tup</span><span class="p">)</span>
+        <span class="n">rsync_options</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">exclude_opts</span>
+
+    <span class="n">cmdtuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">rsync_exe</span><span class="p">,</span> <span class="n">rsync_options</span><span class="p">,</span> <span class="n">src_uri</span><span class="p">,</span> <span class="n">dst_uri</span><span class="p">)</span>
+    <span class="n">cmdstr</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmdtuple</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] src_uri = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_uri</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] dst_uri = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dst_uri</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] cmdstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cmdstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">cmdstr</span><span class="p">)</span>
+
+    <span class="c">#if not dryrun:</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">cmdstr</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="sync_ibeisdb"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.rsync_ibeisdb.sync_ibeisdb">[docs]</a><span class="k">def</span> <span class="nf">sync_ibeisdb</span><span class="p">(</span><span class="n">remote_uri</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;pull&#39;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    syncs an ibeisdb without syncing the cache or the chip directory</span>
+<span class="sd">    (or the top level image directory because it shouldnt exist unless it is an</span>
+<span class="sd">    old hots database)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sync_ibeisdb] Syncing&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * dbname=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * remote_uri=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remote_uri</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># Excluded temporary and cached data</span>
+    <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">,</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EXCLUDE_COPY_REL_DIRS</span><span class="p">))</span>
+    <span class="c"># Specify local workdir</span>
+    <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">local_uri</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+        <span class="c"># fix for mingw rsync</span>
+        <span class="n">local_uri</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_mingw_drive</span><span class="p">(</span><span class="n">local_uri</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;pull&#39;</span><span class="p">:</span>
+        <span class="c"># pull remote to local</span>
+        <span class="n">remote_src</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">remote_uri</span><span class="p">,</span> <span class="n">dbname</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">local_uri</span><span class="p">)</span>
+        <span class="n">rsync</span><span class="p">(</span><span class="n">remote_src</span><span class="p">,</span> <span class="n">local_uri</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;push&#39;</span><span class="p">:</span>
+        <span class="c"># push local to remote</span>
+        <span class="n">local_src</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">local_uri</span><span class="p">,</span> <span class="n">dbname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">local_src</span><span class="p">)</span>
+        <span class="n">rsync</span><span class="p">(</span><span class="n">local_src</span><span class="p">,</span> <span class="n">remote_uri</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">local_src</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="rsync_ibsdb_main"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main">[docs]</a><span class="k">def</span> <span class="nf">rsync_ibsdb_main</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">default_user</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_user_name</span><span class="p">()</span>
+    <span class="n">default_db</span> <span class="o">=</span> <span class="s">&#39;MUGU_Master&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Usage: &#39;</span>
+              <span class="s">&#39;python -m ibeis.scripts.rsync_ibeisdb&#39;</span>
+              <span class="s">&#39;[push, pull] --db &lt;db=</span><span class="si">%s</span><span class="s">&gt; --user &lt;user=</span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">default_db</span><span class="p">,</span> <span class="n">default_user</span><span class="p">,))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--user&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_user</span><span class="p">)</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="s">&#39;--dbname&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_db</span><span class="p">)</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--workdir&#39;</span><span class="p">,</span> <span class="s">&#39;--dbname&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help_</span><span class="o">=</span><span class="s">&#39;local work dir override&#39;</span><span class="p">)</span>
+    <span class="n">dry_run</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dryrun&#39;</span><span class="p">,</span> <span class="s">&#39;--dry-run&#39;</span><span class="p">,</span> <span class="s">&#39;--dry&#39;</span><span class="p">))</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;push&#39;</span><span class="p">,</span> <span class="s">&#39;pull&#39;</span><span class="p">],</span> <span class="s">&#39;mode=</span><span class="si">%r</span><span class="s"> must be push or pull&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,)</span>
+    <span class="n">remote_key</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--remote&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;hyrule&#39;</span><span class="p">)</span>
+    <span class="n">remote_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;hyrule&#39;</span><span class="p">:</span> <span class="s">&#39;@hyrule.cs.rpi.edu:/raid/work&#39;</span><span class="p">,</span>
+        <span class="s">&#39;pachy&#39;</span><span class="p">:</span> <span class="s">&#39;@pachy.cs.uic.edu:/home/shared_ibeis/data/work&#39;</span><span class="p">,</span>
+        <span class="s">&#39;lewa&#39;</span><span class="p">:</span> <span class="s">&#39;@41.203.223.178:/data/ibeis&#39;</span><span class="p">,</span>
+        <span class="s">&#39;lev&#39;</span><span class="p">:</span> <span class="s">&#39;@lev.cs.rpi.edu:/media/hdd/work&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">remote</span> <span class="o">=</span> <span class="n">remote_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">remote_key</span><span class="p">,</span> <span class="n">remote_key</span><span class="p">)</span>
+    <span class="n">remote_uri</span> <span class="o">=</span> <span class="n">user</span> <span class="o">+</span> <span class="n">remote</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s">&#39;RSYNC IBEISDB </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
+    <span class="n">sync_ibeisdb</span><span class="p">(</span><span class="n">remote_uri</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">dry_run</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ib</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb push</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db MUGU_Master</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db GIRM_MUGU_20</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_MUGU_ALL</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb push --db MUGU_Master  --user joncrall --dryrun</span>
+
+<span class="sd">        mv &quot;NNP_Master3_nids=arr((3)wjybfvpk)_1&quot; NNP_Master3_nids=arr__3_wjybfvpk__1</span>
+
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3 --user jonc --remote pachy</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db testdb3 --user joncrall --remote hyrule</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_MasterGIRM_core --user jonc --remote pachy</span>
+
+<span class="sd">        #python -m ibeis.scripts.rsync_ibeisdb push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/ibeis --dryrun</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun</span>
+
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun</span>
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk</span>
+
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun</span>
+
+<span class="sd">        python -m ibeis.scripts.rsync_ibeisdb push --db PZ_Master1 --user joncrall --remote lev --dryrun</span>
+
+
+<span class="sd">        stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo</span>
+<span class="sd">        rsync -avhzP -e &quot;ssh -p 22&quot; --rsync-path=&quot;sudo rsync&quot; jonc@pachy.cs.uic.edu:/home/ibeis-repos/snow-leopards /raid/raw_rsync</span>
+<span class="sd">        rsync -avhzP -e &quot;ssh -p 22&quot; jonc@pachy.cs.uic.edu:snow-leopards /raid/raw_rsync</span>
+<span class="sd">        rsync -avhzP -e &quot;ssh -p 22&quot; jonc@pachy.cs.uic.edu:iberian-lynx /raid/raw_rsync</span>
+
+<span class="sd">        rsync -avhzP -e &quot;ssh -p 22&quot; joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .</span>
+<span class="sd">        rsync -avhzP joncrall@hyrule.cs.rpi.edu:/raid/raw_rsync/iberian-lynx .</span>
+
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rsync_ibsdb_main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

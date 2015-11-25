@@ -1,0 +1,690 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.other package &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html"/>
+        <link rel="prev" title="ibeis.model.preproc package" href="ibeis.model.preproc.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.other package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.other.dbinfo">ibeis.other.dbinfo module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.other.duct_tape">ibeis.other.duct_tape module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.other.optimize_k">ibeis.other.optimize_k module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.other">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.other package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.other.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-other-package">
+<h1>ibeis.other package<a class="headerlink" href="#ibeis-other-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.other.dbinfo">
+<span id="ibeis-other-dbinfo-module"></span><h2>ibeis.other.dbinfo module<a class="headerlink" href="#module-ibeis.other.dbinfo" title="Permalink to this headline">¶</a></h2>
+<p>get_dbinfo is probably the only usefull funciton in here
+# This is not the cleanest module</p>
+<dl class="function">
+<dt id="ibeis.other.dbinfo.cache_memory_stats">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">cache_memory_stats</code><span class="sig-paren">(</span><em>ibs</em>, <em>cid_list</em>, <em>fnum=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#cache_memory_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.cache_memory_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.get_dbinfo">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">get_dbinfo</code><span class="sig-paren">(</span><em>ibs</em>, <em>verbose=True</em>, <em>with_imgsize=False</em>, <em>with_bytes=False</em>, <em>with_contrib=True</em>, <em>with_agesex=False</em>, <em>with_header=True</em>, <em>short=False</em>, <em>tag=u'dbinfo'</em>, <em>aid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#get_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.get_dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dictionary of digestable database information
+Infostr is a string summary of all the stats. Prints infostr in addition to
+returning locals</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; </li>
+<li><strong>with_imgsize</strong> (<em>bool</em>) &#8211; </li>
+<li><strong>with_bytes</strong> (<em>bool</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --exec-get_dbinfo:0
+python -m ibeis.other.dbinfo --test-get_dbinfo:1
+python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db NNP_Master3
+python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
+python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
+python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
+python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
+
+python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># &lt;HACK FOR FILTERING&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#from ibeis.expt import cfghelpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#from ibeis.expt import annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#from ibeis.init import filter_annots</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#named_defaults_dict = ut.dict_take(annotation_configs.__dict__,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#                                   annotation_configs.TEST_NAMES)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#                               ut.get_list_column(named_defaults_dict, &#39;qcfg&#39;)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#acfg = cfghelpers.parse_argv_cfg((&#39;--annot-filter&#39;, &#39;-a&#39;), named_defaults_dict=named_qcfg_defaults, default=None)[0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># &lt;/HACK FOR FILTERING&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_kwdefaults</span><span class="p">(</span><span class="n">get_dbinfo</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;verbose&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;aid_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_dict_from_argv</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">short</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="s">&#39;DO NOT DELETE CONTRIBUTORS OF OTHER DBS&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_contributors</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">+============================</span>
+<span class="go">DB Info:  testdb1</span>
+<span class="go">DB Notes: None</span>
+<span class="go">DB NumContrib: 0</span>
+<span class="go">----------</span>
+<span class="go"># Names                      = 7</span>
+<span class="go"># Names (unassociated)       = 0</span>
+<span class="go"># Names (singleton)          = 5</span>
+<span class="go"># Names (multiton)           = 2</span>
+<span class="go">----------</span>
+<span class="go"># Annots                     = 13</span>
+<span class="go"># Annots (unknown)           = 4</span>
+<span class="go"># Annots (singleton)         = 5</span>
+<span class="go"># Annots (multiton)          = 4</span>
+<span class="go">----------</span>
+<span class="go"># Img                        = 13</span>
+<span class="go">L============================</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.get_keypoint_stats">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">get_keypoint_stats</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#get_keypoint_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.get_keypoint_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>kp info</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.get_short_infostr">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">get_short_infostr</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#get_short_infostr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.get_short_infostr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns printable database information</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">infostr</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --test-get_short_infostr
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">infostr</span> <span class="o">=</span> <span class="n">get_short_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">infostr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">dbname = u&#39;testdb1&#39;</span>
+<span class="go">num_images = 13</span>
+<span class="go">num_annotations = 13</span>
+<span class="go">num_names = 7</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.hackshow_names">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">hackshow_names</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>fnum=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#hackshow_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.hackshow_names" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>aid_list</strong> (<em>list</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --exec-hackshow_names --show
+python -m ibeis.other.dbinfo --exec-hackshow_names --show --db PZ_Master1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">hackshow_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.latex_dbstats">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">latex_dbstats</code><span class="sig-paren">(</span><em>ibs_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#latex_dbstats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.latex_dbstats" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1
+python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
+python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
+python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
+python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dblist&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;testdb1&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">)</span> <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_list</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tabular_str</span> <span class="o">=</span> <span class="n">latex_dbstats</span><span class="p">(</span><span class="n">ibs_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tabular_cmd</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">latex_newcommand</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">latex_sanatize_command_name</span><span class="p">(</span><span class="s">&#39;DatabaseInfo&#39;</span><span class="p">),</span> <span class="n">tabular_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">copy_text_to_clipboard</span><span class="p">(</span><span class="n">tabular_cmd</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--write&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">write_fpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">write_fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">new_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_between_tags</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">tabular_cmd</span><span class="p">,</span> <span class="s">&#39;% &lt;DBINFO&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;% &lt;/DBINFO&gt;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">new_text</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">tabular_cmd</span><span class="p">,</span> <span class="s">&#39;latex&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">render_latex_text</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">noindent </span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">tabular_str</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.print_qd_info">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">print_qd_info</code><span class="sig-paren">(</span><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#print_qd_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.print_qd_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>ibs.print_annotconfig_stats(qaid_list, daid_list)</dd>
+</dl>
+<p>information for a query/database aid configuration</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.show_image_time_distributions">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">show_image_time_distributions</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#show_image_time_distributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.show_image_time_distributions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show
+python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show --db lynx
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_unordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">show_image_time_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.show_time_distributions">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">show_time_distributions</code><span class="sig-paren">(</span><em>ibs</em>, <em>unixtime_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#show_time_distributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.show_time_distributions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.dbinfo.test_name_consistency">
+<code class="descclassname">ibeis.other.dbinfo.</code><code class="descname">test_name_consistency</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/dbinfo.html#test_name_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.dbinfo.test_name_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.other.duct_tape">
+<span id="ibeis-other-duct-tape-module"></span><h2>ibeis.other.duct_tape module<a class="headerlink" href="#module-ibeis.other.duct_tape" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.other.duct_tape.enforce_unkonwn_name_is_explicit">
+<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">enforce_unkonwn_name_is_explicit</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#enforce_unkonwn_name_is_explicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.enforce_unkonwn_name_is_explicit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.duct_tape.fix_compname_configs">
+<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">fix_compname_configs</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#fix_compname_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.fix_compname_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>duct tape to keep version in check</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.duct_tape.fix_nulled_yaws">
+<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">fix_nulled_yaws</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#fix_nulled_yaws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.fix_nulled_yaws" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.duct_tape.remove_database_slag">
+<code class="descclassname">ibeis.other.duct_tape.</code><code class="descname">remove_database_slag</code><span class="sig-paren">(</span><em>ibs</em>, <em>delete_empty_names=False</em>, <em>delete_empty_encounters=False</em>, <em>delete_annotations_for_missing_images=False</em>, <em>delete_image_labels_for_missing_types=False</em>, <em>delete_annot_labels_for_missing_types=False</em>, <em>delete_chips_for_missing_annotations=False</em>, <em>delete_features_for_missing_annotations=False</em>, <em>delete_invalid_eg_relations=False</em>, <em>delete_invalid_gl_relations=False</em>, <em>delete_invalid_al_relations=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/duct_tape.html#remove_database_slag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.duct_tape.remove_database_slag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.other.optimize_k">
+<span id="ibeis-other-optimize-k-module"></span><h2>ibeis.other.optimize_k module<a class="headerlink" href="#module-ibeis.other.optimize_k" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.other.optimize_k.collect_ibeis_training_annotations">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">collect_ibeis_training_annotations</code><span class="sig-paren">(</span><em>ibs</em>, <em>nDaids_basis</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#collect_ibeis_training_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.collect_ibeis_training_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.compute_K">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">compute_K</code><span class="sig-paren">(</span><em>nDaids</em>, <em>model_params</em>, <em>force_int=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#compute_K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.compute_K" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nDaids</strong> (<em>int</em>) &#8211; number of database annotations to compute K for</li>
+<li><strong>model_params</strong> (<em>list</em>) &#8211; coefficients of the n-degree polynomial</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.optimize_k --test-compute_K --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.optimize_k</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nDaids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K_list</span> <span class="o">=</span> <span class="n">compute_K</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">,</span> <span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_names&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;g-&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dark</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.compute_interpolation_grid">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">compute_interpolation_grid</code><span class="sig-paren">(</span><em>known_nd_data</em>, <em>pad_steps=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#compute_interpolation_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.compute_interpolation_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>use gcd to get the number of steps to take in each dimension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.evaluate_training_data">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">evaluate_training_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>qaids</em>, <em>daids_list</em>, <em>varydict</em>, <em>nDaids_basis</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#evaluate_training_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.evaluate_training_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.interpolate_error">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">interpolate_error</code><span class="sig-paren">(</span><em>known_nd_data</em>, <em>known_targets</em>, <em>unknown_nd_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#interpolate_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.interpolate_error" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.learn_k">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">learn_k</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#learn_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.learn_k" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.optimize_k --test-learn_k
+python -m ibeis.other.optimize_k --test-learn_k --show
+python -m ibeis.other.optimize_k --test-learn_k --show --dummy
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.other.optimize_k</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">,</span> <span class="n">opt_model_params</span> <span class="o">=</span> <span class="n">learn_k</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_search_surface</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">,</span> <span class="n">opt_model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">all_figures_bring_to_front</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.minimize_compute_K_params">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">minimize_compute_K_params</code><span class="sig-paren">(</span><em>known_nd_data</em>, <em>known_target_points</em>, <em>given_data_dims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#minimize_compute_K_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.minimize_compute_K_params" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.plot_search_surface">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">plot_search_surface</code><span class="sig-paren">(</span><em>known_nd_data</em>, <em>known_target_points</em>, <em>given_data_dims</em>, <em>opt_model_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#plot_search_surface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.plot_search_surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.optimize_k.test_training_data">
+<code class="descclassname">ibeis.other.optimize_k.</code><code class="descname">test_training_data</code><span class="sig-paren">(</span><em>varydict</em>, <em>nDaids_basis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other/optimize_k.html#test_training_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.optimize_k.test_training_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.other">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.other" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ibeis.other.IMPORT_TUPLES">
+<code class="descclassname">ibeis.other.</code><code class="descname">IMPORT_TUPLES</code><em class="property"> = [('dbinfo', None), ('duct_tape', None), ('optimize_k', None)]</em><a class="headerlink" href="#ibeis.other.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Regen Command</em> &#8211; cd /home/joncrall/code/ibeis/ibeis/other
+makeinit.py</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.reassign_submodule_attributes">
+<code class="descclassname">ibeis.other.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.reload_subs">
+<code class="descclassname">ibeis.other.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/other.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.other.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.init.and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.other.rrrr">
+<code class="descclassname">ibeis.other.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.other.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.init.and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.scripts.html" class="btn btn-neutral float-right" title="ibeis.scripts package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.model.preproc.html" class="btn btn-neutral" title="ibeis.model.preproc package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

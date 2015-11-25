@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.test_gui_all &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.test_gui_all</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.tests.test_gui_all</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
+<span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_GUI_ALL]&#39;</span><span class="p">)</span>
+<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+
+<div class="viewcode-block" id="TEST_GUI_ALL"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_gui_all.TEST_GUI_ALL">[docs]</a><span class="k">def</span> <span class="nf">TEST_GUI_ALL</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a new database</span>
+<span class="sd">    Adds test images</span>
+<span class="sd">    Creates dummy ANNOTATIONS</span>
+<span class="sd">    Selects things</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># DELETE OLD</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] DELETE_OLD_DATABASE&#39;</span><span class="p">)</span>
+    <span class="n">work_dir</span>   <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">new_dbname</span> <span class="o">=</span> <span class="s">&#39;testdb_guiall&#39;</span>
+    <span class="n">new_dbdir</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">new_dbname</span><span class="p">))</span>
+    <span class="n">ibs_dbdir</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;must start in different dir new_dbdir=</span><span class="si">%r</span><span class="s"> != ibs_dbdir=</span><span class="si">%r</span><span class="s">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_dbdir</span><span class="p">,</span> <span class="n">ibs_dbdir</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">new_dbdir</span> <span class="o">!=</span> <span class="n">ibs_dbdir</span><span class="p">,</span> <span class="n">msg</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;passed: &#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">new_dbdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c"># CREATE NEW</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] CREATE_NEW_DATABASE&#39;</span><span class="p">)</span>
+    <span class="n">back</span><span class="o">.</span><span class="n">new_database</span><span class="p">(</span><span class="n">new_dbdir</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>  <span class="c"># The backend has a new ibeis do not use the old one</span>
+
+    <span class="c"># Dont refresh for speed</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;refresh&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c"># IMPORT IMAGES</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] IMPORT_TEST_GPATHS&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;gpath_list = &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">import_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="o">=</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;  * gid_list[</span><span class="si">%d</span><span class="s">] = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span> <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c"># ADD ANNOTATIONS</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] ADD_ANNOTATIONS&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">add_annot</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">add_annot</span><span class="p">(</span><span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aid</span>
+
+    <span class="n">preadd_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>  <span class="c"># this should be []</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">preadd_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;there are already aids in the database!&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;preadd_aids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">preadd_aids</span><span class="p">)</span>
+
+    <span class="n">aid1</span> <span class="o">=</span> <span class="n">add_annot</span><span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">aid2</span> <span class="o">=</span> <span class="n">add_annot</span><span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+    <span class="n">aid3</span> <span class="o">=</span> <span class="n">add_annot</span><span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+    <span class="n">aid4</span> <span class="o">=</span> <span class="n">add_annot</span><span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+    <span class="n">aid5</span> <span class="o">=</span> <span class="n">add_annot</span><span class="p">(</span><span class="n">gid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">400</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid1</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid3 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid3</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid4 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid4</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid5 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid5</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c"># SELECT ANNOTATIONS</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] SELECT ANNOTATION / Add Chips&#39;</span><span class="p">)</span>
+    <span class="c"># get_valid_aids seems to return aids in an arbitrary order, it&#39;s an SQL thing</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;  * aid_list[</span><span class="si">%d</span><span class="s">] = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
+
+    <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">show_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;bbox_list&#39;</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+    <span class="n">back</span><span class="o">.</span><span class="n">reselect_annotation</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="p">[</span><span class="mi">51</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">104</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">104</span><span class="p">)</span>
+
+    <span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+
+    <span class="n">unixtime_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">24</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">)</span>
+
+    <span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+
+    <span class="c"># Change some ANNOTATIONs</span>
+
+    <span class="c">#add_annot(gid_list[2], None)  # user selection</span>
+    <span class="c">#add_annot(None, [42, 42, 8, 8])  # back selection</span>
+    <span class="c"># I&#39;m not sure how I want to integrate that IPython stuff</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;lena&#39;</span><span class="p">,</span> <span class="s">&#39;zebra&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">])</span>
+    <span class="n">ibs</span>  <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>   <span class="c"># IBEIS Control</span>
+    <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;back&#39;</span><span class="p">]</span>  <span class="c"># IBEIS GUI backend</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_GUI_ALL</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">)</span>
+    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c">#exec(execstr)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

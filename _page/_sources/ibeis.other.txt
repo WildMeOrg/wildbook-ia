@@ -1,0 +1,38 @@
+ibeis.other package
+===================
+
+Submodules
+----------
+
+ibeis.other.dbinfo module
+-------------------------
+
+.. automodule:: ibeis.other.dbinfo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.other.duct_tape module
+----------------------------
+
+.. automodule:: ibeis.other.duct_tape
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.other.optimize_k module
+-----------------------------
+
+.. automodule:: ibeis.other.optimize_k
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.other
+    :members:
+    :undoc-members:
+    :show-inheritance:

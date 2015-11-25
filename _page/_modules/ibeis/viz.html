@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.viz</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="c">### __init__.py ###</span>
+<span class="c"># flake8: noqa</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.viz.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_hough</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_name</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_nearest_descriptors</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_qres</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_sver</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_helpers</span> <span class="kn">import</span> <span class="n">draw</span><span class="p">,</span> <span class="n">kp_info</span><span class="p">,</span> <span class="n">show_keypoint_gradient_orientations</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_image</span> <span class="kn">import</span> <span class="n">show_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="n">show_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_name</span> <span class="kn">import</span> <span class="n">show_name</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_qres</span> <span class="kn">import</span> <span class="n">show_qres</span><span class="p">,</span> <span class="n">show_qres_top</span><span class="p">,</span> <span class="n">show_qres_analysis</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_sver</span> <span class="kn">import</span> <span class="n">show_sver</span><span class="p">,</span> <span class="n">_compute_svvars</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_nearest_descriptors</span> <span class="kn">import</span> <span class="n">show_nearest_descriptors</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz.viz_hough</span> <span class="kn">import</span> <span class="n">show_hough_image</span><span class="p">,</span> <span class="n">show_probability_chip</span>
+
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.viz]&#39;</span><span class="p">)</span>
+
+
+<span class="n">__LOADED__</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="import_subs"><a class="viewcode-back" href="../../ibeis.viz.html#ibeis.viz.import_subs">[docs]</a><span class="k">def</span> <span class="nf">import_subs</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">__LOADED__</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">interact</span>
+    <span class="n">__LOADED__</span> <span class="o">=</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="reassign_submodule_attributes"><a class="viewcode-back" href="../../ibeis.viz.html#ibeis.viz.reassign_submodule_attributes">[docs]</a><span class="k">def</span> <span class="nf">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    why reloading all the modules doesnt do this I don&#39;t know</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;dev reimport&#39;</span><span class="p">)</span>
+    <span class="c"># Self import</span>
+    <span class="kn">import</span> <span class="nn">ibeis.viz</span>
+    <span class="c"># Implicit reassignment.</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">IMPORT_TUPLES</span><span class="p">:</span>
+        <span class="n">submodname</span><span class="p">,</span> <span class="n">fromimports</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="n">submod</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="p">,</span> <span class="n">submodname</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">submod</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="c"># This just holds off bad behavior</span>
+                <span class="c"># but it does mimic normal util_import behavior</span>
+                <span class="c"># which is good</span>
+                <span class="k">continue</span>
+            <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../ibeis.viz.html#ibeis.viz.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reloads ibeis.viz and submodules &quot;&quot;&quot;</span>
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fbrrr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; fallback reload &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_chip</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_helpers</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_hough</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_image</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_matches</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_name</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_nearest_descriptors</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_qres</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz_sver</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># hackish way of propogating up the new reloaded submodule attributes</span>
+        <span class="n">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
+<span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
+
+<span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&#39;viz_chip&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_hough&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_matches&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_nearest_descriptors&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_qres&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;viz_sver&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;interact&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Regen Command:</span>
+<span class="sd">    cd /home/joncrall/code/ibeis/ibeis/viz</span>
+<span class="sd">    makeinit.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># autogenerated __init__.py for: &#39;/home/joncrall/code/ibeis/ibeis/viz&#39;</span>
+
+
+<span class="c">## flake8: noqa</span>
+<span class="c">#from __future__ import absolute_import, division, print_function</span>
+<span class="c">#import utool</span>
+<span class="c">#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, &#39;[viz]&#39;, DEBUG=False)</span>
+
+<span class="c">##import plottool</span>
+
+<span class="c">#from . import viz_helpers</span>
+<span class="c">#from . import viz_chip</span>
+<span class="c">#from . import viz_image</span>
+<span class="c">#from . import viz_matches</span>
+<span class="c">#from . import viz_name</span>
+<span class="c">#from . import viz_nearest_descriptors</span>
+<span class="c">#from . import viz_qres</span>
+<span class="c">#from . import viz_sver</span>
+<span class="c">#from . import viz_hough</span>
+
+<span class="c">#from . import viz_helpers as vh</span>
+<span class="c">#from .viz_helpers import draw, kp_info, show_keypoint_gradient_orientations</span>
+<span class="c">#from .viz_image import show_image</span>
+<span class="c">#from .viz_chip import show_chip</span>
+<span class="c">#from .viz_name import show_name</span>
+<span class="c">#from .viz_matches import show_matches, annotate_matches</span>
+<span class="c">#from .viz_qres import show_qres, show_qres_top, show_qres_analysis</span>
+<span class="c">#from .viz_sver import show_sver, _compute_svvars</span>
+<span class="c">#from .viz_nearest_descriptors import show_nearest_descriptors</span>
+<span class="c">#from .viz_hough import show_hough_image, show_probability_chip</span>
+
+<span class="c">#__LOADED__ = False</span>
+
+<span class="c">#def import_subs():</span>
+<span class="c">#    global __LOADED__</span>
+<span class="c">#    from . import interact</span>
+<span class="c">#    __LOADED__ = True</span>
+
+<span class="c">#print, print_, printDBG, rrr, profile = utool.inject(</span>
+<span class="c">#    __name__, &#39;[viz]&#39;)</span>
+
+<span class="c">#def reload_subs():</span>
+<span class="c">#    &quot;&quot;&quot; Reloads viz and submodules &quot;&quot;&quot;</span>
+<span class="c">#    if not __LOADED__:</span>
+<span class="c">#        import_subs()</span>
+<span class="c">#    rrr()</span>
+<span class="c">#    getattr(viz_chip, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_helpers, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_image, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_matches, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_name, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_nearest_descriptors, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_qres, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_sver, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(viz_hough, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c">#    getattr(interact, &#39;reload_subs&#39;, lambda: None)()</span>
+<span class="c">#    rrr()</span>
+<span class="c">#rrrr = reload_subs</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

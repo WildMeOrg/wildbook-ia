@@ -1,0 +1,46 @@
+ibeis.web package
+=================
+
+Submodules
+----------
+
+ibeis.web.app module
+--------------------
+
+.. automodule:: ibeis.web.app
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.web.appfuncs module
+-------------------------
+
+.. automodule:: ibeis.web.appfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.web.test_api module
+-------------------------
+
+.. automodule:: ibeis.web.test_api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.web.zmq_task_queue module
+-------------------------------
+
+.. automodule:: ibeis.web.zmq_task_queue
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.web
+    :members:
+    :undoc-members:
+    :show-inheritance:

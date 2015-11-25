@@ -1,0 +1,1277 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web package &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="prev" title="ibeis.viz.interact package" href="ibeis.viz.interact.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.web package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.web.app">ibeis.web.app module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.web.appfuncs">ibeis.web.appfuncs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.web.test_api">ibeis.web.test_api module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.web.zmq_task_queue">ibeis.web.zmq_task_queue module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.web">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.web package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.web.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-web-package">
+<h1>ibeis.web package<a class="headerlink" href="#ibeis-web-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.web.app">
+<span id="ibeis-web-app-module"></span><h2>ibeis.web.app module<a class="headerlink" href="#module-ibeis.web.app" title="Permalink to this headline">¶</a></h2>
+<p>Dependencies: flask, tornado</p>
+<dl class="function">
+<dt id="ibeis.web.app.add_annots_json">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">add_annots_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uuid_list</em>, <em>annot_uuid_list</em>, <em>annot_bbox_list</em>, <em>annot_theta_list=None</em>, <em>annot_species_list=None</em>, <em>annot_name_list=None</em>, <em>annot_notes_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#add_annots_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.add_annots_json" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>REST:</dt>
+<dd>Method: POST
+URL: /api/annot/json/</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_uuid_list</strong> (<em>list of str</em>) &#8211; list of image UUIDs to be used in IBEIS IA</li>
+<li><strong>annot_uuid_list</strong> (<em>list of str</em>) &#8211; list of annotations UUIDs to be used in IBEIS IA</li>
+<li><strong>annot_bbox_list</strong> (<em>list of 4-tuple</em>) &#8211; list of bounding box coordinates encoded as
+a 4-tuple of the values (xtl, ytl, width, height) where xtl is the
+&#8216;top left corner, x value&#8217; and ytl is the &#8216;top left corner, y value&#8217;.</li>
+<li><strong>annot_theta_list</strong> (<em>list of float</em>) &#8211; list of radian rotation around center.
+Defaults to 0.0 (no rotation).</li>
+<li><strong>annot_species_list</strong> (<em>list of str</em>) &#8211; list of species for the annotation, if known.
+If the list is partially known, use None (null in JSON) for unknown entries.</li>
+<li><strong>annot_name_list</strong> (<em>list of str</em>) &#8211; list of names for the annotation, if known.
+If the list is partially known, use None (null in JSON) for unknown entries.</li>
+<li><strong>annot_notes_list</strong> (<em>list of str</em>) &#8211; list of notes to be added to the annotation.</li>
+<li><strong>**kwargs</strong> &#8211; key-value pairs passed to the ibs.add_annots() function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.app --test-add_annots_json
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">uuid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_payload</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;7fea8101-7dec-44e3-bf5d-b8287fd231e2&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c081119a-e08e-4863-a710-3210171d27d6&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;annot_uuid_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;fe1547c5-1425-4757-9b8f-b2b4a47f552d&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;86d3959f-7167-4822-b99f-42d453a50745&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;annot_bbox_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1992</span><span class="p">,</span> <span class="mi">1328</span><span class="p">],</span>
+<span class="go">&gt;&gt;&gt;&gt;        [0, 0, 1194, 401],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">add_annots_json</span><span class="p">(</span><span class="n">web_instance</span><span class="p">,</span> <span class="o">**</span><span class="n">_payload</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.add_images_json">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">add_images_json</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uri_list</em>, <em>image_uuid_list</em>, <em>image_width_list</em>, <em>image_height_list</em>, <em>image_orig_name_list=None</em>, <em>image_ext_list=None</em>, <em>image_time_posix_list=None</em>, <em>image_gps_lat_list=None</em>, <em>image_gps_lon_list=None</em>, <em>image_notes_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#add_images_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.add_images_json" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>REST:</dt>
+<dd>Method: POST
+URL: /api/image/json/</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_uri_list</strong> (<em>list</em>) &#8211; <p>list of string image uris, most likely HTTP(S) or S3
+encoded URLs.  Alternatively, this can be a list of dictionaries (JSON
+objects) that specify AWS S3 stored assets.  An example below:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>image_uri_list = [</dt>
+<dd>&#8216;<a class="reference external" href="http://domain.com/example/asset1.png">http://domain.com/example/asset1.png</a>&#8216;,
+&#8216;/home/example/Desktop/example/asset2.jpg&#8217;,
+&#8216;s3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif&#8217;,
+{<blockquote>
+<div>&#8216;bucket&#8217;          : &#8216;example-bucket-1&#8217;,
+&#8216;key&#8217;             : &#8216;example/asset1.png&#8217;,
+&#8216;auth_domain&#8217;     : None,  # Uses localhost
+&#8216;auth_access_id&#8217;  : None,  # Uses system default
+&#8216;auth_secret_key&#8217; : None,  # Uses system default</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div>&#8216;bucket&#8217; : &#8216;example-bucket-1&#8217;,
+&#8216;key&#8217;    : &#8216;example/asset2.jpg&#8217;,
+# if unspecified, auth uses localhost and system defaults</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div>&#8216;bucket&#8217;          : &#8216;example-bucket-2&#8217;,
+&#8216;key&#8217;             : &#8216;example/asset1-in-bucket-2.tif&#8217;,
+&#8216;auth_domain&#8217;     : &#8216;s3.amazon.com&#8217;,
+&#8216;auth_access_id&#8217;  : &#8216;____________________&#8217;,
+&#8216;auth_secret_key&#8217; : &#8216;________________________________________&#8217;,</div></blockquote>
+<p class="last">},</p>
+</dd>
+</dl>
+<p>]</p>
+</div></blockquote>
+<p>Note that you cannot specify AWS authentication access ids or secret keys
+using string uri&#8217;s.  For specific authentication methods, please use the
+latter list of dictionaries.</p>
+</li>
+<li><strong>image_uuid_list</strong> (<em>list of str</em>) &#8211; list of image UUIDs to be used in IBEIS IA</li>
+<li><strong>image_width_list</strong> (<em>list of int</em>) &#8211; list of image widths</li>
+<li><strong>image_height_list</strong> (<em>list of int</em>) &#8211; list of image heights</li>
+<li><strong>image_orig_name_list</strong> (<em>list of str</em>) &#8211; list of original image names</li>
+<li><strong>image_ext_list</strong> (<em>list of str</em>) &#8211; list of original image names</li>
+<li><strong>image_time_posix_list</strong> (<em>list of int</em>) &#8211; list of image&#8217;s POSIX timestamps</li>
+<li><strong>image_gps_lat_list</strong> (<em>list of float</em>) &#8211; list of image&#8217;s GPS latitude values</li>
+<li><strong>image_gps_lon_list</strong> (<em>list of float</em>) &#8211; list of image&#8217;s GPS longitude values</li>
+<li><strong>image_notes_list</strong> (<em>list of str</em>) &#8211; optional list of any related notes with
+the images</li>
+<li><strong>**kwargs</strong> &#8211; key-value pairs passed to the ibs.add_images() function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.app --test-add_images_json
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">uuid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_payload</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;image_uri_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s">&#39;https://upload.wikimedia.org/wikipedia/commons/4/49/Zebra_running_Ngorongoro.jpg&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="s">&#39;bucket&#39;</span>          <span class="p">:</span> <span class="s">&#39;test-asset-store&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="s">&#39;key&#39;</span>             <span class="p">:</span> <span class="s">&#39;caribwhale/20130903-JAC-0002.JPG&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">},</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;7fea8101-7dec-44e3-bf5d-b8287fd231e2&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c081119a-e08e-4863-a710-3210171d27d6&#39;</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;image_width_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="mi">1992</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="mi">1194</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;image_height_list&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="mi">1328</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="mi">401</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">add_images_json</span><span class="p">(</span><span class="n">web_instance</span><span class="p">,</span> <span class="o">**</span><span class="n">_payload</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">web_instance</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.annotation_src">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">annotation_src</code><span class="sig-paren">(</span><em>aid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#annotation_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.annotation_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.annotation_src_api">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">annotation_src_api</code><span class="sig-paren">(</span><em>aid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#annotation_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.annotation_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base64 encoded image of annotation &lt;aid&gt;</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/&lt;aid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.api">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">api</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.convert_old_viewpoint_to_yaw">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">convert_old_viewpoint_to_yaw</code><span class="sig-paren">(</span><em>view_angle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#convert_old_viewpoint_to_yaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.convert_old_viewpoint_to_yaw" title="Permalink to this definition">¶</a></dt>
+<dd><p>we initially had viewpoint coordinates inverted</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_viewpoint_labels</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;left&#39;</span>       <span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontleft&#39;</span>  <span class="p">,</span>  <span class="mi">45</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;front&#39;</span>      <span class="p">,</span>  <span class="mi">90</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;right&#39;</span>      <span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;back&#39;</span>       <span class="p">,</span> <span class="mi">270</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mi">315</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;old </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; new </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">radians</span> <span class="ow">in</span> <span class="n">old_viewpoint_labels</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span><span class="p">(</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.convert_yaw_to_old_viewpoint">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">convert_yaw_to_old_viewpoint</code><span class="sig-paren">(</span><em>yaw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#convert_yaw_to_old_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.convert_yaw_to_old_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>we initially had viewpoint coordinates inverted</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_viewpoint_labels</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;left&#39;</span>       <span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontleft&#39;</span>  <span class="p">,</span>  <span class="mi">45</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;front&#39;</span>      <span class="p">,</span>  <span class="mi">90</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;right&#39;</span>      <span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;back&#39;</span>       <span class="p">,</span> <span class="mi">270</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mi">315</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;original_angle </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; yaw </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; reconstructed_angle </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">radians</span> <span class="ow">in</span> <span class="n">old_viewpoint_labels</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">yaw</span> <span class="o">=</span> <span class="n">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">reconstructed_angle</span> <span class="o">=</span> <span class="n">convert_yaw_to_old_viewpoint</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span><span class="p">(</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">reconstructed_angle</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.dbinfo">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">dbinfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.default_species">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">default_species</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#default_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.default_species" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.display_sightings">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">display_sightings</code><span class="sig-paren">(</span><em>html_encode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#display_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.display_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.download_sightings">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">download_sightings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#download_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.download_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_additional_processed">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">encounter_annot_additional_processed</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>nid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_additional_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_additional_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_quality_processed">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">encounter_annot_quality_processed</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_quality_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_quality_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_viewpoint_processed">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">encounter_annot_viewpoint_processed</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_viewpoint_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_viewpoint_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_image_processed">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">encounter_image_processed</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_image_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_image_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.error404">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">error404</code><span class="sig-paren">(</span><em>exception=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#error404"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.error404" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.get_turk_annot_args">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">get_turk_annot_args</code><span class="sig-paren">(</span><em>is_reviewed_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#get_turk_annot_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.get_turk_annot_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper to return aids in an encounter or a group review</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.graph_sightings">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">graph_sightings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#graph_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.graph_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.group_review">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">group_review</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#group_review"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.group_review" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.group_review_submit">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">group_review_submit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#group_review_submit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.group_review_submit" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.app --exec-group_review_submit
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.app</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis.web</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[::</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">start_web_annot_groupreview</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.hello_world">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">hello_world</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#hello_world"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.hello_world" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_src">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">image_src</code><span class="sig-paren">(</span><em>gid=None</em>, <em>fresh=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#image_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_src_api">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">image_src_api</code><span class="sig-paren">(</span><em>gid=None</em>, <em>fresh=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#image_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base64 encoded image of image &lt;gid&gt;</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/image/&lt;gid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_upload">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">image_upload</code><span class="sig-paren">(</span><em>cleanup=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gid for an uploaded image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>image binary</em>) &#8211; the POST variable containing the binary
+(multi-form) image data</li>
+<li><strong>**kwargs</strong> &#8211; Arbitrary keyword arguments; the kwargs are passed down to
+the add_images function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>gid</strong> &#8211; gid corresponding to the image submitted.
+lexigraphical order.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">rowids</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/image/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_upload_zip">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">image_upload_zip</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gid_list for image files submitted in a ZIP archive.  The image
+archive should be flat (no folders will be scanned for images) and must be smaller
+than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save
+space.  Duplicate image uploads will result in the duplicate images receiving
+the same gid based on the hashed pixel values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image_zip_archive</strong> (<em>binary</em>) &#8211; the POST variable containing the binary
+(multi-form) image archive data</li>
+<li><strong>**kwargs</strong> &#8211; Arbitrary keyword arguments; the kwargs are passed down to
+the add_images function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>gid_list</strong> &#8211; the list of gids corresponding to the images
+submitted.  The gids correspond to the image names sorted in
+lexigraphical order.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list if rowids</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/image/zip</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_view_api">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">image_view_api</code><span class="sig-paren">(</span><em>gid=None</em>, <em>fresh=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#image_view_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_view_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base64 encoded image of image &lt;gid&gt;</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/image/view/&lt;gid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.movegroup_aid">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">movegroup_aid</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid</em>, <em>src_ag</em>, <em>dst_ag</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#movegroup_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.movegroup_aid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.root">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">root</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.set_cookie">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">set_cookie</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#set_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.set_cookie" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.start_from_ibeis">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">start_from_ibeis</code><span class="sig-paren">(</span><em>ibs</em>, <em>port=None</em>, <em>browser=False</em>, <em>precache=None</em>, <em>url_suffix=''</em>, <em>start_job_queue=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#start_from_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.start_from_ibeis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command line options and start the server.</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db PZ_MTEST --web
+python -m ibeis --db PZ_MTEST --web --browser
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.start_tornado">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">start_tornado</code><span class="sig-paren">(</span><em>ibs</em>, <em>port=None</em>, <em>browser=False</em>, <em>url_suffix=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#start_tornado"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.start_tornado" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the web server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_additional">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">submit_additional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#submit_additional"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_additional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_detection">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">submit_detection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#submit_detection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_quality">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">submit_quality</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#submit_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_quality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_viewpoint">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">submit_viewpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#submit_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">turk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#turk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_additional">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">turk_additional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#turk_additional"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_additional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_detection">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">turk_detection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#turk_detection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_quality">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">turk_quality</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#turk_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_quality" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>PZ Needs Tags:</dt>
+<dd>17242
+14468
+14427
+15946
+14771
+14084
+4102
+6074
+3409</dd>
+</dl>
+<p>GZ Needs Tags;
+1302</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
+python -m ibeis.web.app --exec-turk_quality --db GZ_Master1
+python -m ibeis.web.app --exec-turk_quality --db GIRM_Master1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">find_unlabeled_name_members</span><span class="p">(</span><span class="n">qual</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_views</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;primary&#39;</span><span class="p">,</span> <span class="s">&#39;primary1&#39;</span><span class="p">,</span> <span class="s">&#39;primary-1&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_to_viewpoint</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">valid_views</span><span class="p">,</span> <span class="n">unknown_ok</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">start_web_annot_groupreview</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_viewpoint">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">turk_viewpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#turk_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">find_unlabeled_name_members</span><span class="p">(</span><span class="n">suspect_yaws</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_to_quality</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="s">&#39;good&#39;</span><span class="p">,</span> <span class="n">unknown_ok</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">start_web_annot_groupreview</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.upload">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">upload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.upload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_annotations">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">view_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#view_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_encounters">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">view_encounters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#view_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_encounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_images">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">view_images</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#view_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_names">
+<code class="descclassname">ibeis.web.app.</code><code class="descname">view_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/app.html#view_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web.appfuncs">
+<span id="ibeis-web-appfuncs-module"></span><h2>ibeis.web.appfuncs module<a class="headerlink" href="#module-ibeis.web.appfuncs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.web.appfuncs.NavbarClass">
+<em class="property">class </em><code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">NavbarClass</code><span class="sig-paren">(</span><em>nav</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#NavbarClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.NavbarClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.apply_orientation">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">apply_orientation</code><span class="sig-paren">(</span><em>im</em>, <em>orientation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#apply_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.apply_orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This script handles the skimage exif problem.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.check_valid_function_name">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">check_valid_function_name</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#check_valid_function_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.check_valid_function_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.decode_refer_url">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">decode_refer_url</code><span class="sig-paren">(</span><em>encode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#decode_refer_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.decode_refer_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.embed_image_html">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">embed_image_html</code><span class="sig-paren">(</span><em>image</em>, <em>filter_width=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#embed_image_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.embed_image_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an image embedded in HTML base64 format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.encode_refer_url">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">encode_refer_url</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#encode_refer_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.encode_refer_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.open_oriented_image">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">open_oriented_image</code><span class="sig-paren">(</span><em>im_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#open_oriented_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.open_oriented_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.return_src">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">return_src</code><span class="sig-paren">(</span><em>gpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#return_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.return_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.send_file">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">send_file</code><span class="sig-paren">(</span><em>string</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#send_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.send_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.template">
+<code class="descclassname">ibeis.web.appfuncs.</code><code class="descname">template</code><span class="sig-paren">(</span><em>template_directory=None</em>, <em>template_filename=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web.test_api">
+<span id="ibeis-web-test-api-module"></span><h2>ibeis.web.test_api module<a class="headerlink" href="#module-ibeis.web.test_api" title="Permalink to this headline">¶</a></h2>
+<p>This is a proof of concept for connecting to an authenticated Qubica Server</p>
+<dl class="function">
+<dt id="ibeis.web.test_api.get_api_result">
+<code class="descclassname">ibeis.web.test_api.</code><code class="descname">get_api_result</code><span class="sig-paren">(</span><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_api_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_api_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a GET API request to the server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.get_authorization_header">
+<code class="descclassname">ibeis.web.test_api.</code><code class="descname">get_authorization_header</code><span class="sig-paren">(</span><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_authorization_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_authorization_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.get_signature">
+<code class="descclassname">ibeis.web.test_api.</code><code class="descname">get_signature</code><span class="sig-paren">(</span><em>key</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_signature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_signature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.post_api_result">
+<code class="descclassname">ibeis.web.test_api.</code><code class="descname">post_api_result</code><span class="sig-paren">(</span><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/test_api.html#post_api_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.post_api_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a GET API request to the server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.run_test_api">
+<code class="descclassname">ibeis.web.test_api.</code><code class="descname">run_test_api</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/test_api.html#run_test_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.run_test_api" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.test_api --test-run_test_api
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.test_api</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">run_test_api</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Server response: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">response</span>
+<span class="go">(200, u&#39;{&quot;status&quot;: {&quot;cache&quot;: -1, &quot;message&quot;: &quot;&quot;, &quot;code&quot;: 200, &quot;success&quot;: true}, &quot;response&quot;: &quot;testdb1&quot;}&#39;, &lt;bound method Response.json of &lt;Response [200]&gt;&gt;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web.zmq_task_queue">
+<span id="ibeis-web-zmq-task-queue-module"></span><h2>ibeis.web.zmq_task_queue module<a class="headerlink" href="#module-ibeis.web.zmq_task_queue" title="Permalink to this headline">¶</a></h2>
+<p>Accepts and handles requests for tasks.</p>
+<p>Each of the following runs in its own Thread/Process.</p>
+<p>BASICALLY DO A CLIENT/SERVER TO SPAWN PROCESSES
+AND THEN A PUBLISH SUBSCRIBE TO RETURN DATA</p>
+<dl class="docutils">
+<dt>Accepter:</dt>
+<dd>Receives tasks and requests
+Delegates tasks and responds to requests
+Tasks are delgated to an engine</dd>
+<dt>Engine:</dt>
+<dd>the engine accepts requests.
+the engine immediately responds WHERE it will be ready.
+the engine sends a message to the collector saying that something will be ready.
+the engine then executes a task.
+The engine is given direct access to the data.</dd>
+<dt>Collector:</dt>
+<dd><p class="first">The collector accepts requests
+The collector can respond:</p>
+<blockquote class="last">
+<div><ul class="simple">
+<li>&lt;ResultContent&gt;</li>
+<li>Results are ready.</li>
+<li>Results are not ready.</li>
+<li>Unknown jobid.</li>
+<li>Error computing results.</li>
+<li>Progress percent.</li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Simple task farm, with routed replies in pyzmq
+<a class="reference external" href="http://stackoverflow.com/questions/7809200/implementing-task-farm-messaging-pattern-with-zeromq">http://stackoverflow.com/questions/7809200/implementing-task-farm-messaging-pattern-with-zeromq</a>
+<a class="reference external" href="https://gist.github.com/minrk/1358832">https://gist.github.com/minrk/1358832</a></p>
+<p>#python -m ibeis &#8211;tf test_zmq_task
+python -m ibeis.web.zmq_task_queue &#8211;main
+python -m ibeis.web.zmq_task_queue &#8211;main &#8211;bg
+python -m ibeis.web.zmq_task_queue &#8211;main &#8211;fg</p>
+<dl class="class">
+<dt id="ibeis.web.zmq_task_queue.JobBackend">
+<em class="property">class </em><code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">JobBackend</code><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobBackend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobBackend.initialize_background_processes">
+<code class="descname">initialize_background_processes</code><span class="sig-paren">(</span><em>dbdir=None</em>, <em>wait=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobBackend.initialize_background_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobBackend.initialize_background_processes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.web.zmq_task_queue.JobInterface">
+<em class="property">class </em><code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">JobInterface</code><span class="sig-paren">(</span><em>jobiface</em>, <em>id_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.get_job_result">
+<code class="descname">get_job_result</code><span class="sig-paren">(</span><em>jobiface</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.get_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.get_job_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.get_job_status">
+<code class="descname">get_job_status</code><span class="sig-paren">(</span><em>jobiface</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.get_job_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.get_unpacked_result">
+<code class="descname">get_unpacked_result</code><span class="sig-paren">(</span><em>jobiface</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.get_unpacked_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.get_unpacked_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>jobiface</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.initialize_client_thread">
+<code class="descname">initialize_client_thread</code><span class="sig-paren">(</span><em>jobiface</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.initialize_client_thread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.initialize_client_thread" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.queue_job">
+<code class="descname">queue_job</code><span class="sig-paren">(</span><em>jobiface</em>, <em>action</em>, <em>callback_url=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.queue_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.queue_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>IBEIS:</dt>
+<dd>This is just a function that lives in the main thread and ships off
+a job.</dd>
+</dl>
+<p>The client - sends messages, and receives replies after they
+have been processed by the</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.web.zmq_task_queue.JobInterface.wait_for_job_result">
+<code class="descname">wait_for_job_result</code><span class="sig-paren">(</span><em>jobiface</em>, <em>jobid</em>, <em>timeout=10</em>, <em>freq=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#JobInterface.wait_for_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.JobInterface.wait_for_job_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.close_job_manager">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">close_job_manager</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#close_job_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.close_job_manager" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.collect_queue_loop">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">collect_queue_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.web.zmq_task_queue.collect_queue_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.collector_loop">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">collector_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#collector_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.collector_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Service that stores completed algorithm results</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.engine_loop">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">engine_loop</code><span class="sig-paren">(</span><em>id_</em>, <em>dbdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#engine_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.engine_loop" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>IBEIS:</dt>
+<dd><p class="first">This will be part of a worker process with its own IBEISController
+instance.</p>
+<p class="last">Needs to send where the results will go and then publish the results there.</p>
+</dd>
+</dl>
+<p>The engine_loop - receives messages, performs some action, and sends a reply,
+preserving the leading two message parts as routing identities</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.engine_queue_loop">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">engine_queue_loop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#engine_queue_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.engine_queue_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specialized queue loop</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.get_job_result">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">get_job_result</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#get_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.get_job_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.get_job_status">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">get_job_status</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#get_job_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.get_job_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.initialize_job_manager">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">initialize_job_manager</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#initialize_job_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.initialize_job_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run from the webserver</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.zmq_task_queue</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.zmq_task_queue</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">baseurl</span> <span class="o">=</span> <span class="s">&#39;http://127.0.1.1:5000&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;image_attrs_list&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;annot_attrs_list&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">payload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">,</span> <span class="n">_payload</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#resp = requests.post(baseurl + &#39;/api/core/helloworld/?f=b&#39;, data=payload)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">baseurl</span> <span class="o">+</span> <span class="s">&#39;/api/core/add_images_json/&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">json_dict</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="n">json_dict</span><span class="p">[</span><span class="s">&#39;response&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.make_queue_loop">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">make_queue_loop</code><span class="sig-paren">(</span><em>iface1</em>, <em>iface2</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#make_queue_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.make_queue_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard queue loop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>iface1</strong> (<em>str</em>) &#8211; address for the client that deals</li>
+<li><strong>iface2</strong> (<em>str</em>) &#8211; address for the server that routes</li>
+<li><strong>name</strong> (<em>None</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.rcv_multipart_json">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">rcv_multipart_json</code><span class="sig-paren">(</span><em>sock</em>, <em>num=2</em>, <em>print=&lt;function print&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#rcv_multipart_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.rcv_multipart_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.send_ibeis_request">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">send_ibeis_request</code><span class="sig-paren">(</span><em>suffix</em>, <em>type_=u'post'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#send_ibeis_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.send_ibeis_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.send_multipart_json">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">send_multipart_json</code><span class="sig-paren">(</span><em>sock</em>, <em>idents</em>, <em>reply</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#send_multipart_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.send_multipart_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.start_detect_image">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">start_detect_image</code><span class="sig-paren">(</span><em>ibs</em>, <em>image_uuid_list</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#start_detect_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.start_detect_image" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>REST:</dt>
+<dd>Method: GET
+URL: /api/core/start_detect_image/</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_uuid_list</strong> (<em>list</em>) &#8211; list of image uuids to detect on.</li>
+<li><strong>species</strong> (<em>str</em>) &#8211; species to detect</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.start_identify_annots">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">start_identify_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>qannot_uuid_list</em>, <em>adata_annot_uuid_list=None</em>, <em>pipecfg={}</em>, <em>callback_url=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#start_identify_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.start_identify_annots" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>REST:</dt>
+<dd>Method: GET
+URL: /api/core/identify_annots/</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qannot_uuid_list</strong> (<em>list</em>) &#8211; specifies the query annotations to
+identify.</li>
+<li><strong>adata_annot_uuid_list</strong> (<em>list</em>) &#8211; specifies the annotations that the
+algorithm is allowed to use for identification.  If not
+specified all annotations are used.   (default=None)</li>
+<li><strong>pipecfg</strong> (<em>dict</em>) &#8211; dictionary of pipeline configuration arguments
+(default=None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="c"># Run as main process</span>
+python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:0
+<span class="c"># Run using server process</span>
+python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1
+
+<span class="c"># Split into multiple processes</span>
+python -m ibeis.web.zmq_task_queue --main --bg
+python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --fg
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.zmq_task_queue</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">zmq_task_queue</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:qsize=2,dsize=10&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qannot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adata_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pipecfg</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">initialize_job_manager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">start_identify_annots</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">,</span> <span class="n">adata_annot_uuid_list</span><span class="p">,</span> <span class="n">pipecfg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wait_for_job_result</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">close_job_manager</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># WEB_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.zmq_task_queue</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_bg_web</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">send_ibeis_request</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="s">&#39;get&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">send_ibeis_request</span><span class="p">(</span><span class="s">&#39;/api/annot/uuids/&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid_list</span> <span class="o">=</span> <span class="n">response</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="n">adata_annot_uuid_list</span><span class="o">=</span><span class="n">uuid_list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="n">pipecfg</span><span class="o">=</span><span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">send_ibeis_request</span><span class="p">(</span><span class="s">&#39;/api/core/start_identify_annots/&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobid</span> <span class="o">=</span> <span class="n">response</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;response = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">response1</span> <span class="o">=</span> <span class="n">send_ibeis_request</span><span class="p">(</span><span class="s">&#39;/api/core/get_job_status/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">if</span> <span class="n">response1</span><span class="p">[</span><span class="s">&#39;jobstatus&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;completed&#39;</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">break</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;response1 = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response2</span> <span class="o">=</span> <span class="n">send_ibeis_request</span><span class="p">(</span><span class="s">&#39;/api/core/get_job_result/&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;response2 = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">response2</span><span class="p">[</span><span class="s">&#39;json_result&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Finished test&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">signal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#os.kill(web_instance.pid, signal.SIGINT)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#web_instance.join()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">webproc</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">pid</span><span class="o">=</span><span class="n">web_instance</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">child_proces</span> <span class="o">=</span> <span class="n">webproc</span><span class="o">.</span><span class="n">children</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">child_proces</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># FIXME! This orphans the background processes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#web_instance.terminate()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.test_zmq_task">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">test_zmq_task</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#test_zmq_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.test_zmq_task" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.web.zmq_task_queue --exec-test_zmq_task
+python -b -m ibeis.web.zmq_task_queue --exec-test_zmq_task
+
+python -m ibeis.web.zmq_task_queue --main
+python -m ibeis.web.zmq_task_queue --main --bg
+python -m ibeis.web.zmq_task_queue --main --fg
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.zmq_task_queue</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_zmq_task</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.zmq_task_queue.wait_for_job_result">
+<code class="descclassname">ibeis.web.zmq_task_queue.</code><code class="descname">wait_for_job_result</code><span class="sig-paren">(</span><em>ibs</em>, <em>jobid</em>, <em>timeout=10</em>, <em>freq=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/web/zmq_task_queue.html#wait_for_job_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.zmq_task_queue.wait_for_job_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.web" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="ibeis.viz.interact.html" class="btn btn-neutral" title="ibeis.viz.interact package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

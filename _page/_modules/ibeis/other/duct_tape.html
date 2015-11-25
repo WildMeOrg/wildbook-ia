@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.other.duct_tape &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.other" href="../other.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../other.html">ibeis.other</a> &raquo;</li>
+      
+    <li>ibeis.other.duct_tape</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.other.duct_tape</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># developer convenience functions for ibs</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="c">#from ibeis import ibsfuncs</span>
+
+<span class="c"># Inject utool functions</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[duct_tape]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="fix_compname_configs"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.fix_compname_configs">[docs]</a><span class="k">def</span> <span class="nf">fix_compname_configs</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; duct tape to keep version in check &quot;&quot;&quot;</span>
+    <span class="c">#ibs.MANUAL_CONFIG_SUFFIX = &#39;_MANUAL_&#39;  #+ utool.get_computer_name()</span>
+    <span class="c">#ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)</span>
+    <span class="c"># We need to fix the manual config suffix to not use computer names anymore</span>
+
+    <span class="n">configid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_configids</span><span class="p">()</span>
+    <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_suffixes</span><span class="p">(</span><span class="n">configid_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;MANUAL_CONFIG&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span>
+                                <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_MANUAL_&#39;</span><span class="p">),</span>
+                                <span class="nb">zip</span><span class="p">(</span><span class="n">configid_list</span><span class="p">,</span> <span class="n">cfgsuffix_list</span><span class="p">)):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;EVALUATING: </span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+        <span class="c"># Fix the tables with bad config_rowids</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            UPDATE {AL_RELATION_TABLE}</span>
+<span class="sd">            SET config_rowid=?</span>
+<span class="sd">            WHERE config_rowid=?</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">,</span> <span class="n">rowid</span><span class="p">))</span>
+
+        <span class="c"># Delete the bad config_suffixes</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {CONFIG_TABLE}</span>
+<span class="sd">            WHERE config_rowid=?</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">rowid</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="remove_database_slag"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.remove_database_slag">[docs]</a><span class="k">def</span> <span class="nf">remove_database_slag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span>
+                         <span class="n">delete_empty_names</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_empty_encounters</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_annotations_for_missing_images</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_image_labels_for_missing_types</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_annot_labels_for_missing_types</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_chips_for_missing_annotations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_features_for_missing_annotations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_invalid_eg_relations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_invalid_gl_relations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">delete_invalid_al_relations</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># ZERO ORDER</span>
+    <span class="k">if</span> <span class="n">delete_empty_names</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">delete_empty_encounters</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_eids</span><span class="p">()</span>
+
+    <span class="c"># FIRST ORDER</span>
+    <span class="k">if</span> <span class="n">delete_annotations_for_missing_images</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {ANNOTATION_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">delete_image_labels_for_missing_types</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {LBLIMAGE_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">delete_annot_labels_for_missing_types</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {LBLANNOT_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+    <span class="c"># SECOND ORDER</span>
+    <span class="k">if</span> <span class="n">delete_chips_for_missing_annotations</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {CHIP_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+
+    <span class="k">if</span> <span class="n">delete_features_for_missing_annotations</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {FEATURE_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                chip_rowid NOT IN (SELECT rowid FROM {CHIP_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+
+    <span class="k">if</span> <span class="n">delete_invalid_eg_relations</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {EG_RELATION_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR</span>
+<span class="sd">                encounter_rowid NOT IN (SELECT rowid FROM {ENCOUNTER_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+    <span class="c"># THIRD ORDER</span>
+    <span class="k">if</span> <span class="n">delete_invalid_gl_relations</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {GL_RELATION_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR</span>
+<span class="sd">                lblimage_rowid NOT IN (SELECT rowid FROM {LBLIMAGE_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+
+    <span class="k">if</span> <span class="n">delete_invalid_al_relations</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            DELETE</span>
+<span class="sd">            FROM {AL_RELATION_TABLE}</span>
+<span class="sd">            WHERE</span>
+<span class="sd">                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE}) OR</span>
+<span class="sd">                lblannot_rowid NOT IN (SELECT rowid FROM {LBLANNOT_TABLE})</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">constants</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+
+</div>
+<div class="viewcode-block" id="enforce_unkonwn_name_is_explicit"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.enforce_unkonwn_name_is_explicit">[docs]</a><span class="k">def</span> <span class="nf">enforce_unkonwn_name_is_explicit</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
+    <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">problem_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">text_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">text</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span>
+    <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">problem_nids</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="c"># TODO Take unknown_aids and remove any name relationships to make unknown</span>
+    <span class="c"># implicit</span>
+
+</div>
+<div class="viewcode-block" id="fix_nulled_yaws"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.fix_nulled_yaws">[docs]</a><span class="k">def</span> <span class="nf">fix_nulled_yaws</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">yaw</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">yaw_list</span><span class="p">]</span>
+    <span class="n">dirty_aid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;[duct_tape] Nulling </span><span class="si">%d</span><span class="s"> annotation yaws&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_yaws</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

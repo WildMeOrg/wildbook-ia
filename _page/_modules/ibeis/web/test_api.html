@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.test_api &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.test_api</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.test_api</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a proof of concept for connecting to an authenticated Qubica Server</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha1</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="c"># System variables</span>
+<span class="n">APPLICATION_PROTOCOL</span>   <span class="o">=</span> <span class="s">&#39;http&#39;</span>
+<span class="n">APPLICATION_DOMAIN</span>     <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+<span class="n">APPLICATION_PORT</span>       <span class="o">=</span> <span class="s">&#39;5000&#39;</span>
+<span class="n">APPLICATION_NAME</span>       <span class="o">=</span> <span class="s">&#39;IBEIS&#39;</span>
+<span class="n">APPLICATION_SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;CB73808F-A6F6-094B-5FCD-385EBAFF8FC0&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="n">exception</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] ERROR: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__file__</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_signature"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.get_signature">[docs]</a><span class="k">def</span> <span class="nf">get_signature</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;base64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="get_authorization_header"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.get_authorization_header">[docs]</a><span class="k">def</span> <span class="nf">get_authorization_header</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># Get signature</span>
+    <span class="n">secret_key_signature</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">APPLICATION_SECRET_KEY</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
+    <span class="n">application_authentication</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_NAME</span><span class="p">,</span> <span class="n">secret_key_signature</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">user_email</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">user_enc_pass</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a general (method) API request to the server</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Make GET request to server</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_PROTOCOL</span><span class="p">,</span> <span class="n">APPLICATION_DOMAIN</span><span class="p">,</span> <span class="n">APPLICATION_PORT</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">get_authorization_header</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">header</span><span class="p">}</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Server request (</span><span class="si">%r</span><span class="s">): </span><span class="si">%r</span><span class="se">\n\t</span><span class="s">Headers: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s">Args: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;GET&#39;</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_raise</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="s">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">_raise</span><span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="s">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span>
+
+
+<div class="viewcode-block" id="get_api_result"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.get_api_result">[docs]</a><span class="k">def</span> <span class="nf">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a GET API request to the server</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s">&#39;get&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
+                       <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="post_api_result"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.post_api_result">[docs]</a><span class="k">def</span> <span class="nf">post_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a GET API request to the server</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
+                       <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="run_test_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.run_test_api">[docs]</a><span class="k">def</span> <span class="nf">run_test_api</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.test_api --test-run_test_api</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.test_api import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; response = run_test_api()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Server response: %r&#39; % (response, ))</span>
+<span class="sd">        &gt;&gt;&gt; result = response</span>
+<span class="sd">        (200, u&#39;{&quot;status&quot;: {&quot;cache&quot;: -1, &quot;message&quot;: &quot;&quot;, &quot;code&quot;: 200, &quot;success&quot;: true}, &quot;response&quot;: &quot;testdb1&quot;}&#39;, &lt;bound method Response.json of &lt;Response [200]&gt;&gt;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_in_background</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c"># let the webapi startup in the background</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;/api/core/dbname/&#39;</span>
+    <span class="c"># Make GET request to the server as a test</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+    <span class="n">status_code</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">json</span> <span class="o">=</span> <span class="n">response</span>
+    <span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.web.test_api</span>
+<span class="sd">        python -m ibeis.web.test_api --allexamples</span>
+<span class="sd">        python -m ibeis.web.test_api --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

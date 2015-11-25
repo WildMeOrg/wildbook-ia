@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.smk.smk_repr &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+          <li><a href="../smk.html">ibeis.model.hots.smk</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.smk.smk_repr</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.model.hots.smk.smk_repr</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="c">#import weakref</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">nearest_neighbors</span> <span class="k">as</span> <span class="n">nntool</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_scoring</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_index</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_repr]&#39;</span><span class="p">)</span>
+
+
+<span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-smk&#39;</span><span class="p">)</span>
+
+
+<span class="n">INVERTED_INDEX_INJECT_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;InvertedIndex&#39;</span><span class="p">,</span> <span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="InvertedIndex"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.InvertedIndex">[docs]</a><span class="k">class</span> <span class="nc">InvertedIndex</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Stores inverted index state information</span>
+<span class="sd">    (mapping from words to database aids and fxs_list)</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        idx2_dvec    (ndarray[S x DIM]): stacked index -&gt; descriptor vector (currently sift)</span>
+<span class="sd">        idx2_daid    (ndarray[S x 1]): stacked index -&gt; annot id</span>
+<span class="sd">        idx2_dfx     (ndarray[S x 1]): stacked index -&gt; feature index (wrt daid)</span>
+<span class="sd">        idx2_fweight (ndarray[S x 1]): stacked index -&gt; feature weight</span>
+
+<span class="sd">        idx2_wxs     (list): stacked index -&gt; word indexes (jagged)</span>
+
+<span class="sd">        words        (ndarray[C x DIM]): visual word centroids</span>
+<span class="sd">        wordflann    (FLANN): FLANN search structure</span>
+
+<span class="sd">        wx2_idxs     (dict of lists of ndarrays): word index -&gt; stacked indexes</span>
+<span class="sd">        wx2_fxs      (dict of lists of ndarrays): word index -&gt; aggregate feature indexes</span>
+<span class="sd">        wx2_aids     (dict of ndarrays[N_c x 1]): word index -&gt; aggregate aids</span>
+
+<span class="sd">        wx2_drvecs   (dict of ndarrays[N_c x DIM]): word index -&gt; residual vectors</span>
+<span class="sd">        wx2_dflags   (dict of ndarrays[N_c x 1]): word index -&gt; residual flags</span>
+<span class="sd">        wx2_idf      (dict of ndarrays[N_c x 1]): word index -&gt; idf (wx normalizer)</span>
+<span class="sd">        wx2_maws     (dict of ndarrays[N_c x 1]): word index -&gt; multi-assign weights</span>
+
+<span class="sd">        daids        (ndarray): indexed annotation ids</span>
+<span class="sd">        daid2_sccw   (dict of floats): daid -&gt; sccw (daid self-consistency weight)</span>
+<span class="sd">        daid2_label  (dict of tuples): daid -&gt; label (name, view)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">wordflann</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span>
+                 <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>        <span class="o">=</span> <span class="n">words</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>    <span class="o">=</span> <span class="n">wordflann</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>    <span class="o">=</span> <span class="n">idx2_vec</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>    <span class="o">=</span> <span class="n">idx2_aid</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span>     <span class="o">=</span> <span class="n">idx2_fx</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>        <span class="o">=</span> <span class="n">daids</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>  <span class="o">=</span> <span class="n">daid2_label</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>      <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_maws</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dflags</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>      <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_fweight</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span>     <span class="o">=</span> <span class="bp">None</span>   <span class="c"># stacked index -&gt; word indexes</span>
+
+        <span class="c"># Inject debug function</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">INVERTED_INDEX_INJECT_KEY</span><span class="p">)(</span><span class="n">smk_debug</span><span class="o">.</span><span class="n">invindex_dbgstr</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">classkey</span><span class="o">=</span><span class="n">INVERTED_INDEX_INJECT_KEY</span><span class="p">)</span>
+
+</div>
+<span class="nd">@ut.make_class_method_decorator</span><span class="p">(</span><span class="n">INVERTED_INDEX_INJECT_KEY</span><span class="p">)</span>
+<div class="viewcode-block" id="report_memory"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.report_memory">[docs]</a><span class="k">def</span> <span class="nf">report_memory</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">objname</span><span class="o">=</span><span class="s">&#39;obj&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    obj = invindex</span>
+<span class="sd">    objname = &#39;invindex&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Object Memory Usage for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">objname</span><span class="p">)</span>
+    <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;memusage({0}.{1}){2} = &#39;</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+        <span class="n">sizestr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s">&#39;MB&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">sizestr</span><span class="p">)</span>
+
+</div>
+<span class="n">report_memsize</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">INVERTED_INDEX_INJECT_KEY</span><span class="p">)(</span><span class="n">ut</span><span class="o">.</span><span class="n">report_memsize</span><span class="p">)</span>
+
+
+<span class="n">QueryIndex</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;QueryIndex&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s">&#39;wx2_qrvecs&#39;</span><span class="p">,</span>
+        <span class="s">&#39;wx2_qflags&#39;</span><span class="p">,</span>
+        <span class="s">&#39;wx2_maws&#39;</span><span class="p">,</span>
+        <span class="s">&#39;wx2_qaids&#39;</span><span class="p">,</span>
+        <span class="s">&#39;wx2_qfxs&#39;</span><span class="p">,</span>
+        <span class="s">&#39;query_sccw&#39;</span><span class="p">,</span>
+    <span class="p">))</span>
+
+
+<div class="viewcode-block" id="LazyGetter"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.LazyGetter">[docs]</a><span class="k">class</span> <span class="nc">LazyGetter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getter_func</span> <span class="o">=</span> <span class="n">getter_func</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter_func</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter_func</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DataFrameProxy"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.DataFrameProxy">[docs]</a><span class="k">class</span> <span class="nc">DataFrameProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    pandas is actually really slow. This class emulates it so</span>
+<span class="sd">    I don&#39;t have to change my function calls, but without all the slowness.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;kpts&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;vecs&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;labels&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LazyGetter</span><span class="p">(</span><span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_class_labels</span><span class="p">)</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="make_annot_df"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.make_annot_df">[docs]</a><span class="k">def</span> <span class="nf">make_annot_df</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a pandas like DataFrame interface to an IBEISController</span>
+
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs ():</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        annots_df</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_repr import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs = smk_debug.testdata_ibeis()</span>
+<span class="sd">        &gt;&gt;&gt; annots_df = make_annot_df(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.hashstr(repr(annots_df.values)))</span>
+<span class="sd">        j12n+x93m4c!4un3</span>
+
+<span class="sd">    #&gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">    #&gt;&gt;&gt; smk_debug.rrr()</span>
+<span class="sd">    #&gt;&gt;&gt; smk_debug.check_dtype(annots_df)</span>
+
+<span class="sd">    Auto:</span>
+<span class="sd">        from ibeis.model.hots.smk import smk_repr</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        argdoc = ut.make_default_docstr(smk_repr.make_annot_df)</span>
+<span class="sd">        print(argdoc)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">annots_df</span> <span class="o">=</span> <span class="n">DataFrameProxy</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annots_df</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="new_qindex"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.new_qindex">[docs]</a><span class="k">def</span> <span class="nf">new_qindex</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Gets query read for computations</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annots_df (DataFrameProxy): pandas-like data interface</span>
+<span class="sd">        qaid (int): query annotation id</span>
+<span class="sd">        invindex (InvertedIndex): inverted index object</span>
+<span class="sd">        qparams (QueryParams): query parameters object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qindex: named tuple containing query information</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_repr --test-new_qindex</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_repr import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, qaid, invindex, qparams = smk_debug.testdata_query_repr(db=&#39;PZ_Mothers&#39;, nWords=128000)</span>
+<span class="sd">        &gt;&gt;&gt; qindex = new_qindex(annots_df, qaid, invindex, qparams)</span>
+<span class="sd">        &gt;&gt;&gt; assert smk_debug.check_wx2_rvecs(qindex.wx2_qrvecs), &#39;has nan&#39;</span>
+<span class="sd">        &gt;&gt;&gt; smk_debug.invindex_dbgstr(invindex)</span>
+
+<span class="sd">    Ignore::</span>
+<span class="sd">        idx2_vec = qfx2_vec</span>
+<span class="sd">        idx2_aid = qfx2_aid</span>
+<span class="sd">        idx2_fx  = qfx2_qfx</span>
+<span class="sd">        wx2_idxs = _wx2_qfxs</span>
+<span class="sd">        wx2_maws = _wx2_maws</span>
+<span class="sd">        from ibeis.model.hots.smk import smk_repr</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        ut.rrrr()</span>
+<span class="sd">        print(ut.make_default_docstr(smk_repr.new_qindex))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Precompute and lookup residuals and assignments</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] Query Repr qaid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
+    <span class="c">#</span>
+    <span class="n">nAssign</span>               <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
+    <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
+    <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
+    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
+    <span class="c">#</span>
+    <span class="n">aggregate</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
+    <span class="n">smk_alpha</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
+    <span class="n">smk_thresh</span>            <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
+    <span class="c">#</span>
+    <span class="n">wx2_idf</span>   <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>
+    <span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
+    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
+    <span class="c">#qfx2_vec  = annots_df[&#39;vecs&#39;][qaid]</span>
+    <span class="c"># TODO: remove all mention of annot_df and ensure that qparams is passed corectly to config2_</span>
+    <span class="n">qfx2_vec</span>  <span class="o">=</span> <span class="n">annots_df</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qparams</span><span class="p">)</span>
+    <span class="c">#-------------------</span>
+    <span class="c"># Assign query to (multiple) words</span>
+    <span class="c">#-------------------</span>
+    <span class="n">_wx2_qfxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">qfx2_wxs</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">assign_to_words_</span><span class="p">(</span>
+        <span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span>
+        <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
+    <span class="c"># Hack to make implementing asmk easier, very redundant</span>
+    <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">qaid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_wxs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INTEGER_TYPE</span><span class="p">)</span>
+    <span class="n">qfx2_qfx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">))</span>
+    <span class="c">#-------------------</span>
+    <span class="c"># Compute query residuals</span>
+    <span class="c">#-------------------</span>
+    <span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_qflags</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_residuals_</span><span class="p">(</span>
+        <span class="n">words</span><span class="p">,</span> <span class="n">_wx2_qfxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">qfx2_aid</span><span class="p">,</span> <span class="n">qfx2_qfx</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">)</span>
+    <span class="c"># each value in wx2_ dicts is a list with len equal to the number of rvecs</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] Query SCCW smk_alpha=</span><span class="si">%r</span><span class="s">, smk_thresh=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
+    <span class="c">#-------------------</span>
+    <span class="c"># Compute query sccw</span>
+    <span class="c">#-------------------</span>
+    <span class="n">wx_sublist</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
+    <span class="n">idf_list</span>    <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>    <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">rvecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qrvecs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">maws_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>   <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">flags_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_qflags</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
+    <span class="n">query_sccw</span> <span class="o">=</span> <span class="n">smk_scoring</span><span class="o">.</span><span class="n">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">query_sccw</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;query_sccw=</span><span class="si">%r</span><span class="s"> is not positive!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">query_sccw</span><span class="p">,)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="c">#-------------------</span>
+    <span class="c"># Build query representationm class/tuple</span>
+    <span class="c">#-------------------</span>
+    <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">qfx2_vec</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2_rvecs2</span><span class="p">(</span>
+            <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">),</span> <span class="s">&#39;bad qindex&#39;</span>
+
+    <span class="n">qindex</span> <span class="o">=</span> <span class="n">QueryIndex</span><span class="p">(</span><span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qflags</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">query_sccw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qindex</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="index_data_annots"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.index_data_annots">[docs]</a><span class="k">def</span> <span class="nf">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">with_internals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delete_rawvecs</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds the initial inverted index from a dataframe, daids, and words.</span>
+<span class="sd">    Optionally builds the internals of the inverted structure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annots_df ():</span>
+<span class="sd">        daids ():</span>
+<span class="sd">        words ():</span>
+<span class="sd">        qparams ():</span>
+<span class="sd">        with_internals ():</span>
+<span class="sd">        memtrack (): memory debugging object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        invindex</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_repr import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, qreq_, words = smk_debug.testdata_words()</span>
+<span class="sd">        &gt;&gt;&gt; qparams = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; with_internals = False</span>
+<span class="sd">        &gt;&gt;&gt; invindex = index_data_annots(annots_df, daids, words, qparams, with_internals)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        #&gt;&gt;&gt; print(ut.hashstr(repr(list(invindex.__dict__.values()))))</span>
+<span class="sd">        #v8+i5i8+55j0swio</span>
+
+<span class="sd">    Auto:</span>
+<span class="sd">        from ibeis.model.hots.smk import smk_repr</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        ut.rrrr()</span>
+<span class="sd">        print(ut.make_default_docstr(smk_repr.index_data_annots))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] index_data_annots&#39;</span><span class="p">)</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Compute fast lookup index for the words</span>
+    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
+    <span class="n">_vecs_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
+    <span class="n">_label_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;labels&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
+    <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">invertible_stack</span><span class="p">(</span><span class="n">_vecs_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+
+    <span class="c"># TODO:</span>
+    <span class="c"># Need to individually cache residual vectors.</span>
+    <span class="c"># rvecs_list = annots_df[&#39;rvecs&#39;][daids]</span>
+    <span class="c">#</span>
+    <span class="c"># Residual vectors depend on</span>
+    <span class="c"># * nearest word (word assignment)</span>
+    <span class="c"># * original vectors</span>
+    <span class="c"># * multiassignment</span>
+
+    <span class="n">daid2_label</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">_label_list</span><span class="p">))</span>
+
+    <span class="n">invindex</span> <span class="o">=</span> <span class="n">InvertedIndex</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wordflann</span><span class="p">,</span> <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span>
+                             <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">)</span>
+    <span class="c"># Decrement reference count so memory can be cleared in the next function</span>
+    <span class="k">del</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span>
+    <span class="k">del</span> <span class="n">_vecs_list</span><span class="p">,</span> <span class="n">_label_list</span>
+    <span class="k">if</span> <span class="n">with_internals</span><span class="p">:</span>
+        <span class="n">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+                                <span class="n">delete_rawvecs</span><span class="o">=</span><span class="n">delete_rawvecs</span><span class="p">)</span>  <span class="c"># 99%</span>
+    <span class="k">return</span> <span class="n">invindex</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="compute_data_internals_"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_repr.compute_data_internals_">[docs]</a><span class="k">def</span> <span class="nf">compute_data_internals_</span><span class="p">(</span><span class="n">invindex</span><span class="p">,</span> <span class="n">qparams</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">delete_rawvecs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds each of the inverted index internals.</span>
+
+<span class="sd">        invindex (InvertedIndex): object for fast vocab lookup</span>
+<span class="sd">        qparams (QueryParams): hyper-parameters</span>
+<span class="sd">        memtrack (None):</span>
+<span class="sd">        delete_rawvecs (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_repr import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()</span>
+<span class="sd">        &gt;&gt;&gt; compute_data_internals_(invindex, qreq_.qparams)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        idx2_vec = idx2_dvec</span>
+<span class="sd">        wx2_maws = _wx2_maws  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Get information</span>
+    <span class="c">#if memtrack is None:</span>
+    <span class="c">#    memtrack = ut.MemoryTracker(&#39;[DATA INTERNALS ENTRY]&#39;)</span>
+
+    <span class="c">#memtrack.report(&#39;[DATA INTERNALS1]&#39;)</span>
+
+    <span class="c">#</span>
+    <span class="n">aggregate</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
+    <span class="n">smk_alpha</span>             <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
+    <span class="n">smk_thresh</span>            <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
+    <span class="c">#</span>
+    <span class="n">massign_alpha</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
+    <span class="n">massign_sigma</span>         <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
+    <span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
+    <span class="c">#</span>
+    <span class="n">vocab_weighting</span>       <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">vocab_weighting</span>
+    <span class="c">#</span>
+    <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># single assignment for database side</span>
+
+    <span class="n">idx2_vec</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>
+    <span class="n">idx2_dfx</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span>
+    <span class="n">idx2_daid</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
+    <span class="n">daids</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>
+    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
+    <span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
+    <span class="n">daid2_label</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>
+    <span class="n">wx_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
+    <span class="c">#memtrack.track_obj(idx2_vec, &#39;idx2_vec&#39;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] compute_data_internals_&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * len(daids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * len(words) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * len(idx2_vec) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * aggregate = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aggregate</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * smk_alpha = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_alpha</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] * smk_thresh = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smk_thresh</span><span class="p">,))</span>
+
+    <span class="c"># Try to use the cache</span>
+    <span class="c">#cfgstr = ut.hashstr_arr(words, &#39;words&#39;) + qparams.feat_cfgstr</span>
+    <span class="c">#cachekw = dict(</span>
+        <span class="c">#cfgstr=cfgstr,</span>
+        <span class="c">#appname=&#39;smk_test&#39;</span>
+    <span class="c">#)</span>
+    <span class="c">#invindex_cache = ut.Cacher(&#39;inverted_index&#39;, **cachekw)</span>
+    <span class="c">#try:</span>
+    <span class="c">#    raise IOError(&#39;cache is off&#39;)</span>
+    <span class="c">#    #cachetup = invindex_cache.load()</span>
+    <span class="c">#    #(idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws, daid2_sccw) = cachetup</span>
+    <span class="c">#    invindex.idx2_dvec = None</span>
+    <span class="c">#except IOError as ex:</span>
+    <span class="c"># Database word assignments (perform single assignment on database side)</span>
+    <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">assign_to_words_</span><span class="p">(</span>
+        <span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_sigma</span><span class="p">,</span>
+        <span class="n">massign_equal_weights</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">_wx2_maws</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># Database word inverse-document-frequency (idf weights)</span>
+    <span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_word_idf_</span><span class="p">(</span>
+        <span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">,</span> <span class="n">vocab_weighting</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="c"># Compute (normalized) residual vectors and inverse mappings</span>
+    <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">wx2_dflags</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_residuals_</span><span class="p">(</span>
+        <span class="n">words</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">_wx2_maws</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span><span class="p">,</span>
+        <span class="n">aggregate</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] unloading idx2_vec&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">delete_rawvecs</span><span class="p">:</span>
+        <span class="c"># Try to save some memory</span>
+        <span class="k">del</span> <span class="n">_wx2_maws</span>
+        <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">del</span> <span class="n">idx2_vec</span>
+    <span class="c"># Compute annotation normalization factor</span>
+    <span class="n">daid2_sccw</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">compute_data_sccw_</span><span class="p">(</span>
+        <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_dflags</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_dmaws</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span>
+        <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># Cache save</span>
+    <span class="c">#cachetup = (idx2_wxs, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, daid2_sccw)</span>
+    <span class="c">#invindex_cache.save(cachetup)</span>
+
+    <span class="c"># Store information</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span>    <span class="o">=</span> <span class="n">idx2_wxs</span>   <span class="c"># stacked index -&gt; word indexes (might not be needed)</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span>    <span class="o">=</span> <span class="n">wx2_idxs</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>     <span class="o">=</span> <span class="n">wx2_idf</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_drvecs</span>  <span class="o">=</span> <span class="n">wx2_drvecs</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dflags</span>  <span class="o">=</span> <span class="n">wx2_dflags</span>  <span class="c"># flag nan rvecs</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_aids</span>    <span class="o">=</span> <span class="n">wx2_aids</span>    <span class="c"># needed for asmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_fxs</span>     <span class="o">=</span> <span class="n">wx2_fxs</span>     <span class="c"># needed for asmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dmaws</span>   <span class="o">=</span> <span class="n">wx2_dmaws</span>   <span class="c"># needed for awx2_mawssmk</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_sccw</span>  <span class="o">=</span> <span class="n">daid2_sccw</span>
+    <span class="c">#memtrack.report(&#39;[DATA INTERNALS3]&#39;)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_invindex_wx2</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_repr</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_repr --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_repr --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

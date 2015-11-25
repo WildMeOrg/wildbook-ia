@@ -1,0 +1,94 @@
+ibeis.viz.interact package
+==========================
+
+Submodules
+----------
+
+ibeis.viz.interact.interact_annotations2 module
+-----------------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_annotations2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_bbox module
+---------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_bbox
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_chip module
+---------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_chip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_image module
+----------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_image
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_matches module
+------------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_matches
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_name module
+---------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_name
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_qres module
+---------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_qres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_qres2 module
+----------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_qres2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_query_decision module
+-------------------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_query_decision
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.interact.interact_sver module
+---------------------------------------
+
+.. automodule:: ibeis.viz.interact.interact_sver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.viz.interact
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,1477 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.control.manual_encounter_funcs &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.control" href="../control.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../control.html">ibeis.control</a> &raquo;</li>
+      
+    <li>ibeis.control.manual_encounter_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.control.manual_encounter_funcs</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_encounter]&#39;</span><span class="p">)</span>
+
+
+<span class="n">ENCOUNTER_END_TIME_POSIX</span>   <span class="o">=</span> <span class="s">&#39;encounter_end_time_posix&#39;</span>
+<span class="n">ENCOUNTER_GPS_LAT</span>          <span class="o">=</span> <span class="s">&#39;encounter_gps_lat&#39;</span>
+<span class="n">ENCOUNTER_GPS_LON</span>          <span class="o">=</span> <span class="s">&#39;encounter_gps_lon&#39;</span>
+<span class="n">ENCOUNTER_NOTE</span>             <span class="o">=</span> <span class="s">&#39;encounter_note&#39;</span>
+<span class="n">ENCOUNTER_PROCESSED_FLAG</span>   <span class="o">=</span> <span class="s">&#39;encounter_processed_flag&#39;</span>
+<span class="n">ENCOUNTER_ROWID</span>            <span class="o">=</span> <span class="s">&#39;encounter_rowid&#39;</span>
+<span class="n">ENCOUNTER_SHIPPED_FLAG</span>     <span class="o">=</span> <span class="s">&#39;encounter_shipped_flag&#39;</span>
+<span class="n">ENCOUNTER_START_TIME_POSIX</span> <span class="o">=</span> <span class="s">&#39;encounter_start_time_posix&#39;</span>
+<span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span> <span class="o">=</span> <span class="s">&#39;encounter_smart_waypoint_id&#39;</span>
+<span class="n">ENCOUNTER_SMART_XML_FNAME</span>   <span class="o">=</span> <span class="s">&#39;encounter_smart_xml_fname&#39;</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.ider</span>
+<span class="k">def</span> <span class="nf">_get_all_encounter_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  all unfiltered eids (encounter rowids)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_eids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_eids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.ider</span>
+<span class="k">def</span> <span class="nf">_get_all_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    alias</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_all_encounter_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_valid_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_valid_eids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">processed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  list of all encounter ids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_eids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">min_num_gids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">num_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_gids</span> <span class="o">&gt;=</span> <span class="n">min_num_gids</span> <span class="k">for</span> <span class="n">num_gids</span> <span class="ow">in</span> <span class="n">num_gids_list</span><span class="p">]</span>
+        <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">processed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_processed_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">processed</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shipped</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_shipped_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">shipped</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">eid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="add_encounters"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.add_encounters">[docs]</a><span class="k">def</span> <span class="nf">add_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">,</span> <span class="n">encounter_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                   <span class="n">notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Adds a list of encounters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        enctext_list (list):</span>
+<span class="sd">        encounter_uuid_list (list):</span>
+<span class="sd">        config_rowid_list (list):</span>
+<span class="sd">        notes_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        eid_list (list): added encounter rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/encounter/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> encounters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">))</span>
+    <span class="c"># Add encounter text names to database</span>
+    <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">encounter_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">encounter_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">config_rowid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_note&#39;</span><span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">,</span> <span class="n">encounter_uuid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_eids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">eid_list</span>
+
+
+<span class="c"># SETTERS::ENCOUNTER</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_text">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">encounter_text_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Sets names of encounters (groups of animals)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Special set checks</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_special_encounter</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;cannot rename special encounters&#39;</span><span class="p">)</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">eid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">encounter_text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">encounter_text</span> <span class="ow">in</span> <span class="n">encounter_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+<span class="c">#</span>
+<span class="c"># GETTERS::ENCOUNTER</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/num_imgs_reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_num_imgs_reviewed"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_num_imgs_reviewed">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_num_imgs_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/num_imgs_reviewed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; # Reset and compute encounters</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_all_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs.get_valid_eids()</span>
+<span class="sd">        &gt;&gt;&gt; num_reviwed_list = ibs.get_encounter_num_imgs_reviewed(eid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = num_reviwed_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [0, 0]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">num_reviwed_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_reviwed_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/num_annotmatch_reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_num_annotmatch_reviewed"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_num_annotmatch_reviewed">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_num_annotmatch_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/num_annotmatch_reviewed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_custom_filtered_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">has_revieweds_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">num_annots_reviewed_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sum</span><span class="p">,</span> <span class="n">has_revieweds_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">num_annots_reviewed_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/num_names_with_exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_num_names_with_exemplar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_num_names_with_exemplar">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_num_names_with_exemplar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/num_names_with_exemplar/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_custom_filtered_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">exflags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">groups_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">exflags</span><span class="p">,</span> <span class="n">nids</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">exflags</span><span class="p">,</span> <span class="n">nids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">exflags_list</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)]</span>
+    <span class="c">#num_names_list = [len(groups) for groups in groups_list]</span>
+    <span class="n">num_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">sum</span><span class="p">([</span><span class="nb">any</span><span class="p">(</span><span class="n">exflags</span><span class="p">)</span> <span class="k">for</span> <span class="n">exflags</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">groups</span><span class="p">)])</span>
+        <span class="k">for</span> <span class="n">groups</span> <span class="ow">in</span> <span class="n">groups_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_exemplared_names_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/fraction_names_with_exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_fraction_names_with_exemplar"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_fraction_names_with_exemplar">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_fraction_names_with_exemplar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/fraction_names_with_exemplar/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; fraction_exemplared_names_list = ibs.get_encounter_fraction_names_with_exemplar(eid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_custom_filtered_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="c">#exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))))</span>
+    <span class="n">aids_list_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)</span>
+    <span class="n">flags_list_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">aids_list_list</span><span class="p">))</span>
+    <span class="c">#groups_list = [ut.group_items(exflags, nids)</span>
+    <span class="c">#               for exflags, nids in zip(exflags_list, nids_list)]</span>
+    <span class="n">num_names_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">))</span>
+    <span class="n">num_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">sum</span><span class="p">([</span><span class="nb">any</span><span class="p">(</span><span class="n">exflags</span><span class="p">)</span> <span class="k">for</span> <span class="n">exflags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">flags_list</span> <span class="ow">in</span> <span class="n">flags_list_list</span>
+    <span class="p">]</span>
+    <span class="n">fraction_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="bp">None</span> <span class="k">if</span> <span class="n">num_names</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">num_exemplared_names</span> <span class="o">/</span> <span class="n">num_names</span>
+        <span class="k">for</span> <span class="n">num_exemplared_names</span><span class="p">,</span>  <span class="n">num_names</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">num_exemplared_names_list</span><span class="p">,</span>  <span class="n">num_names_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_exemplared_names_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/fraction_annotmatch_reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_fraction_annotmatch_reviewed"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_fraction_annotmatch_reviewed">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_fraction_annotmatch_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_encounter_fraction_annotmatch_reviewed&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/fraction_annotmatch_reviewed/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_custom_filtered_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">fraction_annotmatch_reviewed_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+                                         <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_annotmatch_reviewed_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/custom_filtered_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_custom_filtered_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_custom_filtered_aids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_custom_filtered_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    hacks to filter aids to only certain views and qualities</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/custom_filtered_aids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="c"># HACK: Get percentage for the annots we currently care about</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_custom</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/fraction_imgs_reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_fraction_imgs_reviewed"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_fraction_imgs_reviewed">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_fraction_imgs_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_encounter_fraction_imgs_reviewed&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/fraction_imgs_reviewed/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">fraction_imgs_reviewed_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+                                   <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_imgs_reviewed_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># HACK</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/percent_names_with_exemplar_str/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_percent_names_with_exemplar_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_percent_names_with_exemplar_str">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_percent_names_with_exemplar_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_encounter_percent_names_with_exemplar_str&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/percent_names_with_exemplar_str/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fraction_exemplared_names_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_fraction_names_with_exemplar</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">percent_exemplared_names_list_str</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">percent_str</span><span class="p">,</span> <span class="n">fraction_exemplared_names_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">percent_exemplared_names_list_str</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># HACK</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/percent_imgs_reviewed_str/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_percent_imgs_reviewed_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_percent_imgs_reviewed_str">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_percent_imgs_reviewed_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_encounter_percent_imgs_reviewed_str&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/percent_imgs_reviewed_str/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fraction_imgs_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_fraction_imgs_reviewed</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">percent_imgs_reviewed_str_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">percent_str</span><span class="p">,</span> <span class="n">fraction_imgs_reviewed_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">percent_imgs_reviewed_str_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="s">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># HACK</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/percent_annotmatch_reviewed_str/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_percent_annotmatch_reviewed_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_percent_annotmatch_reviewed_str">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_percent_annotmatch_reviewed_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_encounter_percent_annotmatch_reviewed_str&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/percent_annotmatch_reviewed_str/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fraction_annotmatch_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_fraction_annotmatch_reviewed</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">percent_annotmach_reviewed_str_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">percent_str</span><span class="p">,</span> <span class="n">fraction_annotmatch_reviewed_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">percent_annotmach_reviewed_str_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/num_gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_num_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_num_gids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_num_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        nGids_list (list): number of images in each encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/num_gids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nGids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">nGids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/num_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_num_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_num_aids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_num_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        nGids_list (list): number of images in each encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/num_aids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nAids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">nAids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_aids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_aids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list):  a list of list of aids in each encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/aids/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        eid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: aids_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_encounter_funcs --test-get_encounter_aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_encounters(ibs.get_valid_eids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs.get_valid_eids()</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = get_encounter_aids(ibs, eid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;aids_list = %s&#39; % (str(aids_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="n">aids_list_</span><span class="p">))</span>
+    <span class="c">#print(&#39;get_encounter_aids&#39;)</span>
+    <span class="c">#print(&#39;eid_list = %r&#39; % (eid_list,))</span>
+    <span class="c">#print(&#39;gids_list = %r&#39; % (gids_list,))</span>
+    <span class="c">#print(&#39;aids_list_ = %r&#39; % (aids_list_,))</span>
+    <span class="c">#print(&#39;aids_list = %r&#39; % (aids_list,))</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1toM</span>
+<span class="nd">@accessor_decors.cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="s">&#39;image_rowids&#39;</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_gids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        gids_list (list):  a list of list of gids in each encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/gids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c">#print(&#39;get_encounter_gids&#39;)</span>
+    <span class="c">#print(&#39;eid_list = %r&#39; % (eid_list,))</span>
+    <span class="c">#print(&#39;gids_list = %r&#39; % (gids_list,))</span>
+    <span class="k">return</span> <span class="n">gids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/egrids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_egrids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_egrids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_egrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  a list of encounter-image-relationship rowids for each encouterid</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/egrids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># WEIRD FUNCTION FIXME</span>
+    <span class="k">assert</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;Either eid_list or gid_list must be None&quot;</span>
+    <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">eid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">)</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;encounter_rowid=?&#39;</span>
+        <span class="c"># list of relationships for each encounter</span>
+        <span class="n">egrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,),</span>
+                                       <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;image_rowid=?&#39;</span>
+        <span class="c"># list of relationships for each encounter</span>
+        <span class="n">egrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,),</span>
+                                       <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">eid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">eid</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;encounter_rowid=? AND image_rowid=?&#39;</span>
+        <span class="c"># list of relationships for each encounter</span>
+        <span class="n">egrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,),</span>
+                                       <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">egrids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/nids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_nids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_nids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  a list of list of known nids in each encounter</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_encounter_funcs --test-get_encounter_nids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/nids/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_encounters(ibs.get_valid_eids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; eid_list = ibs.get_valid_eids()</span>
+<span class="sd">        &gt;&gt;&gt; nids_list = ibs.get_encounter_nids(eid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = nids_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[1, 2, 3], [4, 5, 6, 7]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="c">#nids_list_ = [[nid[0] for nid in nids if len(nid) &gt; 0] for nids in nids_list]</span>
+    <span class="c"># Remove any unknown anmes</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nids</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
+
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">))</span>
+    <span class="c">#print(&#39;get_encounter_nids&#39;)</span>
+    <span class="c">#print(&#39;eid_list = %r&#39; % (eid_list,))</span>
+    <span class="c">#print(&#39;aids_list = %r&#39; % (aids_list,))</span>
+    <span class="c">#print(&#39;nids_list_ = %r&#39; % (nids_list_,))</span>
+    <span class="c">#print(&#39;nids_list = %r&#39; % (nids_list,))</span>
+    <span class="k">return</span> <span class="n">nids_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): encounter_uuid of each eid in eid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">encuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,),</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encuuid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/configid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_configid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_configid">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_configid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): config_rowid of each eid in eid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/configid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config_rowid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_text">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): encounter_text of each eid in eid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">enctext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,),</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">enctext_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/eids_from_text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_eids_from_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_eids_from_text">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_eids_from_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of eids corresponding to each encounter enctext</span>
+<span class="sd">    #FIXME: make new naming scheme for non-primary-key-getters</span>
+<span class="sd">    get_encounter_eids_from_text_from_text</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/eids_from_text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_encounters</span><span class="p">(</span><span class="n">enctext_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+        <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,),</span> <span class="n">enctext_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_text&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">eid_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_note"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_note">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_note</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): encounter_note of each eid in eid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">encnote_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;encounter_note&#39;</span><span class="p">,),</span> <span class="n">eid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encnote_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.deleter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="delete_encounters"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.delete_encounters">[docs]</a><span class="k">def</span> <span class="nf">delete_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Removes encounters and thier relationships (images are not effected)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/encounter/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Optimization hack, less SQL calls</span>
+    <span class="c">#egrid_list = ut.flatten(ibs.get_encounter_egrids(eid_list=eid_list))</span>
+    <span class="c">#ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)</span>
+    <span class="c">#ibs.db.delete(const.EG_RELATION_TABLE, eid_list, id_colname=&#39;encounter_rowid&#39;)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> encounters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_egr_encounter_relations</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/end_time_posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_end_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_end_time_posix">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_end_time_posix_list &lt;- encounter.encounter_end_time_posix[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_end_time_posix&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_end_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_end_time_posix</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/end_time_posix/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_END_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">encounter_end_time_posix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_end_time_posix_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/gps_lats/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_gps_lats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_gps_lats">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_gps_lats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_gps_lat_list &lt;- encounter.encounter_gps_lat[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_gps_lat&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_gps_lat_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_gps_lat</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/gps_lats/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_gps_lat_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_GPS_LAT</span><span class="p">,)</span>
+    <span class="n">encounter_gps_lat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_gps_lat_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.default_decorator</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/info/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="update_encounter_info"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.update_encounter_info">[docs]</a><span class="k">def</span> <span class="nf">update_encounter_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    sets start and end time for encounters</span>
+
+<span class="sd">    FIXME: should not need to bulk update, should be handled as it goes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/info/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs.get_valid_eids()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">encounter_rowid_list</span><span class="p">)</span>
+    <span class="n">hasgids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">gids</span> <span class="ow">in</span> <span class="n">gids_list_</span><span class="p">]</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gids_list_</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">encounter_end_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">encounter_start_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_end_time_posix</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">encounter_end_time_posix_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_start_time_posix</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">encounter_start_time_posix_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/gps_lons/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_gps_lons"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_gps_lons">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_gps_lons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_gps_lon_list &lt;- encounter.encounter_gps_lon[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_gps_lon&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_gps_lon_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_gps_lon</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/gps_lons/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_gps_lon_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_GPS_LON</span><span class="p">,)</span>
+    <span class="n">encounter_gps_lon_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_gps_lon_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/notes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_notes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_notes">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_note_list &lt;- encounter.encounter_note[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_note&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_note_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_note</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/notes/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_note_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_NOTE</span><span class="p">,)</span>
+    <span class="n">encounter_note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_note_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/processed_flags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_processed_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_processed_flags">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_processed_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_processed_flag_list &lt;- encounter.encounter_processed_flag[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_processed_flag&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_processed_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_processed_flag</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/processed_flags/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_processed_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_PROCESSED_FLAG</span><span class="p">,)</span>
+    <span class="n">encounter_processed_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_processed_flag_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/shipped_flags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_shipped_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_shipped_flags">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_shipped_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_shipped_flag_list &lt;- encounter.encounter_shipped_flag[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_shipped_flag&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_shipped_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_shipped_flag</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/shipped_flags/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_shipped_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SHIPPED_FLAG</span><span class="p">,)</span>
+    <span class="n">encounter_shipped_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_shipped_flag_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/start_time_posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_start_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_start_time_posix">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_start_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_start_time_posix_list &lt;- encounter.encounter_start_time_posix[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_start_time_posix&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_start_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_start_time_posix</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/start_time_posix/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_START_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">encounter_start_time_posix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_start_time_posix_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/end_time_posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_end_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_end_time_posix">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_end_time_posix_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_end_time_posix_list -&gt; encounter.encounter_end_time_posix[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_end_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_end_time_posix</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/end_time_posix/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_END_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_end_time_posix_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/gps_lats/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_gps_lats"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_gps_lats">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_gps_lats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_gps_lat_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_gps_lat_list -&gt; encounter.encounter_gps_lat[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_gps_lat_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_gps_lat</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/gps_lats/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_GPS_LAT</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">encounter_gps_lat_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/gps_lons/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_gps_lons"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_gps_lons">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_gps_lons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_gps_lon_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_gps_lon_list -&gt; encounter.encounter_gps_lon[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_gps_lon_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_gps_lon</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/gps_lons/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_GPS_LON</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">encounter_gps_lon_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/notes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_notes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_notes">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_note_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_note_list -&gt; encounter.encounter_note[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_note_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_note</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/notes/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_NOTE</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">encounter_note_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/processed_flags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_processed_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_processed_flags">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_processed_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_processed_flag_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_processed_flag_list -&gt; encounter.encounter_processed_flag[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_processed_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_processed_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/processed_flags/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_PROCESSED_FLAG</span><span class="p">,)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">processed_flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">processed_flag</span> <span class="ow">in</span> <span class="n">encounter_processed_flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/shipped_flags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_shipped_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_shipped_flags">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_shipped_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_shipped_flag_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_shipped_flag_list -&gt; encounter.encounter_shipped_flag[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_shipped_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_shipped_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/shipped_flags/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SHIPPED_FLAG</span><span class="p">,)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">shipped_flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">shipped_flag</span> <span class="ow">in</span> <span class="n">encounter_shipped_flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/start_time_posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_start_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_start_time_posix">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_start_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_start_time_posix_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_start_time_posix_list -&gt; encounter.encounter_start_time_posix[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_start_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_start_time_posix</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/start_time_posix/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_START_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_start_time_posix_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/smart_waypoint_ids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_smart_waypoint_ids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_smart_waypoint_ids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_smart_waypoint_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_smart_waypoint_id_list &lt;- encounter.encounter_smart_waypoint_id[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_smart_waypoint_id&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_smart_waypoint_id</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/smart_waypoint_ids/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">encounter_smart_waypoint_id_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_smart_waypoint_id_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/smart_xml_fnames/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_encounter_smart_xml_fnames"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.get_encounter_smart_xml_fnames">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_smart_xml_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_smart_xml_fname_list &lt;- encounter.encounter_smart_xml_fname[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_smart_xml_fname&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_smart_xml_fname</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/encounter/smart_xml_fnames/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_encounter_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">encounter_smart_xml_fname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_smart_xml_fname_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/smart_waypoint_ids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_smart_waypoint_ids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_smart_waypoint_ids">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_smart_waypoint_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_smart_waypoint_id_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_smart_waypoint_id_list -&gt; encounter.encounter_smart_waypoint_id[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_smart_waypoint_id</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/smart_waypoint_ids/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_smart_waypoint_id_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/encounter/smart_xml_fnames/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_encounter_smart_xml_fnames"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.set_encounter_smart_xml_fnames">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_smart_xml_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_smart_xml_fname_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    encounter_smart_xml_fname_list -&gt; encounter.encounter_smart_xml_fname[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_smart_xml_fname</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/encounter/smart_xml_fnames/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_smart_xml_fname_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_encounter_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;testdata_ibs&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_encounter_funcs</span>
+<span class="sd">        python -m ibeis.control.manual_encounter_funcs --allexamples</span>
+<span class="sd">        python -m ibeis.control.manual_encounter_funcs --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

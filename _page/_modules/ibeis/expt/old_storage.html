@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.old_storage &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.old_storage</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.old_storage</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_harn]&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="ResultMetadata"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata">[docs]</a><span class="k">class</span> <span class="nc">ResultMetadata</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">autoconnect</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        metadata_fpath = join(figdir, &#39;result_metadata.shelf&#39;)</span>
+<span class="sd">        metadata = ResultMetadata(metadata_fpath)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">fpath</span> <span class="o">=</span> <span class="n">fpath</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;query_cfgstr&#39;</span><span class="p">,</span> <span class="s">&#39;qaid&#39;</span><span class="p">]</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">autoconnect</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResultMetadata.connect"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">shelve</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;dictstore&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">:</span>
+            <span class="n">dictstore</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">AutoVivification</span><span class="p">()</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.clear"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">dictstore</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">AutoVivification</span><span class="p">()</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span>
+</div>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResultMetadata.close"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.write"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.set_global_data"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.set_global_data">[docs]</a>    <span class="k">def</span> <span class="nf">set_global_data</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">][</span><span class="n">qaid</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.sync_test_results"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.sync_test_results">[docs]</a>    <span class="k">def</span> <span class="nf">sync_test_results</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">testres</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; store all test results in the shelf &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cfgx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">)):</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">cfgx</span><span class="p">)</span>
+            <span class="n">qaids</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">qaids</span>
+            <span class="n">cfgresinfo</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">cfgresinfo</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
+                    <span class="n">metadata</span><span class="o">.</span><span class="n">set_global_data</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">cfgstr_list</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_column_keys"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.get_column_keys">[docs]</a>    <span class="k">def</span> <span class="nf">get_column_keys</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">unflat_colname_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="k">for</span> <span class="n">qaid2_cols</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">colname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unflat_colname_list</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">colname_list</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_square_data"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.ResultMetadata.get_square_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_square_data</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># can only support one config at a time right now</span>
+        <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qaid2_cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+        <span class="c">#col_name_list = [&#39;qx2_scoreexpdiff&#39;, &#39;qx2_gt_aid&#39;]</span>
+        <span class="c">#colname2_colvals = [None for colname in col_name_list]</span>
+        <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">colvals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">colvals</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_name_list</span>
+        <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaids</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_list</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;depth_profile(column_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">column_list</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span>
+
+</div></div>
+<div class="viewcode-block" id="make_metadata_custom_api"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.make_metadata_custom_api">[docs]</a><span class="k">def</span> <span class="nf">make_metadata_custom_api</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.experiment_drawing --test-make_metadata_custom_api --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_drawing import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import guitool</span>
+<span class="sd">        &gt;&gt;&gt; guitool.ensure_qapp()</span>
+<span class="sd">        &gt;&gt;&gt; metadata_fpath = &#39;/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf&#39;</span>
+<span class="sd">        &gt;&gt;&gt; metadata = test_result.ResultMetadata(metadata_fpath, autoconnect=True)</span>
+<span class="sd">        &gt;&gt;&gt; wgt = make_metadata_custom_api(metadata)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.show()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.raise_()</span>
+<span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(wgt, frequency=100)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span>
+
+    <span class="k">class</span> <span class="nc">MetadataViewer</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tblnice</span><span class="o">=</span><span class="s">&#39;Result Metadata Viewer&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">tblnice</span><span class="o">=</span><span class="n">tblnice</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">wgt</span><span class="o">.</span><span class="n">connect_signals_and_slots</span><span class="p">()</span>
+
+        <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_on_doubleclick</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[wgt] _on_doubleclick: &#39;</span><span class="p">)</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">wgt</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">[</span><span class="n">col</span><span class="p">]:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;do nothing special for editable columns&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+            <span class="n">colname</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_name</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">colname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;fpath&#39;</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;showing fpath&#39;</span><span class="p">)</span>
+                <span class="n">fpath</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">connect_signals_and_slots</span><span class="p">(</span><span class="n">wgt</span><span class="p">):</span>
+            <span class="c">#wgt.view.clicked.connect(wgt._on_click)</span>
+            <span class="n">wgt</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">doubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">wgt</span><span class="o">.</span><span class="n">_on_doubleclick</span><span class="p">)</span>
+            <span class="c">#wgt.view.pressed.connect(wgt._on_pressed)</span>
+            <span class="c">#wgt.view.activated.connect(wgt._on_activated)</span>
+
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="c">#cfgstr_list = metadata</span>
+    <span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_square_data</span><span class="p">()</span>
+
+    <span class="c"># Priority of column names</span>
+    <span class="n">colname_priority</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gt_rank&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>  <span class="s">&#39;analysis_fpath&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;qx2_gt_raw_score&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gf_raw_score&#39;</span><span class="p">]</span>
+    <span class="n">colname_priority</span> <span class="o">+=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">))</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">priority_argsort</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">)</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+
+    <span class="n">col_lens</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">column_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;col_name_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_name_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;col_lens = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_lens</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;no columns&#39;</span>
+    <span class="k">assert</span> <span class="n">col_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;no rows&#39;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">len_</span> <span class="o">==</span> <span class="n">col_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">len_</span> <span class="ow">in</span> <span class="n">col_lens</span><span class="p">]),</span> <span class="s">&#39;inconsistant data&#39;</span>
+    <span class="n">col_types_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span><span class="p">))</span>
+    <span class="n">col_bgrole_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_nice_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;qx2_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">}</span>
+    <span class="n">col_nice_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">:</span> <span class="s">&#39;GT TimeDelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">:</span> <span class="s">&#39;GF TimeDelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_rank&#39;</span><span class="p">:</span> <span class="s">&#39;GT Rank&#39;</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s">&#39;qaids&#39;</span>
+    <span class="k">def</span> <span class="nf">get_thumb_size</span><span class="p">():</span>
+        <span class="k">return</span> <span class="mi">128</span>
+    <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span>
+        <span class="n">sort_reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">col_width_dict</span><span class="o">=</span><span class="n">col_width_dict</span><span class="p">,</span>
+        <span class="n">col_nice_dict</span><span class="o">=</span><span class="n">col_nice_dict</span>
+    <span class="p">)</span>
+    <span class="c">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c">#print(ut.dict_str(headers))</span>
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">MetadataViewer</span><span class="p">()</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wgt</span>
+
+</div>
+<div class="viewcode-block" id="make_test_result_custom_api"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.old_storage.make_test_result_custom_api">[docs]</a><span class="k">def</span> <span class="nf">make_test_result_custom_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="n">cfgx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_gt_aid&#39;</span><span class="p">]</span>
+    <span class="n">gf_aids</span> <span class="o">=</span> <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_gf_aid&#39;</span><span class="p">]</span>
+    <span class="n">qx2_gt_timedelta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_timdelta</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">)</span>
+    <span class="n">qx2_gf_timedelta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_timdelta</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gf_aids</span><span class="p">)</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;qaids&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_aid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_aid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">col_types_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgres_info</span><span class="p">)</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qx2_gt_timedelta</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qx2_gf_timedelta</span>
+    <span class="n">col_bgrole_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s">&#39;qaids&#39;</span>
+    <span class="k">def</span> <span class="nf">get_thumb_size</span><span class="p">():</span>
+        <span class="k">return</span> <span class="mi">128</span>
+    <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">col_width_dict</span><span class="p">)</span>
+    <span class="c">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c">#print(ut.dict_str(headers))</span>
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">()</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wgt</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

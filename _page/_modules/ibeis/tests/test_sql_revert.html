@@ -1,0 +1,448 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.test_sql_revert &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.test_sql_revert</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.tests.test_sql_revert</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">__SQLITE3__</span> <span class="k">as</span> <span class="n">lite</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">realpath</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_SQL_REVERT]&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_string&quot;</span>
+
+
+<div class="viewcode-block" id="test_query"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_revert.test_query">[docs]</a><span class="k">def</span> <span class="nf">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">_type</span><span class="p">,</span> <span class="n">alter_callback</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c"># Offset bound by 1</span>
+    <span class="n">bound</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">retval</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># Clear test data</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        DELETE FROM test</span>
+<span class="s">        WHERE rowid &gt; 0</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="c"># Add dummy data and commit it</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">            INSERT INTO test</span>
+<span class="s">            (</span>
+<span class="s">                rowid,</span>
+<span class="s">                test_int,</span>
+<span class="s">                test_string</span>
+<span class="s">            )</span>
+<span class="s">            VALUES (NULL, ?, ?)</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[</span><span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">)])</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c"># Begin the transaction</span>
+    <span class="k">if</span> <span class="n">transaction</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;BEGIN&#39;</span><span class="p">,</span> <span class="p">())</span>
+
+    <span class="c"># Alter the data</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="n">alter_callback</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">bound</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (isolation=</span><span class="si">%r</span><span class="s">, trans=</span><span class="si">%r</span><span class="s">, commit=</span><span class="si">%r</span><span class="s">) Passed Alter&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_type</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="p">,</span> <span class="n">commit</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (isolation=</span><span class="si">%r</span><span class="s">, trans=</span><span class="si">%r</span><span class="s">, commit=</span><span class="si">%r</span><span class="s">) Failed Alter: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_type</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="p">,</span> <span class="n">commit</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+    <span class="c"># Commit change</span>
+    <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># Rollback to previous state</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+
+        <span class="c"># Check for consistency</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">            SELECT *</span>
+<span class="s">            FROM test</span>
+<span class="s">            ORDER BY rowid ASC</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Check for UPDATE and Rollback</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="c"># Must check extreme case where there are no transactions, no commiting and the isolation is None</span>
+            <span class="k">if</span> <span class="n">commit</span> <span class="ow">or</span> <span class="p">(</span><span class="n">isolation_level</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">transaction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">commit</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s">&#39;UPDATE&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA SHOULD HAVE BEEN COMMITED AND CANNOT ROLLBACK&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA SHOULD HAVE BEEN ROLLED BACK&quot;</span><span class="p">)</span>
+
+        <span class="c"># Check for INSERT / DELETE</span>
+        <span class="n">original</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">added</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">originals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bound</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">originals</span> <span class="o">+</span> <span class="n">indices</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+                <span class="n">missing</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">originals</span><span class="p">:</span>
+                <span class="n">added</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">original</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">commit</span> <span class="ow">and</span> <span class="n">_type</span> <span class="o">==</span> <span class="s">&#39;DELETE&#39;</span> <span class="ow">and</span> <span class="n">missing</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA MISMATCH MISSING </span><span class="si">%r</span><span class="s"> - </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">missing</span><span class="p">,</span> <span class="n">expected</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">commit</span> <span class="ow">and</span> <span class="n">_type</span> <span class="o">==</span> <span class="s">&#39;INSERT&#39;</span> <span class="ow">and</span> <span class="n">added</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA MISMATCH ADDED </span><span class="si">%r</span><span class="s"> - </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">added</span><span class="p">,</span> <span class="n">expected</span><span class="p">))</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (isolation=</span><span class="si">%r</span><span class="s">, trans=</span><span class="si">%r</span><span class="s">, commit=</span><span class="si">%r</span><span class="s">) Passed Rollback&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_type</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="p">,</span> <span class="n">commit</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Original: </span><span class="si">%r</span><span class="s">, Missing: </span><span class="si">%r</span><span class="s">, Added: </span><span class="si">%r</span><span class="s">, Expected: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">original</span><span class="p">,</span> <span class="n">missing</span><span class="p">,</span> <span class="n">added</span><span class="p">,</span> <span class="n">expected</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> (isolation=</span><span class="si">%r</span><span class="s">, trans=</span><span class="si">%r</span><span class="s">, commit=</span><span class="si">%r</span><span class="s">) Failed Rollback: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_type</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="p">,</span> <span class="n">commit</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">retval</span>
+
+</div>
+<div class="viewcode-block" id="alter_update"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_revert.alter_update">[docs]</a><span class="k">def</span> <span class="nf">alter_update</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+    <span class="c"># Modify Data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">            UPDATE test</span>
+<span class="s">            SET test_int=?, test_string=?</span>
+<span class="s">            WHERE rowid=?</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_string&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+
+    <span class="c"># Check for change</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT *</span>
+<span class="s">        FROM test</span>
+<span class="s">        ORDER BY rowid ASC</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA SHOULD HAVE BEEN ALTERED&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="alter_delete"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_revert.alter_delete">[docs]</a><span class="k">def</span> <span class="nf">alter_delete</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+    <span class="c"># Get random indices</span>
+    <span class="n">randoms</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bound</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">bound</span> <span class="o">*</span> <span class="mf">0.10</span><span class="p">)</span> <span class="p">)]))</span>
+
+    <span class="c"># Modify Data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">randoms</span><span class="p">:</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">            DELETE FROM test</span>
+<span class="s">            WHERE rowid=?</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="c"># Check for change</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT *</span>
+<span class="s">        FROM test</span>
+<span class="s">        ORDER BY rowid ASC</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">randoms</span> <span class="ow">and</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">randoms</span> <span class="ow">and</span> <span class="n">row</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA SHOULD HAVE BEEN ALTERED&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">randoms</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="alter_insert"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_revert.alter_insert">[docs]</a><span class="k">def</span> <span class="nf">alter_insert</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+    <span class="n">added</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bound</span> <span class="o">*</span> <span class="mf">0.10</span><span class="p">)</span>
+
+    <span class="c"># Modify Data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bound</span><span class="p">,</span> <span class="n">bound</span> <span class="o">+</span> <span class="n">added</span><span class="p">):</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">            INSERT INTO test</span>
+<span class="s">            (</span>
+<span class="s">                rowid,</span>
+<span class="s">                test_int,</span>
+<span class="s">                test_string</span>
+<span class="s">            )</span>
+<span class="s">            VALUES (NULL, ?, ?)</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[</span><span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">)])</span>
+
+    <span class="c"># Check for change</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT *</span>
+<span class="s">        FROM test</span>
+<span class="s">        ORDER BY rowid ASC</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_val1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_val2</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;ERROR, DATA SHOULD HAVE BEEN ALTERED&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">added</span>
+
+</div>
+<div class="viewcode-block" id="TEST_SQL_REVERT"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_revert.TEST_SQL_REVERT">[docs]</a><span class="k">def</span> <span class="nf">TEST_SQL_REVERT</span><span class="p">(</span><span class="n">isolation_level</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+
+    <span class="c"># Create SQLITE3 object</span>
+    <span class="n">connection</span> <span class="o">=</span> <span class="n">lite</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s">&#39;test_sql_revert.sqlite3&#39;</span><span class="p">),</span>
+        <span class="n">detect_types</span><span class="o">=</span><span class="n">lite</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span><span class="p">,</span>
+        <span class="n">isolation_level</span><span class="o">=</span><span class="n">isolation_level</span>
+    <span class="p">)</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c"># Clear the database and drop all current test data</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        DROP TABLE IF EXISTS test</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="c"># Create the test database because it will not exist</span>
+    <span class="n">operation</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        CREATE TABLE IF NOT EXISTS test</span>
+<span class="s">        (</span>
+<span class="s">            test_id INTEGER PRIMARY KEY,</span>
+<span class="s">            test_int INTEGER NOT NULL,</span>
+<span class="s">            test_string TEXT</span>
+<span class="s">        )</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="n">status</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]:</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;UPDATE&#39;</span><span class="p">,</span> <span class="n">alter_update</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;UPDATE&#39;</span><span class="p">,</span> <span class="n">alter_update</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;DELETE&#39;</span><span class="p">,</span> <span class="n">alter_delete</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;DELETE&#39;</span><span class="p">,</span> <span class="n">alter_delete</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;INSERT&#39;</span><span class="p">,</span> <span class="n">alter_insert</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">))</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_query</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">cur</span><span class="p">,</span> <span class="s">&#39;INSERT&#39;</span><span class="p">,</span> <span class="n">alter_insert</span><span class="p">,</span> <span class="n">isolation_level</span><span class="p">,</span> <span class="n">transaction</span><span class="o">=</span><span class="n">trans</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Tests failed for </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isolation_level</span><span class="p">))</span>
+        <span class="c"># This will never happen unless SQLite 3 freaks out</span>
+
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_REVERT</span><span class="p">)</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_REVERT</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;DEFERRED&#39;</span><span class="p">)</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_REVERT</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;IMMEDIATE&#39;</span><span class="p">)</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_REVERT</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="s">&#39;EXCLUSIVE&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

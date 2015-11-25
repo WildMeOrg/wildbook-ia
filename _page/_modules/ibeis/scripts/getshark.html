@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.scripts.getshark &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.scripts.getshark</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.scripts.getshark</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">getopt</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">xml.dom.minidom</span> <span class="kn">import</span> <span class="n">parseString</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<div class="viewcode-block" id="shark_misc"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.getshark.shark_misc">[docs]</a><span class="k">def</span> <span class="nf">shark_misc</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;WS_ALL&#39;</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_been_adjusted</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">adjusted_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">adjusted_aids</span>
+
+</div>
+<div class="viewcode-block" id="download_sharks"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.getshark.download_sharks">[docs]</a><span class="k">def</span> <span class="nf">download_sharks</span><span class="p">(</span><span class="n">XMLdata</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    cd ~/work/WS_ALL</span>
+<span class="sd">    python -m ibeis.scripts.getshark</span>
+
+<span class="sd">    &gt;&gt;&gt; from ibeis.scripts.getshark import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; url = &#39;www.whaleshark.org/listImages.jsp&#39;</span>
+<span class="sd">    &gt;&gt;&gt; XMLdata = ut.url_read(url)</span>
+<span class="sd">    &gt;&gt;&gt; number = None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Prepare the output directory for writing, if it doesn&#39;t exist</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="s">&#39;sharkimages&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="n">dom</span> <span class="o">=</span> <span class="n">parseString</span><span class="p">(</span><span class="n">XMLdata</span><span class="p">)</span>
+
+    <span class="c"># Download files</span>
+    <span class="k">if</span> <span class="n">number</span><span class="p">:</span>
+        <span class="n">maxCount</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">maxCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">))</span>
+
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">img_url_list</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">localid_list</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">nameid_list</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">orig_fname_list</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">new_fname_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Preparing to fetch </span><span class="si">%i</span><span class="s"> files...&#39;</span> <span class="o">%</span> <span class="n">maxCount</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">shark</span> <span class="ow">in</span> <span class="n">dom</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;shark&#39;</span><span class="p">):</span>
+        <span class="n">localCount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">encounter</span> <span class="ow">in</span> <span class="n">shark</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;encounter&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">encounter</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&#39;img&#39;</span><span class="p">):</span>
+                <span class="n">localCount</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="n">img_url</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">&#39;href&#39;</span><span class="p">)</span>
+                <span class="n">orig_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">img_url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">orig_fname</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="n">nameid</span> <span class="o">=</span> <span class="n">shark</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">&#39;number&#39;</span><span class="p">)</span>
+
+                <span class="n">new_fname</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">-</span><span class="si">%i%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">nameid</span><span class="p">,</span> <span class="n">localCount</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+
+                <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;img_url_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img_url</span><span class="p">)</span>
+                <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nameid</span><span class="p">)</span>
+                <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;localid_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">localCount</span><span class="p">)</span>
+                <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;orig_fname_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orig_fname</span><span class="p">)</span>
+                <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fname_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_fname</span><span class="p">)</span>
+
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Parsed </span><span class="si">%i</span><span class="s"> / </span><span class="si">%i</span><span class="s"> files.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;orig_fname_list&#39;</span><span class="p">]),</span> <span class="n">maxCount</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;orig_fname_list&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">number</span><span class="p">:</span>
+                    <span class="k">break</span>
+    <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">_fname</span><span class="p">)</span>
+                                     <span class="k">for</span> <span class="n">_fname</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fname_list&#39;</span><span class="p">]]</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Filtering parsed images&#39;</span><span class="p">)</span>
+
+    <span class="c"># Filter based on image type (keep only jpgs)</span>
+    <span class="n">ext_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.jpg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.jpg&#39;</span><span class="p">)</span>
+                  <span class="k">for</span> <span class="n">_fname</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fname_list&#39;</span><span class="p">]]</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">ext_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c"># Filter to only images matching the appropriate tags</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">tag_funcs</span>
+    <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;tags_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parse_shark_tags</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;orig_fname_list&#39;</span><span class="p">])</span>
+    <span class="n">tag_flags</span> <span class="o">=</span> <span class="n">tag_funcs</span><span class="o">.</span><span class="n">filterflags_general_tags</span><span class="p">(</span>
+        <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;tags_list&#39;</span><span class="p">],</span>
+        <span class="n">has_any</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;view-left&#39;</span><span class="p">],</span>
+        <span class="n">none_match</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qual.*&#39;</span><span class="p">,</span> <span class="s">&#39;view-top&#39;</span><span class="p">,</span> <span class="s">&#39;part-.*&#39;</span><span class="p">,</span> <span class="s">&#39;cropped&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">tag_flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Tags in chosen images:&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;tags_list&#39;</span><span class="p">]</span> <span class="p">)))</span>
+
+    <span class="c"># Download selected subset</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Downloading selected subset&#39;</span><span class="p">)</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;img_url_list&#39;</span><span class="p">],</span>
+                     <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">]))</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;downloading sharks&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">img_url</span><span class="p">,</span> <span class="n">new_fpath</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">new_fpath</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">download_url</span><span class="p">(</span><span class="n">img_url</span><span class="p">,</span> <span class="n">new_fpath</span><span class="p">)</span>
+
+    <span class="c"># Remove corrupted or ill-formatted images</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking for corrupted images&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">noncorrupt_flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">filterflags_valid_images</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">])</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">noncorrupt_flags</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Removing small images&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">imgsize_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vt</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">]])</span>
+    <span class="n">sqrt_area_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">imgsize_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">areq_flags_list</span> <span class="o">=</span> <span class="n">sqrt_area_list</span> <span class="o">&gt;=</span> <span class="mi">750</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">areq_flags_list</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">grouped_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">]))),</span>
+                                  <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">])</span>
+    <span class="n">keep_idxs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">idxs</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">grouped_idxs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">]))</span>
+    <span class="n">parsed_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">keep_idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">list_</span> <span class="ow">in</span> <span class="n">parsed_info</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Moving imagse to secondary directory&#39;</span><span class="p">)</span>
+    <span class="n">named_outputdir</span> <span class="o">=</span> <span class="s">&#39;named-left-sharkimages&#39;</span>
+    <span class="c"># Build names</span>
+    <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;namedir_fpath_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">named_outputdir</span><span class="p">,</span> <span class="n">_nameid</span><span class="p">,</span> <span class="n">_fname</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_fname</span><span class="p">,</span> <span class="n">_nameid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fname_list&#39;</span><span class="p">],</span>
+                                   <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;nameid_list&#39;</span><span class="p">])]</span>
+    <span class="c"># Create directories</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">named_outputdir</span><span class="p">)</span>
+    <span class="n">named_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;namedir_fpath_list&#39;</span><span class="p">])))</span>
+    <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">named_dirs</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
+    <span class="c"># Copy</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy_files_to</span><span class="p">(</span><span class="n">src_fpath_list</span><span class="o">=</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;new_fpath_list&#39;</span><span class="p">],</span>
+                     <span class="n">dst_fpath_list</span><span class="o">=</span><span class="n">parsed_info</span><span class="p">[</span><span class="s">&#39;namedir_fpath_list&#39;</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="parse_shark_tags"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.getshark.parse_shark_tags">[docs]</a><span class="k">def</span> <span class="nf">parse_shark_tags</span><span class="p">(</span><span class="n">orig_fname_list</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="n">invalid_tag_patterns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">),</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;?</span><span class="se">\\</span><span class="s">d*&#39;</span> <span class="o">+</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;?&#39;</span><span class="p">,</span>
+        <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+-</span><span class="se">\\</span><span class="s">d+-</span><span class="se">\\</span><span class="s">d+&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+,&#39;</span><span class="p">,</span>
+        <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+&#39;</span><span class="p">,</span> <span class="s">&#39;vi*&#39;</span><span class="p">,</span> <span class="s">&#39;i*v&#39;</span><span class="p">,</span> <span class="s">&#39;i+&#39;</span><span class="p">,</span>
+        <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+th&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+nd&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d+rd&#39;</span><span class="p">,</span>
+        <span class="s">&#39;remant&#39;</span><span class="p">,</span> <span class="s">&#39;timnfe&#39;</span><span class="p">,</span> <span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;sjl&#39;</span><span class="p">,</span> <span class="s">&#39;disc&#39;</span><span class="p">,</span> <span class="s">&#39;dec&#39;</span><span class="p">,</span> <span class="s">&#39;road&#39;</span><span class="p">,</span> <span class="s">&#39;easter&#39;</span><span class="p">,</span>
+        <span class="s">&#39;western&#39;</span><span class="p">,</span> <span class="s">&#39;west&#39;</span><span class="p">,</span> <span class="s">&#39;tn&#39;</span><span class="p">,</span>
+        <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*ap&#39;</span><span class="p">,</span>
+        <span class="s">&#39;whaleshark</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span> <span class="s">&#39;shark</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span> <span class="s">&#39;whale</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span>
+        <span class="s">&#39;whalesharking&#39;</span><span class="p">,</span> <span class="s">&#39;sharking&#39;</span><span class="p">,</span> <span class="s">&#39;whalesharks&#39;</span><span class="p">,</span> <span class="s">&#39;whales&#39;</span><span class="p">,</span>
+        <span class="s">&#39;picture&#39;</span><span class="p">,</span>
+        <span class="s">&#39;australien&#39;</span><span class="p">,</span>
+        <span class="s">&#39;australia&#39;</span><span class="p">,</span>
+        <span class="s">&#39;nick&#39;</span><span class="p">,</span> <span class="s">&#39;tim</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span>
+        <span class="s">&#39;encounter&#39;</span><span class="p">,</span>
+        <span class="s">&#39;holiday&#39;</span><span class="p">,</span> <span class="s">&#39;visit&#39;</span><span class="p">,</span> <span class="s">&#39;tour&#39;</span><span class="p">,</span> <span class="s">&#39;trip&#39;</span><span class="p">,</span> <span class="s">&#39;pec&#39;</span><span class="p">,</span> <span class="s">&#39;sv&#39;</span><span class="p">,</span>
+        <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span>
+        <span class="s">&#39;gender&#39;</span><span class="p">,</span> <span class="s">&#39;sex&#39;</span><span class="p">,</span>
+        <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;image&#39;</span><span class="p">,</span> <span class="s">&#39;pic&#39;</span><span class="p">,</span> <span class="s">&#39;pics&#39;</span><span class="p">,</span> <span class="s">&#39;leith&#39;</span><span class="p">,</span> <span class="s">&#39;trips&#39;</span><span class="p">,</span> <span class="s">&#39;kings&#39;</span><span class="p">,</span> <span class="s">&#39;photo&#39;</span><span class="p">,</span> <span class="s">&#39;video&#39;</span><span class="p">,</span> <span class="s">&#39;media&#39;</span><span class="p">,</span>
+        <span class="s">&#39;fix&#39;</span><span class="p">,</span> <span class="s">&#39;feeding&#39;</span><span class="p">,</span>
+        <span class="s">&#39;nrd&#39;</span><span class="p">,</span> <span class="s">&#39;nd&#39;</span><span class="p">,</span> <span class="s">&#39;gen&#39;</span><span class="p">,</span> <span class="s">&#39;wa&#39;</span><span class="p">,</span> <span class="s">&#39;nmp&#39;</span><span class="p">,</span> <span class="s">&#39;bo&#39;</span><span class="p">,</span> <span class="s">&#39;kd&#39;</span><span class="p">,</span> <span class="s">&#39;ow&#39;</span><span class="p">,</span> <span class="s">&#39;ne&#39;</span><span class="p">,</span> <span class="s">&#39;dsc&#39;</span><span class="p">,</span> <span class="s">&#39;nwd&#39;</span><span class="p">,</span>
+        <span class="s">&#39;mg&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="s">&#39;mai&#39;</span><span class="p">,</span> <span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="s">&#39;stumpy&#39;</span><span class="p">,</span>
+        <span class="s">&#39;oea&#39;</span><span class="p">,</span> <span class="s">&#39;cbe&#39;</span><span class="p">,</span> <span class="s">&#39;edc&#39;</span><span class="p">,</span> <span class="s">&#39;knrt&#39;</span><span class="p">,</span>
+        <span class="s">&#39;tiws2&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ando&#39;</span><span class="p">,</span> <span class="s">&#39;adv&#39;</span><span class="p">,</span> <span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;adventure&#39;</span><span class="p">,</span>
+        <span class="s">&#39;camera&#39;</span><span class="p">,</span> <span class="s">&#39;tag&#39;</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">,</span>
+        <span class="s">&#39;of&#39;</span><span class="p">,</span> <span class="s">&#39;and&#39;</span><span class="p">,</span>
+        <span class="s">&#39;tagged&#39;</span><span class="p">,</span> <span class="s">&#39;from&#39;</span><span class="p">,</span>
+        <span class="s">&#39;day&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*april&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*may&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*july&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*june&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ningaloo&#39;</span><span class="p">,</span> <span class="s">&#39;ningblue</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span> <span class="s">&#39;kooling&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">valid_tag_level_set</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s">&#39;view-left&#39;</span><span class="p">,</span> <span class="s">&#39;left&#39;</span><span class="p">,</span> <span class="s">&#39;lhs&#39;</span><span class="p">,</span> <span class="s">&#39;l&#39;</span><span class="p">,</span> <span class="s">&#39;leftside&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;view-right&#39;</span><span class="p">,</span> <span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="s">&#39;rhs&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="s">&#39;rightside&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;view-back&#39;</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;view-top&#39;</span><span class="p">,</span> <span class="s">&#39;top&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;sex-male&#39;</span><span class="p">,</span> <span class="s">&#39;male&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">,</span> <span class="s">&#39;sexm&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;sex-female&#39;</span><span class="p">,</span> <span class="s">&#39;female&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;sex-unknown&#39;</span><span class="p">,</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-tail&#39;</span><span class="p">,</span> <span class="s">&#39;tail&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-flank&#39;</span><span class="p">,</span> <span class="s">&#39;side&#39;</span><span class="p">,</span> <span class="s">&#39;flank&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-head&#39;</span><span class="p">,</span> <span class="s">&#39;head&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-pectoral&#39;</span><span class="p">,</span> <span class="s">&#39;pectoral&#39;</span><span class="p">,</span> <span class="s">&#39;pec&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-dorsal&#39;</span><span class="p">,</span> <span class="s">&#39;dorsal&#39;</span><span class="p">,</span> <span class="s">&#39;dorsals&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-claspers&#39;</span><span class="p">,</span> <span class="s">&#39;claspers&#39;</span><span class="p">,</span> <span class="s">&#39;clasper&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;part-fin&#39;</span><span class="p">,</span> <span class="s">&#39;fin&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;cropped&#39;</span><span class="p">,</span> <span class="s">&#39;crop&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;scar&#39;</span><span class="p">,</span> <span class="s">&#39;scar2&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;notch&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;small&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;bite&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;cam-slr2&#39;</span><span class="p">,</span> <span class="s">&#39;slr2&#39;</span><span class="p">],</span>
+        <span class="c">#[&#39;cam-5m&#39;, &#39;5m&#39;]</span>
+        <span class="p">[</span><span class="s">&#39;5m&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;7m&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;4m&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;copy&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;qual-resize&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s">&#39;qual-stretched&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">apply_enum_regex</span><span class="p">(</span><span class="n">pat_list</span><span class="p">):</span>
+        <span class="n">enum_endings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;[a-g]&#39;</span><span class="p">,</span>
+            <span class="s">&#39;</span><span class="se">\\</span><span class="s">d*&#39;</span><span class="p">,</span>
+            <span class="s">&#39;i*&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">expanded_pats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
+            <span class="p">[</span><span class="n">pat</span> <span class="o">+</span> <span class="n">end</span> <span class="k">for</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">enum_endings</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">pat</span>  <span class="ow">in</span> <span class="n">pat_list</span>
+        <span class="p">])</span>
+        <span class="k">return</span> <span class="n">expanded_pats</span>
+
+    <span class="k">def</span> <span class="nf">apply_regex_endings</span><span class="p">(</span><span class="n">pat_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="s">&#39;$&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pat_list</span><span class="p">]</span>
+
+    <span class="n">tag_alias_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">level_set</span> <span class="ow">in</span> <span class="n">valid_tag_level_set</span><span class="p">:</span>
+        <span class="n">main_key</span> <span class="o">=</span> <span class="n">level_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">level_set</span><span class="p">:</span>
+            <span class="n">tag_alias_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">main_key</span>
+
+    <span class="n">inverse_alias_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">level_set</span> <span class="ow">in</span> <span class="n">valid_tag_level_set</span><span class="p">:</span>
+        <span class="n">inverse_alias_map</span><span class="p">[</span><span class="n">level_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">level_set</span>
+
+    <span class="n">regex_alias_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;view-left&#39;</span><span class="p">:</span> <span class="n">apply_regex_endings</span><span class="p">(</span><span class="n">apply_enum_regex</span><span class="p">(</span><span class="n">inverse_alias_map</span><span class="p">[</span><span class="s">&#39;view-left&#39;</span><span class="p">])),</span>
+        <span class="s">&#39;view-right&#39;</span><span class="p">:</span> <span class="n">apply_regex_endings</span><span class="p">(</span><span class="n">apply_enum_regex</span><span class="p">(</span><span class="n">inverse_alias_map</span><span class="p">[</span><span class="s">&#39;view-right&#39;</span><span class="p">])),</span>
+    <span class="p">}</span>
+
+    <span class="n">valid_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inverse_alias_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="n">invalid_tag_patterns</span> <span class="o">=</span> <span class="n">apply_regex_endings</span><span class="p">(</span><span class="n">invalid_tag_patterns</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_all_fname_tags</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">])</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">])</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">]</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">tag_alias_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">regex_alias_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">pat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_or</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">else</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span><span class="p">]</span>
+        <span class="n">pat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_or</span><span class="p">(</span><span class="n">invalid_tag_patterns</span><span class="p">)</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_tags</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">t</span><span class="p">)]</span>
+        <span class="n">_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">_tags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_tags</span>
+
+    <span class="n">all_img_tag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">parse_all_fname_tags</span><span class="p">,</span> <span class="n">orig_fname_list</span><span class="p">))</span>
+
+    <span class="n">known_img_tag_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">valid_tags</span><span class="p">)))</span>
+                          <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">all_img_tag_list</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c"># Help figure out which tags are important</span>
+        <span class="n">_parsed_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">all_img_tag_list</span><span class="p">)</span>
+
+        <span class="n">taghist</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">_parsed_tags</span><span class="p">)</span>
+        <span class="n">taghist</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">taghist</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="n">unknown_taghist</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">taghist</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_tags</span>
+        <span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">known_taghist</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">taghist</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_tags</span>
+        <span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Known&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">known_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">]))</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">unknown_taghist</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">]))</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">known_img_tag_list</span><span class="p">)),</span>
+            <span class="n">key_order_metric</span><span class="o">=</span><span class="s">&#39;val&#39;</span>
+        <span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">known_img_tag_list</span>
+
+</div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.getshark.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="s">&#39;f:u:n:h&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">:</span>
+        <span class="n">usage</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;www.whaleshark.org/listImages.jsp&#39;</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c"># Handle command-line arguments</span>
+    <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">opt</span> <span class="o">==</span> <span class="s">&#39;-h&#39;</span><span class="p">:</span>
+            <span class="n">usage</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="o">==</span> <span class="s">&#39;-f&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">arg</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="o">==</span> <span class="s">&#39;-u&#39;</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">arg</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="o">==</span> <span class="s">&#39;-n&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">usage</span><span class="p">()</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="c"># Open the XML file and extract its contents as a DOM object</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+        <span class="n">XMLdata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">XMLdata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">url_read</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="c">#with open(&#39;XMLData.xml&#39;, &#39;w&#39;) as file_:</span>
+        <span class="c">#    file_.write(XMLdata)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Downloading&#39;</span><span class="p">)</span>
+    <span class="n">download_sharks</span><span class="p">(</span><span class="n">XMLdata</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="usage"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.getshark.usage">[docs]</a><span class="k">def</span> <span class="nf">usage</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Fetches a number of images from the ECOCEAN shark database.&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Options:&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  -f &lt;FILENAME&gt; - Reads XML data from a file, rather than a URL.&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  -u &lt;URL&gt; - Reads XML data from the given URL.&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  -n &lt;NUMBER&gt; - Number of images to read; if omitted, reads all of them.&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;  -h - Prints this help text.&#39;</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,707 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.scripts.gen_cand_expts &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.scripts.gen_cand_expts</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.scripts.gen_cand_expts</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine:</span>
+
+<span class="sd">    # Run many experiments</span>
+<span class="sd">    python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full</span>
+<span class="sd">    ./experiments_overnight.sh</span>
+
+<span class="sd">    # Database information</span>
+<span class="sd">    python -m ibeis --db PZ_MTEST --dbinfo --postload-exit</span>
+<span class="sd">    python -m ibeis --db PZ_Master0 --dbinfo --postload-exit</span>
+
+<span class="sd">    # Info about configs for a test</span>
+<span class="sd">    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db PZ_MTEST --acfginfo</span>
+<span class="sd">    python -m ibeis --tf run_test_configurations2 -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA</span>
+<span class="sd">    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db NNP_Master3 --acfginfo</span>
+
+<span class="sd">    # Regen Figures</span>
+<span class="sd">    python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands</span>
+<span class="sd">    ./regen_figdef_expt.sh</span>
+
+
+<span class="sd">    # Print all annotation configs that will be used</span>
+<span class="sd">    python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full</span>
+<span class="sd">    sh experiment_inspect_acfg.sh</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">expanduser</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<span class="n">TEST_GEN_FUNCS</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="c">#def pick_sample_size(popsize, confidence=.99, expected_std=.5,</span>
+<span class="c">#margin_of_error=.05, is_finite=True):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    Determine a statistically significant sample size</span>
+
+<span class="c">#    References:</span>
+<span class="c">#        https://en.wikipedia.org/wiki/Sample_size_determination</span>
+<span class="c">#        http://www.surveysystem.com/sample-size-formula.htm</span>
+<span class="c">#        http://courses.wcupa.edu/rbove/Berenson/10th%20ed%20CD-ROM%20topics/section8_7.pdf</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    #import scipy.stats as spstats</span>
+<span class="c">#    zscore = {.99: 2.678, .95: 1.96, .9: 1.645}[confidence]</span>
+<span class="c">#    ((zscore ** 2) * (expected_std) * (1 - expected_std)) / (margin_of_error)</span>
+<span class="c">#    #spstats.norm.ppf([.001])</span>
+<span class="c">#    #samplesize =</span>
+
+
+<div class="viewcode-block" id="register_testgen"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.register_testgen">[docs]</a><span class="k">def</span> <span class="nf">register_testgen</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">TEST_GEN_FUNCS</span>
+    <span class="n">TEST_GEN_FUNCS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+</div>
+<span class="n">ACFG_OPTION_CONTROLLED</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;controlled&#39;</span><span class="p">]</span>
+<span class="n">ACFG_OPTION_VARYSIZE</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;varysize_pzm&#39;</span><span class="p">]</span>
+<span class="n">ACFG_OPTION_VARYPERNAME</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;varypername:qsize=500&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="generate_all"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.generate_all">[docs]</a><span class="k">def</span> <span class="nf">generate_all</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-generate_all</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full</span>
+<span class="sd">        ./experiments_overnight.sh</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; generate_all()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#script_names = [&#39;sh &#39; + func()[0] for func in TEST_GEN_FUNCS]</span>
+    <span class="n">script_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span>
+        <span class="p">[</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">### &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
+         <span class="s">&#39;# python -m ibeis.scripts.gen_cand_expts --exec-&#39;</span> <span class="o">+</span>
+         <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)]</span> <span class="o">+</span> <span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">func</span><span class="p">())[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">TEST_GEN_FUNCS</span><span class="p">])</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">line_list</span> <span class="o">=</span> <span class="n">write_script_lines</span><span class="p">(</span><span class="n">script_lines</span><span class="p">,</span> <span class="s">&#39;experiments_overnight.sh&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vim&#39;</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">editfile</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fname</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">line_list</span>
+
+</div>
+<div class="viewcode-block" id="test_database_intersection"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.test_database_intersection">[docs]</a><span class="k">def</span> <span class="nf">test_database_intersection</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them</span>
+<span class="sd">    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA</span>
+
+<span class="sd">    # PZ_MTEST is also a subset of PZ_Master0 with minor changes</span>
+<span class="sd">    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA</span>
+
+<span class="sd">    # NNP_Master3 and PZ_Master0 are disjoint</span>
+<span class="sd">    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA</span>
+
+<span class="sd">    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="generate_dbinfo_table"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.generate_dbinfo_table">[docs]</a><span class="k">def</span> <span class="nf">generate_dbinfo_table</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA</span>
+
+<span class="sd">    FIXME: Old database should not be converted to left</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA</span>
+<span class="sd">    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="parse_latex_comments_for_commmands"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.parse_latex_comments_for_commmands">[docs]</a><span class="k">def</span> <span class="nf">parse_latex_comments_for_commmands</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; parse_latex_comments_for_commmands()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--fname&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;figdefexpt.tex&#39;</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/latex/crall-candidacy-2015/&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">))</span>
+    <span class="c">#text = ut.read_from(ut.truepath(&#39;~/latex/crall-candidacy-2015/figdefindiv.tex&#39;))</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">cmd_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
+    <span class="n">in_comment</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;% ---&#39;</span><span class="p">):</span>
+            <span class="c"># Keep separators</span>
+            <span class="n">toadd</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cmd_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;# ---&#39;</span><span class="p">)):</span>
+                <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">toadd</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toadd</span><span class="p">)</span>
+            <span class="n">cmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">r&#39;\begin{comment}&#39;</span><span class="p">):</span>
+            <span class="n">in_comment</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">in_comment</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;%&#39;</span><span class="p">):</span>
+                <span class="n">in_comment</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">line</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">):</span>
+                    <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; $@&#39;</span>
+                    <span class="c">#cmd_list.append(&#39;&#39;)</span>
+                    <span class="c">#cmd_list.append(&#39;#--&#39;)</span>
+                    <span class="n">cmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">in_comment</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+    <span class="n">cmd_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--render&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--diskshow&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmd_list</span><span class="p">]</span>
+
+    <span class="c"># formatting</span>
+    <span class="n">cmd_list2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmd_list</span><span class="p">:</span>
+        <span class="c">#cmd = cmd.replace(&#39; -t &#39;, &#39; \\\n    -t &#39;)</span>
+        <span class="c">#cmd = cmd.replace(&#39;--db&#39;, &#39;\\\n    --db&#39;)</span>
+        <span class="c">#cmd = cmd.replace(&#39;python -m ibeis.dev&#39;, &#39;./dev.py&#39;)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;python -m ibeis.dev -e&#39;</span><span class="p">,</span> <span class="s">&#39;ibeis -e&#39;</span><span class="p">)</span>
+        <span class="n">cmd_list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="n">cmd_list</span> <span class="o">=</span> <span class="n">cmd_list2</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;cmd_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">cmd_list</span><span class="p">),))</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+    <span class="n">script_fname</span> <span class="o">=</span>  <span class="s">&#39;regen_&#39;</span> <span class="o">+</span> <span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.sh&#39;</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">line_list</span> <span class="o">=</span> <span class="n">write_script_lines</span><span class="p">(</span><span class="n">cmd_list</span><span class="p">,</span> <span class="n">script_fname</span><span class="p">)</span>
+    <span class="c">#ut.chmod_add_executable(fname)</span>
+
+</div>
+<div class="viewcode-block" id="inspect_annotation_configs"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.inspect_annotation_configs">[docs]</a><span class="k">def</span> <span class="nf">inspect_annotation_configs</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(inspect_annotation_configs())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">testdef_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">()</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">TEST_GEN_FUNCS</span><span class="p">]</span>
+    <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;acfg_name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">testdef_list</span><span class="p">])</span>
+    <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">))</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;]),</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;, &#39;controlled2&#39;]),</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">()),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;inspect_acfg&#39;</span><span class="p">,</span> <span class="s">&#39;inspect_acfg&#39;</span>
+
+
+<span class="c">#@register_testgen</span></div>
+<div class="viewcode-block" id="precompute_data"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.precompute_data">[docs]</a><span class="k">def</span> <span class="nf">precompute_data</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure features and such are computed</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-precompute_data</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(precompute_data())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#basecmd = &#39;python -m ibeis.expt.experiment_printres</span>
+    <span class="c">#--exec-print_latexsum --rank-lt-list=1,5,10,100 &#39;</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;preload_flags&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="c">#&#39;--preload-chip&#39;,</span>
+            <span class="c">#&#39;--preload-feat&#39;,</span>
+            <span class="c">#&#39;--preload-feeatweight&#39;,</span>
+            <span class="s">&#39;--preload&#39;</span><span class="p">,</span>
+            <span class="s">&#39;--preindex&#39;</span><span class="p">,</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">()),</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;default:qaids=allgt,species=primary,view=primary,is_known=True&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="s">&#39;candidacy_baseline&#39;</span><span class="p">,</span> <span class="s">&#39;candidacy_invariance&#39;</span><span class="p">]),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;preload&#39;</span><span class="p">,</span> <span class="s">&#39;preload&#39;</span><span class="p">)</span>
+
+
+<span class="c"># --- TEST DEFINITIONS</span>
+
+</div>
+<span class="nd">@register_testgen</span>
+<div class="viewcode-block" id="experiments_baseline"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.experiments_baseline">[docs]</a><span class="k">def</span> <span class="nf">experiments_baseline</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates the experiments we are doing on invariance</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline</span>
+<span class="sd">        ./experiment_baseline.sh</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(experiments_baseline())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Invariance Experiments</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;]),</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;, &#39;controlled2&#39;]),</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="n">ACFG_OPTION_CONTROLLED</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;candidacy_baseline&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">()),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;baseline&#39;</span><span class="p">,</span> <span class="s">&#39;cumhist&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_testgen</span>
+<div class="viewcode-block" id="experiments_invariance"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.experiments_invariance">[docs]</a><span class="k">def</span> <span class="nf">experiments_invariance</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates the experiments we are doing on invariance</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(experiments_invariance())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Invariance Experiments</span>
+    <span class="c">#static_flags += &#39; --dpi=512 --figsize=11,4 --clipwhite&#39;</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;]),</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;, &#39;controlled2&#39;]),</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="n">ACFG_OPTION_CONTROLLED</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;candidacy_invariance&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">()),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;invar&#39;</span><span class="p">,</span> <span class="s">&#39;cumhist&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_testgen</span>
+<div class="viewcode-block" id="experiments_namescore"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.experiments_namescore">[docs]</a><span class="k">def</span> <span class="nf">experiments_namescore</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates the experiments we are doing on invariance</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full</span>
+<span class="sd">        ./experiment_namescore.sh</span>
+
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full</span>
+<span class="sd">        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(experiments_namescore())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="c">#(&#39;acfg_name&#39;, [&#39;controlled&#39;, &#39;controlled2&#39;]),</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="n">ACFG_OPTION_CONTROLLED</span> <span class="o">+</span> <span class="n">ACFG_OPTION_VARYPERNAME</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;candidacy_namescore&#39;</span><span class="p">,</span> <span class="s">&#39;candidacy_namescore:K=1&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">()),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;namescore&#39;</span><span class="p">,</span> <span class="s">&#39;cumhist&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_testgen</span>
+<div class="viewcode-block" id="experiments_k"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.experiments_k">[docs]</a><span class="k">def</span> <span class="nf">experiments_k</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full</span>
+<span class="sd">        ./experiment_k.sh</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(experiments_k())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="n">ACFG_OPTION_VARYSIZE</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;candidacy_k&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="n">get_dbnames</span><span class="p">(</span><span class="n">exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PZ_FlankHack&#39;</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">])),</span>
+    <span class="p">])</span>
+    <span class="c">#return (varydict, &#39;k&#39;, [&#39;surface3d&#39;, &#39;surface2d&#39;])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;surface2d&#39;</span><span class="p">])</span>
+
+</div>
+<span class="nd">@register_testgen</span>
+<div class="viewcode-block" id="experiments_viewpoint"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.experiments_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">experiments_viewpoint</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates the experiments we are doing on invariance</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full</span>
+<span class="sd">        ./experiment_view.sh</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *</span>
+<span class="sd">        &gt;&gt;&gt; make_standard_test_scripts(experiments_viewpoint())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#basecmd = &#39;python -m ibeis.expt.experiment_printres</span>
+    <span class="c">#--exec-print_latexsum --rank-lt-list=1,5,10,100 &#39;</span>
+    <span class="n">varydict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;acfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;viewpoint_compare&#39;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s">&#39;cfg_name&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]),</span>
+        <span class="c">#(&#39;dbname&#39;, [&#39;NNP_Master3&#39;, &#39;PZ_Master0&#39;]),</span>
+        <span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;PZ_Master1&#39;</span><span class="p">]),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="s">&#39;view&#39;</span><span class="p">,</span> <span class="s">&#39;cumhist&#39;</span><span class="p">)</span>
+
+
+<span class="c"># -----------------</span>
+<span class="c"># Helpers</span>
+
+</div>
+<div class="viewcode-block" id="get_results_command"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.get_results_command">[docs]</a><span class="k">def</span> <span class="nf">get_results_command</span><span class="p">(</span><span class="n">expt_name</span><span class="p">,</span> <span class="n">media_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays results using various media</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dynamic_flags</span> <span class="o">=</span> <span class="s">&#39; -t {cfg_name} -a {acfg_name} --db {dbname}&#39;</span>
+    <span class="n">plot_fname</span> <span class="o">=</span> <span class="s">&#39;figures/&#39;</span> <span class="o">+</span> <span class="n">expt_name</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">media_name</span> <span class="o">+</span> <span class="s">&#39;_{{db}}_a_{{a}}_t_{{t}}&#39;</span>
+    <span class="n">output_flags</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">static_flags</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="c">#static_flags = &#39; --diskshow&#39;</span>
+    <span class="n">dynamic_flags_</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">dpath</span> <span class="o">=</span> <span class="s">&#39;~/latex/crall-candidacy-2015/&#39;</span>
+    <span class="k">if</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;table&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.dev -e print_latexsum&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39;--rank-lt-list=1,5,10,100&#39;</span>
+    <span class="k">elif</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;cumhist&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.dev -e draw_rank_cdf&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span>  <span class="s">&#39; --save &#39;</span> <span class="o">+</span> <span class="n">plot_fname</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span> <span class="s">&#39; --dpath=&#39;</span> <span class="o">+</span> <span class="n">dpath</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite&#39;</span>
+    <span class="k">elif</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;surface2d&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.dev -e draw_rank_surface&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span> <span class="s">&#39; --save &#39;</span> <span class="o">+</span> <span class="n">plot_fname</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span> <span class="s">&#39; --dpath=&#39;</span> <span class="o">+</span> <span class="n">dpath</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --clipwhite&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --dpi=256&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --figsize=12,4&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --adjust=.1,.25,.2,.2&#39;</span>
+    <span class="k">elif</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;surface3d&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.dev --e draw_rank_surface --no2dsurf&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span> <span class="s">&#39; --save &#39;</span> <span class="o">+</span> <span class="n">plot_fname</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span>
+        <span class="n">output_flags</span> <span class="o">+=</span> <span class="s">&#39; --dpath=&#39;</span> <span class="o">+</span> <span class="n">dpath</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --clipwhite&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --dpi=256&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --figsize=12,4&#39;</span>
+        <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; --adjust=.1,.1,.01,.01&#39;</span>
+    <span class="k">elif</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;preload&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.expt.precomputer --exec-precfg&#39;</span>
+        <span class="n">dynamic_flags_</span> <span class="o">=</span> <span class="s">&#39; {preload_flags}&#39;</span>
+    <span class="k">elif</span> <span class="n">media_name</span> <span class="o">==</span> <span class="s">&#39;inspect_acfg&#39;</span><span class="p">:</span>
+        <span class="n">margs</span> <span class="o">=</span> <span class="s">&#39;ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0&#39;</span>
+        <span class="n">dynamic_flags</span> <span class="o">=</span> <span class="s">&#39;-a {acfg_name} --db {dbname} &#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;media_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">media_name</span><span class="p">,))</span>
+    <span class="n">static_flags</span> <span class="o">+=</span> <span class="s">&#39; $@&#39;</span>
+    <span class="n">dynamic_flags</span> <span class="o">=</span> <span class="n">dynamic_flags</span> <span class="o">+</span> <span class="n">dynamic_flags_</span>
+    <span class="n">basecmd</span> <span class="o">=</span> <span class="s">&#39;python -m &#39;</span> <span class="o">+</span> <span class="n">margs</span>
+    <span class="n">cmd_flaglist</span> <span class="o">=</span> <span class="p">[</span><span class="n">basecmd</span><span class="p">,</span> <span class="n">dynamic_flags</span><span class="p">,</span> <span class="n">output_flags</span><span class="p">,</span> <span class="n">static_flags</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">cmd_flaglist</span>
+    <span class="c">#shortname = &#39;Expt&#39; + media_name[0].upper() + media_name[1:]</span>
+    <span class="c">#shortscript = shortname + &#39;.sh&#39;</span>
+    <span class="c">#ut.write_modscript_alias(shortscript, margs)</span>
+    <span class="c">#return &#39;sh &#39; + shortscript</span>
+
+</div>
+<div class="viewcode-block" id="get_dbnames"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.get_dbnames">[docs]</a><span class="k">def</span> <span class="nf">get_dbnames</span><span class="p">(</span><span class="n">exclude_list</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
+    <span class="n">dbnames</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">get_candidacy_dbnames</span><span class="p">()</span>
+    <span class="n">dbnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">dbnames</span><span class="p">,</span> <span class="n">exclude_list</span><span class="p">)</span>
+    <span class="n">dbnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;PZ_Master1&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dbnames</span>
+
+</div>
+<div class="viewcode-block" id="make_standard_test_scripts"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.make_standard_test_scripts">[docs]</a><span class="k">def</span> <span class="nf">make_standard_test_scripts</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">varydict</span><span class="p">,</span> <span class="n">expt_name</span><span class="p">,</span> <span class="n">media_name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">varydict</span><span class="p">,</span> <span class="n">expt_name</span><span class="p">,</span> <span class="n">media_name</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="n">media_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">media_name</span><span class="p">)</span>
+    <span class="n">cmd_fmtstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">media_name</span> <span class="ow">in</span> <span class="n">media_names</span><span class="p">:</span>
+        <span class="n">cmd_flaglist</span> <span class="o">=</span> <span class="n">get_results_command</span><span class="p">(</span><span class="n">expt_name</span><span class="p">,</span> <span class="n">media_name</span><span class="p">)</span>
+        <span class="n">cmd_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd_flaglist</span><span class="p">)</span>
+        <span class="n">cmd_fmtstr</span> <span class="o">=</span> <span class="s">&#39; </span><span class="se">\\\n</span><span class="s">   &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd_flaglist</span><span class="p">)</span>
+        <span class="n">cmd_fmtstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd_fmtstr</span><span class="p">)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;experiment_&#39;</span> <span class="o">+</span> <span class="n">expt_name</span> <span class="o">+</span> <span class="s">&#39;.sh&#39;</span>
+    <span class="k">return</span> <span class="n">write_formatted_script_lines</span><span class="p">(</span><span class="n">cmd_fmtstr_list</span><span class="p">,</span> <span class="p">[</span><span class="n">varydict</span><span class="p">],</span> <span class="n">fname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="write_formatted_script_lines"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.write_formatted_script_lines">[docs]</a><span class="k">def</span> <span class="nf">write_formatted_script_lines</span><span class="p">(</span><span class="n">cmd_fmtstr_list</span><span class="p">,</span> <span class="n">varydict_list</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="n">cfgdicts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">,</span> <span class="n">varydict_list</span><span class="p">))</span>
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cmd_fmtstr</span> <span class="ow">in</span> <span class="n">cmd_fmtstr_list</span><span class="p">:</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfgdicts</span> <span class="ow">in</span> <span class="n">cfgdicts_list</span><span class="p">:</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">line_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cmd_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">cfgdicts</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">cmd_fmtstr</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cmd_fmtstr&#39;</span><span class="p">,</span> <span class="s">&#39;kw&#39;</span><span class="p">])</span>
+                <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">write_script_lines</span><span class="p">(</span><span class="n">line_list</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="write_script_lines"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.write_script_lines">[docs]</a><span class="k">def</span> <span class="nf">write_script_lines</span><span class="p">(</span><span class="n">line_list</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="n">exename</span> <span class="o">=</span> <span class="s">&#39;python&#39;</span>
+    <span class="n">regen_cmd</span> <span class="o">=</span> <span class="p">(</span><span class="n">exename</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span> <span class="s">&#39;~&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;#!/bin/sh&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;echo &lt;&lt; </span><span class="se">\&#39;</span><span class="s">EOF</span><span class="se">\&#39;</span><span class="s"> &gt; /dev/null&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;RegenCommand:&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   &#39;</span> <span class="o">+</span> <span class="n">regen_cmd</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;CommandLine:&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;   sh &#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;dont forget to tmuxnew&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;EOF&#39;</span><span class="p">)</span>
+    <span class="n">script_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+    <span class="n">script</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">script_lines</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+    <span class="n">dpath</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">ibeis</span><span class="p">))</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dryrun&#39;</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">script</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">chmod_add_executable</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fname</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">line_list</span>
+
+</div>
+<div class="viewcode-block" id="gen_dbranks_tables"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.gen_cand_expts.gen_dbranks_tables">[docs]</a><span class="k">def</span> <span class="nf">gen_dbranks_tables</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.gen_cand_expts import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = gen_dbranks_tables()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tex_file</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>  <span class="c"># NOQA</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">        \begin{comment}</span>
+<span class="sd">        python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;ExptPrint.sh&#39;, &#39;ibeis.expt.experiment_printres --exec-print_latexsum&#39;)&quot;</span>
+<span class="sd">        python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;DrawRanks.sh&#39;, &#39;python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf&#39;)&quot;</span>
+<span class="sd">        \end{comment}</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c">#gen_table_line =</span>
+    <span class="c">#sh ExptPrint.sh -t candidacy_baseline --allgt --species=primary --db</span>
+    <span class="c">#GZ_ALL --rank-lt-list=1,5,10,100</span>
+    <span class="k">pass</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --allexamples</span>
+<span class="sd">        python -m ibeis.scripts.gen_cand_expts --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

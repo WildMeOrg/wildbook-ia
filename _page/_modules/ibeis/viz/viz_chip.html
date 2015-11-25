@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_chip &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_chip</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_chip</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_chip]&#39;</span><span class="p">,</span>
+                                                       <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="testdata_showchip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.testdata_showchip">[docs]</a><span class="k">def</span> <span class="nf">testdata_showchip</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="s">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">weight_label</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--weight_label&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;fg_weights&#39;</span><span class="p">)</span>
+    <span class="n">annote</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-annote&#39;</span><span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ori&#39;</span><span class="p">),</span> <span class="n">weight_label</span><span class="o">=</span><span class="n">weight_label</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">FeatureWeightConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_config</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_chip.testdata] cfgdict = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgdict</span><span class="p">,))</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;query_cfgstr = &#39;</span> <span class="o">+</span> <span class="n">config2_</span><span class="o">.</span><span class="n">query_cfgstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_cfgstr = &#39;</span> <span class="o">+</span> <span class="n">config2_</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz_chip.testdata] aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">config2_</span>
+
+</div>
+<div class="viewcode-block" id="show_many_chips"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.show_many_chips">[docs]</a><span class="k">def</span> <span class="nf">show_many_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_many_chips</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg &#39;--caption=challenging images&#39;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; in_image = False</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list, kwargs, config2_ = testdata_showchip()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; show_many_chips(ibs, aid_list, config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_many_chips&#39;</span><span class="p">)</span>
+    <span class="n">in_image</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">stacked_chips</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_recurse</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">modifysize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">stacked_chips</span><span class="p">)</span>
+
+
+<span class="c">#@ut.indent_func</span></div>
+<div class="viewcode-block" id="show_chip"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_chip.show_chip">[docs]</a><span class="k">def</span> <span class="nf">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="n">weight_label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot; Driver function to show chips</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        aid (int): annotation rowid</span>
+<span class="sd">        in_image (bool): displays annotation with the context of its source image</span>
+<span class="sd">        annote (bool): enables overlay annoations</span>
+<span class="sd">        title_suffix (str):</span>
+
+<span class="sd">    Keywords:</span>
+<span class="sd">        color (3/4-tuple, ndarray, or str): colors for keypoints</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --ecc</span>
+<span class="sd">        python -c &quot;import utool as ut; ut.print_auto_docstr(&#39;ibeis.viz.viz_chip&#39;, &#39;show_chip&#39;)&quot;</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote</span>
+
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --test-show_chip --show --db PZ_MTEST --aid 1 --bgmethod=cnn --scale_max=30</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # VIZ_TEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; in_image = False</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list, kwargs, config2_ = testdata_showchip()</span>
+<span class="sd">        &gt;&gt;&gt; aid = aid_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--ecc&#39;):</span>
+<span class="sd">        &gt;&gt;&gt;     kpts = ibs.get_annot_kpts(aid, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt;     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]</span>
+<span class="sd">        &gt;&gt;&gt;     kpts = ut.random_sample(kpts[weights &gt; .9], 200, seed=0)</span>
+<span class="sd">        &gt;&gt;&gt;     ecc = vt.get_kpts_excentricity(kpts)</span>
+<span class="sd">        &gt;&gt;&gt;     scale = 1 / vt.get_scales(kpts)</span>
+<span class="sd">        &gt;&gt;&gt;     s = ecc if config2_.affine_invariance else scale</span>
+<span class="sd">        &gt;&gt;&gt;     colors = pt.scores_to_color(s, cmap_=&#39;jet&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     kwargs[&#39;color&#39;] = colors</span>
+<span class="sd">        &gt;&gt;&gt;     kwargs[&#39;kpts&#39;] = kpts</span>
+<span class="sd">        &gt;&gt;&gt; show_chip(ibs, aid, in_image=in_image, config2_=config2_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_chip(aid=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+    <span class="c">#ibs.assert_valid_aids((aid,))</span>
+    <span class="c"># Get chip</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;in_image = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">in_image</span><span class="p">,))</span>
+    <span class="n">chip</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="c"># Create chip title</span>
+    <span class="n">chip_text</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;enable_chip_title_prefix&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">chip_text</span> <span class="o">+</span> <span class="n">title_suffix</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">title_suffix</span>
+    <span class="n">chip_title_text</span> <span class="o">=</span> <span class="n">chip_title_text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="c"># Draw chip</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># Populate axis user data</span>
+    <span class="n">vh</span><span class="o">.</span><span class="n">set_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;chip&#39;</span><span class="p">)</span>
+    <span class="n">vh</span><span class="o">.</span><span class="n">set_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">annote</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nokpts&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="c"># Get and draw keypoints</span>
+        <span class="k">if</span> <span class="s">&#39;color&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c">#from ibeis.model.preproc import preproc_featweight</span>
+            <span class="c">#featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]</span>
+            <span class="k">if</span> <span class="n">weight_label</span> <span class="o">==</span> <span class="s">&#39;fg_weights&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">)):</span>
+                    <span class="n">weight_label</span> <span class="o">=</span> <span class="s">&#39;fg_weights&#39;</span>
+                    <span class="n">weights</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cmap_</span> <span class="o">=</span> <span class="s">&#39;hot&#39;</span>
+                <span class="c">#if weight_label == &#39;dstncvs&#39;:</span>
+                <span class="c">#    cmap_ = &#39;rainbow&#39;</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="n">cmap_</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ell_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;pts_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+
+        <span class="n">kpts_</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span>
+                            <span class="n">kpts_subset</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kpts_subset&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+                            <span class="n">kpts</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kpts&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;kpts&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">viz_keypoints</span><span class="o">.</span><span class="n">_annotate_kpts</span><span class="p">(</span><span class="n">kpts_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">upperleft_text</span><span class="p">(</span><span class="n">chip_text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;text_color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+    <span class="n">use_title</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;notitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_title</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">chip_title_text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">in_image</span><span class="p">:</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">annotekw</span> <span class="o">=</span> <span class="n">viz_image</span><span class="o">.</span><span class="n">get_annot_annotations</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">draw_lbls</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;draw_lbls&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">))</span>
+        <span class="c"># Put annotation centers in the axis</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;annotation_bbox_list&#39;</span><span class="p">,</span> <span class="n">annotekw</span><span class="p">[</span><span class="s">&#39;bbox_list&#39;</span><span class="p">])</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">viz_image2</span><span class="o">.</span><span class="n">draw_image_overlay</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">annotekw</span><span class="p">)</span>
+
+        <span class="n">zoom_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--zoom&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">zoom_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Zoom into the chip for some image context</span>
+            <span class="n">rotated_verts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">rotated_verts</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+            <span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">rotated_verts</span><span class="p">)</span>
+            <span class="n">imgw</span><span class="p">,</span> <span class="n">imgh</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+            <span class="n">pad_factor</span> <span class="o">=</span> <span class="n">zoom_</span>
+            <span class="n">pad_length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">*</span> <span class="n">pad_factor</span>
+            <span class="n">minx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">miny</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">maxx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">pad_length</span><span class="p">,</span> <span class="n">imgw</span><span class="p">)</span>
+            <span class="n">maxy</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">rotated_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">+</span> <span class="n">pad_length</span><span class="p">,</span> <span class="n">imgh</span><span class="p">)</span>
+
+            <span class="c">#maxy = imgh - maxy</span>
+            <span class="c">#miny = imgh - miny</span>
+
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span> <span class="n">maxx</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">miny</span><span class="p">,</span> <span class="n">maxy</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;chipshape&#39;</span><span class="p">,</span> <span class="n">chip</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c">#if &#39;featweights&#39; in vars() and &#39;color&#39; in kwargs:</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">weight_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">## HACK HACK HACK</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cb</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">])</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">weight_label</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
+
+
+<span class="c">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    CommandLine:</span>
+<span class="c">#         python ibeis/viz/viz_chip.py</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    #from plottool.viz_keypoints import _annotate_kpts</span>
+<span class="c">#    from ibeis.viz.viz_chip import *  # NOQA</span>
+<span class="c">#    import ibeis</span>
+<span class="c">#    ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="c">#    aid = ibs.get_valid_aids()[0]</span>
+<span class="c">#    in_image = False</span>
+<span class="c">#    annote = True</span>
+<span class="c">#    kpts = ibs.get_annot_kpts(aid)</span>
+<span class="c">#    kwargs = {}</span>
+<span class="c">#    #from ibeis.model.preproc import preproc_featweight</span>
+<span class="c">#    #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]</span>
+<span class="c">#    #color = featweights</span>
+<span class="c">#    #import numpy as np</span>
+<span class="c">#    # plot rf feature weights</span>
+<span class="c">#    #detect_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()</span>
+<span class="c">#    #color = np.array([pt.ORANGE] * len(kpts))</span>
+<span class="c">#    #color = np.array(np.random.rand(len(kpts), 3))</span>
+<span class="c">#    #kwargs = {&#39;kpt1s&#39;: [kpts], &#39;color&#39;: color}</span>
+<span class="c">#    show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)</span>
+<span class="c">#    if not ut.get_argflag(&#39;--noshow&#39;):</span>
+<span class="c">#        execstr = pt.present()</span>
+<span class="c">#        exec(execstr)</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_chip</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_chip --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,710 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.templates package &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="next" title="ibeis.tests package" href="ibeis.tests.html"/>
+        <link rel="prev" title="ibeis.scripts package" href="ibeis.scripts.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.templates package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.generate_notebook">ibeis.templates.generate_notebook module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.notebook_cells">ibeis.templates.notebook_cells module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.template_definitions">ibeis.templates.template_definitions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates.template_generator">ibeis.templates.template_generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.templates">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.templates package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.templates.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-templates-package">
+<h1>ibeis.templates package<a class="headerlink" href="#ibeis-templates-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.templates.generate_notebook">
+<span id="ibeis-templates-generate-notebook-module"></span><h2>ibeis.templates.generate_notebook module<a class="headerlink" href="#module-ibeis.templates.generate_notebook" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.code_cell">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">code_cell</code><span class="sig-paren">(</span><em>sourcecode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#code_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.code_cell" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sourcecode</strong> (<em>str</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">json formatted ipython notebook code cell</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.templates.generate_notebook --exec-code_cell
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sourcecode</span> <span class="o">=</span> <span class="n">notebook_cells</span><span class="o">.</span><span class="n">timestamp_distribution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sourcecode</span> <span class="o">=</span> <span class="n">notebook_cells</span><span class="o">.</span><span class="n">initialize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">code_cell</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.export_notebook">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">export_notebook</code><span class="sig-paren">(</span><em>run_nb</em>, <em>fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#export_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.export_notebook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.format_cells">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">format_cells</code><span class="sig-paren">(</span><em>block</em>, <em>locals_={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#format_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.format_cells" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.generate_notebook_report">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">generate_notebook_report</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#generate_notebook_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.generate_notebook_report" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --tf generate_notebook_report --db lynx --run
+python -m ibeis --tf generate_notebook_report --db lynx --ipynb
+python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
+python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --ipynb
+python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --run
+jupyter-notebook Experiments-lynx.ipynb
+killall python
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">generate_notebook_report</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.get_default_cell_template_list">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">get_default_cell_template_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#get_default_cell_template_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.get_default_cell_template_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.make_ibeis_notebook">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">make_ibeis_notebook</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#make_ibeis_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.make_ibeis_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook
+python -m ibeis --tf make_ibeis_notebook --db lynx
+jupyter-notebook tmp.ipynb
+
+runipy tmp.ipynb --html report.html
+runipy --pylab tmp.ipynb tmp2.ipynb
+
+sudo pip install runipy
+
+python -c <span class="s2">&quot;import runipy; print(runipy.__version__)&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPYT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">notebook_str</span> <span class="o">=</span> <span class="n">make_ibeis_notebook</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.make_notebook">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">make_notebook</code><span class="sig-paren">(</span><em>cell_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#make_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.make_notebook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.markdown_cell">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">markdown_cell</code><span class="sig-paren">(</span><em>markdown</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#markdown_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.markdown_cell" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>markdown</strong> (<em>str</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">json formatted ipython notebook markdown cell</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.templates.generate_notebook --exec-markdown_cell
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.generate_notebook</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">markdown</span> <span class="o">=</span> <span class="s">&#39;# Title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">markdown_cell</span><span class="p">(</span><span class="n">markdown</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.repr_single">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">repr_single</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#repr_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.repr_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.generate_notebook.run_ipython_notebook">
+<code class="descclassname">ibeis.templates.generate_notebook.</code><code class="descname">run_ipython_notebook</code><span class="sig-paren">(</span><em>notebook_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/generate_notebook.html#run_ipython_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.generate_notebook.run_ipython_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="https://github.com/paulgb/runipy">https://github.com/paulgb/runipy</a>
+&gt;&gt;&gt; from ibeis.templates.generate_notebook import *  # NOQA</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.templates.notebook_cells">
+<span id="ibeis-templates-notebook-cells-module"></span><h2>ibeis.templates.notebook_cells module<a class="headerlink" href="#module-ibeis.templates.notebook_cells" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.templates.template_definitions">
+<span id="ibeis-templates-template-definitions-module"></span><h2>ibeis.templates.template_definitions module<a class="headerlink" href="#module-ibeis.templates.template_definitions" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd>I&#8217;ve decided that I dont like the plural function names.
+We will move to singular function names.</dd>
+</dl>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="c"># Regenerate command</span>
+python -m ibeis.templates.template_generator
+python ibeis/templates/template_generator.py --dump-autogen-controller
+</pre></div>
+</div>
+<dl class="data">
+<dt id="ibeis.templates.template_definitions.Theader_ibeiscontrol">
+<code class="descclassname">ibeis.templates.template_definitions.</code><code class="descname">Theader_ibeiscontrol</code><em class="property"> = u'# STARTBLOCK\n# -*- coding: utf-8 -*-\n&quot;&quot;&quot;\nAutogenerated IBEISController functions\n\nTemplateInfo:\n    autogen_time = {timestamp}\n    autogen_key = {autogen_key}\n\nToRegenerate:\n    # REM python -m ibeis.templates.template_generator --key {autogen_key}\n    # REM python -m ibeis.templates.template_generator --key {autogen_key} --write\n    python -m ibeis.templates.template_generator {argv_tail_str1}\n    python -m ibeis.templates.template_generator {argv_tail_str2}\n&quot;&quot;&quot;\nfrom __future__ import absolute_import, division, print_function\nimport functools  # NOQA\nimport six  # NOQA\nfrom six.moves import map, range, zip  # NOQA\nfrom ibeis import constants as const\n# REM dont circular import\n# REM from ibeis.control.IBEISControl import IBEISController\nimport utool as ut\nfrom ibeis.control import controller_inject\nfrom ibeis.control import accessor_decors  # NOQA\nprint, print_, printDBG, rrr, profile = ut.inject(__name__, \'[autogen_{autogen_key}]\')\n\n# Create dectorator to inject functions in this module into the IBEISController\nCLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)\n\n\nregister_api   = controller_inject.get_ibeis_flask_api(__name__)\nregister_route = controller_inject.get_ibeis_flask_route(__name__)\n\n\n# REM def get_autogen_testdata():\ndef testdata_ibs(defaultdb=\'testdb1\'):\n    import ibeis\n    ibs = ibeis.opendb(defaultdb=defaultdb)\n    config2_ = None  # qreq_.qparams\n    #from ibeis.hots import query_config\n    #config2_ = query_config.QueryParams(cfgdict=dict())\n    return ibs, config2_\n\n# ENDBLOCK'</em><a class="headerlink" href="#ibeis.templates.template_definitions.Theader_ibeiscontrol" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>CommandLine</em> &#8211; python -c &#8220;import utool as ut; ut.write_modscript_alias(&#8216;Tgen.sh&#8217;, &#8216;ibeis.templates.template_generator&#8217;)&#8221;
+sh Tgen.sh &#8211;key chip &#8211;Tcfg with_setters=False with_getters=False  with_adders=True
+sh Tgen.sh &#8211;key feat &#8211;Tcfg with_setters=False with_getters=False  with_adders=True
+sh Tgen.sh &#8211;key featweight &#8211;Tcfg with_setters=False with_getters=False  with_adders=True</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.templates.template_generator">
+<span id="ibeis-templates-template-generator-module"></span><h2>ibeis.templates.template_generator module<a class="headerlink" href="#module-ibeis.templates.template_generator" title="Permalink to this headline">¶</a></h2>
+<p>Templated Autogenerator for the IBEIS Controller</p>
+<p>Concepts:</p>
+<blockquote>
+<div><p>template definitions are in template_def.py</p>
+<dl class="docutils">
+<dt>ALL_CAPS_VARIABLES: stores the name of a python GLOBAL constant</dt>
+<dd><dl class="first last docutils">
+<dt>EG:</dt>
+<dd><ul class="first last simple">
+<li>COLNAME : stores the name of a python constant like &#8216;FEAT_ROWID&#8217;</li>
+<li>MULTICOLNAME : stores the name of a python constant that contains the actual</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>all_lower_variables: stores the template python representation.</dt>
+<dd><dl class="first last docutils">
+<dt>EG:</dt>
+<dd><ul class="first last simple">
+<li>colname: stores the actual column name like &#8216;feature_rowid&#8217;</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="c"># for current schema</span>
+python -m ibeis.control.DB_SCHEMA --test-test_db_schema
+</pre></div>
+</div>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python ibeis/templates/template_generator.py
+python -m ibeis.templates.template_generator --key featweight --write
+python -m ibeis.templates.template_generator --key featweight
+python -m ibeis.templates.template_generator --key encounter
+python -m ibeis.templates.template_generator --key encounter
+python -m ibeis.templates.template_generator --key encounter --onlyfn
+python -m ibeis.templates.template_generator --key encounter --onlyfn --Tcfg <span class="nv">with_native</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key egr --Tcfg <span class="nv">with_relations</span><span class="o">=</span>True <span class="nv">with_getters</span><span class="o">=</span>True
+python -m ibeis.templates.template_generator --key egr --Tcfg <span class="nv">with_native</span><span class="o">=</span>False
+
+python -m ibeis.templates.template_generator --key match --Tcfg <span class="nv">with_native</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key party --Tcfg <span class="nv">with_native</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key party_contrib_relation
+
+python -m ibeis.templates.template_generator --key party_contrib_relation --Tcfg <span class="nv">strip_docstr</span><span class="o">=</span>True <span class="nv">strip_eager</span><span class="o">=</span>True <span class="nv">strip_nparams</span><span class="o">=</span>True
+python -m ibeis.templates.template_generator --key match --Tcfg <span class="nv">strip_docstr</span><span class="o">=</span>True <span class="nv">strip_eager</span><span class="o">=</span>True <span class="nv">strip_nparams</span><span class="o">=</span>True
+
+python -m ibeis.templates.template_generator --key party --Tcfg <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key party --Tcfg <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False --write
+python -m ibeis.templates.template_generator --key annotmatch
+--Tcfg <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False --write
+
+python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key images --funcname-filter contrib --Tcfg <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False
+python -m ibeis.templates.template_generator --key annotmatch --Tcfg <span class="nv">with_web_api</span><span class="o">=</span>False <span class="nv">with_api_cache</span><span class="o">=</span>False <span class="nv">with_deleters</span><span class="o">=</span>False
+
+python -m ibeis.templates.template_generator --key annotations --Tcfg with_getters:True strip_docstr:True --funcname-filter get.*aid
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd><ul class="first last simple">
+<li>autogen testdata function</li>
+<li>finish autogen chips and features</li>
+<li>add autogen probchip</li>
+<li>consistency check that all chips in the sql table exist</li>
+</ul>
+</dd>
+</dl>
+<dl class="function">
+<dt id="ibeis.templates.template_generator.build_controller_table_funcs">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">build_controller_table_funcs</code><span class="sig-paren">(</span><em>tablename</em>, <em>tableinfo</em>, <em>autogen_modname</em>, <em>autogen_key</em>, <em>flagdefault=True</em>, <em>flagskw={}</em>, <em>table_structure={}</em>, <em>ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#build_controller_table_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.build_controller_table_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>BIG FREAKING FUNCTION THAT REALIZES TEMPLATES</p>
+<p>Builds function strings for a single type of table using the template
+definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(functype2_func_list, constant_list)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.templates.template_generator
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.build_depends_path">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">build_depends_path</code><span class="sig-paren">(</span><em>child</em>, <em>depends_map</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#build_depends_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.build_depends_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.build_templated_funcs">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">build_templated_funcs</code><span class="sig-paren">(</span><em>ibs</em>, <em>autogen_modname</em>, <em>tblname_list</em>, <em>autogen_key</em>, <em>flagdefault=True</em>, <em>flagskw={}</em>, <em>table_structure={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#build_templated_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.build_templated_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds lists of requested functions</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.find_valstr">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">find_valstr</code><span class="sig-paren">(</span><em>func_code</em>, <em>varname_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#find_valstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.find_valstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.format_controller_func">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">format_controller_func</code><span class="sig-paren">(</span><em>func_code_fmtstr</em>, <em>flagskw</em>, <em>func_type</em>, <em>fmtdict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#format_controller_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.format_controller_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applys formatting and filtering to function code strings
+Format the template into a function and apply postprocessing</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python ibeis/templates/template_generator.py
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.get_autogen_modpaths">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">get_autogen_modpaths</code><span class="sig-paren">(</span><em>parent_module</em>, <em>autogen_key='default'</em>, <em>flagskw={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#get_autogen_modpaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.get_autogen_modpaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns info on where the autogen module will be placed if is written</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.get_autogen_text">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">get_autogen_text</code><span class="sig-paren">(</span><em>parent_module</em>, <em>tblname_list=[]</em>, <em>autogen_key='default'</em>, <em>flagdefault=True</em>, <em>flagskw={}</em>, <em>table_structure={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#get_autogen_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.get_autogen_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>autogenerated text main entry point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(autogen_fpath, autogen_text)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python ibeis/templates/template_generator.py
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.get_tableinfo">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">get_tableinfo</code><span class="sig-paren">(</span><em>tablename</em>, <em>ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#get_tableinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.get_tableinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets relevant info from the sql controller and dependency graph</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tablename</strong> &#8211; </li>
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tableinfo</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><p>?</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.templates.template_generator --test-get_tableinfo
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.template_generator</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tablename</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tableinfo</span> <span class="o">=</span> <span class="n">get_tableinfo</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tableinfo</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.main">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">main</code><span class="sig-paren">(</span><em>ibs</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>MAIN FUNCTION</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -c <span class="s2">&quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;ibeis.templates.template_generator&#39;)&quot;</span>
+
+sh Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
+sh Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+
+sh Tgen.sh --key featweight
+sh Tgen.sh --key annot --onlyfn
+sh Tgen.sh --key featweight --onlyfn
+sh Tgen.sh --key chip --onlyfn --Tcfg <span class="nv">with_setters</span><span class="o">=</span>False
+sh Tgen.sh --key chip --Tcfg <span class="nv">with_setters</span><span class="o">=</span>False
+sh Tgen.sh --key chip --Tcfg <span class="nv">with_setters</span><span class="o">=</span>False <span class="nv">with_getters</span><span class="o">=</span>False <span class="nv">with_adders</span><span class="o">=</span>True
+sh Tgen.sh --key feat --onlyfn
+
+python -m ibeis.templates.template_generator
+python -m ibeis.templates.template_generator --dump-autogen-controller
+gvim ibeis/templates/_autogen_default_funcs.py
+python dev.py --db testdb1 --cmd
+%run dev.py --db testdb1 --cmd
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.parse_first_func_name">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">parse_first_func_name</code><span class="sig-paren">(</span><em>func_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#parse_first_func_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.parse_first_func_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>get first function name defined in a codeblock</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.parse_table_structure">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">parse_table_structure</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#parse_table_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.parse_table_structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.postprocess_and_combine_templates">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">postprocess_and_combine_templates</code><span class="sig-paren">(</span><em>autogen_modname</em>, <em>autogen_key</em>, <em>constant_list_</em>, <em>tblname2_functype2_func_list</em>, <em>flagskw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#postprocess_and_combine_templates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.postprocess_and_combine_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts and combines augen function dictionary</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.remove_kwarg">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">remove_kwarg</code><span class="sig-paren">(</span><em>kwname</em>, <em>kwdefault</em>, <em>func_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#remove_kwarg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.remove_kwarg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.remove_sentinals">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">remove_sentinals</code><span class="sig-paren">(</span><em>code_text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#remove_sentinals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.remove_sentinals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes template comments and vim sentinals</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.template_generator.replace_constant_varname">
+<code class="descclassname">ibeis.templates.template_generator.</code><code class="descname">replace_constant_varname</code><span class="sig-paren">(</span><em>func_code</em>, <em>varname</em>, <em>valstr=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates/template_generator.html#replace_constant_varname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.template_generator.replace_constant_varname" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.templates.template_generator</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func_code</span> <span class="o">=</span> <span class="n">Tdef</span><span class="o">.</span><span class="n">Tsetter_native_multicolumn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_func_code</span> <span class="o">=</span> <span class="n">replace_constant_varname</span><span class="p">(</span><span class="n">func_code</span><span class="p">,</span> <span class="s">&#39;id_iter&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_func_code</span> <span class="o">=</span> <span class="n">replace_constant_varname</span><span class="p">(</span><span class="n">new_func_code</span><span class="p">,</span> <span class="s">&#39;colnames&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">new_func_code</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.templates">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.templates" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.templates.reassign_submodule_attributes">
+<code class="descclassname">ibeis.templates.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.reload_subs">
+<code class="descclassname">ibeis.templates.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/templates.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.templates.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.templates and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.templates.rrrr">
+<code class="descclassname">ibeis.templates.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.templates.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.templates and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.tests.html" class="btn btn-neutral float-right" title="ibeis.tests package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.scripts.html" class="btn btn-neutral" title="ibeis.scripts package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

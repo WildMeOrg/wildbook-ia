@@ -1,0 +1,1517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model package &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="next" title="ibeis.model.detect package" href="ibeis.model.detect.html"/>
+        <link rel="prev" title="ibeis.init package" href="ibeis.init.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.model package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.model.Config">ibeis.model.Config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.model">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.model package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.model.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-model-package">
+<h1>ibeis.model package<a class="headerlink" href="#ibeis-model-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.model.detect.html">ibeis.model.detect package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.detect.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect.grabmodels">ibeis.model.detect.grabmodels module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect.randomforest">ibeis.model.detect.randomforest module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.model.hots.html">ibeis.model.hots package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.hots.smk.html">ibeis.model.hots.smk package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_hamming">ibeis.model.hots.smk.smk_hamming module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_plots">ibeis.model.hots.smk.smk_plots module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_repr">ibeis.model.hots.smk.smk_repr module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_residuals">ibeis.model.hots.smk.smk_residuals module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_scoring">ibeis.model.hots.smk.smk_scoring module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._neighbor_experiment">ibeis.model.hots._neighbor_experiment module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._pipeline_helpers">ibeis.model.hots._pipeline_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automatch_suggestor">ibeis.model.hots.automatch_suggestor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_params">ibeis.model.hots.automated_params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.chip_match">ibeis.model.hots.chip_match module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.devcases">ibeis.model.hots.devcases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.distinctiveness_normalizer">ibeis.model.hots.distinctiveness_normalizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.name_scoring">ibeis.model.hots.name_scoring module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.neighbor_index">ibeis.model.hots.neighbor_index module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.nn_weights">ibeis.model.hots.nn_weights module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.old_chip_match">ibeis.model.hots.old_chip_match module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.pipeline">ibeis.model.hots.pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.precision_recall">ibeis.model.hots.precision_recall module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.qt_inc_automatch">ibeis.model.hots.qt_inc_automatch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_params">ibeis.model.hots.query_params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.score_normalization">ibeis.model.hots.score_normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.scoring">ibeis.model.hots.scoring module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.special_query">ibeis.model.hots.special_query module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.user_dialogs">ibeis.model.hots.user_dialogs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.vsone_pipeline">ibeis.model.hots.vsone_pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.model.preproc.html">ibeis.model.preproc package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_annot">ibeis.model.preproc.preproc_annot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_chip">ibeis.model.preproc.preproc_chip module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_detectimg">ibeis.model.preproc.preproc_detectimg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_encounter">ibeis.model.preproc.preproc_encounter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_feat">ibeis.model.preproc.preproc_feat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_featweight">ibeis.model.preproc.preproc_featweight module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_image">ibeis.model.preproc.preproc_image module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_probchip">ibeis.model.preproc.preproc_probchip module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_residual">ibeis.model.preproc.preproc_residual module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_rvec">ibeis.model.preproc.preproc_rvec module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.model.Config">
+<span id="ibeis-model-config-module"></span><h2>ibeis.model.Config module<a class="headerlink" href="#module-ibeis.model.Config" title="Permalink to this headline">¶</a></h2>
+<p>Algorithm and behavior configurations are stored here.  These classes are based
+off of the utool.Preference.Pref class which really needs a good overhaul</p>
+<p>NEED TO REDO THESE CONFIGURATIONS.
+Flat definitions? Then link dependencies?</p>
+<dl class="class">
+<dt id="ibeis.model.Config.AggregateConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">AggregateConfig</code><span class="sig-paren">(</span><em>agg_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#AggregateConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.AggregateConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p>Old Agg Cfg</p>
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>agg_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#AggregateConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.AggregateConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.AggregateConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.ChipConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">ChipConfig</code><span class="sig-paren">(</span><em>cc_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#ChipConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.ChipConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>cc_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#ChipConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.ChipConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.ChipConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.ChipConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.ConfigMetaclass">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">ConfigMetaclass</code><a class="headerlink" href="#ibeis.model.Config.ConfigMetaclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">type</span></code></p>
+<p>Defines extra methods for Configs</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.DetectionConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">DetectionConfig</code><span class="sig-paren">(</span><em>detect_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#DetectionConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.DetectionConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --test-DetectionConfig
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">detect_cfg</span> <span class="o">=</span> <span class="n">DetectionConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_DETECT(rf,____,sz=800)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>detect_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#DetectionConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DetectionConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DetectionConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.DisplayConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">DisplayConfig</code><span class="sig-paren">(</span><em>display_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#DisplayConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.DisplayConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>nn_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#DisplayConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.DisplayConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.DisplayConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.EncounterConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">EncounterConfig</code><span class="sig-paren">(</span><em>enc_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#EncounterConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.EncounterConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>enc_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#EncounterConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.EncounterConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.model.Config.EncounterConfig.valid_cluster_algos">
+<code class="descname">valid_cluster_algos</code><em class="property"> = ['meanshift', 'agglomerative']</em><a class="headerlink" href="#ibeis.model.Config.EncounterConfig.valid_cluster_algos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.FeatureConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">FeatureConfig</code><span class="sig-paren">(</span><em>feat_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p>Feature configuration object.</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --test-FeatureConfig
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">FeatureConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">FeatureConfig</span><span class="p">(</span><span class="n">rotation_invariance</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_FEAT(hesaff+sift_rotation_invariance=True)_CHIP(sz450)</span>
+</pre></div>
+</div>
+<p>_FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)</p>
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>feat_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.get_hesaff_params">
+<code class="descname">get_hesaff_params</code><span class="sig-paren">(</span><em>feat_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureConfig.get_hesaff_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.get_hesaff_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.FeatureWeightConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">FeatureWeightConfig</code><span class="sig-paren">(</span><em>featweight_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --exec-FeatureWeightConfig
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">FeatureWeightConfig</span><span class="p">(</span><span class="n">featweight_detector</span><span class="o">=</span><span class="s">&#39;rf&#39;</span><span class="p">,</span> <span class="n">featweight_enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+</pre></div>
+</div>
+<p>_FEATWEIGHT(OFF)_FEAT(<a href="#id1"><span class="problematic" id="id2">hesaff+sift_</span></a>)_CHIP(sz450)</p>
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>featweight_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureWeightConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.make_feasible">
+<code class="descname">make_feasible</code><span class="sig-paren">(</span><em>featweight_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FeatureWeightConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FeatureWeightConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FeatureWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.FlannConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">FlannConfig</code><span class="sig-paren">(</span><em>flann_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p>this flann is only for neareset neighbors in vsone/many
+TODO: this might not need to be here, should be part of neighbor config</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf</a>
+<a class="reference external" href="http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf">http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf</a>
+<a class="reference external" href="http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html">http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html</a></p>
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>flann_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.get_flann_params">
+<code class="descname">get_flann_params</code><span class="sig-paren">(</span><em>flann_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#FlannConfig.get_flann_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.FlannConfig.get_flann_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.FlannConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.FlannConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.GenericConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">GenericConfig</code><span class="sig-paren">(</span><em>cfg</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#GenericConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.GenericConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.GenericConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.GenericConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.NNConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">NNConfig</code><span class="sig-paren">(</span><em>nn_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#NNConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.NNConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --exec-NNConfig
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">NNConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.get_param_info_list">
+<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><em>rrvsone_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#NNConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.NNConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.make_feasible">
+<code class="descname">make_feasible</code><span class="sig-paren">(</span><em>nn_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#NNConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.NNConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.NNWeightConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">NNWeightConfig</code><span class="sig-paren">(</span><em>nnweight_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#NNWeightConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --test-NNWeightConfig
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="n">NNWeightConfig</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">NNWeightConfig</span><span class="p">(</span><span class="n">can_match_sameimg</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">can_match_samename</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">NNWeightConfig</span><span class="p">(</span><span class="n">ratio_thresh</span><span class="o">=.</span><span class="mi">625</span><span class="p">,</span> <span class="n">lnbnn_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_NNWeight(lnbnn,fg)</span>
+<span class="go">_NNWeight(lnbnn,fg,sameimg,nosamename)</span>
+<span class="go">_NNWeight(ratio_thresh=0.625,fg)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.get_param_info_list">
+<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><em>nnweight_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#NNWeightConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.NNWeightConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.NNWeightConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.OtherConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">OtherConfig</code><span class="sig-paren">(</span><em>other_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#OtherConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.OtherConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.OtherConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.OtherConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.QueryConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">QueryConfig</code><span class="sig-paren">(</span><em>query_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p>query configuration parameters</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.apply_codename">
+<code class="descname">apply_codename</code><span class="sig-paren">(</span><em>query_cfg</em>, <em>codename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.apply_codename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.apply_codename" title="Permalink to this definition">¶</a></dt>
+<dd><p>codenames denote mass changes to configurations
+it is a hacky solution to setting different parameter
+values all at once.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.deepcopy">
+<code class="descname">deepcopy</code><span class="sig-paren">(</span><em>query_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.deepcopy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>query_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.make_feasible">
+<code class="descname">make_feasible</code><span class="sig-paren">(</span><em>query_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.make_feasible_">
+<code class="descname">make_feasible_</code><span class="sig-paren">(</span><em>query_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.make_feasible_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.make_feasible_" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes invalid parameter settings over all cfgs (move to QueryConfig)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.QueryConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.QueryConfig.update_query_cfg">
+<code class="descname">update_query_cfg</code><span class="sig-paren">(</span><em>query_cfg</em>, <em>**cfgdict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.update_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.update_query_cfg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.RerankVsOneConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">RerankVsOneConfig</code><span class="sig-paren">(</span><em>rrvsone_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#RerankVsOneConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --test-RerankVsOneConfig
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example0:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rrvsone_cfg</span> <span class="o">=</span> <span class="n">RerankVsOneConfig</span><span class="p">(</span><span class="n">rrvsone_on</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_RRVsOne(True,&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rrvsone_cfg</span> <span class="o">=</span> <span class="n">RerankVsOneConfig</span><span class="p">(</span><span class="n">rrvsone_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">_RRVsOne(False)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>rrvsone_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#RerankVsOneConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>rrvsone_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#RerankVsOneConfig.get_config_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.get_constraint_func">
+<code class="descname">get_constraint_func</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#RerankVsOneConfig.get_constraint_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.get_constraint_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.get_param_info_list">
+<code class="descname">get_param_info_list</code><span class="sig-paren">(</span><em>rrvsone_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#RerankVsOneConfig.get_param_info_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.get_param_info_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.meta_get_config_name">
+<code class="descname">meta_get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.meta_get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.RerankVsOneConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.RerankVsOneConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.SMKConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">SMKConfig</code><span class="sig-paren">(</span><em>smk_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smk_cfg</span> <span class="o">=</span> <span class="n">SMKConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result1</span> <span class="o">=</span> <span class="n">smk_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example2:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smk_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>smk_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.make_feasible">
+<code class="descname">make_feasible</code><span class="sig-paren">(</span><em>smk_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#SMKConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SMKConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SMKConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SMKConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.SpatialVerifyConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">SpatialVerifyConfig</code><span class="sig-paren">(</span><em>sv_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#SpatialVerifyConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p>Spatial verification</p>
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>sv_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#SpatialVerifyConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.SpatialVerifyConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.SpatialVerifyConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.VocabAssignConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">VocabAssignConfig</code><span class="sig-paren">(</span><em>vocabassign_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vocabassign_cfg</span> <span class="o">=</span> <span class="n">VocabAssignConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">vocabassign_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>vocabassign_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.make_feasible">
+<code class="descname">make_feasible</code><span class="sig-paren">(</span><em>vocabassign_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabAssignConfig.make_feasible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.make_feasible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabAssignConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabAssignConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.model.Config.VocabTrainConfig">
+<em class="property">class </em><code class="descclassname">ibeis.model.Config.</code><code class="descname">VocabTrainConfig</code><span class="sig-paren">(</span><em>vocabtrain_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabTrainConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">utool.Preferences.Pref</span></code></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vocabtrain_cfg</span> <span class="o">=</span> <span class="n">VocabTrainConfig</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Needed for comparison operators</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.get_cfgstr">
+<code class="descname">get_cfgstr</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.get_cfgstr_list">
+<code class="descname">get_cfgstr_list</code><span class="sig-paren">(</span><em>vocabtrain_cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#VocabTrainConfig.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.get_config_name">
+<code class="descname">get_config_name</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.get_config_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the user might want to overwrite this function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes config class attributes based on params info list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.meta_get_cfgstr_list">
+<code class="descname">meta_get_cfgstr_list</code><span class="sig-paren">(</span><em>cfg</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.meta_get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>default get_cfgstr_list, can be overrided by a config object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.Config.VocabTrainConfig.parse_items">
+<code class="descname">parse_items</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.Config.VocabTrainConfig.parse_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.default_vsone_cfg">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">default_vsone_cfg</code><span class="sig-paren">(</span><em>ibs</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#default_vsone_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.default_vsone_cfg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.load_named_config">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">load_named_config</code><span class="sig-paren">(</span><em>cfgname</em>, <em>dpath</em>, <em>use_config_cache=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#load_named_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.load_named_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cfgname</strong> (<em>str</em>) &#8211; </li>
+<li><strong>dpath</strong> (<em>str</em>) &#8211; </li>
+<li><strong>use_config_cache</strong> (<em>bool</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">cfg</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#module-ibeis.model.Config" title="ibeis.model.Config">Config</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.model.Config --test-load_named_config
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.Config</span> <span class="kn">import</span> <span class="n">_default_config</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs.cfg.save()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgname</span> <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_config_cache</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">use_config_cache</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">keys1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">keys2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">symdiff</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys1</span><span class="p">)</span> <span class="o">^</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.make_config_metaclass">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">make_config_metaclass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#make_config_metaclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.make_config_metaclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a metaclass for Config objects that automates some of the more
+tedious functions to write</p>
+<dl class="docutils">
+<dt>Like:</dt>
+<dd>get_cfgstr
+and the comparison methods</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>from ibeis.model.Config import *  # NOQA
+&#64;six.add_metaclass(ConfigMetaclass)
+class FooConfig(ConfigBase):</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def __init__(cfg):</dt>
+<dd>super(FooConfig, cfg).__init__(name=&#8217;FooConfig&#8217;)
+cfg.initialize_params()</dd>
+<dt>def get_param_info_list(cfg):</dt>
+<dd><dl class="first docutils">
+<dt>return [</dt>
+<dd>ut.ParamInfo(&#8216;x&#8217;, &#8216;y&#8217;),
+ut.ParamInfo(&#8216;z&#8217;, 3),</dd>
+</dl>
+<p class="last">]</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>cfg = FooConfig()
+print(cfg.get_cfgstr(ignore_keys=[&#8216;x&#8217;]))
+print(cfg.get_cfgstr(ignore_keys=[]))</p>
+<p>cfg = GenericConfig()
+cfg.x = &#8216;y&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.parse_config_items">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">parse_config_items</code><span class="sig-paren">(</span><em>cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#parse_config_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.parse_config_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extracts key, val pairs from Config objects
+into a flat list. (there must not be name conflicts)</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">param_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.set_query_cfg">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">set_query_cfg</code><span class="sig-paren">(</span><em>cfg</em>, <em>query_cfg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#set_query_cfg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.set_query_cfg" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.Config.update_query_config">
+<code class="descclassname">ibeis.model.Config.</code><code class="descname">update_query_config</code><span class="sig-paren">(</span><em>cfg</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model/Config.html#update_query_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.update_query_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>hack 12-30-2014</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.model">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.model" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.reload_subs">
+<code class="descclassname">ibeis.model.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/model.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.rrrr">
+<code class="descclassname">ibeis.model.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.model.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.model and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.model.detect.html" class="btn btn-neutral float-right" title="ibeis.model.detect package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.init.html" class="btn btn-neutral" title="ibeis.init package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

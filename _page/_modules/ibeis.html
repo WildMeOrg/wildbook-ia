@@ -1,0 +1,449 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>ibeis</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">IBEIS: main package init</span>
+
+<span class="sd">TODO: LAZY IMPORTS?</span>
+<span class="sd">    http://code.activestate.com/recipes/473888-lazy-module-imports/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># flake8: noqa</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c">#__version__ = &#39;0.1.0.dev1&#39;</span>
+<span class="c">#__version__ = &#39;1.4.7&#39;</span>
+
+<span class="n">utool</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+    <span class="n">standard_visualization_functions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;show_image&#39;</span><span class="p">,</span>
+        <span class="s">&#39;show_chip&#39;</span><span class="p">,</span>
+        <span class="s">&#39;show_chipmatch&#39;</span><span class="p">,</span>
+        <span class="s">&#39;show_chipmatches&#39;</span><span class="p">,</span>
+        <span class="s">&#39;show_vocabulary&#39;</span><span class="p">,</span>
+        <span class="c">#&#39;show_vocabulary&#39;,</span>
+    <span class="p">]</span>
+
+
+<span class="c"># If we dont initialize plottool before &lt;something&gt;</span>
+<span class="c"># then it causes a crash in windows. Its so freaking weird.</span>
+<span class="c"># something is not guitool, ibeis.viz</span>
+<span class="c"># has to be before control, can be after constants, params, and main_module</span>
+<span class="c">#import plottool</span>
+
+
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">main_module</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">species</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">other</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="c">#main_module._preload()</span>
+
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">control</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dbio</span>
+<span class="c">#from ibeis import web</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">_init_numpy</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span>
+                               <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span><span class="p">,</span> <span class="n">opendb_in_background</span><span class="p">,</span> <span class="n">opendb_bg_web</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
+<span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="n">get_workdir</span><span class="p">,</span> <span class="n">set_workdir</span><span class="p">,</span> <span class="n">ensure_pz_mtest</span><span class="p">,</span> <span class="n">ensure_nauts</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">model</span>
+
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">expt</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">templates</span>
+<span class="kn">from</span> <span class="nn">ibeis.templates</span> <span class="kn">import</span> <span class="n">generate_notebook</span>
+
+<div class="viewcode-block" id="import_subs"><a class="viewcode-back" href="../ibeis.html#ibeis.import_subs">[docs]</a><span class="k">def</span> <span class="nf">import_subs</span><span class="p">():</span>
+    <span class="c"># Weird / Fancy loading.</span>
+    <span class="c"># I want to make this simpler</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">model</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">web</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">gui</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">templates</span>
+
+</div>
+<div class="viewcode-block" id="run_experiment"><a class="viewcode-back" href="../ibeis.html#ibeis.run_experiment">[docs]</a><span class="k">def</span> <span class="nf">run_experiment</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="s">&#39;print&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;unctrl&#39;</span><span class="p">],</span> <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span>
+                   <span class="n">qaid_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convience function</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis -e print</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">functools</span>
+    <span class="k">def</span> <span class="nf">find_expt_func</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">ibeis.dev</span>
+        <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">REGISTERED_DOCTEST_EXPERIMENTS</span><span class="p">:</span>
+            <span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">aliases</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="n">funcname</span> <span class="ow">or</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_modname</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">func</span>
+
+    <span class="k">def</span> <span class="nf">build_commandline</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="n">e</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c"># Equivalent command line version of this func</span>
+        <span class="n">command_parts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;-e&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span>
+                         <span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span>
+                         <span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+                         <span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">),</span>
+                        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">qaid_override</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">command_parts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--qaid=&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">qaid_override</span><span class="p">))])</span>
+
+        <span class="c"># hack parse out important args that were on command line</span>
+        <span class="k">if</span> <span class="s">&#39;f&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">command_parts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;-f&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;f&#39;</span><span class="p">])])</span>
+        <span class="k">if</span> <span class="s">&#39;test_cfgx_slice&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c"># very hacky, much more than checking for f</span>
+            <span class="n">slice_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;test_cfgx_slice&#39;</span><span class="p">]</span>
+            <span class="n">slice_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">slice_</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="s">&#39;step&#39;</span><span class="p">]]</span>
+            <span class="n">slice_attrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">slice_attrs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">slicestr</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">slice_attrs</span><span class="p">))</span>
+            <span class="n">command_parts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--test_cfgx_slice&#39;</span><span class="p">,</span> <span class="n">slicestr</span><span class="p">])</span>
+
+        <span class="n">command_parts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--show&#39;</span><span class="p">])</span>
+
+        <span class="n">command_line_str</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command_parts</span><span class="p">)</span>
+        <span class="c"># Warning, not always equivalent</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Equivalent Command Line:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">command_line_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">command_line_str</span>
+    <span class="n">command_line_str</span> <span class="o">=</span> <span class="n">build_commandline</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">draw_cases</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">e_</span> <span class="o">=</span> <span class="s">&#39;draw_cases&#39;</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">find_expt_func</span><span class="p">(</span><span class="n">e_</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">build_commandline</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="n">e_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">lazy_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="n">show_in_notebook</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lazy_func</span>
+
+    <span class="k">def</span> <span class="nf">draw_taghist</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">e_</span> <span class="o">=</span> <span class="s">&#39;taghist&#39;</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">find_expt_func</span><span class="p">(</span><span class="n">e_</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">testres</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">build_commandline</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="n">e_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">lazy_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lazy_func</span>
+
+    <span class="k">def</span> <span class="nf">execute_test</span><span class="p">():</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">find_expt_func</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;unknown experiment e=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="p">,)</span>
+
+        <span class="n">argspec</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_argspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ibs&#39;</span> <span class="ow">and</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;testres&#39;</span><span class="p">:</span>
+            <span class="c"># most experiments need a testres</span>
+            <span class="n">expts_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
+            <span class="n">testdata_expts_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expts</span><span class="p">,</span> <span class="o">**</span><span class="n">expts_kw</span><span class="p">)</span>
+
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span> <span class="o">=</span> <span class="n">testdata_expts_func</span><span class="p">()</span>
+            <span class="c"># Build the requested drawing funciton</span>
+            <span class="n">draw_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">testres</span><span class="o">.</span><span class="n">draw_func</span> <span class="o">=</span> <span class="n">draw_func</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="n">draw_cases</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">testres</span><span class="p">,</span> <span class="n">draw_taghist</span><span class="p">)</span>
+            <span class="c">#testres.draw_cases = draw_cases</span>
+            <span class="k">return</span> <span class="n">testres</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unknown type of function for experiment&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">execute_test</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">testres</span> <span class="o">=</span> <span class="n">execute_test</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">testres</span>
+
+</div>
+<span class="k">def</span> <span class="nf">testdata_expts</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expts</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">testres</span>
+
+<span class="c">#import_subs()</span>
+<span class="c">#from ibeis import gui</span>
+<span class="c">#from ibeis import model</span>
+<span class="c">#from ibeis import templates</span>
+<span class="c">#from ibeis import viz</span>
+<span class="c">#from ibeis import web</span>
+
+
+<span class="c">#class _VizProxy(object):</span>
+<span class="c">#    def __init__(self):</span>
+<span class="c">#        pass</span>
+
+<span class="c">#    def getattr(self, key):</span>
+<span class="c">#        import ibeis.viz as viz</span>
+<span class="c">#        return getattr(viz, key)</span>
+
+<span class="c">#    def setattr(self, key, val):</span>
+<span class="c">#        import ibeis.viz as viz</span>
+<span class="c">#        return getattr(viz, key, val)</span>
+
+
+<span class="c">#viz = _VizProxy</span>
+<span class="c">#import apipkg</span>
+<span class="c">#apipkg.initpkg(__name__, {</span>
+<span class="c">#    &#39;viz&#39;: {</span>
+<span class="c">#        &#39;clone&#39;: &quot;ibeis.viz&quot;,</span>
+<span class="c">#    }</span>
+<span class="c">#}</span>
+<span class="c">#)</span>
+
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+<span class="n">testdata_cm</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_cm</span>
+<span class="n">testdata_cmlist</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_cmlist</span>
+<span class="n">testdata_qreq_</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span>
+<span class="n">testdata_pipecfg</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_pipecfg</span>
+<span class="n">testdata_filtcfg</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_filtcfg</span>
+<span class="n">testdata_expts</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expts</span>
+<span class="n">testdata_expanded_aids</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expanded_aids</span>
+<span class="n">testdata_aids</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_aids</span>
+
+<span class="c"># Utool generated init makeinit.py</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis]&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../ibeis.html#ibeis.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reloads ibeis and submodules &quot;&quot;&quot;</span>
+    <span class="n">import_subs</span><span class="p">()</span>
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">constants</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">ibsfuncs</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">main_module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">dbio</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">)()</span>
+
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">viz</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">web</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
+<span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
+
+
+<span class="kn">from</span> <span class="nn">ibeis.control.DB_SCHEMA_CURRENT</span> <span class="kn">import</span> <span class="n">VERSION_CURRENT</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="n">VERSION_CURRENT</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.4.7&#39;</span>
+
+<span class="k">if</span> <span class="n">__version__</span> <span class="o">!=</span> <span class="n">VERSION_CURRENT</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+        <span class="s">&#39;need to update version in __init__ file from </span><span class="si">%r</span><span class="s"> to </span><span class="si">%r</span><span class="s"> so setup.py can work nicely&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">__version__</span><span class="p">,</span> <span class="n">VERSION_CURRENT</span><span class="p">))</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Regen Command:</span>
+<span class="sd">    Kinda have to work with the output of these. This module is hard to</span>
+<span class="sd">    autogenerate correctly.</span>
+
+<span class="sd">    cd /home/joncrall/code/ibeis/ibeis/other</span>
+<span class="sd">    makeinit.py -x web viz tests gui all_imports</span>
+<span class="sd">    makeinit.py -x constants params main_module other control ibsfuncs dbio tests all_imports</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+ibeis.expt package
+==================
+
+Submodules
+----------
+
+ibeis.expt.annotation_configs module
+------------------------------------
+
+.. automodule:: ibeis.expt.annotation_configs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.cfghelpers module
+----------------------------
+
+.. automodule:: ibeis.expt.cfghelpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.experiment_configs module
+------------------------------------
+
+.. automodule:: ibeis.expt.experiment_configs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.experiment_drawing module
+------------------------------------
+
+.. automodule:: ibeis.expt.experiment_drawing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.experiment_harness module
+------------------------------------
+
+.. automodule:: ibeis.expt.experiment_harness
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.experiment_helpers module
+------------------------------------
+
+.. automodule:: ibeis.expt.experiment_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.experiment_printres module
+-------------------------------------
+
+.. automodule:: ibeis.expt.experiment_printres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.old_storage module
+-----------------------------
+
+.. automodule:: ibeis.expt.old_storage
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.precomputer module
+-----------------------------
+
+.. automodule:: ibeis.expt.precomputer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.expt.test_result module
+-----------------------------
+
+.. automodule:: ibeis.expt.test_result
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.expt
+    :members:
+    :undoc-members:
+    :show-inheritance:

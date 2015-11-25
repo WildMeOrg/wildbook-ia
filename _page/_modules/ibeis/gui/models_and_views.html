@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.gui.models_and_views &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.gui.models_and_views</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.gui.models_and_views</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This provides concrete classes which inherit from abstract</span>
+<span class="sd">api_item_models/api_table_models/api_tree_models in guitool.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">guitool</span> <span class="kn">import</span> <span class="p">(</span><span class="n">APIItemModel</span><span class="p">,</span> <span class="n">APITableView</span><span class="p">,</span> <span class="n">APITreeView</span><span class="p">,</span> <span class="n">APIItemWidget</span><span class="p">,</span>
+                     <span class="n">StripeProxyModel</span><span class="p">,</span> <span class="n">ChangeLayoutContext</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[newgui_models]&#39;</span><span class="p">)</span>
+
+<span class="c">#---------------------</span>
+<span class="c"># --- IBEIS Tables ---</span>
+<span class="c">#---------------------</span>
+
+
+<div class="viewcode-block" id="IBEISTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTableWidget">[docs]</a><span class="k">class</span> <span class="nc">IBEISTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                                <span class="n">model_class</span><span class="o">=</span><span class="n">IBEISStripeModel</span><span class="p">,</span>
+                                <span class="n">view_class</span><span class="o">=</span><span class="n">IBEISTableView</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IBEISTreeWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTreeWidget">[docs]</a><span class="k">class</span> <span class="nc">IBEISTreeWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                                <span class="n">model_class</span><span class="o">=</span><span class="n">IBEISItemModel</span><span class="p">,</span>
+                                <span class="n">view_class</span><span class="o">=</span><span class="n">IBEISTreeView</span><span class="p">)</span>
+
+</div>
+<span class="n">IBEISSTRIPEMODEL_BASE</span> <span class="o">=</span> <span class="n">StripeProxyModel</span>
+<span class="c">#IBEISSTRIPEMODEL_BASE = APIItemModel</span>
+<span class="n">IBEISITEMMODEL_BASE</span> <span class="o">=</span> <span class="n">APIItemModel</span>
+
+
+<div class="viewcode-block" id="IBEISStripeModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISStripeModel">[docs]</a><span class="k">class</span> <span class="nc">IBEISStripeModel</span><span class="p">(</span><span class="n">IBEISSTRIPEMODEL_BASE</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">IBEISSTRIPEMODEL_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">numduplicates</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid eid</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">IBEISSTRIPEMODEL_BASE</span> <span class="o">==</span> <span class="n">StripeProxyModel</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span> <span class="o">=</span> <span class="n">APIItemModel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">setSourceModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs_model] just set the sourcemodel&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_null_ider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[:]</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_ider</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_nd</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;num_duplicates&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
+        <span class="c">#return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)</span>
+
+    <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected encounter ids &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">eid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+        <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
+            <span class="n">IBEISSTRIPEMODEL_BASE</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IBEISTableView"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTableView">[docs]</a><span class="k">class</span> <span class="nc">IBEISTableView</span><span class="p">(</span><span class="n">APITableView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    View for ANNOTATION / NAME / IMAGE Tables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">APITableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">tblview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+
+    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+        <span class="n">tblview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">tblview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IBEISItemModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISItemModel">[docs]</a><span class="k">class</span> <span class="nc">IBEISItemModel</span><span class="p">(</span><span class="n">IBEISITEMMODEL_BASE</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        filter the iders</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_null_ider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[:]</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_ider</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
+        <span class="k">return</span> <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overrides the API model ider to give filtered output,</span>
+<span class="sd">        ie: only selected encounter ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">eid</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">eid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+        <span class="k">with</span> <span class="n">ChangeLayoutContext</span><span class="p">([</span><span class="n">model</span><span class="p">]):</span>
+            <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IBEISTreeView"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTreeView">[docs]</a><span class="k">class</span> <span class="nc">IBEISTreeView</span><span class="p">(</span><span class="n">APITreeView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    View for NAME / ANNOTATION Tree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">APITreeView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">treeview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+
+    <span class="k">def</span> <span class="nf">_change_enc</span><span class="p">(</span><span class="n">treeview</span><span class="p">,</span> <span class="n">eid</span><span class="p">):</span>
+        <span class="n">treeview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">treeview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># FIXME: should defer the change of encounter until</span>
+            <span class="c"># the view becomes visible</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+
+
+<span class="c">#-------------------------</span>
+<span class="c"># --- ENCOUNTER TABLES ---</span>
+<span class="c">#-------------------------</span>
+
+</div>
+<div class="viewcode-block" id="EncTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableWidget">[docs]</a><span class="k">class</span> <span class="nc">EncTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span>
+                                <span class="n">model_class</span><span class="o">=</span><span class="n">EncTableModel</span><span class="p">,</span>
+                                <span class="n">view_class</span><span class="o">=</span><span class="n">EncTableView</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="EncTableModel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableModel">[docs]</a><span class="k">class</span> <span class="nc">EncTableModel</span><span class="p">(</span><span class="n">APIItemModel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="n">APIItemModel</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="EncTableView"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.EncTableView">[docs]</a><span class="k">class</span> <span class="nc">EncTableView</span><span class="p">(</span><span class="n">APITableView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    View for Encounter Table</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">APITableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">tblview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="c">#tblview.setMaximumSize(500, 9999)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

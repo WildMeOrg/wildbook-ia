@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.precomputer &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.precomputer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.precomputer</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+
+
+<div class="viewcode-block" id="precfg_dbs"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.precomputer.precfg_dbs">[docs]</a><span class="k">def</span> <span class="nf">precfg_dbs</span><span class="p">(</span><span class="n">db_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Helper to precompute information Runs precfg on multiple databases</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        db_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist testdb1 PZ_MTEST --preload -t custom</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=PZ_MTEST,NNP_MasterGIRM_core,PZ_Master0,NNP_Master3,GZ_ALL,PZ_FlankHack --preload --delete-nn-cache</span>
+
+<span class="sd">        #python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=PZ_Master0 -t candidacy1 --preload-chip --controlled --species=primary</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy --preload</span>
+
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --controlled</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-chip --species=primary --allgt</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-feat</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload-featweight</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy -t candidacy --preload</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg_dbs --dblist=candidacy --delete-nn-cache</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.precomputer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; db_list = ut.get_argval(&#39;--dblist&#39;, type_=list, default=[&#39;testdb1&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result = precfg_dbs(db_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis.init.main_helpers</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="k">if</span> <span class="n">db_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;candidacy&#39;</span><span class="p">]:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
+        <span class="n">db_list</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">get_candidacy_dbnames</span><span class="p">()</span>  <span class="c"># HACK</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;db_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">db_list</span><span class="p">),))</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+    <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_list</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">precfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="precfg"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.precomputer.precfg">[docs]</a><span class="k">def</span> <span class="nf">precfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Helper to precompute information</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        qaids (list):  query annotation ids</span>
+<span class="sd">        daids (list):  database annotation ids</span>
+<span class="sd">        test_cfg_name_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg -t custom --expt-preload</span>
+
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg -t candidacy -a default:qaids=allgt --preload</span>
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg -t candidacy_invariance -a default:qaids=allgt --preload</span>
+
+<span class="sd">        python -m ibeis.expt.precomputer --exec-precfg --delete-nn-cache</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.precomputer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; default_acfgstrs = [&#39;default:qaids=allgt&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; acfg_name_list = ut.get_argval((&#39;--aidcfg&#39;, &#39;--acfg&#39;, &#39;-a&#39;), type_=list, default=default_acfgstrs)</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = ut.get_argval(&#39;-t&#39;, type_=list, default=[&#39;custom&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result = precfg(ibs, acfg_name_list, test_cfg_name_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Generate list of database annotation configurations</span>
+    <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
+    <span class="c"># Generate list of query pipeline param configs</span>
+    <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="c">#cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)</span>
+
+    <span class="n">expanded_aids_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;annot config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">nAcfg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">acfgx</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">expanded_aids_iter</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] WARNING No query annotations specified&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] WARNING No database annotations specified&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">---Annot config&#39;</span><span class="p">,</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+
+        <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">)</span>   <span class="c"># number of configurations (cols)</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+
+        <span class="n">cfgiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;query config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">parent_index</span><span class="o">=</span><span class="n">acfgx</span><span class="p">,</span> <span class="n">parent_nTotal</span><span class="o">=</span><span class="n">nAcfg</span><span class="p">)</span>
+
+        <span class="n">flag</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--delete-nn-cache&#39;</span><span class="p">):</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">delete_neighbor_cache</span><span class="p">()</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfgiter</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s"> cfg </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="p">(</span><span class="n">acfgx</span> <span class="o">*</span> <span class="n">nCfg</span><span class="p">)</span> <span class="o">+</span> <span class="n">cfgx</span> <span class="o">*</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span> <span class="o">*</span> <span class="n">nAcfg</span><span class="p">)):</span>
+
+                <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_cfg</span><span class="o">=</span><span class="n">query_cfg</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload&#39;</span><span class="p">):</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-chip&#39;</span><span class="p">):</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_chips</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">extra_tries</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-feat&#39;</span><span class="p">):</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_features</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-featweight&#39;</span><span class="p">):</span>
+                    <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_featweights</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preindex&#39;</span><span class="p">):</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+                        <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;no flag specified&#39;</span>
+        <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;no flag specified&#39;</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.precomputer</span>
+<span class="sd">        python -m ibeis.expt.precomputer --allexamples</span>
+<span class="sd">        python -m ibeis.expt.precomputer --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

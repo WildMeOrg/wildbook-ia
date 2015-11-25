@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.test_ibs_control &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.test_ibs_control</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.tests.test_ibs_control</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_IBS_CONTROL]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TEST_IBS_CONTROL"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_control.TEST_IBS_CONTROL">[docs]</a><span class="k">def</span> <span class="nf">TEST_IBS_CONTROL</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+
+    <span class="sd">&quot;&quot;&quot; get_image_eids / get_encounter_gids &quot;&quot;&quot;</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">eid_list</span><span class="p">,</span> <span class="s">&#39;eid_list is empty&#39;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="c"># print(&#39;[TEST] gids_list = %r&#39; % gids_list)</span>
+    <span class="k">assert</span> <span class="n">gids_list</span><span class="p">,</span> <span class="s">&#39;gids_list is empty&#39;</span>
+    <span class="k">for</span> <span class="n">gids</span><span class="p">,</span> <span class="n">eid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gids_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">):</span>
+        <span class="n">eid_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_eids</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">([[</span><span class="n">eid</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list2</span><span class="p">))</span> <span class="o">==</span> <span class="n">eid_list2</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;eid_list2&#39;</span><span class="p">,</span> <span class="s">&#39;eid&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
+
+    <span class="sd">&quot;&quot;&quot; set_annot_notes / get_annot_notes &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">annotation_notes_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="s">&quot;test text&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annotation_notes_list</span><span class="p">)</span>
+    <span class="n">annotation_notes_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">annotation_notes_list2</span><span class="p">,</span> <span class="s">&#39;get_annot_notes returned an empty list&#39;</span>
+    <span class="c">#print(&#39;[TEST] annotation_notes_list = %r&#39; % annotation_notes_list)</span>
+    <span class="c">#print(&#39;[TEST] annotation_notes_list2 = %r&#39; % annotation_notes_list2)</span>
+    <span class="k">assert</span> <span class="n">annotation_notes_list</span> <span class="o">==</span> <span class="n">annotation_notes_list2</span><span class="p">,</span> <span class="s">&#39;annotation notes lists do not match&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set_name_notes / get_name_notes &quot;&quot;&quot;</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">nid_list</span><span class="p">,</span> <span class="s">&#39;nid_list is empty&#39;</span>
+    <span class="n">nid_notes_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="s">&#39;nid notes test&#39;</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_notes</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">nid_notes_list</span><span class="p">)</span>
+    <span class="n">nid_notes_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_notes</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] nid_notes_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid_notes_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] nid_notes_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid_notes_list2</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">nid_notes_list</span><span class="p">,</span> <span class="n">nid_notes_list2</span><span class="p">,</span> <span class="s">&#39;nid notes lists do not match&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">nid_notes_list</span> <span class="o">==</span> <span class="n">nid_notes_list2</span><span class="p">,</span> <span class="s">&#39;nid notes lists do not match&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set_image_notes / get_image_notes &quot;&quot;&quot;</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s">&#39;gid_list is empty&#39;</span>
+    <span class="n">gid_notes_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="s">&#39;image note test&#39;</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_notes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gid_notes_list</span><span class="p">)</span>
+    <span class="n">gid_notes_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_notes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] gid_notes_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">gid_notes_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] gid_notes_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">gid_notes_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gid_notes_list</span> <span class="o">==</span> <span class="n">gid_notes_list2</span><span class="p">,</span> <span class="s">&#39;images notes lists do not match&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set_annot_bboxes / get_annot_bboxes &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+    <span class="n">bbox_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
+    <span class="n">bbox_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] bbox_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] bbox_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox_list2</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="n">bbox_list</span> <span class="o">==</span> <span class="n">bbox_list2</span><span class="p">,</span> <span class="s">&#39;bbox lists do not match&#39;</span>
+    <span class="c"># put bboxes back to original state</span>
+    <span class="c"># (otherwise other tests will fail on the second run of run_tests.sh)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list_orig</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot; set_annot_verts / get_annot_verts &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+    <span class="n">bbox_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">vert_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">))]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] vert_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">vert_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert_list</span><span class="p">),</span> <span class="s">&#39;lengths do not match, malformed input&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">vert_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">vert_list</span> <span class="o">==</span> <span class="n">vert_list2</span><span class="p">,</span> <span class="s">&#39;vert lists do not match&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set_annot_verts / get_annot_bboxes &quot;&quot;&quot;</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_list2</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">bbox_list</span> <span class="o">==</span> <span class="n">bbox_list2</span><span class="p">,</span> <span class="s">&#39;bbox lists do not match&#39;</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">120</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">120</span><span class="p">))]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">bbox_list3</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">110</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_list4</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">bbox_list3</span> <span class="o">==</span> <span class="n">bbox_list4</span><span class="p">,</span> <span class="s">&#39;bbox lists do not match&#39;</span>
+    <span class="c"># finish this test here</span>
+
+    <span class="sd">&quot;&quot;&quot; set_annot_bboxes / get_annot_verts  &quot;&quot;&quot;</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">110</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
+    <span class="c"># test that setting the bounding boxes overrides the vertices</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">120</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">120</span><span class="p">))]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">vert_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">vert_list</span> <span class="o">==</span> <span class="n">vert_list2</span><span class="p">,</span> <span class="s">&#39;vert lists do not match&#39;</span>
+
+    <span class="c"># put verts back to original state</span>
+    <span class="c"># (otherwise other tests will fail on the second run of run_tests.sh)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vert_list_orig</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">vert_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;Verts were not reset to original state&#39;</span>
+    <span class="k">assert</span> <span class="n">bbox_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;Bboxes were not reset to original state&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set_image_gps / get_image_gps &quot;&quot;&quot;</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">gids</span><span class="p">,</span> <span class="s">&#39;gid_list is empty&#39;</span>
+    <span class="n">gps_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gps_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)),</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gps_list</span><span class="p">)</span>
+    <span class="n">gps_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gps_list</span> <span class="o">==</span> <span class="n">gps_list2</span><span class="p">,</span> <span class="s">&#39;gps lists do not match&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gps_list_orig</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gps_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="s">&#39;gps was not reset to original state&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set encounter enctext / get encounter enctext &quot;&quot;&quot;</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+    <span class="n">enc_text_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">enc_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">))]</span>
+    <span class="k">assert</span> <span class="n">eid_list</span><span class="p">,</span> <span class="s">&#39;eid_list is empty&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len eid_list: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list</span><span class="p">)</span>
+    <span class="n">enc_text_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;enc_text_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">enc_text_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;enc_text_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">enc_text_list2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">enc_text_list</span> <span class="o">==</span> <span class="n">enc_text_list2</span><span class="p">,</span> <span class="s">&#39;encounter text lists do not match&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list_orig</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">enc_text_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span> <span class="s">&#39;enc text was not reset&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set annotation names / get_annot_names &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+
+    <span class="n">orig_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">new_names</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;TESTNAME_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_names</span><span class="p">)</span>
+    <span class="n">new_names2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">new_names</span> <span class="o">==</span> <span class="n">new_names2</span><span class="p">,</span> <span class="s">&#39;new_names == new_names2 failed!&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;new_names&#39;</span><span class="p">,</span> <span class="s">&#39;new_names2&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">orig_names</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">test_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">orig_names</span> <span class="o">==</span> <span class="n">test_names</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;orig_names&#39;</span><span class="p">,</span> <span class="s">&#39;test_names&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="sd">&quot;&quot;&quot; set annotation species / get annotation species &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+    <span class="n">orig_species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;orig_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orig_species</span><span class="p">,))</span>
+    <span class="n">new_species</span> <span class="o">=</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">[</span><span class="n">x</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">)]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;new_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_species</span><span class="p">,))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_species</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_species2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">new_species</span> <span class="o">==</span> <span class="n">new_species2</span><span class="p">,</span> <span class="s">&#39;new_species == new_species2 failed!&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;new_species&#39;</span><span class="p">,</span> <span class="s">&#39;new_species2&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">orig_species</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">orig_species</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;species were not reset&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; set alr confidence / get alr confidence &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c"># NOT USING ALR TABLE CURRENTLY</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list is empty&#39;</span>
+        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">alrids_list</span><span class="p">,</span> <span class="s">&#39;alrids_list is empty&#39;</span>
+        <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span>
+        <span class="n">orig_confidences</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+        <span class="n">new_confidences</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)))</span>
+        <span class="c">#ibs.print_alr_table()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">new_confidences</span><span class="p">)</span>
+        <span class="c">#ibs.print_alr_table()</span>
+        <span class="n">new_confidences2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">new_confidences</span> <span class="o">==</span> <span class="n">new_confidences2</span><span class="p">,</span> <span class="s">&#39;new_confidences == new_confidences2 failed&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">,</span> <span class="n">orig_confidences</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">orig_confidences</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_confidence</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">),</span> <span class="s">&#39;alr confidences were not reset&#39;</span>
+
+    <span class="sd">&quot;&quot;&quot; test metadata  &quot;&quot;&quot;</span>
+    <span class="c">#ibs.print_tables()</span>
+    <span class="c">#ibs.print_lblannot_table()</span>
+    <span class="c">#ibs.print_alr_table()</span>
+
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For win32</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># Initialize database</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_IBS_CONTROL</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c">#exec(execstr)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

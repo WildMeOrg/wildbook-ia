@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.smk.smk_scoring &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+          <li><a href="../smk.html">ibeis.model.hots.smk</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.smk.smk_scoring</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.model.hots.smk.smk_scoring</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The functions for scoring smk matches</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="c">#import pandas as pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c">#import scipy.sparse as spsparse</span>
+<span class="c">#from ibeis.model.hots import hstypes</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_scoring]&#39;</span><span class="p">)</span>
+
+
+<span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-smk&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="sccw_summation"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.sccw_summation">[docs]</a><span class="k">def</span> <span class="nf">sccw_summation</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Computes gamma from &quot;To Aggregate or not to aggregate&quot;. Every component in</span>
+<span class="sd">    each list is with repsect to a different word.</span>
+
+<span class="sd">    scc = self consistency criterion</span>
+<span class="sd">    It is a scalar which ensure K(X, X) = 1</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rvecs_list (list of ndarrays): residual vectors for every word</span>
+<span class="sd">        idf_list (list of floats): idf weight for each word</span>
+<span class="sd">        maws_list (list of ndarrays): multi-assign weights for each word for each residual vector</span>
+<span class="sd">        smk_alpha (float): selectivity power</span>
+<span class="sd">        smk_thresh (float): selectivity threshold</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: sccw self-consistency-criterion weight</span>
+
+<span class="sd">    Math:</span>
+<span class="sd">        \begin{equation}</span>
+<span class="sd">        \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}</span>
+<span class="sd">        \end{equation}</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_scoring</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; #idf_list, rvecs_list, maws_list, smk_alpha, smk_thresh, wx2_flags = smk_debug.testdata_sccw_sum(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_sccw_sum(db=&#39;PZ_MTEST&#39;, nWords=128000)</span>
+<span class="sd">        &gt;&gt;&gt; idf_list, rvecs_list, flags_list, maws_list, smk_alpha, smk_thresh = tup</span>
+<span class="sd">        &gt;&gt;&gt; sccw = smk_scoring.sccw_summation(rvecs_list, flags_list, idf_list, maws_list, smk_alpha, smk_thresh)</span>
+<span class="sd">        &gt;&gt;&gt; print(sccw)</span>
+<span class="sd">        0.0201041835751</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python smk_match.py --db PZ_MOTHERS --nWords 128</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        0.0384477314197</span>
+<span class="sd">        qmaws_list = dmaws_list = maws_list</span>
+<span class="sd">        drvecs_list = qrvecs_list = rvecs_list</span>
+<span class="sd">        dflags_list = qflags_list = flags_list</span>
+
+<span class="sd">        flags_list = flags_list[7:10]</span>
+<span class="sd">        maws_list  = maws_list[7:10]</span>
+<span class="sd">        idf_list   = idf_list[7:10]</span>
+<span class="sd">        rvecs_list = rvecs_list[7:10]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_rvecs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">maws_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;inconsistent lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">num_rvecs</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">),</span> <span class="s">&#39;inconsistent lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">)),</span> <span class="s">&#39;inconsistent per word lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)),</span> <span class="s">&#39;inconsistent per word lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;inconsistent lengths&#39;</span>
+    <span class="c"># Indexing with asymetric multi-assignment might get you a non 1 self score?</span>
+    <span class="c"># List of scores for every word.</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">score_matches</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span>
+                                <span class="n">maws_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">,</span>
+                                <span class="n">idf_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;bad rvec and score&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">),</span> <span class="s">&#39;bad weight and score&#39;</span>
+    <span class="c"># Summation over all residual vector scores</span>
+    <span class="n">_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">scores</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span>  <span class="n">scores_list</span><span class="p">))</span>
+    <span class="n">_iter</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">)</span>
+    <span class="n">self_rawscore</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">_count</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="c"># Square root inverse to enforce normalized self-score is 1.0</span>
+    <span class="n">sccw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">self_rawscore</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s">&#39;sccw cannot be infinite&#39;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s">&#39;sccw cannot be nan&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;problem computing self consistency criterion weight&#39;</span><span class="p">,</span>
+                      <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;num_rvecs&#39;</span><span class="p">],</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_rvecs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sccw</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">sccw</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="score_matches"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.score_matches">[docs]</a><span class="k">def</span> <span class="nf">score_matches</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">,</span>
+                  <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Similarity + Selectivity: M(X_c, Y_c)</span>
+
+<span class="sd">    Computes the similarity matrix between word correspondences</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qrvecs_list : query vectors for each word</span>
+<span class="sd">        drvecs_list : database vectors for each word</span>
+<span class="sd">        qmaws_list  : multi assigned weights for each query word</span>
+<span class="sd">        dmaws_list  : multi assigned weights for each database word</span>
+<span class="sd">        smk_alpha       : selectivity power</span>
+<span class="sd">        smk_thresh      : selectivity smk_thresh</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list : list of score matrices</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://lear.inrialpes.fr/~douze/enseignement/2013-2014/presentation_papers/tolias_aggregate.pdf</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; smk_alpha = 3</span>
+<span class="sd">        &gt;&gt;&gt; smk_thresh = 0</span>
+<span class="sd">        &gt;&gt;&gt; qrvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]</span>
+<span class="sd">        &gt;&gt;&gt; drvecs_list = [smk_debug.get_test_rvecs(_) for _ in range(10)]</span>
+<span class="sd">        &gt;&gt;&gt; qmaws_list  = [smk_debug.get_test_maws(rvecs) for rvecs in qrvecs_list]</span>
+<span class="sd">        &gt;&gt;&gt; dmaws_list  = [np.ones(rvecs.shape[0], dtype=hstypes.FLOAT_TYPE) for rvecs in qrvecs_list]</span>
+<span class="sd">        &gt;&gt;&gt; idf_list = [1.0 for _ in qrvecs_list]</span>
+<span class="sd">        &gt;&gt;&gt; scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Cosine similarity between normalized residuals</span>
+    <span class="n">simmat_list</span> <span class="o">=</span> <span class="n">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">)</span>
+    <span class="c"># Apply sigma selectivity (power law) (BEFORE WEIGHTING)</span>
+    <span class="n">scoremat_list</span> <span class="o">=</span> <span class="n">selectivity_function</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
+    <span class="c"># Apply Weights (AFTER SELECTIVITY)</span>
+    <span class="n">wscoremat_list</span> <span class="o">=</span> <span class="n">apply_weights</span><span class="p">(</span><span class="n">scoremat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wscoremat_list</span>
+
+</div>
+<div class="viewcode-block" id="rvecs_dot_uint8"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.rvecs_dot_uint8">[docs]</a><span class="k">def</span> <span class="nf">rvecs_dot_uint8</span><span class="p">(</span><span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">qrvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">drvecs</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="o">/</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_PSEUDO_MAX_SQRD</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="similarity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.similarity_function">[docs]</a><span class="k">def</span> <span class="nf">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Phi dot product.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qrvecs_list (list): query residual vectors for each matching word</span>
+<span class="sd">        drvecs_list (list): corresponding database residual vectors</span>
+<span class="sd">        qflags_list (list): indicates if a query vector was nan</span>
+<span class="sd">        dflags_list (list): indicates if a database vector was nan</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        simmat_list</span>
+
+<span class="sd">    qrvecs_list list of rvecs for each word</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()</span>
+<span class="sd">        &gt;&gt;&gt; simmat_list = similarity_function(qrvecs_list, drvecs_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># For int8: Downweight by the psuedo max squared, to get scores between 0 and 1</span>
+    <span class="n">simmat_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">rvecs_dot_uint8</span><span class="p">(</span><span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and qrvec&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and drvec&#39;</span>
+
+    <span class="k">if</span> <span class="n">qflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Set any scores resulting from flagged vectors to 1</span>
+        <span class="c"># Actually lets add .5  because we dont know if a flagged vector</span>
+        <span class="c"># is a good match, but if both database and query are flagged then</span>
+        <span class="c"># it must be a good match</span>
+        <span class="k">for</span> <span class="n">qflags</span><span class="p">,</span> <span class="n">dflags</span><span class="p">,</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">,</span> <span class="n">simmat_list</span><span class="p">):</span>
+            <span class="n">simmat</span><span class="p">[</span><span class="n">qflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
+            <span class="n">simmat</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">dflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
+    <span class="k">elif</span> <span class="n">qflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">qflags</span><span class="p">,</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qflags_list</span><span class="p">,</span> <span class="n">simmat_list</span><span class="p">):</span>
+            <span class="n">simmat</span><span class="p">[</span><span class="n">qflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
+    <span class="k">elif</span> <span class="n">dflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dflags</span><span class="p">,</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dflags_list</span><span class="p">,</span> <span class="n">simmat_list</span><span class="p">):</span>
+            <span class="n">simmat</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">dflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
+
+    <span class="c"># for float16: just perform the calculation</span>
+    <span class="c">#simmat_list = [</span>
+    <span class="c">#    qrvecs.dot(drvecs.T)</span>
+    <span class="c">#    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)</span>
+    <span class="c">#]</span>
+
+    <span class="c"># uint8 does not have nans. We need to use flag lists</span>
+    <span class="c">#for simmat in simmat_list:</span>
+    <span class="c">#    simmat[np.isnan(simmat)] = 1.0</span>
+
+    <span class="k">return</span> <span class="n">simmat_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="apply_weights"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.apply_weights">[docs]</a><span class="k">def</span> <span class="nf">apply_weights</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applys multi-assign weights and idf weights to rvec similarty matrices</span>
+
+<span class="sd">    TODO: Maybe should apply the sccw weights too?</span>
+
+<span class="sd">    Accounts for rvecs being stored as int8&#39;s</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; simmat_list, qmaws_list, dmaws_list, idf_list = smk_debug.testdata_apply_weights()</span>
+<span class="sd">        &gt;&gt;&gt; wsim_list = apply_weights(simmat_list, qmaws_list, dmaws_list, idf_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">word_weight_list</span> <span class="o">=</span> <span class="n">idf_list</span>
+    <span class="k">if</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">wsim_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">word_weight</span> <span class="o">*</span> <span class="n">simmat</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">simmat</span><span class="p">,</span> <span class="n">word_weight</span> <span class="ow">in</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">word_weight_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">wsim_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(((</span><span class="n">word_weight</span> <span class="o">*</span> <span class="n">qmaws</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span> <span class="o">*</span> <span class="n">simmat</span><span class="p">)</span> <span class="o">*</span> <span class="n">dmaws</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">:])</span>
+            <span class="k">for</span> <span class="n">simmat</span><span class="p">,</span> <span class="n">qmaws</span><span class="p">,</span> <span class="n">dmaws</span><span class="p">,</span> <span class="n">word_weight</span> <span class="ow">in</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">word_weight_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">qmaws_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dmaws_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">wsim_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">((</span><span class="n">word_weight</span> <span class="o">*</span> <span class="n">qmaws</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span> <span class="o">*</span> <span class="n">simmat</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">simmat</span><span class="p">,</span> <span class="n">qmaws</span><span class="p">,</span> <span class="n">word_weight</span> <span class="ow">in</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">word_weight_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;cannot just do dmaws&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wsim_list</span>
+
+
+<span class="c">#@profile</span></div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="selectivity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.selectivity_function">[docs]</a><span class="k">def</span> <span class="nf">selectivity_function</span><span class="p">(</span><span class="n">wsim_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Selectivity function - sigma from SMK paper rscore = residual score</span>
+
+<span class="sd">    Downweights weak matches using power law normalization and thresholds</span>
+<span class="sd">    anybody that is too weak</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; smk_debug.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
+<span class="sd">        &gt;&gt;&gt; wsim_list, smk_alpha, smk_thresh = smk_debug.testdata_selectivity_function()</span>
+
+<span class="sd">    Timeits:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_dev.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; setup = utool.codeblock(</span>
+<span class="sd">        ...     &#39;&#39;&#39;</span>
+<span class="sd">                import numpy as np</span>
+<span class="sd">                import scipy.sparse as spsparse</span>
+<span class="sd">                from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">                np.random.seed(0)</span>
+<span class="sd">                wsim_list, smk_alpha, smk_thresh = smk_debug.testdata_selectivity_function()</span>
+<span class="sd">                scores_iter = [</span>
+<span class="sd">                    np.multiply(np.sign(mawmat), np.power(np.abs(mawmat), smk_alpha))</span>
+<span class="sd">                    for mawmat in wsim_list</span>
+<span class="sd">                ]</span>
+<span class="sd">                &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; stmt_list = utool.codeblock(</span>
+<span class="sd">        ...     &#39;&#39;&#39;</span>
+<span class="sd">                scores_list0 = [np.multiply(scores, np.greater(scores, smk_thresh)) for scores in scores_iter]</span>
+<span class="sd">                scores_list1 = [spsparse.coo_matrix(np.multiply(scores, np.greater(scores, smk_thresh))) for scores in scores_iter]</span>
+<span class="sd">                scores_list2 = [spsparse.dok_matrix(np.multiply(scores, np.greater(scores, smk_thresh))) for scores in scores_iter]</span>
+<span class="sd">                scores_list3 = [spsparse.lil_matrix(np.multiply(scores, np.greater(scores, smk_thresh))) for scores in scores_iter]</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">        ... ).split(&#39;\n&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_dev.timeit_compare(stmt_list, setup, int(1E4))</span>
+
+<span class="sd">        scores0 = scores_list0[-1]</span>
+<span class="sd">        scores1 = scores_list1[-1]</span>
+<span class="sd">        scores2 = scores_list2[-1]</span>
+<span class="sd">        scores3 = scores_list3[-1]</span>
+<span class="sd">        %timeit scores0.sum()</span>
+<span class="sd">        %timeit scores1.sum()</span>
+<span class="sd">        %timeit scores2.sum()</span>
+<span class="sd">        %timeit scores3.sum()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Apply powerlaw</span>
+    <span class="n">scores_iter</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">mawmat</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mawmat</span><span class="p">),</span> <span class="n">smk_alpha</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">mawmat</span> <span class="ow">in</span> <span class="n">wsim_list</span>
+    <span class="p">]</span>
+    <span class="c"># Apply threshold</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_iter</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">wsim_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scores_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

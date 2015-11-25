@@ -1,0 +1,2173 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.dbio package &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="next" title="ibeis.expt package" href="ibeis.expt.html"/>
+        <link rel="prev" title="ibeis.control package" href="ibeis.control.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.dbio package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_hsdb">ibeis.dbio.export_hsdb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_subset">ibeis.dbio.export_subset module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.export_wb">ibeis.dbio.export_wb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_database">ibeis.dbio.ingest_database module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_hsdb">ibeis.dbio.ingest_hsdb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio.ingest_mdb">ibeis.dbio.ingest_mdb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.dbio">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.dbio package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.dbio.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-dbio-package">
+<h1>ibeis.dbio package<a class="headerlink" href="#ibeis-dbio-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.dbio.export_hsdb">
+<span id="ibeis-dbio-export-hsdb-module"></span><h2>ibeis.dbio.export_hsdb module<a class="headerlink" href="#module-ibeis.dbio.export_hsdb" title="Permalink to this headline">¶</a></h2>
+<p>Converts an IBEIS database to a hotspotter db</p>
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.dump_hots_flat_table">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">dump_hots_flat_table</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#dump_hots_flat_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.dump_hots_flat_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.dump_hots_tables">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">dump_hots_tables</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#dump_hots_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.dump_hots_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps hotspotter like tables to disk</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.export_ibeis_to_hotspotter">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">export_ibeis_to_hotspotter</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#export_ibeis_to_hotspotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.export_ibeis_to_hotspotter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.get_hots_flat_table">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">get_hots_flat_table</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#get_hots_flat_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.get_hots_flat_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps hotspotter flat tables</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">flat_table_str</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flat_table_str</span> <span class="o">=</span> <span class="n">get_hots_flat_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;flat_table_str = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">flat_table_str</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.get_hots_table_strings">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">get_hots_table_strings</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#get_hots_table_strings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.get_hots_table_strings" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --test-get_hots_table_strings
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">csvtup</span> <span class="o">=</span> <span class="n">get_hots_table_strings</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># hack so hashtag is at the end of each line</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csvtup</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;#&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go"># image table#</span>
+<span class="go"># num_rows=13#</span>
+<span class="go">#   gid,                                                      gname,  aif#</span>
+<span class="go">      1,  ../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg,    0#</span>
+<span class="go">      2,  ../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg,    0#</span>
+<span class="go">      3,  ../_ibsdb/images/b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg,    0#</span>
+<span class="go">      4,  ../_ibsdb/images/0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg,    0#</span>
+<span class="go">      5,  ../_ibsdb/images/0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg,    0#</span>
+<span class="go">      6,  ../_ibsdb/images/2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg,    0#</span>
+<span class="go">      7,  ../_ibsdb/images/a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png,    0#</span>
+<span class="go">      8,  ../_ibsdb/images/42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg,    0#</span>
+<span class="go">      9,  ../_ibsdb/images/c459d381-fd74-1d99-6215-e42e3f432ea9.jpg,    0#</span>
+<span class="go">     10,  ../_ibsdb/images/33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg,    0#</span>
+<span class="go">     11,  ../_ibsdb/images/97e8ea74-873f-2092-b372-f928a7be30fa.jpg,    0#</span>
+<span class="go">     12,  ../_ibsdb/images/588bc218-83a5-d400-21aa-d499832632b0.jpg,    0#</span>
+<span class="go">     13,  ../_ibsdb/images/163a890c-36f2-981e-3529-c552b6d668a3.jpg,    0#</span>
+<span class="go"># name table#</span>
+<span class="go"># num_rows=7#</span>
+<span class="go">#   nid,   name#</span>
+<span class="go">      1,   easy#</span>
+<span class="go">      2,   hard#</span>
+<span class="go">      3,   jeff#</span>
+<span class="go">      4,   lena#</span>
+<span class="go">      5,   occl#</span>
+<span class="go">      6,  polar#</span>
+<span class="go">      7,  zebra#</span>
+<span class="go"># chip table#</span>
+<span class="go"># num_rows=13#</span>
+<span class="go">#   cid,  gid,  nid,      [tlx tly w h],  theta,                                        notes#</span>
+<span class="go">      1,    1,   -1,  [0  0  1047  715],   0.00,              aid 1 and 2 are correct matches#</span>
+<span class="go">      2,    2,    1,  [0  0  1035  576],   0.00,                                             #</span>
+<span class="go">      3,    3,    1,  [0  0  1072  804],   0.00,                                             #</span>
+<span class="go">      4,    4,   -4,  [0  0  1072  804],   0.00,                                             #</span>
+<span class="go">      5,    5,    2,  [0  0  1072  804],   0.00,                                             #</span>
+<span class="go">      6,    6,    2,   [0  0  450  301],   0.00,                                             #</span>
+<span class="go">      7,    7,    3,   [0  0  400  400],   0.00,  very simple image to debug feature detector#</span>
+<span class="go">      8,    8,    4,   [0  0  220  220],   0.00,                          standard test image#</span>
+<span class="go">      9,    9,   -9,   [0  0  450  284],   0.00,              this is actually a plains zebra#</span>
+<span class="go">     10,   10,    5,   [0  0  450  341],   0.00,              this is actually a plains zebra#</span>
+<span class="go">     11,   11,  -11,   [0  0  741  734],   0.00,                                             #</span>
+<span class="go">     12,   12,    6,   [0  0  673  634],   0.00,                                             #</span>
+<span class="go">     13,   13,    7,  [0  0  1114  545],   0.00,                                             #</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_hsdb.get_hsdb_image_gpaths">
+<code class="descclassname">ibeis.dbio.export_hsdb.</code><code class="descname">get_hsdb_image_gpaths</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_hsdb.html#get_hsdb_image_gpaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_hsdb.get_hsdb_image_gpaths" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">gpath_list</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">get_hsdb_image_gpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[</span>
+<span class="go">    &#39;../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg&#39;,</span>
+<span class="go">    &#39;../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;,</span>
+<span class="go">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dbio.export_subset">
+<span id="ibeis-dbio-export-subset-module"></span><h2>ibeis.dbio.export_subset module<a class="headerlink" href="#module-ibeis.dbio.export_subset" title="Permalink to this headline">¶</a></h2>
+<p>Exports subset of an IBEIS database to a new IBEIS database</p>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd>NEED TO UPDATE FILE TO USE THE NEW NAME AND SPECIES TABLE NOW THAT THEY
+ARE NO LONGER LBLANNOTS</dd>
+</dl>
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">ANNOTATION_TransferData</code><span class="sig-paren">(</span><em>annot_parent_INDEX_list</em>, <em>annot_uuid_list</em>, <em>annot_theta_list</em>, <em>annot_verts_list</em>, <em>annot_yaw_list</em>, <em>annot_detection_confidence_list</em>, <em>annot_exemplar_flag_list</em>, <em>annot_visual_uuid_list</em>, <em>annot_semantic_uuid_list</em>, <em>annot_note_list</em>, <em>annot_name_INDEX_list</em>, <em>annot_species_INDEX_list</em>, <em>lblannot_td_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_detection_confidence_list">
+<code class="descname">annot_detection_confidence_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_detection_confidence_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_exemplar_flag_list">
+<code class="descname">annot_exemplar_flag_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_exemplar_flag_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_name_INDEX_list">
+<code class="descname">annot_name_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_name_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_note_list">
+<code class="descname">annot_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_parent_INDEX_list">
+<code class="descname">annot_parent_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_parent_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_semantic_uuid_list">
+<code class="descname">annot_semantic_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_semantic_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_species_INDEX_list">
+<code class="descname">annot_species_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_species_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_theta_list">
+<code class="descname">annot_theta_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_theta_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_uuid_list">
+<code class="descname">annot_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_verts_list">
+<code class="descname">annot_verts_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_verts_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_visual_uuid_list">
+<code class="descname">annot_visual_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_visual_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_yaw_list">
+<code class="descname">annot_yaw_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.annot_yaw_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ANNOTATION_TransferData.lblannot_td_list">
+<code class="descname">lblannot_td_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ANNOTATION_TransferData.lblannot_td_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 12</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.CONFIG_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">CONFIG_TransferData</code><span class="sig-paren">(</span><em>config_suffixes_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONFIG_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONFIG_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONFIG_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONFIG_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONFIG_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONFIG_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONFIG_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONFIG_TransferData.config_suffixes_list">
+<code class="descname">config_suffixes_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONFIG_TransferData.config_suffixes_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">CONTRIBUTOR_TransferData</code><span class="sig-paren">(</span><em>contributor_uuid</em>, <em>contributor_tag</em>, <em>contributor_name_first</em>, <em>contributor_name_last</em>, <em>contributor_location_city</em>, <em>contributor_location_state</em>, <em>contributor_location_country</em>, <em>contributor_location_zip</em>, <em>contributor_note</em>, <em>config_td</em>, <em>encounter_td</em>, <em>image_td</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.config_td">
+<code class="descname">config_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.config_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_city">
+<code class="descname">contributor_location_city</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_city" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_country">
+<code class="descname">contributor_location_country</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_country" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_state">
+<code class="descname">contributor_location_state</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_zip">
+<code class="descname">contributor_location_zip</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_location_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_name_first">
+<code class="descname">contributor_name_first</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_name_first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_name_last">
+<code class="descname">contributor_name_last</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_name_last" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_note">
+<code class="descname">contributor_note</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_note" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_tag">
+<code class="descname">contributor_tag</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_uuid">
+<code class="descname">contributor_uuid</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.contributor_uuid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.encounter_td">
+<code class="descname">encounter_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.encounter_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.image_td">
+<code class="descname">image_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.CONTRIBUTOR_TransferData.image_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">ENCOUNTER_TransferData</code><span class="sig-paren">(</span><em>config_INDEX_list</em>, <em>encounter_uuid_list</em>, <em>encounter_text_list</em>, <em>encoutner_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.config_INDEX_list">
+<code class="descname">config_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.config_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_text_list">
+<code class="descname">encounter_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_text_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_uuid_list">
+<code class="descname">encounter_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encounter_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.ENCOUNTER_TransferData.encoutner_note_list">
+<code class="descname">encoutner_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.ENCOUNTER_TransferData.encoutner_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">IMAGE_TransferData</code><span class="sig-paren">(</span><em>encounter_INDEXs_list</em>, <em>image_path_list</em>, <em>image_uuid_list</em>, <em>image_ext_list</em>, <em>image_original_name_list</em>, <em>image_width_list</em>, <em>image_height_list</em>, <em>image_time_posix_list</em>, <em>image_gps_lat_list</em>, <em>image_gps_lon_list</em>, <em>image_toggle_enabled_list</em>, <em>image_toggle_reviewed_list</em>, <em>image_note_list</em>, <em>lblimage_td_list</em>, <em>annotation_td_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.annotation_td_list">
+<code class="descname">annotation_td_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.annotation_td_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 14</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.encounter_INDEXs_list">
+<code class="descname">encounter_INDEXs_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.encounter_INDEXs_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_ext_list">
+<code class="descname">image_ext_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_ext_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_gps_lat_list">
+<code class="descname">image_gps_lat_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_gps_lat_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_gps_lon_list">
+<code class="descname">image_gps_lon_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_gps_lon_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_height_list">
+<code class="descname">image_height_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_height_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_note_list">
+<code class="descname">image_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 12</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_original_name_list">
+<code class="descname">image_original_name_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_original_name_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_path_list">
+<code class="descname">image_path_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_path_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_time_posix_list">
+<code class="descname">image_time_posix_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_time_posix_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_toggle_enabled_list">
+<code class="descname">image_toggle_enabled_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_toggle_enabled_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_toggle_reviewed_list">
+<code class="descname">image_toggle_reviewed_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_toggle_reviewed_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_uuid_list">
+<code class="descname">image_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.image_width_list">
+<code class="descname">image_width_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.image_width_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.IMAGE_TransferData.lblimage_td_list">
+<code class="descname">lblimage_td_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.IMAGE_TransferData.lblimage_td_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 13</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">LBLANNOT_TransferData</code><span class="sig-paren">(</span><em>config_INDEX_list</em>, <em>alr_confidence_list</em>, <em>lblannot_uuid_list</em>, <em>lbltype_text_list</em>, <em>lblannot_value_list</em>, <em>lblannot_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.alr_confidence_list">
+<code class="descname">alr_confidence_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.alr_confidence_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.config_INDEX_list">
+<code class="descname">config_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.config_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_note_list">
+<code class="descname">lblannot_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_uuid_list">
+<code class="descname">lblannot_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_value_list">
+<code class="descname">lblannot_value_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.lblannot_value_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLANNOT_TransferData.lbltype_text_list">
+<code class="descname">lbltype_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLANNOT_TransferData.lbltype_text_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">LBLIMAGE_TransferData</code><span class="sig-paren">(</span><em>config_INDEX_list</em>, <em>glr_confidence_list</em>, <em>lblimage_uuid_list</em>, <em>lbltype_text_list</em>, <em>lblimage_value_list</em>, <em>lblimage_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.config_INDEX_list">
+<code class="descname">config_INDEX_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.config_INDEX_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.glr_confidence_list">
+<code class="descname">glr_confidence_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.glr_confidence_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_note_list">
+<code class="descname">lblimage_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_uuid_list">
+<code class="descname">lblimage_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_value_list">
+<code class="descname">lblimage_value_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.lblimage_value_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.LBLIMAGE_TransferData.lbltype_text_list">
+<code class="descname">lbltype_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.LBLIMAGE_TransferData.lbltype_text_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">NAME_TransferData</code><span class="sig-paren">(</span><em>name_uuid_list</em>, <em>name_text_list</em>, <em>name_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.name_note_list">
+<code class="descname">name_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.name_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.name_text_list">
+<code class="descname">name_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.name_text_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.NAME_TransferData.name_uuid_list">
+<code class="descname">name_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.NAME_TransferData.name_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">SPECIES_TransferData</code><span class="sig-paren">(</span><em>species_uuid_list</em>, <em>species_text_list</em>, <em>species_note_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_note_list">
+<code class="descname">species_note_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_note_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_text_list">
+<code class="descname">species_text_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_text_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.SPECIES_TransferData.species_uuid_list">
+<code class="descname">species_uuid_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.SPECIES_TransferData.species_uuid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.export_subset.TransferData">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">TransferData</code><span class="sig-paren">(</span><em>transfer_database_name</em>, <em>transfer_database_source</em>, <em>transfer_export_time</em>, <em>transfer_export_location_city</em>, <em>transfer_export_location_state</em>, <em>transfer_export_location_zip</em>, <em>transfer_export_location_country</em>, <em>contributor_td_list</em>, <em>name_td</em>, <em>species_td</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.TransferData.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.TransferData.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dbio.export_subset.TransferData.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.contributor_td_list">
+<code class="descname">contributor_td_list</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.contributor_td_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.name_td">
+<code class="descname">name_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.name_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.species_td">
+<code class="descname">species_td</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.species_td" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_database_name">
+<code class="descname">transfer_database_name</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_database_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_database_source">
+<code class="descname">transfer_database_source</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_database_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_export_location_city">
+<code class="descname">transfer_export_location_city</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_export_location_city" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_export_location_country">
+<code class="descname">transfer_export_location_country</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_export_location_country" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_export_location_state">
+<code class="descname">transfer_export_location_state</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_export_location_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_export_location_zip">
+<code class="descname">transfer_export_location_zip</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_export_location_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.export_subset.TransferData.transfer_export_time">
+<code class="descname">transfer_export_time</code><a class="headerlink" href="#ibeis.dbio.export_subset.TransferData.transfer_export_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.check_database_overlap">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">check_database_overlap</code><span class="sig-paren">(</span><em>ibs1</em>, <em>ibs2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#check_database_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.check_database_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+dev.py -t listdbs
+python -m ibeis.dbio.export_subset --exec-check_database_overlap
+--db PZ_MTEST --db2 PZ_MOTHERS
+</pre></div>
+</div>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --exec-check_database_overlap
+
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>PZ_MTEST --db2<span class="o">=</span>PZ_Master0  <span class="c"># NOQA</span>
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>NNP_Master3 --db2<span class="o">=</span>PZ_Master0  <span class="c"># NOQA</span>
+
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>GZ_Master0 --db2<span class="o">=</span>GZ_ALL
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>GZ_ALL --db2<span class="o">=</span>lewa_grevys
+
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>PZ_FlankHack --db2<span class="o">=</span>PZ_Master1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs1 = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs2 = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db1</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db2</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_database_overlap</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.check_merge">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">check_merge</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>ibs_dst</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#check_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.check_merge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_annot_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_annot_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>aid_list</em>, <em>config_rowid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_annot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_annot_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_annots">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_annots</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>new_dbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_annots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_annots" title="Permalink to this definition">¶</a></dt>
+<dd><p>exports a subset of annotations and other required info</p>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd>PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
+<li><strong>new_dbpath</strong> (<em>None</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">new_dbpath</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --exec-export_annots
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+
+python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath<span class="o">=</span>PZ_ViewPoints
+
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids<span class="o">=</span>all,is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="c">#primary&gt;0&amp;#primary1&gt;0,per_name=4,size=200</span>
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids<span class="o">=</span>all,is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="s1">&#39;#primary&gt;0&amp;#primary1&gt;0&#39;</span>,per_name<span class="o">=</span>4,size<span class="o">=</span><span class="m">200</span> --acfginfo
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;NNP_Master3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Expand to get all annots in each chosen image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--new-dbpath&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_ViewPoints&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">export_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;new_dbpath = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_dbpath</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_config_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_config_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_config_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_config_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_contributor_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_contributor_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>contributor_rowid</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>valid_gid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_contributor_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_contributor_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;/raid/work2/Turk/PZ_Master&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[::</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_nids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gid_list</span> <span class="o">=</span> <span class="n">gid_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contributor_rowid</span> <span class="o">=</span> <span class="n">contrib_rowid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contrib_td</span> <span class="o">=</span> <span class="n">export_contributor_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">contributor_rowid</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">valid_gid_list</span><span class="o">=</span><span class="n">valid_gid_list</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Dev::</dt>
+<dd><p class="first">ibs = ibs_src
+configid_list = ibs.get_valid_configids()
+config_suffix_list = ibs.get_config_suffixes(configid_list)
+print(ut.list_str(list(zip(configid_list, config_suffix_list))))</p>
+<p class="last">eid_list = ibs.get_valid_eids()
+enc_config_rowid_list = ibs.get_encounter_configid(eid_list)
+enc_suffix_list = ibs.get_config_suffixes(config_rowid_list)
+print(ut.list_str(list(zip(enc_config_rowid_list, enc_suffix_list))))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_data</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>aid_list</em>, <em>nid_list</em>, <em>new_dbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>exports a subset of data and other required info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) &#8211; list of image rowids</li>
+<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
+<li><strong>nid_list</strong> (<em>list</em>) &#8211; list of name rowids</li>
+<li><strong>eid_list</strong> (<em>list</em>) &#8211; list of encounter rowids</li>
+<li><strong>egrid_list</strong> (<em>list</em>) &#8211; list of encounter-image pairs rowids</li>
+<li><strong>new_dbpath</strong> (<em>None</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">new_dbpath</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_encounter_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_encounter_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>eid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_encounter_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_encounter_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_image_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>gid_list</em>, <em>config_rowid_list</em>, <em>eid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_image_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>builds transfer data for seleted image ids in ibs_src.
+NOTE: gid_list, config_rowid_list and eid_list do not correspond</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_images">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_images</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>new_dbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>exports a subset of images and other required info</p>
+<dl class="docutils">
+<dt>TODO:</dt>
+<dd>PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>gid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
+<li><strong>new_dbpath</strong> (<em>None</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">new_dbpath</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_images_temp">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_images_temp</code><span class="sig-paren">(</span><em>ibs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_images_temp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_images_temp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_lblannot_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_lblannot_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>alrid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_lblannot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_lblannot_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_lblimage_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_lblimage_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>glrid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_lblimage_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_lblimage_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_name_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_name_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>nid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_name_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_name_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_names">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_names</code><span class="sig-paren">(</span><em>ibs</em>, <em>nid_list</em>, <em>new_dbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>exports a subset of names and other required info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>nid_list</strong> (<em>list</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_names
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_nids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">export_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_species_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_species_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>species_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_species_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_species_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>ibs_src.db.print_schema()
+print(ibs.db.get_table_csv_header(ibeis.const.SPECIES_TABLE))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.export_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>gid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>STEP 1)</p>
+<p>Packs all the data you are going to transfer from ibs_src
+info the transfer_data named tuple.</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_transfer_data
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">(</span><span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">num</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">td</span> <span class="o">=</span> <span class="n">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;more than 1 contrib&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contributor_td</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_td</span> <span class="o">=</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_td</span><span class="o">.</span><span class="n">annotation_td_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_td</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">annotation_td_list</span><span class="p">[</span><span class="n">num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annot_td_dict</span> <span class="o">=</span> <span class="n">annotation_td</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># remove non-determenistic uuid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">annot_td_dict</span><span class="p">[</span><span class="s">&#39;annot_uuid_list&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">annot_td_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">{</span>
+<span class="go">    &#39;annot_parent_INDEX_list&#39;: [None],</span>
+<span class="go">    &#39;annot_theta_list&#39;: [0.0],</span>
+<span class="go">    &#39;annot_verts_list&#39;: [((0, 0), (1072, 0), (1072, 804), (0, 804))],</span>
+<span class="go">    &#39;annot_yaw_list&#39;: [None],</span>
+<span class="go">    &#39;annot_detection_confidence_list&#39;: [0.0],</span>
+<span class="go">    &#39;annot_exemplar_flag_list&#39;: [1],</span>
+<span class="go">    &#39;annot_visual_uuid_list&#39;: [UUID(&#39;5a1a53ba-fd44-b113-7f8c-fcf248d7047f&#39;)],</span>
+<span class="go">    &#39;annot_semantic_uuid_list&#39;: [UUID(&#39;02a8b625-fd66-cf7f-8835-468043d0ed63&#39;)],</span>
+<span class="go">    &#39;annot_note_list&#39;: [u&#39;&#39;],</span>
+<span class="go">    &#39;annot_name_INDEX_list&#39;: [1],</span>
+<span class="go">    &#39;annot_species_INDEX_list&#39;: [0],</span>
+<span class="go">    &#39;lblannot_td_list&#39;: [None],</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>print(ut.truncate_str(ibs.db.get_table_csv(const.IMAGE_TABLE, exclude_columns=[&#8216;image_uuid&#8217;, &#8216;image_uri&#8217;]), 10000))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.find_gid_list">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">find_gid_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>min_count=500</em>, <em>ensure_annots=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#find_gid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.find_gid_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_annot_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_annot_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>annot_td</em>, <em>parent_gid</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_annot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_annot_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_config_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_config_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>config_td</em>, <em>contributor_rowid</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_config_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_config_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_contributor_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_contributor_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>contributor_td</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_contributor_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_contributor_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_encounter_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_encounter_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>encounter_td</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_encounter_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_encounter_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_image_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_image_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>image_td</em>, <em>contributor_rowid</em>, <em>eid_list</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>config_rowid_list</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_image_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_image_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_lblannot_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_lblannot_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>lblannot_td</em>, <em>aid</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_lblannot_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_lblannot_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_lblimage_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_lblimage_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>lblimage_td</em>, <em>gid</em>, <em>config_rowid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_lblimage_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_lblimage_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_name_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_name_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>name_td</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_name_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_name_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_species_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_species_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>species_td</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_species_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_species_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.import_transfer_data">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">import_transfer_data</code><span class="sig-paren">(</span><em>ibs_dst</em>, <em>td</em>, <em>bulk_conflict_resolution='merge'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#import_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.import_transfer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports transfer data from any ibeis database and moves it into ibs_dst</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.make_new_dbpath">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">make_new_dbpath</code><span class="sig-paren">(</span><em>ibs</em>, <em>id_label</em>, <em>id_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#make_new_dbpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.make_new_dbpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new database path unique to the exported subset of ids.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.merge_databases">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">merge_databases</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>ibs_dst</em>, <em>gid_list=None</em>, <em>back=None</em>, <em>user_prompt=False</em>, <em>bulk_conflict_resolution='ignore'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#merge_databases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.merge_databases" title="Permalink to this definition">¶</a></dt>
+<dd><p>STEP 0) MAIN DRIVER FUNCTION</p>
+<p>Conflict resolutions are only between contributors, configs, encounters and images.
+Annotations, lblannots, lblimages, their respective relationships, and image-encounter
+relationships all inherit the resolution from their associated image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs_src</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; source controller</li>
+<li><strong>ibs_dst</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; destination controller (can be an empty database)</li>
+<li><strong>back</strong> (<em>GUIBackend</em>) &#8211; optional gui to update</li>
+<li><strong>user_prompt</strong> (<em>bool</em>) &#8211; prompt user for information</li>
+<li><strong>bulk_conflict_resolution</strong> (<em>str</em>) &#8211; valid conflict_resolutions are::
++&#8212;
+* &#8216;replace&#8217; - delete original in ibs_dst and import new value
+* &#8216;ignore&#8217; - ignore imported value and keep original in ibs_dst
+* &#8216;merge&#8217; - (default) keep both values in both databases
++&#8212;
+WARNING - this may cause near-duplicate information due to duplicate
+detections, duplicate manual annotations from different
+contributors.  Images and lblimages will not be duplicated.
+WARNING - this will only keep the meta data for an image, annotation
+from the source database (image_height, annotation_verts, etc.)
+WARNING - this may cause an exception to be raised
++&#8212;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-merge_databases
+python -m ibeis.dbio.export_subset --test-merge_databases:1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(ibs_src2.get_infostr())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OPEN A CLEAN DATABASE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_dst = ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Execute test func&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
+<span class="gp">... </span>                              <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Result:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">dbname = &#39;testdb_dst&#39;</span>
+<span class="go">num_images = 13</span>
+<span class="go">num_annotations = 13</span>
+<span class="go">num_names = 7</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example2:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(ibs_src2.get_infostr())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OPEN A CLEAN DATABASE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_dst = ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Execute test func&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
+<span class="gp">... </span>                              <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Result:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">dbname = &#39;testdb_dst&#39;</span>
+<span class="go">num_images = 128</span>
+<span class="go">num_annotations = 129</span>
+<span class="go">num_names = 48</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.merge_databases2">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">merge_databases2</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>ibs_dst</em>, <em>rowid_subsets=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#merge_databases2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.merge_databases2" title="Permalink to this definition">¶</a></dt>
+<dd><p>new way of merging using the non-hacky sql table merge that is only working due to major hacks</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-merge_databases2:0
+python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
+python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 NNP_Master3 --db2 PZ_Master1
+
+python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 GZ_ALL --db2 GZ_Master1
+python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys --db2 GZ_Master1
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">delete_ibsdir</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Check for test mode instead of script mode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">db1</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">db2</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dbdir1</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dbdir2</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">db1</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<span class="gp">... </span>    <span class="n">dbdir2</span> <span class="o">=</span> <span class="s">&#39;testdb_dst&#39;</span>
+<span class="gp">... </span>    <span class="n">delete_ibsdir</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Open the source and destination database</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">dbdir1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">dbdir2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db1</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db2</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir2</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="n">delete_ibsdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">merge_databases2</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_merge</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>#Example2:
+#    &gt;&gt;&gt; # DISABLE_DOCTEST
+#    &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA
+#    &gt;&gt;&gt; import ibeis
+#    &gt;&gt;&gt; #ibs_dst = ibeis.opendb(dbdir=&#8217;testdb_dst&#8217;)
+#    &gt;&gt;&gt; ibs_src = ibeis.opendb(db=&#8217;PZ_MTEST&#8217;)
+#    &gt;&gt;&gt; # OPEN A CLEAN DATABASE
+#    &gt;&gt;&gt; delete_ibsdir = True
+#    &gt;&gt;&gt; ibs_dst = ibeis.opendb(db=&#8217;testdb_dst2&#8217;, allow_newdir=True, delete_ibsdir=delete_ibsdir)
+#    &gt;&gt;&gt; merge_databases2(ibs_src, ibs_dst)
+#    &gt;&gt;&gt; check_merge(ibs_src, ibs_dst)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.test_merge">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">test_merge</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#test_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.test_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-test_merge
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_merge</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_subset.tryindex">
+<code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">tryindex</code><span class="sig-paren">(</span><em>value</em>, <em>list_</em>, <em>warning=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#tryindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.tryindex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dbio.export_wb">
+<span id="ibeis-dbio-export-wb-module"></span><h2>ibeis.dbio.export_wb module<a class="headerlink" href="#module-ibeis.dbio.export_wb" title="Permalink to this headline">¶</a></h2>
+<p>Converts an IBEIS database to a wildbook db</p>
+<dl class="function">
+<dt id="ibeis.dbio.export_wb.export_ibeis_to_wildbook">
+<code class="descclassname">ibeis.dbio.export_wb.</code><code class="descname">export_ibeis_to_wildbook</code><span class="sig-paren">(</span><em>ibs</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_wb.html#export_ibeis_to_wildbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_wb.export_ibeis_to_wildbook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.export_wb.export_ibeis_to_wildbook2">
+<code class="descclassname">ibeis.dbio.export_wb.</code><code class="descname">export_ibeis_to_wildbook2</code><span class="sig-paren">(</span><em>ibs</em>, <em>eid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_wb.html#export_ibeis_to_wildbook2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_wb.export_ibeis_to_wildbook2" title="Permalink to this definition">¶</a></dt>
+<dd><p>LECACY CODE. DEPRICATE?</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dbio.ingest_database">
+<span id="ibeis-dbio-ingest-database-module"></span><h2>ibeis.dbio.ingest_database module<a class="headerlink" href="#module-ibeis.dbio.ingest_database" title="Permalink to this headline">¶</a></h2>
+<p>This module lists known raw databases and how to ingest them.</p>
+<dl class="class">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">FMT_KEYS</code><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#FMT_KEYS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt">
+<code class="descname">elephant_fmt</code><em class="property"> = '{prefix?}{name}_{view}_{id?}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.giraffe1_fmt">
+<code class="descname">giraffe1_fmt</code><em class="property"> = '{name:*}_{id:d}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.giraffe1_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.name_fmt">
+<code class="descname">name_fmt</code><em class="property"> = '{name:*}[id:d].{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.name_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.seal2_fmt">
+<code class="descname">seal2_fmt</code><em class="property"> = '{name:Phsd*}{id:[A-Z]}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.seal2_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.snails_fmt">
+<code class="descname">snails_fmt</code><em class="property"> = '{name:*dd}{id:dd}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.snails_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.dbio.ingest_database.Ingestable">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">Ingestable</code><span class="sig-paren">(</span><em>dbname</em>, <em>img_dir=None</em>, <em>ingest_type=None</em>, <em>fmtkey=None</em>, <em>adjust_percent=0.0</em>, <em>postingest_func=None</em>, <em>zipfile=None</em>, <em>species=None</em>, <em>images_as_annots=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#Ingestable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.Ingestable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Temporary structure representing how to ingest a databases</p>
+<dl class="method">
+<dt id="ibeis.dbio.ingest_database.Ingestable.ensure_feasibility">
+<code class="descname">ensure_feasibility</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#Ingestable.ensure_feasibility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.Ingestable.ensure_feasibility" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.get_name_texts_from_gnames">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_name_texts_from_gnames</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='{name:*}[aid:d].{ext}'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_gnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_gnames" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gpath_list</strong> (<em>list</em>) &#8211; list of image paths</li>
+<li><strong>img_dir</strong> (<em>str</em>) &#8211; path to image directory</li>
+<li><strong>fmtkey</strong> (<em>str</em>) &#8211; pattern string to parse names from (default = &#8216;{name:<a href="#id1"><span class="problematic" id="id2">*</span></a>}[aid:d].{ext}&#8217;)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">name_list - based on the parent folder of each image</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;e_f0273_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0001_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_l_3.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_f_1.jpg&#39;</span><span class="p">,</span>  <span class="s">&#39;f0259_f (1).jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0058_u16_f.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">elephant_fmt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_name_texts_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.get_name_texts_from_parent_folder">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_name_texts_from_parent_folder</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='name'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_parent_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_parent_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: gpath_list
+Output: names based on the parent folder of each image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.get_standard_ingestable">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_standard_ingestable</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_standard_ingestable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_standard_ingestable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_Elephants_drop1">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_Elephants_drop1</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_Elephants_drop1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_Elephants_drop1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_Giraffes1">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_Giraffes1</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_Giraffes1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_Giraffes1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_JAG_Kieryn">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_JAG_Kieryn</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_JAG_Kieryn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_JAG_Kieryn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_humpbacks">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_humpbacks</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_humpbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_humpbacks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_lynx">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_lynx</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_lynx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_lynx" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_oxford_style_db">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_oxford_style_db</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_oxford_style_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_oxford_style_db" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s">&#39;/raid/work/Oxford&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s">&#39;/raid/work/Paris&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="go">#&gt;&gt;&gt; ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_polar_bears">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_polar_bears</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_polar_bears"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_polar_bears" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_rawdata">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_rawdata</code><span class="sig-paren">(</span><em>ibs</em>, <em>ingestable</em>, <em>localize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_rawdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_rawdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ingests rawdata into an ibeis database.</p>
+<dl class="docutils">
+<dt>if ingest_type == &#8216;named_folders&#8217;:</dt>
+<dd>Converts folder structure where folders = name, to ibsdb</dd>
+<dt>if ingest_type == &#8216;named_images&#8217;:</dt>
+<dd>Converts imgname structure where imgnames = name_id.ext, to ibsdb</dd>
+</dl>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python ibeis/dbio/ingest_database.py --db seals_drop2
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
+<li><strong>ingestable</strong> &#8211; </li>
+<li><strong>localize</strong> (<em>bool</em>) &#8211; (default = False)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">aid_list -  list of annotation rowids</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
+python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># General ingest script</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># &#39;snow-leopards&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--force_delete&#39;</span><span class="p">,</span> <span class="s">&#39;--force-delete&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--imgdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">img_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify img dir&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify dbname&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ingestable</span> <span class="o">=</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">img_dir</span><span class="o">=</span><span class="n">img_dir</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">fmtkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">images_as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">request_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">localize</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ingest_rawdata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ingestable</span><span class="p">,</span> <span class="n">localize</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;aid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_seals_drop2">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_seals_drop2</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_seals_drop2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_seals_drop2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_serengeti_mamal_cameratrap">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_serengeti_mamal_cameratrap</code><span class="sig-paren">(</span><em>species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_serengeti_mamal_cameratrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_serengeti_mamal_cameratrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads data from Serengeti dryad server</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://datadryad.org/resource/doi:10.5061/dryad.5pt92">http://datadryad.org/resource/doi:10.5061/dryad.5pt92</a>
+Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. <a class="reference external" href="http://dx.doi.org/10.1038/sdata.2015.26">http://dx.doi.org/10.1038/sdata.2015.26</a>
+Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. <a class="reference external" href="http://dx.doi.org/10.5061/dryad.5pt92">http://dx.doi.org/10.5061/dryad.5pt92</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>species</strong> &#8211; </td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
+python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#species = ut.get_argval(&#39;--species&#39;, str, default=ibeis.const.Species.CHEETAH)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_serengeti_mamal_cameratrap</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_snails_drop1">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_snails_drop1</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_snails_drop1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_snails_drop1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_standard_database">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_standard_database</code><span class="sig-paren">(</span><em>dbname</em>, <em>force_delete=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_standard_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_standard_database" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dbname</strong> (<em>str</em>) &#8211; database name</li>
+<li><strong>force_delete</strong> (<em>bool</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_testdb1">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_testdb1</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_testdb1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_testdb1" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grabdata</span><span class="o">.</span><span class="n">ensure_testdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># DELETE TESTDB1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_testdb1</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_whale_sharks">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_whale_sharks</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_whale_sharks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_whale_sharks" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.injest_main">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">injest_main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#injest_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.injest_main" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-injest_main
+python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">injest_main</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.normalize_name">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">normalize_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#normalize_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.normalize_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps unknonwn names to the standard ____</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.resolve_name_conflicts">
+<code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">resolve_name_conflicts</code><span class="sig-paren">(</span><em>gid_list</em>, <em>name_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#resolve_name_conflicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.resolve_name_conflicts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dbio.ingest_hsdb">
+<span id="ibeis-dbio-ingest-hsdb-module"></span><h2>ibeis.dbio.ingest_hsdb module<a class="headerlink" href="#module-ibeis.dbio.ingest_hsdb" title="Permalink to this headline">¶</a></h2>
+<p>Converts a hotspostter database to IBEIS</p>
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.check_unconverted_hsdb">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">check_unconverted_hsdb</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#check_unconverted_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.check_unconverted_hsdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if a directory is an unconverted hotspotter database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.convert_hsdb_to_ibeis">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">convert_hsdb_to_ibeis</code><span class="sig-paren">(</span><em>hsdb_dir</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#convert_hsdb_to_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.convert_hsdb_to_ibeis" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hsdb_dir</strong> (<em>str</em>) &#8211; </td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db ~/work/Frogs
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hsdb_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.get_hsinternal">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">get_hsinternal</code><span class="sig-paren">(</span><em>hsdb_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#get_hsinternal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.get_hsinternal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.get_unconverted_hsdbs">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">get_unconverted_hsdbs</code><span class="sig-paren">(</span><em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#get_unconverted_hsdbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.get_unconverted_hsdbs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workdir</strong> (<em>None</em>) &#8211; (default = None)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_unconverted_hsdbs</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.ingest_unconverted_hsdbs_in_workdir">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">ingest_unconverted_hsdbs_in_workdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#ingest_unconverted_hsdbs_in_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.ingest_unconverted_hsdbs_in_workdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.is_hsdb">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">is_hsdb</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#is_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.is_hsdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.is_hsdbv3">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">is_hsdbv3</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#is_hsdbv3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.is_hsdbv3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.is_hsdbv4">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">is_hsdbv4</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#is_hsdbv4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.is_hsdbv4" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.is_hsinternal">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">is_hsinternal</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#is_hsinternal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.is_hsinternal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.is_succesful_convert">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">is_succesful_convert</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#is_succesful_convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.is_succesful_convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>the sucess flag is only written if the _ibsdb was properly generated</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.test_open_to_convert">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">test_open_to_convert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#test_open_to_convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.test_open_to_convert" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VERY_UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_open_to_convert</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_hsdb.testdata_ensure_unconverted_hsdb">
+<code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">testdata_ensure_unconverted_hsdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#testdata_ensure_unconverted_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.testdata_ensure_unconverted_hsdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes an unconverted test datapath</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">testdata_ensure_unconverted_hsdb</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dbio.ingest_mdb">
+<span id="ibeis-dbio-ingest-mdb-module"></span><h2>ibeis.dbio.ingest_mdb module<a class="headerlink" href="#module-ibeis.dbio.ingest_mdb" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.dbio">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.dbio" title="Permalink to this headline">¶</a></h2>
+<p>this module handles importing and exporting. the
+best word i can think of is io. maybe marshall?</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.expt.html" class="btn btn-neutral float-right" title="ibeis.expt package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.control.html" class="btn btn-neutral" title="ibeis.control package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

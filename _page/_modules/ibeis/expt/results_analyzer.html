@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.results_analyzer &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.results_analyzer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.results_analyzer</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">not really used</span>
+<span class="sd">most things in here can be depricated</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="c">#from ibeis.expt import results_organizer</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[resorg]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="print_desc_distances_map"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_analyzer.print_desc_distances_map">[docs]</a><span class="k">def</span> <span class="nf">print_desc_distances_map</span><span class="p">(</span><span class="n">orgres2_distmap</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-----------------------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| DESCRIPTOR MATCHE DISTANCES:&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">orgtype</span><span class="p">,</span> <span class="n">distmap</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">orgres2_distmap</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;| orgtype(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orgtype</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">disttype</span><span class="p">,</span> <span class="n">dists</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">distmap</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;|     disttype(</span><span class="si">%12r</span><span class="s">): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">disttype</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">dists</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L-----------------------------&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="print_annotationmatch_scores_map"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_analyzer.print_annotationmatch_scores_map">[docs]</a><span class="k">def</span> <span class="nf">print_annotationmatch_scores_map</span><span class="p">(</span><span class="n">orgres2_scores</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-----------------------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| CHIPMATCH SCORES:&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">orgtype</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">orgres2_scores</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;| orgtype(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">orgtype</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|     scores: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">scores</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L-----------------------------&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_orgres_annotationmatch_scores"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_analyzer.get_orgres_annotationmatch_scores">[docs]</a><span class="k">def</span> <span class="nf">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">orgres2_scores</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rr2] getting orgtype=</span><span class="si">%r</span><span class="s"> distances between sifts&#39;</span> <span class="o">%</span> <span class="n">orgtype</span><span class="p">)</span>
+        <span class="n">orgres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_orgtype</span><span class="p">(</span><span class="n">orgtype</span><span class="p">)</span>
+        <span class="n">ranks</span>  <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">ranks</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">scores</span>
+        <span class="n">valid_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">ranks</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>  <span class="c"># None is less than 0</span>
+        <span class="n">orgres2_scores</span><span class="p">[</span><span class="n">orgtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_scores</span>
+    <span class="k">return</span> <span class="n">orgres2_scores</span>
+
+</div>
+<div class="viewcode-block" id="get_orgres_desc_match_dists"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_analyzer.get_orgres_desc_match_dists">[docs]</a><span class="k">def</span> <span class="nf">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">],</span>
+                                <span class="n">distkey_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;L2&#39;</span><span class="p">],</span>
+                                <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    computes distances between matching descriptors of orgtypes in allres</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        allres (AllResults): AllResults object</span>
+<span class="sd">        orgtype_list (list): of strings denoting the type of results to compare</span>
+<span class="sd">        distkey_list (list): list of requested distance types</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: orgres2_descmatch_dists mapping from orgtype to dicts of distances (ndarrays)</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Just SIFT distance seems to have a very interesting property</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport</span>
+
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift</span>
+
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=2</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=10</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=1000</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128 --num-top-fs=1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.results_analyzer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt import results_all</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids(hasgt=True)</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model import Config</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = ut.argparse_dict(dict(Config.parse_config_items(Config.QueryConfig())), only_specified=True)</span>
+<span class="sd">        &gt;&gt;&gt; allres = results_all.get_allres(ibs, qaid_list, cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; # {&#39;feat_type&#39;: &#39;hesaff+siam128&#39;})</span>
+<span class="sd">        &gt;&gt;&gt; orgtype_list = [&#39;false&#39;, &#39;top_true&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; distkey_list = ut.get_argval(&#39;--distkeys&#39;, type_=list, default=[&#39;fs&#39;, &#39;lnbnn&#39;, &#39;bar_L2_sift&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; #distkey_list = [&#39;hist_isect&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; #distkey_list = [&#39;L2_sift&#39;, &#39;bar_L2_sift&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; orgres2_descmatch_dists = get_orgres_desc_match_dists(allres, orgtype_list, distkey_list, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; #print(&#39;orgres2_descmatch_dists = &#39; + ut.dict_str(orgres2_descmatch_dists, truncate=-1, precision=3))</span>
+<span class="sd">        &gt;&gt;&gt; stats_ = {key: ut.dict_val_map(val, ut.get_stats) for key, val in orgres2_descmatch_dists.items()}</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;orgres2_descmatch_dists = &#39; + ut.dict_str(stats_, truncate=2, precision=3, nl=4))</span>
+<span class="sd">        &gt;&gt;&gt; # ------ VISUALIZE ------------</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; # If viewing a large amount of data this might help on OverFlowError</span>
+<span class="sd">        &gt;&gt;&gt; #ut.embed()</span>
+<span class="sd">        &gt;&gt;&gt; # http://stackoverflow.com/questions/20330475/matplotlib-overflowerror-allocated-too-many-blocks</span>
+<span class="sd">        &gt;&gt;&gt; # http://matplotlib.org/1.3.1/users/customizing.html</span>
+<span class="sd">        &gt;&gt;&gt; limit_ = len(qaid_list) &gt; 100</span>
+<span class="sd">        &gt;&gt;&gt; if limit_ or True:</span>
+<span class="sd">        &gt;&gt;&gt;     import matplotlib as mpl</span>
+<span class="sd">        &gt;&gt;&gt;     mpl.rcParams[&#39;agg.path.chunksize&#39;] = 100000</span>
+<span class="sd">        &gt;&gt;&gt; # visualize the descriptor scores</span>
+<span class="sd">        &gt;&gt;&gt; for fnum, distkey in enumerate(distkey_list, start=1):</span>
+<span class="sd">        &gt;&gt;&gt;     encoder = vt.ScoreNormalizer()</span>
+<span class="sd">        &gt;&gt;&gt;     tn_scores, tp_scores = ut.get_list_column(ut.dict_take(orgres2_descmatch_dists, orgtype_list), distkey)</span>
+<span class="sd">        &gt;&gt;&gt;     encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt;     figtitle = &#39;Descriptor Distance: %r. db=%r\norgtype_list=%r&#39; % (distkey, ibs.get_dbname(), orgtype_list)</span>
+<span class="sd">        &gt;&gt;&gt;     use_support = not ut.get_argflag(&#39;--nosupport&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     encoder.visualize(figtitle=figtitle, use_stems=not limit_, fnum=fnum, with_normscore=use_support, with_scores=use_support)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">orgres2_descmatch_dists</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">desc_dist_xs</span><span class="p">,</span> <span class="n">other_xs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">index_partition</span><span class="p">(</span><span class="n">distkey_list</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">VALID_DISTS</span><span class="p">)</span>
+    <span class="n">distkey_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">distkey_list</span><span class="p">,</span> <span class="n">desc_dist_xs</span><span class="p">)</span>
+    <span class="n">distkey_list2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">distkey_list</span><span class="p">,</span> <span class="n">other_xs</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">orgtype</span> <span class="ow">in</span> <span class="n">orgtype_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rr2] getting orgtype=</span><span class="si">%r</span><span class="s"> distances between vecs&#39;</span> <span class="o">%</span> <span class="n">orgtype</span><span class="p">)</span>
+        <span class="n">orgres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_orgtype</span><span class="p">(</span><span class="n">orgtype</span><span class="p">)</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">qaids</span>
+        <span class="n">aids</span>  <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">aids</span>
+        <span class="c"># DO distance that need real computation</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">desc_dist_xs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span> <span class="o">=</span> <span class="n">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">orgres</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                <span class="k">raise</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rr2]  * stacked_qvecs.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stacked_qvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rr2]  * stacked_dvecs.shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stacked_dvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+            <span class="c">#distkey_list = [&#39;L1&#39;, &#39;L2&#39;, &#39;hist_isect&#39;, &#39;emd&#39;]</span>
+            <span class="c">#distkey_list = [&#39;L1&#39;, &#39;L2&#39;, &#39;hist_isect&#39;]</span>
+            <span class="c">#distkey_list = [&#39;L2&#39;, &#39;hist_isect&#39;]</span>
+            <span class="n">hist1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">hist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">stacked_dvecs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="c"># returns an ordered dictionary</span>
+            <span class="n">distances1</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_distances</span><span class="p">(</span><span class="n">hist1</span><span class="p">,</span> <span class="n">hist2</span><span class="p">,</span> <span class="n">distkey_list1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distances1</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># DO precomputed distances like fs (true weights) or lnbnn</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_xs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">distances2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">disttype</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">disttype</span> <span class="ow">in</span> <span class="n">distkey_list2</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">qres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">disttype</span> <span class="ow">in</span> <span class="n">distkey_list2</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">disttype</span> <span class="o">==</span> <span class="s">&#39;fs&#39;</span><span class="p">:</span>
+                            <span class="c"># hack in full fs</span>
+                            <span class="k">assert</span> <span class="n">disttype</span> <span class="o">==</span> <span class="s">&#39;fs&#39;</span><span class="p">,</span> <span class="s">&#39;unimplemented&#39;</span>
+                            <span class="n">vals</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">assert</span> <span class="n">disttype</span> <span class="ow">in</span> <span class="n">qres</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="s">&#39;no score labeled %&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">disttype</span><span class="p">,)</span>
+                            <span class="n">index</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">filtkey_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">disttype</span><span class="p">)</span>
+                            <span class="n">vals</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c"># individual score component</span>
+                            <span class="k">pass</span>
+                        <span class="c">#num_top_vec_scores = None</span>
+                        <span class="n">num_top_vec_scores</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--num-top-fs&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">num_top_vec_scores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="c"># Take only the best matching descriptor scores for each pair in this analysis</span>
+                            <span class="c"># This tries to see how deperable the BEST descriptor score is for each match</span>
+                            <span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">vals</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">num_top_vec_scores</span><span class="p">]]</span>
+                            <span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">vals</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">num_top_vec_scores</span><span class="p">]]</span>
+                        <span class="n">distances2</span><span class="p">[</span><span class="n">disttype</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="c"># convert to numpy array</span>
+            <span class="k">for</span> <span class="n">disttype</span> <span class="ow">in</span> <span class="n">distkey_list2</span><span class="p">:</span>
+                <span class="n">distances2</span><span class="p">[</span><span class="n">disttype</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances2</span><span class="p">[</span><span class="n">disttype</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distances2</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Put things back in expected order</span>
+        <span class="n">dist1_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">distances1</span><span class="p">,</span> <span class="n">distkey_list1</span><span class="p">)</span>
+        <span class="n">dist2_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">distances2</span><span class="p">,</span> <span class="n">distkey_list2</span><span class="p">)</span>
+        <span class="n">dist_vals</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rebuild_partition</span><span class="p">(</span><span class="n">dist1_vals</span><span class="p">,</span> <span class="n">dist2_vals</span><span class="p">,</span> <span class="n">desc_dist_xs</span><span class="p">,</span> <span class="n">other_xs</span><span class="p">)</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">distkey_list</span><span class="p">,</span> <span class="n">dist_vals</span><span class="p">)))</span>
+        <span class="n">orgres2_descmatch_dists</span><span class="p">[</span><span class="n">orgtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">distances</span>
+    <span class="k">return</span> <span class="n">orgres2_descmatch_dists</span>
+
+</div>
+<div class="viewcode-block" id="get_matching_descriptors"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_analyzer.get_matching_descriptors">[docs]</a><span class="k">def</span> <span class="nf">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns a set of matching descriptors from queries to database annotations</span>
+<span class="sd">    in allres</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        allres (AllResults): all results object</span>
+<span class="sd">        qaid_list (list): query annotation id list</span>
+<span class="sd">        daid_list (list): database annotation id list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (stacked_qvecs, stacked_dvecs)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.expt.results_analyzer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; allres = results_all.get_allres(ibs, ibs.get_valid_aids(hasgt=True))</span>
+<span class="sd">        &gt;&gt;&gt; orgres = allres.get_orgtype(&#39;top_true&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = orgres.qaids</span>
+<span class="sd">        &gt;&gt;&gt; daid_list  = orgres.aids</span>
+<span class="sd">        &gt;&gt;&gt; (stacked_qvecs, stacked_dvecs) = get_matching_descriptors(allres, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print((stacked_qvecs, stacked_dvecs))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">qvecs_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">dvecs_cache</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_vecs_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">qvecs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dvecs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#fm = get_feat_matches(allres, qaid, daid)</span>
+            <span class="c">#def get_feat_matches(allres, qaid, aid):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">qres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+                <span class="n">fm</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="c">#if &#39;suppress_further&#39; not in vars():</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rr2] Failed qaid=</span><span class="si">%r</span><span class="s">, daid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">))</span>
+                    <span class="c"># Probably just a match that doesnt exist</span>
+                    <span class="c"># not a big deal.</span>
+                    <span class="c">#suppress_further = True  # NOQA</span>
+                <span class="k">raise</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">qvecs_m</span> <span class="o">=</span> <span class="n">qvecs_cache</span><span class="p">[</span><span class="n">qaid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">dvecs_m</span> <span class="o">=</span> <span class="n">dvecs_cache</span><span class="p">[</span><span class="n">daid</span><span class="p">][</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">qvecs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qvecs_m</span><span class="p">)</span>
+        <span class="n">dvecs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dvecs_m</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">dvecs_cache</span>
+    <span class="k">del</span> <span class="n">qvecs_cache</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stacked_qvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">)</span>
+        <span class="n">stacked_dvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">dvecs_list</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!!!] get_matching_descriptors&#39;</span><span class="p">,</span>
+                   <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">,</span> <span class="s">&#39;daid_list&#39;</span><span class="p">,</span> <span class="s">&#39;qvecs_list&#39;</span><span class="p">,</span> <span class="s">&#39;dvecs_list&#39;</span>
+                         <span class="s">&#39;stacked_qvecs&#39;</span><span class="p">,</span> <span class="s">&#39;stacked_dvecs&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span>
+
+
+<span class="c">#def get_score_stuff_pdfish(allres):</span>
+<span class="c">#    &quot;&quot;&quot; In development &quot;&quot;&quot;</span>
+<span class="c">#    true_orgres  = allres.get_orgtype(&#39;true&#39;)</span>
+<span class="c">#    false_orgres = allres.get_orgtype(&#39;false&#39;)</span>
+<span class="c">#    orgres = true_orgres</span>
+<span class="c">#    orgres = false_orgres</span>
+<span class="c">#    def get_interesting_annotationpairs(orgres):</span>
+<span class="c">#        orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --allexamples</span>
+<span class="sd">        python -m ibeis.expt.results_analyzer --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

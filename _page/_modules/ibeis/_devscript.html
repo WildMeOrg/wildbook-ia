@@ -1,0 +1,378 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis._devscript &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis._devscript</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis._devscript</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="hack_argv"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.hack_argv">[docs]</a><span class="k">def</span> <span class="nf">hack_argv</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+    <span class="c"># HACK COMMON ARGV SYMBOLS</span>
+    <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;--hargv=&#39;</span><span class="p">):</span>
+        <span class="n">hack_argv_key</span> <span class="o">=</span> <span class="s">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+
+        <span class="n">common_args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;--dpath=~/latex/crall-candidacy-2015/&#39;</span><span class="p">,</span>
+            <span class="s">&#39;--clipwhite&#39;</span><span class="p">,</span>
+            <span class="s">&#39;--contextadjust&#39;</span><span class="p">,</span>
+            <span class="s">&#39;--dpi=256&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">common_args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--diskshow&#39;</span><span class="p">])</span>
+
+        <span class="c"># Figsize hacks</span>
+
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;surf&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--hspace=.3&#39;</span><span class="p">,</span>
+                <span class="c">#&#39;--top=.8&#39;,</span>
+                <span class="s">&#39;--top=.85&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--bottom=0.18&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--left=.05&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--right=.95&#39;</span>
+            <span class="p">])</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;scores&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="c">#&#39;--figsize=15,7&#39;,</span>
+                <span class="c">#&#39;--top=.8&#39;,</span>
+                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--top=.8&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--hspace=.3&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--bottom=0.08&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--left=.05&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--right=.95&#39;</span>
+            <span class="p">])</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="c">#&#39;--figsize=14,3&#39;,</span>
+                <span class="c">#&#39;--top=.8&#39;,</span>
+                <span class="c">#&#39;--hspace=.3&#39;,</span>
+                <span class="c">#&#39;--bottom=0.08&#39;,</span>
+                <span class="c">#&#39;--left=.05&#39;,</span>
+                <span class="c">#&#39;--right=.95&#39;</span>
+            <span class="p">])</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;expt&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="c">#&#39;--figsize=15,3&#39;,</span>
+                <span class="s">&#39;--figsize=15,3.1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--top=.9&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--bottom=.15&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;mech&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="c">#&#39;--figsize=14,5&#39;,</span>
+                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--top=.9&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s">&#39;--bottom=.3&#39;</span><span class="p">,</span>
+                <span class="s">&#39;--left=.2&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+
+        <span class="c"># Save location</span>
+        <span class="c">#fname_fmt = &#39;figuresX/expt_{e}_{db}_a_{a}_t_{t}&#39;</span>
+        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;figuresX/expt_{label}&#39;</span>
+
+        <span class="c">#if hack_argv_key in [&#39;scores&#39;]:</span>
+        <span class="c">#    fname_fmt += &#39;_{filt}&#39;</span>
+
+        <span class="c">#if hack_argv_key in [&#39;time&#39;]:</span>
+        <span class="c">#    if not (&#39;--falsepos&#39; in sys.argv) or (&#39;--truepos&#39; in sys.argv):</span>
+        <span class="c">#        fname_fmt += &#39;_TP&#39;</span>
+        <span class="c">#    if (&#39;--falsepos&#39; in sys.argv):</span>
+        <span class="c">#        fname_fmt += &#39;_FP&#39;</span>
+
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;expt&#39;</span><span class="p">,</span> <span class="s">&#39;mech&#39;</span><span class="p">,</span> <span class="s">&#39;scores&#39;</span><span class="p">,</span> <span class="s">&#39;surf&#39;</span><span class="p">,</span> <span class="s">&#39;tags&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s">&#39;--save&#39;</span><span class="p">,</span>
+                <span class="n">fname_fmt</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s">&#39;--figsize=18,8&#39;</span><span class="p">,</span>
+                <span class="s">r&#39;--width=&quot;.8\textwidth&quot;&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+
+<span class="c">#import IPython</span>
+<span class="c">#IPython.embed()</span></div>
+<span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:]:</span>
+    <span class="n">hack_argv</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="c">#ut.show_if_requested()</span>
+<span class="c">#sys.exit(1)</span>
+<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>  <span class="c"># NOQA</span>
+<span class="c">#import functools</span>
+
+<span class="c"># A list of registered development test functions</span>
+<span class="n">DEVCMD_FUNCTIONS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">DEVPRECMD_FUNCTIONS</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c">#DEVCMD_FUNCTIONS2 = []</span>
+
+
+<span class="c">#def devcmd2(*args):</span>
+<span class="c">#    &quot;&quot;&quot; Decorator which registers a function as a developer command &quot;&quot;&quot;</span>
+<span class="c">#    noargs = len(args) == 1 and not isinstance(args[0], str)</span>
+<span class="c">#    if noargs:</span>
+<span class="c">#        # Function is only argument</span>
+<span class="c">#        func = args[0]</span>
+<span class="c">#        func_aliases = []</span>
+<span class="c">#    else:</span>
+<span class="c">#        func_aliases = list(args)</span>
+<span class="c">#    def closure_devcmd2(func):</span>
+<span class="c">#        global DEVCMD_FUNCTIONS2</span>
+<span class="c">#        func_aliases.extend([get_funcname(func)])</span>
+<span class="c">#        DEVCMD_FUNCTIONS2.append((tuple(func_aliases), func))</span>
+<span class="c">#        def func_wrapper(*args_, **kwargs_):</span>
+<span class="c">#            #if ut.VERBOSE:</span>
+<span class="c">#            #if ut.QUIET:</span>
+<span class="c">#            print(&#39;[DEVCMD2] &#39; + ut.func_str(func, args_, kwargs_))</span>
+<span class="c">#            return func(*args_, **kwargs_)</span>
+<span class="c">#        return func_wrapper</span>
+<span class="c">#    if noargs:</span>
+<span class="c">#        return closure_devcmd2(func)</span>
+<span class="c">#    return closure_devcmd2</span>
+
+
+<div class="viewcode-block" id="devcmd"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.devcmd">[docs]</a><span class="k">def</span> <span class="nf">devcmd</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Decorator which registers a function as a developer command &quot;&quot;&quot;</span>
+    <span class="n">noargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
+        <span class="c"># Function is only argument</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">func_aliases</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">func_aliases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">closure_devcmd</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">DEVCMD_FUNCTIONS</span>
+        <span class="n">func_aliases</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)])</span>
+        <span class="n">DEVCMD_FUNCTIONS</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">tuple</span><span class="p">(</span><span class="n">func_aliases</span><span class="p">),</span> <span class="n">func</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
+            <span class="c">#if ut.VERBOSE:</span>
+            <span class="c">#if ut.QUIET:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DEVCMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+    <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">closure_devcmd</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">closure_devcmd</span>
+
+</div>
+<div class="viewcode-block" id="devprecmd"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.devprecmd">[docs]</a><span class="k">def</span> <span class="nf">devprecmd</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Decorator which registers a function as a developer precommand &quot;&quot;&quot;</span>
+    <span class="n">noargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
+        <span class="c"># Function is only argument</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">func_aliases</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">func_aliases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">closure_devprecmd</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">DEVPRECMD_FUNCTIONS</span>
+        <span class="n">func_aliases</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)])</span>
+        <span class="n">DEVPRECMD_FUNCTIONS</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">tuple</span><span class="p">(</span><span class="n">func_aliases</span><span class="p">),</span> <span class="n">func</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
+            <span class="c">#if ut.VERBOSE:</span>
+            <span class="c">#if ut.QUIET:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DEVPRECMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+    <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">closure_devprecmd</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">closure_devprecmd</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

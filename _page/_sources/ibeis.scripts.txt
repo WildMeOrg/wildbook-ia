@@ -1,0 +1,38 @@
+ibeis.scripts package
+=====================
+
+Submodules
+----------
+
+ibeis.scripts.gen_cand_expts module
+-----------------------------------
+
+.. automodule:: ibeis.scripts.gen_cand_expts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.scripts.getshark module
+-----------------------------
+
+.. automodule:: ibeis.scripts.getshark
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.scripts.rsync_ibeisdb module
+----------------------------------
+
+.. automodule:: ibeis.scripts.rsync_ibeisdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.scripts
+    :members:
+    :undoc-members:
+    :show-inheritance:

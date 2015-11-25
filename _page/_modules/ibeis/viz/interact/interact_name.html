@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.interact.interact_name &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../viz.html">ibeis.viz</a> &raquo;</li>
+      
+          <li><a href="../interact.html">ibeis.viz.interact</a> &raquo;</li>
+      
+    <li>ibeis.viz.interact.interact_name</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.interact.interact_name</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Matplotlib interface for name interactions. Allows for relatively fine grained</span>
+<span class="sd">control of splitting and merging.</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m ibeis.viz.interact.interact_name --test-ishow_name --show</span>
+<span class="sd">    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30</span>
+<span class="sd">    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+<span class="kn">from</span> <span class="nn">plottool.abstract_interaction</span> <span class="kn">import</span> <span class="n">AbstractInteraction</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[interact_name]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c">#==========================</span>
+<span class="c"># Name Interaction</span>
+<span class="c">#==========================</span>
+
+<span class="n">MAX_COLS</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<div class="viewcode-block" id="build_name_context_options"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.build_name_context_options">[docs]</a><span class="k">def</span> <span class="nf">build_name_context_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">):</span>
+    <span class="n">callback_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
+    <span class="n">callback_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;Interact name graph&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">callback_list</span>
+
+</div>
+<div class="viewcode-block" id="ishow_name"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.ishow_name">[docs]</a><span class="k">def</span> <span class="nf">ishow_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">select_aid_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        nid (?):</span>
+<span class="sd">        sel_aids (list):</span>
+<span class="sd">        select_aid_callback (None):</span>
+<span class="sd">        fnum (int):  figure number</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-ishow_name --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_name import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid = ut.get_argval(&#39;--nid&#39;, int, default=1)</span>
+<span class="sd">        &gt;&gt;&gt; sel_aids = []</span>
+<span class="sd">        &gt;&gt;&gt; select_aid_callback = None</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 5</span>
+<span class="sd">        &gt;&gt;&gt; dodraw = ut.show_was_requested()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = ishow_name(ibs, nid, sel_aids, select_aid_callback, fnum, dodraw)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_name_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s">&#39;[inter] clicked name&#39;</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+        <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s">&#39; viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;chip&#39;</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... aid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
+                    <span class="kn">import</span> <span class="nn">guitool</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                    <span class="n">height</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+                    <span class="n">qpoint</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">refresh_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">viz</span><span class="o">.</span><span class="n">show_name</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">)</span>
+                    <span class="n">interact_chip</span><span class="o">.</span><span class="n">show_annot_context_menu</span><span class="p">(</span>
+                        <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
+                        <span class="n">with_interact_name</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">viz</span><span class="o">.</span><span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">select_aid_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">select_aid_callback</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+    <span class="n">viz</span><span class="o">.</span><span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="n">sel_aids</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dodraw</span><span class="p">:</span>
+        <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_name_click</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="testsdata_match_verification"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.testsdata_match_verification">[docs]</a><span class="k">def</span> <span class="nf">testsdata_match_verification</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">aid1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        main.py --eid 2</span>
+<span class="sd">        main.py --eid 13 --db PZ_MUGU_19</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --aid1 2 --aid2 3 --show</span>
+
+<span class="sd">        # Merge case</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30</span>
+
+<span class="sd">        # Split case</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_name import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; self = testsdata_match_verification()</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; self.show_page()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from ibeis.viz.interact.interact_name import *  # NOQA</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c">#ibs = ibeis.opendb(defaultdb=&#39;PZ_Master0&#39;)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+    <span class="c">#aid1 = ut.get_argval(&#39;--aid1&#39;, int, 14)</span>
+    <span class="c">#aid2 = ut.get_argval(&#39;--aid2&#39;, int, 5545)</span>
+    <span class="n">aid1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid1&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
+    <span class="n">aid2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid2&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">MatchVerificationInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span>
+
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction">[docs]</a><span class="k">class</span> <span class="nc">MatchVerificationInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">backend_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dodraw</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_cols</span><span class="o">=</span><span class="n">MAX_COLS</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__ aid1=</span><span class="si">%r</span><span class="s">, aid2=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchVerificationInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_cols</span> <span class="o">=</span> <span class="n">max_cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid1</span> <span class="o">=</span> <span class="n">aid1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span> <span class="o">=</span> <span class="n">aid2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="c">#ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])</span>
+        <span class="k">def</span> <span class="nf">_nonefn</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">update_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">update_callback</span> <span class="o">=</span> <span class="n">_nonefn</span>
+        <span class="k">if</span> <span class="n">backend_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">_nonefn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span> <span class="o">=</span> <span class="n">update_callback</span>  <span class="c"># if something like qt needs a manual refresh on change</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span> <span class="o">=</span> <span class="n">backend_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qres_callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cm&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infer_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dodraw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="n">bring_to_front</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MatchVerificationInteraction.infer_data"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.infer_data">[docs]</a>    <span class="k">def</span> <span class="nf">infer_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize data related to the input aids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="c"># The two matching aids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aid_pair</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid_pair</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="c"># The names of the matching annotations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_valid_nids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># The other annotations that belong to these two names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gts_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gts_list</span>
+        <span class="c"># A flat list of all the aids we are looking at</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_nid_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span><span class="p">:</span>
+            <span class="c"># Split case</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_aids</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Merge/New Match case</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gt1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gt2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)</span>
+
+        <span class="c"># Grab not just the exemplars</span>
+
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__ nid1=</span><span class="si">%r</span><span class="s">, nid2=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__ self.gts_list=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gts_list</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__ nid1=</span><span class="si">%r</span><span class="s">, nid2=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] __init__ self.gts_list=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gts_list</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.get_other_nids"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_other_nids">[docs]</a>    <span class="k">def</span> <span class="nf">get_other_nids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">all_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
+        <span class="n">unique_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">all_nid_list</span><span class="p">)</span>
+        <span class="n">is_unknown</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">unique_nid_list</span><span class="p">)</span>
+        <span class="n">is_name1</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
+        <span class="n">is_name2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nid_list</span><span class="p">]</span>
+        <span class="n">is_other</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">and_lists</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">,</span> <span class="p">(</span><span class="n">is_name1</span><span class="p">,</span> <span class="n">is_name2</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">))))</span>
+        <span class="n">other_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">unique_nid_list</span><span class="p">,</span> <span class="n">is_other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">other_nid_list</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.get_rotating_columns"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_rotating_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_rotating_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_aids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt2</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.get_non_rotating_columns"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_non_rotating_columns">[docs]</a>    <span class="k">def</span> <span class="nf">get_non_rotating_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.get_row_aids_list"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.get_row_aids_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_row_aids_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: row_aids_list</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --aid1 2 --aid2 3</span>
+<span class="sd">            # Merge case</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 1 --aid2 30</span>
+<span class="sd">            # Split case</span>
+<span class="sd">            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 30 --aid2 32</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz.interact.interact_name import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; self = testsdata_match_verification(&#39;PZ_MTEST&#39;, 30, 32)</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; row_aids_list = self.get_row_aids_list()</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; result = str(row_aids_list)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; self.show_page()</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">get_row</span><span class="p">(</span><span class="n">rowx</span><span class="p">):</span>
+            <span class="n">row_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span><span class="p">[</span><span class="n">rowx</span><span class="p">]</span>
+            <span class="n">row_nonrotate_part</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_non_rotating_columns</span><span class="p">(</span><span class="n">rowx</span><span class="p">)</span>
+            <span class="n">row_rotate_part_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rotating_columns</span><span class="p">(</span><span class="n">rowx</span><span class="p">)</span>
+            <span class="n">row_rotate_part</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_roll</span><span class="p">(</span><span class="n">row_rotate_part_</span><span class="p">,</span> <span class="o">-</span><span class="n">row_offset</span><span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">row_nonrotate_part</span> <span class="o">+</span> <span class="n">row_rotate_part</span>
+            <span class="k">return</span> <span class="n">row</span>
+        <span class="n">row_aids_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_row</span><span class="p">(</span><span class="n">rowx</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">)]</span>
+        <span class="n">row_aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">row_aids_list_</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">row_aids_list</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.rotate_row"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.rotate_row">[docs]</a>    <span class="k">def</span> <span class="nf">rotate_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rowx</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        shows the next few annotations in this row</span>
+<span class="sd">        (implicitly rotates the row&#39;s columns the rows columns)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">modbase</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_rotating_columns</span><span class="p">(</span><span class="n">rowx</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span><span class="p">[</span><span class="n">rowx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span><span class="p">[</span><span class="n">rowx</span><span class="p">])</span> <span class="o">%</span> <span class="n">modbase</span>
+        <span class="c">#self.gts_list[rowx] = list_roll(self.gts_list[rowx], -(self.nCols - 1))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="n">onlyrows</span><span class="o">=</span><span class="p">[</span><span class="n">rowx</span><span class="p">],</span> <span class="n">fulldraw</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.prepare_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.prepare_page">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">figkw</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+                 <span class="s">&#39;doclf&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span>
+                 <span class="s">&#39;docla&#39;</span><span class="p">:</span> <span class="n">fulldraw</span><span class="p">,</span> <span class="p">}</span>
+        <span class="k">if</span> <span class="n">fulldraw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">figkw</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;key_press_event&#39;</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_clicked</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;key_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_key_press</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.show_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_page">[docs]</a>    <span class="k">def</span> <span class="nf">show_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bring_to_front</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">onlyrows</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plots all subaxes on a page</span>
+
+<span class="sd">        onlyrows is a hack to only draw a subset of the data again</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fulldraw</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] show_page(fulldraw=</span><span class="si">%r</span><span class="s">, onlyrows=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fulldraw</span><span class="p">,</span> <span class="n">onlyrows</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[matchver] show_page(fulldraw=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fulldraw</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prepare_page</span><span class="p">(</span><span class="n">fulldraw</span><span class="o">=</span><span class="n">fulldraw</span><span class="p">)</span>
+        <span class="c"># Variables we will work with to paint a pretty picture</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">nRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span>
+        <span class="n">colpad</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">nCols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">+</span> <span class="n">colpad</span>
+
+        <span class="c"># Distinct color for every unique name</span>
+        <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="n">unique_colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">),</span> <span class="n">brightness</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">hue_range</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">95</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nid2_color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">unique_colors</span><span class="p">))</span>
+
+        <span class="n">row_aids_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_row_aids_list</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;DRAWING QRES&quot;</span><span class="p">)</span>
+            <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fulldraw</span><span class="p">:</span>
+                <span class="c"># not doing full draw so we have to clear any axes</span>
+                <span class="c"># that are here already manually</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_parent_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">show_single_annotmatch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">draw_fmatch</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">colorbar_</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># For each row</span>
+        <span class="k">for</span> <span class="n">rowx</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row_aids_list</span><span class="p">):</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">rowx</span> <span class="o">*</span> <span class="n">nCols</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">onlyrows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">rowx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">onlyrows</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c">#ibsfuncs.assert_valid_aids(ibs, groundtruth)</span>
+            <span class="c"># For each column</span>
+            <span class="k">for</span> <span class="n">colx</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">colpad</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">colx</span> <span class="o">&gt;=</span> <span class="n">nCols</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">nid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_PURPLE_RGBA01</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2_color</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;nid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;self.nid2_color = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid2_color</span><span class="p">),))</span>
+                    <span class="k">raise</span>
+                <span class="n">px</span> <span class="o">=</span> <span class="n">colx</span> <span class="o">+</span> <span class="n">offset</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_chip</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="n">fulldraw</span><span class="p">)</span>
+                <span class="c"># If there are still more in this row to display</span>
+                <span class="k">if</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">nCols</span><span class="p">:</span>
+                    <span class="n">total_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                    <span class="n">current_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span><span class="p">[</span><span class="n">rowx</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">next_text</span> <span class="o">=</span> <span class="s">&#39;next</span><span class="se">\n</span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_index</span><span class="p">,</span> <span class="n">total_indices</span><span class="p">)</span>
+                    <span class="n">next_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate_row</span><span class="p">,</span> <span class="n">rowx</span><span class="o">=</span><span class="n">rowx</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">next_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">next_func</span><span class="p">,</span>
+                                       <span class="n">location</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s">&#39;33%&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fulldraw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_hud</span><span class="p">()</span>
+            <span class="c">#pt.adjust_subplots_safe(top=0.85, hspace=0.03)</span>
+            <span class="n">hspace</span> <span class="o">=</span> <span class="o">.</span><span class="mo">05</span> <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="o">.</span><span class="mi">1</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">adjust_subplots_safe</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="n">hspace</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bring_to_front</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">()</span>
+        <span class="c">#self.update()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.plot_chip"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.plot_chip">[docs]</a>    <span class="k">def</span> <span class="nf">plot_chip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plots an individual chip in a subaxis &quot;&quot;&quot;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">]:</span>
+            <span class="c"># Bold color for the matching chips</span>
+            <span class="n">lw</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">text_color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">135</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">text_color</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fulldraw</span><span class="p">:</span>
+            <span class="c"># not doing full draw so we have to clear any axes</span>
+            <span class="c"># that are here already manually</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_parent_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="c">#ut.embed()</span>
+            <span class="c">#print(subax)</span>
+
+        <span class="n">viz_chip_kw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;fnum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="s">&#39;pnum&#39;</span><span class="p">:</span> <span class="n">pnum</span><span class="p">,</span>
+            <span class="s">&#39;nokpts&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_name&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_gname&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;show_aidstr&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;notitle&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;show_num_gt&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;text_color&#39;</span><span class="p">:</span> <span class="n">text_color</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+            <span class="n">enable_chip_title_prefix</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">viz_chip_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s">&#39;enable_chip_title_prefix&#39;</span><span class="p">:</span> <span class="n">enable_chip_title_prefix</span><span class="p">,</span>
+                    <span class="s">&#39;show_name&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;show_aidstr&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;show_yawtext&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;show_num_gt&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;show_quality_text&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">viz_chip_kw</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;make_buttons&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="c">#divider = pt.ensure_divider(ax)</span>
+            <span class="n">butkw</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="c">#&#39;divider&#39;: divider,</span>
+                <span class="s">&#39;ax&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="p">,</span>
+                <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="s">&#39;13%&#39;</span>
+                <span class="c">#&#39;size&#39;: &#39;15%&#39;</span>
+            <span class="p">}</span>
+        <span class="c"># Chip matching/naming options</span>
+        <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">annotation_unknown</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">([</span><span class="n">nid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annotation_unknown</span><span class="p">:</span>
+            <span class="c"># remove name</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unname_annotation</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;remove name (&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># new name</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mark_annotation_as_new_name</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;mark as new name&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nid</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_split_case</span><span class="p">:</span>
+            <span class="c"># match to nid2</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rename_annotation</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;match to name2: &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nid</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c"># match to nid1</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rename_annotation</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;match to name1: &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+
+        <span class="n">other_nid_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_other_nids</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">other_nid</span> <span class="ow">in</span> <span class="n">other_nid_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other_nid</span> <span class="o">==</span> <span class="n">nid</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c"># rename nid2</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rename_annotation</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">other_nid</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;match to: &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">other_nid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.show_hud"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_hud">[docs]</a>    <span class="k">def</span> <span class="nf">show_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates heads up display</span>
+
+<span class="sd">        button bar on bottom and title string</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz.interact.interact_name import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; self = testsdata_match_verification(&#39;PZ_MTEST&#39;, 30, 32)</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; result = self.show_hud()</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow():</span>
+<span class="sd">            &gt;&gt;&gt; self.show_page()</span>
+<span class="sd">            &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Button positioners</span>
+        <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">15</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">063</span><span class="p">,</span>
+                                                     <span class="n">xpad</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c"># hack make a second bbox positioner to get different sized buttons on #</span>
+        <span class="c"># the left</span>
+        <span class="n">hl_slot2</span><span class="p">,</span> <span class="n">hr_slot2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">08</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span>
+                                                      <span class="n">xpad</span><span class="o">=.</span><span class="mo">015</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">next_rect</span><span class="p">(</span><span class="n">accum</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">hr_slot</span><span class="p">(</span><span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">def</span> <span class="nf">next_rect2</span><span class="p">(</span><span class="n">accum</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">hl_slot2</span><span class="p">(</span><span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2</span>
+        <span class="n">nid1_is_known</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">)</span>
+        <span class="n">nid2_is_known</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">)</span>
+        <span class="n">all_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
+        <span class="n">is_unknown</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">all_nid_list</span><span class="p">)</span>
+        <span class="n">is_name1</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">all_nid_list</span><span class="p">]</span>
+        <span class="n">is_name2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">all_nid_list</span><span class="p">]</span>
+
+        <span class="c"># option to remove all names only if at least one name exists</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_unknown</span><span class="p">):</span>
+            <span class="n">unname_all_text</span> <span class="o">=</span> <span class="s">&#39;remove all names&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">unname_all_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unname_all</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
+        <span class="c"># option to merge all into a new name if all are unknown</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_unknown</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nid1_is_known</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nid2_is_known</span><span class="p">:</span>
+            <span class="n">joinnew_text</span> <span class="o">=</span> <span class="s">&#39;match all (nonjunk)</span><span class="se">\n</span><span class="s"> to a new name&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">joinnew_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">merge_nonjunk_into_new_name</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
+        <span class="c"># option dismiss all and give new names to all nonjunk images</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_unknown</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;mark all unknowns</span><span class="se">\n</span><span class="s">as not matching&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dismiss_all</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
+        <span class="c"># merges all into the first name</span>
+        <span class="k">if</span> <span class="n">nid1_is_known</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_name1</span><span class="p">):</span>
+            <span class="n">join1_text</span> <span class="o">=</span> <span class="s">&#39;match all to name1:</span><span class="se">\n</span><span class="s">{name1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name1</span><span class="o">=</span><span class="n">name1</span><span class="p">)</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">merge_all_into_nid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">join1_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
+        <span class="c"># merges all into the seoncd name</span>
+        <span class="k">if</span> <span class="n">name1</span> <span class="o">!=</span> <span class="n">name2</span> <span class="ow">and</span> <span class="n">nid2_is_known</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_name2</span><span class="p">):</span>
+            <span class="n">join2_text</span> <span class="o">=</span> <span class="s">&#39;match all to name2:</span><span class="se">\n</span><span class="s">{name2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name2</span><span class="o">=</span><span class="n">name2</span><span class="p">)</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">merge_all_into_nid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">join2_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
+        <span class="c">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;close&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">review</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_all_names</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vsstr</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">vsstr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="n">figtitle_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Match Review Interface - {dbname}</span>
+<span class="s">        {match_text}:</span>
+<span class="s">        {vsstr}</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="n">figtitle_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>  <span class="c"># sexy: using obj dict as fmtkw</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.on_close"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.on_close">[docs]</a>    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchVerificationInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_close</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.unname_annotation"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">unname_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;remove name&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">([</span><span class="n">aid</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.mark_annotation_as_new_name"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.mark_annotation_as_new_name">[docs]</a>    <span class="k">def</span> <span class="nf">mark_annotation_as_new_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;new name&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_same_new_name</span><span class="p">([</span><span class="n">aid</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.rename_annotation"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">rename_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;rename nid1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">nid</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.reset_all_names"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.reset_all_names">[docs]</a>    <span class="k">def</span> <span class="nf">reset_all_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_nid_list_orig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.review"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.review">[docs]</a>    <span class="k">def</span> <span class="nf">review</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;review pressed&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: no review callback connected.&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.close_"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.close_">[docs]</a>    <span class="k">def</span> <span class="nf">close_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># closing this gui with the button means you have reviewed the annotation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.unname_all"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_all">[docs]</a>    <span class="k">def</span> <span class="nf">unname_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;unname_all&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.merge_all_into_nid"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid">[docs]</a>    <span class="k">def</span> <span class="nf">merge_all_into_nid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All the annotations are given nid &quot;&quot;&quot;</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.merge_nonjunk_into_new_name"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_nonjunk_into_new_name">[docs]</a>    <span class="k">def</span> <span class="nf">merge_nonjunk_into_new_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All nonjunk annotations are given the SAME new name &quot;&quot;&quot;</span>
+        <span class="c"># Delete all original names</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
+        <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_isjunk</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+        <span class="c"># Rename annotations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_same_new_name</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.dismiss_all"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.dismiss_all">[docs]</a>    <span class="k">def</span> <span class="nf">dismiss_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All unknown annotations are given DIFFERENT new names &quot;&quot;&quot;</span>
+        <span class="c"># Delete all original names</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">aid_list</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
+        <span class="n">is_unknown</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">)</span>
+        <span class="c"># Rename annotations</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_different_new_names</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.on_key_press"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.on_key_press">[docs]</a>    <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s">&#39;escape&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">guitool</span>
+            <span class="k">if</span> <span class="n">guitool</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.figure_clicked"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.figure_clicked">[docs]</a>    <span class="k">def</span> <span class="nf">figure_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c">#print_(&#39;[inter] clicked name&#39;)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+        <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s">&#39; viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;chip&#39;</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">)</span>
+                <span class="c">#print(&#39;... aid=%r&#39; % aid)</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
+                    <span class="c">#import guitool</span>
+                    <span class="c">#height = self.fig.canvas.geometry().height()</span>
+                    <span class="c">#qpoint = guitool.newQPoint(event.x, height - event.y)</span>
+                    <span class="c">#ibs = self.ibs</span>
+                    <span class="c">#is_exemplar = ibs.get_annot_exemplar_flags(aid)</span>
+                    <span class="c">#def context_func():</span>
+                    <span class="c">#    ibs.set_annot_exemplar_flags(aid, not is_exemplar)</span>
+                    <span class="c">#    self.show_page()</span>
+                    <span class="c">#guitool.popup_menu(self.fig.canvas, pt, [</span>
+                    <span class="c">#    (&#39;unset as exemplar&#39; if is_exemplar else &#39;set as exemplar&#39;, context_func),</span>
+                    <span class="c">#])</span>
+                    <span class="c"># TODO USE ABSTRACT INTERACTION</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">interact_chip</span><span class="o">.</span><span class="n">build_annot_context_options</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+                    <span class="c">#interact_chip.show_annot_context_menu(</span>
+                    <span class="c">#    self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)</span>
+                    <span class="c">#ibs.print_annotation_table()</span>
+                <span class="c">#print(ut.dict_str(event.__dict__))</span>
+            <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;matches&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ishow_single_annotmatch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-ishow_name --show</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30</span>
+
+<span class="sd">        python -m ibeis.viz.interact.interact_name</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --allexamples</span>
+<span class="sd">        python -m ibeis.viz.interact.interact_name --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

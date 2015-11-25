@@ -1,0 +1,254 @@
+ibeis.control package
+=====================
+
+Submodules
+----------
+
+ibeis.control.DBCACHE_SCHEMA module
+-----------------------------------
+
+.. automodule:: ibeis.control.DBCACHE_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.DBCACHE_SCHEMA_CURRENT module
+-------------------------------------------
+
+.. automodule:: ibeis.control.DBCACHE_SCHEMA_CURRENT
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.DB_SCHEMA module
+------------------------------
+
+.. automodule:: ibeis.control.DB_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.DB_SCHEMA_CURRENT module
+--------------------------------------
+
+.. automodule:: ibeis.control.DB_SCHEMA_CURRENT
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.IBEISControl module
+---------------------------------
+
+.. automodule:: ibeis.control.IBEISControl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.SQLDatabaseControl module
+---------------------------------------
+
+.. automodule:: ibeis.control.SQLDatabaseControl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.__SQLITE3__ module
+--------------------------------
+
+.. automodule:: ibeis.control.__SQLITE3__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_annotmatch_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control._autogen_annotmatch_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_featweight_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control._autogen_featweight_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_party_funcs module
+-----------------------------------------
+
+.. automodule:: ibeis.control._autogen_party_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._sql_helpers module
+---------------------------------
+
+.. automodule:: ibeis.control._sql_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.accessor_decors module
+------------------------------------
+
+.. automodule:: ibeis.control.accessor_decors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.autowrap_api_decorators module
+--------------------------------------------
+
+.. automodule:: ibeis.control.autowrap_api_decorators
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.controller_inject module
+--------------------------------------
+
+.. automodule:: ibeis.control.controller_inject
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_annot_funcs module
+---------------------------------------
+
+.. automodule:: ibeis.control.manual_annot_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_annotgroup_funcs module
+--------------------------------------------
+
+.. automodule:: ibeis.control.manual_annotgroup_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_chip_funcs module
+--------------------------------------
+
+.. automodule:: ibeis.control.manual_chip_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_egrelate_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_egrelate_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_encounter_funcs module
+-------------------------------------------
+
+.. automodule:: ibeis.control.manual_encounter_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_feat_funcs module
+--------------------------------------
+
+.. automodule:: ibeis.control.manual_feat_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_garelate_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_garelate_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_ibeiscontrol_funcs module
+----------------------------------------------
+
+.. automodule:: ibeis.control.manual_ibeiscontrol_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_image_funcs module
+---------------------------------------
+
+.. automodule:: ibeis.control.manual_image_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lblannot_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_lblannot_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lblimage_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_lblimage_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_lbltype_funcs module
+-----------------------------------------
+
+.. automodule:: ibeis.control.manual_lbltype_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_meta_funcs module
+--------------------------------------
+
+.. automodule:: ibeis.control.manual_meta_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_name_funcs module
+--------------------------------------
+
+.. automodule:: ibeis.control.manual_name_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_species_funcs module
+-----------------------------------------
+
+.. automodule:: ibeis.control.manual_species_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_wildbook_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_wildbook_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.control
+    :members:
+    :undoc-members:
+    :show-inheritance:

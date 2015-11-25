@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_nearest_descriptors &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_nearest_descriptors</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_nearest_descriptors</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">plottool.viz_featrow</span> <span class="kn">import</span> <span class="n">draw_feat_row</span>
+<span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_nndesc]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_annotfeat_nn_index"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_nearest_descriptors.get_annotfeat_nn_index">[docs]</a><span class="k">def</span> <span class="nf">get_annotfeat_nn_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#raise NotImplementedError(&#39;this doesnt work anymore. Need to submit mc4 query with metadata on and then reextract the required params&#39;)</span>
+    <span class="c">#from . import match_chips3 as mc3</span>
+    <span class="c">#ibs._init_query_requestor()</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">()</span>
+    <span class="c">#qreq = mc3.quickly_ensure_qreq(ibs, [qaid])</span>
+    <span class="n">qfx2_vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="n">qfx</span><span class="p">:(</span><span class="n">qfx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Knorm = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Knorm</span><span class="p">,))</span>
+    <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vecs</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">qfx2_daid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
+    <span class="n">qfx2_dfx</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qfx2_daid</span><span class="p">,</span> <span class="n">qfx2_dfx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span>
+
+
+<span class="c">#@utool.indent_func(&#39;[show_neardesc]&#39;)</span></div>
+<div class="viewcode-block" id="show_nearest_descriptors"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_nearest_descriptors.show_nearest_descriptors">[docs]</a><span class="k">def</span> <span class="nf">show_nearest_descriptors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                             <span class="n">consecutive_distance_compare</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        qaid (int):  query annotation id</span>
+<span class="sd">        qfx (query feature index):</span>
+<span class="sd">        fnum (int):  figure number</span>
+<span class="sd">        stride (int):</span>
+<span class="sd">        consecutive_distance_compare (bool):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        plottool.viz_featrow</span>
+<span class="sd">        ~/code/plottool/plottool/viz_featrow.py</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_nearest_descriptors import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid = 1</span>
+<span class="sd">        &gt;&gt;&gt; qfx = 225</span>
+<span class="sd">        &gt;&gt;&gt; fnum = None</span>
+<span class="sd">        &gt;&gt;&gt; stride = 5</span>
+<span class="sd">        &gt;&gt;&gt; consecutive_distance_compare = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = show_nearest_descriptors(ibs, qaid, qfx, fnum, stride, consecutive_distance_compare)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Plots the nearest neighbors of a given feature (qaid, qfx)</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># Flann NN query</span>
+        <span class="p">(</span><span class="n">qfx2_daid</span><span class="p">,</span> <span class="n">qfx2_dfx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_annotfeat_nn_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">)</span>
+
+        <span class="c"># Adds metadata to a feature match</span>
+        <span class="k">def</span> <span class="nf">get_extract_tuple</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">k</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">rchip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">kp</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
+            <span class="n">sift</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
+            <span class="n">aidstr</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">nidstr</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_nidstrs</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
+            <span class="n">id_str</span> <span class="o">=</span> <span class="n">aidstr</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">nidstr</span> <span class="o">+</span> <span class="s">&#39; fx=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fx</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">query: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,)</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s">&#39;query&#39;</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">K</span><span class="p">:</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s">&#39;match&#39;</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">match: </span><span class="si">%s</span><span class="se">\n</span><span class="s">k=</span><span class="si">%r</span><span class="s">, dist=</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">Knorm</span> <span class="o">+</span> <span class="n">K</span><span class="p">:</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s">&#39;norm&#39;</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">norm:  </span><span class="si">%s</span><span class="se">\n</span><span class="s">k=</span><span class="si">%r</span><span class="s">, dist=</span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;[viz] problem k=</span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+
+        <span class="n">extracted_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Remember the query sift feature</span>
+        <span class="n">extracted_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_extract_tuple</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qfx</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">origsift</span> <span class="o">=</span> <span class="n">extracted_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">skipped</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">qfx2_daid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">qaid</span> <span class="ow">and</span> <span class="n">qfx2_dfx</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">qfx</span><span class="p">:</span>
+                <span class="n">skipped</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="n">tup</span> <span class="o">=</span> <span class="n">get_extract_tuple</span><span class="p">(</span><span class="n">qfx2_daid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="n">qfx2_dfx</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">extracted_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+        <span class="c"># Draw the _select_ith_match plot</span>
+        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">),</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">stride</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">stride</span> <span class="o">=</span> <span class="n">nRows</span>
+        <span class="c"># Draw selected feature matches</span>
+        <span class="n">prevsift</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># plot offset</span>
+        <span class="n">px_shift</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># plot stride shift</span>
+        <span class="n">nExtracted</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">listx</span><span class="p">,</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+            <span class="k">if</span> <span class="n">listx</span> <span class="o">%</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># Create a temporary nRows and fnum in case we are splitting</span>
+                <span class="c"># up nearest neighbors into separate figures with stride</span>
+                <span class="n">_fnum</span> <span class="o">=</span> <span class="n">fnum</span> <span class="o">+</span> <span class="n">listx</span>
+                <span class="n">_nRows</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nExtracted</span> <span class="o">-</span> <span class="n">listx</span><span class="p">,</span> <span class="n">stride</span><span class="p">)</span>
+                <span class="n">px_shift</span> <span class="o">=</span> <span class="n">px</span>
+                <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">_fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[viz] &#39;</span> <span class="o">+</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+            <span class="n">px_</span> <span class="o">=</span> <span class="n">px</span> <span class="o">-</span> <span class="n">px_shift</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">draw_feat_row</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">_fnum</span><span class="p">,</span> <span class="n">_nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px_</span><span class="p">,</span>
+                               <span class="n">prevsift</span><span class="o">=</span><span class="n">prevsift</span><span class="p">,</span> <span class="n">origsift</span><span class="o">=</span><span class="n">origsift</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="n">type_</span><span class="p">)</span> <span class="o">+</span> <span class="n">px_shift</span>
+            <span class="k">if</span> <span class="n">prevsift</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">consecutive_distance_compare</span><span class="p">:</span>
+                <span class="n">prevsift</span> <span class="o">=</span> <span class="n">sift</span>
+
+        <span class="n">df2</span><span class="o">.</span><span class="n">adjust_subplots_safe</span><span class="p">(</span><span class="n">hspace</span><span class="o">=.</span><span class="mi">85</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=.</span><span class="mi">95</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=.</span><span class="mi">087</span><span class="p">,</span> <span class="n">left</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">right</span><span class="o">=.</span><span class="mi">95</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] Error in show nearest descriptors&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_nearest_descriptors</span>
+<span class="sd">        python -m ibeis.viz.viz_nearest_descriptors --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_nearest_descriptors --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

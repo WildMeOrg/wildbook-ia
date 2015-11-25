@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.qt_inc_automatch &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.qt_inc_automatch</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.model.hots.qt_inc_automatch</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine:</span>
+<span class="sd">    &gt;&gt;&gt; # Profile</span>
+<span class="sd">    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --stateful-query</span>
+<span class="sd">    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0</span>
+
+<span class="sd">    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ia 0</span>
+<span class="sd">    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ia 0 --force-serial</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    &gt;&gt;&gt; # Autonomous Test</span>
+<span class="sd">    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    &gt;&gt;&gt; # Interactive Test</span>
+<span class="sd">    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1 --ia 0 --aid_order=same</span>
+<span class="sd">    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 0</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    * spatially constrained matching</span>
+<span class="sd">    * benchmarks for reconstruction</span>
+<span class="sd">      vs addition.</span>
+<span class="sd">        - accuracy</span>
+<span class="sd">           compares percent of correct</span>
+<span class="sd">           error = (qfx2_idx_reindex != qfx2_idx_append).sum()</span>
+<span class="sd">        - time</span>
+<span class="sd">           compares time of</span>
+<span class="sd">              - addition</span>
+<span class="sd">              - reindex</span>
+<span class="sd">              - multindex search</span>
+<span class="sd">              - regular search</span>
+<span class="sd">           error = (qfx2_idx_reindex != qfx2_idx_append).sum()</span>
+
+<span class="sd">#import numpy as np</span>
+<span class="sd">#import sys</span>
+<span class="sd">#from ibeis.model.hots import automated_oracle as ao</span>
+<span class="sd">#from ibeis.model.hots import automated_helpers as ah</span>
+<span class="sd">#from ibeis.model.hots import special_query   *</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">import</span> <span class="nn">guitool</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span> <span class="k">as</span> <span class="n">automatch</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automated_helpers</span> <span class="k">as</span> <span class="n">ah</span>
+<span class="c"># Can&#39;t inject print into this module  otherwise bad things happen</span>
+<span class="c"># with qt signals and slots</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[qtinc]&#39;</span><span class="p">)</span>
+<span class="c">#print, print_, printDBG, rrr, profile = ut.inject(__name__, &#39;[qtinc]&#39;)</span>
+
+
+<span class="n">INC_LOOP_BASE</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">__PYQT__</span><span class="o">.</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span>
+
+
+<div class="viewcode-block" id="test_inc_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.test_inc_query">[docs]</a><span class="k">def</span> <span class="nf">test_inc_query</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">num_initial</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    entry point for interactive query tests</span>
+<span class="sd">    test_interactive_incremental_queries</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs       (list) : IBEISController object</span>
+<span class="sd">        qaid_list (list) : list of annotation-ids to query</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t inc --db PZ_MTEST --qaid 1:30:3 --cmd</span>
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --cmd</span>
+<span class="sd">        python dev.py --db PZ_MTEST --allgt -t inc</span>
+<span class="sd">        python dev.py --db PZ_MTEST --allgt -t inc</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0  --interact-after 444440 --noqcache</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1  --interact-after 444440 --noqcache</span>
+
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:2</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3</span>
+
+<span class="sd">        utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ninit 5000</span>
+<span class="sd">        utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0</span>
+
+<span class="sd">        # Writes out test script</span>
+<span class="sd">        python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tinc.sh&#39;, &#39;ibeis.model.hots.qt_inc_automatch&#39;)&quot;</span>
+
+<span class="sd">        sh Tinc.sh --test-test_inc_query:0</span>
+<span class="sd">        sh Tinc.sh --test-test_inc_query:1</span>
+<span class="sd">        sh Tinc.sh --test-test_inc_query:2</span>
+<span class="sd">        sh Tinc.sh --test-test_inc_query:3</span>
+
+<span class="sd">        utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000</span>
+
+<span class="sd">        sh Tinc.sh --test-test_inc_query:0 --ninit 10</span>
+<span class="sd">        sh Tinc.sh --test-test_inc_query:0 --ninit 10 --verbose-debug --verbose-helpful</span>
+
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 10</span>
+
+<span class="sd">        # Runs into a merge case</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 30</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_gt = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_inc_query(ibs_gt)</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_gt = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_inc_query(ibs_gt)</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_gt = ibeis.opendb(&#39;GZ_ALL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_inc_query(ibs_gt)</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.automated_matcher import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs_gt = ibeis.opendb(&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_inc_query(ibs_gt)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">main_module</span>
+    <span class="n">main_module</span><span class="o">.</span><span class="n">_preload</span><span class="p">()</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+    <span class="n">num_initial</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">IncQueryHarness</span><span class="p">()</span>
+    <span class="n">num_initial</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--num-initial&#39;</span><span class="p">,</span> <span class="s">&#39;--num-init&#39;</span><span class="p">,</span> <span class="s">&#39;--ninit&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">interactive_after</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--interactive-after&#39;</span><span class="p">,</span> <span class="s">&#39;--ia&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c"># Add information to an empty database from a groundtruth database</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span> <span class="o">=</span> <span class="n">ah</span><span class="o">.</span><span class="n">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">_init_gui</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">interactive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_incremental_query</span><span class="p">(</span>
+        <span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">,</span>
+        <span class="n">interactive_after</span><span class="o">=</span><span class="n">interactive_after</span><span class="p">,</span> <span class="n">num_initial</span><span class="o">=</span><span class="n">num_initial</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="n">back</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">interactive</span><span class="p">:</span>
+        <span class="c"># need to startup backend</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">_init_gui</span><span class="p">()</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">interactive</span> <span class="ow">or</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="incremental_test_qt"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.incremental_test_qt">[docs]</a><span class="k">def</span> <span class="nf">incremental_test_qt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">num_initial</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --test-incremental_test_qt</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.qt_inc_automatch import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; main_locals = ibeis.main(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = main_locals[&#39;ibs&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; back = main_locals[&#39;back&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; #num_initial = 0</span>
+<span class="sd">        &gt;&gt;&gt; num_initial = 0</span>
+<span class="sd">        &gt;&gt;&gt; incremental_test_qt(ibs, num_initial)</span>
+<span class="sd">        &gt;&gt;&gt; pt.present()</span>
+<span class="sd">        &gt;&gt;&gt; execstr = ibeis.main_loop(main_locals)</span>
+<span class="sd">        &gt;&gt;&gt; print(execstr)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+    <span class="c">#daid_list = ibs.get_valid_aids()</span>
+    <span class="n">exec_interactive_incremental_queries</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="exec_interactive_incremental_queries"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.exec_interactive_incremental_queries">[docs]</a><span class="k">def</span> <span class="nf">exec_interactive_incremental_queries</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)),</span> <span class="s">&#39;must be all on same species&#39;</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">IncQueryHarness</span><span class="p">()</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin_incremental_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="n">back</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="IncQueryHarness"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness">[docs]</a><span class="k">class</span> <span class="nc">IncQueryHarness</span><span class="p">(</span><span class="n">INC_LOOP_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides incremental and interactive query with a way to work around hitting</span>
+<span class="sd">    the recusion limit.</span>
+
+<span class="sd">    TODO: maybe abstract this into a interuptable loop harness</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">next_query_signal</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">signal_</span><span class="p">()</span>
+    <span class="n">name_decision_signal</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">signal_</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    <span class="n">exemplar_decision_signal</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">signal_</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">INC_LOOP_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inc_query_gen</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c"># connect signals to slots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_query_signal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_query_slot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_decision_signal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_decision_slot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exemplar_decision_signal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exemplar_decision_slot</span><span class="p">)</span>
+        <span class="c"># Weird we need to put emits inside this closure scope otherwise</span>
+        <span class="c"># we get a segfault. Thanks PyQt</span>
+        <span class="k">def</span> <span class="nf">next_query_callback</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">next_query_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">name_decision_callback</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name_decision_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">exemplar_decision_callback</span><span class="p">(</span><span class="n">exemplar_decision</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exemplar_decision_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">exemplar_decision</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;next_query_callback&#39;</span><span class="p">:</span> <span class="n">next_query_callback</span><span class="p">,</span>
+            <span class="s">&#39;name_decision_callback&#39;</span><span class="p">:</span> <span class="n">name_decision_callback</span><span class="p">,</span>
+            <span class="s">&#39;exemplar_decision_callback&#39;</span><span class="p">:</span> <span class="n">exemplar_decision_callback</span><span class="p">,</span>
+            <span class="s">&#39;metatup&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;use_oracle&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;interactive&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;count&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;fnum&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="c">#&#39;next_query_callback&#39;: self.next_query_signal.emit,</span>
+            <span class="c">#&#39;name_decision_callback&#39;: self.name_decision_signal.emit,</span>
+            <span class="c">#&#39;try_decision_callback&#39;: self.try_decision_signal.emit</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="IncQueryHarness.setup_back_callbacks"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.setup_back_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">setup_back_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">functools</span>
+        <span class="kn">from</span> <span class="nn">ibeis.gui.guiheaders</span> <span class="kn">import</span> <span class="n">NAMES_TREE</span>  <span class="c"># ADD AS NEEDED</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">set_table_tab</span><span class="p">(</span><span class="n">NAMES_TREE</span><span class="p">)</span>
+        <span class="n">update_callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">,</span> <span class="n">tblnames</span><span class="o">=</span><span class="p">[</span><span class="n">NAMES_TREE</span><span class="p">])</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;update_callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_callback</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;finish_callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">user_info</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Finished Query&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="IncQueryHarness.test_incremental_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.test_incremental_query">[docs]</a>    <span class="k">def</span> <span class="nf">test_incremental_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">,</span>
+                               <span class="n">num_initial</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">interactive_after</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds and queries new annotations one at a time with oracle guidance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">incinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span>
+        <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup_back_callbacks</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+        <span class="c">#incinfo[&#39;nTotal&#39;] = len(aid_list1)</span>
+        <span class="c"># Create test query generator</span>
+        <span class="n">next_query_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]</span>  <span class="c"># NOQA</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inc_query_gen</span> <span class="o">=</span> <span class="n">automatch</span><span class="o">.</span><span class="n">test_generate_incremental_queries</span><span class="p">(</span>
+            <span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">,</span> <span class="n">num_initial</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
+        <span class="c"># When in interactive mode it seems like the stack never gets out of hand</span>
+        <span class="c"># but if the oracle is allowed to make decisions and emit signals like</span>
+        <span class="c"># the user then we get into a maximum recursion limit.</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;use_oracle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">hack_run_name_decision</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;test_incremental_query&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">item</span>  <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inc_query_gen</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span> <span class="o">=</span> <span class="n">item</span>
+                <span class="c"># update incinfo</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cm</span>      <span class="o">=</span> <span class="n">cm</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span>     <span class="o">=</span> <span class="n">qreq_</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span> <span class="o">=</span> <span class="n">incinfo</span>
+                <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;STOP&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;STOP triggered&#39;</span><span class="p">)</span>
+                    <span class="n">interactive_after</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_query_callback</span>
+                    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;use_oracle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">hack_run_name_decision</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">break</span>
+                <span class="n">automatch</span><span class="o">.</span><span class="n">run_until_name_decision_signal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+                <span class="c">#ut.embed()</span>
+                <span class="k">if</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">interactive_after</span><span class="p">:</span>
+                    <span class="c"># stop the automated queries and start interaction</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Interactive after triggered&#39;</span><span class="p">)</span>
+                    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">break</span>
+
+        <span class="c"># BEGIN INTERACTIVE PART</span>
+        <span class="c"># (this does nothing if inc_query_gen is exhausted)</span>
+        <span class="c"># need to fix the incinfo dictionary</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_query_callback</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;use_oracle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c">#incinfo[&#39;metatup&#39;] = None</span>
+        <span class="k">if</span> <span class="n">hack_run_name_decision</span><span class="p">:</span>
+            <span class="c"># need to rn this so STOP can trigger user interaction</span>
+            <span class="n">automatch</span><span class="o">.</span><span class="n">run_until_name_decision_signal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]()</span>
+        <span class="k">return</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="IncQueryHarness.begin_incremental_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.begin_incremental_query">[docs]</a>    <span class="k">def</span> <span class="nf">begin_incremental_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        runs incremental query in live mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="n">incinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span>
+        <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup_back_callbacks</span><span class="p">(</span><span class="n">back</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+        <span class="c"># Create live query generator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inc_query_gen</span> <span class="o">=</span> <span class="n">automatch</span><span class="o">.</span><span class="n">generate_incremental_queries</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+        <span class="c"># Call the first query</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;next_query_callback&#39;</span><span class="p">]()</span>
+
+    <span class="c">#@guitool.slot_()</span></div>
+    <span class="nd">@QtCore.pyqtSlot</span><span class="p">()</span>
+<div class="viewcode-block" id="IncQueryHarness.next_query_slot"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.next_query_slot">[docs]</a>    <span class="k">def</span> <span class="nf">next_query_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        callback used when all interactions are completed.</span>
+<span class="sd">        Generates the next incremental query and then tries</span>
+<span class="sd">        the automatic interactions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Generate the query result</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inc_query_gen</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="c"># update incinfo</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cm</span>      <span class="o">=</span> <span class="n">cm</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span>     <span class="o">=</span> <span class="n">qreq_</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span> <span class="o">=</span> <span class="n">incinfo</span>
+            <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">automatch</span><span class="o">.</span><span class="n">run_until_name_decision_signal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+            <span class="c">#import plottool as pt</span>
+            <span class="c">#pt.present()</span>
+
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="c">#TODO: close this figure</span>
+            <span class="c"># incinfo[&#39;fnum&#39;]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;NO MORE QUERIES. CLOSE DOWN WINDOWS AND DISPLAY DONE MESSAGE&#39;</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+            <span class="n">fig1</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">511</span><span class="p">)</span>
+            <span class="n">fig2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">close_figure</span><span class="p">(</span><span class="n">fig1</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">close_figure</span><span class="p">(</span><span class="n">fig2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s">&#39;finish_callback&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;update_callback&#39;</span><span class="p">]()</span>
+            <span class="k">if</span> <span class="s">&#39;finish_callback&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;finish_callback&#39;</span><span class="p">]()</span>
+            <span class="k">pass</span>
+
+    <span class="c">#@guitool.slot_(list)</span>
+    <span class="c">#@QtCore.pyqtSlot(list)</span>
+    <span class="c"># overloaded signatures</span>
+    <span class="c">#@QtCore.pyqtSlot(str)</span>
+    <span class="c">#@QtCore.pyqtSlot(list)</span></div>
+    <span class="nd">@QtCore.pyqtSlot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+<div class="viewcode-block" id="IncQueryHarness.name_decision_slot"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.name_decision_slot">[docs]</a>    <span class="k">def</span> <span class="nf">name_decision_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        the name decision signal was emited</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#print(&#39;[QT] name_decision_slot&#39;)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">cm</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span>
+        <span class="n">qreq_</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span>
+        <span class="n">incinfo</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span>
+        <span class="n">automatch</span><span class="o">.</span><span class="n">exec_name_decision_and_continue</span><span class="p">(</span>
+            <span class="n">chosen_names</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+
+    <span class="c">#@guitool.slot_(bool)</span></div>
+    <span class="nd">@QtCore.pyqtSlot</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+<div class="viewcode-block" id="IncQueryHarness.exemplar_decision_slot"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.qt_inc_automatch.IncQueryHarness.exemplar_decision_slot">[docs]</a>    <span class="k">def</span> <span class="nf">exemplar_decision_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">):</span>
+        <span class="n">incinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">cm</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span>
+        <span class="n">qreq_</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span>
+        <span class="n">incinfo</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incinfo</span>
+        <span class="n">automatch</span><span class="o">.</span><span class="n">exec_exemplar_decision_and_continue</span><span class="p">(</span>
+            <span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
+        <span class="c">#automatch.exec_name_exemplar_and_continue(name, choicetup, ibs, cm,</span>
+        <span class="c">#                                          qreq_, incinfo=incinfo)</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.qt_inc_automatch --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+ibeis.tests package
+===================
+
+Submodules
+----------
+
+ibeis.tests.assert_modules module
+---------------------------------
+
+.. automodule:: ibeis.tests.assert_modules
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.reset_testdbs module
+--------------------------------
+
+.. automodule:: ibeis.tests.reset_testdbs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.run_tests module
+----------------------------
+
+.. automodule:: ibeis.tests.run_tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_annotation module
+-----------------------------------------
+
+.. automodule:: ibeis.tests.test_delete_annotation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_annotation_all module
+---------------------------------------------
+
+.. automodule:: ibeis.tests.test_delete_annotation_all
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_annotation_chips module
+-----------------------------------------------
+
+.. automodule:: ibeis.tests.test_delete_annotation_chips
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_chips module
+------------------------------------
+
+.. automodule:: ibeis.tests.test_delete_chips
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_enc module
+----------------------------------
+
+.. automodule:: ibeis.tests.test_delete_enc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_delete_features module
+---------------------------------------
+
+.. automodule:: ibeis.tests.test_delete_features
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_gui_add_annotation module
+------------------------------------------
+
+.. automodule:: ibeis.tests.test_gui_add_annotation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_gui_all module
+-------------------------------
+
+.. automodule:: ibeis.tests.test_gui_all
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_gui_import_images module
+-----------------------------------------
+
+.. automodule:: ibeis.tests.test_gui_import_images
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_gui_open_database module
+-----------------------------------------
+
+.. automodule:: ibeis.tests.test_gui_open_database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_gui_selection module
+-------------------------------------
+
+.. automodule:: ibeis.tests.test_gui_selection
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs module
+---------------------------
+
+.. automodule:: ibeis.tests.test_ibs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_control module
+-----------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_control
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_convert_bbox_poly module
+---------------------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_convert_bbox_poly
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_detect module
+----------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_detect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_detectimg_compute module
+---------------------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_detectimg_compute
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_encounters module
+--------------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_encounters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_feat_compute module
+----------------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_feat_compute
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_getters module
+-----------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_getters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_info module
+--------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_info
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_query_components module
+--------------------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_query_components
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_ibs_uuid module
+--------------------------------
+
+.. automodule:: ibeis.tests.test_ibs_uuid
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_new_schema module
+----------------------------------
+
+.. automodule:: ibeis.tests.test_new_schema
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_pil_hash module
+--------------------------------
+
+.. automodule:: ibeis.tests.test_pil_hash
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_qt_tree module
+-------------------------------
+
+.. automodule:: ibeis.tests.test_qt_tree
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_control module
+-----------------------------------
+
+.. automodule:: ibeis.tests.test_sql_control
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_ids module
+-------------------------------
+
+.. automodule:: ibeis.tests.test_sql_ids
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_modify module
+----------------------------------
+
+.. automodule:: ibeis.tests.test_sql_modify
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_names module
+---------------------------------
+
+.. automodule:: ibeis.tests.test_sql_names
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_numpy module
+---------------------------------
+
+.. automodule:: ibeis.tests.test_sql_numpy
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_sql_revert module
+----------------------------------
+
+.. automodule:: ibeis.tests.test_sql_revert
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_utool_parallel module
+--------------------------------------
+
+.. automodule:: ibeis.tests.test_utool_parallel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.tests.test_weakref module
+-------------------------------
+
+.. automodule:: ibeis.tests.test_weakref
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

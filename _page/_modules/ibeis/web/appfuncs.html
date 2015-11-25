@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.appfuncs &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.appfuncs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.web.appfuncs</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">jinja2</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<span class="n">TARGET_WIDTH</span> <span class="o">=</span> <span class="mf">1200.0</span>
+
+
+<div class="viewcode-block" id="NavbarClass"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.NavbarClass">[docs]</a><span class="k">class</span> <span class="nc">NavbarClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+        <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;root&#39;</span><span class="p">,</span> <span class="s">&#39;Home&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;view&#39;</span><span class="p">,</span> <span class="s">&#39;View&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="s">&#39;Turk&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;api&#39;</span><span class="p">,</span>  <span class="s">&#39;API&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;group_review&#39;</span><span class="p">,</span>  <span class="s">&#39;Group Review&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+        <span class="n">_link</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span> <span class="ow">in</span> <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">link</span> <span class="o">==</span> <span class="n">_link</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span>
+
+</div>
+<span class="n">ORIENTATIONS</span> <span class="o">=</span> <span class="p">{</span>   <span class="c"># used in apply_orientation</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,),</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_180</span><span class="p">,),</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_TOP_BOTTOM</span><span class="p">,),</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">),</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">,),</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">),</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">,)</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="open_oriented_image"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.open_oriented_image">[docs]</a><span class="k">def</span> <span class="nf">open_oriented_image</span><span class="p">(</span><span class="n">im_path</span><span class="p">):</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">im_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="s">&#39;_getexif&#39;</span><span class="p">):</span>
+        <span class="n">exif</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">_getexif</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">exif</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="mi">274</span> <span class="ow">in</span> <span class="n">exif</span><span class="p">:</span>
+            <span class="n">orientation</span> <span class="o">=</span> <span class="n">exif</span><span class="p">[</span><span class="mi">274</span><span class="p">]</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">im</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span>
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">img</span>
+
+</div>
+<div class="viewcode-block" id="apply_orientation"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.apply_orientation">[docs]</a><span class="k">def</span> <span class="nf">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This script handles the skimage exif problem.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">[</span><span class="n">orientation</span><span class="p">]:</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">im</span>
+
+</div>
+<div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates an image embedded in HTML base64 format. &quot;&quot;&quot;</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">((</span><span class="mi">255</span> <span class="o">*</span> <span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;uint8&#39;</span><span class="p">))</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">filter_width</span><span class="p">:</span>
+        <span class="n">_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">TARGET_WIDTH</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_height</span><span class="p">)</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">TARGET_WIDTH</span><span class="p">)</span>
+        <span class="n">_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">_width</span><span class="p">,</span> <span class="n">_height</span><span class="p">))</span>
+    <span class="n">string_buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">string_buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;data:image/jpeg;base64,&#39;</span> <span class="o">+</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="return_src"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.return_src">[docs]</a><span class="k">def</span> <span class="nf">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">image_src</span> <span class="o">=</span> <span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_src</span>
+
+</div>
+<div class="viewcode-block" id="check_valid_function_name"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.check_valid_function_name">[docs]</a><span class="k">def</span> <span class="nf">check_valid_function_name</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="encode_refer_url"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.encode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">encode_refer_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="decode_refer_url"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.decode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">decode_refer_url</span><span class="p">(</span><span class="n">encode</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">encode</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="template"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.template">[docs]</a><span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="n">template_directory</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">template_filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">global_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
+        <span class="s">&#39;YEAR&#39;</span><span class="p">:</span>   <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+        <span class="s">&#39;URL&#39;</span><span class="p">:</span>    <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+        <span class="s">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span>  <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer&#39;</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] REFER: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">template_directory</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="c">#template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
+        <span class="c">#template_directory = join(dirname(dirname(__file__)))</span>
+    <span class="k">if</span> <span class="n">template_filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">template_filename</span> <span class="o">=</span> <span class="s">&#39;index&#39;</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s">&#39;.html&#39;</span><span class="p">)</span>
+    <span class="c"># Update global args with the template&#39;s args</span>
+    <span class="n">_global_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">global_args</span><span class="p">)</span>
+    <span class="n">_global_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs] template()&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
+    <span class="c"># flask hates windows apparently</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">template_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * app.template_folder = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_directory = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_directory</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_filename = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_filename</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template_</span><span class="p">,</span> <span class="o">**</span><span class="n">_global_args</span><span class="p">)</span>
+        <span class="c">#ret = flask.render_template(full_template_fpath, **_global_args)</span>
+    <span class="k">except</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TemplateNotFound</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error template not found&#39;</span><span class="p">)</span>
+        <span class="n">full_template_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,</span> <span class="n">template_</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * full_template_fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Template error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="send_file"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.send_file">[docs]</a><span class="k">def</span> <span class="nf">send_file</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;File Transfer&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Cache-Control&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;no-cache&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;text/csv&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;attachment; filename=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">filename</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

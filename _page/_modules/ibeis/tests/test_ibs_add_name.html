@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.test_ibs_add_name &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.test_ibs_add_name</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.tests.test_ibs_add_name</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_ADD_NAMES]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TEST_ADD_NAMES"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_add_name.TEST_ADD_NAMES">[docs]</a><span class="k">def</span> <span class="nf">TEST_ADD_NAMES</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] GET_TEST_IMAGE_PATHS&#39;</span><span class="p">)</span>
+    <span class="n">orig_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">orig_nids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;the database should be empty&#39;</span>
+    <span class="c"># The test api returns a list of interesting chip indexes</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;____&#39;</span><span class="p">,</span> <span class="s">&#39;06_410&#39;</span><span class="p">,</span> <span class="s">&#39;07_061&#39;</span><span class="p">,</span> <span class="s">&#39;02_044&#39;</span><span class="p">,</span> <span class="s">&#39;07_091&#39;</span><span class="p">,</span> <span class="s">&#39;04_110&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;07_233&#39;</span><span class="p">,</span> <span class="s">&#39;07_267&#39;</span><span class="p">,</span> <span class="s">&#39;07_272&#39;</span><span class="p">,</span> <span class="s">&#39;07_300&#39;</span><span class="p">,</span> <span class="s">&#39;04_035&#39;</span><span class="p">,</span> <span class="s">&#39;08_013&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;08_016&#39;</span><span class="p">,</span> <span class="s">&#39;02_1110&#39;</span><span class="p">,</span> <span class="s">&#39;08_019&#39;</span><span class="p">,</span> <span class="s">&#39;08_020&#39;</span><span class="p">,</span> <span class="s">&#39;08_038&#39;</span><span class="p">,</span> <span class="s">&#39;01_305&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;08_045&#39;</span><span class="p">,</span> <span class="s">&#39;08_051&#39;</span><span class="p">,</span> <span class="s">&#39;01_340&#39;</span><span class="p">,</span> <span class="s">&#39;08_070&#39;</span><span class="p">,</span> <span class="s">&#39;02_168&#39;</span><span class="p">,</span> <span class="s">&#39;08_089&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;01_507&#39;</span><span class="p">,</span> <span class="s">&#39;08_106&#39;</span><span class="p">,</span> <span class="s">&#39;09_011&#39;</span><span class="p">,</span> <span class="s">&#39;01_106&#39;</span><span class="p">,</span> <span class="s">&#39;09_013&#39;</span><span class="p">,</span> <span class="s">&#39;09_020&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;02_1074&#39;</span><span class="p">,</span> <span class="s">&#39;09_054&#39;</span><span class="p">,</span> <span class="s">&#39;09_148&#39;</span><span class="p">,</span> <span class="s">&#39;09_185&#39;</span><span class="p">,</span> <span class="s">&#39;09_184&#39;</span><span class="p">,</span> <span class="s">&#39;09_196&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;01_217&#39;</span><span class="p">,</span> <span class="s">&#39;09_212&#39;</span><span class="p">,</span> <span class="s">&#39;01_461&#39;</span><span class="p">,</span> <span class="s">&#39;09_216&#39;</span><span class="p">,</span> <span class="s">&#39;09_215&#39;</span><span class="p">,</span> <span class="s">&#39;09_341&#39;</span><span class="p">]</span>
+
+    <span class="c"># add a duplicate</span>
+    <span class="n">name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
+        <span class="n">name_list_test</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">name_list_test</span> <span class="o">==</span> <span class="n">name_list</span><span class="p">,</span> <span class="s">&#39;sanity check&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s">&#39;bad name adder&#39;</span>
+        <span class="k">assert</span> <span class="n">nid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nid_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;first and last names should be the same&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">))),</span> <span class="s">&#39;num unique ids / names should be the same&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">TEST ERROR&#39;</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;error in test_ibs_add_name&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For win32</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb_empty&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_ADD_NAMES</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">ipython_execstr</span><span class="p">()</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.expt.results_all &mdash; ibeis 1.4.7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.4.7 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.expt" href="../expt.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.4.7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../expt.html">ibeis.expt</a> &raquo;</li>
+      
+    <li>ibeis.expt.results_all</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.expt.results_all</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DEPRICATE:</span>
+<span class="sd">    use TestResult instead</span>
+
+<span class="sd">not really used</span>
+<span class="sd">most things in here can be depricated</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_organizer</span>
+<span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_analyzer</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[results_all]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AllResults"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults">[docs]</a><span class="k">class</span> <span class="nc">AllResults</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data container for all compiled results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AllResults</span><span class="p">,</span> <span class="n">allres</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid2_qres&#39;</span><span class="p">])</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">allres</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="AllResults.get_orgtype"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_orgtype">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgtype</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype</span><span class="p">):</span>
+        <span class="n">orgres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">orgtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">orgres</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_cfgstr"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span>
+</div>
+<div class="viewcode-block" id="AllResults.make_title"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.make_title">[docs]</a>    <span class="k">def</span> <span class="nf">make_title</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">dbname</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">packstr</span><span class="p">(</span><span class="n">allres</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_qres"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_qres">[docs]</a>    <span class="k">def</span> <span class="nf">get_qres</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_orgres_desc_match_dists"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_orgres_desc_match_dists">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AllResults.get_orgres_annotationmatch_scores"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_orgres_annotationmatch_scores">[docs]</a>    <span class="k">def</span> <span class="nf">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">results_analyzer</span><span class="o">.</span><span class="n">get_orgres_annotationmatch_scores</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="init_allres"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.init_allres">[docs]</a><span class="k">def</span> <span class="nf">init_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="s">&#39;???&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Building allres&#39;</span><span class="p">)</span>
+    <span class="n">allres</span> <span class="o">=</span> <span class="n">AllResults</span><span class="p">()</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">organize_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">allres_cfgstr</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+    <span class="n">allres</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
+    <span class="k">return</span> <span class="n">allres</span>
+
+
+<span class="c"># ALL RESULTS CACHE</span>
+
+</div>
+<span class="n">__ALLRES_CACHE__</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">__QRESREQ_CACHE__</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="build_cache_key"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.build_cache_key">[docs]</a><span class="k">def</span> <span class="nf">build_cache_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">):</span>
+    <span class="c"># a little overconstrained</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">)</span>
+    <span class="n">data_hashid</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_hashid</span><span class="p">,</span> <span class="n">data_hashid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">key</span>
+
+</div>
+<div class="viewcode-block" id="get_qres_and_qreq_"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.get_qres_and_qreq_">[docs]</a><span class="k">def</span> <span class="nf">get_qres_and_qreq_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
+    <span class="n">qres_cache_key</span> <span class="o">=</span> <span class="n">build_cache_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span> <span class="o">=</span> <span class="n">__QRESREQ_CACHE__</span><span class="p">[</span><span class="n">qres_cache_key</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                                              <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                              <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="c"># Cache save</span>
+        <span class="n">__QRESREQ_CACHE__</span><span class="p">[</span><span class="n">qres_cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_allres"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.get_allres">[docs]</a><span class="k">def</span> <span class="nf">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_allres</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qaid_list (int): query annotation id</span>
+<span class="sd">        daid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        AllResults: allres</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = None</span>
+<span class="sd">        &gt;&gt;&gt; allres = get_allres(ibs, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(allres)</span>
+<span class="sd">        &gt;&gt;&gt; allres.allorg[&#39;top_true&#39;].printme3()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] get_allres&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">allres_key</span> <span class="o">=</span> <span class="n">build_cache_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">allres</span> <span class="o">=</span> <span class="n">__ALLRES_CACHE__</span><span class="p">[</span><span class="n">allres_key</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_qres_and_qreq_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">allres</span> <span class="o">=</span> <span class="n">init_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="c"># Cache save</span>
+        <span class="n">__ALLRES_CACHE__</span><span class="p">[</span><span class="n">allres_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">allres</span>
+    <span class="k">return</span> <span class="n">allres</span>
+
+
+<span class="c"># OLD Stuff</span>
+<span class="c">#    #allres = results_all.get_allres(ibs, qaid_list, daid_list)</span>
+<span class="c">#    #ut.embed()</span>
+<span class="c">#    #orgres = allres.allorg[&#39;rank0_true&#39;]</span>
+<span class="c">#    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)</span>
+<span class="c">#    #qres_list = ut.dict_take(qaid2_qres, qaid_list)</span>
+
+<span class="c">#    #def get_labeled_name_scores(ibs, qres_list):</span>
+<span class="c">#    #    &quot;&quot;&quot;</span>
+<span class="c">#    #    TODO: rectify with score_normalization.get_ibeis_score_training_data</span>
+<span class="c">#    #    This function does not return only the &quot;good values&quot;.</span>
+<span class="c">#    #    It is more for testing and validation than training.</span>
+<span class="c">#    #    &quot;&quot;&quot;</span>
+<span class="c">#    #    tp_nscores = []</span>
+<span class="c">#    #    tn_nscores = []</span>
+<span class="c">#    #    for qx, qres in enumerate(qres_list):</span>
+<span class="c">#    #        qaid = qres.get_qaid()</span>
+<span class="c">#    #        if not qres.is_nsum():</span>
+<span class="c">#    #            raise AssertionError(&#39;must be nsum&#39;)</span>
+<span class="c">#    #        if not ibs.get_annot_has_groundtruth(qaid):</span>
+<span class="c">#    #            continue</span>
+<span class="c">#    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())</span>
+<span class="c">#    #        # Get name scores for this query</span>
+<span class="c">#    #        nscoretup = qres.get_nscoretup(ibs)</span>
+<span class="c">#    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup</span>
+<span class="c">#    #        # TODO: take into account viewpoint / quality difference</span>
+<span class="c">#    #        sorted_nids = np.array(sorted_nids)</span>
+<span class="c">#    #        is_positive  = sorted_nids == qnid</span>
+<span class="c">#    #        is_negative = np.logical_and(~is_positive, sorted_nids &gt; 0)</span>
+<span class="c">#    #        if np.any(is_positive):</span>
+<span class="c">#    #            # Take only the top true name score</span>
+<span class="c">#    #            num_true = min(sum(is_positive), 1)</span>
+<span class="c">#    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]</span>
+<span class="c">#    #            tp_nscores.extend(sorted_nscores[gt_rank])</span>
+<span class="c">#    #        if np.any(is_negative):</span>
+<span class="c">#    #            # Take the top few false name scores</span>
+<span class="c">#    #            num_false = min(sum(is_negative), 3)</span>
+<span class="c">#    #            #num_false = min(sum(is_negative), 100000)</span>
+<span class="c">#    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]</span>
+<span class="c">#    #            tn_nscores.extend(sorted_nscores[gf_rank])</span>
+<span class="c">#    #    tp_nscores = np.array(tp_nscores).astype(np.float64)</span>
+<span class="c">#    #    tn_nscores = np.array(tn_nscores).astype(np.float64)</span>
+<span class="c">#    #    return tp_nscores, tn_nscores</span>
+<span class="c">#    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)</span>
+<span class="c">#from ibeis.model.hots import score_normalization</span>
+<span class="c">#tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)</span>
+<span class="c">#ut.embed()</span>
+<span class="c">#x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)</span>
+<span class="c">#pt.plots.plot_stems(x_data, y_data)</span>
+<span class="c">#pt.present()</span>
+<span class="c">#pt.show()</span>
+<span class="c">#locals_ = viz_allres_annotation_scores(allres)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, ibeis.expt.results_all; utool.doctest_funcs(ibeis.expt.results_all, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, ibeis.expt.results_all; utool.doctest_funcs(ibeis.expt.results_all)&quot;</span>
+<span class="sd">        python -m ibeis.expt.results_all --allexamples</span>
+<span class="sd">        python -m ibeis.expt.results_all --test-learn_score_normalization --enableall</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
