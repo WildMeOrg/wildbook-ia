@@ -19,14 +19,6 @@ ibeis.viz.viz_chip module
     :undoc-members:
     :show-inheritance:
 
-ibeis.viz.viz_graph module
---------------------------
-
-.. automodule:: ibeis.viz.viz_graph
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.viz.viz_helpers module
 ----------------------------
 
