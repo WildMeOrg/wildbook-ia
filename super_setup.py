@@ -237,6 +237,7 @@ ut.init_catch_ctrl_c()
 print('[super_setup] Checking third-party-libraries')
 
 FORCE_GUI = not ut.get_argflag('--nogui')
+print('Run with --nogui flag to force setup without qt')
 
 
 TPL_MODULES_AND_REPOS = [
