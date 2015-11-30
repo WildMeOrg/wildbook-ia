@@ -254,7 +254,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     """
     from ibeis.model.preproc import preproc_image
     from ibeis import ibsfuncs
-    print('params_list: %r' % (params_list, ))
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
     #print('[ibs] gpath_list = %r' % (gpath_list,))
@@ -274,7 +273,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                 'image_time_posix', 'image_gps_lat',
                 'image_gps_lon', 'image_note',)
     # <DEBUG>
-    debug = True
+    debug = False
     if debug:
         uuid_colx = colnames.index('image_uuid')
         uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
