@@ -1696,8 +1696,10 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         ext = _get_standard_ext(uri)
 
         uuid_ = _resolve(image_uuid_list, assert_=True)
+        print(uuid_, type(uuid_))
         if isinstance(uuid_, str):
             uuid_ = uuid.UUID(uuid_)
+        print(uuid_, type(uuid_))
 
         param_tup = (
             uuid_,
@@ -1705,11 +1707,11 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             uri,
             _resolve(image_orig_name_list, default=orig_gname),
             _resolve(image_ext_list, default=ext),
-            _resolve(image_width_list, assert_=True),
-            _resolve(image_height_list, assert_=True),
-            _resolve(image_time_posix_list, default=-1),
-            _resolve(image_gps_lat_list, default=-1.0),
-            _resolve(image_gps_lon_list, default=-1.0),
+            int(_resolve(image_width_list, assert_=True)),
+            int(_resolve(image_height_list, assert_=True)),
+            int(_resolve(image_time_posix_list, default=-1)),
+            float(_resolve(image_gps_lat_list, default=-1.0)),
+            float(_resolve(image_gps_lon_list, default=-1.0)),
             _resolve(image_notes_list),
         )
         return param_tup
