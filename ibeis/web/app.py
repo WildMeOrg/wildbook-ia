@@ -1697,7 +1697,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
 
         uuid_ = _resolve(image_uuid_list, assert_=True)
         print(uuid_, type(uuid_))
-        if isinstance(uuid_, str):
+        if isinstance(uuid_, (str, unicode)):
             uuid_ = uuid.UUID(uuid_)
         print(uuid_, type(uuid_))
 
@@ -1787,7 +1787,7 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
     import uuid
 
     image_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, str) else uuid_
+        uuid.UUID(uuid_) if isinstance(uuid_, (str, unicode)) else uuid_
         for uuid_ in image_uuid_list
     ]
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
