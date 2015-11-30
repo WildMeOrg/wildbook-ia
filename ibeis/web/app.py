@@ -1680,6 +1680,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
             if list_ is None or index >= len(list_) or list_[index] is None:
                 raise ValueError('Must specify all required fields')
             value = list_[index]
+            print(value, type(value))
             if isinstance(value, dict):
                 value = ut.s3_dict_encode_to_str(value)
             return value
@@ -1696,10 +1697,8 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         ext = _get_standard_ext(uri)
 
         uuid_ = _resolve(image_uuid_list, assert_=True)
-        print(uuid_, type(uuid_))
         if isinstance(uuid_, (str, unicode)):
             uuid_ = uuid.UUID(uuid_)
-        print(uuid_, type(uuid_))
 
         param_tup = (
             uuid_,
