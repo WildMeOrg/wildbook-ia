@@ -1723,8 +1723,9 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
                              force_serial=True, **kwargs)
     params_gen = list(params_gen)
     gpath_list = [ _[0] for _ in params_gen ]
-    gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)
-    return gid_list
+    ibs.add_images(gpath_list, params_list=params_gen, **kwargs)
+    # gid_list = ibs.add_images(gpath_list, params_list=params_gen, **kwargs)
+    # return gid_list
 
 
 @register_api('/api/annot/json/', methods=['POST'])
