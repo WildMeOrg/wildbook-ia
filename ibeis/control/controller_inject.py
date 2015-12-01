@@ -24,7 +24,6 @@ import os
 import hmac
 import string
 import random
-import requests
 # <flask>
 # TODO: allow optional flask import
 try:
@@ -478,6 +477,7 @@ def get_ibeis_flask_route(__name__):
 
 def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
                      **kwargs):
+    import requests
     if GLOBAL_APP_ENABLED and GLOBAL_APP is None:
         raise ValueError('Flask has not been initialized')
     api_name = remote_api_func.__name__
