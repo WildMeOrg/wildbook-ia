@@ -36,7 +36,7 @@ Theader_ibeiscontrol = ut.codeblock(
         python -m ibeis.templates.template_generator {argv_tail_str1}
         python -m ibeis.templates.template_generator {argv_tail_str2}
     """
-    from __future__ import absolute_import, division, print_function
+    from __future__ import absolute_import, division, print_function, unicode_literals
     import functools  # NOQA
     import six  # NOQA
     from six.moves import map, range, zip  # NOQA
@@ -46,7 +46,7 @@ Theader_ibeiscontrol = ut.codeblock(
     import utool as ut
     from ibeis.control import controller_inject
     from ibeis.control import accessor_decors  # NOQA
-    print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_{autogen_key}]')
+    print, rrr, profile = ut.inject2(__name__, '[autogen_{autogen_key}]')
 
     # Create dectorator to inject functions in this module into the IBEISController
     CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -57,7 +57,7 @@ Theader_ibeiscontrol = ut.codeblock(
 
 
     # REM def get_autogen_testdata():
-    def testdata_ibs(defaultdb='testdb1'):
+    def testdata_{autogen_key}(defaultdb='testdb1'):
         import ibeis
         ibs = ibeis.opendb(defaultdb=defaultdb)
         config2_ = None  # qreq_.qparams
@@ -107,7 +107,7 @@ Tadder_pl_dependant = ut.codeblock(
         Example0:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             # REM >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:2]
             # REM HACK
             >>> from ibeis import constants as const
@@ -121,7 +121,7 @@ Tadder_pl_dependant = ut.codeblock(
         Example1:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs('PZ_MTEST')
+            >>> {self}, config2_ = testdata_{autogen_key}('PZ_MTEST')
             >>> from ibeis import constants as const
             >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[0:7]
             >>> if '{root}' != '{parent}':
@@ -247,7 +247,7 @@ Tadder_rl_dependant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:2]
             >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}({root}_rowid_list, config2_=config2_)
             >>> assert len({leaf}_rowid_list) == len({root}_rowid_list)
@@ -289,7 +289,7 @@ Tcfg_rowid_getter = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
         if config2_ is not None:
@@ -345,7 +345,7 @@ Tdeleter_rl_depenant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:1]
             >>> # Ensure there are  some leafs to delete
             >>> {leaf}_rowid_list = ibs.get_{root}_{leaf}_rowid({root}_rowid_list, config2_=config2_, ensure=True)
@@ -393,7 +393,7 @@ Tdeleter_pl_depenant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[:2]
             >>> {self}.delete_{parent}_{leaf}({parent}_rowid_list, config2_=config2_)
         """
@@ -433,7 +433,7 @@ Tdeleter_native_tbl = ut.codeblock(
         Example:
             >>> # DISABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[:2]
             >>> num_deleted = {self}.delete_{tbl}({tbl}_rowid_list)
             >>> print('num_deleted = %r' % (num_deleted,))
@@ -477,7 +477,7 @@ Tider_all_rowids = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {self}._get_all_{tbl}_rowids()
         """
         all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
@@ -558,7 +558,7 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
         Example:
             >>> # DISABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {multicol}_list = {self}.get_{root}_{multicol}({root}_rowid_list, config2_=config2_)
             >>> assert len({multicol}_list) == len({root}_rowid_list)
@@ -594,7 +594,7 @@ Tgetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> ensure = False
             >>> {multicol}_list = {self}.get_{tbl}_{multicol}({tbl}_rowid_list, eager=eager)
@@ -661,7 +661,7 @@ Tgetter_table_column = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> eager = True
             >>> {col}_list = {self}.get_{tbl}_{col}({tbl}_rowid_list, eager=eager)
@@ -697,7 +697,7 @@ Tgetter_extern = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> eager = True
             >>> {externcol}_list = {self}.get_{tbl}_{externcol}({tbl}_rowid_list, eager=eager)
@@ -734,7 +734,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {leaf}_rowid_list1 = {self}.get_{root}_{leaf}_rowid({root}_rowid_list, config2_, ensure=False)
             >>> {leaf}_rowid_list2 = {self}.get_{root}_{leaf}_rowid({root}_rowid_list, config2_, ensure=True)
@@ -818,7 +818,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
 
         Timeit:
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> # Test to see if there is any overhead to injected vs native functions
             >>> %timeit get_{parent}_{leaf}_rowid({self}, {parent}_rowid_list)
             >>> %timeit {self}.get_{parent}_{leaf}_rowid({parent}_rowid_list)
@@ -826,7 +826,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()
             >>> ensure = False
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowid({parent}_rowid_list, config2_, ensure)
@@ -922,7 +922,7 @@ Tsetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, config2_ = testdata_ibs()
+            >>> {self}, config2_ = testdata_{autogen_key}()
             >>> {multicol}_list = get_{tbl}_{multicol}({self}, {tbl}_rowid_list)
         """
         id_iter = {tbl}_rowid_list
