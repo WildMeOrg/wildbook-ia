@@ -20,14 +20,18 @@ from ibeis.control import controller_inject
 from ibeis.control import accessor_decors  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[autogen_annotmatch]')
 
+
+if ut.VERYVERBOSE:
+    import itertools
+    x = itertools.count().next
+    print('DEBUG: PRE IMPORTING _AUTOGEN ANNOTMATCH FUNCS %s' % (x(),))
+
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
 if ut.VERYVERBOSE:
-    import itertools
-    x = itertools.count()
-    print('DEBUG: IMPORTING _AUTOGEN ANNOTMATCH FUNCS %s' % (x(),))
+    print('DEBUG: POST1 IMPORTING _AUTOGEN ANNOTMATCH FUNCS %s' % (x(),))
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
