@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+"""
+Depricate
+"""
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import plottool as pt
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[user_dialogs]')
+print, rrr, profile = ut.inject2(__name__, '[user_dialogs]')
 
 
 def convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup):
@@ -52,16 +54,19 @@ def wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, inc
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaids = [1]
         >>> daids = [2, 3, 4, 5]
-        >>> cm, qreq_ = ibs.query_chips(qaids, daids, cfgdict=dict(), return_request=True, return_cm=True)[0]
+        >>> cm, qreq_ = ibs.query_chips(qaids, daids, cfgdict=dict(),
+        >>>                             return_request=True, return_cm=True)[0]
         >>> choicetup = '?'
         >>> name_suggest_tup = '?'
         >>> incinfo = None
         >>> # execute function
-        >>> result = wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, incinfo)
+        >>> result = wait_for_user_name_decision(ibs, cm, qreq_, choicetup,
+        >>>                                      name_suggest_tup, incinfo)
         >>> # verify results
         >>> print(result)
         >>> ut.show_if_requested()
     """
+    import plottool as pt
     if cm is None:
         print('WARNING: qres is None')
 
@@ -73,7 +78,9 @@ def wait_for_user_name_decision(ibs, cm, qreq_, choicetup, name_suggest_tup, inc
         from ibeis.viz.interact import interact_query_decision
         print('Showing matplotlib window')
         # convert name choices into data for gui
-        comp_aids, suggest_aids = convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup)
+        comp_aids, suggest_aids = convert_name_suggestion_to_aids(ibs,
+                                                                  choicetup,
+                                                                  name_suggest_tup)
         # Update names tree callback
         # Let the harness do these callbacks
         #backend_callback = incinfo.get('backend_callback', None)
@@ -161,7 +168,8 @@ def wait_for_user_exemplar_decision(autoexemplar_msg, exemplar_decision,
         >>> autoexemplar_msg = '?'
         >>> exemplar_decision = '?'
         >>> exemplar_condience = '?'
-        >>> True = get_user_exemplar_decision(autoexemplar_msg, exemplar_decision, exemplar_condience)
+        >>> get_user_exemplar_decision(autoexemplar_msg, exemplar_decision,
+        >>>                            exemplar_condience)
         >>> # verify results
         >>> result = str(True)
         >>> print(result)

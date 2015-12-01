@@ -25,7 +25,7 @@ from ibeis.model.hots import user_dialogs
 from collections import namedtuple
 ut.noinject(__name__, '[inc]')
 #profile = ut.profile
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
+print, rrr, profile = ut.inject2(__name__, '[automatch]')
 
 Metatup = namedtuple('Metatup', ('ibs_gt', 'aid1_to_aid2'))
 

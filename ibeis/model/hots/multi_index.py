@@ -6,7 +6,6 @@ points to a single flann structure which seems to cause crashes.
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import zip, map, range
-from ibeis import ibsfuncs
 import numpy as np
 import utool as ut
 import vtool as vt
@@ -48,13 +47,13 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
         aidgroup_list, num_bins, allow_overflow=True, per_bin=1)
     if __debug__:
         # All groups have the same name
-        nidgroup_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
+        nidgroup_list = ibs.unflat_map(ibs.get_annot_name_rowids, aidgroup_list)
         for nidgroup in nidgroup_list:
             assert ut.list_allsame(nidgroup), 'bad name grouping'
     if __debug__:
         # All subsiquent indexer are subsets (in name/identity space)
         # of the previous
-        nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, aids_list)
+        nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
         prev_ = None
         for nids in nids_list:
             if prev_ is None:

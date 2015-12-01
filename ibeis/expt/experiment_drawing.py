@@ -3,23 +3,19 @@
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import numpy as np
-#from ibeis import params
 from os.path import join, dirname, split, basename, splitext
-from plottool import draw_func2 as df2
 import re
+import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.expt import test_result
 from ibeis.expt import old_storage
 from ibeis.model.hots import match_chips4 as mc4
-#from plottool import plot_helpers as ph
-from six.moves import map, range, input  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_drawres]')
+from six.moves import map, range
+print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
 
 
 SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
-#SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
 
 # only triggered if dump_extra is on
@@ -1294,7 +1290,7 @@ def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None,
     if rank is not None:
         prefix += 'rank%d_' % rank
     fname = prefix + ibs.annotstr(aid)
-    df2.set_figtitle(fname)
+    pt.set_figtitle(fname)
     seen.add(aid)
     if ut.VERBOSE:
         print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)

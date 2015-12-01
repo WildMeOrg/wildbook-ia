@@ -4,7 +4,7 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
-ut.noinject(__name__, '[ibeis.model.hots.__init__]', DEBUG=False)
+ut.noinject(__name__, '[ibeis.model.hots.__init__]')
 
 from ibeis.model.hots import automated_helpers
 from ibeis.model.hots import automated_matcher

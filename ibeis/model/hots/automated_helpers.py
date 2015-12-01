@@ -142,12 +142,11 @@ LONG TERM TASKS:
               networkx or some gephi like program and clustered by match score.
 
 """
-from __future__ import absolute_import, division, print_function
-import ibeis
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 from six.moves import input
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inchelp]')
+print, rrr, profile = ut.inject2(__name__, '[autohelp]')
 
 
 def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
@@ -281,6 +280,7 @@ def make_incremental_test_database(ibs_gt, aid_list1, reset):
     Returns:
         IBEISController: ibs2
     """
+    import ibeis
     print('make_incremental_test_database. reset=%r' % (reset,))
     aids1_hashid = ut.hashstr_arr(aid_list1)
     prefix = '_INCTEST_' + aids1_hashid + '_'

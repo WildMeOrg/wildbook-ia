@@ -5,7 +5,7 @@ module for making the correct automatic decisions in incremental tests
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[incoracle]')
+print, rrr, profile = ut.inject2(__name__, '[incoracle]')
 
 
 @profile

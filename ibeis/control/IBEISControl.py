@@ -72,7 +72,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_feat_funcs',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
-    'ibeis.web.zmq_task_queue',
+    #'ibeis.web.zmq_task_queue',
 ]
 
 for modname in AUTOLOAD_PLUGIN_MODNAMES:
