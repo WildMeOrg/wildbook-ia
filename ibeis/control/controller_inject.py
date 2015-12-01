@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+TODO:
+    Move flask registering into another file.
+    Should also make the actual flask registration lazy.
+    It should only be executed if a web instance is being started.
+"""
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
