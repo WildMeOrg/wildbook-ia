@@ -362,7 +362,6 @@ def dev_cache_getter(tblname, colname, *args, **kwargs):
 #@decorator.decorator
 def adder(func):
     func_ = default_decorator(func)
-    #@ut.on_exception_report_input
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
@@ -377,7 +376,7 @@ def adder(func):
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
     wrp_adder = ut.preserve_sig(wrp_adder, func)
-    wrp_adder = ut.on_exception_report_input(wrp_adder)
+    #wrp_adder = ut.on_exception_report_input(wrp_adder)
     return wrp_adder
 
 
@@ -409,7 +408,6 @@ def deleter(func):
 def setter(func):
     func_ = default_decorator(func)
     @ut.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
-    #@ut.on_exception_report_input
     @ut.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
@@ -423,7 +421,7 @@ def setter(func):
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func_(*args, **kwargs)
     wrp_setter = ut.preserve_sig(wrp_setter, func)
-    wrp_setter = ut.on_exception_report_input(wrp_setter)
+    #wrp_setter = ut.on_exception_report_input(wrp_setter)
     return wrp_setter
 
 
@@ -436,7 +434,6 @@ def getter(func):
     """
     #func_ = func
     func_ = default_decorator(func)
-    #@ut.on_exception_report_input
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def wrp_getter(*args, **kwargs):
@@ -451,7 +448,7 @@ def getter(func):
             print('L------')
         return func_(*args, **kwargs)
     wrp_getter = ut.preserve_sig(wrp_getter, func)
-    wrp_getter = ut.on_exception_report_input(wrp_getter)
+    #wrp_getter = ut.on_exception_report_input(wrp_getter)
     return wrp_getter
 
 
@@ -483,13 +480,12 @@ def getter_numpy(func):
     #getter_func = getter(func)
     func_ = default_decorator(func)
     @ut.accepts_numpy
-    #@ut.on_exception_report_input
     @ut.accepts_scalar_input
     @ut.ignores_exc_tb
     def getter_numpy_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
     getter_numpy_wrp = ut.preserve_sig(getter_numpy_wrp, func)
-    getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)
+    #getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)
     return getter_numpy_wrp
 
 
