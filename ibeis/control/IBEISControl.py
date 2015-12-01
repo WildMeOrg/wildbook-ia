@@ -27,7 +27,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 #import sys
 import atexit
-import requests
 import weakref
 from six.moves import zip
 from os.path import join, split
@@ -506,6 +505,7 @@ class IBEISController(BASE_CLASS):
 
     @accessor_decors.default_decorator
     def _send_wildbook_request(ibs, wbaddr, payload=None):
+        import requests
         if wbaddr is None:
             return
         try:
