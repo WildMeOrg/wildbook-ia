@@ -181,11 +181,17 @@ def sanitize_img_ext(ext, defaultext=None):
 
 
 def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath=None):
+    if fpath is None or usetitle:
+        if fig._suptitle is not None:
+            # safer than using the canvas window title
+            # that only works in qt
+            title = 'fig(%r) ' % (fig.number,) + fig._suptitle.get_text()
+        else:
+            title = fig.canvas.get_window_title()
     if fpath is None:
-        # Find the title if no fpath given
-        fpath = sanitize_img_fname(fig.canvas.get_window_title())
+        fpath = sanitize_img_fname(title)
     elif usetitle:
-        title = sanitize_img_fname(fig.canvas.get_window_title())
+        title = sanitize_img_fname(title)
         fpath = join(fpath, title)
     # Split into dpath, fname, and extension
     dpath_, fname_ = split(fpath)
