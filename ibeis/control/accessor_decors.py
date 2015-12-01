@@ -1,18 +1,37 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-# import decorator  # NOQA
 import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
-#import numpy as np
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[decor]')
+print, rrr, profile = ut.inject2(__name__, '[decor]')
 
 DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
 DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
 DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
 VERB_CONTROL = ut.get_argflag(('--verb-control'))
 
+DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
+DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
+RELEASE_MODE = True
+
+if RELEASE_MODE:
+    # API Cache is only for when you can gaurentee one instance of the
+    # Controller will be running. This is not safe to use in production.  Use
+    # only for local testing.
+    API_CACHE = ut.get_argflag('--api-cache')
+    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+else:
+    API_CACHE = not ut.get_argflag('--no-api-cache')
+    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+
+
+if ut.VERBOSE:
+    if ut.in_main_process():
+        if API_CACHE:
+            print('[accessor_decors] API_CACHE IS ENABLED')
+        else:
+            print('[accessor_decors] API_CACHE IS DISABLED')
 #
 #-----------------
 # IBEIS DECORATORS
@@ -32,42 +51,6 @@ def default_decorator(input_):
 
 
 # DECORATORS::ADDER
-#TABLE_CACHE = {}
-
-
-#class ColumnsCache(object):
-#    def __init__(self):
-#        self._cache = {}
-
-#    def __setitem__(self, index, value):
-#        self._cache[index] = value
-
-#    def __getitem__(self, index):
-#        return self._cache[index]
-
-#    def __delitem__(self, index):
-#        del self._cache[index]
-
-DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
-
-RELEASE_MODE = True
-if RELEASE_MODE:
-    # API Cache is only for when you can gaurentee one instance of the
-    # Controller will be running. This is not safe to use in production.  Use
-    # only for local testing.
-    API_CACHE = ut.get_argflag('--api-cache')
-    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
-else:
-    API_CACHE = not ut.get_argflag('--no-api-cache')
-    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
-
-if ut.VERBOSE:
-    if ut.in_main_process():
-        if API_CACHE:
-            print('[accessor_decors] API_CACHE IS ENABLED')
-        else:
-            print('[accessor_decors] API_CACHE IS DISABLED')
 
 
 def init_tablecache():
@@ -84,7 +67,6 @@ def init_tablecache():
         >>> result = init_tablecache()
         >>> print(result)
     """
-    #return ut.ddict(ColumnsCache)
     # 4 levels of dictionaries
     # tablename, colname, kwargs, and then rowids
     tablecache = ut.ddict(lambda: ut.ddict(lambda: ut.ddict(dict)))
@@ -155,8 +137,8 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> # Check that config2 actually gets you different vectors in the cache
         >>> qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={'affine_invariance': False})
         >>> config2_ = qreq_.get_external_query_config2()
-        >>> kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None, debug=True)
-        >>> kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_, debug=True)
+        >>> kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None)
+        >>> kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_)
         >>> kp1 = kpts_list1[0][0:1]
         >>> kp2 = kpts_list2[0][0:1]
         >>> assert kp1.T[3] != 0
@@ -531,3 +513,15 @@ def ider(func):
     ider_func = default_decorator(func)
     ider_func = ut.preserve_sig(ider_func, func)
     return ider_func
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.control.accessor_decors
+        python -m ibeis.control.accessor_decors --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
