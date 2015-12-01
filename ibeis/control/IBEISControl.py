@@ -75,7 +75,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     #'ibeis.web.zmq_task_queue',
 ]
 
-for modname in AUTOLOAD_PLUGIN_MODNAMES:
+for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, enabled=ut.VERYVERBOSE, adjust=False, freq=1):
     if isinstance(modname, tuple):
         flag, modname = modname
         if ut.get_argflag(flag):
