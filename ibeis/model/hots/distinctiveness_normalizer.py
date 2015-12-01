@@ -5,22 +5,16 @@ External mechanism for computing feature distinctiveness
 stores some set of vectors which lose their association with
 their parent.
 """
-
-from __future__ import absolute_import, division, print_function
-import utool
-#from os.path import join
-#import numpy as np
+from __future__ import absolute_import, division, print_function, unicode_literals
 import vtool as vt
 import utool as ut
 import numpy as np
 from six.moves import map
-#import vtool as vt
 import six  # NOQA
 from ibeis import constants as const
-import pyflann
 from ibeis import sysres
 from ibeis.model.hots import hstypes
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[distinctnorm]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[distinctnorm]')
 
 
 DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
@@ -65,7 +59,7 @@ def testdata_distinctiveness():
     return dstcnvs_normer, qreq_
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+#@six.add_metaclass(ut.ReloadingMetaclass)
 class DistinctivnessNormalizer(ut.Cachable):
     ext    = '.cPkl'
     prefix = 'distinctivness'
@@ -188,6 +182,7 @@ class DistinctivnessNormalizer(ut.Cachable):
         #    print('[nnindex] load_success = %r' % (load_success,))
 
     def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args, **kwargs):
+        import pyflann
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
             try:
@@ -369,7 +364,7 @@ def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
 
 def download_baseline_distinctiveness_normalizer(cachedir, species):
     zipped_url = BASELINE_DISTINCTIVNESS_URLS[species]
-    utool.grab_zipped_url(zipped_url, ensure=True, download_dir=cachedir)
+    ut.grab_zipped_url(zipped_url, ensure=True, download_dir=cachedir)
     #ut.assert_eq(ut.unixpath(cachedir), dir_)
 
 

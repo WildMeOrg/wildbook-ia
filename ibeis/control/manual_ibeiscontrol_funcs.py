@@ -4,11 +4,10 @@ import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
 import vtool as vt
+#from ibeis import constants as const
+from ibeis.control import accessor_decors  # NOQA
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from ibeis import constants as const
-from ibeis.control import accessor_decors
-from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
+print, rrr, profile = ut.inject2(__name__, '[manual_newfuncs]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -214,6 +213,8 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         >>> assert np.all(np.array(stats_dict['min']) >= 0), 'distinctiveness was out of bounds'
         >>> assert np.all(np.array(stats_dict['max']) <= 1), 'distinctiveness was out of bounds'
     """
+    from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
+
     # per-species disinctivness wrapper around ibeis cached function
     # get feature rowids
     aid_list = np.array(aid_list)
@@ -238,11 +239,10 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
     return dstncvs_list
 
 
-dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + ['species_rowid']
-dcvs_colname = dcvs_normer.DCVS_DEFAULT.name
+#dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + ['species_rowid']
+#dcvs_colname = dcvs_normer.DCVS_DEFAULT.name
 
-
-@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)
+#@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)
 def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None, species_rowid=None, **kwargs):
     #print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
     vecs_list = ibs.get_feat_vecs(fid_list, eager=True, nInput=None)
