@@ -32,42 +32,49 @@ def bayesnet_cases():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.bayes import *  # NOQA
-        >>> result = bayesnet_cases()
-        >>> print(result)
-        >>> #ut.show_if_requested()
+        >>> bayesnet_cases()
     """
-    model = make_name_model(3, 3)
-    evidence = test_model(model)
+
+    # Start with 5 names.
+    test_model(1, (2, 4))
+
+    # Add a name
+    # Causes probability of match to go down
+    test_model(2, (2, 5))
+
+    # Add Annotation
+    test_model(3, (3, 5))
 
     #model = make_name_model(5, 10)
     #evidence = test_model(model)
 
-    #if ut.show_was_requested():
-    #    show_model(model, evidence)
-    return model, evidence
 
+def test_model(test_idx, model=(2, 2), high_idx=[0]):
+    print('___ TEST %d ___' % (test_idx,))
 
-def test_model(model):
-    # --- INFERENCE ---
+    if isinstance(model, tuple):
+        model = make_name_model(*model)
+
     ut.colorprint('\n --- Inference ---', 'red')
-    event_space_combos = {}
+
+    name_cdfs = model.ttype2_cpds['name']
+    score_cdfs = model.ttype2_cpds['score']
+
+    evidence = {}
+
     # Set ni to always be Fred
-    N0 = model.ttype2_cpds['name'][0]
-    event_space_combos[N0.variable] = 0
-    for cpd in model.get_cpds():
-        if cpd.ttype == 'score':
-            #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
-            event_space_combos[cpd.variable] = [1]
-    #del event_space_combos['Ski']
-    print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
-    evidence_dict = ut.all_dict_combinations(event_space_combos)
-    #_debug_repr_model(model)
+    N0 = name_cdfs[0]
+    evidence[N0.variable] = 0
+
+    for idx in high_idx:
+        evidence[score_cdfs[idx].variable] = 1
+
     model_inference = pgmpy.inference.BeliefPropagation(model)
     #model_inference = pgmpy.inference.VariableElimination(model)
 
-    for evidence in evidence_dict:
-        try_query(model, model_inference, evidence)
+    factor_list = try_query(model, model_inference, evidence)
 
+    show_model(model, evidence,  str(test_idx), factor_list)
     # print_ascii_graph(model)
     return evidence
 
@@ -82,7 +89,7 @@ def try_query(model, model_inference, evidence):
     joint_factor = pgmpy.factors.factor_product(*factor_list)
     # print(joint_factor.get_independencies())
     # print(model.local_independencies([Ni.variable]))
-    print('Result Factors')
+    #print('Result Factors')
     factor = joint_factor  # NOQA
     semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
     for type_, factors in ut.group_items(factor_list, semtypes).items():
@@ -92,10 +99,10 @@ def try_query(model, model_inference, evidence):
             ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
     #print('Joint Factors')
     #ut.colorprint(joint_factor._str('phi', 'psql', sort=True), 'white')
-    name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
-    print('Marginal Factors')
-    marginal = joint_factor.marginalize(name_vars, inplace=False)
-    ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+    #name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
+    #print('Marginal Factors')
+    #marginal = joint_factor.marginalize(name_vars, inplace=False)
+    #ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
     print('L_____\n')
     return factor_list
 
@@ -152,15 +159,15 @@ def make_name_model(num_annots, num_names=None):
         for cpds in zip(match_cpds)
     ]
 
-    print(ut.list_getattr(name_cpds, 'variable'))
-    print(ut.list_getattr(match_cpds, 'variable'))
-    print(ut.list_getattr(score_cpds, 'variable'))
-
-    print('num_names = %r' % (num_names,))
-    print('len(annots) = %r' % (len(annots),))
-    print('len(name_cpds) = %r' % (len(name_cpds),))
-    print('len(match_cpds) = %r' % (len(match_cpds),))
-    print('len(score_cpds) = %r' % (len(score_cpds),))
+    if False:
+        print(ut.list_getattr(name_cpds, 'variable'))
+        print(ut.list_getattr(match_cpds, 'variable'))
+        print(ut.list_getattr(score_cpds, 'variable'))
+        print('num_names = %r' % (num_names,))
+        print('len(annots) = %r' % (len(annots),))
+        print('len(name_cpds) = %r' % (len(name_cpds),))
+        print('len(match_cpds) = %r' % (len(match_cpds),))
+        print('len(score_cpds) = %r' % (len(score_cpds),))
 
     # ----
     # Make Model
@@ -178,6 +185,7 @@ def make_name_model(num_annots, num_names=None):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
                 for evar, val in evidence.items()]
     ut.inject_func_as_method(model, pretty_evidence)
+    model.num_names = num_names
     #print_ascii_graph(model)
     return model
 
@@ -267,7 +275,8 @@ class TemplateCPD(object):
         return cpd
 
 
-def show_model(model, evidence=None, suff=''):
+def show_model(model, evidence=None, suff='', factor_list=None):
+    import utool as ut
     #ut.embed()
     # print('Independencies')
     # print(model.get_independencies())
@@ -279,8 +288,10 @@ def show_model(model, evidence=None, suff=''):
     fig = pt.figure(doclf=True)  # NOQA
     ax = pt.gca()
     netx_graph = (model)
-    #pos = netx.pydot_layout(netx_graph, prog='dot')
-    pos = netx.graphviz_layout(netx_graph)
+    if True:
+        pos = netx.pydot_layout(netx_graph, prog='dot')
+    else:
+        pos = netx.graphviz_layout(netx_graph)
 
     #values = [[0, 0, 1]]
     #values = [[1, 0, 0]]
@@ -288,9 +299,86 @@ def show_model(model, evidence=None, suff=''):
     #var2_factor = {f.variables[0]: None if f is None else f.values.max() for f in factor_list}
     #node_state.update(var2_factor)
     #node_colors = ut.dict_take(node_state, netx_graph.nodes(), None)
-    #node_colors = [pt.TRUE_BLUE if node not in evidence else pt.FALSE_RED for node in netx_graph.nodes()]
-    #netx.draw(netx_graph, pos=pos, ax=ax, node_color=node_colors, with_labels=True, node_size=2000)
-    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
+    if evidence is not None:
+        node_colors = [pt.TRUE_BLUE if node not in evidence else pt.FALSE_RED for node in netx_graph.nodes()]
+        netx.draw(netx_graph, pos=pos, ax=ax, node_color=node_colors, with_labels=True, node_size=2000)
+    else:
+        netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
+
+    var2_factor = {f.variables[0]: f for f in factor_list}
+
+    if True:
+        import matplotlib as mpl
+        pt.set_figtitle('num_names=%r' % (model.num_names,))
+
+        #import utool
+        netx_nodes = model.nodes(data=True)
+        node_key_list = ut.get_list_column(netx_nodes, 0)
+        pos_list = ut.dict_take(pos, node_key_list)
+
+        textprops = {
+            'family': 'monospace',
+            'horizontalalignment': 'left',
+            'size': 8,
+        }
+
+        artist_list = []
+        offset_box_list = []
+        for pos_, node in zip(pos_list, netx_nodes):
+            x, y = pos_
+            variable = node[0]
+
+            text = None
+
+            if variable in evidence:
+                cpd = model.var2_cpd[variable]
+                text = cpd.variable_statenames[evidence[variable]]
+            elif variable in var2_factor:
+                factor = var2_factor[variable]
+                sortx = factor.values.argsort()[::-1]
+                rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*factor.statenames), factor.values)]
+                text = '\n'.join(ut.take(rowstrs, sortx[0:3]))
+            if text is not None:
+                offset_box = mpl.offsetbox.TextArea(text, textprops)
+                artist = mpl.offsetbox.AnnotationBbox(
+                    offset_box, (x + 5, y), xybox=(20., 0.),
+                    xycoords='data', boxcoords="offset points",
+                    pad=0.25, frameon=True,
+                    box_alignment=(0, 0),
+                    #bboxprops=dict(fc=node_attr['fillcolor']),
+                    arrowprops=dict(arrowstyle="->"),
+                )
+                offset_box_list.append(offset_box)
+                artist_list.append(artist)
+
+        for artist in artist_list:
+            ax.add_artist(artist)
+
+        xmin, ymin = np.array(pos_list).min(axis=0)
+        xmax, ymax = np.array(pos_list).max(axis=0)
+        ax.set_xlim((xmin - 30, xmax + 30))
+
+        if textprops['horizontalalignment'] == 'center':
+            fig = pt.gcf()
+            fig.canvas.draw()
+
+            # Superhack for centered text
+            # Fix bug in
+            # /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
+            # /usr/local/lib/python2.7/dist-packages/matplotlib/text.py
+            for offset_box in offset_box_list:
+                offset_box.set_offset
+                #offset_box.get_offset
+                #self = offset_box
+                z = offset_box._text.get_window_extent()
+                (z.x1 - z.x0) / 2
+                offset_box._text
+                T = offset_box._text.get_transform()
+                A = mpl.transforms.Affine2D()
+                A.clear()
+                A.translate((z.x1 - z.x0) / 2, 0)
+                offset_box._text.set_transform(T + A)
+
     pt.plt.savefig('foo' + suff + '.png')
     ut.startfile('foo' + suff + '.png')
 
@@ -470,3 +558,28 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
+#def test_model(model, high_idx=[0]):
+#    print('___ TEST ___')
+#    # --- INFERENCE ---
+#    ut.colorprint('\n --- Inference ---', 'red')
+#    event_space_combos = {}
+#    # Set ni to always be Fred
+#    N0 = model.ttype2_cpds['name'][0]
+
+#    event_space_combos[N0.variable] = 0
+#    for cpd in model.get_cpds():
+#        if cpd.ttype == 'score':
+#            #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
+#            event_space_combos[cpd.variable] = [1]
+#    #del event_space_combos['Ski']
+#    print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
+#    evidence_dict = ut.all_dict_combinations(event_space_combos)
+#    #_debug_repr_model(model)
+#    model_inference = pgmpy.inference.BeliefPropagation(model)
+#    #model_inference = pgmpy.inference.VariableElimination(model)
+
+#    for evidence in evidence_dict:
+#        try_query(model, model_inference, evidence)
+
+#    # print_ascii_graph(model)
+#    return evidence
