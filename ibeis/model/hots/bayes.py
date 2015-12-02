@@ -26,251 +26,149 @@ print, rrr, profile = ut.inject2(__name__, '[bayes]')
 _PRINT = print
 
 
-def bayesnet(annots=None):
+def bayesnet_cases():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-bayesnet_cases
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> result = bayesnet_cases()
+        >>> print(result)
+    """
+    model, evidence = bayesnet(2)
+
+
+def bayesnet(num_annots):
     """
 
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-bayesnet --no-flask
         python -m ibeis.model.hots.bayes --exec-bayesnet --show
+        python -m ibeis.model.hots.bayes --exec-bayesnet
         python bayes.py --exec-bayesnet --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> #from ibeis.model.hots.bayes import *  # NOQA
-        >>> from bayes import *  # NOQA
-        >>> annots = ['i', 'j', 'k']
-        >>> #annots = [six.text_type(chr(i + 97)) for i in list(range(3))]
-        >>> annots = [six.text_type(chr(i + 97 + 8)) for i in list(range(3))]
-        >>> name_model, evidence = bayesnet(annots)
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> #from bayes import *  # NOQA
+        >>> num_annots = 4
+        >>> model, evidence = bayesnet(num_annots)
         >>> ut.quit_if_noshow()
-        >>> show_model(name_model, evidence)
+        >>> show_model(model, evidence)
     """
+    annots = ut.chr_range(num_annots, base='a')
 
-    assert annots is not None
-
-    # semtype := semantic type
-    semtype2_nice = {
-        'name': ['n1', 'n2', 'n3'],
-        #'name': ['n' + str(x) for x in range(len(annots))],
-        'match':  ['diff', 'same'],
-        'probmatch':  ['pdiff', 'psame'],
-        'score':  ['low', 'high'],
-    }
-
-    var2_cpd = {
-    }
-    globals()['semtype2_nice'] = semtype2_nice
-    globals()['var2_cpd'] = var2_cpd
-
-    # --- PRINT Funcs ---
-    # Query about name of annotation k given different event space params
-    def pretty_evidence(evidence):
-        return [key + '=' + str(semtype2_nice[var2_cpd[key].semtype][val])
-                for key, val in evidence.items()]
-
-    # Name CPDS ---
-    def name_cpd(aid):
-        semtype = 'name'
-        variable = 'N' + aid
-        variable_basis = semtype2_nice[semtype]
-        statename_dict = {
-            variable: variable_basis,
-        }
-        var_card = len(variable_basis)
-        cpd = pgmpy.factors.TabularCPD(
-            variable=variable,
-            variable_card=len(semtype2_nice[semtype]),
-            values=[[1.0 / var_card] * var_card],
-            statename_dict=statename_dict,
-        )
-        cpd.semtype = semtype
-        return cpd
-    name_cpds = [name_cpd(aid) for aid in annots]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in name_cpds], name_cpds)))
-
-    # Match CPDS ---
-
-    def samediff_pmf(match_type, n1, n2, score_type):
+    # -- Define CPD Templates
+    def match_pmf(match_type, n1, n2):
         val = None
-        if score_type is None:
-            if n1 == n2 and match_type == 'same':
-                val = 1.0
-            elif n1 == n2 and match_type == 'diff':
-                val = 0.0
-            elif n1 != n2 and match_type == 'same':
-                val = 0.0
-            elif n1 != n2 and match_type == 'diff':
-                val = 1.0
-        else:
-            if n1 == n2 and match_type == 'same':
-                val = .9 if score_type == 'high' else .1
-            elif n1 == n2 and match_type == 'diff':
-                val = 5. if score_type == 'high' else .5
-            elif n1 != n2 and match_type == 'same':
-                val = .5 if score_type == 'high' else .5
-            elif n1 != n2 and match_type == 'diff':
-                val = 5. if score_type == 'high' else .5
+        if n1 == n2 and match_type == 'same':
+            val = 1.0
+        elif n1 == n2 and match_type == 'diff':
+            val = 0.0
+        elif n1 != n2 and match_type == 'same':
+            val = 0.0
+        elif n1 != n2 and match_type == 'diff':
+            val = 1.0
         return val
-    globals()['samediff_pmf'] = samediff_pmf
 
-    def samediff_cpd(aid1, aid2):
-        """
-        aid1, aid2 = 'i', 'j'
-        """
-        semtype = 'match'
-        variable = 'M' + aid1 + aid2
-        variable_basis = semtype2_nice[semtype]
-        statename_dict = {
-            variable: variable_basis,
-        }
-        evidence = ['N' + aid1, 'N' + aid2]
-        evidence_cpds = [var2_cpd[key] for key in evidence]
-        evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
-        statename_dict.update(dict(zip(evidence, evidence_nice)))
+    def score_pmf(score_type, match_type):
+        val = None
+        if match_type == 'same':
+            val = .1 if score_type == 'low' else .9
+        elif match_type == 'diff':
+            val = .9 if score_type == 'low' else .1
+        else:
+            assert False
+        return val
 
-        evidence_card = list(map(len, evidence_nice))
-        evidence_states = list(ut.iprod(*evidence_nice))
-        variable_values = []
-        for score_type in variable_basis:
-            row = []
-            for state in evidence_states:
-                row.append(samediff_pmf(score_type, state[0], state[1], None))
-                # row.append(samediff_pmf(score_type, state[0], state[1], state[2]))
-            variable_values.append(row)
-        cpd = pgmpy.factors.TabularCPD(
-            variable=variable,
-            variable_card=len(variable_basis),
-            values=variable_values,
-            evidence=evidence,
-            evidence_card=evidence_card,
-            statename_dict=statename_dict,
-        )
-        cpd.semtype = semtype
-        return cpd
-    samediff_cpds = [samediff_cpd(*aids)
-                     for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in samediff_cpds], samediff_cpds)))
+    name_cpd = TemplateCPD('name', ('n', 2), varpref='N')
 
-    # Score CPDS ---
-    def score_cpd(aid1, aid2):
-        """
-        aid1, aid2 = 'i', 'j'
-        """
-        semtype = 'score'
-        variable = 'S' + aid1 + aid2
-        variable_basis = semtype2_nice[semtype]
-        # evidence = ['N' + aid1, 'N' + aid2]
-        statename_dict = {
-            variable: variable_basis,
-        }
-        # evidence = ['N' + aid1, 'N' + aid2, 'M' + aid1 + aid2]
-        evidence = ['M' + aid1 + aid2]
-        evidence_cpds = [var2_cpd[key] for key in evidence]
-        evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
-        statename_dict.update(dict(zip(evidence, evidence_nice)))
-        evidence_card = list(map(len, evidence_nice))
-        evidence_states = list(ut.iprod(*evidence_nice))
-        def score_pmf(score_type, n1, n2, match_type):
-            val = None
-            if match_type is None or match_type == 'same':
-                val = .1 if score_type == 'low' else .9
-            else:
-                val = .9 if score_type == 'low' else .1
-            return val
-        variable_values = []
-        for score_type in variable_basis:
-            row = []
-            for state in evidence_states:
-                # row.append(score_pmf(score_type, state[0], state[1], state[2]))
-                row.append(score_pmf(score_type, None, None, state[0]))
-                # row.append(score_pmf(score_type, state[0], state[1], None))
-            variable_values.append(row)
-        cpd = pgmpy.factors.TabularCPD(
-            variable=variable,
-            variable_card=len(variable_basis),
-            values=variable_values,
-            evidence=evidence,  # [::-1],
-            evidence_card=evidence_card,
-            statename_dict=statename_dict,
-        )  # [::-1])
-        cpd.semtype = semtype
-        return cpd
-    score_cpds = [score_cpd(*aids) for aids in list(ut.iter_window(annots, 2, wrap=True and len(annots) > 2))]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in score_cpds], score_cpds)))
+    match_cpd = TemplateCPD('match', ['diff', 'same'], varpref='M',
+                            evidence_ttypes=[name_cpd, name_cpd],
+                            pmf_func=match_pmf)
+
+    score_cpd = TemplateCPD('score', ['low', 'high'], varpref='S',
+                            evidence_ttypes=[match_cpd],
+                            pmf_func=score_pmf)
+
+    ut.colorprint('\n --- CPD Templates ---', 'blue')
+    ut.colorprint(
+        ut.hz_str(
+            name_cpd._str('p', 'psql'),
+            match_cpd._str('p', 'psql'),
+            score_cpd._str('p', 'psql'),
+        ),
+        'turquoise')
+
+    # -- Build CPDS
+    name_cpds = [name_cpd.new_cpd(_id=aid) for aid in annots]
+
+    match_cpds = [
+        match_cpd.new_cpd(evidence_cpds=cpds)
+        for cpds in list(ut.iter_window(name_cpds, 2, wrap=len(name_cpds) > 2))
+    ]
+
+    score_cpds = [
+        score_cpd.new_cpd(evidence_cpds=cpds)
+        for cpds in zip(match_cpds)
+    ]
 
     # ----
     # Make Model
-    cpd_list = name_cpds + score_cpds + samediff_cpds
-    input_graph = []
+    cpd_list = name_cpds + score_cpds + match_cpds
+    input_graph = ut.flatten([
+        [(evar, cpd.variable) for evar in cpd.evidence]
+        for cpd in cpd_list if cpd.evidence is not None
+    ])
+    model = pgmpy.models.BayesianModel(input_graph)
+    model.add_cpds(*cpd_list)
+    model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
 
-    for cpd in cpd_list:
-        if cpd.evidence is not None:
-            for evar in cpd.evidence:
-                input_graph.append((evar, cpd.variable))
-    name_model = pgmpy.models.BayesianModel(input_graph)
-    name_model.add_cpds(*cpd_list)
-
-    var2_cpd.update(dict(zip([cpd.variable for cpd in cpd_list], cpd_list)))
-    globals()['var2_cpd'] = var2_cpd
-
-    varnames = [cpd.variable for cpd in cpd_list]
-
-    print_ascii_graph(name_model)
-
-    # --- PRINT CPDS ---
-    ut.colorprint('\n CPDs', 'blue')
-    cpd = score_cpds[0]
-    cpd = samediff_cpds[0]
-
-    semtype2_cpds  = ut.group_items(cpd_list, [c.semtype for c in cpd_list])
-    for semtype, cpds in semtype2_cpds.items():
-        print('--- %s ---' % (semtype,))
-        if semtype == 'match':
-            print('skipping print')
-        else:
-            ut.colorprint(ut.hz_str([_cpd._str('phi', 'psql') + ' '
-                                     for _cpd in cpds]), 'turquoise')
-
-    # for cpd in name_model.get_cpds():
-    #     if cpd.semtype != 'match':
-    #         ut.colorprint(cpd._str('phi', 'psql'), 'turquoise')
+    def pretty_evidence(model, evidence):
+        return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
+                for evar, val in evidence.items()]
+    ut.inject_func_as_method(model, pretty_evidence)
+    #print_ascii_graph(model)
 
     # --- INFERENCE ---
-    ut.colorprint('\n INFERENCE', 'red')
-    Ni = name_cpds[0]
+    ut.colorprint('\n --- Inference ---', 'red')
 
+    N0 = name_cpds[0]
     event_space_combos = {}
-    event_space_combos[Ni.variable] = 0  # Set ni to always be Fred
+    event_space_combos[N0.variable] = 0  # Set ni to always be Fred
     for cpd in cpd_list:
-        if cpd.semtype == 'score':
+        if cpd.ttype == 'score':
             #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
             event_space_combos[cpd.variable] = [1]
     #del event_space_combos['Ski']
     print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
     evidence_dict = ut.all_dict_combinations(event_space_combos)
 
-    name_belief = pgmpy.inference.BeliefPropagation(name_model)
-    #name_belief = pgmpy.inference.VariableElimination(name_model)
+    name_belief = pgmpy.inference.BeliefPropagation(model)
+    #name_belief = pgmpy.inference.VariableElimination(model)
 
     def try_query(evidence):
         print('+--------')
-        query_vars = ut.setdiff_ordered(varnames, list(evidence.keys()))
-        evidence_str = ', '.join(pretty_evidence(evidence))
+        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        evidence_str = ', '.join(model.pretty_evidence(evidence))
         print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
         probs = name_belief.query(query_vars, evidence)
         factor_list = probs.values()
         joint_factor = pgmpy.factors.factor_product(*factor_list)
         # print(joint_factor.get_independencies())
-        # print(name_model.local_independencies([Ni.variable]))
-        # ut.colorprint(joint_factor._str('phi', 'fancy_grid', sort=True), 'white')
-        marginal = joint_factor.marginalize(['Nj', 'Nk'], inplace=False)
-        ut.colorprint(marginal._str('phi', 'psql', sort=-1), 'white')
+        # print(model.local_independencies([Ni.variable]))
+        ut.colorprint(joint_factor._str('phi', 'fancy_grid', sort=True), 'white')
+        #name_vars = [v for v in joint_factor.scope() if is_semtype(v, 'name')]
+        #marginal = joint_factor.marginalize(name_vars, inplace=False)
+        #ut.colorprint(marginal._str('phi', 'psql', sort=-1), 'white')
 
-        factor = joint_factor  # NOQA
-        semtypes = [var2_cpd[f.variables[0]].semtype for f in factor_list]
-        for type_, factors in ut.group_items(factor_list, semtypes).items():
-            factors = ut.sortedby(factors, [f.variables[0] for f in factors])
-            ut.colorprint(ut.hz_str([f.__str__() for f in factors]), 'yellow')
+        #factor = joint_factor  # NOQA
+        #semtypes = [var2_cpd[f.variables[0]].ttype for f in factor_list]
+        #for type_, factors in ut.group_items(factor_list, semtypes).items():
+        #    factors = ut.sortedby(factors, [f.variables[0] for f in factors])
+        #    ut.colorprint(ut.hz_str([f.__str__() for f in factors]), 'yellow')
         print('L_____\n')
         return factor_list
 
@@ -305,23 +203,108 @@ def bayesnet(annots=None):
 
         evidence = {'Ni': 0, 'Sij': 1, 'Ski': 1}
         try_query(evidence)
-    # print_ascii_graph(name_model)
+    # print_ascii_graph(model)
 
-    return name_model, evidence
+    return model, evidence
 
 
-def show_model(name_model, evidence):
+class TemplateCPD(object):
+    """
+    Factory for templated cpds
+    """
+    def __init__(self, ttype, basis, varpref, evidence_ttypes=None, pmf_func=None):
+        if isinstance(basis, tuple):
+            state_pref, state_card = basis
+            basis = [state_pref + str(i) for i in range(state_card)]
+        if varpref is None:
+            varpref = ttype
+        self.basis = basis
+        self.ttype = ttype
+        self.varpref = varpref
+        self.evidence_ttypes = evidence_ttypes
+        self.pmf_func = pmf_func
+
+    def __call__(self, *args, **kwargs):
+        return self.new_cpd(*args, **kwargs)
+
+    def _str(self, *args, **kwargs):
+        example_cpd = self.example_cpd()
+        return example_cpd._str(*args, **kwargs)
+
+    @ut.memoize
+    def example_cpd(self, id_=0):
+        kw = dict()
+        if self.evidence_ttypes is None:
+            kw['_id'] = ut.chr_range(id_, id_ + 1)[0]
+        else:
+
+            kw['evidence_cpds'] = [tcpd.example_cpd(i) for i, tcpd in enumerate(self.evidence_ttypes)]
+        example_cpd = self.new_cpd(**kw)
+        return example_cpd
+
+    def new_cpd(self, _id=None, evidence_cpds=None, pmf_func=None):
+        if pmf_func is None:
+            pmf_func = self.pmf_func
+        if _id is None:
+            _id = ''.join([cpd._template_id for cpd in evidence_cpds])
+        variable = ''.join([self.varpref, _id])
+        variable_card = len(self.basis)
+        statename_dict = {
+            variable: self.basis,
+        }
+        if self.evidence_ttypes is not None:
+            if any(cpd.ttype != tcpd.ttype
+                   for cpd, tcpd in zip(evidence_cpds, evidence_cpds)):
+                raise ValueError('Evidence is not of appropriate type')
+            evidence_bases = [cpd.variable_statenames for cpd in evidence_cpds]
+            evidence_card = list(map(len, evidence_bases))
+            evidence_states = list(ut.iprod(*evidence_bases))
+
+            for cpd in evidence_cpds:
+                statename_dict.update(cpd.statename_dict)
+
+            values = np.array([
+                [pmf_func(vstate, *estates) for estates in evidence_states]
+                for vstate in self.basis])
+            if False:
+                # ensure normalized
+                values = values / values.sum(axis=0)
+            evidence = [cpd.variable for cpd in evidence_cpds]
+        else:
+            if evidence_cpds is not None:
+                raise ValueError('Gave evidence for evidence-less template')
+            evidence = None
+            evidence_card = None
+
+        if pmf_func is None:
+            # assume uniform
+            values = [[1.0 / variable_card] * variable_card]
+
+        cpd = pgmpy.factors.TabularCPD(
+            variable=variable,
+            variable_card=variable_card,
+            values=values,
+            evidence=evidence,
+            evidence_card=evidence_card,
+            statename_dict=statename_dict,
+        )
+        cpd.ttype = self.ttype
+        cpd._template_id = _id
+        return cpd
+
+
+def show_model(model, evidence):
     #ut.embed()
     # print('Independencies')
-    # print(name_model.get_independencies())
-    # print(name_model.local_independencies([Ni.variable]))
+    # print(model.get_independencies())
+    # print(model.local_independencies([Ni.variable]))
     # _ draw model
 
     import plottool as pt
     import networkx as netx
     fig = pt.figure(doclf=True)  # NOQA
     ax = pt.gca()
-    netx_graph = pgm_to_netx(name_model)
+    netx_graph = pgm_to_netx(model)
     pos = netx.pydot_layout(netx_graph, prog='dot')
     #values = [[0, 0, 1]]
     #values = [[1, 0, 0]]
@@ -348,7 +331,7 @@ def print_ascii_graph(model_):
     model = copy.deepcopy(model_)
     assert model is not model_
     # model.graph.setdefault('graph', {})['size'] = '".4,.4"'
-    model.graph.setdefault('graph', {})['size'] = '".4,.4"'
+    model.graph.setdefault('graph', {})['size'] = '".3,.3"'
     pydot_graph = netx.to_pydot(model)
     png_str = pydot_graph.create_png(prog='dot')
     sio = StringIO()
@@ -398,10 +381,10 @@ def pgm_to_netx(model):
     return netx_graph
 
 
-def network_transforms_fun(name_model):
+def network_transforms_fun(model):
     import plottool as pt
     import networkx as netx
-    moralgraph = name_model.moralize()
+    moralgraph = model.moralize()
     fig = pt.figure()  # NOQA
     fig.clf()
     ax = pt.gca()
@@ -420,7 +403,7 @@ def network_transforms_fun(name_model):
     ut.startfile('foo3.png')
 
     # a junction tree is a clique tree
-    jtree = name_model.to_junction_tree()
+    jtree = model.to_junction_tree()
     # build explicit sepsets, even though they are implicit for jtrees
     for n1, n2 in jtree.edges():
         sepset = list((set.intersection(set(n1), n2)))
@@ -436,7 +419,7 @@ def network_transforms_fun(name_model):
     pt.plt.savefig('foo4.png')
     ut.startfile('foo4.png')
 
-    ut.help_members(name_model)
+    ut.help_members(model)
     ut.help_members(jtree)
     ut.help_members(moralgraph)
 
@@ -507,11 +490,11 @@ if __name__ == '__main__':
 
 # def print_cpd(cpd):
 #     print('CPT: %r' % (cpd,))
-#     index = semtype2_nice[cpd.semtype]
+#     index = semtype2_nice[cpd.ttype]
 #     if cpd.evidence is None:
 #         columns = ['None']
 #     else:
-#         basis_lists = [semtype2_nice[var2_cpd[ename].semtype] for ename in cpd.evidence]
+#         basis_lists = [semtype2_nice[var2_cpd[ename].ttype] for ename in cpd.evidence]
 #         columns = [','.join(x) for x in ut.iprod(*basis_lists)]
 #     data = cpd.get_cpd()
 #     ut.colorprint(str(pd.DataFrame(data, index=index, columns=columns)), 'turquoise')
@@ -526,7 +509,7 @@ if __name__ == '__main__':
 #     nice_basis_lists = []
 #     for varname, basis in zip(row_vars, basis_lists):
 #         cpd = var2_cpd[varname]
-#         _nice_basis = ut.take(semtype2_nice[cpd.semtype], basis)
+#         _nice_basis = ut.take(semtype2_nice[cpd.ttype], basis)
 #         nice_basis = ['%s=%s' % (varname, val) for val in _nice_basis]
 #         nice_basis_lists.append(nice_basis)
 #     row_lbls = [', '.join(sorted(x)) for x in zip(*nice_basis_lists)]
@@ -539,15 +522,15 @@ if __name__ == '__main__':
 #     """
 #     aid1, aid2 = 'i', 'j'
 #     """
-#     semtype = 'probmatch'
+#     ttype = 'probmatch'
 #     variable = 'B' + aid1 + aid2
-#     variable_basis = semtype2_nice[semtype]
+#     variable_basis = semtype2_nice[ttype]
 #     statename_dict = {
 #         variable: variable_basis,
 #     }
 #     evidence = ['M' + aid1 + aid2, 'S' + aid1 + aid2]
 #     evidence_cpds = [var2_cpd[key] for key in evidence]
-#     evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
+#     evidence_nice = [semtype2_nice[cpd.ttype] for cpd in evidence_cpds]
 #     statename_dict.update(dict(zip(evidence, evidence_nice)))
 #     evidence_card = list(map(len, evidence_nice))
 #     evidence_states = list(ut.iprod(*evidence_nice))
@@ -579,7 +562,7 @@ if __name__ == '__main__':
 #         evidence_card=evidence_card,
 #         statename_dict=statename_dict,
 #     )
-#     cpd.semtype = semtype
+#     cpd.ttype = ttype
 #     return cpd
 # #probmatch_cdfs = [probmatch_cpd(*aids)
 # #                  for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
@@ -588,16 +571,16 @@ if __name__ == '__main__':
 
 # Match CPDS ---
 # def samediff_cpd(aid1, aid2):
-#     semtype = 'name'
-#     semtype = 'match'
-#     var_card = len(semtype2_nice[semtype])
+#     ttype = 'name'
+#     ttype = 'match'
+#     var_card = len(semtype2_nice[ttype])
 #     variable = 'M' + aid1 + aid2
 #     from pgmpy.factors import TabularCPD
 #     cpd = TabularCPD(
 #         variable=variable,
 #         variable_card=var_card,
 #         values=[[1.0 / var_card] * var_card])
-#     cpd.semtype = semtype
+#     cpd.ttype = ttype
 #     return cpd
 # samediff_cpds = [samediff_cpd(*aids)
 #                  for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
@@ -609,13 +592,13 @@ if __name__ == '__main__':
 #     aid1, aid2 = 'i', 'j'
 #     """
 #     variable = 'S' + aid1 + aid2
-#     semtype = 'score'
-#     variable_basis = semtype2_nice[semtype]
+#     ttype = 'score'
+#     variable_basis = semtype2_nice[ttype]
 #     variable_values = [[.6, .4]]
 #     cpd = pgmpy.factors.TabularCPD(
 #         variable=variable,
 #         variable_card=len(variable_basis),
 #         values=variable_values,
 #     )
-#     cpd.semtype = semtype
+#     cpd.ttype = ttype
 #     return cpd
