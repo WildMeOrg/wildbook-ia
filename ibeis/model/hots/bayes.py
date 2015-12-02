@@ -23,8 +23,6 @@ import pgmpy.factors
 import pgmpy.models
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
-_PRINT = print
-
 
 def bayesnet_cases():
     r"""
@@ -36,54 +34,94 @@ def bayesnet_cases():
         >>> from ibeis.model.hots.bayes import *  # NOQA
         >>> result = bayesnet_cases()
         >>> print(result)
+        >>> #ut.show_if_requested()
     """
-    model, evidence = bayesnet(2)
+    model = make_name_model(3, 3)
+    evidence = test_model(model)
+
+    #model = make_name_model(5, 10)
+    #evidence = test_model(model)
+
+    #if ut.show_was_requested():
+    #    show_model(model, evidence)
+    return model, evidence
 
 
-def bayesnet(num_annots):
-    """
+def test_model(model):
+    # --- INFERENCE ---
+    ut.colorprint('\n --- Inference ---', 'red')
+    event_space_combos = {}
+    # Set ni to always be Fred
+    N0 = model.ttype2_cpds['name'][0]
+    event_space_combos[N0.variable] = 0
+    for cpd in model.get_cpds():
+        if cpd.ttype == 'score':
+            #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
+            event_space_combos[cpd.variable] = [1]
+    #del event_space_combos['Ski']
+    print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
+    evidence_dict = ut.all_dict_combinations(event_space_combos)
+    #_debug_repr_model(model)
+    model_inference = pgmpy.inference.BeliefPropagation(model)
+    #model_inference = pgmpy.inference.VariableElimination(model)
 
-    CommandLine:
-        python -m ibeis.model.hots.bayes --exec-bayesnet --no-flask
-        python -m ibeis.model.hots.bayes --exec-bayesnet --show
-        python -m ibeis.model.hots.bayes --exec-bayesnet
-        python bayes.py --exec-bayesnet --show
+    for evidence in evidence_dict:
+        try_query(model, model_inference, evidence)
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes import *  # NOQA
-        >>> #from bayes import *  # NOQA
-        >>> num_annots = 4
-        >>> model, evidence = bayesnet(num_annots)
-        >>> ut.quit_if_noshow()
-        >>> show_model(model, evidence)
-    """
-    annots = ut.chr_range(num_annots, base='a')
+    # print_ascii_graph(model)
+    return evidence
+
+
+def try_query(model, model_inference, evidence):
+    print('+--------')
+    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+    evidence_str = ', '.join(model.pretty_evidence(evidence))
+    print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+    probs = model_inference.query(query_vars, evidence)
+    factor_list = probs.values()
+    joint_factor = pgmpy.factors.factor_product(*factor_list)
+    # print(joint_factor.get_independencies())
+    # print(model.local_independencies([Ni.variable]))
+    print('Result Factors')
+    factor = joint_factor  # NOQA
+    semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
+    for type_, factors in ut.group_items(factor_list, semtypes).items():
+        print('Result Factors (%r)' % (type_,))
+        factors = ut.sortedby(factors, [f.variables[0] for f in factors])
+        for fs_ in ut.ichunks(factors, 4):
+            ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
+    #print('Joint Factors')
+    #ut.colorprint(joint_factor._str('phi', 'psql', sort=True), 'white')
+    name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
+    print('Marginal Factors')
+    marginal = joint_factor.marginalize(name_vars, inplace=False)
+    ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+    print('L_____\n')
+    return factor_list
+
+
+def make_name_model(num_annots, num_names=None):
+    #annots = ut.chr_range(num_annots, base='a')
+    annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
+    if num_names is None:
+        num_names = num_annots
 
     # -- Define CPD Templates
     def match_pmf(match_type, n1, n2):
-        val = None
-        if n1 == n2 and match_type == 'same':
-            val = 1.0
-        elif n1 == n2 and match_type == 'diff':
-            val = 0.0
-        elif n1 != n2 and match_type == 'same':
-            val = 0.0
-        elif n1 != n2 and match_type == 'diff':
-            val = 1.0
+        if n1 == n2:
+            val = 1.0 if match_type == 'same' else 0.0
+        elif n1 != n2:
+            val = 0.0 if match_type == 'same' else 1.0
         return val
 
     def score_pmf(score_type, match_type):
-        val = None
         if match_type == 'same':
             val = .1 if score_type == 'low' else .9
         elif match_type == 'diff':
             val = .9 if score_type == 'low' else .1
-        else:
-            assert False
         return val
 
-    name_cpd = TemplateCPD('name', ('n', 2), varpref='N')
+    name_cpd = TemplateCPD('name', ('n', num_names), varpref='N')
 
     match_cpd = TemplateCPD('match', ['diff', 'same'], varpref='M',
                             evidence_ttypes=[name_cpd, name_cpd],
@@ -93,27 +131,36 @@ def bayesnet(num_annots):
                             evidence_ttypes=[match_cpd],
                             pmf_func=score_pmf)
 
-    ut.colorprint('\n --- CPD Templates ---', 'blue')
-    ut.colorprint(
-        ut.hz_str(
-            name_cpd._str('p', 'psql'),
-            match_cpd._str('p', 'psql'),
-            score_cpd._str('p', 'psql'),
-        ),
-        'turquoise')
+    PRINT_TEMPLATES = False
+    if PRINT_TEMPLATES:
+        ut.colorprint('\n --- CPD Templates ---', 'blue')
+        ut.colorprint(name_cpd._cpdstr('psql'), 'turquoise')
+        ut.colorprint(match_cpd._cpdstr('psql'), 'turquoise')
+        ut.colorprint(score_cpd._cpdstr('psql'), 'turquoise')
 
     # -- Build CPDS
     name_cpds = [name_cpd.new_cpd(_id=aid) for aid in annots]
 
     match_cpds = [
         match_cpd.new_cpd(evidence_cpds=cpds)
-        for cpds in list(ut.iter_window(name_cpds, 2, wrap=len(name_cpds) > 2))
+        #for cpds in list(ut.iter_window(name_cpds, 2, wrap=len(name_cpds) > 2))
+        for cpds in list(ut.upper_diag_self_prodx(name_cpds))
     ]
 
     score_cpds = [
         score_cpd.new_cpd(evidence_cpds=cpds)
         for cpds in zip(match_cpds)
     ]
+
+    print(ut.list_getattr(name_cpds, 'variable'))
+    print(ut.list_getattr(match_cpds, 'variable'))
+    print(ut.list_getattr(score_cpds, 'variable'))
+
+    print('num_names = %r' % (num_names,))
+    print('len(annots) = %r' % (len(annots),))
+    print('len(name_cpds) = %r' % (len(name_cpds),))
+    print('len(match_cpds) = %r' % (len(match_cpds),))
+    print('len(score_cpds) = %r' % (len(score_cpds),))
 
     # ----
     # Make Model
@@ -125,87 +172,14 @@ def bayesnet(num_annots):
     model = pgmpy.models.BayesianModel(input_graph)
     model.add_cpds(*cpd_list)
     model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
+    model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
 
     def pretty_evidence(model, evidence):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
                 for evar, val in evidence.items()]
     ut.inject_func_as_method(model, pretty_evidence)
     #print_ascii_graph(model)
-
-    # --- INFERENCE ---
-    ut.colorprint('\n --- Inference ---', 'red')
-
-    N0 = name_cpds[0]
-    event_space_combos = {}
-    event_space_combos[N0.variable] = 0  # Set ni to always be Fred
-    for cpd in cpd_list:
-        if cpd.ttype == 'score':
-            #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
-            event_space_combos[cpd.variable] = [1]
-    #del event_space_combos['Ski']
-    print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
-    evidence_dict = ut.all_dict_combinations(event_space_combos)
-
-    name_belief = pgmpy.inference.BeliefPropagation(model)
-    #name_belief = pgmpy.inference.VariableElimination(model)
-
-    def try_query(evidence):
-        print('+--------')
-        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-        evidence_str = ', '.join(model.pretty_evidence(evidence))
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
-        probs = name_belief.query(query_vars, evidence)
-        factor_list = probs.values()
-        joint_factor = pgmpy.factors.factor_product(*factor_list)
-        # print(joint_factor.get_independencies())
-        # print(model.local_independencies([Ni.variable]))
-        ut.colorprint(joint_factor._str('phi', 'fancy_grid', sort=True), 'white')
-        #name_vars = [v for v in joint_factor.scope() if is_semtype(v, 'name')]
-        #marginal = joint_factor.marginalize(name_vars, inplace=False)
-        #ut.colorprint(marginal._str('phi', 'psql', sort=-1), 'white')
-
-        #factor = joint_factor  # NOQA
-        #semtypes = [var2_cpd[f.variables[0]].ttype for f in factor_list]
-        #for type_, factors in ut.group_items(factor_list, semtypes).items():
-        #    factors = ut.sortedby(factors, [f.variables[0] for f in factors])
-        #    ut.colorprint(ut.hz_str([f.__str__() for f in factors]), 'yellow')
-        print('L_____\n')
-        return factor_list
-
-    for evidence in evidence_dict:
-        factor_list = try_query(evidence)  # NOQA
-
-    if False and len(annots) == 3:
-        # Specific Cases
-        evidence = {'Mij': 1, 'Mjk': 1, 'Mki': 1, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Mij': 1, 'Mjk': 1, 'Mki': 1, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Mij': 0, 'Mjk': 0, 'Mki': 0, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Nj': 1, 'Sij': 0, 'Sjk': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 1, 'Sjk': 1}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 1}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 0, 'Ski': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 1, 'Ski': 1}
-        try_query(evidence)
-    # print_ascii_graph(model)
-
-    return model, evidence
+    return model
 
 
 class TemplateCPD(object):
@@ -227,9 +201,9 @@ class TemplateCPD(object):
     def __call__(self, *args, **kwargs):
         return self.new_cpd(*args, **kwargs)
 
-    def _str(self, *args, **kwargs):
+    def _cpdstr(self, *args, **kwargs):
         example_cpd = self.example_cpd()
-        return example_cpd._str(*args, **kwargs)
+        return example_cpd._cpdstr(*args, **kwargs)
 
     @ut.memoize
     def example_cpd(self, id_=0):
@@ -293,7 +267,7 @@ class TemplateCPD(object):
         return cpd
 
 
-def show_model(model, evidence):
+def show_model(model, evidence=None, suff=''):
     #ut.embed()
     # print('Independencies')
     # print(model.get_independencies())
@@ -304,18 +278,21 @@ def show_model(model, evidence):
     import networkx as netx
     fig = pt.figure(doclf=True)  # NOQA
     ax = pt.gca()
-    netx_graph = pgm_to_netx(model)
-    pos = netx.pydot_layout(netx_graph, prog='dot')
+    netx_graph = (model)
+    #pos = netx.pydot_layout(netx_graph, prog='dot')
+    pos = netx.graphviz_layout(netx_graph)
+
     #values = [[0, 0, 1]]
     #values = [[1, 0, 0]]
     #node_state = evidence.copy()
     #var2_factor = {f.variables[0]: None if f is None else f.values.max() for f in factor_list}
     #node_state.update(var2_factor)
     #node_colors = ut.dict_take(node_state, netx_graph.nodes(), None)
-    node_colors = [pt.TRUE_BLUE if node not in evidence else pt.FALSE_RED for node in netx_graph.nodes()]
-    netx.draw(netx_graph, pos=pos, ax=ax, node_color=node_colors, with_labels=True, node_size=2000)
-    pt.plt.savefig('foo.png')
-    ut.startfile('foo.png')
+    #node_colors = [pt.TRUE_BLUE if node not in evidence else pt.FALSE_RED for node in netx_graph.nodes()]
+    #netx.draw(netx_graph, pos=pos, ax=ax, node_color=node_colors, with_labels=True, node_size=2000)
+    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
+    pt.plt.savefig('foo' + suff + '.png')
+    ut.startfile('foo' + suff + '.png')
 
 
 def print_ascii_graph(model_):
@@ -332,6 +309,7 @@ def print_ascii_graph(model_):
     assert model is not model_
     # model.graph.setdefault('graph', {})['size'] = '".4,.4"'
     model.graph.setdefault('graph', {})['size'] = '".3,.3"'
+    model.graph.setdefault('graph', {})['height'] = '".3,.3"'
     pydot_graph = netx.to_pydot(model)
     png_str = pydot_graph.create_png(prog='dot')
     sio = StringIO()
@@ -424,57 +402,62 @@ def network_transforms_fun(model):
     ut.help_members(moralgraph)
 
 
-def bayesnet_examples():
-    import pandas as pd
-    student_model = pgmpy.models.BayesianModel(
-        [('D', 'G'),
-         ('I', 'G'),
-         ('G', 'L'),
-         ('I', 'S')])
-    # we can generate some random data.
-    raw_data = np.random.randint(low=0, high=2, size=(1000, 5))
-    data = pd.DataFrame(raw_data, columns=['D', 'I', 'G', 'L', 'S'])
-    data_train = data[: int(data.shape[0] * 0.75)]
-    student_model.fit(data_train)
-    student_model.get_cpds()
+def _debug_repr_model(model):
+    cpd_code_list = [_debug_repr_cpd(cpd) for cpd in model.cpds]
+    code_fmt = ut.codeblock(
+        '''
+        import numpy as np
+        import pgmpy
+        import pgmpy.inference
+        import pgmpy.factors
+        import pgmpy.models
 
-    data_test = data[int(0.75 * data.shape[0]): data.shape[0]]
-    data_test.drop('D', axis=1, inplace=True)
-    student_model.predict(data_test)
+        {cpds}
 
-    grade_cpd = pgmpy.factors.TabularCPD(
-        variable='G',
-        variable_card=3,
-        values=[[0.3, 0.05, 0.9, 0.5],
-                [0.4, 0.25, 0.08, 0.3],
-                [0.3, 0.7, 0.02, 0.2]],
-        evidence=['I', 'D'],
-        evidence_card=[2, 2])
-    difficulty_cpd = pgmpy.factors.TabularCPD(
-        variable='D',
-        variable_card=2,
-        values=[[0.6, 0.4]])
-    intel_cpd = pgmpy.factors.TabularCPD(
-        variable='I',
-        variable_card=2,
-        values=[[0.7, 0.3]])
-    letter_cpd = pgmpy.factors.TabularCPD(
-        variable='L',
-        variable_card=2,
-        values=[[0.1, 0.4, 0.99],
-                [0.9, 0.6, 0.01]],
-        evidence=['G'],
-        evidence_card=[3])
-    sat_cpd = pgmpy.factors.TabularCPD(
-        variable='S',
-        variable_card=2,
-        values=[[0.95, 0.2],
-                [0.05, 0.8]],
-        evidence=['I'],
-        evidence_card=[2])
-    student_model.add_cpds(grade_cpd, difficulty_cpd,
-                           intel_cpd, letter_cpd,
-                           sat_cpd)
+        cpd_list = {nodes}
+        input_graph = {edges}
+        model = pgmpy.models.BayesianModel(input_graph)
+        model.add_cpds(*cpd_list)
+        model_inference = pgmpy.inference.BeliefPropagation(model)
+        ''')
+
+    code = code_fmt.format(
+        cpds='\n'.join(cpd_code_list),
+        nodes=ut.repr2(sorted(model.nodes()), strvals=True),
+        edges=ut.repr2(sorted(model.edges()), nl=1),
+    )
+    ut.print_code(code)
+    ut.copy_text_to_clipboard(code)
+
+
+def _debug_repr_cpd(cpd):
+    import re
+    import utool as ut
+    code_fmt = ut.codeblock(
+        '''
+        {variable} = pgmpy.factors.TabularCPD(
+            variable={variable_repr},
+            variable_card={variable_card_repr},
+            values={get_cpd_repr},
+            evidence={evidence_repr},
+            evidence_card={evidence_card_repr},
+        )
+        ''')
+    # Parse props that are needed for this fmtstr
+    fmt_keys = [match.groups()[0] for match in re.finditer('{(.*?)}', code_fmt)]
+    need_reprs = [key[:-5] for key in fmt_keys if key.endswith('_repr')]
+    need_keys = [key for key in fmt_keys if not key.endswith('_repr')]
+    # Get corresponding props
+    # Call methods if needbe
+    tmp = [(prop, getattr(cpd, prop)) for prop in need_reprs]
+    tmp = [(x, y()) if ut.is_funclike(y) else (x, y) for (x, y) in tmp]
+    fmtdict = dict(tmp)
+    fmtdict = ut.map_dict_vals(ut.repr2, fmtdict)
+    fmtdict = ut.map_dict_keys(lambda x: x + '_repr', fmtdict)
+    tmp2 = [(prop, getattr(cpd, prop)) for prop in need_keys]
+    fmtdict.update(dict(tmp2))
+    code = code_fmt.format(**fmtdict)
+    return code
 
 
 if __name__ == '__main__':
@@ -487,118 +470,3 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
-
-# def print_cpd(cpd):
-#     print('CPT: %r' % (cpd,))
-#     index = semtype2_nice[cpd.ttype]
-#     if cpd.evidence is None:
-#         columns = ['None']
-#     else:
-#         basis_lists = [semtype2_nice[var2_cpd[ename].ttype] for ename in cpd.evidence]
-#         columns = [','.join(x) for x in ut.iprod(*basis_lists)]
-#     data = cpd.get_cpd()
-#     ut.colorprint(str(pd.DataFrame(data, index=index, columns=columns)), 'turquoise')
-
-# def print_factor(factor):
-#     row_cards = factor.cardinality
-#     row_vars = factor.variables
-#     values = factor.values.reshape(np.prod(row_cards), 1).flatten()
-#     # col_cards = 1
-#     # col_vars = ['']
-#     basis_lists = list(zip(*list(ut.iprod(*[range(c) for c in row_cards]))))
-#     nice_basis_lists = []
-#     for varname, basis in zip(row_vars, basis_lists):
-#         cpd = var2_cpd[varname]
-#         _nice_basis = ut.take(semtype2_nice[cpd.ttype], basis)
-#         nice_basis = ['%s=%s' % (varname, val) for val in _nice_basis]
-#         nice_basis_lists.append(nice_basis)
-#     row_lbls = [', '.join(sorted(x)) for x in zip(*nice_basis_lists)]
-#     dict_ = dict(zip(row_lbls, values))
-#     repr_ = ut.repr3(dict_, precision=3, align=True, key_order_metric='-val', maxlen=8)
-#     print(repr_)
-
-# # ProbMatch CPDS ---
-# def probmatch_cpd(aid1, aid2):
-#     """
-#     aid1, aid2 = 'i', 'j'
-#     """
-#     ttype = 'probmatch'
-#     variable = 'B' + aid1 + aid2
-#     variable_basis = semtype2_nice[ttype]
-#     statename_dict = {
-#         variable: variable_basis,
-#     }
-#     evidence = ['M' + aid1 + aid2, 'S' + aid1 + aid2]
-#     evidence_cpds = [var2_cpd[key] for key in evidence]
-#     evidence_nice = [semtype2_nice[cpd.ttype] for cpd in evidence_cpds]
-#     statename_dict.update(dict(zip(evidence, evidence_nice)))
-#     evidence_card = list(map(len, evidence_nice))
-#     evidence_states = list(ut.iprod(*evidence_nice))
-#     def samediff_pmf(probmatch_type, match_type, score_type):
-#         val = None
-#         if match_type == 'same':
-#             if probmatch_type == 'psame':
-#                 val = .9 if score_type == 'high' else .5
-#             elif probmatch_type == 'pdiff':
-#                 val = .1 if score_type == 'high' else .5
-#         elif match_type == 'diff':
-#             if probmatch_type == 'psame':
-#                 val = .5 if score_type == 'high' else .1
-#             elif probmatch_type == 'pdiff':
-#                 val = .5 if score_type == 'high' else .9
-#         return val
-#     variable_values = []
-#     for score_type in variable_basis:
-#         row = []
-#         for state in evidence_states:
-#             # row.append(samediff_pmf(score_type, state[0], state[1]))
-#             row.append(samediff_pmf(score_type, state[0], state[1]))
-#         variable_values.append(row)
-#     cpd = pgmpy.factors.TabularCPD(
-#         variable=variable,
-#         variable_card=len(variable_basis),
-#         values=variable_values,
-#         evidence=evidence,
-#         evidence_card=evidence_card,
-#         statename_dict=statename_dict,
-#     )
-#     cpd.ttype = ttype
-#     return cpd
-# #probmatch_cdfs = [probmatch_cpd(*aids)
-# #                  for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-# #var2_cpd.update(dict(zip([cpd.variable for cpd in probmatch_cdfs], probmatch_cdfs)))
-
-
-# Match CPDS ---
-# def samediff_cpd(aid1, aid2):
-#     ttype = 'name'
-#     ttype = 'match'
-#     var_card = len(semtype2_nice[ttype])
-#     variable = 'M' + aid1 + aid2
-#     from pgmpy.factors import TabularCPD
-#     cpd = TabularCPD(
-#         variable=variable,
-#         variable_card=var_card,
-#         values=[[1.0 / var_card] * var_card])
-#     cpd.ttype = ttype
-#     return cpd
-# samediff_cpds = [samediff_cpd(*aids)
-#                  for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-# var2_cpd.update(dict(zip([cpd.variable for cpd in samediff_cpds], samediff_cpds)))
-
-# Score CPDS ---
-# def score_cpd(aid1, aid2):
-#     """
-#     aid1, aid2 = 'i', 'j'
-#     """
-#     variable = 'S' + aid1 + aid2
-#     ttype = 'score'
-#     variable_basis = semtype2_nice[ttype]
-#     variable_values = [[.6, .4]]
-#     cpd = pgmpy.factors.TabularCPD(
-#         variable=variable,
-#         variable_card=len(variable_basis),
-#         values=variable_values,
-#     )
-#     cpd.ttype = ttype
-#     return cpd
