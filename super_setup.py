@@ -236,7 +236,7 @@ ut.init_catch_ctrl_c()
 
 print('[super_setup] Checking third-party-libraries')
 
-FORCE_GUI = not ut.get_argflag('--nogui')
+FORCE_GUI = ut.get_argflag('--gui')
 print('Run with --nogui flag to force setup without qt')
 
 
@@ -248,57 +248,59 @@ TPL_MODULES_AND_REPOS = [
     (('PyQt5', 'PyQt4'),   None, FORCE_GUI)
 ]
 
-custom_cv2_buildscript = r"""
-cd $CODE_DIR
 
-git clone https://github.com/Itseez/opencv.git
+def register_custom_build_script(scriptname, script):
+    flag = '--build-' + scriptname
+    print('flag = %r' % (flag,))
+    if ut.get_argflag(flag):
+        print('Requested opencv build')
+        ut.print_code(script, 'bash')
 
-cd opencv
+register_custom_build_script('opencv', ut.codeblock(r"""
+    # STARTBLOCK bash
+    cd $CODE_DIR
+    git clone https://github.com/Itseez/opencv.git
+    cd opencv
+    # Get Extras
+    git clone https://github.com/Itseez/opencv_contrib.git
+    mkdir -p build27
+    cd build27
 
-# Get Extras
-git clone https://github.com/Itseez/opencv_contrib.git
+    if [[ "$VIRTUAL_ENV" == ""  ]]; then
+        export LOCAL_PREFIX=/usr/local
+        export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
+    else
+        export LOCAL_PREFIX=$VIRTUAL_ENV/local
+        export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
+    fi
 
-mkdir build27
-cd build27
+    echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+    echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
+    # use dist packages on ubuntu. may need to change for other platforms
+    cmake -G "Unix Makefiles" \
+        -D WITH_OPENMP=ON \
+        -D CMAKE_BUILD_TYPE=RELEASE \
+        -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
+        -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+        -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+        ..
 
-if [[ "$VIRTUAL_ENV" == ""  ]]; then
-    export LOCAL_PREFIX=/usr/local
-    export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
-else
-    export LOCAL_PREFIX=$VIRTUAL_ENV/local
-    export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
-fi
+    export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+    make -j$NCPUS
+    sudo make install
+    # Hack because cv2 does not want to be installed for some reason
+    cp lib/cv2.so $PYTHON2_PACKAGES_PATH
+    # Test makesure things working
+    python -c "import numpy; print(numpy.__file__)"
+    python -c "import numpy; print(numpy.__version__)"
+    python -c "import cv2; print(cv2.__version__)"
+    python -c "import cv2; print(cv2.__file__)"
+    #python -c "import vtool"
 
-echo "LOCAL_PREFIX = $LOCAL_PREFIX"
-echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
-
-# use dist packages on ubuntu. may need to change for other platforms
-cmake -G "Unix Makefiles" \
-    -D WITH_OPENMP=ON \
-    -D CMAKE_BUILD_TYPE=RELEASE \
-    -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
-    -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-    -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
-    ..
-
-export NCPUS=$(grep -c ^processor /proc/cpuinfo)
-
-make -j$NCPUS
-sudo make install
-
-# Hack because cv2 does not want to be installed for some reason
-cp lib/cv2.so $PYTHON2_PACKAGES_PATH
-
-python -c "import numpy; print(numpy.__file__)"
-python -c "import numpy; print(numpy.__version__)"
-python -c "import cv2; print(cv2.__version__)"
-python -c "import cv2; print(cv2.__file__)"
-#python -c "import vtool"
-
-# Check if we have contrib modules
-python -c "import cv2; print(cv2.xfeatures2d)"
-
-"""
+    # Check if we have contrib modules
+    python -c "import cv2; print(cv2.xfeatures2d)"
+    # ENDBLOCK
+    """))
 
 TPL_REPO_URLS = []
 # Test to see if opencv and pyflann have been built
