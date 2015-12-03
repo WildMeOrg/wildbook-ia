@@ -34,28 +34,52 @@ def bayesnet_cases():
         >>> from ibeis.model.hots.bayes import *  # NOQA
         >>> bayesnet_cases()
     """
+    from functools import partial
+    import itertools
+    count = partial(six.next, itertools.count(1))
 
-    # Start with 5 names.
-    test_model(1, (2, 4))
+    fpath = test_model(count(), (2, 4), high_idx=[], force_names=[])  # init
+    fpath = test_model(count(), (2, 4), high_idx=[0], force_names=['n0'])  # Start with 4 names.
+    fpath = test_model(count(), (2, 5), high_idx=[0], force_names=['n0'])  # Add a name, Causes probability of match to go down
+    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=['n0'])  # Add Annotation
+    fpath = test_model(count(), (3, 5), high_idx=[0, 2], force_names=['n0'])
 
-    # Add a name
-    # Causes probability of match to go down
-    test_model(2, (2, 5))
+    fpath = test_model(count(), (3, 5), high_idx=[0, 2], force_names=['n0', {('n0',): .9}])
+    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=['n0', {('n0',): .9}])
+    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .9}])
+    fpath = test_model(count(), (3, 10), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .9}])
+    fpath = test_model(count(), (3, 10), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}])
 
-    # Add Annotation
-    test_model(3, (3, 5))
+    fpath = test_model(count(), (3, 10), high_idx=[0, 1], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}])
+    fpath = test_model(count(), (3, 10), high_idx=[0, 1], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+    fpath = test_model(count(), (3, 10), high_idx=[0, 1, 2], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+    # Fix indexing to move in diagonal order as opposed to row order
+    fpath = test_model(count(), (4, 10), high_idx=[0, 1, 3], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+    fpath = test_model(count(), (4, 10),
+                       high_idx=[0, 1, 3], low_idx=[2], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+
+    fpath = test_model(count(), (4, 10))
+
+    ut.startfile(fpath)
 
     #model = make_name_model(5, 10)
     #evidence = test_model(model)
 
 
-def test_model(test_idx, model=(2, 2), high_idx=[0]):
-    print('___ TEST %d ___' % (test_idx,))
+def test_model(test_idx, model=(2, 2), high_idx=[], low_idx=[], force_names=[]):
+    #if test_idx < 13:
+    #    # hack
+    #    return
+
+    verbose = False
+    if verbose:
+        print('___ TEST %d ___' % (test_idx,))
 
     if isinstance(model, tuple):
-        model = make_name_model(*model)
+        model = make_name_model(*model, verbose=verbose)
 
-    ut.colorprint('\n --- Inference ---', 'red')
+    if verbose:
+        ut.colorprint('\n --- Inference ---', 'red')
 
     name_cdfs = model.ttype2_cpds['name']
     score_cdfs = model.ttype2_cpds['score']
@@ -63,51 +87,72 @@ def test_model(test_idx, model=(2, 2), high_idx=[0]):
     evidence = {}
 
     # Set ni to always be Fred
-    N0 = name_cdfs[0]
-    evidence[N0.variable] = 0
+    #N0 = name_cdfs[0]
+    soft_evidence = {}
+    for Ni, force in zip(name_cdfs, force_names):
+        if isinstance(force, six.string_types):
+            evidence[Ni.variable] = Ni.statename_to_index(Ni.variable, force)
+        if isinstance(force, dict):
+            # soft evidence
+            fill = (1 - sum(force.values())) / (len(Ni.values) - len(force))
+            assert fill >= 0
+            row_labels = list(ut.iprod(*Ni.statenames))
+            for i, lbl in enumerate(row_labels):
+                if lbl in force:
+                    Ni.values[i] = force[lbl]
+                else:
+                    Ni.values[i] = fill
+            soft_evidence[Ni.variable] = True
+            #ut.embed()
+            pass
 
     for idx in high_idx:
         evidence[score_cdfs[idx].variable] = 1
+    for idx in low_idx:
+        evidence[score_cdfs[idx].variable] = 0
 
     model_inference = pgmpy.inference.BeliefPropagation(model)
     #model_inference = pgmpy.inference.VariableElimination(model)
 
-    factor_list = try_query(model, model_inference, evidence)
+    factor_list = try_query(model, model_inference, evidence, verbose=verbose)
 
-    show_model(model, evidence,  str(test_idx), factor_list)
+    return show_model(model, evidence,  str(test_idx), factor_list, soft_evidence)
     # print_ascii_graph(model)
-    return evidence
+    #return evidence
 
 
-def try_query(model, model_inference, evidence):
-    print('+--------')
+def try_query(model, model_inference, evidence, verbose=True):
+    if verbose:
+        print('+--------')
     query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
     evidence_str = ', '.join(model.pretty_evidence(evidence))
-    print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+    if verbose:
+        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
     probs = model_inference.query(query_vars, evidence)
     factor_list = probs.values()
-    joint_factor = pgmpy.factors.factor_product(*factor_list)
-    # print(joint_factor.get_independencies())
-    # print(model.local_independencies([Ni.variable]))
-    #print('Result Factors')
-    factor = joint_factor  # NOQA
-    semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
-    for type_, factors in ut.group_items(factor_list, semtypes).items():
-        print('Result Factors (%r)' % (type_,))
-        factors = ut.sortedby(factors, [f.variables[0] for f in factors])
-        for fs_ in ut.ichunks(factors, 4):
-            ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
-    #print('Joint Factors')
-    #ut.colorprint(joint_factor._str('phi', 'psql', sort=True), 'white')
-    #name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
-    #print('Marginal Factors')
-    #marginal = joint_factor.marginalize(name_vars, inplace=False)
-    #ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
-    print('L_____\n')
+    if verbose:
+        joint_factor = pgmpy.factors.factor_product(*factor_list)
+        # print(joint_factor.get_independencies())
+        # print(model.local_independencies([Ni.variable]))
+        #print('Result Factors')
+        factor = joint_factor  # NOQA
+        semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
+        for type_, factors in ut.group_items(factor_list, semtypes).items():
+            print('Result Factors (%r)' % (type_,))
+            factors = ut.sortedby(factors, [f.variables[0] for f in factors])
+            for fs_ in ut.ichunks(factors, 4):
+                ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
+        #print('Joint Factors')
+        #ut.colorprint(joint_factor._str('phi', 'psql', sort=True), 'white')
+        #name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
+        #print('Marginal Factors')
+        #marginal = joint_factor.marginalize(name_vars, inplace=False)
+        #ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        print('L_____\n')
     return factor_list
 
 
-def make_name_model(num_annots, num_names=None):
+def make_name_model(num_annots, num_names=None, verbose=True):
     #annots = ut.chr_range(num_annots, base='a')
     annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
     if num_names is None:
@@ -275,7 +320,7 @@ class TemplateCPD(object):
         return cpd
 
 
-def show_model(model, evidence=None, suff='', factor_list=None):
+def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}):
     import utool as ut
     #ut.embed()
     # print('Independencies')
@@ -292,6 +337,7 @@ def show_model(model, evidence=None, suff='', factor_list=None):
         pos = netx.pydot_layout(netx_graph, prog='dot')
     else:
         pos = netx.graphviz_layout(netx_graph)
+    #model.graph.setdefault('graph', {})['size'] = '"10,5"'
 
     #values = [[0, 0, 1]]
     #values = [[1, 0, 0]]
@@ -300,7 +346,13 @@ def show_model(model, evidence=None, suff='', factor_list=None):
     #node_state.update(var2_factor)
     #node_colors = ut.dict_take(node_state, netx_graph.nodes(), None)
     if evidence is not None:
-        node_colors = [pt.TRUE_BLUE if node not in evidence else pt.FALSE_RED for node in netx_graph.nodes()]
+        node_colors = [
+            (pt.TRUE_BLUE
+             if node not in soft_evidence else
+             pt.LIGHT_PINK)
+            if node not in evidence
+            else pt.FALSE_RED
+            for node in netx_graph.nodes()]
         netx.draw(netx_graph, pos=pos, ax=ax, node_color=node_colors, with_labels=True, node_size=2000)
     else:
         netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
@@ -329,19 +381,47 @@ def show_model(model, evidence=None, suff='', factor_list=None):
             variable = node[0]
 
             text = None
+            cpd = model.var2_cpd[variable]
+
+            def almost_allsame(vals):
+                if len(vals) == 0:
+                    return True
+                x = vals[0]
+                return np.all([np.isclose(item, x) for item in vals])
+
+            if cpd.evidence is None:
+                prior = cpd
+            else:
+                prior = cpd.marginalize(cpd.evidence, inplace=False)
+            if almost_allsame(prior.values):
+                prior_text = 'prior:\nuniform'
+            else:
+                rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*prior.statenames), prior.values)]
+                if len(rowstrs) > 3:
+                    sortx = prior.values.argsort()[::-1]
+                    rowstrs = ut.take(rowstrs, sortx[0:3])
+                    rowstrs += ['...']
+                prior_text = 'prior: \n' + '\n'.join(rowstrs)
 
             if variable in evidence:
-                cpd = model.var2_cpd[variable]
                 text = cpd.variable_statenames[evidence[variable]]
+                prior_text = None
             elif variable in var2_factor:
                 factor = var2_factor[variable]
-                sortx = factor.values.argsort()[::-1]
-                rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*factor.statenames), factor.values)]
-                text = '\n'.join(ut.take(rowstrs, sortx[0:3]))
+                if almost_allsame(factor.values):
+                    text = 'post:\nuniform'
+                else:
+                    rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*factor.statenames), factor.values)]
+                    if len(rowstrs) > 3:
+                        sortx = factor.values.argsort()[::-1]
+                        rowstrs = ut.take(rowstrs, sortx[0:3])
+                        rowstrs += ['...']
+                    text = 'post: \n' + '\n'.join(rowstrs)
+
             if text is not None:
                 offset_box = mpl.offsetbox.TextArea(text, textprops)
                 artist = mpl.offsetbox.AnnotationBbox(
-                    offset_box, (x + 5, y), xybox=(20., 0.),
+                    offset_box, (x + 5, y), xybox=(20., 5.),
                     xycoords='data', boxcoords="offset points",
                     pad=0.25, frameon=True,
                     box_alignment=(0, 0),
@@ -351,12 +431,27 @@ def show_model(model, evidence=None, suff='', factor_list=None):
                 offset_box_list.append(offset_box)
                 artist_list.append(artist)
 
+            if prior_text:
+                offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
+                artist2 = mpl.offsetbox.AnnotationBbox(
+                    offset_box2, (x - 5, y), xybox=(-20., -15.),
+                    xycoords='data', boxcoords="offset points",
+                    pad=0.25, frameon=True,
+                    box_alignment=(1, 1),
+                    #bboxprops=dict(fc=node_attr['fillcolor']),
+                    arrowprops=dict(arrowstyle="->"),
+                )
+                offset_box_list.append(offset_box2)
+                artist_list.append(artist2)
+
         for artist in artist_list:
             ax.add_artist(artist)
 
         xmin, ymin = np.array(pos_list).min(axis=0)
         xmax, ymax = np.array(pos_list).max(axis=0)
         ax.set_xlim((xmin - 30, xmax + 30))
+        fig = pt.gcf()
+        fig.set_size_inches(14, 6)
 
         if textprops['horizontalalignment'] == 'center':
             fig = pt.gcf()
@@ -378,9 +473,10 @@ def show_model(model, evidence=None, suff='', factor_list=None):
                 A.clear()
                 A.translate((z.x1 - z.x0) / 2, 0)
                 offset_box._text.set_transform(T + A)
+    fpath = ('foo' + suff + '.png')
 
-    pt.plt.savefig('foo' + suff + '.png')
-    ut.startfile('foo' + suff + '.png')
+    pt.plt.savefig(fpath)
+    return fpath
 
 
 def print_ascii_graph(model_):
