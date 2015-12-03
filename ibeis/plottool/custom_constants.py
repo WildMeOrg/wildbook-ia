@@ -64,6 +64,7 @@ GRAY          = np.array((127, 127, 127, 255)) / 255.0
 LIGHTGRAY     = np.array((220, 220, 220, 255)) / 255.0
 DEEP_PINK     = np.array((255,  20, 147, 255)) / 255.0
 PINK          = np.array((255, 100, 100, 255)) / 255.0
+LIGHT_PINK    = np.array((255, 120, 120, 255)) / 255.0
 FALSE_RED     = np.array((255,  51,   0, 255)) / 255.0
 TRUE_GREEN    = np.array((  0, 255,   0, 255)) / 255.0
 TRUE_BLUE     = np.array((  0, 255, 255, 255)) / 255.0
