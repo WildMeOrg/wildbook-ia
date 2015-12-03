@@ -24,6 +24,177 @@ import pgmpy.models
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
 
+def make_bayes_notebook():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-make_bayes_notebook
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> result = make_bayes_notebook()
+        >>> print(result)
+    """
+    from ibeis.templates import generate_notebook
+    initialize = ut.codeblock(
+        r'''
+        # STARTBLOCK
+        from ibeis.model.hots.bayes import *  # NOQA
+        # Matplotlib stuff
+        import matplotlib as mpl
+        %matplotlib inline
+        %load_ext autoreload
+        %autoreload
+        # ENDBLOCK
+        '''
+    )
+    cell_list_def = [
+        initialize,
+        show_model_templates,
+        demo_name_annot_complexity,
+        #demo_model_idependencies1,
+        #demo_model_idependencies2,
+        demo_single_add,
+        demo_single_add_soft,
+    ]
+    def format_cell(cell):
+        if ut.is_funclike(cell):
+            header = '# ' + ut.to_title_caps(ut.get_funcname(cell))
+            code = (header, ut.get_func_sourcecode(cell, stripdef=True, stripret=True))
+        else:
+            code = cell
+        return generate_notebook.format_cells(code)
+
+    cell_list = ut.flatten([format_cell(cell) for cell in cell_list_def])
+    nbstr = generate_notebook.make_notebook(cell_list)
+    print('nbstr = %s' % (nbstr,))
+    ut.writeto('bayes.ipynb', nbstr)
+
+
+def show_model_templates():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-show_model_templates
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> result = show_model_templates()
+        >>> print(result)
+    """
+    make_name_model(2, 2, verbose=True)
+
+
+def demo_single_add():
+    """
+    This demo shows how a name is assigned to a new annotation.
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-demo_single_add
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> result = demo_single_add()
+        >>> print(result)
+    """
+    # Initially there are only two annotations that have a strong match
+    test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=[0])
+    # Adding a new annotation does not change the original probabilites
+    test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=[0])
+    # Adding evidence that Na matches Nc does not influence the probability
+    # that Na matches Nb. However the probability that Nb matches Nc goes up.
+    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'], name_evidence=[0])
+    # However, once Nb is scored against Nb that does increase the likelihood
+    # that all 3 are fred goes up significantly.
+    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high', 'high'], name_evidence=[0])
+
+
+def demo_single_add_soft():
+    """
+    This is the same as demo_single_add, but soft labels are used.
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-demo_single_add_soft
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> result = demo_single_add_soft()
+        >>> print(result)
+    """
+    # Initially there are only two annotations that have a strong match
+    #test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=[{0: .9}])
+    # Adding a new annotation does not change the original probabilites
+    #test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=[{0: .9}])
+    # Adding evidence that Na matches Nc does not influence the probability
+    # that Na matches Nb
+    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'], name_evidence=[{0: .9}])
+    # However, once Nb is scored against Nb that does increase the likelihood
+    # that all 3 are fred goes up significantly.
+    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high', 'high'], name_evidence=[{0: .9}])
+
+
+def demo_name_annot_complexity():
+    """
+    This demo is meant to show the structure of the graph as more annotations
+    and names are added.
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-demo_name_annot_complexity --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> demo_name_annot_complexity()
+        >>> ut.show_if_requested()
+    """
+    # Initially there are 2 annots and 4 names
+    test_model(num_annots=2, num_names=4, score_evidence=[], name_evidence=[])
+    # Adding a name causes the probability of the other names to go down
+    test_model(num_annots=2, num_names=5, score_evidence=[], name_evidence=[])
+    # Adding an annotation wihtout matches does not effect probabilities of
+    # names
+    test_model(num_annots=3, num_names=5, score_evidence=[], name_evidence=[])
+    test_model(num_annots=4, num_names=10, score_evidence=[], name_evidence=[])
+
+
+def demo_model_idependencies1():
+    """
+    Independences of the 2 annot 2 name model
+    """
+    model = test_model(num_annots=2, num_names=2, score_evidence=[], name_evidence=[])[0]
+    # This model has the following independenceis
+    idens = model.get_independencies()
+    # Might not be valid, try and collapse S and M
+    xs = list(map(str, idens.independencies))
+    import re
+    xs = [re.sub(', M..', '', x) for x in xs]
+    xs = [re.sub('M..,?', '', x) for x in xs]
+    xs = [x for x in xs if not x.startswith('( _')]
+    xs = [x for x in xs if not x.endswith('| )')]
+    print('\n'.join(sorted(list(set(xs)))))
+
+
+def demo_model_idependencies2():
+    """
+    Independences of the 3 annot 3 name model
+    """
+    model = test_model(num_annots=3, num_names=3, score_evidence=[], name_evidence=[])[0]
+    # This model has the following independenceis
+    idens = model.get_independencies()
+    print(idens)
+
+# Might not be valid, try and collapse S and M
+#xs = list(map(str, idens.independencies))
+#import re
+#xs = [re.sub(', M..', '', x) for x in xs]
+#xs = [re.sub('M..,?', '', x) for x in xs]
+#xs = [x for x in xs if not x.startswith('( _')]
+#xs = [x for x in xs if not x.endswith('| )')]
+#print('\n'.join(sorted(list(set(xs)))))
+
+
 def bayesnet_cases():
     r"""
     CommandLine:
@@ -38,85 +209,112 @@ def bayesnet_cases():
     import itertools
     count = partial(six.next, itertools.count(1))
 
-    fpath = test_model(count(), (2, 4), high_idx=[], force_names=[])  # init
-    fpath = test_model(count(), (2, 4), high_idx=[0], force_names=['n0'])  # Start with 4 names.
-    fpath = test_model(count(), (2, 5), high_idx=[0], force_names=['n0'])  # Add a name, Causes probability of match to go down
-    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=['n0'])  # Add Annotation
-    fpath = test_model(count(), (3, 5), high_idx=[0, 2], force_names=['n0'])
+    test_model(count(), num_annots=2, num_names=4, high_idx=[],
+               name_evidence=[])  # init
+    test_model(count(), num_annots=2, num_names=4, high_idx=[0],
+               name_evidence=['n0'])  # Start with 4 names.
+    test_model(count(), num_annots=2, num_names=5, high_idx=[0],
+               name_evidence=['n0'])  # Add a name, Causes probability of match to go down
+    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
+               name_evidence=['n0'])  # Add Annotation
+    test_model(count(), num_annots=3, num_names=5, high_idx=[0, 2],
+               name_evidence=['n0'])
 
-    fpath = test_model(count(), (3, 5), high_idx=[0, 2], force_names=['n0', {('n0',): .9}])
-    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=['n0', {('n0',): .9}])
-    fpath = test_model(count(), (3, 5), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .9}])
-    fpath = test_model(count(), (3, 10), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .9}])
-    fpath = test_model(count(), (3, 10), high_idx=[0], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}])
+    test_model(count(), num_annots=3, num_names=5, high_idx=[0, 2],
+               name_evidence=['n0', {'n0': .9}])
+    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
+               name_evidence=['n0', {'n0': .9}])
+    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
+               name_evidence=[{'n0': .99}, {'n0': .9}])
+    test_model(count(), num_annots=3, num_names=10, high_idx=[0],
+               name_evidence=[{'n0': .99}, {'n0': .9}])
+    test_model(count(), num_annots=3, num_names=10, high_idx=[0],
+                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}])
 
-    fpath = test_model(count(), (3, 10), high_idx=[0, 1], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}])
-    fpath = test_model(count(), (3, 10), high_idx=[0, 1], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
-    fpath = test_model(count(), (3, 10), high_idx=[0, 1, 2], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+    #fpath = test_model(count(), (3, 10), high_idx=[0, 1],
+    #                   name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}])
+    #fpath = test_model(count(), (3, 10), high_idx=[0, 1],
+    #                   name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
+    test_model(count(), num_annots=3, num_names=10, high_idx=[0, 1, 2],
+                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
     # Fix indexing to move in diagonal order as opposed to row order
-    fpath = test_model(count(), (4, 10), high_idx=[0, 1, 3], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
-    fpath = test_model(count(), (4, 10),
-                       high_idx=[0, 1, 3], low_idx=[2], force_names=[{('n0',): .99}, {('n0',): .2, ('n1',): .7}, {('n0',): .32}])
+    test_model(count(), num_annots=4, num_names=10, high_idx=[0, 1, 2],
+                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
+    #fpath = test_model(count(), (4, 10),
+    #                   high_idx=[0, 1, 3], low_idx=[2], name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
 
-    fpath = test_model(count(), (4, 10))
+    #fpath = test_model(count(), (4, 10))
 
-    ut.startfile(fpath)
-
-    #model = make_name_model(5, 10)
-    #evidence = test_model(model)
+    #ut.startfile(fpath)
 
 
-def test_model(test_idx, model=(2, 2), high_idx=[], low_idx=[], force_names=[]):
-    #if test_idx < 13:
-    #    # hack
-    #    return
+def test_model(num_annots, num_names, score_evidence=[], name_evidence=[]):
+    verbose = ut.VERBOSE
 
-    verbose = False
-    if verbose:
-        print('___ TEST %d ___' % (test_idx,))
-
-    if isinstance(model, tuple):
-        model = make_name_model(*model, verbose=verbose)
+    model = make_name_model(num_annots, num_names, verbose=verbose)
 
     if verbose:
         ut.colorprint('\n --- Inference ---', 'red')
 
-    name_cdfs = model.ttype2_cpds['name']
-    score_cdfs = model.ttype2_cpds['score']
+    name_cpds = model.ttype2_cpds['name']
+    score_cpds = model.ttype2_cpds['score']
 
     evidence = {}
+    soft_evidence = {}
 
     # Set ni to always be Fred
-    #N0 = name_cdfs[0]
-    soft_evidence = {}
-    for Ni, force in zip(name_cdfs, force_names):
-        if isinstance(force, six.string_types):
-            evidence[Ni.variable] = Ni.statename_to_index(Ni.variable, force)
-        if isinstance(force, dict):
-            # soft evidence
-            fill = (1 - sum(force.values())) / (len(Ni.values) - len(force))
-            assert fill >= 0
-            row_labels = list(ut.iprod(*Ni.statenames))
-            for i, lbl in enumerate(row_labels):
-                if lbl in force:
-                    Ni.values[i] = force[lbl]
-                else:
-                    Ni.values[i] = fill
-            soft_evidence[Ni.variable] = True
-            #ut.embed()
-            pass
+    #N0 = name_cpds[0]
 
-    for idx in high_idx:
-        evidence[score_cdfs[idx].variable] = 1
-    for idx in low_idx:
-        evidence[score_cdfs[idx].variable] = 0
+    def apply_hard_soft_evidence(cpd_list, evidence_list):
+        for cpd, ev in zip(cpd_list, evidence_list):
+            if isinstance(ev, int):
+                # hard internal evidence
+                evidence[cpd.variable] = ev
+            if isinstance(ev, six.string_types):
+                # hard external evidence
+                evidence[cpd.variable] = cpd.statename_to_index(cpd.variable, ev)
+            if isinstance(ev, dict):
+                # soft external evidence
+                # HACK THAT MODIFIES CPD IN PLACE
+                fill = (1 - sum(ev.values())) / (len(cpd.values) - len(ev))
+                assert fill >= 0
+                row_labels = list(ut.iprod(*cpd.statenames))
 
-    model_inference = pgmpy.inference.BeliefPropagation(model)
-    #model_inference = pgmpy.inference.VariableElimination(model)
+                for i, lbl in enumerate(row_labels):
+                    if lbl in ev:
+                        # external case1
+                        cpd.values[i] = ev[lbl]
+                    elif len(lbl) == 1 and lbl[0] in ev:
+                        # external case2
+                        cpd.values[i] = ev[lbl[0]]
+                    elif i in ev:
+                        # internal case
+                        cpd.values[i] = ev[i]
+                    else:
+                        cpd.values[i] = fill
+                soft_evidence[cpd.variable] = True
 
-    factor_list = try_query(model, model_inference, evidence, verbose=verbose)
+    apply_hard_soft_evidence(name_cpds, name_evidence)
+    apply_hard_soft_evidence(score_cpds, score_evidence)
 
-    return show_model(model, evidence,  str(test_idx), factor_list, soft_evidence)
+    #for Sij, sev in zip(score_cpds, score_evidence):
+    #    if isinstance(sev, six.string_types):
+    #        evidence[Sij.variable] = Sij.statename_to_index(Sij.variable, sev)
+
+    #for idx in high_idx:
+    #    evidence[score_cpds[idx].variable] = 1
+    #for idx in low_idx:
+    #    evidence[score_cpds[idx].variable] = 0
+
+    if len(evidence) > 0:
+        model_inference = pgmpy.inference.BeliefPropagation(model)
+        #model_inference = pgmpy.inference.VariableElimination(model)
+        factor_list = try_query(model, model_inference, evidence, verbose=verbose)
+    else:
+        factor_list = []
+
+    show_model(model, evidence, '', factor_list, soft_evidence)
+    return (model,)
     # print_ascii_graph(model)
     #return evidence
 
@@ -173,7 +371,10 @@ def make_name_model(num_annots, num_names=None, verbose=True):
             val = .9 if score_type == 'low' else .1
         return val
 
-    name_cpd = TemplateCPD('name', ('n', num_names), varpref='N')
+    special_basis_pool = ['fred', 'sue', 'paul']
+
+    name_cpd = TemplateCPD('name', ('n', num_names), varpref='N',
+                           special_basis_pool=special_basis_pool)
 
     match_cpd = TemplateCPD('match', ['diff', 'same'], varpref='M',
                             evidence_ttypes=[name_cpd, name_cpd],
@@ -183,7 +384,7 @@ def make_name_model(num_annots, num_names=None, verbose=True):
                             evidence_ttypes=[match_cpd],
                             pmf_func=score_pmf)
 
-    PRINT_TEMPLATES = False
+    PRINT_TEMPLATES = verbose
     if PRINT_TEMPLATES:
         ut.colorprint('\n --- CPD Templates ---', 'blue')
         ut.colorprint(name_cpd._cpdstr('psql'), 'turquoise')
@@ -193,10 +394,16 @@ def make_name_model(num_annots, num_names=None, verbose=True):
     # -- Build CPDS
     name_cpds = [name_cpd.new_cpd(_id=aid) for aid in annots]
 
+    # This way of enumeration helps during testing
+    # The indexes of match cpds will not change if another annotation is added
+    diag_idxs = list(ut.diagonalized_iter(len(name_cpds)))
+    upper_diag_idxs = [(r, c) for r, c in diag_idxs if r < c]
+
     match_cpds = [
         match_cpd.new_cpd(evidence_cpds=cpds)
         #for cpds in list(ut.iter_window(name_cpds, 2, wrap=len(name_cpds) > 2))
-        for cpds in list(ut.upper_diag_self_prodx(name_cpds))
+        for cpds in ut.list_unflat_take(name_cpds, upper_diag_idxs)
+        #for cpds in list(ut.upper_diag_self_prodx(name_cpds))
     ]
 
     score_cpds = [
@@ -239,10 +446,20 @@ class TemplateCPD(object):
     """
     Factory for templated cpds
     """
-    def __init__(self, ttype, basis, varpref, evidence_ttypes=None, pmf_func=None):
+    def __init__(self, ttype, basis, varpref, evidence_ttypes=None,
+                 pmf_func=None, special_basis_pool=None):
         if isinstance(basis, tuple):
             state_pref, state_card = basis
-            basis = [state_pref + str(i) for i in range(state_card)]
+            stop = state_card
+            basis = []
+            num_special = 0
+            if special_basis_pool is not None:
+                start = stop - len(special_basis_pool)
+                num_special = min(len(special_basis_pool), state_card)
+                basis = special_basis_pool[0:num_special]
+            if (state_card - num_special) > 0:
+                start = num_special
+                basis = basis + [state_pref + str(i) for i in range(start, stop)]
         if varpref is None:
             varpref = ttype
         self.basis = basis
@@ -321,30 +538,59 @@ class TemplateCPD(object):
 
 
 def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}):
-    import utool as ut
-    #ut.embed()
-    # print('Independencies')
-    # print(model.get_independencies())
-    # print(model.local_independencies([Ni.variable]))
-    # _ draw model
+    """
+    References:
+        http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
 
+
+    sudo apt-get install libgraphviz-dev
+    pip install git+git://github.com/pygraphviz/pygraphviz.git
+    sudo pip install pygraphviz
+
+    """
+    import utool as ut
     import plottool as pt
     import networkx as netx
-    fig = pt.figure(doclf=True)  # NOQA
+    import pygraphviz
+    import matplotlib as mpl
+    fnum = pt.ensure_fnum(None)
+    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
     ax = pt.gca()
     netx_graph = (model)
-    if True:
-        pos = netx.pydot_layout(netx_graph, prog='dot')
-    else:
-        pos = netx.graphviz_layout(netx_graph)
-    #model.graph.setdefault('graph', {})['size'] = '"10,5"'
+    #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
+    #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
 
-    #values = [[0, 0, 1]]
-    #values = [[1, 0, 0]]
-    #node_state = evidence.copy()
-    #var2_factor = {f.variables[0]: None if f is None else f.values.max() for f in factor_list}
-    #node_state.update(var2_factor)
-    #node_colors = ut.dict_take(node_state, netx_graph.nodes(), None)
+    def get_hacked_pos(netx_graph):
+        # Add "invisible" edges to induce an ordering
+        # Hack for layout (ordering of top level nodes)
+        name_nodes = sorted(ut.list_getattr(model.ttype2_cpds['name'], 'variable'))
+        #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
+        #netx.set_node_attributes(netx_graph, 'rank', {n: {'rank': 'min'} for n in name_nodes})
+        invis_edges = list(ut.itertwo(name_nodes))
+        netx_graph2 = netx_graph.copy()
+        netx_graph2.add_edges_from(invis_edges)
+        A = netx.to_agraph(netx_graph2)
+        A.add_subgraph(name_nodes, rank='same')
+        args = ''
+        prog = 'dot'
+        G = netx_graph
+        A.layout(prog=prog, args=args)
+        #A.draw('example.png', prog='dot')
+        node_pos = {}
+        for n in G:
+            node_ = pygraphviz.Node(A, n)
+            try:
+                xx, yy = node_.attr["pos"].split(',')
+                node_pos[n] = (float(xx), float(yy))
+            except:
+                print("no position for node", n)
+                node_pos[n] = (0.0, 0.0)
+        return node_pos
+    pos = get_hacked_pos(netx_graph)
+    #netx.pygraphviz_layout(netx_graph)
+    #pos = netx.pydot_layout(netx_graph, prog='dot')
+    #pos = netx.graphviz_layout(netx_graph)
+
     if evidence is not None:
         node_colors = [
             (pt.TRUE_BLUE
@@ -357,13 +603,9 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
     else:
         netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
 
-    var2_factor = {f.variables[0]: f for f in factor_list}
+    var2_post = {f.variables[0]: f for f in factor_list}
 
     if True:
-        import matplotlib as mpl
-        pt.set_figtitle('num_names=%r' % (model.num_names,))
-
-        #import utool
         netx_nodes = model.nodes(data=True)
         node_key_list = ut.get_list_column(netx_nodes, 0)
         pos_list = ut.dict_take(pos, node_key_list)
@@ -371,8 +613,41 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
         textprops = {
             'family': 'monospace',
             'horizontalalignment': 'left',
-            'size': 8,
+            #'size': 8,
+            'size': 12,
         }
+
+        def make_factor_text(factor, name):
+            collapse_uniform = True
+            if collapse_uniform and almost_allsame(factor.values):
+                # Reduce uniform text
+                ftext = name + ':\nuniform(%.2f)' % (factor.values[0],)
+            else:
+                values = factor.values
+                rowstrs = ['p(%s)=%.2f' % (','.join(n), v,)
+                           for n, v in zip(zip(*factor.statenames), values)]
+                idxs = ut.list_argmaxima(values)
+                for idx in idxs:
+                    rowstrs[idx] += '*'
+                thresh = 5
+                if len(rowstrs) > thresh:
+                    sortx = factor.values.argsort()[::-1]
+                    rowstrs = ut.take(rowstrs, sortx[0:(thresh - 1)])
+                    rowstrs += ['... %d more' % ((len(values) - len(rowstrs)),)]
+                ftext = name + ': \n' + '\n'.join(rowstrs)
+            return ftext
+
+        def almost_allsame(vals):
+            if len(vals) == 0:
+                return True
+            x = vals[0]
+            return np.all([np.isclose(item, x) for item in vals])
+
+        textkw = dict(
+            xycoords='data', boxcoords="offset points", pad=0.25,
+            frameon=True, arrowprops=dict(arrowstyle="->"),
+            #bboxprops=dict(fc=node_attr['fillcolor']),
+        )
 
         artist_list = []
         offset_box_list = []
@@ -380,54 +655,28 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
             x, y = pos_
             variable = node[0]
 
-            text = None
             cpd = model.var2_cpd[variable]
 
-            def almost_allsame(vals):
-                if len(vals) == 0:
-                    return True
-                x = vals[0]
-                return np.all([np.isclose(item, x) for item in vals])
+            prior_marg = (cpd if cpd.evidence is None else
+                          cpd.marginalize(cpd.evidence, inplace=False))
 
-            if cpd.evidence is None:
-                prior = cpd
-            else:
-                prior = cpd.marginalize(cpd.evidence, inplace=False)
-            if almost_allsame(prior.values):
-                prior_text = 'prior:\nuniform'
-            else:
-                rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*prior.statenames), prior.values)]
-                if len(rowstrs) > 3:
-                    sortx = prior.values.argsort()[::-1]
-                    rowstrs = ut.take(rowstrs, sortx[0:3])
-                    rowstrs += ['...']
-                prior_text = 'prior: \n' + '\n'.join(rowstrs)
-
+            prior_text = None
+            text = None
             if variable in evidence:
                 text = cpd.variable_statenames[evidence[variable]]
-                prior_text = None
-            elif variable in var2_factor:
-                factor = var2_factor[variable]
-                if almost_allsame(factor.values):
-                    text = 'post:\nuniform'
-                else:
-                    rowstrs = ['p(%s)=%.2f' % (','.join(n), v,) for n, v in zip(zip(*factor.statenames), factor.values)]
-                    if len(rowstrs) > 3:
-                        sortx = factor.values.argsort()[::-1]
-                        rowstrs = ut.take(rowstrs, sortx[0:3])
-                        rowstrs += ['...']
-                    text = 'post: \n' + '\n'.join(rowstrs)
+            elif variable in var2_post:
+                post_marg = var2_post[variable]
+                text = make_factor_text(post_marg, 'post_marginal')
+                prior_text = make_factor_text(prior_marg, 'prior_marginal')
+            else:
+                if len(evidence) == 0:
+                    prior_text = make_factor_text(prior_marg, 'prior_marginal')
 
             if text is not None:
                 offset_box = mpl.offsetbox.TextArea(text, textprops)
                 artist = mpl.offsetbox.AnnotationBbox(
                     offset_box, (x + 5, y), xybox=(20., 5.),
-                    xycoords='data', boxcoords="offset points",
-                    pad=0.25, frameon=True,
-                    box_alignment=(0, 0),
-                    #bboxprops=dict(fc=node_attr['fillcolor']),
-                    arrowprops=dict(arrowstyle="->"),
-                )
+                    box_alignment=(0, 0), **textkw)
                 offset_box_list.append(offset_box)
                 artist_list.append(artist)
 
@@ -435,12 +684,7 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
                 offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
                 artist2 = mpl.offsetbox.AnnotationBbox(
                     offset_box2, (x - 5, y), xybox=(-20., -15.),
-                    xycoords='data', boxcoords="offset points",
-                    pad=0.25, frameon=True,
-                    box_alignment=(1, 1),
-                    #bboxprops=dict(fc=node_attr['fillcolor']),
-                    arrowprops=dict(arrowstyle="->"),
-                )
+                    box_alignment=(1, 1), **textkw)
                 offset_box_list.append(offset_box2)
                 artist_list.append(artist2)
 
@@ -449,34 +693,33 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
 
         xmin, ymin = np.array(pos_list).min(axis=0)
         xmax, ymax = np.array(pos_list).max(axis=0)
-        ax.set_xlim((xmin - 30, xmax + 30))
+        ax.set_xlim((xmin - 40, xmax + 40))
+        ax.set_ylim((ymin - 20, ymax + 20))
         fig = pt.gcf()
-        fig.set_size_inches(14, 6)
+        fig.set_size_inches(20, 7)
+        pt.set_figtitle('num_names=%r' % (model.num_names,), size=14)
 
-        if textprops['horizontalalignment'] == 'center':
-            fig = pt.gcf()
-            fig.canvas.draw()
+        def hack_fix_centeralign():
+            if textprops['horizontalalignment'] == 'center':
+                fig = pt.gcf()
+                fig.canvas.draw()
 
-            # Superhack for centered text
-            # Fix bug in
-            # /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
-            # /usr/local/lib/python2.7/dist-packages/matplotlib/text.py
-            for offset_box in offset_box_list:
-                offset_box.set_offset
-                #offset_box.get_offset
-                #self = offset_box
-                z = offset_box._text.get_window_extent()
-                (z.x1 - z.x0) / 2
-                offset_box._text
-                T = offset_box._text.get_transform()
-                A = mpl.transforms.Affine2D()
-                A.clear()
-                A.translate((z.x1 - z.x0) / 2, 0)
-                offset_box._text.set_transform(T + A)
-    fpath = ('foo' + suff + '.png')
-
-    pt.plt.savefig(fpath)
-    return fpath
+                # Superhack for centered text. Fix bug in
+                # /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
+                # /usr/local/lib/python2.7/dist-packages/matplotlib/text.py
+                for offset_box in offset_box_list:
+                    offset_box.set_offset
+                    z = offset_box._text.get_window_extent()
+                    (z.x1 - z.x0) / 2
+                    offset_box._text
+                    T = offset_box._text.get_transform()
+                    A = mpl.transforms.Affine2D()
+                    A.clear()
+                    A.translate((z.x1 - z.x0) / 2, 0)
+                    offset_box._text.set_transform(T + A)
+    #fpath = ('name_model_' + suff + '.png')
+    #pt.plt.savefig(fpath)
+    #return fpath
 
 
 def print_ascii_graph(model_):
@@ -529,61 +772,6 @@ def print_ascii_graph(model_):
     #pil_img = pil_img.resize((10, 10))
     pil_img.close()
     pass
-
-
-def pgm_to_netx(model):
-    import networkx as netx
-    if isinstance(model, (netx.Graph, netx.DiGraph)):
-        return model
-    netx_nodes = [(node, {}) for node in model.nodes()]
-    netx_edges = [(etup[0], etup[1], {}) for etup in model.edges()]
-    netx_graph = netx.DiGraph() if model.is_directed() else netx.Graph()
-    netx_graph.add_nodes_from(netx_nodes)
-    netx_graph.add_edges_from(netx_edges)
-    return netx_graph
-
-
-def network_transforms_fun(model):
-    import plottool as pt
-    import networkx as netx
-    moralgraph = model.moralize()
-    fig = pt.figure()  # NOQA
-    fig.clf()
-    ax = pt.gca()
-    netx_graph = pgm_to_netx(moralgraph)
-    pos = netx.pydot_layout(netx_graph, prog='dot')
-    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True)
-    pt.plt.savefig('foo2.png')
-    ut.startfile('foo2.png')
-
-    fig = pt.figure(doclf=True)  # NOQA
-    ax = pt.gca()
-    netx_graph = moralgraph.to_directed()
-    pos = netx.pydot_layout(netx_graph, prog='dot')
-    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True)
-    pt.plt.savefig('foo3.png')
-    ut.startfile('foo3.png')
-
-    # a junction tree is a clique tree
-    jtree = model.to_junction_tree()
-    # build explicit sepsets, even though they are implicit for jtrees
-    for n1, n2 in jtree.edges():
-        sepset = list((set.intersection(set(n1), n2)))
-        jtree[n1][n2]['sepset'] = sepset
-        #jtree[n1][n2]['label'] = sepset
-
-    fig = pt.figure(doclf=True)  # NOQA
-    ax = pt.gca()
-    netx_graph = pgm_to_netx(jtree)
-    pos = netx.pydot_layout(netx_graph, prog='dot')
-    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True, node_size=2000)
-    netx.draw_networkx_edge_labels(netx_graph, pos, edge_labels=netx.get_edge_attributes(netx_graph, 'sepset'), font_size=8)
-    pt.plt.savefig('foo4.png')
-    ut.startfile('foo4.png')
-
-    ut.help_members(model)
-    ut.help_members(jtree)
-    ut.help_members(moralgraph)
 
 
 def _debug_repr_model(model):
@@ -654,28 +842,3 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
-#def test_model(model, high_idx=[0]):
-#    print('___ TEST ___')
-#    # --- INFERENCE ---
-#    ut.colorprint('\n --- Inference ---', 'red')
-#    event_space_combos = {}
-#    # Set ni to always be Fred
-#    N0 = model.ttype2_cpds['name'][0]
-
-#    event_space_combos[N0.variable] = 0
-#    for cpd in model.get_cpds():
-#        if cpd.ttype == 'score':
-#            #event_space_combos[cpd.variable] = list(range(cpd.variable_card))
-#            event_space_combos[cpd.variable] = [1]
-#    #del event_space_combos['Ski']
-#    print('Search Space = %s' % (ut.repr3(event_space_combos, nl=1)))
-#    evidence_dict = ut.all_dict_combinations(event_space_combos)
-#    #_debug_repr_model(model)
-#    model_inference = pgmpy.inference.BeliefPropagation(model)
-#    #model_inference = pgmpy.inference.VariableElimination(model)
-
-#    for evidence in evidence_dict:
-#        try_query(model, model_inference, evidence)
-
-#    # print_ascii_graph(model)
-#    return evidence
