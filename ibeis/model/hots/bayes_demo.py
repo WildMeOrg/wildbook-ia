@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut
 from six.moves import map
-from ibeis.model.hots.bayes import make_name_model, test_model
+from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__, '[bayes_demo]')
 
 
@@ -36,15 +36,15 @@ def make_bayes_notebook():
     )
     cell_list_def = [
         initialize,
-        #show_model_templates,
+        show_model_templates,
+        demo_modes,
         #demo_name_annot_complexity,
         ###demo_model_idependencies1,
         ###demo_model_idependencies2,
-        #demo_single_add,
-        #demo_single_add_soft,
-        #demo_conflicting_evidence,
-        demo_different_names,
-        demo_modes,
+        demo_single_add,
+        demo_ambiguity,
+        demo_conflicting_evidence,
+        demo_annot_idependence_overlap,
     ]
     def format_cell(cell):
         if ut.is_funclike(cell):
@@ -73,7 +73,9 @@ def show_model_templates():
         >>> result = show_model_templates()
         >>> ut.show_if_requested()
     """
-    make_name_model(2, 2, verbose=True)
+    make_name_model(2, 2, verbose=True, mode=1)
+    print('-------------')
+    make_name_model(2, 2, verbose=True, mode=2)
 
 
 def demo_single_add():
@@ -90,43 +92,18 @@ def demo_single_add():
         >>> ut.show_if_requested()
     """
     # Initially there are only two annotations that have a strong match
-    test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=[0])
+    name_evidence = [{0: .9}]  # Soft label
+    name_evidence = [0]  # Hard label
+    test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=name_evidence)
     # Adding a new annotation does not change the original probabilites
-    test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=[0])
+    test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=name_evidence)
     # Adding evidence that Na matches Nc does not influence the probability
     # that Na matches Nb. However the probability that Nb matches Nc goes up.
-    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'], name_evidence=[0])
+    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'], name_evidence=name_evidence)
     # However, once Nb is scored against Nb that does increase the likelihood
     # that all 3 are fred goes up significantly.
     test_model(num_annots=3, num_names=5, score_evidence=['high', 'high', 'high'],
-               name_evidence=[0])
-
-
-def demo_single_add_soft():
-    """
-    This is the same as demo_single_add, but soft labels are used.
-
-    CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_single_add_soft --show --verbose
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
-        >>> demo_single_add_soft()
-        >>> ut.show_if_requested()
-    """
-    # Initially there are only two annotations that have a strong match
-    #test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=[{0: .9}])
-    # Adding a new annotation does not change the original probabilites
-    #test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=[{0: .9}])
-    # Adding evidence that Na matches Nc does not influence the probability
-    # that Na matches Nb
-    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'],
-               name_evidence=[{0: .9}])
-    # However, once Nb is scored against Nb that does increase the likelihood
-    # that all 3 are fred goes up significantly.
-    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high', 'high'],
-               name_evidence=[{0: .9}])
+               name_evidence=name_evidence)
 
 
 def demo_conflicting_evidence():
@@ -135,117 +112,168 @@ def demo_conflicting_evidence():
     probability of names.
     """
     # Initialized with two annots. Each are pretty sure they are someone else
-    test_model(num_annots=2, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, {1: .9}])
+    constkw = dict(num_annots=2, num_names=5, score_evidence=[])
+    test_model(name_evidence=[{0: .9}, {1: .9}], **constkw)
     # Having evidence that they are different increases this confidence.
-    test_model(num_annots=2, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'low'})
+    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'low'}, **constkw)
     # However,, confusion is introduced if there is evidence that they are the same
-    test_model(num_annots=2, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'high'})
-
+    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'high'}, **constkw)
     # When Na is forced to be fred, this doesnt change Nbs evaulatation by more
     # than a few points
-    test_model(num_annots=2, num_names=5, score_evidence=[],
-               name_evidence=[0, {1: .9}], other_evidence={'Sab': 'high'})
-
-    #test_model(num_annots=3, num_names=5, score_evidence=[],
-    #           name_evidence=[{0: .9}, None, {1: .9}])
-    #test_model(num_annots=3, num_names=5, score_evidence=[],
-    #           name_evidence=[{0: .9}, None, {1: .9}], other_evidence={'Sac': 'low'})
-    #test_model(num_annots=3, num_names=5, score_evidence=[],
-    #           name_evidence=[{0: .9}, None, {1: .9}], other_evidence={'Sac': 'high'})
+    test_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 'high'}, **constkw)
 
 
-def demo_different_names():
+def demo_ambiguity():
     r"""
     Test what happens when an annotation need to choose between one of two
     names
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_different_names --show --verbose --present --mode=2
+        python -m ibeis.model.hots.bayes_demo --exec-demo_ambiguity --show --verbose --present
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.bayes_demo import *  # NOQA
-        >>> result = demo_different_names()
+        >>> result = demo_ambiguity()
         >>> ut.show_if_requested()
     """
     # We will end up making annots a and b fred and c and d sue
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}])
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low'
-               })
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-               })
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-               })
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-                   'Sac': 'low',
-               })
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-                   'Sac': 'low',
-                   'Sbc': 'low',
-               })
-    test_model(num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-                   'Sac': 'low',
-                   'Sbc': 'low',
-                   'Sbd': 'low',
-               })
+    constkw = dict(
+        num_annots=4, num_names=5,
+        #name_evidence=[{0: .9}, None, None, {1: .9}]
+        name_evidence=[0, None, None, None]
+        #name_evidence=[0, None, None, None]
+    )
+    test_model(score_evidence=[None, None, None, None, None, None], show_prior=True, **constkw)
+    test_model(score_evidence=['high', None, None, None, None, None], **constkw)
+    test_model(score_evidence=['high', 'low', None, None, None, None], **constkw)
+    test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
+    test_model(score_evidence=['high', 'low', 'low', 'low', None, None], **constkw)
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', None], **constkw)
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
+    # Resolve ambiguity
+    constkw['name_evidence'][-1] = 1
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low'
+    #           },
+    #           **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low',
+    #               'Sab': 'high',
+    #           },
+    #           **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low',
+    #               'Sab': 'high',
+    #               'Scd': 'high',
+    #           },
+    #           **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low',
+    #               'Sab': 'high',
+    #               'Scd': 'high',
+    #               'Sac': 'low',
+    #           },
+    #           **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low',
+    #               'Sab': 'high',
+    #               'Scd': 'high',
+    #               'Sac': 'low',
+    #               'Sbc': 'low',
+    #           },
+    #           **constkw)
+    #test_model(score_evidence=[],
+    #           other_evidence={
+    #               'Sad': 'low',
+    #               'Sab': 'high',
+    #               'Scd': 'high',
+    #               'Sac': 'low',
+    #               'Sbc': 'low',
+    #               'Sbd': 'low',
+    #           },
+    #           **constkw)
+
+
+def demo_annot_idependence_overlap():
+    r"""
+    Given:
+        * an unknown annotation \d
+        * three annots with the same name (Fred) \a, \b, and \c
+        * \a and \b are near duplicates
+        * (\a and \c) / (\b and \c) are novel views
+
+    Goal:
+        * If \d matches to \a and \b the probably that \d is Fred should not be
+          much more than if \d matched only \a or only \b.
+
+        * The probability that \d is Fred given it matches to any of the 3 annots
+           alone should be equal
+
+            P(\d is Fred | Mad=1) = P(\d is Fred | Mbd=1) = P(\d is Fred | Mcd=1)
+
+        * The probability that \d is fred given two matches to any of those two annots
+          should be greater than the probability given only one.
+
+            P(\d is Fred | Mad=1, Mbd=1) > P(\d is Fred | Mad=1)
+            P(\d is Fred | Mad=1, Mcd=1) > P(\d is Fred | Mad=1)
+
+        * The probability that \d is fred given matches to two near duplicate
+          matches should be less than
+          if \d matches two non-duplicate matches.
+
+            P(\d is Fred | Mad=1, Mcd=1) > P(\d is Fred | Mad=1, Mbd=1)
+
+        * The probability that \d is fred given two near duplicates should be only epsilon greater than
+          a match to either one individually.
+
+            P(\d is Fred | Mad=1, Mbd=1) = P(\d is Fred | Mad=1) + \epsilon
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes_demo --exec-demo_ambiguity --show --verbose --present
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> result = demo_ambiguity()
+        >>> ut.show_if_requested()
+    """
+    # We will end up making annots a and b fred and c and d sue
+    constkw = dict(
+        num_annots=4, num_names=5,
+        #name_evidence=[{0: .9}, None, None, {1: .9}]
+        name_evidence=[0, None, None, None]
+        #name_evidence=[0, None, None, None]
+    )
+    test_model(score_evidence=['high', 'high', 'high', None, None, None], **constkw)
 
 
 def demo_modes():
     """
     Look at the last result of the different names demo under differet modes
-
     """
-    test_model(mode=1, num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-                   'Sac': 'low',
-                   'Sbc': 'low',
-                   'Sbd': 'low',
-               })
-    test_model(mode=2, num_annots=4, num_names=5, score_evidence=[],
-               name_evidence=[{0: .9}, None, None, {1: .9}],
-               other_evidence={
-                   'Sad': 'low',
-                   'Sab': 'high',
-                   'Scd': 'high',
-                   'Sac': 'low',
-                   'Sbc': 'low',
-                   'Sbd': 'low',
-               })
+    constkw = dict(
+        num_annots=4, num_names=5, score_evidence=[],
+        name_evidence=[{0: .9}, None, None, {1: .9}],
+        other_evidence={
+            'Sad': 'low',
+            'Sab': 'high',
+            'Scd': 'high',
+            'Sac': 'low',
+            'Sbc': 'low',
+            'Sbd': 'low',
+        }
+    )
+    # The first mode uses a hidden Match layer
+    test_model(mode=1, **constkw)
+    # The second mode directly maps names to scores
+    test_model(mode=2, **constkw)
 
 
 def demo_name_annot_complexity():
@@ -262,14 +290,24 @@ def demo_name_annot_complexity():
         >>> demo_name_annot_complexity()
         >>> ut.show_if_requested()
     """
+    constkw = dict(score_evidence=[], name_evidence=[], mode=1)
     # Initially there are 2 annots and 4 names
-    test_model(num_annots=2, num_names=4, score_evidence=[], name_evidence=[])
+    model, = test_model(num_annots=2, num_names=4, **constkw)
+    draw_tree_model(model)
     # Adding a name causes the probability of the other names to go down
-    test_model(num_annots=2, num_names=5, score_evidence=[], name_evidence=[])
-    # Adding an annotation wihtout matches does not effect probabilities of
+    model, = test_model(num_annots=2, num_names=5, **constkw)
+    draw_tree_model(model)
+    # Adding an annotation wihtout matches dos not effect probabilities of
     # names
-    test_model(num_annots=3, num_names=5, score_evidence=[], name_evidence=[])
-    test_model(num_annots=4, num_names=10, score_evidence=[], name_evidence=[])
+    model, = test_model(num_annots=3, num_names=5, **constkw)
+    draw_tree_model(model)
+    model, = test_model(num_annots=4, num_names=10, **constkw)
+    draw_tree_model(model)
+    # Given A annots, the number of score nodes is (A ** 2 - A) / 2
+    model, = test_model(num_annots=5, num_names=5, **constkw)
+    draw_tree_model(model)
+    #model, = test_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)
+    #draw_tree_model(model)
 
 
 def demo_model_idependencies1():
@@ -316,59 +354,6 @@ def demo_model_idependencies2():
 #xs = [x for x in xs if not x.startswith('( _')]
 #xs = [x for x in xs if not x.endswith('| )')]
 #print('\n'.join(sorted(list(set(xs)))))
-
-
-def bayesnet_cases():
-    r"""
-    CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-bayesnet_cases
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
-        >>> bayesnet_cases()
-    """
-    from functools import partial
-    import itertools
-    count = partial(six.next, itertools.count(1))
-
-    test_model(count(), num_annots=2, num_names=4, high_idx=[],
-               name_evidence=[])  # init
-    test_model(count(), num_annots=2, num_names=4, high_idx=[0],
-               name_evidence=['n0'])  # Start with 4 names.
-    test_model(count(), num_annots=2, num_names=5, high_idx=[0],
-               name_evidence=['n0'])  # Add a name, Causes probability of match to go down
-    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
-               name_evidence=['n0'])  # Add Annotation
-    test_model(count(), num_annots=3, num_names=5, high_idx=[0, 2],
-               name_evidence=['n0'])
-
-    test_model(count(), num_annots=3, num_names=5, high_idx=[0, 2],
-               name_evidence=['n0', {'n0': .9}])
-    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
-               name_evidence=['n0', {'n0': .9}])
-    test_model(count(), num_annots=3, num_names=5, high_idx=[0],
-               name_evidence=[{'n0': .99}, {'n0': .9}])
-    test_model(count(), num_annots=3, num_names=10, high_idx=[0],
-               name_evidence=[{'n0': .99}, {'n0': .9}])
-    test_model(count(), num_annots=3, num_names=10, high_idx=[0],
-                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}])
-
-    #fpath = test_model(count(), (3, 10), high_idx=[0, 1],
-    #                   name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}])
-    #fpath = test_model(count(), (3, 10), high_idx=[0, 1],
-    #                   name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
-    test_model(count(), num_annots=3, num_names=10, high_idx=[0, 1, 2],
-                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
-    # Fix indexing to move in diagonal order as opposed to row order
-    test_model(count(), num_annots=4, num_names=10, high_idx=[0, 1, 2],
-                       name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
-    #fpath = test_model(count(), (4, 10),
-    #                   high_idx=[0, 1, 3], low_idx=[2], name_evidence=[{'n0': .99}, {'n0': .2, 'n0': .7}, {'n0': .32}])
-
-    #fpath = test_model(count(), (4, 10))
-
-    #ut.startfile(fpath)
 
 
 if __name__ == '__main__':

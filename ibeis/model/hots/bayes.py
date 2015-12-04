@@ -26,7 +26,7 @@ print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
-               other_evidence={}, **kwargs):
+               other_evidence={}, show_prior=False, **kwargs):
     verbose = ut.VERBOSE
 
     model = make_name_model(num_annots, num_names, verbose=verbose, **kwargs)
@@ -102,7 +102,7 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     else:
         factor_list = []
 
-    show_model(model, evidence, '', factor_list, soft_evidence)
+    show_model(model, evidence, '', factor_list, soft_evidence, show_prior=show_prior)
     return (model,)
     # print_ascii_graph(model)
 
@@ -138,7 +138,7 @@ def try_query(model, model_inference, evidence, verbose=True):
     return factor_list
 
 
-def make_name_model(num_annots, num_names=None, verbose=True, mode=2):
+def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     """
     Defines the general name model
     """
@@ -154,7 +154,9 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=2):
     def match_pmf(match_type, n1, n2):
         if n1 == n2:
             val = 1.0 if match_type == 'same' else 0.0
+            #val = .999 if match_type == 'same' else 0.001
         elif n1 != n2:
+            #val = 0.01 if match_type == 'same' else .99
             val = 0.0 if match_type == 'same' else 1.0
         return val
 
@@ -163,6 +165,8 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=2):
             val = .1 if score_type == 'low' else .9
         elif match_type == 'diff':
             val = .9 if score_type == 'low' else .1
+        else:
+            raise ValueError('Unknown match_type=%r' % (match_type,))
         return val
 
     def score_pmf2(score_type, n1, n2):
@@ -224,7 +228,69 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=2):
     return model
 
 
-def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}):
+def draw_tree_model(model):
+    import plottool as pt
+    import networkx as netx
+    fnum = pt.ensure_fnum(None)
+    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
+    ax = pt.gca()
+    #name_nodes = sorted(ut.list_getattr(model.ttype2_cpds['name'], 'variable'))
+    netx_graph = model.to_markov_model()
+    #pos = netx.pygraphviz_layout(netx_graph)
+    #pos = netx.graphviz_layout(netx_graph)
+    #pos = get_hacked_pos(netx_graph, name_nodes, prog='neato')
+    pos = netx.pydot_layout(netx_graph)
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1000)
+    netx.draw(netx_graph, **drawkw)
+    pt.set_figtitle('Markov Model')
+
+    fnum = pt.ensure_fnum(None)
+    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
+    ax = pt.gca()
+    netx_graph = model.to_junction_tree()
+    #netx_graph = model.to_markov_model()
+    #pos = netx.pygraphviz_layout(netx_graph)
+    #pos = netx.graphviz_layout(netx_graph)
+    pos = netx.pydot_layout(netx_graph)
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1000)
+    netx.draw(netx_graph, **drawkw)
+    pt.set_figtitle('Junction Tree')
+
+
+def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
+    import pygraphviz
+    import networkx as netx
+    # Add "invisible" edges to induce an ordering
+    # Hack for layout (ordering of top level nodes)
+    if hasattr(netx_graph, 'ttype2_cpds'):
+        name_nodes = sorted(ut.list_getattr(netx_graph.ttype2_cpds['name'], 'variable'))
+    if name_nodes is not None:
+        #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
+        invis_edges = list(ut.itertwo(name_nodes))
+        netx_graph2 = netx_graph.copy()
+        netx_graph2.add_edges_from(invis_edges)
+        A = netx.to_agraph(netx_graph2)
+        A.add_subgraph(name_nodes, rank='same')
+    else:
+        netx_graph2 = netx_graph
+        A = netx.to_agraph(netx_graph2)
+    args = ''
+    G = netx_graph
+    A.layout(prog=prog, args=args)
+    #A.draw('example.png', prog='dot')
+    node_pos = {}
+    for n in G:
+        node_ = pygraphviz.Node(A, n)
+        try:
+            xx, yy = node_.attr["pos"].split(',')
+            node_pos[n] = (float(xx), float(yy))
+        except:
+            print("no position for node", n)
+            node_pos[n] = (0.0, 0.0)
+    return node_pos
+
+
+def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}, show_prior=False):
     """
     References:
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
@@ -236,7 +302,6 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
     """
     import plottool as pt
     import networkx as netx
-    import pygraphviz
     import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
     fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
@@ -245,31 +310,6 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
     #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
     #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
 
-    def get_hacked_pos(netx_graph):
-        # Add "invisible" edges to induce an ordering
-        # Hack for layout (ordering of top level nodes)
-        name_nodes = sorted(ut.list_getattr(model.ttype2_cpds['name'], 'variable'))
-        #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
-        invis_edges = list(ut.itertwo(name_nodes))
-        netx_graph2 = netx_graph.copy()
-        netx_graph2.add_edges_from(invis_edges)
-        A = netx.to_agraph(netx_graph2)
-        A.add_subgraph(name_nodes, rank='same')
-        args = ''
-        prog = 'dot'
-        G = netx_graph
-        A.layout(prog=prog, args=args)
-        #A.draw('example.png', prog='dot')
-        node_pos = {}
-        for n in G:
-            node_ = pygraphviz.Node(A, n)
-            try:
-                xx, yy = node_.attr["pos"].split(',')
-                node_pos[n] = (float(xx), float(yy))
-            except:
-                print("no position for node", n)
-                node_pos[n] = (0.0, 0.0)
-        return node_pos
     pos = get_hacked_pos(netx_graph)
     #netx.pygraphviz_layout(netx_graph)
     #pos = netx.pydot_layout(netx_graph, prog='dot')
@@ -337,7 +377,7 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
                 offset_box_list.append(offset_box)
                 artist_list.append(artist)
 
-            if prior_text:
+            if show_prior and prior_text is not None:
                 offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
                 artist2 = mpl.offsetbox.AnnotationBbox(
                     offset_box2, (x - 5, y), xybox=(-20., -15.),
@@ -350,16 +390,18 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
 
         xmin, ymin = np.array(pos_list).min(axis=0)
         xmax, ymax = np.array(pos_list).max(axis=0)
-        if model.num_names > 4:
+        num_annots = len(model.ttype2_cpds['name'])
+        if num_annots > 4:
             ax.set_xlim((xmin - 40, xmax + 40))
             ax.set_ylim((ymin - 30, ymax + 30))
             fig.set_size_inches(30, 7)
         else:
-            ax.set_xlim((xmin - 40, xmax + 40))
-            ax.set_ylim((ymin - 20, ymax + 20))
-            fig.set_size_inches(20, 7)
+            ax.set_xlim((xmin - 42, xmax + 42))
+            ax.set_ylim((ymin - 30, ymax + 30))
+            fig.set_size_inches(23, 7)
         fig = pt.gcf()
-        pt.set_figtitle('num_names=%r' % (model.num_names,), size=14)
+        pt.set_figtitle('num_names=%r, num_annots=%r' %
+                        (model.num_names, num_annots,), size=14)
 
         def hack_fix_centeralign():
             if textprops['horizontalalignment'] == 'center':

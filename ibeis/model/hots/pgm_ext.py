@@ -246,10 +246,10 @@ def make_factor_text(factor, name):
     collapse_uniform = True
     if collapse_uniform and ut.almost_allsame(factor.values):
         # Reduce uniform text
-        ftext = name + ':\nuniform(%.2f)' % (factor.values[0],)
+        ftext = name + ':\nuniform(%.3f)' % (factor.values[0],)
     else:
         values = factor.values
-        rowstrs = ['p(%s)=%.2f' % (','.join(n), v,)
+        rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
                    for n, v in zip(zip(*factor.statenames), values)]
         idxs = ut.list_argmaxima(values)
         for idx in idxs:
