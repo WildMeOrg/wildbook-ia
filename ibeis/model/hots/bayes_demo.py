@@ -327,8 +327,17 @@ def demo_model_idependencies():
     model = test_model(num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[])[0]
     # This model has the following independenceis
     idens = model.get_independencies()
-    iden_strs = list(map(str, idens.independencies))
-    print(idens)
+
+    iden_strs = [', '.join(sorted(iden.event1)) +
+                 ' _L ' +
+                 ','.join(sorted(iden.event2)) +
+                 ' | ' +
+                 ', '.join(sorted(iden.event3))
+                 for iden in idens.independencies]
+    print('general idependencies')
+    print(ut.align(ut.align('\n'.join(sorted(iden_strs)), '_'), '|'))
+    #ut.embed()
+    #model.is_active_trail('Na', 'Nb', 'Sab')
 
 # Might not be valid, try and collapse S and M
 #xs = list(map(str, idens.independencies))

@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 
+1) Ambiguity / num names
+2) independence of annotations
+3) continuous
+4) exponential case
+5) speicifc examples of our prob
+6) human in loop
+
+Arc reversal
+http://www.cs.toronto.edu/~cebly/Papers/simulation.pdf
+
 References:
     https://class.coursera.org/pgm-003/lecture/17
     http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
