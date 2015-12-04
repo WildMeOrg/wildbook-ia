@@ -74,6 +74,14 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     #'ibeis.web.zmq_task_queue',
 ]
 
+"""
+# Should import
+python -c "import ibeis"
+# Should not import
+python -c "import ibeis" --no-cnn
+UTOOL_NO_CNN=True python -c "import ibeis"
+"""
+
 for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
                            enabled=ut.VERYVERBOSE, adjust=False, freq=1):
     if isinstance(modname, tuple):

@@ -203,11 +203,12 @@ def ingest_testdb1(dbname):
         >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
-    from vtool.tests import grabdata
+    from vtool.tests import grabdata   # TODO: remove and use utool appdir
     def postingest_tesdb1_func(ibs):
+        import numpy as np
+        from ibeis.constants import Species
         print('postingest_tesdb1_func')
         # Adjust data as we see fit
-        import numpy as np
         gid_list = np.array(ibs.get_valid_gids())
         # Set image unixtimes
         unixtimes_even = (gid_list[0::2] + 100).tolist()
@@ -248,16 +249,14 @@ def ingest_testdb1(dbname):
         exemplar_flags = [True] * len(unflagged_aids)
         ibs.set_annot_exemplar_flags(unflagged_aids, exemplar_flags)
         # Set some test species labels
-        from ibeis.constants import Species
         species_text_list = ibs.get_annot_species_texts(aid_list)
-        with ut.EmbedOnException():
-            for ix in range(0, 6):
-                species_text_list[ix] = Species.ZEB_PLAIN
-            # These are actually plains zebras.
-            for ix in range(8, 10):
-                species_text_list[ix] = Species.ZEB_GREVY
-            for ix in range(10, 12):
-                species_text_list[ix] = Species.POLAR_BEAR
+        for ix in range(0, 6):
+            species_text_list[ix] = Species.ZEB_PLAIN
+        # These are actually plains zebras.
+        for ix in range(8, 10):
+            species_text_list[ix] = Species.ZEB_GREVY
+        for ix in range(10, 12):
+            species_text_list[ix] = Species.POLAR_BEAR
 
         ibs.set_annot_species(aid_list, species_text_list)
         ibs.set_annot_notes(aid_list[8:10], ['this is actually a plains zebra'] * 2)
@@ -687,9 +686,6 @@ def ingest_oxford_style_db(dbdir):
     if ut.checkpath(corrupted_file_fpath):
         ignore_list = ut.read_from(corrupted_file_fpath).splitlines()
 
-    #ut.rrrr()
-    #ut.list_images = ut.util_path.list_images
-
     gname_list = ut.list_images(img_dpath, ignore_list=ignore_list,
                                    recursive=True, full=False)
 
@@ -707,9 +703,8 @@ def ingest_oxford_style_db(dbdir):
     print(' * num_gt_files = %d ' % num_gt_files)
     #
     # Iterate over each groundtruth file
-    mark_, end_ = ut.log_progress('parsed oxsty gtfile: ', num_gt_files)
-    for gtx, gt_fname in enumerate(gt_fname_list):
-        mark_(gtx)
+    for gtx, gt_fname in enumerate(ut.ProgIter(gt_fname_list,
+                                               'parsed oxsty gtfile: ')):
         if gt_fname == 'corrupted_files.txt':
             continue
         #Get name, quality, and num from fname
@@ -724,7 +719,6 @@ def ingest_oxford_style_db(dbdir):
         else:
             for (gname, bbox) in oxsty_annot_info_sublist:
                 gname2_annots_raw[gname].append((name, bbox, quality))
-    end_()
     print(' * num_query images = %d ' % len(query_annots))
     #
     # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
@@ -804,8 +798,14 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     References:
         http://datadryad.org/resource/doi:10.5061/dryad.5pt92
-        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. http://dx.doi.org/10.1038/sdata.2015.26
-        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.5pt92
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015)
+        Snapshot Serengeti, high-frequency annotated camera trap images of 40
+        mammalian species in an African savanna. Scientific Data 2: 150026.
+        http://dx.doi.org/10.1038/sdata.2015.26
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015)
+        Data from: Snapshot Serengeti, high-frequency annotated camera trap
+        images of 40 mammalian species in an African savanna. Dryad Digital
+        Repository. http://dx.doi.org/10.5061/dryad.5pt92
 
     Args:
         species (?):
@@ -887,7 +887,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         # Download the rest
         imgurl_prefix = 'https://snapshotserengeti.s3.msi.umn.edu/'
         image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list_]
-        for img_url in ut.ProgressIter(image_url_list, lbl='Downloading Image'):
+        for img_url in ut.ProgressIter(image_url_list, lbl='Downloading image'):
             ut.grab_file_url(img_url, download_dir=image_dir)
         return full_gpath_list
 

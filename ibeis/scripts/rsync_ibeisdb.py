@@ -153,6 +153,11 @@ if __name__ == '__main__':
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:snow-leopards /raid/raw_rsync
         rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:iberian-lynx /raid/raw_rsync
 
+        # make sure group read bits are set
+        ssh -t jonc@pachy.cs.uic.edu "sudo chmod -R g+r /home/ibeis-repos"
+        rsync -avhzP -e "ssh -p 22" jonc@pachy.cs.uic.edu:/home/ibeis-repos/african-dogs /raid/raw_rsync
+
+
         rsync -avhzP -e "ssh -p 22" joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .
         rsync -avhzP joncrall@hyrule.cs.rpi.edu:/raid/raw_rsync/iberian-lynx .
 
