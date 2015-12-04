@@ -147,7 +147,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
         >>> result = str(imgBGR.shape)
         >>> print(result)
         >>> assert np.all(imgBGR2 == imgBGR)
-        (512, 512)
+        (2736, 3648, 3)
     """
     if img_fpath.startswith('http://') or img_fpath.startswith('https://'):
         imgBGR = imread_remote_url(img_fpath, grayscale=grayscale)
