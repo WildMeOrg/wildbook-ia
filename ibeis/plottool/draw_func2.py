@@ -1962,6 +1962,36 @@ def draw_patches_and_sifts(patch_list, sift_list, fnum=None, pnum=(1, 1, 1)):
     #pt.iup()
 
 
+def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
+    r"""
+    Show keypoints in a new figure. Note: use draw_kpts2 to overlay keypoints on a existing figure.
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-show_kpts --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> result = show_kpts(kpts)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
+    pt.draw_kpts2(kpts, **kwargs)
+    wh = np.array(vt.get_kpts_image_extent(kpts))
+    ax = pt.gca()
+    ax.set_xlim(0, wh[0])
+    ax.set_ylim(0, wh[0])
+    extents = vt.get_kpts_image_extent2(kpts)
+    ax.set_xlim(*extents[0:2])
+    ax.set_ylim(*extents[2:4])
+
+
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
