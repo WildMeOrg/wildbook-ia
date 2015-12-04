@@ -134,7 +134,7 @@ if __name__ == '__main__':
                                  yscale=ysca)
     #print('+----')
     #kp_list.append(kpts[0])
-    #S_list = ktool.get_xy_axis_extents(kpts)
+    #S_list = ktool.get_ xy_axis_extents(kpts)
     #print('xscale=%r yscale=%r, skew=%r' % (xsca, ysca, skew))
     #print(S_list)
 

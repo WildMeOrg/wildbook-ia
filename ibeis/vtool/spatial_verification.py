@@ -864,7 +864,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         >>> pt.draw_line_segments(segments_list4, color=pt.ORANGE)
         >>> pt.dark_background()
         >>> #---------------
-        >>> #vt.get_xy_axis_extents(kpts1_m)
+        >>> #vt.get _xy_axis_extents(kpts1_m)
         >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
         >>> ut.show_if_requested()
     """

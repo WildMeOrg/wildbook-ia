@@ -141,18 +141,6 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[kpts]')
 
 
-"""
-// These are cython style comments used for maintaining python compatibility
-#if CYTH
-from vtool.keypoint import get_invVR_mats_shape, get_invVR_mats_sqrd_scale, get_invVR_mats_oris
-
-cdef np.float64_t TAU = 2 * np.pi
-#endif
-"""
-#:%s/numpy_floatarray_\([13]\)dimension/np.ndarray[np.float64_t, ndim=\1]/gc
-#:%s/np.ndarray\[np.float64_t, ndim=\([13]\)\]/numpy_floatarray_\1dimension/gc
-
-
 TAU = 2 * np.pi  # References: tauday.com
 GRAVITY_THETA = TAU / 4
 KPTS_DTYPE = np.float32
@@ -949,27 +937,9 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
         >>> result = ut.numpy_str(det_arr, precision=2)
         >>> print(result)
         np.array([-0.16, -0.09, -0.34,  0.59, -0.2 ,  0.18,  0.06], dtype=np.float64)
-
-    #CYTH_INLINE
-    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=3] invVR_mats
-    #if CYTH
-    cdef unsigned int nMats = invVR_mats.shape[0]
-    # Prealloc output
-    cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
-    #cdef size_t ix
-    cdef Py_ssize_t ix
-    for ix in range(nMats):
-        # simple determinant: ad - bc
-        out[ix] = ((invVR_mats[ix, 0, 0] * invVR_mats[ix, 1, 1]) -
-                   (invVR_mats[ix, 0, 1] * invVR_mats[ix, 1, 0]))
-    return out
-    #else
     """
     det_arr = npl.det(invVR_mats[:, 0:2, 0:2])
     return det_arr
-    "#endif"
 
 
 #@profile
@@ -996,43 +966,11 @@ def get_invVR_mats_shape(invVR_mats):
         # So, this doesn't work
         # Try this instead
         http://docs.cython.org/src/userguide/memoryviews.html#memoryviews
-
-    Cyth::
-        #CYTH_INLINE
-        #if CYTH
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=3] invVR_mats
-        cdef:
-            np.ndarray[np.float64_t, ndim=1] _iv11s
-            np.ndarray[np.float64_t, ndim=1] _iv12s
-            np.ndarray[np.float64_t, ndim=1] _iv21s
-            np.ndarray[np.float64_t, ndim=1] _iv22s
-            #double [:] _iv11s
-            #double [:] _iv12s
-            #double [:] _iv21s
-            #double [:] _iv22s
-        #endif
     """
-    pass
-    ###
-    '''
-    #if cyth
-    #m_acro numpy_fancy_index_macro
-    #e_ndmacro
-    _iv11s = invVR_mats.take(:, axis=1)
-    _iv12s = invVR_mats[:, 0, 1]
-    _iv21s = invVR_mats[:, 1, 0]
-    _iv22s = invVR_mats[:, 1, 1]
-    #else
-    #cols, rows, dims = invVR_mats.shape
-    #invVR_mats.ravel()[(cols + (rows * a.shape[1]).reshape((-1, 1))).ravel()])
-    '''
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     _iv21s = invVR_mats[:, 1, 0]
     _iv22s = invVR_mats[:, 1, 1]
-    '#endif'
-    #'#pragma cyth numpy_fancy_index_assign'
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
 
@@ -1047,14 +985,6 @@ def get_invVR_mats_xys(invVR_mats):
 
     Returns:
         ndarray: the xy location
-
-    Cyth:
-        #if CYTH
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=3] invVR_mats
-        cdef:
-            np.ndarray[np.float64_t, ndim=2] _xys
-        #endif
 
     Timeit:
         >>> import utool as ut
@@ -1104,25 +1034,6 @@ def get_invVR_mats_oris(invVR_mats):
         >>> output = get_invVR_mats_oris(invVR_mats)
         >>> result = ut.numpy_str(output, precision=2)
         np.array([ 5.37,  5.29,  5.9 ,  5.26,  4.74,  5.6 ,  4.9 ], dtype=np.float64)
-
-    Cyth:
-        #CYTH_INLINE
-        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
-        #CYTH_PARAMS:
-            np.ndarray[np.float64_t, ndim=3] invVR_mats
-        #if CYTH
-        cdef:
-            np.ndarray[np.float64_t, ndim=1] _oris
-            np.ndarray[np.float64_t, ndim=1] _iv12s
-            np.ndarray[np.float64_t, ndim=1] _iv11s
-
-        _iv11s = invVR_mats[:, 0, 0]
-        _iv12s = invVR_mats[:, 0, 1]
-        _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
-        _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
-        _oris = (-_oris) % TAexpr1_reprexpr1_reprU
-        return _oris
-        #else
 
     Sympy:
         >>> # BEST PROOF SO FAR OF EXTRACTION FROM ARBITRARY COMPOMENTS
@@ -1546,36 +1457,50 @@ def rectify_invV_mats_are_up(invVR_mats):
     Useful if invVR_mats is no longer lower triangular
     rotates affine shape matrixes into downward (lower triangular) position
 
-    >>> from vtool.keypoint import *  # NOQA
-    >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
-    >>> output = rectify_invV_mats_are_up(invVR_mats)
-    >>> print(ut.hashstr(output))
-    2wir&6ybcga0bpvz
+    CommandLine:
+        python -m vtool.keypoint --exec-rectify_invV_mats_are_up --show
 
-    #if CYTH
-    # TODO: Template this for [float64_t, float32_t]
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=3] invVR_mats
-    cdef:
-        np.ndarray[np.float64_t, ndim=3] invV_mats
-        np.ndarray[np.float64_t, ndim=1] _oris
-        np.ndarray[np.float64_t, ndim=1] _a
-        np.ndarray[np.float64_t, ndim=1] _b
-        np.ndarray[np.float64_t, ndim=1] _c
-        np.ndarray[np.float64_t, ndim=1] _d
-        np.ndarray[np.float64_t, ndim=1] det_
-        np.ndarray[np.float64_t, ndim=1] b2a2
-        np.ndarray[np.float64_t, ndim=1] iv11
-        np.ndarray[np.float64_t, ndim=1] iv21
-        np.ndarray[np.float64_t, ndim=1] iv22
-    #endif
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> rng = np.random.RandomState(0)
+        >>> kpts = vt.dummy.get_dummy_kpts()[0:2]
+        >>> # Shrink x and y scales a bit
+        >>> kpts.T[2:4] /= 2
+        >>> kpts[1][3] *= 10  # increase skew
+        >>> # Set random orientation
+        >>> kpts.T[5] = TAU * np.array([.2, .6])
+        >>> invVR_mats = get_invVR_mats3x3(kpts)
+        >>> invVR_mats2, oris = rectify_invV_mats_are_up(invVR_mats)
+        >>> kpts2 = flatten_invV_mats_to_kpts(invVR_mats2)
+        >>> # Scale down in y a bit
+        >>> kpts2.T[1] += 100
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.figure(doclf=True, fnum=pt.ensure_fnum(None))
+        >>> ax = pt.gca()
+        >>> #ax.invert_yaxis()
+        >>> pt.draw_kpts2(kpts, color='blue', ell_linewidth=3, ori=1, eig=True, ori_color='green', rect=True)
+        >>> pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
+        >>> extents = np.array(vt.get_kpts_image_extent2(np.vstack([kpts, kpts2])))
+        >>> ax.set_xlim(*extents[0:2])
+        >>> ax.set_ylim(*extents[2:4])
+        >>> pt.dark_background()
+        >>> ut.show_if_requested()
+
+    Example1:
+        >>> from vtool.keypoint import *  # NOQA
+        >>> rng = np.random.RandomState(0)
+        >>> invVR_mats = rng.rand(1000, 2, 2).astype(np.float64)
+        >>> output = rectify_invV_mats_are_up(invVR_mats)
+        >>> print(ut.hashstr(output))
+        2wir&6ybcga0bpvz
+
     """
     # Get orientation encoded in the matrix
-    #_oris = get_invVR_mats_oris_cyth(invVR_mats)
     _oris = get_invVR_mats_oris(invVR_mats)
     # Extract keypoint shape components
-    #(_a, _b, _c, _d) = get_invVR_mats_shape_cyth(invVR_mats)
     (_a, _b, _c, _d) = get_invVR_mats_shape(invVR_mats)
     #
     # Convert to lower triangular (rectify orientation downwards)
@@ -1699,7 +1624,6 @@ def get_invV_xy_axis_extents(invV_mats):
     return xyexnts
 
 
-#@profile
 def get_xy_axis_extents(kpts):
     """
     gets the scales of the major and minor elliptical axis from kpts
@@ -1720,27 +1644,26 @@ def get_xy_axis_extents(kpts):
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> xyexnts = get_xy_axis_extents(kpts)
-        >>> # verify results
-        >>> result = str(xyexnts)
+        >>> result = ut.repr2(xyexnts)
         >>> print(result)
-        [[  6.2212909   24.91645859]
-         [  2.79504602  24.7306281 ]
-         [ 16.43837149  19.39813418]
-         [ 18.23215582  25.76692184]
-         [ 19.78704902  16.82756301]]
+        np.array([[  6.2212909 ,  24.91645859],
+                  [  2.79504602,  24.7306281 ],
+                  [ 16.43837149,  19.39813418],
+                  [ 18.23215582,  25.76692184],
+                  [ 19.78704902,  16.82756301]])
     """
-    #invV_mats = get_invV_mats(kpts, ashomog=False)
     invV_mats2x2 = get_invVR_mats2x2(kpts)
     xyexnts = get_invV_xy_axis_extents(invV_mats2x2)
     return xyexnts
 
 
-#@profile
 def get_kpts_image_extent(kpts):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
     Does not take into account if keypoint extent goes under (0, 0)
+
+    DEPRICATE in favor of get_kpts_image_extent2 because it also returns min
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
@@ -1767,6 +1690,41 @@ def get_kpts_image_extent(kpts):
     height = (ys + xyexnts.T[1]).max()
     wh_bound = (width, height)
     return wh_bound
+
+
+def get_kpts_image_extent2(kpts):
+    """
+    returns the width and height of keypoint bounding box
+    This combines xy and shape information
+    Does not take into account if keypoint extent goes under (0, 0)
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+
+    Returns:
+        tuple: (minx, maxx, miny, maxy)
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_kpts_image_extent2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> wh_bound = get_kpts_image_extent2(kpts)
+        >>> result = ut.repr2(np.array(wh_bound), precision=2)
+        >>> print(result)
+        np.array([ 12.21,  51.79,   0.08,  54.77])
+    """
+    xs, ys = get_xys(kpts)
+    xyexnts = get_xy_axis_extents(kpts)
+    minx = (xs - xyexnts.T[0]).min()
+    miny = (ys - xyexnts.T[1]).min()
+    maxx = (xs + xyexnts.T[0]).max()
+    maxy = (ys + xyexnts.T[1]).max()
+    bounds = minx, maxx, miny, maxy
+    return bounds
 
 
 def get_kpts_dlen_sqrd(kpts):
@@ -1851,6 +1809,7 @@ def get_kpts_strs(kpts):
 
 
 def kpts_repr(arr, precision=2, suppress_small=True, linebreak=False):
+    # TODO replace with ut.repr2
     repr_kw = dict(precision=precision, suppress_small=suppress_small)
     reprstr = np.array_repr(arr, **repr_kw)
     if not linebreak:
@@ -2076,18 +2035,6 @@ def get_even_point_sample(kpts):
     ell_border_pts_list = ellipse.sample_uniform(kpts, nSamples)
     return ell_border_pts_list
 
-
-#try:
-#    import cyth
-#    if cyth.DYNAMIC:
-#        exec(cyth.import_cyth_execstr(__name__))
-#    else:
-#        # <AUTOGEN_CYTH>
-#        # Regen command: python -c "import vtool.keypoint" --cyth-write
-#        pass
-#        # </AUTOGEN_CYTH>
-#except ImportError as ex:
-#    pass
 
 if __name__ == '__main__':
     """
