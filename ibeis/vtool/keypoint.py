@@ -649,14 +649,16 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     return imgkpts
 
 
-def get_kpts_excentricity(kpts):
+def get_kpts_eccentricity(kpts):
     """
 
     SeeAlso:
         pyhesaff.tests.test_ellipse
 
-    Ascii:
+    References:
+        https://en.wikipedia.org/wiki/Eccentricity_(mathematics)
 
+    Ascii:
         Connic marix is
         Z_mat = np.array((('    A', 'B / 2', 'D / 2'),
                           ('B / 2', '    C', 'E / 2'),
@@ -669,7 +671,20 @@ def get_kpts_excentricity(kpts):
         ecc = -----------------------------------------------
               (nu * (A + C) + np.sqrt((A - C) ** 2 + B ** 2))
 
-        (nu is always 1 for ellipses)
+        nu = 1 if det(Z) > 0, -1 if det(Z) < 0, and 0 if det(Z) == 0
+
+        (nu is always 1 for ellipses.)
+
+    Notes:
+        For an ellipse/hyperbola the eccentricity is
+        sqrt(1 - (b ** 2 / a ** 2))
+
+        Eccentricity is undefined for parabolas
+
+        where a is the lenth of the semi-major axis and b is the length of the
+        semi minor axis. The length of the semi-major axis is 2 time the
+        largest eigenvalue.  And the length of the semi-minor axis is 2 times
+        the smallest eigenvalue.
 
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
@@ -677,7 +692,7 @@ def get_kpts_excentricity(kpts):
         scale_factor (float): (default = 1.0)
 
     CommandLine:
-        python -m vtool.keypoint --exec-get_kpts_excentricity --show
+        python -m vtool.keypoint --exec-get_kpts_eccentricity --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -685,7 +700,7 @@ def get_kpts_excentricity(kpts):
         >>> import vtool as vt
         >>> kpts_ = vt.dummy.get_dummy_kpts()
         >>> kpts = np.append(kpts_, [[10, 10, 5, 0, 5, 0]], axis=0)
-        >>> ecc = get_kpts_excentricity(kpts)
+        >>> ecc = get_kpts_eccentricity(kpts)
         >>> result = 'ecc = %s' % (ut.repr2(ecc, precision=2))
         >>> print(result)
         >>> ut.quit_if_noshow()
