@@ -90,7 +90,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>>     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
         >>>     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]
         >>>     kpts = ut.random_sample(kpts[weights > .9], 200, seed=0)
-        >>>     ecc = vt.get_kpts_excentricity(kpts)
+        >>>     ecc = vt.get_kpts_eccentricity(kpts)
         >>>     scale = 1 / vt.get_scales(kpts)
         >>>     s = ecc if config2_.affine_invariance else scale
         >>>     colors = pt.scores_to_color(s, cmap_='jet')

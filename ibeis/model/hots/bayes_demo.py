@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import utool as ut
-from six.moves import map
 from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__, '[bayes_demo]')
 
@@ -39,8 +38,7 @@ def make_bayes_notebook():
         show_model_templates,
         demo_modes,
         #demo_name_annot_complexity,
-        ###demo_model_idependencies1,
-        ###demo_model_idependencies2,
+        ###demo_model_idependencies,
         demo_single_add,
         demo_ambiguity,
         demo_conflicting_evidence,
@@ -310,40 +308,26 @@ def demo_name_annot_complexity():
     #draw_tree_model(model)
 
 
-def demo_model_idependencies1():
-    """
-    Independences of the 2 annot 2 name model
-    """
-    import re
-    model = test_model(num_annots=2, num_names=2, score_evidence=[], name_evidence=[])[0]
-    # This model has the following independenceis
-    idens = model.get_independencies()
-    # Might not be valid, try and collapse S and M
-    xs = list(map(str, idens.independencies))
-    xs = [re.sub(', M..', '', x) for x in xs]
-    xs = [re.sub('M..,?', '', x) for x in xs]
-    xs = [x for x in xs if not x.startswith('( _')]
-    xs = [x for x in xs if not x.endswith('| )')]
-    print('\n'.join(sorted(list(set(xs)))))
-
-
-def demo_model_idependencies2():
+def demo_model_idependencies():
     """
     Independences of the 3 annot 3 name model
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies2 --mode=1
-        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies2 --mode=2
+        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies --mode=1 --num-names=2 --show
+        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies --mode=2
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.bayes_demo import *  # NOQA
-        >>> result = demo_model_idependencies2()
+        >>> result = demo_model_idependencies()
         >>> print(result)
+        >>> ut.show_if_requested()
     """
-    model = test_model(num_annots=3, num_names=3, score_evidence=[], name_evidence=[])[0]
+    num_names = ut.get_argval('--num-names', default=3)
+    model = test_model(num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[])[0]
     # This model has the following independenceis
     idens = model.get_independencies()
+    iden_strs = list(map(str, idens.independencies))
     print(idens)
 
 # Might not be valid, try and collapse S and M

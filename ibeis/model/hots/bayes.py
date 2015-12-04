@@ -10,6 +10,7 @@ References:
     http://pgmpy.readthedocs.org/en/latest/
     http://nipy.bic.berkeley.edu:5000/download/11
     http://pgmpy.readthedocs.org/en/latest/wiki.html#add-feature-to-accept-and-output-state-names-for-models
+    http://www.csse.monash.edu.au/bai/book/BAI_Chapter2.pdf
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
