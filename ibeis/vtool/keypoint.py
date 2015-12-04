@@ -1478,16 +1478,22 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> kpts2.T[1] += 100
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.figure(doclf=True, fnum=pt.ensure_fnum(None))
-        >>> ax = pt.gca()
-        >>> #ax.invert_yaxis()
-        >>> pt.draw_kpts2(kpts, color='blue', ell_linewidth=3, ori=1, eig=True, ori_color='green', rect=True)
+        >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True, ori_color='green', rect=True)
+        >>> # Redraw oriented to show difference
         >>> pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
-        >>> extents = np.array(vt.get_kpts_image_extent2(np.vstack([kpts, kpts2])))
-        >>> ax.set_xlim(*extents[0:2])
-        >>> ax.set_ylim(*extents[2:4])
         >>> pt.dark_background()
         >>> ut.show_if_requested()
+
+        pt.figure(doclf=True, fnum=pt.ensure_fnum(None))
+        ax = pt.gca()
+        #ax.invert_yaxis()
+        #pt.draw_kpts2(kpts, color='blue', ell_linewidth=3, ori=1, eig=True, ori_color='green', rect=True)
+        pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
+        extents = np.array(vt.get_kpts_image_extent2(np.vstack([kpts, kpts2])))
+        ax.set_xlim(*extents[0:2])
+        ax.set_ylim(*extents[2:4])
+        pt.dark_background()
+        ut.show_if_requested()
 
     Example1:
         >>> from vtool.keypoint import *  # NOQA
