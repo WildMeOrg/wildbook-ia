@@ -1990,6 +1990,7 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
     extents = vt.get_kpts_image_extent2(kpts)
     ax.set_xlim(*extents[0:2])
     ax.set_ylim(*extents[2:4])
+    ax.set_aspect('equal')
 
 
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
