@@ -195,7 +195,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
         python -c "from PIL import Image; print(Image.PILLOW_VERSION)"
 
         pip uninstall Pillow
-        pip install Pillow
+        pip install Pillow==2.9
 
     CommandLine:
         python -m vtool.exif --test-get_lat_lon
