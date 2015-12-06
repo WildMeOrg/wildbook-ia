@@ -3,12 +3,11 @@
 from __future__ import absolute_import, division, print_function
 
 import utool as ut
-ut.noinject(__name__, '[ibeis.model.detect.__init__]', DEBUG=False)
-
+ut.noinject(__name__, '[ibeis.model.detect.__init__]')
 from ibeis.model.detect import grabmodels
 from ibeis.model.detect import randomforest
-import utool
-print, print_, printDBG, rrr, profile = utool.inject(
+import utool as ut
+print, rrr, profile = ut.inject2(
     __name__, '[ibeis.model.detect]')
 
 

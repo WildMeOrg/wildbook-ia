@@ -152,51 +152,6 @@ def demo_ambiguity():
     # Resolve ambiguity
     constkw['name_evidence'][-1] = 1
     test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low'
-    #           },
-    #           **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low',
-    #               'Sab': 'high',
-    #           },
-    #           **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low',
-    #               'Sab': 'high',
-    #               'Scd': 'high',
-    #           },
-    #           **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low',
-    #               'Sab': 'high',
-    #               'Scd': 'high',
-    #               'Sac': 'low',
-    #           },
-    #           **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low',
-    #               'Sab': 'high',
-    #               'Scd': 'high',
-    #               'Sac': 'low',
-    #               'Sbc': 'low',
-    #           },
-    #           **constkw)
-    #test_model(score_evidence=[],
-    #           other_evidence={
-    #               'Sad': 'low',
-    #               'Sab': 'high',
-    #               'Scd': 'high',
-    #               'Sac': 'low',
-    #               'Sbc': 'low',
-    #               'Sbd': 'low',
-    #           },
-    #           **constkw)
 
 
 def demo_annot_idependence_overlap():

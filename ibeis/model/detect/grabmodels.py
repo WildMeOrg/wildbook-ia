@@ -3,8 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 from os.path import exists, join, realpath
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[grabmodels]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[grabmodels]')
 
 
 #DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))

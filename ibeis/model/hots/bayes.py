@@ -11,7 +11,16 @@
 Arc reversal
 http://www.cs.toronto.edu/~cebly/Papers/simulation.pdf
 
+TODO:
+    Need to find faster more mature libraries
+    http://dlib.net/bayes.html
+    http://www.cs.waikato.ac.nz/ml/weka/
+    http://www.cs.waikato.ac.nz/~remco/weka.bn.pdf
+    https://code.google.com/p/pebl-project/
+    https://github.com/abhik/pebl
+
 References:
+    https://en.wikipedia.org/wiki/Bayesian_network
     https://class.coursera.org/pgm-003/lecture/17
     http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
     http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
@@ -133,18 +142,25 @@ def try_query(model, model_inference, evidence, verbose=True):
         # print(model.local_independencies([Ni.variable]))
         #print('Result Factors')
         factor = joint_factor  # NOQA
-        semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
+        semtypes = [model.var2_cpd[f.variables[0]].ttype
+                    for f in factor_list]
         for type_, factors in ut.group_items(factor_list, semtypes).items():
             print('Result Factors (%r)' % (type_,))
             factors = ut.sortedby(factors, [f.variables[0] for f in factors])
             for fs_ in ut.ichunks(factors, 4):
                 ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
-        #print('Joint Factors')
-        #ut.colorprint(joint_factor._str('phi', 'psql', sort=True), 'white')
-        #name_vars = [v for v in joint_factor.scope() if model.var2_cpd[v].ttype == 'name']
-        #print('Marginal Factors')
-        #marginal = joint_factor.marginalize(name_vars, inplace=False)
-        #ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        print('Joint Factors')
+        ut.colorprint(joint_factor._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        print('Marginal Joint Name Factors')
+        nonname_vars = [v for v in joint_factor.scope()
+                        if model.var2_cpd[v].ttype != 'name']
+        marginal = joint_factor.marginalize(nonname_vars, inplace=False)
+        ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        print('Marginal Joint Match Factors')
+        name_vars = [v for v in joint_factor.scope()
+                     if model.var2_cpd[v].ttype == 'name']
+        marginal = joint_factor.marginalize(name_vars, inplace=False)
+        ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         print('L_____\n')
     return factor_list
 
@@ -307,9 +323,15 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
 
     Ignore:
+        pkg-config --libs-only-L libcgraph
+        sudo apt-get  install libgraphviz-dev -y
+        sudo apt-get  install libgraphviz4 -y
+
+        # sudo apt-get install pkg-config
         sudo apt-get install libgraphviz-dev
-        pip install git+git://github.com/pygraphviz/pygraphviz.git
-        sudo pip install pygraphviz
+        # pip install git+git://github.com/pygraphviz/pygraphviz.git
+        pip install pygraphviz
+        python -c "import pygraphviz; print(pygraphviz.__file__)"
     """
     import plottool as pt
     import networkx as netx

@@ -283,6 +283,12 @@ def tornado_version():
     return module_stdinfo_dict(tornado, 'version')
 
 
+@checkinfo()
+def pygraphviz_version():
+    import pygraphviz
+    return module_stdinfo_dict(pygraphviz)
+
+
 def check_modules_exists():
     # Modules in this list don't really need to be inspected
     # just make sure they are there

@@ -4,24 +4,28 @@ Interface to pyrf random forest object detection.
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, join
-# from six.moves import zip, map, range
 from ibeis.model.detect import grabmodels
-# from vtool import image as gtool
-#from detecttools.directory import Directory
 import utool as ut
 import vtool as vt
-from six.moves import zip
+from six.moves import zip, map
 import cv2
-import pyrf
-# import multiprocessing
 import random
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[randomforest]')
+(print, rrr, profile) = ut.inject2(__name__, '[randomforest]')
 
+if not ut.get_argflag('--no-pyrf'):
+    try:
+        import pyrf
+    except ImportError as ex:
+        if ut.SUPER_STRICT:
+            print('WARNING Failed to import pyrf. '
+                  'Randomforest detection is unavailable')
+            raise
 
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE
 
 
-def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, teardown=False, **kwargs):
+def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
+                   teardown=False, **kwargs):
     """
     Args:
         gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -36,7 +40,8 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
     Returns:
         None
     """
-    print("[randomforest.train()] training with %d gids and species=%r" % (len(gid_list), species, ))
+    print("[randomforest.train()] training with %d gids and species=%r" % (
+        len(gid_list), species, ))
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_treesdir(), species)
 
@@ -94,7 +99,8 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
             ymax = ymin + square
             if _valid_candidate((xmin, xmax, ymin, ymax), annot_bbox_list):
                 if VERBOSE_RF:
-                    print("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (len(train_neg_cpath_list), len(train_pos_cpath_list), xmin, xmax, ymin, ymax, gid, ))
+                    print("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (
+                        len(train_neg_cpath_list), len(train_pos_cpath_list), xmin, xmax, ymin, ymax, gid, ))
                 img = ibs.get_images(gid)
                 img_path = join(negatives_cache, "neg_%07d.JPEG" % (len(train_neg_cpath_list), ))
                 img = img[ymin:ymax, xmin:xmax]
@@ -114,7 +120,8 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
         ut.remove_dirs(negatives_cache)
 
 
-def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path=None, **kwargs):
+def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
+                     trees_path=None, **kwargs):
     """
     Args:
         train_pos_cpath_list (list of str): the list of positive image paths
@@ -136,7 +143,8 @@ def train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list, trees_path
         trees_path = join(ibs.get_treesdir(), 'generic')
     # Train trees
     detector = pyrf.Random_Forest_Detector()
-    detector.train(train_pos_cpath_list, train_neg_cpath_list, trees_path, **kwargs)
+    detector.train(train_pos_cpath_list, train_neg_cpath_list, trees_path,
+                   **kwargs)
 
 
 def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
@@ -160,7 +168,8 @@ def detect_gpath_list_with_species(ibs, gpath_list, species, **kwargs):
     return detect(ibs, gpath_list, tree_path_list, **kwargs)
 
 
-def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwargs):
+def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
+                                 **kwargs):
     """
     Args:
         gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -197,7 +206,9 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwar
         >>> print(result)
     """
     tree_path_list = _get_models(ibs, species)
-    results_iter = detect_gid_list(ibs, gid_list, tree_path_list, downsample=downsample, verbose=False, **kwargs)
+    results_iter = detect_gid_list(ibs, gid_list, tree_path_list,
+                                   downsample=downsample, verbose=False,
+                                   **kwargs)
     return results_iter
 
 
@@ -256,7 +267,8 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
 
     verbose = kwargs.get('verbose', False)
     if verbose:
-        print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
+        print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (
+            len(tree_path_list), kwargs['scale_list'], ))
 
     # Run detection
     detector = pyrf.Random_Forest_Detector(verbose=verbose)
