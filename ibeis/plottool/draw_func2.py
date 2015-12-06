@@ -2198,21 +2198,42 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            redraw_image=True, **kwargs):
     """
     Args:
-        img (ndarray):  image data
-        fnum (int):  figure number
+        img (ndarray): image data
+        fnum (int): figure number
         title (str):
         figtitle (None):
-        pnum (tuple):  plot number
+        pnum (tuple): plot number
         interpolation (str): other interpolations = nearest, bicubic, bilinear
         cmap (None):
         heatmap (bool):
         data_colorbar (bool):
         darken (None):
+        update (bool): (default = False)
         redraw_image (bool): used when calling imshow over and over. if false
-                            doesnt do the image part.
+                                doesnt do the image part.
 
     Returns:
         tuple: (fig, ax)
+
+    Kwargs:
+        docla, doclf, projection
+
+    Returns:
+        tuple: (fig, ax)
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-imshow --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> (fig, ax) = imshow(img)
+        >>> result = ('(fig, ax) = %s' % (str((fig, ax)),))
+        >>> print(result)
+        >>> ut.show_if_requested()
     """
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()

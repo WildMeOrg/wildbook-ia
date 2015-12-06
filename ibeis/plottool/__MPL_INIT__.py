@@ -1,4 +1,40 @@
 # -*- coding: utf-8 -*-
+"""
+Notes:
+    To use various backends certian packages are required
+
+    PyQt
+    ...
+
+    Tk
+    pip install
+    sudo apt-get install tk
+    sudo apt-get install tk-dev
+
+    Wx
+    pip install wxPython
+
+    GTK
+    pip install PyGTK
+    pip install pygobject
+    pip install pygobject
+
+    Cairo
+    pip install pycairo
+    pip install py2cairo
+    pip install cairocffi
+    sudo apt-get install libcairo2-dev
+
+
+CommandLine:
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=gdk
+    python -m plottool.draw_func2 --exec-imshow --show --mplbe=cairo
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
