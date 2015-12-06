@@ -4,19 +4,25 @@ import sys
 import os
 import ctypes as C
 
+# TODO: rectify with the ctypes interface in pyhesaff
+
 #============================
 # General CTypes Interface
 #============================
 
 __QUIET__ = '--quiet' in sys.argv
 __VERBOSE__ = '--verbose' in sys.argv
+__VERYVERBOSE__ = '--veryverbose' in sys.argv or '--very-verbose' in sys.argv
 
 
 def get_lib_fname_list(libname):
-    '''
-    input <libname>: library name (e.g. 'hesaff', not 'libhesaff')
-    returns <libnames>: list of plausible library file names
-    '''
+    """
+    Args:
+        <libname>: library name (e.g. 'hesaff', not 'libhesaff')
+
+    Returns:
+        <libnames>: list of plausible library file names
+    """
     if sys.platform.startswith('win32'):
         libnames = ['lib' + libname + '.dll', libname + '.dll']
     elif sys.platform.startswith('darwin'):
@@ -29,11 +35,15 @@ def get_lib_fname_list(libname):
 
 
 def get_lib_dpath_list(root_dir):
-    '''
-    input <root_dir>: deepest directory to look for a library (dll, so, dylib)
-    returns <libnames>: list of plausible directories to look.
-    '''
-    'returns possible lib locations'
+    """
+    returns possible lib locations
+
+    Args:
+        <root_dir>: deepest directory to look for a library (dll, so, dylib)
+
+    Returns:
+        returns <libnames>: list of plausible directories to look.
+    """
     get_lib_dpath_list = [root_dir,
                           join(root_dir, 'lib'),
                           join(root_dir, 'build'),
@@ -41,8 +51,10 @@ def get_lib_dpath_list(root_dir):
     return get_lib_dpath_list
 
 
-def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
-    'Search for the library'
+def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, veryverbose=None):
+    """ Search for the library """
+    if veryverbose is None:
+        veryverbose = __VERYVERBOSE__
     lib_fname_list = get_lib_fname_list(libname)
     tried_fpaths = []
     while root_dir is not None:
@@ -51,7 +63,7 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
                 if exists(lib_fpath):
                     if verbose:
-                        print('\n[c] Checked: '.join(tried_fpaths))
+                        print('\n[C] Checked: '.join(tried_fpaths))
                     if __VERBOSE__ and not __QUIET__:
                         print('using: %r' % lib_fpath)
                     return lib_fpath
@@ -67,22 +79,25 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
         if not recurse_down:
             break
 
-    msg = ('\n[C!] load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
+    msg = ('\n[C!] ERROR: load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
            (libname, root_dir, recurse_down, verbose) +
-           '\n[c!] Cannot FIND dynamic library')
-    print(msg)
-    print('\n[c!] Checked: '.join(tried_fpaths))
+           '\n[C!] Cannot find dynamic library')
+    if veryverbose:
+        print(msg)
+        print('\n[C!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
 
 
 def load_clib(libname, root_dir):
     """
     Does the work.
+
     Args:
         libname:  library name (e.g. 'hesaff', not 'libhesaff')
 
         root_dir: the deepest directory searched for the
                   library file (dll, dylib, or so).
+
     Returns:
         clib: a ctypes object used to interface with the library
     """
@@ -91,7 +106,7 @@ def load_clib(libname, root_dir):
         clib = C.cdll[lib_fpath]
 
         def def_cfunc(return_type, func_name, arg_type_list):
-            'Function to define the types that python needs to talk to c'
+            """ Function to define the types that python needs to talk to c """
             cfunc = getattr(clib, func_name)
             cfunc.restype = return_type
             cfunc.argtypes = arg_type_list
