@@ -184,8 +184,18 @@ GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
 
 @profile
 def get_lat_lon(exif_dict, default=(-1, -1)):
-    """
-    Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)
+    r"""
+    Returns the latitude and longitude, if available, from the provided
+    exif_data2 (obtained through exif_data2 above)
+
+    Notes:
+        Might need to downgrade to Pillow 2.9.0 to solve a bug with getting GPS
+        https://github.com/python-pillow/Pillow/issues/1477
+
+        python -c "from PIL import Image; print(Image.PILLOW_VERSION)"
+
+        pip uninstall Pillow
+        pip install Pillow
 
     CommandLine:
         python -m vtool.exif --test-get_lat_lon
