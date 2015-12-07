@@ -91,18 +91,29 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=0, enforce_yaw=False):
-    target_size = 900
+def export_to_xml(ibs, offset=1, enforce_yaw=False, target_size=500):
+    import random
+    # target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
     }
     datadir = ibs._ibsdb + '/LearningData/'
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
+    setsdir = datadir + 'ImageSets/'
+    mainsetsdir = setsdir + 'Main/'
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
+    ut.ensuredir(setsdir)
+    ut.ensuredir(mainsetsdir)
     gid_list = ibs.get_valid_gids()
+    sets_dict = {
+        'test'     : [],
+        'train'    : [],
+        'trainval' : [],
+        'val'      : [],
+    }
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
@@ -176,8 +187,27 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
                 xml_data.write(annotation.xml())
                 xml_data.close()
                 offset += 1
+
+            state = random.uniform(0.0, 1.0)
+            if state <= 0.50:
+                sets_dict['test'].append(out_name)
+            elif state <= 0.75:
+                sets_dict['train'].append(out_name)
+                sets_dict['trainval'].append(out_name)
+            else:
+                sets_dict['val'].append(out_name)
+                sets_dict['trainval'].append(out_name)
         else:
             print("Skipping:\n%r\n\n" % (image_path, ))
+
+    for key in sets_dict.keys():
+        with open(mainsetsdir + key + '.txt', 'w') as file_:
+            sets_dict[key].append('')
+            content = sets_dict[key]
+            content = '\n'.join(content)
+            file_.write(content)
+
+    print('...completed')
 
 
 @register_ibs_method

@@ -2092,8 +2092,7 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix=
         ibs.compute_all_chips()
 
     if start_job_queue:
-        #from ibeis.web import zmq_task_queue
-        #ibs.load_plugin_module(zmq_task_queue)
+        ibs.load_plugin_module(zmq_task_queue)
         #import time
         #time.sleep(1)
         ibs.initialize_job_manager()
