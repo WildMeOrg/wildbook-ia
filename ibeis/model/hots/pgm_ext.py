@@ -102,6 +102,8 @@ class TemplateCPD(object):
             for cpd in evidence_cpds:
                 statename_dict.update(cpd.statename_dict)
 
+            # print('evidence_states = %r' % (evidence_states,))
+            # print('self.basis = %r' % (self.basis,))
             values = np.array([
                 [pmf_func(vstate, *estates) for estates in evidence_states]
                 for vstate in self.basis])

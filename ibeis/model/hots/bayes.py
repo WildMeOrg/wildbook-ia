@@ -18,6 +18,7 @@ TODO:
     http://www.cs.waikato.ac.nz/~remco/weka.bn.pdf
     https://code.google.com/p/pebl-project/
     https://github.com/abhik/pebl
+    http://www.cs.ubc.ca/~murphyk/Software/bnsoft.html
 
 References:
     https://en.wikipedia.org/wiki/Bayesian_network
@@ -30,6 +31,21 @@ References:
     http://nipy.bic.berkeley.edu:5000/download/11
     http://pgmpy.readthedocs.org/en/latest/wiki.html#add-feature-to-accept-and-output-state-names-for-models
     http://www.csse.monash.edu.au/bai/book/BAI_Chapter2.pdf
+
+
+Course Notes:
+    Tie breaking for MAP assignment.
+    https://class.coursera.org/pgm-003/lecture/60
+    * random perdibiation
+
+    Correspondence Problem is discussed in
+    https://class.coursera.org/pgm-003/lecture/68
+
+    Sparse Pattern Factors
+
+    Plate Models / Aggragator CPD is used to define dependencies.
+    Collective Inference.
+
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -64,11 +80,6 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     evidence = {}
     evidence.update(other_evidence)
     soft_evidence = {}
-    #for key, val in other_evidence.items():
-    #    if isinstance(val, int):
-    #        evidence[key] = model.var2_cpd[key]._internal_varindex(val)
-    #    else:
-    #        evidence[key] = model.var2_cpd[key]._internal_varindex(val)
 
     def apply_hard_soft_evidence(cpd_list, evidence_list):
         for cpd, ev in zip(cpd_list, evidence_list):
@@ -115,54 +126,72 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
         ut.colorprint('\n --- Inference ---', 'red')
 
     if len(evidence) > 0 or len(soft_evidence) > 0:
+        interset_ttypes = ['name']
+        #model_inference = pgmpy.inference.VariableElimination(model)
         model_inference = pgmpy.inference.BeliefPropagation(model)
         evidence = model_inference._ensure_internal_evidence(evidence, model)
-        #model_inference = pgmpy.inference.VariableElimination(model)
-        factor_list = try_query(model, model_inference, evidence, verbose=verbose)
+        query_results = try_query(model, model_inference, evidence, interset_ttypes, verbose=verbose)
     else:
-        factor_list = []
+        query_results = {
+            'factor_list': [],
+            'joint_factor': None,
+            'marginalized_joints': {},
+        }
 
-    show_model(model, evidence, '', factor_list, soft_evidence, show_prior=show_prior)
-    return (model,)
-    # print_ascii_graph(model)
+    factor_list = query_results['factor_list']
+    marginalized_joints = query_results['marginalized_joints']
+    # joint_factor = query_results['joint_factor']
 
-
-def try_query(model, model_inference, evidence, verbose=True):
     if verbose:
-        print('+--------')
-    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-    evidence_str = ', '.join(model.pretty_evidence(evidence))
-    if verbose:
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
-    probs = model_inference.query(query_vars, evidence)
-    factor_list = probs.values()
-    if verbose:
-        joint_factor = pgmpy.factors.factor_product(*factor_list)
-        # print(joint_factor.get_independencies())
-        # print(model.local_independencies([Ni.variable]))
-        #print('Result Factors')
-        factor = joint_factor  # NOQA
+        if verbose:
+            print('+--------')
         semtypes = [model.var2_cpd[f.variables[0]].ttype
                     for f in factor_list]
         for type_, factors in ut.group_items(factor_list, semtypes).items():
             print('Result Factors (%r)' % (type_,))
             factors = ut.sortedby(factors, [f.variables[0] for f in factors])
             for fs_ in ut.ichunks(factors, 4):
-                ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
+                ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
+                              'yellow')
         print('Joint Factors')
-        ut.colorprint(joint_factor._str('phi', 'psql', sort=-1, maxrows=4), 'white')
-        print('Marginal Joint Name Factors')
-        nonname_vars = [v for v in joint_factor.scope()
-                        if model.var2_cpd[v].ttype != 'name']
-        marginal = joint_factor.marginalize(nonname_vars, inplace=False)
-        ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
-        print('Marginal Joint Match Factors')
-        name_vars = [v for v in joint_factor.scope()
-                     if model.var2_cpd[v].ttype == 'name']
-        marginal = joint_factor.marginalize(name_vars, inplace=False)
-        ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        # ut.colorprint(joint_factor._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        for ttype, marginal in marginalized_joints.items():
+            print('Marginal Joint %s Factors' % (ttype,))
+            ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         print('L_____\n')
-    return factor_list
+
+    show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence,  show_prior=show_prior)
+    return (model,)
+    # print_ascii_graph(model)
+
+
+def try_query(model, model_inference, evidence, interest_types=[], verbose=True):
+    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+    if verbose:
+        evidence_str = ', '.join(model.pretty_evidence(evidence))
+        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+
+    # Compute all marginals
+    probs = model_inference.query(query_vars, evidence)
+    factor_list = probs.values()
+
+    # Compute MAP joints
+    joint_factor = pgmpy.factors.factor_product(*factor_list)
+
+    # Compute Marginalized MAP joints
+    marginalized_joints = {}
+    for ttype in interest_types:
+        other_vars = [v for v in joint_factor.scope()
+                      if model.var2_cpd[v].ttype != ttype]
+        marginal = joint_factor.marginalize(other_vars, inplace=False)
+        marginalized_joints[ttype] = marginal
+
+    query_results = {
+        'factor_list': factor_list,
+        'joint_factor': joint_factor,
+        'marginalized_joints': marginalized_joints,
+    }
+    return query_results
 
 
 def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
@@ -188,12 +217,25 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         return val
 
     def score_pmf(score_type, match_type):
-        if match_type == 'same':
-            val = .1 if score_type == 'low' else .9
-        elif match_type == 'diff':
-            val = .9 if score_type == 'low' else .1
-        else:
-            raise ValueError('Unknown match_type=%r' % (match_type,))
+        score_lookup = {
+            'same': {'low': .1, 'high': .9, 'veryhigh': .99},
+            'diff': {'low': .9, 'high': .1, 'veryhigh': .01}
+        }
+        val = score_lookup[match_type][score_type]
+        return val
+
+    def score_pmf3(score_type, match_type, isdup='notdup'):
+        score_lookup = {
+            'notdup': {
+                'same': {'low': .1, 'high': .5, 'veryhigh': .4},
+                'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
+            },
+            'isdup': {
+                'same': {'low': .01, 'high': .2, 'veryhigh': .79},
+                'diff': {'low': .4, 'high': .4, 'veryhigh': .2}
+            }
+        }
+        val = score_lookup[isdup][match_type][score_type]
         return val
 
     def score_pmf2(score_type, n1, n2):
@@ -202,6 +244,13 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         else:
             val = .9 if score_type == 'low' else .1
         return val
+
+    def dup_pmf(isdup, match_type):
+        lookup = {
+            'same': {'isdup': 0.5, 'notdup': 0.5},
+            'diff': {'isdup': 0.0, 'notdup': 1.0}
+        }
+        return lookup[match_type][isdup]
 
     special_basis_pool = ['fred', 'sue', 'paul']
 
@@ -214,7 +263,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             'match', ['diff', 'same'], varpref='M',
             evidence_ttypes=[name_cpd, name_cpd], pmf_func=match_pmf)
         score_cpd = pgm_ext.TemplateCPD(
-            'score', ['low', 'high'], varpref='S',
+            'score', ['low', 'high', 'veryhigh'], varpref='S',
             evidence_ttypes=[match_cpd], pmf_func=score_pmf)
         templates = [name_cpd, match_cpd, score_cpd]
 
@@ -223,24 +272,58 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             'name', ('n', num_names), varpref='N',
             special_basis_pool=special_basis_pool)
         score_cpd = pgm_ext.TemplateCPD(
-            'score', ['low', 'high'], varpref='S', evidence_ttypes=[name_cpd, name_cpd],
+            'score', ['low', 'high', 'veryhigh'], varpref='S',
+            evidence_ttypes=[name_cpd, name_cpd],
             pmf_func=score_pmf2)
         templates = [name_cpd, score_cpd]
+    elif mode == 3 or mode == 4:
+        match_cpd = pgm_ext.TemplateCPD(
+            'match', ['diff', 'same'], varpref='M',
+            evidence_ttypes=[name_cpd, name_cpd], pmf_func=match_pmf)
+        if mode == 3:
+            dup_cpd = pgm_ext.TemplateCPD(
+                'dup', ['notdup', 'isdup'], varpref='D',
+            )
+        else:
+            dup_cpd = pgm_ext.TemplateCPD(
+                'dup', ['notdup', 'isdup'], varpref='D',
+                evidence_ttypes=[match_cpd], pmf_func=dup_pmf
+            )
+        score_cpd = pgm_ext.TemplateCPD(
+            'score', ['low', 'high', 'veryhigh'], varpref='S',
+            evidence_ttypes=[match_cpd, dup_cpd], pmf_func=score_pmf3)
+        templates = [name_cpd, match_cpd, score_cpd, dup_cpd]
 
     # Instanciate templates
-    name_cpds = [name_cpd.new_cpd(parents=aid) for aid in annots]
-    parent_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
 
     if mode == 1:
+        name_cpds = [name_cpd.new_cpd(parents=aid) for aid in annots]
+        namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
         match_cpds = [match_cpd.new_cpd(parents=cpds)
-                      for cpds in parent_cpds]
+                      for cpds in namepair_cpds]
         score_cpds = [score_cpd.new_cpd(parents=cpds)
                       for cpds in zip(match_cpds)]
         cpd_list = name_cpds + score_cpds + match_cpds
     elif mode == 2:
+        name_cpds = [name_cpd.new_cpd(parents=aid) for aid in annots]
+        namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
         score_cpds = [score_cpd.new_cpd(parents=cpds)
-                      for cpds in parent_cpds]
+                      for cpds in namepair_cpds]
         cpd_list = name_cpds + score_cpds
+    elif mode == 3 or mode == 4:
+        name_cpds = [name_cpd.new_cpd(parents=aid) for aid in annots]
+        namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
+        match_cpds = [match_cpd.new_cpd(parents=cpds)
+                      for cpds in namepair_cpds]
+        if mode == 3:
+            dup_cpds = [dup_cpd.new_cpd(parents=''.join(map(str, aids))) for aids
+                        in ut.list_unflat_take(annots, upper_diag_idxs)]
+        else:
+            dup_cpds = [dup_cpd.new_cpd(parents=[mcpds]) for mcpds
+                        in match_cpds]
+        score_cpds = [score_cpd.new_cpd(parents=([mcpds] + [dcpd]))
+                      for mcpds, dcpd in zip(match_cpds, dup_cpds)]
+        cpd_list = name_cpds + score_cpds + match_cpds + dup_cpds
 
     if verbose:
         ut.colorprint('\n --- CPD Templates ---', 'blue')
@@ -281,7 +364,7 @@ def draw_tree_model(model):
     pos = netx.pydot_layout(netx_graph)
     drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1000)
     netx.draw(netx_graph, **drawkw)
-    pt.set_figtitle('Junction Tree')
+    pt.set_figtitle('Junction/Clique Tree / Cluster Graph')
 
 
 def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
@@ -317,7 +400,8 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     return node_pos
 
 
-def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}, show_prior=False):
+def show_model(model, evidence=None, suff='', factor_list=None,
+               marginalized_joints=None, soft_evidence={}, show_prior=False, ):
     """
     References:
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
@@ -363,9 +447,10 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
     if True:
         textprops = {
             'family': 'monospace',
-            'horizontalalignment': 'left',
-            #'size': 8,
+            # 'horizontalalignment': 'left',
+            'horizontalalignment': 'center',
             'size': 12,
+            #'size': 8,
         }
 
         textkw = dict(
@@ -405,7 +490,8 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
             if text is not None:
                 offset_box = mpl.offsetbox.TextArea(text, textprops)
                 artist = mpl.offsetbox.AnnotationBbox(
-                    offset_box, (x + 5, y), xybox=(20., 5.),
+                    # offset_box, (x + 5, y), xybox=(20., 5.),
+                    offset_box, (x, y + 5), xybox=(0., 20.),
                     box_alignment=(0, 0), **textkw)
                 offset_box_list.append(offset_box)
                 artist_list.append(artist)
@@ -413,7 +499,8 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
             if show_prior and prior_text is not None:
                 offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
                 artist2 = mpl.offsetbox.AnnotationBbox(
-                    offset_box2, (x - 5, y), xybox=(-20., -15.),
+                    # offset_box2, (x - 5, y), xybox=(-20., -15.),
+                    offset_box2, (x, y - 5), xybox=(-15., -20.),
                     box_alignment=(1, 1), **textkw)
                 offset_box_list.append(offset_box2)
                 artist_list.append(artist2)
@@ -433,11 +520,21 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
             ax.set_ylim((ymin - 30, ymax + 30))
             fig.set_size_inches(23, 7)
         fig = pt.gcf()
-        pt.set_figtitle('num_names=%r, num_annots=%r' %
-                        (model.num_names, num_annots,), size=14)
+
+        title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
+        for name, marginal in marginalized_joints.items():
+            # ut.embed()
+            states = list(ut.iprod(*marginal.statenames))
+            vals = marginal.values.ravel()
+            x = vals.argmax()
+            title += '\n' + 'P(' + ', '.join(states[x]) + ') = ' + str(vals[x])
+            # title += str(marginal)
+
+        pt.set_figtitle(title, size=14)
 
         def hack_fix_centeralign():
             if textprops['horizontalalignment'] == 'center':
+                print('Fixing centeralign')
                 fig = pt.gcf()
                 fig.canvas.draw()
 
@@ -454,6 +551,7 @@ def show_model(model, evidence=None, suff='', factor_list=None, soft_evidence={}
                     A.clear()
                     A.translate((z.x1 - z.x0) / 2, 0)
                     offset_box._text.set_transform(T + A)
+        hack_fix_centeralign()
     #fpath = ('name_model_' + suff + '.png')
     #pt.plt.savefig(fpath)
     #return fpath

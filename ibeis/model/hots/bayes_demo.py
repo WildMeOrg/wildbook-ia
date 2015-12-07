@@ -5,6 +5,47 @@ from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__, '[bayes_demo]')
 
 
+def one_test():
+    """
+    CommandLine:
+        python -m ibeis.model.hots.bayes_demo --exec-one_test --verbose
+        python -m ibeis.model.hots.bayes_demo --exec-one_test --show --verbose --present
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> result = one_test()
+        >>> ut.show_if_requested()
+    """
+    constkw = dict(
+        num_annots=4, num_names=4,
+        name_evidence=[0, None, None, None],
+    )
+    test_model(score_evidence=['veryhigh', 'high', 'high', None, None, 'high'], mode=4, **constkw)
+    test_model(score_evidence=['veryhigh', 'high', 'high', None, None, 'high'], mode=1, **constkw)
+    # test_model(score_evidence=['veryhigh', 'high', 'high', None, None, None], **constkw)
+    # test_model(score_evidence=['veryhigh', 'high', 'high', None, 'high', None], **constkw)
+    # constkw = dict(score_evidence=[], name_evidence=[], mode=1)
+    # model, = test_model(num_annots=4, num_names=10, **constkw)
+    # draw_tree_model(model)
+
+
+def demo_structure():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.bayes_demo --exec-demo_structure --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> result = demo_structure()
+        >>> ut.show_if_requested()
+    """
+    constkw = dict(score_evidence=[], name_evidence=[], mode=3)
+    model, = test_model(num_annots=4, num_names=4, **constkw)
+    draw_tree_model(model)
+
+
 def make_bayes_notebook():
     r"""
     CommandLine:
@@ -37,7 +78,7 @@ def make_bayes_notebook():
         initialize,
         show_model_templates,
         demo_modes,
-        #demo_name_annot_complexity,
+        demo_name_annot_complexity,
         ###demo_model_idependencies,
         demo_single_add,
         demo_ambiguity,
@@ -187,6 +228,29 @@ def demo_annot_idependence_overlap():
           a match to either one individually.
 
             P(\d is Fred | Mad=1, Mbd=1) = P(\d is Fred | Mad=1) + \epsilon
+
+    Method:
+
+        We need to model the fact that there are other causes that create the
+        effect of a high score.  Namely, near duplicates.
+        This can be done by adding an extra conditional that score depends on
+        if they match as well as if they are near duplicates.
+
+        P(S_ij | Mij) --> P(S_ij | Mij, Dij)
+
+        where
+
+        Dij is a random variable indicating if the image is a near duplicate.
+
+        We can model this as an independant variable
+
+        P(Dij) = {True: .5, False: .5}
+
+        or as depending on if the names match.
+
+        P(Dij | Mij) = {'same': {True: .5, False: .5} diff: {True: 0, False 1}}
+
+
 
     CommandLine:
         python -m ibeis.model.hots.bayes_demo --exec-demo_ambiguity --show --verbose --present
