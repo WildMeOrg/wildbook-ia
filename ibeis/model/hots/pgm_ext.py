@@ -85,7 +85,15 @@ class TemplateCPD(object):
             evidence_cpds = None
         else:
             evidence_cpds = parents
-            _id = ''.join([cpd._template_id for cpd in parents])
+            template_ids = [cpd._template_id for cpd in parents]
+            HACK_SAME_IDS = True
+            if HACK_SAME_IDS:
+                if ut.list_allsame(template_ids):
+                    _id = template_ids[0]
+                else:
+                    _id = ''.join([cpd._template_id for cpd in parents])
+            else:
+                _id = ''.join([cpd._template_id for cpd in parents])
         variable = ''.join([self.varpref, _id])
         variable_card = len(self.basis)
         statename_dict = {

@@ -2,18 +2,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut
 from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
-print, rrr, profile = ut.inject2(__name__, '[bayes_demo]')
+print, rrr, profile = ut.inject2(__name__, '[demobayes]')
 
 
 def one_test():
     """
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-one_test --verbose
-        python -m ibeis.model.hots.bayes_demo --exec-one_test --show --verbose --present
+        python -m ibeis.model.hots.demobayes --exec-one_test --verbose
+        python -m ibeis.model.hots.demobayes --exec-one_test --show --verbose --present
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = one_test()
         >>> ut.show_if_requested()
     """
@@ -33,11 +33,11 @@ def one_test():
 def demo_structure():
     r"""
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_structure --show
+        python -m ibeis.model.hots.demobayes --exec-demo_structure --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_structure()
         >>> ut.show_if_requested()
     """
@@ -49,11 +49,11 @@ def demo_structure():
 def make_bayes_notebook():
     r"""
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-make_bayes_notebook
+        python -m ibeis.model.hots.demobayes --exec-make_bayes_notebook
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = make_bayes_notebook()
         >>> print(result)
     """
@@ -63,7 +63,7 @@ def make_bayes_notebook():
         # STARTBLOCK
         import os
         os.environ['UTOOL_NO_CNN'] = 'True'
-        from ibeis.model.hots.bayes_demo import *  # NOQA
+        from ibeis.model.hots.demobayes import *  # NOQA
         # Matplotlib stuff
         import matplotlib as mpl
         %matplotlib inline
@@ -96,7 +96,7 @@ def make_bayes_notebook():
     cell_list = ut.flatten([format_cell(cell) for cell in cell_list_def])
     nbstr = generate_notebook.make_notebook(cell_list)
     print('nbstr = %s' % (nbstr,))
-    fpath = 'bayes_demo.ipynb'
+    fpath = 'demobayes.ipynb'
     ut.writeto(fpath, nbstr)
     ut.startfile(fpath)
 
@@ -104,11 +104,11 @@ def make_bayes_notebook():
 def show_model_templates():
     r"""
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-show_model_templates
+        python -m ibeis.model.hots.demobayes --exec-show_model_templates
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = show_model_templates()
         >>> ut.show_if_requested()
     """
@@ -122,11 +122,11 @@ def demo_single_add():
     This demo shows how a name is assigned to a new annotation.
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_single_add --show --present --mode=1
+        python -m ibeis.model.hots.demobayes --exec-demo_single_add --show --present --mode=1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> demo_single_add()
         >>> ut.show_if_requested()
     """
@@ -168,11 +168,11 @@ def demo_ambiguity():
     names
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_ambiguity --show --verbose --present
+        python -m ibeis.model.hots.demobayes --exec-demo_ambiguity --show --verbose --present
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_ambiguity()
         >>> ut.show_if_requested()
     """
@@ -253,19 +253,20 @@ def demo_annot_idependence_overlap():
 
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_ambiguity --show --verbose --present
+        python -m ibeis.model.hots.demobayes --exec-demo_annot_idependence_overlap --verbose --present
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
-        >>> result = demo_ambiguity()
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> result = demo_annot_idependence_overlap()
         >>> ut.show_if_requested()
     """
     # We will end up making annots a and b fred and c and d sue
     constkw = dict(
         num_annots=4, num_names=5,
+        name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}, {3: '+eps'}],
         #name_evidence=[{0: .9}, None, None, {1: .9}]
-        name_evidence=[0, None, None, None]
+        #name_evidence=[0, None, None, None]
         #name_evidence=[0, None, None, None]
     )
     test_model(score_evidence=['high', 'high', 'high', None, None, None], **constkw)
@@ -276,21 +277,26 @@ def demo_modes():
     Look at the last result of the different names demo under differet modes
     """
     constkw = dict(
-        num_annots=4, num_names=5, score_evidence=[],
-        name_evidence=[{0: .9}, None, None, {1: .9}],
-        other_evidence={
-            'Sad': 'low',
-            'Sab': 'high',
-            'Scd': 'high',
-            'Sac': 'low',
-            'Sbc': 'low',
-            'Sbd': 'low',
-        }
+        num_annots=4, num_names=5,
+        score_evidence=['high', 'low', 'low', 'low', 'low', 'high'],
+        #name_evidence=[{0: .9}, None, None, {1: .9}],
+        #name_evidence=[0, None, None, 1],
+        name_evidence=[0, None, None, None],
+        #other_evidence={
+        #    'Sad': 'low',
+        #    'Sab': 'high',
+        #    'Scd': 'high',
+        #    'Sac': 'low',
+        #    'Sbc': 'low',
+        #    'Sbd': 'low',
+        #}
     )
     # The first mode uses a hidden Match layer
     test_model(mode=1, **constkw)
     # The second mode directly maps names to scores
     test_model(mode=2, **constkw)
+    test_model(mode=3, noquery=True, **constkw)
+    test_model(mode=4, noquery=True, **constkw)
 
 
 def demo_name_annot_complexity():
@@ -299,11 +305,11 @@ def demo_name_annot_complexity():
     and names are added.
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_name_annot_complexity --show
+        python -m ibeis.model.hots.demobayes --exec-demo_name_annot_complexity --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> demo_name_annot_complexity()
         >>> ut.show_if_requested()
     """
@@ -332,12 +338,12 @@ def demo_model_idependencies():
     Independences of the 3 annot 3 name model
 
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies --mode=1 --num-names=2 --show
-        python -m ibeis.model.hots.bayes_demo --exec-demo_model_idependencies --mode=2
+        python -m ibeis.model.hots.demobayes --exec-demo_model_idependencies --mode=1 --num-names=2 --show
+        python -m ibeis.model.hots.demobayes --exec-demo_model_idependencies --mode=2
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes_demo import *  # NOQA
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_model_idependencies()
         >>> print(result)
         >>> ut.show_if_requested()
@@ -371,8 +377,8 @@ def demo_model_idependencies():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.model.hots.bayes_demo
-        python -m ibeis.model.hots.bayes_demo --allexamples
+        python -m ibeis.model.hots.demobayes
+        python -m ibeis.model.hots.demobayes --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

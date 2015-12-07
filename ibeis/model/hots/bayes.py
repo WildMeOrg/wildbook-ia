@@ -33,6 +33,30 @@ References:
     http://www.csse.monash.edu.au/bai/book/BAI_Chapter2.pdf
 
 
+Clustering with CRF:
+    http://srl.informatik.uni-freiburg.de/publicationsdir/tipaldiIROS09.pdf
+    http://www.dis.uniroma1.it/~dottoratoii/media/students/documents/thesis_tipaldi.pdf
+    An Unsupervised Conditional Random Fields Approach for Clustering Gene Expression Time Series
+    http://bioinformatics.oxfordjournals.org/content/24/21/2467.full
+
+
+
+CRFs:
+    http://homepages.inf.ed.ac.uk/csutton/publications/crftutv2.pdf
+
+AlphaBeta Swap:
+    https://github.com/amueller/gco_python
+    https://github.com/pmneila/PyMaxflow
+    http://www.cs.cornell.edu/rdz/papers/bvz-iccv99.pdf
+
+    http://arxiv.org/pdf/1411.6340.pdf  Iteratively Reweighted Graph Cut for Multi-label MRFs with Non-convex Priors
+
+Fusion Moves:
+    http://www.robots.ox.ac.uk/~vilem/fusion.pdf
+    http://hci.iwr.uni-heidelberg.de/publications/mip/techrep/beier_15_fusion.pdf
+
+Consensus Clustering
+
 Course Notes:
     Tie breaking for MAP assignment.
     https://class.coursera.org/pgm-003/lecture/60
@@ -62,7 +86,7 @@ print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
-               other_evidence={}, show_prior=False, **kwargs):
+               other_evidence={}, show_prior=False, noquery=False, **kwargs):
     verbose = ut.VERBOSE
 
     model = make_name_model(num_annots, num_names, verbose=verbose, **kwargs)
@@ -93,20 +117,24 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
             if isinstance(ev, dict):
                 # soft external evidence
                 # HACK THAT MODIFIES CPD IN PLACE
-                fill = (1 - sum(ev.values())) / (len(cpd.values) - len(ev))
+                def rectify_evidence_val(_v, card=cpd.variable_card):
+                    # rectify hacky string structures
+                    return 2 / (card + 1) if _v == '+eps' else _v
+                ev_ = ut.map_dict_vals(rectify_evidence_val, ev)
+                fill = (1 - sum(ev_.values())) / (cpd.variable_card - len(ev_))
                 assert fill >= 0
                 row_labels = list(ut.iprod(*cpd.statenames))
 
                 for i, lbl in enumerate(row_labels):
-                    if lbl in ev:
+                    if lbl in ev_:
                         # external case1
-                        cpd.values[i] = ev[lbl]
-                    elif len(lbl) == 1 and lbl[0] in ev:
+                        cpd.values[i] = ev_[lbl]
+                    elif len(lbl) == 1 and lbl[0] in ev_:
                         # external case2
-                        cpd.values[i] = ev[lbl[0]]
-                    elif i in ev:
+                        cpd.values[i] = ev_[lbl[0]]
+                    elif i in ev_:
                         # internal case
-                        cpd.values[i] = ev[i]
+                        cpd.values[i] = ev_[i]
                     else:
                         cpd.values[i] = fill
                 soft_evidence[cpd.variable] = True
@@ -125,7 +153,7 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     if verbose:
         ut.colorprint('\n --- Inference ---', 'red')
 
-    if len(evidence) > 0 or len(soft_evidence) > 0:
+    if (len(evidence) > 0 or len(soft_evidence) > 0) and not noquery:
         interset_ttypes = ['name']
         #model_inference = pgmpy.inference.VariableElimination(model)
         model_inference = pgmpy.inference.BeliefPropagation(model)
@@ -173,6 +201,8 @@ def try_query(model, model_inference, evidence, interest_types=[], verbose=True)
 
     # Compute all marginals
     probs = model_inference.query(query_vars, evidence)
+    #ut.embed()
+    #probs = model_inference.map_query(query_vars, evidence)
     factor_list = probs.values()
 
     # Compute MAP joints
@@ -224,18 +254,18 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         val = score_lookup[match_type][score_type]
         return val
 
-    def score_pmf3(score_type, match_type, isdup='notdup'):
+    def score_pmf3(score_type, match_type, True='False'):
         score_lookup = {
-            'notdup': {
+            'False': {
                 'same': {'low': .1, 'high': .5, 'veryhigh': .4},
                 'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
             },
-            'isdup': {
+            'True': {
                 'same': {'low': .01, 'high': .2, 'veryhigh': .79},
                 'diff': {'low': .4, 'high': .4, 'veryhigh': .2}
             }
         }
-        val = score_lookup[isdup][match_type][score_type]
+        val = score_lookup[True][match_type][score_type]
         return val
 
     def score_pmf2(score_type, n1, n2):
@@ -245,12 +275,12 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             val = .9 if score_type == 'low' else .1
         return val
 
-    def dup_pmf(isdup, match_type):
+    def dup_pmf(True, match_type):
         lookup = {
-            'same': {'isdup': 0.5, 'notdup': 0.5},
-            'diff': {'isdup': 0.0, 'notdup': 1.0}
+            'same': {'True': 0.5, 'False': 0.5},
+            'diff': {'True': 0.0, 'False': 1.0}
         }
-        return lookup[match_type][isdup]
+        return lookup[match_type][True]
 
     special_basis_pool = ['fred', 'sue', 'paul']
 
@@ -282,11 +312,11 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             evidence_ttypes=[name_cpd, name_cpd], pmf_func=match_pmf)
         if mode == 3:
             dup_cpd = pgm_ext.TemplateCPD(
-                'dup', ['notdup', 'isdup'], varpref='D',
+                'dup', ['False', 'True'], varpref='D',
             )
         else:
             dup_cpd = pgm_ext.TemplateCPD(
-                'dup', ['notdup', 'isdup'], varpref='D',
+                'dup', ['False', 'True'], varpref='D',
                 evidence_ttypes=[match_cpd], pmf_func=dup_pmf
             )
         score_cpd = pgm_ext.TemplateCPD(
@@ -367,7 +397,7 @@ def draw_tree_model(model):
     pt.set_figtitle('Junction/Clique Tree / Cluster Graph')
 
 
-def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
+def get_hacked_pos2(netx_graph, name_nodes=None, prog='dot'):
     import pygraphviz
     import networkx as netx
     # Add "invisible" edges to induce an ordering
@@ -384,6 +414,53 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     else:
         netx_graph2 = netx_graph
         A = netx.to_agraph(netx_graph2)
+    args = ''
+    G = netx_graph
+    A.layout(prog=prog, args=args)
+    #A.draw('example.png', prog='dot')
+    node_pos = {}
+    for n in G:
+        node_ = pygraphviz.Node(A, n)
+        try:
+            xx, yy = node_.attr["pos"].split(',')
+            node_pos[n] = (float(xx), float(yy))
+        except:
+            print("no position for node", n)
+            node_pos[n] = (0.0, 0.0)
+    return node_pos
+
+
+def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
+    import pygraphviz
+    import networkx as netx
+    # Add "invisible" edges to induce an ordering
+    # Hack for layout (ordering of top level nodes)
+    netx_graph2 = netx_graph.copy()
+    if getattr(netx_graph, 'ttype2_cpds', None) is not None:
+        grouped_nodes = []
+        for ttype in netx_graph.ttype2_cpds.keys():
+            #if ttype != 'name':
+            #    continue
+            ttype_cpds = netx_graph.ttype2_cpds[ttype]
+            ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
+            ttype_nodes = sorted(ttype_nodes)
+            invis_edges = list(ut.itertwo(ttype_nodes))
+            netx_graph2.add_edges_from(invis_edges)
+            grouped_nodes.append(ttype_nodes)
+
+        A = netx.to_agraph(netx_graph2)
+        for nodes in grouped_nodes:
+            A.add_subgraph(nodes, rank='same')
+    else:
+        A = netx.to_agraph(netx_graph2)
+
+    #if name_nodes is not None:
+    #    #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
+    #    invis_edges = list(ut.itertwo(name_nodes))
+    #    netx_graph2.add_edges_from(invis_edges)
+    #    A.add_subgraph(name_nodes, rank='same')
+    #else:
+    #    A = netx.to_agraph(netx_graph2)
     args = ''
     G = netx_graph
     A.layout(prog=prog, args=args)
@@ -423,6 +500,8 @@ def show_model(model, evidence=None, suff='', factor_list=None,
     fnum = pt.ensure_fnum(None)
     fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
     ax = pt.gca()
+    var2_post = {f.variables[0]: f for f in factor_list}
+
     netx_graph = (model)
     #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
     #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
@@ -441,28 +520,33 @@ def show_model(model, evidence=None, suff='', factor_list=None,
             if node not in evidence
             else pt.FALSE_RED
             for node in netx_graph.nodes()]
+
+        for node in netx_graph.nodes():
+            cpd = model.var2_cpd[node]
+            if cpd.ttype == 'score':
+                pass
         drawkw['node_color'] = node_colors
+        #ut.embed()
     netx.draw(netx_graph, **drawkw)
 
     if True:
         textprops = {
             'family': 'monospace',
-            # 'horizontalalignment': 'left',
-            'horizontalalignment': 'center',
+            'horizontalalignment': 'left',
+            #'horizontalalignment': 'center',
             'size': 12,
             #'size': 8,
         }
 
         textkw = dict(
-            xycoords='data', boxcoords="offset points", pad=0.25,
-            frameon=True, arrowprops=dict(arrowstyle="->"),
+            xycoords='data', boxcoords='offset points', pad=0.25,
+            frameon=True, arrowprops=dict(arrowstyle='->'),
             #bboxprops=dict(fc=node_attr['fillcolor']),
         )
 
         netx_nodes = model.nodes(data=True)
         node_key_list = ut.get_list_column(netx_nodes, 0)
         pos_list = ut.dict_take(pos, node_key_list)
-        var2_post = {f.variables[0]: f for f in factor_list}
 
         artist_list = []
         offset_box_list = []
@@ -492,7 +576,9 @@ def show_model(model, evidence=None, suff='', factor_list=None,
                 artist = mpl.offsetbox.AnnotationBbox(
                     # offset_box, (x + 5, y), xybox=(20., 5.),
                     offset_box, (x, y + 5), xybox=(0., 20.),
-                    box_alignment=(0, 0), **textkw)
+                    #box_alignment=(0, 0),
+                    box_alignment=(.5, 0),
+                    **textkw)
                 offset_box_list.append(offset_box)
                 artist_list.append(artist)
 
@@ -501,7 +587,9 @@ def show_model(model, evidence=None, suff='', factor_list=None,
                 artist2 = mpl.offsetbox.AnnotationBbox(
                     # offset_box2, (x - 5, y), xybox=(-20., -15.),
                     offset_box2, (x, y - 5), xybox=(-15., -20.),
-                    box_alignment=(1, 1), **textkw)
+                    #box_alignment=(1, 1),
+                    box_alignment=(.5, 1),
+                    **textkw)
                 offset_box_list.append(offset_box2)
                 artist_list.append(artist2)
 
@@ -513,24 +601,25 @@ def show_model(model, evidence=None, suff='', factor_list=None,
         num_annots = len(model.ttype2_cpds['name'])
         if num_annots > 4:
             ax.set_xlim((xmin - 40, xmax + 40))
-            ax.set_ylim((ymin - 30, ymax + 30))
+            ax.set_ylim((ymin - 50, ymax + 50))
             fig.set_size_inches(30, 7)
         else:
             ax.set_xlim((xmin - 42, xmax + 42))
-            ax.set_ylim((ymin - 30, ymax + 30))
+            ax.set_ylim((ymin - 50, ymax + 50))
             fig.set_size_inches(23, 7)
         fig = pt.gcf()
 
         title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
+        max_marginal_list = []
         for name, marginal in marginalized_joints.items():
             # ut.embed()
             states = list(ut.iprod(*marginal.statenames))
             vals = marginal.values.ravel()
             x = vals.argmax()
-            title += '\n' + 'P(' + ', '.join(states[x]) + ') = ' + str(vals[x])
+            max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
             # title += str(marginal)
-
         pt.set_figtitle(title, size=14)
+        pt.set_xlabel('\n'.join(max_marginal_list))
 
         def hack_fix_centeralign():
             if textprops['horizontalalignment'] == 'center':
@@ -555,6 +644,149 @@ def show_model(model, evidence=None, suff='', factor_list=None,
     #fpath = ('name_model_' + suff + '.png')
     #pt.plt.savefig(fpath)
     #return fpath
+
+
+def flow():
+    """
+    http://pmneila.github.io/PyMaxflow/maxflow.html#maxflow-fastmin
+
+    pip install PyMaxFlow
+    pip install pystruct
+    pip install hdbscan
+    """
+    # Toy problem representing attempting to discover names via annotation
+    # scores
+
+    import pystruct
+    import pystruct.models
+    import networkx as netx  # NOQA
+
+    import vtool as vt
+    num_annots = 10
+    num_names = num_annots
+    hidden_nids = np.random.randint(0, num_names, num_annots)
+    unique_nids, groupxs = vt.group_indices(hidden_nids)
+
+    toy_params = {
+        True: {'mu': 1.0, 'sigma': 2.2},
+        False: {'mu': 7.0, 'sigma': .9}
+    }
+
+    if True:
+        import plottool as pt
+        xdata = np.linspace(0, 100, 1000)
+        tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
+        fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
+        pt.plot_probabilities([tp_pdf, fp_pdf], ['TP', 'TF'], xdata=xdata)
+
+    def metric(aidx1, aidx2, hidden_nids=hidden_nids, toy_params=toy_params):
+        if aidx1 == aidx2:
+            return 0
+        rng = np.random.RandomState(int(aidx1 + aidx2))
+        same = hidden_nids[int(aidx1)] == hidden_nids[int(aidx2)]
+        mu, sigma = ut.dict_take(toy_params[same], ['mu', 'sigma'])
+        return np.clip(rng.normal(mu, sigma), 0, np.inf)
+
+    pairwise_aidxs = list(ut.iprod(range(num_annots), range(num_annots)))
+    pairwise_labels = np.array([hidden_nids[a1] == hidden_nids[a2] for a1, a2 in pairwise_aidxs])
+    pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
+    pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
+    if num_annots <= 10:
+        print(ut.repr2(pairwise_scores_mat, precision=1))
+
+    #aids = list(range(num_annots))
+    #g = netx.DiGraph()
+    #g.add_nodes_from(aids)
+    #g.add_edges_from([(tup[0], tup[1], {'weight': score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])
+    #netx.draw_graphviz(g)
+    #pr = netx.pagerank(g)
+
+    X = pairwise_scores
+    Y = pairwise_labels
+
+    encoder = vt.ScoreNormalizer()
+    encoder.fit(X, Y)
+    encoder.visualize()
+
+    # meanshift clustering
+    import sklearn
+    bandwidth = sklearn.cluster.estimate_bandwidth(X[:, None])  # , quantile=quantile, n_samples=500)
+    assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
+    # bandwidth is with respect to the RBF used in clustering
+    #ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
+    ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=False)
+    ms.fit(X[:, None])
+    label_arr = ms.labels_
+    unique_labels = np.unique(label_arr)
+    max_label = max(0, unique_labels.max())
+    num_orphans = (label_arr == -1).sum()
+    label_arr[label_arr == -1] = np.arange(max_label + 1, max_label + 1 + num_orphans)
+
+    X_data = np.arange(num_annots)[:, None].astype(np.int64)
+
+    #graph = pystruct.models.GraphCRF(
+    #    n_states=None,
+    #    n_features=None,
+    #    inference_method='lp',
+    #    class_weight=None,
+    #    directed=False,
+    #)
+
+    import scipy
+    import scipy.cluster
+    import scipy.cluster.hierarchy
+
+    thresh = 2.0
+    labels = scipy.cluster.hierarchy.fclusterdata(X_data, thresh, metric=metric)
+    unique_lbls, lblgroupxs = vt.group_indices(labels)
+    print(groupxs)
+    print(lblgroupxs)
+    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
+    #X_data, seconds_thresh, criterion='distance')
+
+    #help(hdbscan.HDBSCAN)
+
+    import hdbscan
+    alg = hdbscan.HDBSCAN(metric=metric, min_cluster_size=1, p=1, gen_min_span_tree=1, min_samples=2)
+    labels = alg.fit_predict(X_data)
+    labels[labels == -1] = np.arange(np.sum(labels == -1)) + labels.max() + 1
+    unique_lbls, lblgroupxs = vt.group_indices(labels)
+    print(groupxs)
+    print(lblgroupxs)
+    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
+
+    #import ddbscan
+    #help(ddbscan.DDBSCAN)
+    #alg = ddbscan.DDBSCAN(2, 2)
+
+    #D = np.zeros((len(aids), len(aids) + 1))
+    #D.T[-1] = np.arange(len(aids))
+
+    ## Can alpha-expansion be used when the pairwise potentials are not in a grid?
+
+    #hidden_ut.group_items(aids, hidden_nids)
+    if False:
+        import maxflow
+        #from maxflow import fastmin
+        # Create a graph with integer capacities.
+        g = maxflow.Graph[int](2, 2)
+        # Add two (non-terminal) nodes. Get the index to the first one.
+        nodes = g.add_nodes(2)
+        # Create two edges (forwards and backwards) with the given capacities.
+        # The indices of the nodes are always consecutive.
+        g.add_edge(nodes[0], nodes[1], 1, 2)
+        # Set the capacities of the terminal edges...
+        # ...for the first node.
+        g.add_tedge(nodes[0], 2, 5)
+        # ...for the second node.
+        g.add_tedge(nodes[1], 9, 4)
+        g = maxflow.Graph[float](2, 2)
+        g.maxflow()
+        g.get_nx_graph()
+        g.get_segment(nodes[0])
+
 
 
 if __name__ == '__main__':
