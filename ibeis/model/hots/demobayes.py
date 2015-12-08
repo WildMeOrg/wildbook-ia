@@ -30,6 +30,29 @@ def one_test():
     # draw_tree_model(model)
 
 
+def classify_one_new_unknown():
+    """
+    Make a model that knows who the previous annots are and tries to classify a new annot
+
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose
+        python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --show --verbose --present
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> result = classify_one_new_unknown()
+        >>> ut.show_if_requested()
+    """
+    constkw = dict(
+        num_annots=5, num_names=3,
+        name_evidence=[0, 0, 1, 1, None],
+    )
+    # This config shows the incorrectness of this model.
+    # No observation was made, yet there is a higher probability of classifying as either fred or sue
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=2, show_prior=True, **constkw)
+
+
 def demo_structure():
     r"""
     CommandLine:

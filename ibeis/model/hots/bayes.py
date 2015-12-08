@@ -20,6 +20,10 @@ TODO:
     https://github.com/abhik/pebl
     http://www.cs.ubc.ca/~murphyk/Software/bnsoft.html
 
+
+    Demo case where we think we know the labels of others.  Only one unknown
+    name. Need to classify it as one of the other known names.
+
 References:
     https://en.wikipedia.org/wiki/Bayesian_network
     https://class.coursera.org/pgm-003/lecture/17
@@ -232,6 +236,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     mode = ut.get_argval('--mode', default=mode)
     annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
     # The indexes of match CPDs will not change if another annotation is added
+    # It actually just needs to be a an index in rows of columns
     upper_diag_idxs = ut.upper_diagonalized_idxs(num_annots)
     if num_names is None:
         num_names = num_annots
@@ -359,6 +364,10 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         ut.colorprint('\n --- CPD Templates ---', 'blue')
         for temp_cpd in templates:
             ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
+    print('upper_diag_idxs = %r' % (upper_diag_idxs,))
+    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    # import sys
+    # sys.exit(1)
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -439,11 +448,12 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     if getattr(netx_graph, 'ttype2_cpds', None) is not None:
         grouped_nodes = []
         for ttype in netx_graph.ttype2_cpds.keys():
-            #if ttype != 'name':
-            #    continue
+            # if ttype not in ['match', 'name']:
+            #     continue
             ttype_cpds = netx_graph.ttype2_cpds[ttype]
+            # use defined ordering
             ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
-            ttype_nodes = sorted(ttype_nodes)
+            # ttype_nodes = sorted(ttype_nodes)
             invis_edges = list(ut.itertwo(ttype_nodes))
             netx_graph2.add_edges_from(invis_edges)
             grouped_nodes.append(ttype_nodes)
@@ -514,7 +524,8 @@ def show_model(model, evidence=None, suff='', factor_list=None,
     drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=2000)
     if evidence is not None:
         node_colors = [
-            (pt.TRUE_BLUE
+            # (pt.TRUE_BLUE
+            (pt.WHITE
              if node not in soft_evidence else
              pt.LIGHT_PINK)
             if node not in evidence
