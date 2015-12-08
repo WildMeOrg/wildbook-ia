@@ -102,50 +102,6 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                 for fs_ in ut.ichunks(cpds, 4):
                     ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), 'purple')
 
-    name_cpds = model.ttype2_cpds['name']
-    score_cpds = model.ttype2_cpds['score']
-
-    evidence = {}
-    evidence.update(other_evidence)
-    soft_evidence = {}
-
-    def apply_hard_soft_evidence(cpd_list, evidence_list):
-        for cpd, ev in zip(cpd_list, evidence_list):
-            if isinstance(ev, int):
-                # hard internal evidence
-                evidence[cpd.variable] = ev
-            if isinstance(ev, six.string_types):
-                # hard external evidence
-                evidence[cpd.variable] = cpd._internal_varindex(
-                    cpd.variable, ev)
-            if isinstance(ev, dict):
-                # soft external evidence
-                # HACK THAT MODIFIES CPD IN PLACE
-                def rectify_evidence_val(_v, card=cpd.variable_card):
-                    # rectify hacky string structures
-                    return 2 / (card + 1) if _v == '+eps' else _v
-                ev_ = ut.map_dict_vals(rectify_evidence_val, ev)
-                fill = (1 - sum(ev_.values())) / (cpd.variable_card - len(ev_))
-                assert fill >= 0
-                row_labels = list(ut.iprod(*cpd.statenames))
-
-                for i, lbl in enumerate(row_labels):
-                    if lbl in ev_:
-                        # external case1
-                        cpd.values[i] = ev_[lbl]
-                    elif len(lbl) == 1 and lbl[0] in ev_:
-                        # external case2
-                        cpd.values[i] = ev_[lbl[0]]
-                    elif i in ev_:
-                        # internal case
-                        cpd.values[i] = ev_[i]
-                    else:
-                        cpd.values[i] = fill
-                soft_evidence[cpd.variable] = True
-
-    apply_hard_soft_evidence(name_cpds, name_evidence)
-    apply_hard_soft_evidence(score_cpds, score_evidence)
-
     if verbose:
         ut.colorprint('\n --- Soft Evidence ---', 'white')
         for ttype, cpds in model.ttype2_cpds.items():
@@ -154,15 +110,17 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                     ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]),
                                   'green')
 
+    model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+
     if verbose:
         ut.colorprint('\n --- Inference ---', 'red')
 
     if (len(evidence) > 0 or len(soft_evidence) > 0) and not noquery:
-        interset_ttypes = ['name']
+        interest_ttypes = ['name']
         #model_inference = pgmpy.inference.VariableElimination(model)
         model_inference = pgmpy.inference.BeliefPropagation(model)
         evidence = model_inference._ensure_internal_evidence(evidence, model)
-        query_results = try_query(model, model_inference, evidence, interset_ttypes, verbose=verbose)
+        query_results = try_query(model, model_inference, evidence, interest_ttypes, verbose=verbose)
     else:
         query_results = {
             'factor_list': [],
@@ -172,7 +130,6 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
 
     factor_list = query_results['factor_list']
     marginalized_joints = query_results['marginalized_joints']
-    # joint_factor = query_results['joint_factor']
 
     if verbose:
         if verbose:
@@ -186,7 +143,6 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                 ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
                               'yellow')
         print('Joint Factors')
-        # ut.colorprint(joint_factor._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         for ttype, marginal in marginalized_joints.items():
             print('Marginal Joint %s Factors' % (ttype,))
             ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
@@ -197,40 +153,21 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     # print_ascii_graph(model)
 
 
-def try_query(model, model_inference, evidence, interest_types=[], verbose=True):
-    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-    if verbose:
-        evidence_str = ', '.join(model.pretty_evidence(evidence))
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
-
-    # Compute all marginals
-    probs = model_inference.query(query_vars, evidence)
-    #ut.embed()
-    #probs = model_inference.map_query(query_vars, evidence)
-    factor_list = probs.values()
-
-    # Compute MAP joints
-    joint_factor = pgmpy.factors.factor_product(*factor_list)
-
-    # Compute Marginalized MAP joints
-    marginalized_joints = {}
-    for ttype in interest_types:
-        other_vars = [v for v in joint_factor.scope()
-                      if model.var2_cpd[v].ttype != ttype]
-        marginal = joint_factor.marginalize(other_vars, inplace=False)
-        marginalized_joints[ttype] = marginal
-
-    query_results = {
-        'factor_list': factor_list,
-        'joint_factor': joint_factor,
-        'marginalized_joints': marginalized_joints,
-    }
-    return query_results
-
-
 def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     """
     Defines the general name model
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-make_name_model --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> verbose = True
+        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
+        >>> ut.quit_if_noshow()
+        >>> show_model(model, {}, '', [], {}, {},  show_prior=True)
+        >>> ut.show_if_requested()
     """
     #annots = ut.chr_range(num_annots, base='a')
     mode = ut.get_argval('--mode', default=mode)
@@ -253,8 +190,8 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     def score_pmf(score_type, match_type):
         score_lookup = {
-            'same': {'low': .1, 'high': .9, 'veryhigh': .99},
-            'diff': {'low': .9, 'high': .1, 'veryhigh': .01}
+            'same': {'low': .1, 'high': .4, 'veryhigh': .5},
+            'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
         }
         val = score_lookup[match_type][score_type]
         return val
@@ -375,6 +312,149 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     model.num_names = num_names
     #print_ascii_graph(model)
     return model
+
+
+def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
+    r"""
+    Args:
+        model (?):
+        name_evidence (?):
+        score_evidence (?):
+        other_evidence (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-update_model_evidence
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> verbose = True
+        >>> other_evidence = {}
+        >>> name_evidence = [0, 0, 1, 1, None]
+        >>> score_evidence = ['high', 'low', 'low', 'low', 'low', 'high']
+        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
+        >>> model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+    """
+    name_cpds = model.ttype2_cpds['name']
+    score_cpds = model.ttype2_cpds['score']
+
+    evidence = {}
+    evidence.update(other_evidence)
+    soft_evidence = {}
+
+    def apply_hard_soft_evidence(cpd_list, evidence_list):
+        for cpd, ev in zip(cpd_list, evidence_list):
+            if isinstance(ev, int):
+                # hard internal evidence
+                evidence[cpd.variable] = ev
+            if isinstance(ev, six.string_types):
+                # hard external evidence
+                evidence[cpd.variable] = cpd._internal_varindex(
+                    cpd.variable, ev)
+            if isinstance(ev, dict):
+                # soft external evidence
+                # HACK THAT MODIFIES CPD IN PLACE
+                def rectify_evidence_val(_v, card=cpd.variable_card):
+                    # rectify hacky string structures
+                    return 2 / (card + 1) if _v == '+eps' else _v
+                ev_ = ut.map_dict_vals(rectify_evidence_val, ev)
+                fill = (1 - sum(ev_.values())) / (cpd.variable_card - len(ev_))
+                assert fill >= 0
+                row_labels = list(ut.iprod(*cpd.statenames))
+
+                for i, lbl in enumerate(row_labels):
+                    if lbl in ev_:
+                        # external case1
+                        cpd.values[i] = ev_[lbl]
+                    elif len(lbl) == 1 and lbl[0] in ev_:
+                        # external case2
+                        cpd.values[i] = ev_[lbl[0]]
+                    elif i in ev_:
+                        # internal case
+                        cpd.values[i] = ev_[i]
+                    else:
+                        cpd.values[i] = fill
+                soft_evidence[cpd.variable] = True
+
+    apply_hard_soft_evidence(name_cpds, name_evidence)
+    apply_hard_soft_evidence(score_cpds, score_evidence)
+    return model, evidence, soft_evidence
+
+
+def try_query(model, model_inference, evidence, interest_ttypes=[], verbose=True):
+    r"""
+    Args:
+        model (?):
+        model_inference (?):
+        evidence (?):
+        interest_ttypes (list): (default = [])
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        ?: query_results
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-try_query
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> verbose = True
+        >>> other_evidence = {}
+        >>> name_evidence = [0, 0, 1, 1, None]
+        >>> score_evidence = ['high', 'low', 'low', 'low', 'low', 'high']
+        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
+        >>> model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+        >>> interest_ttypes = ['name']
+        >>> model_inference = pgmpy.inference.BeliefPropagation(model)
+        >>> evidence = model_inference._ensure_internal_evidence(evidence, model)
+        >>> query_results = try_query(model, model_inference, evidence, interest_ttypes, verbose)
+        >>> result = ('query_results = %s' % (str(query_results),))
+        >>> factor_list = query_results['factor_list']
+        >>> marginalized_joints = query_results['marginalized_joints']
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence,  show_prior=True)
+        >>> ut.show_if_requested()
+
+    Ignore:
+        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        probs = model_inference.query(query_vars, evidence)
+        map_assignment = model_inference.map_query(query_vars, evidence)
+
+    """
+    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+    if verbose:
+        evidence_str = ', '.join(model.pretty_evidence(evidence))
+        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+
+    # Compute all marginals
+    probs = model_inference.query(query_vars, evidence)
+    #ut.embed()
+    #probs = model_inference.map_query(query_vars, evidence)
+    factor_list = probs.values()
+
+    # Compute MAP joints
+    # (probably an invalid thing to do)
+    joint_factor = pgmpy.factors.factor_product(*factor_list)
+
+    # Compute Marginalized MAP joints
+    marginalized_joints = {}
+    for ttype in interest_ttypes:
+        other_vars = [v for v in joint_factor.scope()
+                      if model.var2_cpd[v].ttype != ttype]
+        marginal = joint_factor.marginalize(other_vars, inplace=False)
+        marginalized_joints[ttype] = marginal
+
+    query_results = {
+        'factor_list': factor_list,
+        'joint_factor': joint_factor,
+        'marginalized_joints': marginalized_joints,
+    }
+    return query_results
 
 
 def draw_tree_model(model):
@@ -629,8 +709,9 @@ def show_model(model, evidence=None, suff='', factor_list=None,
             x = vals.argmax()
             max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
             # title += str(marginal)
+        title += '\n' + '\n'.join(max_marginal_list)
         pt.set_figtitle(title, size=14)
-        pt.set_xlabel('\n'.join(max_marginal_list))
+        #pt.set_xlabel()
 
         def hack_fix_centeralign():
             if textprops['horizontalalignment'] == 'center':
@@ -668,8 +749,8 @@ def flow():
     # Toy problem representing attempting to discover names via annotation
     # scores
 
-    import pystruct
-    import pystruct.models
+    import pystruct  # NOQA
+    import pystruct.models  # NOQA
     import networkx as netx  # NOQA
 
     import vtool as vt
@@ -797,7 +878,6 @@ def flow():
         g.maxflow()
         g.get_nx_graph()
         g.get_segment(nodes[0])
-
 
 
 if __name__ == '__main__':
