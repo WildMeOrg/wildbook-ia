@@ -318,10 +318,25 @@ def opendb_bg_web(*args, **kwargs):
     """
     Wrapper around opendb_in_background
     """
-    _kw = dict(web=True, browser=False)
-    _kw.update(kwargs)
-    web_ibs = opendb_in_background(*args, **_kw)
+    import utool as ut
+    host = kwargs.get('host', ut.get_argval('--host', type_=str, default=None))
+    port = kwargs.get('port', 5000)
+
+    if host is None:
+        # Requesting a local test server
+        _kw = dict(web=True, browser=False)
+        _kw.update(kwargs)
+        web_ibs = opendb_in_background(*args, **_kw)
+    else:
+        # Using a remote controller, no need to spin up anything
+        web_ibs = ut.DynStruct()
+        web_ibs.terminate2 = lambda: None
     # Augment web instance with usefull test functions
+    if host is None:
+        host = 'http://127.0.1.1'
+    if not host.startswith('http://'):
+        host = 'http://' + host
+    baseurl = host  + ':' + str(port)
 
     def send_ibeis_request(suffix, type_='post', **kwargs):
         """
@@ -329,7 +344,6 @@ def opendb_bg_web(*args, **kwargs):
         """
         import requests
         import utool as ut
-        baseurl = 'http://127.0.1.1:5000'
         payload = ut.map_dict_vals(ut.to_json, kwargs)
         if type_ == 'post':
             resp = requests.post(baseurl + suffix, data=payload)

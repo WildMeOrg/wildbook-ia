@@ -500,6 +500,11 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 'annot_note', 'name_rowid', 'species_rowid',
                 'annot_visual_uuid', 'annot_semantic_uuid')
 
+    check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in annot_uuid_list]
+    if any(check_uuid_flags):
+        pos = ut.list_where(check_uuid_flags)
+        raise ValueError('positions %r have malformated UUIDS' % (pos,))
+
     params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
                             width_list, height_list, theta_list, nVert_list,
                             vertstr_list, yaw_list, detect_confidence_list,

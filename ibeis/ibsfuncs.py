@@ -736,6 +736,37 @@ def check_annot_consistency(ibs, aid_list=None):
     ut.debug_duplicate_items(visual_uuid_list)
 
 
+@register_ibs_method
+def check_annot_corrupt_uuids(ibs, aid_list=None):
+    """
+    del ibeis.control.__SQLITE3__.converters['UUID']
+    import uuid
+    del ibeis.control.__SQLITE3__.adapters[(uuid.UUID, ibeis.control.__SQLITE3__.PrepareProtocol)]
+
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> check_annot_corrupt_uuids(ibs, aid_list)
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    try:
+        ibs.get_annot_uuids(aid_list)
+    except Exception as ex:
+        ut.printex(ex)
+        failed_aids = []
+        for aid in aid_list:
+            try:
+                ibs.get_annot_uuids(aid)
+            except Exception as ex:
+                failed_aids.append(aid)
+        print('failed_aids = %r' % (failed_aids,))
+        return failed_aids
+    else:
+        print('uuids do not seem to be corrupt')
+
+
 def check_name_consistency(ibs, nid_list):
     r"""
     Args:

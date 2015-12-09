@@ -171,6 +171,9 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         python -m ibeis.web.zmq_task_queue --main --bg
         python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --fg
 
+        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --host http://52.33.105.88
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.zmq_task_queue import *  # NOQA
@@ -191,8 +194,8 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> # WEB_DOCTEST
         >>> from ibeis.web.zmq_task_queue import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)
-        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , host='http://52.33.105.88')
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
         >>> data = dict(
         >>>     qannot_uuid_list=uuid_list, adata_annot_uuid_list=uuid_list,
