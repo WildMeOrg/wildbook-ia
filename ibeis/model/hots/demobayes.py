@@ -44,18 +44,28 @@ def classify_one_new_unknown():
         >>> result = classify_one_new_unknown()
         >>> ut.show_if_requested()
     """
+    if False:
+        constkw = dict(
+            num_annots=5, num_names=3,
+            name_evidence=[0]
+            #name_evidence=[0, 0, 1, 1, None],
+            #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
+            #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
+        )
+        test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, show_prior=True, **constkw)
+        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high'], mode=1, show_prior=True, **constkw)
+        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
+        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
+        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'low', 'low', 'low', 'low'], mode=1, show_prior=True, **constkw)
+
     constkw = dict(
-        num_annots=5, num_names=3,
+        num_annots=3, num_names=3,
         name_evidence=[0]
         #name_evidence=[0, 0, 1, 1, None],
         #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
         #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
     )
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, show_prior=True, **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high'], mode=1, show_prior=True, **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'low', 'low', 'low', 'low'], mode=1, show_prior=True, **constkw)
+    test_model(score_evidence=['low', 'low', 'high'], mode=1, show_prior=True, **constkw)
 
 
 def demo_structure():
@@ -204,23 +214,30 @@ def demo_ambiguity():
         >>> result = demo_ambiguity()
         >>> ut.show_if_requested()
     """
-    # We will end up making annots a and b fred and c and d sue
     constkw = dict(
-        num_annots=4, num_names=5,
-        #name_evidence=[{0: .9}, None, None, {1: .9}]
-        name_evidence=[0, None, None, None]
-        #name_evidence=[0, None, None, None]
+        num_annots=3, num_names=3,
+        #name_evidence=[],
+        name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    test_model(score_evidence=[None, None, None, None, None, None], show_prior=True, **constkw)
-    test_model(score_evidence=['high', None, None, None, None, None], **constkw)
-    test_model(score_evidence=['high', 'low', None, None, None, None], **constkw)
-    test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
-    test_model(score_evidence=['high', 'low', 'low', 'low', None, None], **constkw)
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', None], **constkw)
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
-    # Resolve ambiguity
-    constkw['name_evidence'][-1] = 1
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
+    test_model(score_evidence=['low', 'low', 'high'], mode=5, show_prior=True, **constkw)
+
+    ## We will end up making annots a and b fred and c and d sue
+    #constkw = dict(
+    #    num_annots=4, num_names=5,
+    #    #name_evidence=[{0: .9}, None, None, {1: .9}]
+    #    name_evidence=[0, None, None, None]
+    #    #name_evidence=[0, None, None, None]
+    #)
+    #test_model(score_evidence=[None, None, None, None, None, None], show_prior=True, **constkw)
+    #test_model(score_evidence=['high', None, None, None, None, None], **constkw)
+    #test_model(score_evidence=['high', 'low', None, None, None, None], **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', None, None], **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', None], **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
+    ## Resolve ambiguity
+    #constkw['name_evidence'][-1] = 1
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
 
 
 def demo_annot_idependence_overlap():

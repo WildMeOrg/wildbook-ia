@@ -154,64 +154,6 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     # print_ascii_graph(model)
 
 
-def coin_example():
-    """
-
-    CommandLine:
-        python -m ibeis.model.hots.bayes --exec-coin_example
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes import *  # NOQA
-        >>> coin_example()
-    """
-    def toss_pmf(side, coin):
-        toss_lookup = {
-            'fair': {'heads': .5, 'tails': .5},
-            #'bias': {'heads': .6, 'tails': .4},
-            'bias': {'heads': .9, 'tails': 1},
-        }
-        return toss_lookup[coin][side]
-    coin_cpd_t = pgm_ext.TemplateCPD(
-        'coin', ['fair', 'bias'], varpref='C')
-    toss_cpd_t = pgm_ext.TemplateCPD(
-        'toss', ['heads', 'tails'], varpref='T',
-        evidence_ttypes=[coin_cpd_t], pmf_func=toss_pmf)
-    coin_cpd = coin_cpd_t.new_cpd(0)
-    toss1_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 1])
-    toss2_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 2])
-    model = pgm_ext.define_model([coin_cpd, toss2_cpd, toss1_cpd])
-    model.print_templates()
-    model.print_priors()
-
-    model_inference = pgmpy.inference.VariableElimination(model)
-
-    print('Observe nothing')
-    factor_list1 = model_inference.query(['T02'], {}).values()
-    pgm_ext.print_factors(model, factor_list1)
-
-    print('Observe that toss 1 was heads')
-    evidence = model_inference._ensure_internal_evidence({'T01': 'heads'}, model)
-    factor_list2 = model_inference.query(['T02'], evidence).values()
-    pgm_ext.print_factors(model, factor_list2)
-
-    phi1 = factor_list1[0]
-    phi2 = factor_list2[0]
-    assert phi2['heads'] > phi1['heads']
-    print('Slightly more likely that you will see heads in the second coin toss')
-
-    print('Observe nothing')
-    factor_list1 = model_inference.query(['T02'], {}).values()
-    pgm_ext.print_factors(model, factor_list1)
-
-    print('Observe that toss 1 was tails')
-    evidence = model_inference._ensure_internal_evidence({'T01': 'tails'}, model)
-    factor_list2 = model_inference.query(['T02'], evidence).values()
-    pgm_ext.print_factors(model, factor_list2)
-
-    return model
-
-
 def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     """
     Defines the general name model
@@ -235,7 +177,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
     # The indexes of match CPDs will not change if another annotation is added
     # It actually just needs to be a an index in rows of columns
-    upper_diag_idxs = ut.upper_diagonalized_idxs(num_annots)
+    upper_diag_idxs = ut.colwise_diag_idxs(num_annots, 2)
     if num_names is None:
         num_names = num_annots
 
@@ -251,7 +193,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     def score_pmf(score_type, match_type):
         score_lookup = {
-            'same': {'low': .1, 'high': .4, 'veryhigh': .5},
+            'same': {'low': .1, 'high': .9, 'veryhigh': .9},
             'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
             #'same': {'low': .1, 'high': .9},
             #'diff': {'low': .9, 'high': .1}
@@ -277,13 +219,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         score_lookup = {
             True: {'low': .1, 'high': .4, 'veryhigh': .5},
             False: {'low': .9, 'high': .09, 'veryhigh': .01}
-            #'same': {'low': .1, 'high': .9},
-            #'diff': {'low': .9, 'high': .1}
         }
-        #if n1 == n2:
-        #    val = .1 if score_type == 'low' else .9
-        #else:
-        #    val = .9 if score_type == 'low' else .1
         val = score_lookup[n1 == n2][score_type]
         return val
 
@@ -294,29 +230,67 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         }
         return lookup[match_type][True]
 
+    def check_pmf(n0, n1, match_type):
+        pass
+
+    def trimatch_pmf(match_ab, match_bc, match_ca):
+        lookup = {
+            'same': {
+                'same': {
+                    'same': 1, 'diff': 0,
+                },
+                'diff': {
+                    'same': 0, 'diff': 1,
+                }
+            },
+            'diff': {
+                'same': {
+                    'same': 0, 'diff': 1,
+                },
+                'diff': {
+                    'same': .5, 'diff': .5,
+                }
+            }
+        }
+        return lookup[match_ca][match_bc][match_ab]
+
     special_basis_pool = ['fred', 'sue', 'paul']
 
     name_cpd_t = pgm_ext.TemplateCPD(
         'name', ('n', num_names), varpref='N',
         special_basis_pool=special_basis_pool)
 
-    if mode == 1:
+    if mode == 1 or mode == 5:
         match_cpd_t = pgm_ext.TemplateCPD(
             'match', ['diff', 'same'], varpref='M',
             evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
-        score_cpd_t = pgm_ext.TemplateCPD(
-            'score', ['low', 'high', 'veryhigh'],
-            #'score', ['low', 'high'],
-            varpref='S',
-            evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
+
+        if mode == 5:
+            trimatch_cpd_t = pgm_ext.TemplateCPD(
+                'tri_match', ['diff', 'same'], varpref='T',
+                #evidence_ttypes=[match_cpd_t, match_cpd_t, match_cpd_t],
+                evidence_ttypes=[match_cpd_t, match_cpd_t],
+                pmf_func=trimatch_pmf)
+
+            score_cpd_t = pgm_ext.TemplateCPD(
+                #'score', ['low', 'high', 'veryhigh'],
+                'score', ['low', 'high'],
+                varpref='S',
+                evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
+        else:
+            score_cpd_t = pgm_ext.TemplateCPD(
+                #'score', ['low', 'high', 'veryhigh'],
+                'score', ['low', 'high'],
+                varpref='S',
+                evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
 
     elif mode == 2:
         name_cpd_t = pgm_ext.TemplateCPD(
             'name', ('n', num_names), varpref='N',
             special_basis_pool=special_basis_pool)
         score_cpd_t = pgm_ext.TemplateCPD(
-            'score', ['low', 'high', 'veryhigh'],
-            #'score', ['low', 'high'],
+            #'score', ['low', 'high', 'veryhigh'],
+            'score', ['low', 'high'],
             varpref='S',
             evidence_ttypes=[name_cpd_t, name_cpd_t],
             pmf_func=score_pmf2)
@@ -339,14 +313,37 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     # Instanciate templates
 
-    if mode == 1:
+    if mode == 1 or mode == 5:
         name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
         namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
         match_cpds = [match_cpd_t.new_cpd(parents=cpds)
                       for cpds in namepair_cpds]
         score_cpds = [score_cpd_t.new_cpd(parents=cpds)
                       for cpds in zip(match_cpds)]
-        cpd_list = name_cpds + score_cpds + match_cpds
+        if mode == 5:
+            #triple_idxs = ut.colwise_diag_idxs(num_annots, 3)
+            tid2_match = {cpd._template_id: cpd for cpd in match_cpds}
+            trimatch_cpds = []
+            # such hack
+            for cpd in match_cpds:
+                parents = []
+                this_ = list(cpd._template_id)
+                for aid in annots:
+                    if aid in this_:
+                        continue
+                    for aid2 in this_:
+                        key = aid2 + aid
+                        if key not in tid2_match:
+                            key = aid + aid2
+                        parents += [tid2_match[key]]
+                trimatch_cpds += [trimatch_cpd_t.new_cpd(parents=parents)]
+
+            #score_cpds = [score_cpd_t.new_cpd(parents=cpds)
+            #              for cpds in zip(trimatch_cpds)]
+
+            cpd_list = name_cpds + score_cpds + match_cpds + trimatch_cpds
+        else:
+            cpd_list = name_cpds + score_cpds + match_cpds
     elif mode == 2:
         name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
         namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
@@ -368,7 +365,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
                       for mcpds, dcpd in zip(match_cpds, dup_cpds)]
         cpd_list = name_cpds + score_cpds + match_cpds + dup_cpds
 
-    print('upper_diag_idxs = %r' % (upper_diag_idxs,))
+    #print('upper_diag_idxs = %r' % (upper_diag_idxs,))
     print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
     # import sys
     # sys.exit(1)
@@ -423,7 +420,9 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
                 # HACK THAT MODIFIES CPD IN PLACE
                 def rectify_evidence_val(_v, card=cpd.variable_card):
                     # rectify hacky string structures
-                    return 2 / (card + 1) if _v == '+eps' else _v
+                    #tmp = 1
+                    tmp = (1 / (2 * card ** 2))
+                    return (1 + tmp) / (card + tmp) if _v == '+eps' else _v
                 ev_ = ut.map_dict_vals(rectify_evidence_val, ev)
                 fill = (1 - sum(ev_.values())) / (cpd.variable_card - len(ev_))
                 assert fill >= 0

@@ -156,8 +156,11 @@ class TemplateCPD(object):
             # print('self.basis = %r' % (self.basis,))
             values = np.array([
                 [pmf_func(vstate, *estates) for estates in evidence_states]
-                for vstate in self.basis])
-            if False:
+                for vstate in self.basis
+            ])
+            #ut.embed()
+            ensure_normalized = True
+            if ensure_normalized:
                 # ensure normalized
                 values = values / values.sum(axis=0)
             evidence = [cpd.variable for cpd in evidence_cpds]
@@ -213,7 +216,8 @@ def print_ascii_graph(model_):
     #    pixel = pil_img.load()
     #    width, height = pil_img.size
     #    bgcolor = None
-    #    #fill_string = img2txt.getANSIbgstring_for_ANSIcolor(img2txt.getANSIcolor_for_rgb(bgcolor))
+    #    #fill_string =
+    #    img2txt.getANSIbgstring_for_ANSIcolor(img2txt.getANSIcolor_for_rgb(bgcolor))
     #    fill_string = "\x1b[49m"
     #    fill_string += "\x1b[K"          # does not move the cursor
     #    sys.stdout.write(fill_string)
@@ -314,3 +318,71 @@ def make_factor_text(factor, name):
             rowstrs += ['... %d more' % ((len(values) - len(rowstrs)),)]
         ftext = name + ': \n' + '\n'.join(rowstrs)
     return ftext
+
+
+def coin_example():
+    """
+    Simple example of conditional independence
+
+    CommandLine:
+        python -m ibeis.model.hots.pgm_ext --exec-coin_example
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+        >>> model = coin_example()
+        >>> model.print_templates()
+        >>> model.print_priors()
+        >>> model_inference = pgmpy.inference.VariableElimination(model)
+        >>> print('Observe nothing')
+        >>> factor_list1 = model_inference.query(['T02'], {}).values()
+        >>> print_factors(model, factor_list1)
+        >>> #
+        >>> print('Observe that toss 1 was heads')
+        >>> evidence = model_inference._ensure_internal_evidence({'T01': 'heads'}, model)
+        >>> factor_list2 = model_inference.query(['T02'], evidence).values()
+        >>> print_factors(model, factor_list2)
+        >>> #
+        >>> phi1 = factor_list1[0]
+        >>> phi2 = factor_list2[0]
+        >>> assert phi2['heads'] > phi1['heads']
+        >>> print('Slightly more likely that you will see heads in the second coin toss')
+        >>> #
+        >>> print('Observe nothing')
+        >>> factor_list1 = model_inference.query(['T02'], {}).values()
+        >>> print_factors(model, factor_list1)
+        >>> #
+        >>> print('Observe that toss 1 was tails')
+        >>> evidence = model_inference._ensure_internal_evidence({'T01': 'tails'}, model)
+        >>> factor_list2 = model_inference.query(['T02'], evidence).values()
+        >>> print_factors(model, factor_list2)
+    """
+    def toss_pmf(side, coin):
+        toss_lookup = {
+            'fair': {'heads': .5, 'tails': .5},
+            #'bias': {'heads': .6, 'tails': .4},
+            'bias': {'heads': .9, 'tails': 1},
+        }
+        return toss_lookup[coin][side]
+    coin_cpd_t = TemplateCPD(
+        'coin', ['fair', 'bias'], varpref='C')
+    toss_cpd_t = TemplateCPD(
+        'toss', ['heads', 'tails'], varpref='T',
+        evidence_ttypes=[coin_cpd_t], pmf_func=toss_pmf)
+    coin_cpd = coin_cpd_t.new_cpd(0)
+    toss1_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 1])
+    toss2_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 2])
+    model = define_model([coin_cpd, toss2_cpd, toss1_cpd])
+    return model
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.pgm_ext
+        python -m ibeis.model.hots.pgm_ext --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
