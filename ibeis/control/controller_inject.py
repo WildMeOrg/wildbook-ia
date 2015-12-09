@@ -132,78 +132,130 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
             'code':    code,
             'message': message,
             'cache':   cache,
+            #'debug': {}  # TODO
         },
         'response' : rawreturn
     }
-    #response = json.dumps(template, cls=JSONPythonObjectEncoder)
     response = ut.to_json(template)
-    if jQuery_callback is not None and isinstance(jQuery_callback, str):
+    if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
         response = '%s(%s)' % (jQuery_callback, response)
     return response
 
 
-def translate_ibeis_webcall(func, *args, **kwargs):
-    #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
-    def _process_input(multidict):
-        for (arg, value) in multidict.iterlists():
-            if len(value) > 1:
-                raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
-            value = str(value[0])
-            if ',' in value and '[' not in value and ']' not in value:
-                value = '[%s]' % (value, )
-            if value in ['True', 'False']:
-                value = value.lower()
-            try:
-                #converted = json.loads(value, object_hook=_as_python_object)
-                converted = ut.from_json(value)
-            except Exception:
-                # try making string and try again...
-                value = '"%s"' % (value, )
-                #converted = json.loads(value, object_hook=_as_python_object)
-                converted = ut.from_json(value)
-            if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
-                if isinstance(converted, str) and ',' in converted:
-                    converted = converted.strip().split(',')
+def _process_input(multidict):
+    kwargs2 = {}
+    for (arg, value) in multidict.iterlists():
+        if len(value) > 1:
+            raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
+        value = str(value[0])
+        if ',' in value and '[' not in value and ']' not in value:
+            value = '[%s]' % (value, )
+        if value in ['True', 'False']:
+            value = value.lower()
+        try:
+            converted = ut.from_json(value)
+        except Exception:
+            # try making string and try again...
+            value = '"%s"' % (value, )
+            converted = ut.from_json(value)
+        if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
+            if isinstance(converted, str) and ',' in converted:
+                converted = converted.strip().split(',')
+            else:
+                converted = [converted]
+        # Allow JSON formatted strings to be placed into note fields
+        if ((arg.endswith('note_list') or arg.endswith('notes_list')) and
+           isinstance(converted, (list, tuple))):
+            type_ = type(converted)
+            temp_list = []
+            for _ in converted:
+                if isinstance(_, dict):
+                    temp_list.append('%s' % (_, ))
                 else:
-                    converted = [converted]
-            # Allow JSON formatted strings to be placed into note fields
-            if ((arg.endswith('note_list') or arg.endswith('notes_list')) and
-               isinstance(converted, (list, tuple))):
-                type_ = type(converted)
-                temp_list = []
-                for _ in converted:
-                    if isinstance(_, dict):
-                        temp_list.append('%s' % (_, ))
-                    else:
-                        temp_list.append(_)
-                converted = type_(temp_list)
-            kwargs[arg] = converted
+                    temp_list.append(_)
+            converted = type_(temp_list)
+        kwargs2[arg] = converted
+    return kwargs2
+
+
+def translate_ibeis_webcall(func, *args, **kwargs):
+    r"""
+    Called from flask request context
+
+    Args:
+        func (function):  live python function
+
+    Returns:
+        tuple: (output, True, 200, None, jQuery_callback)
+
+    CommandLine:
+        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.control.controller_inject import *  # NOQA
+        >>> import ibeis
+        >>> import time
+        >>> import ibeis.web
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=1, start_job_queue=False)
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
+        >>> failrsp = web_ibs.send_ibeis_request('/api/annot/uuids/')
+        >>> failrsp2 = web_ibs.send_ibeis_request('/api/core/query_chips_simple_dict/', 'get', qaid_list=[0], daid_list=[0])
+        >>> time.sleep(.1)
+        >>> print('\n---\nuuid_list = %r' % (uuid_list,))
+        >>> print('\n---\nfailrsp =\n%s' % (failrsp,))
+        >>> print('\n---\nfailrsp2 =\n%s' % (failrsp2,))
+        >>> print('Finished test')
+        >>> web_ibs.terminate2()
+
+    Ignore:
+        app = get_flask_app()
+        with app.app_context():
+            #ibs = ibeis.opendb('testdb1')
+            func = ibs.get_annot_uuids
+            args = tuple()
+            kwargs = dict()
+    """
+    #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     # Pipe web input into Python web call
-    _process_input(flask.request.args)
-    _process_input(flask.request.form)
+    kwargs2 = _process_input(flask.request.args)
+    kwargs3 = _process_input(flask.request.form)
+    kwargs.update(kwargs2)
+    kwargs.update(kwargs3)
     jQuery_callback = None
     if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
         jQuery_callback = str(kwargs.pop('callback', None))
         kwargs.pop('_', None)
-    print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    #print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
-    assert len(args) == 0, ''
+    funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs)
+    print('Calling: %s' % (funcstr,))
+    assert len(args) == 0, 'There should not be any args=%r' % (args,)
+
     try:
-        #output = func(*args, **kwargs)
+        # TODO, have better way to differentiate ibs funcs from other funcs
         output = func(**kwargs)
     except TypeError:
-        #output = func(ibs=ibs, *args, **kwargs)
         try:
             output = func(ibs=ibs, **kwargs)
-        except Exception:
-            print('Error in translate ibeis web call')
-            print('kwargs = %r' % (kwargs,))
-            print('args = %r' % (args,))
-            print('flask.request.args = %r' % (flask.request.args,))
-            print('flask.request.form = %r' % (flask.request.form,))
-            raise
-    return (output, True, 200, None, jQuery_callback)
+        except Exception as ex2:
+            msg_list = []
+            msg_list.append('Error in translate_ibeis_webcall')
+            msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
+            msg_list.append('Received Function Definition: %s' % (funcstr,))
+            msg_list.append('kwargs = %r' % (kwargs,))
+            msg_list.append('args = %r' % (args,))
+            msg_list.append('flask.request.args = %r' % (flask.request.args,))
+            msg_list.append('flask.request.form = %r' % (flask.request.form,))
+            msg = '\n'.join(msg_list)
+            error_msg = ut.formatex(ex2, msg, tb=True)
+            print(error_msg)
+            raise Exception(error_msg)
+            #raise
+    resp_tup = (output, True, 200, None, jQuery_callback)
+    return resp_tup
 
 
 def authentication_challenge():
@@ -374,6 +426,9 @@ def remote_api_wrapper(func):
 
 
 def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
+    """
+    For function calls that resolve to api calls and return json.
+    """
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
@@ -389,14 +444,12 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 @wraps(func)
                 #def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
-                    #from flask import make_response
                     try:
-                        #values = translate_ibeis_webcall(func, *args, **kwargs)
-                        values = translate_ibeis_webcall(func, **kwargs)
-                        rawreturn, success, code, message, jQuery_callback = values
+                        resp_tup = translate_ibeis_webcall(func, **kwargs)
+                        rawreturn, success, code, message, jQuery_callback = resp_tup
                     except WebException as webex:
+                        ut.printex(webex)
                         rawreturn = ''
-                        print(traceback.format_exc())
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
                             rawreturn = str(traceback.format_exc())
                         success = False
@@ -404,9 +457,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
-                        rawreturn = ''
                         ut.printex(ex)
-                        #print(traceback.format_exc())
+                        rawreturn = ''
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
                             rawreturn = str(traceback.format_exc())
                         success = False
@@ -436,6 +488,9 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
 
 
 def get_ibeis_flask_route(__name__):
+    """
+    For function calls that resolve to webpages and return html
+    """
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
@@ -449,10 +504,9 @@ def get_ibeis_flask_route(__name__):
                 # @crossdomain(origin='*')
                 # @authentication_user_only
                 @wraps(func)
-                #def translated_call(*args, **kwargs):
                 def translated_call(**kwargs):
+                    #debug = {'kwargs': kwargs}
                     try:
-                        #result = func(*args, **kwargs)
                         result = func(**kwargs)
                     except Exception as ex:
                         rawreturn = str(traceback.format_exc())
@@ -530,7 +584,6 @@ def api_remote_ibeis(remote_ibeis_url, remote_api_func, remote_ibeis_port=5001,
         message = '_api_result could not connect to server %s' % (ex, )
         raise IOError(message)
     response = req.text
-    #converted = json.loads(response, object_hook=_as_python_object)
     converted = ut.from_json(value)
     response = converted.get('response', None)
     print('response = %s' % (response,))
@@ -585,13 +638,10 @@ def make_ibs_register_decorator(modname):
     """
     builds variables and functions that controller injectable modules need
     """
-    #global INJECTED_MODULES
     if __name__ == '__main__':
         print('WARNING: cannot register controller functions as main')
-    #else:
     CLASS_INJECT_KEY = (CONTROLLER_CLASSNAME, modname)
     # Create dectorator to inject these functions into the IBEISController
-    #register_ibs_aliased_method   = ut.make_class_method_decorator(CLASS_INJECT_KEY)
     register_ibs_unaliased_method = ut.make_class_method_decorator(
         CLASS_INJECT_KEY, modname)
 

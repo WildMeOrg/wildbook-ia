@@ -320,7 +320,28 @@ def opendb_bg_web(*args, **kwargs):
     """
     _kw = dict(web=True, browser=False)
     _kw.update(kwargs)
-    return opendb_in_background(*args, **_kw)
+    web_ibs = opendb_in_background(*args, **_kw)
+    # Augment web instance with usefull test functions
+
+    def send_ibeis_request(suffix, type_='post', **kwargs):
+        """
+        Posts a request to a url suffix
+        """
+        import requests
+        import utool as ut
+        baseurl = 'http://127.0.1.1:5000'
+        payload = ut.map_dict_vals(ut.to_json, kwargs)
+        if type_ == 'post':
+            resp = requests.post(baseurl + suffix, data=payload)
+            content = ut.from_json(resp._content)
+        elif type_ == 'get':
+            resp = requests.get(baseurl + suffix, data=payload)
+            content = ut.from_json(resp.content)
+        response = content['response']
+        return response
+
+    web_ibs.send_ibeis_request = send_ibeis_request
+    return web_ibs
 
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,

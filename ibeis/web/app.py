@@ -2071,7 +2071,8 @@ def start_tornado(ibs, port=None, browser=BROWSER, url_suffix=''):
     _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None, url_suffix='', start_job_queue=True):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None,
+                     url_suffix='', start_job_queue=True):
     """
     Parse command line options and start the server.
 

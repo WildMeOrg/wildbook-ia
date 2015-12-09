@@ -131,6 +131,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     """
     if verbose:
         print('[qreq] +--- New IBEIS QRequest --- ')
+
+    ibs.assert_valid_aids(qaid_list)
+    ibs.assert_valid_aids(daid_list)
+
     cfg     = ibs.cfg.query_cfg if query_cfg is None else query_cfg
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()

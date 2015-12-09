@@ -901,6 +901,30 @@ class IBEISController(BASE_CLASS):
             aids_list.append(aids)
         return aids_list
 
+    @accessor_decors.default_decorator
+    @register_api('/api/core/has_species_detector/', methods=['GET'])
+    def has_species_detector(ibs, species_text):
+        """
+        TODO: extend to use non-constant species
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/has_species_detector/
+        """
+        # FIXME: infer this
+        return species_text in const.SPECIES_WITH_DETECTORS
+
+    @accessor_decors.default_decorator
+    @register_api('/api/core/species_with_detectors/', methods=['GET'])
+    def get_species_with_detectors(ibs):
+        """
+        RESTful:
+            Method: GET
+            URL:    /api/core/species_with_detectors/
+        """
+        # FIXME: infer this
+        return const.SPECIES_WITH_DETECTORS
+
     #
     #
     #-----------------------------
@@ -1440,29 +1464,7 @@ class IBEISController(BASE_CLASS):
         else:
             return qaid2_cm
 
-    @accessor_decors.default_decorator
-    @register_api('/api/core/has_species_detector/', methods=['GET'])
-    def has_species_detector(ibs, species_text):
-        """
-        TODO: extend to use non-constant species
-
-        RESTful:
-            Method: GET
-            URL:    /api/core/has_species_detector/
-        """
-        # FIXME: infer this
-        return species_text in const.SPECIES_WITH_DETECTORS
-
-    @accessor_decors.default_decorator
-    @register_api('/api/core/species_with_detectors/', methods=['GET'])
-    def get_species_with_detectors(ibs):
-        """
-        RESTful:
-            Method: GET
-            URL:    /api/core/species_with_detectors/
-        """
-        # FIXME: infer this
-        return const.SPECIES_WITH_DETECTORS
+    # --- OTHER ---
 
     @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192)):
@@ -1479,6 +1481,18 @@ class IBEISController(BASE_CLASS):
         icon = vt.imread(ut.grab_file_url(url))
         icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
+
+    def _custom_ibsstr(ibs):
+        typestr = ut.type_str(type(ibs)).split('.')[-1]
+        dbname = ibs.get_dbname()
+        ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hex(id(ibs)))
+        return ibsstr
+
+    def __str__(ibs):
+        return ibs._custom_ibsstr()
+
+    def __repr__(ibs):
+        return ibs._custom_ibsstr()
 
 
 if __name__ == '__main__':

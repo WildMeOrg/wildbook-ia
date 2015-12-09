@@ -53,7 +53,6 @@ import itertools
 import numpy as np
 import functools
 from functools import partial
-print('FOO')
 from ibeis.control import accessor_decors, controller_inject
 print, rrr, profile = ut.inject2(__name__, '[zmqstuff]')
 
@@ -143,21 +142,6 @@ def start_detect_image(ibs, image_uuid_list, species=None):
     raise NotImplementedError('add_images_json')
 
 
-def send_ibeis_request(suffix, type_='post', **kwargs):
-    import requests
-    import utool as ut
-    baseurl = 'http://127.0.1.1:5000'
-    payload = ut.map_dict_vals(ut.to_json, kwargs)
-    if type_ == 'post':
-        resp = requests.post(baseurl + suffix, data=payload)
-        content = ut.from_json(resp._content)
-    elif type_ == 'get':
-        resp = requests.get(baseurl + suffix, data=payload)
-        content = ut.from_json(resp.content)
-    response = content['response']
-    return response
-
-
 @accessor_decors.default_decorator
 @register_api('/api/core/start_identify_annots/', methods=['GET', 'POST'])
 @register_ibs_method
@@ -207,36 +191,27 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> # WEB_DOCTEST
         >>> from ibeis.web.zmq_task_queue import *  # NOQA
         >>> import ibeis
-        >>> web_instance = ibeis.opendb_bg_web('testdb1', wait=4)
-        >>> aids = send_ibeis_request('/api/annot/', 'get')
-        >>> response = send_ibeis_request('/api/annot/uuids/', aid_list=aids)
-        >>> uuid_list = response
-        >>> data = dict(qannot_uuid_list=uuid_list,
-        >>>             adata_annot_uuid_list=uuid_list,
-        >>>             pipecfg={})
-        >>> response = send_ibeis_request('/api/core/start_identify_annots/', **data)
-        >>> jobid = response
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)
+        >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
+        >>> data = dict(
+        >>>     qannot_uuid_list=uuid_list, adata_annot_uuid_list=uuid_list,
+        >>>     pipecfg={})
+        >>> jobid = web_ibs.send_ibeis_request('/api/core/start_identify_annots/', **data)
+        >>> waittime = 1
         >>> while True:
-        >>>     print('response = %s' % (response,))
-        >>>     response1 = send_ibeis_request('/api/core/get_job_status/', jobid=jobid)
+        >>>     print('jobid = %s' % (jobid,))
+        >>>     response1 = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid=jobid)
         >>>     if response1['jobstatus'] == 'completed':
         >>>         break
-        >>>     time.sleep(10)
+        >>>     time.sleep(waittime)
+        >>>     waittime = 10
         >>> print('response1 = %s' % (response1,))
-        >>> response2 = send_ibeis_request('/api/core/get_job_result/', jobid=jobid)
+        >>> response2 = web_ibs.send_ibeis_request('/api/core/get_job_result/', jobid=jobid)
         >>> print('response2 = %s' % (response2,))
         >>> cmdict = ut.from_json(response2['json_result'])[0]
         >>> print('Finished test')
-        >>> import signal
-        >>> import os
-        >>> #os.kill(web_instance.pid, signal.SIGINT)
-        >>> #web_instance.join()
-        >>> webproc = psutil.Process(pid=web_instance.pid)
-        >>> child_proces = webproc.children()
-        >>> [x.terminate() for x in child_proces]
-        >>> web_instance.terminate()
-        >>> # FIXME! This orphans the background processes
-        >>> #web_instance.terminate()
+        >>> web_ibs.terminate2()
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
@@ -250,7 +225,6 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
             list_ = list(map(uuid.UUID, list_))
         return list_
-    #return 123
 
     qannot_uuid_list = ensure_uuid_list(qannot_uuid_list)
     adata_annot_uuid_list = ensure_uuid_list(adata_annot_uuid_list)
@@ -267,13 +241,14 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
     #    #requests.
     #    #callback_url
     return jobid
-    #result = ibs.get_job_result(jobid)
-    #raise NotImplementedError('add_images_json')
 
 
 @register_api('/api/core/get_job_status/', methods=['GET', 'POST'])
 @register_ibs_method
 def get_job_status(ibs, jobid):
+    """
+    Web call that returns the status of a job
+    """
     status = ibs.job_manager.jobiface.get_job_status(jobid)
     return status
 
@@ -281,6 +256,9 @@ def get_job_status(ibs, jobid):
 @register_api('/api/core/get_job_result/', methods=['GET', 'POST'])
 @register_ibs_method
 def get_job_result(ibs, jobid):
+    """
+    Web call that returns the result of a job
+    """
     result = ibs.job_manager.jobiface.get_job_result(jobid)
     return result
 

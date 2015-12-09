@@ -12,7 +12,7 @@ def one_test():
         python -m ibeis.model.hots.demobayes --exec-one_test --show --verbose --present
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = one_test()
         >>> ut.show_if_requested()
@@ -39,7 +39,7 @@ def classify_one_new_unknown():
         python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --show --verbose --present
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = classify_one_new_unknown()
         >>> ut.show_if_requested()
@@ -57,7 +57,7 @@ def demo_structure():
         python -m ibeis.model.hots.demobayes --exec-demo_structure --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_structure()
         >>> ut.show_if_requested()
@@ -73,7 +73,7 @@ def make_bayes_notebook():
         python -m ibeis.model.hots.demobayes --exec-make_bayes_notebook
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = make_bayes_notebook()
         >>> print(result)
@@ -128,7 +128,7 @@ def show_model_templates():
         python -m ibeis.model.hots.demobayes --exec-show_model_templates
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = show_model_templates()
         >>> ut.show_if_requested()
@@ -146,7 +146,7 @@ def demo_single_add():
         python -m ibeis.model.hots.demobayes --exec-demo_single_add --show --present --mode=1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> demo_single_add()
         >>> ut.show_if_requested()
@@ -192,7 +192,7 @@ def demo_ambiguity():
         python -m ibeis.model.hots.demobayes --exec-demo_ambiguity --show --verbose --present
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_ambiguity()
         >>> ut.show_if_requested()
@@ -277,7 +277,7 @@ def demo_annot_idependence_overlap():
         python -m ibeis.model.hots.demobayes --exec-demo_annot_idependence_overlap --verbose --present
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_annot_idependence_overlap()
         >>> ut.show_if_requested()
@@ -329,7 +329,7 @@ def demo_name_annot_complexity():
         python -m ibeis.model.hots.demobayes --exec-demo_name_annot_complexity --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> demo_name_annot_complexity()
         >>> ut.show_if_requested()
@@ -363,7 +363,7 @@ def demo_model_idependencies():
         python -m ibeis.model.hots.demobayes --exec-demo_model_idependencies --mode=2
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = demo_model_idependencies()
         >>> print(result)
