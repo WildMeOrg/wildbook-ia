@@ -655,7 +655,7 @@ def show_model(model, evidence=None, suff='', factor_list=None,
     #pos = netx.pydot_layout(netx_graph, prog='dot')
     #pos = netx.graphviz_layout(netx_graph)
 
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=2000)
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1500)
     if evidence is not None:
         node_colors = [
             # (pt.TRUE_BLUE
@@ -679,8 +679,8 @@ def show_model(model, evidence=None, suff='', factor_list=None,
             'family': 'monospace',
             'horizontalalignment': 'left',
             #'horizontalalignment': 'center',
-            'size': 12,
-            #'size': 8,
+            #'size': 12,
+            'size': 8,
         }
 
         textkw = dict(

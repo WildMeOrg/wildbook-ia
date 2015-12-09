@@ -46,9 +46,16 @@ def classify_one_new_unknown():
     """
     constkw = dict(
         num_annots=5, num_names=3,
-        name_evidence=[0, 0, 1, 1, None],
+        name_evidence=[0]
+        #name_evidence=[0, 0, 1, 1, None],
+        #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
+        #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
     )
     test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, show_prior=True, **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high'], mode=1, show_prior=True, **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
+    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'low', 'low', 'low', 'low'], mode=1, show_prior=True, **constkw)
 
 
 def demo_structure():

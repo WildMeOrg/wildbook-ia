@@ -319,10 +319,10 @@ def opendb_bg_web(*args, **kwargs):
     Wrapper around opendb_in_background
     """
     import utool as ut
-    host = kwargs.get('host', ut.get_argval('--host', type_=str, default=None))
+    domain = kwargs.get('domain', ut.get_argval('--domain', type_=str, default=None))
     port = kwargs.get('port', 5000)
 
-    if host is None:
+    if domain is None:
         # Requesting a local test server
         _kw = dict(web=True, browser=False)
         _kw.update(kwargs)
@@ -332,11 +332,11 @@ def opendb_bg_web(*args, **kwargs):
         web_ibs = ut.DynStruct()
         web_ibs.terminate2 = lambda: None
     # Augment web instance with usefull test functions
-    if host is None:
-        host = 'http://127.0.1.1'
-    if not host.startswith('http://'):
-        host = 'http://' + host
-    baseurl = host  + ':' + str(port)
+    if domain is None:
+        domain = 'http://127.0.1.1'
+    if not domain.startswith('http://'):
+        domain = 'http://' + domain
+    baseurl = domain  + ':' + str(port)
 
     def send_ibeis_request(suffix, type_='post', **kwargs):
         """

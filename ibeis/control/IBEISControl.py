@@ -1160,7 +1160,7 @@ class IBEISController(BASE_CLASS):
         r"""
         CommandLine:
             python -m ibeis.control.IBEISControl --exec-get_current_log_text
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text --host http://52.33.105.88
+            python -m ibeis.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
 
         Example:
             >>> # WEB_DOCTEST

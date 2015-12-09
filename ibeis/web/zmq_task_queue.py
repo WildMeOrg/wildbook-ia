@@ -79,6 +79,28 @@ NUM_ENGINES = 1
 VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg')
 
 
+def ensure_simple_server(port=5832):
+    r"""
+    CommandLine:
+        python -m ibeis.web.zmq_task_queue --exec-ensure_simple_server
+        python -m utool.util_web --exec-start_simple_webserver
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> result = ensure_simple_server()
+        >>> print(result)
+    """
+    if ut.is_local_port_open(port):
+        bgserver = ut.spawn_background_process(ut.start_simple_webserver, port=port)
+        return bgserver
+    else:
+        bgserver = ut.DynStruct()
+        bgserver.terminate2 = lambda: None
+        print('server is running elsewhere')
+    return bgserver
+
+
 @register_ibs_method
 def initialize_job_manager(ibs):
     """
@@ -127,22 +149,6 @@ def close_job_manager(ibs):
 
 
 @accessor_decors.default_decorator
-@register_api('/api/core/start_detect_image/', methods=['GET', 'POST'])
-@register_ibs_method
-def start_detect_image(ibs, image_uuid_list, species=None):
-    """
-    REST:
-        Method: GET
-        URL: /api/core/start_detect_image/
-
-    Args:
-        image_uuid_list (list) : list of image uuids to detect on.
-        species (str) : species to detect
-    """
-    raise NotImplementedError('add_images_json')
-
-
-@accessor_decors.default_decorator
 @register_api('/api/core/start_identify_annots/', methods=['GET', 'POST'])
 @register_ibs_method
 def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
@@ -171,7 +177,7 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         python -m ibeis.web.zmq_task_queue --main --bg
         python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --fg
 
-        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --host http://52.33.105.88
+        python -m ibeis.web.zmq_task_queue --exec-start_identify_annots:1 --domain http://52.33.105.88
 
 
     Example:
@@ -194,12 +200,17 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> # WEB_DOCTEST
         >>> from ibeis.web.zmq_task_queue import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , host='http://52.33.105.88')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:10]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
         >>> data = dict(
         >>>     qannot_uuid_list=uuid_list, adata_annot_uuid_list=uuid_list,
-        >>>     pipecfg={})
+        >>>     pipecfg={},
+        >>>     callback_url='http://127.0.1.1:5832'
+        >>> )
+        >>> # Start callback server
+        >>> bgserver = ensure_simple_server()
+        >>> # --
         >>> jobid = web_ibs.send_ibeis_request('/api/core/start_identify_annots/', **data)
         >>> waittime = 1
         >>> while True:
@@ -215,6 +226,7 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> cmdict = ut.from_json(response2['json_result'])[0]
         >>> print('Finished test')
         >>> web_ibs.terminate2()
+        >>> bgserver.terminate2()
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
@@ -244,6 +256,22 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
     #    #requests.
     #    #callback_url
     return jobid
+
+
+@accessor_decors.default_decorator
+@register_api('/api/core/start_detect_image/', methods=['GET', 'POST'])
+@register_ibs_method
+def start_detect_image(ibs, image_uuid_list, species=None):
+    """
+    REST:
+        Method: GET
+        URL: /api/core/start_detect_image/
+
+    Args:
+        image_uuid_list (list) : list of image uuids to detect on.
+        species (str) : species to detect
+    """
+    raise NotImplementedError('add_images_json')
 
 
 @register_api('/api/core/get_job_status/', methods=['GET', 'POST'])
@@ -771,7 +799,7 @@ def collector_loop():
                     try:
                         import requests
                         # requests.get(callback_url)
-                        requests.post(callback_url)
+                        requests.post(callback_url, data={'jobid': jobid})
                     except Exception as ex:
                         print('ERROR in collector. callback_url=%r' % (callback_url,))
                         ut.printex(ex)
