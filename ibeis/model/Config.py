@@ -615,7 +615,7 @@ class RerankVsOneConfig(ConfigBase):
         >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
         >>> print(result)
-        _RRVsOne(True,nocovscore,dcvs_on=False,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,cov=grid,uncRat=0.8,p1.0,mn0.2,mx0.5,dcvsK5)
+        _RRVsOne(True,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,uncRat=0.8)
 
     """
     def __init__(rrvsone_cfg, **kwargs):
