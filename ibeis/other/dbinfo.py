@@ -933,7 +933,7 @@ def get_short_infostr(ibs):
         >>> infostr = get_short_infostr(ibs)
         >>> result = str(infostr)
         >>> print(result)
-        dbname = u'testdb1'
+        dbname = 'testdb1'
         num_images = 13
         num_annotations = 13
         num_names = 7
@@ -945,11 +945,11 @@ def get_short_infostr(ibs):
     num_names = ibs.get_num_names()
     #workdir = %r
     infostr = ut.codeblock('''
-    dbname = %r
+    dbname = %s
     num_images = %r
     num_annotations = %r
     num_names = %r
-    ''' % (dbname, num_images, num_annotations, num_names))
+    ''' % (ut.repr2(dbname), num_images, num_annotations, num_names))
     return infostr
 
 

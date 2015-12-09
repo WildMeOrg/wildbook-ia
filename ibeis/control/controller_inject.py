@@ -191,6 +191,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
 
     CommandLine:
         python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall
+        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --host http://52.33.105.88
 
     Example:
         >>> # WEB_DOCTEST
