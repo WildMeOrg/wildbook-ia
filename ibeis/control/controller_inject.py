@@ -203,6 +203,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', aid_list=aids)
         >>> failrsp = web_ibs.send_ibeis_request('/api/annot/uuids/')
         >>> failrsp2 = web_ibs.send_ibeis_request('/api/core/query_chips_simple_dict/', 'get', qaid_list=[0], daid_list=[0])
+        >>> log_text = web_ibs.send_ibeis_request('/api/core/query_chips_simple_dict/', 'get', qaid_list=[0], daid_list=[0])
         >>> time.sleep(.1)
         >>> print('\n---\nuuid_list = %r' % (uuid_list,))
         >>> print('\n---\nfailrsp =\n%s' % (failrsp,))

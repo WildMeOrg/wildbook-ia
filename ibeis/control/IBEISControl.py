@@ -1157,24 +1157,21 @@ class IBEISController(BASE_CLASS):
     @accessor_decors.default_decorator
     @register_api('/api/core/get_current_log_text/', methods=['GET'])
     def get_current_log_text(ibs):
-        """
+        r"""
+        CommandLine:
+            python -m ibeis.control.IBEISControl --exec-get_current_log_text
 
         Example:
             >>> # WEB_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import time
             >>> import ibeis
-            >>> import requests
-            >>> # Start up the web instance
-            >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
-            >>> time.sleep(.5)
-            >>> baseurl = 'http://127.0.1.1:5000'
-            >>> resp = requests.get(baseurl + '/api/core/get_current_log_text/')
+            >>> import ibeis.web
+            >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=.5, start_job_queue=False)
+            >>> resp = web_ibs.send_ibeis_request('/api/core/get_current_log_text/', 'get')
+            >>> print('\n-------Logs ----: \n' )
             >>> print(resp)
-            >>> web_instance.terminate()
-            >>> json_dict = resp.json()
-            >>> text = json_dict['response']
-            >>> print(text)
+            >>> print('\nL____ END LOGS ___\n')
+            >>> web_ibs.terminate2()
         """
         text = ut.get_current_log_text()
         return text
