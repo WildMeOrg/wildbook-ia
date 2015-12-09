@@ -407,11 +407,14 @@ def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625,
                               fm_dtype=np.int32, fs_dtype=np.float32):
     """ Lowes ratio matching
 
-    fs_dtype = kwargs.get('fs_dtype', np.float32)
-    fm_dtype = kwargs.get('fm_dtype', np.int32)
+    from vtool.matching import *  # NOQA
+    fs_dtype = rat_kwargs.get('fs_dtype', np.float32)
+    fm_dtype = rat_kwargs.get('fm_dtype', np.int32)
+    unc_ratio_thresh = rat_kwargs.get('unc_ratio_thresh', .625)
 
     """
-    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, K=2, checks=800)
+    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
+        flann, vecs2, K=2, checks=800)
     #ut.embed()
     assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
     fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
