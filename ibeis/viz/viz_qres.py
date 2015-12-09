@@ -279,7 +279,9 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                                exemplar=False, reference_aid=cm.qaid), nl=4))
 
     if make_figtitle is True:
-        figtitle = cm.make_title(pack=True)
+        pass
+        #figtitle = cm.make_title(pack=True)
+        #figtitle
 
     fig = pt.figure(fnum=fnum, docla=True, doclf=True)
 

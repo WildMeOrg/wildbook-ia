@@ -83,9 +83,8 @@ def show_post_vsmany_vser():
     import plottool as pt
     ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()
     # HACK TO PRESCORE
-    ibs = qreq_.ibs
     prepare_vsmany_chipmatch(qreq_, cm_list_SVER)
-    show_all_ranked_matches(ibs, cm_list_SVER, figtitle='vsmany post sver')
+    show_all_ranked_matches(qreq_, cm_list_SVER, figtitle='vsmany post sver')
     pt.show_if_requested()
 
 
@@ -139,19 +138,20 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         >>> # (IMPORTANT)
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()
+        >>> print(qreq_.qparams.rrvsone_cfgstr)
         >>> # cm_list_SVER = ut.dict_subset(cm_list_SVER, [6])
         >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list_SVER)
         >>> #cm_list = cm_list_VSONE
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'  # ut.dict_str(rrvsone_cfgdict, newlines=False)
-        >>> show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)
+        >>> show_all_ranked_matches(qreq_, cm_list_VSONE, figtitle=figtitle)
         >>> pt.show_if_requested()
     """
     config = qreq_.qparams
     # Filter down to a shortlist
     nNameShortlist = qreq_.qparams.nNameShortlistVsone
-    nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsOne
+    nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsone
     scoring.score_chipmatch_list(qreq_, cm_list_SVER, 'nsum')
     prepare_vsmany_chipmatch(qreq_, cm_list_SVER)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list_SVER,
@@ -782,7 +782,7 @@ def quick_vsone_flann(flann_cachedir, qvecs):
         'algorithm': 'kdtree',
         'trees': 8
     }
-    use_cache = save = False and ut.is_developer()
+    use_cache = save = True  # False and ut.is_developer()
     flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
                            quiet=True, verbose=False, use_cache=use_cache, save=save)
     return flann
@@ -806,19 +806,19 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         >>> qaid, daid_list, H_list = ut.dict_take(prior_cm, ['qaid', 'daid_list', 'H_list'])
         >>> match_results = compute_query_unconstrained_matches(qreq_, qaid, daid_list, config)
         >>> fm_RAT_list, fs_RAT_list, fm_norm_RAT_list = match_results
-        >>> if ut.show_was_requested():
-        ...     import plottool as pt
-        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
-        ...     args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)
-        ...     show_single_match(*args, index=idx)
-        ...     pt.set_title('unconstrained')
-        ...     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> idx = ut.listfind(ibs.get_annot_nids(daid_list).tolist(), ibs.get_annot_nids(qaid))
+        >>> args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)
+        >>> show_single_match(*args, index=idx)
+        >>> pt.set_title('unconstrained')
+        >>> pt.show_if_requested()
     """
     unc_ratio_thresh = config['unc_ratio_thresh']
     #, .625)
     qvecs = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
     dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
-    print(len(qvecs))
+    #print(len(qvecs))
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), qvecs)
     rat_kwargs = {
         'unc_ratio_thresh' : unc_ratio_thresh,
@@ -828,8 +828,9 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     #print('rat_kwargs = ' + ut.dict_str(rat_kwargs))
     scrtup_list = [
         matching.unconstrained_ratio_match(
-            flann, dvecs, **rat_kwargs)
-        for dvecs in dvecs_list]
+            flann, vecs2, **rat_kwargs)
+        for vecs2 in ut.ProgIter(dvecs_list, lbl='unconstrained matching', adjust=True, time_thresh=7)
+    ]
     fm_RAT_list = ut.get_list_column(scrtup_list, 0)
     fs_RAT_list = ut.get_list_column(scrtup_list, 1)
     fm_norm_RAT_list = ut.get_list_column(scrtup_list, 2)
@@ -858,14 +859,14 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
         >>> qaid, daid_list, H_list = ut.dict_take(prior_cm, ['qaid', 'daid_list', 'H_list'])
         >>> match_results = compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config)
         >>> fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = match_results
-        >>> if ut.show_was_requested():
-        ...     import plottool as pt
-        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
-        ...     index = ut.get_argval('--index', int, idx)
-        ...     args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
-        ...     show_single_match(*args, index=index)
-        ...     pt.set_title('constrained')
-        ...     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
+        >>> index = ut.get_argval('--index', int, idx)
+        >>> args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
+        >>> show_single_match(*args, index=index)
+        >>> pt.set_title('constrained')
+        >>> pt.show_if_requested()
     """
     scr_ratio_thresh     = config.get('scr_ratio_thresh', .1)
     scr_K                = config.get('scr_K', 7)
@@ -919,14 +920,14 @@ OTHER_RRVSONE_PARAMS = ut.ParamInfoList('OTHERRRVSONE', [
     ut.ParamInfo('fs_lnbnn_min', 0.0, hideif=0.0),
     ut.ParamInfo('fs_lnbnn_max', 1.0, hideif=1.0),
     ut.ParamInfo('fs_lnbnn_power', 1.0, hideif=1.0),
-    ut.ParamInfoBool('covscore_on', False, hideif=True),
-    ut.ParamInfo('dcvs_on', False),
+    ut.ParamInfoBool('covscore_on', False, hideif=lambda cfg: True),
+    ut.ParamInfo('dcvs_on', False, hideif=False),
 ])
 
 
 SHORTLIST_DEFAULTS = ut.ParamInfoList('SLIST', [
     ut.ParamInfo('nNameShortlistVsone', 20, 'nNm='),
-    ut.ParamInfo('nAnnotPerNameVsOne', 3, 'nApN='),
+    ut.ParamInfo('nAnnotPerNameVsone', 3, 'nApN='),
 ])
 
 # matching types
@@ -938,7 +939,8 @@ COEFF_DEFAULTS = ut.ParamInfoList('COEFF', [
                  hideif=lambda cfg: cfg['unconstrained_coeff'] <= 0),
     ut.ParamInfo('sver_constrained',    False, 'sver_scr=',
                  hideif=lambda cfg: cfg['constrained_coeff'] <= 0),
-    ut.ParamInfo('maskscore_mode', 'grid', 'cov='),
+    ut.ParamInfo('maskscore_mode', 'grid', 'cov=',
+                 hideif=lambda cfg: not cfg['covscore_on']),
 ]
 )
 
@@ -1218,15 +1220,19 @@ def show_ranked_matches(ibs, cm, fnum=None):
             pt.set_title('score = %r' % (score,))
 
 
-def show_all_ranked_matches(ibs, cm_list, fnum_offset=0, figtitle=''):
+def show_all_ranked_matches(qreq_, cm_list, fnum_offset=0, figtitle=''):
     """ helper """
     import plottool as pt
     for fnum_, cm in enumerate(cm_list):
         #cm.foo()
         fnum = fnum_ + fnum_offset
-        show_ranked_matches(ibs, cm, fnum)
-        #pt.figure(fnum=fnum, doclf=True, docla=True)
-        pt.set_figtitle('qaid=%r %s' % (cm.qaid, figtitle))
+        if True:
+            #cm.show_ranked_matches(qreq_, fnum=fnum)
+            cm.show_analysis(qreq_, fnum=fnum)
+        else:
+            show_ranked_matches(qreq_.ibs, cm, fnum)
+            #pt.figure(fnum=fnum, doclf=True, docla=True)
+            pt.set_figtitle('qaid=%r %s' % (cm.qaid, figtitle))
 
 
 if __name__ == '__main__':

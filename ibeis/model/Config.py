@@ -612,10 +612,10 @@ class RerankVsOneConfig(ConfigBase):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=False)
+        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
         >>> print(result)
-        _RRVsOne(False)
+        _RRVsOne(True,nocovscore,dcvs_on=False,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,cov=grid,uncRat=0.8,p1.0,mn0.2,mx0.5,dcvsK5)
 
     """
     def __init__(rrvsone_cfg, **kwargs):
@@ -641,10 +641,11 @@ class RerankVsOneConfig(ConfigBase):
             vsone_pipeline.UNC_DEFAULTS.aslist(),
             vsone_pipeline.SCR_DEFAULTS.aslist(),
             vsone_pipeline.COVKPTS_DEFAULT.aslist(
-                hideif=lambda cfg: cfg['covscore_on'] and cfg['maskscore_mode'] != 'kpts'),
+                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
             vsone_pipeline.COVGRID_DEFAULT.aslist(
-                hideif=lambda cfg: cfg['covscore_on'] and cfg['maskscore_mode'] != 'grid'),
-            distinctiveness_normalizer.DCVS_DEFAULT.aslist(),
+                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
+            distinctiveness_normalizer.DCVS_DEFAULT.aslist(
+                hideif=lambda cfg: not cfg['dcvs_on']),
         ])
         return param_info_list
 

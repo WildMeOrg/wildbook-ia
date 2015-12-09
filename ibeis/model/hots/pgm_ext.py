@@ -11,7 +11,22 @@ import pgmpy.models
 print, rrr, profile = ut.inject2(__name__, '[pgmext]')
 
 
+def print_factors(model, factor_list):
+    semtypes = [model.var2_cpd[f.variables[0]].ttype
+                for f in factor_list]
+    for type_, factors in ut.group_items(factor_list, semtypes).items():
+        print('Result Factors (%r)' % (type_,))
+        factors = ut.sortedby(factors, [f.variables[0] for f in factors])
+        for fs_ in ut.ichunks(factors, 4):
+            ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
+                          'yellow')
+
+
 def define_model(cpd_list):
+    """
+    Custom extensions of pgmpy modl
+    """
+
     input_graph = ut.flatten([
         [(evar, cpd.variable) for evar in cpd.evidence]
         for cpd in cpd_list if cpd.evidence is not None
@@ -20,10 +35,28 @@ def define_model(cpd_list):
     model.add_cpds(*cpd_list)
     model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
     model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
+    model._templates = list(set([cpd._template_
+                                 for cpd in model.var2_cpd.values()]))
 
     def pretty_evidence(model, evidence):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
                 for evar, val in evidence.items()]
+
+    def print_templates(model):
+        templates = model._templates
+        ut.colorprint('\n --- CPD Templates ---', 'blue')
+        for temp_cpd in templates:
+            ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
+
+    def print_priors(model, ignore_ttypes=[], title='Priors'):
+        ut.colorprint('\n --- %s ---' % (title,), 'darkblue')
+        for ttype, cpds in model.ttype2_cpds.items():
+            if ttype not in ignore_ttypes:
+                for fs_ in ut.ichunks(cpds, 4):
+                    ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), 'darkblue')
+
+    ut.inject_func_as_method(model, print_priors)
+    ut.inject_func_as_method(model, print_templates)
     ut.inject_func_as_method(model, pretty_evidence)
     return model
 
@@ -77,23 +110,32 @@ class TemplateCPD(object):
     def new_cpd(self, parents=None, pmf_func=None):
         """
         Makes a new instance of this tempalte
+
+        parents : only used to define the name of this node.
         """
         if pmf_func is None:
             pmf_func = self.pmf_func
-        if not ut.isiterable(parents):
-            _id = parents
-            evidence_cpds = None
-        else:
-            evidence_cpds = parents
-            template_ids = [cpd._template_id for cpd in parents]
-            HACK_SAME_IDS = True
-            if HACK_SAME_IDS:
-                if ut.list_allsame(template_ids):
-                    _id = template_ids[0]
-                else:
-                    _id = ''.join([cpd._template_id for cpd in parents])
+
+        def _getid(obj):
+            if isinstance(obj, int):
+                return str(obj)
+            elif isinstance(obj, six.string_types):
+                return obj
             else:
-                _id = ''.join([cpd._template_id for cpd in parents])
+                return obj._template_id
+        if not ut.isiterable(parents):
+            parents = [parents]
+        template_ids = [_getid(cpd) for cpd in parents]
+        HACK_SAME_IDS = True
+        # TODO: keep track of parent index inheritence
+        # then rectify uniqueness based on that
+        if HACK_SAME_IDS and ut.list_allsame(template_ids):
+            _id = template_ids[0]
+        else:
+            _id = ''.join(template_ids)
+        evidence_cpds = [cpd for cpd in parents if hasattr(cpd, 'ttype')]
+        if len(evidence_cpds) == 0:
+            evidence_cpds = None
         variable = ''.join([self.varpref, _id])
         variable_card = len(self.basis)
         statename_dict = {
@@ -138,6 +180,7 @@ class TemplateCPD(object):
             statename_dict=statename_dict,
         )
         cpd.ttype = self.ttype
+        cpd._template_ = self
         cpd._template_id = _id
         return cpd
 

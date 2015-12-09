@@ -99,6 +99,7 @@ class QueryParams(collections.Mapping):
         qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = query_cfg.get_cfgstr()
         qparams.vocabtrain_cfgstr = query_cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
+        qparams.rrvsone_cfgstr    = query_cfg.rrvsone_cfg.get_cfgstr()
 
     def get_postsver_filtkey_list(qparams):
         """ HACK: gets columns of fsv post spatial verification.  This will

@@ -48,9 +48,7 @@ def classify_one_new_unknown():
         num_annots=5, num_names=3,
         name_evidence=[0, 0, 1, 1, None],
     )
-    # This config shows the incorrectness of this model.
-    # No observation was made, yet there is a higher probability of classifying as either fred or sue
-    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=2, show_prior=True, **constkw)
+    test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, show_prior=True, **constkw)
 
 
 def demo_structure():

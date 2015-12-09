@@ -404,7 +404,7 @@ def testdata_matching(*args, **kwargs):
     ibs, qreq_, cm_list, qaid_list  = testdata_pre_vsonerr(*args, **kwargs)
     vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
     nNameShortlist = qreq_.qparams.nNameShortlistVsone
-    nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsOne
+    nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsone
     scoring.score_chipmatch_list(qreq_, cm_list, 'nsum')
     vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortlist, nAnnotPerName)
