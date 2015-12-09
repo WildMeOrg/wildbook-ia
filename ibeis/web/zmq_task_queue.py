@@ -53,6 +53,7 @@ import itertools
 import numpy as np
 import functools
 from functools import partial
+print('FOO')
 from ibeis.control import accessor_decors, controller_inject
 print, rrr, profile = ut.inject2(__name__, '[zmqstuff]')
 
@@ -788,7 +789,8 @@ def collector_loop():
                         print('calling callback_url')
                     try:
                         import requests
-                        requests.get(callback_url)
+                        # requests.get(callback_url)
+                        requests.post(callback_url)
                     except Exception as ex:
                         print('ERROR in collector. callback_url=%r' % (callback_url,))
                         ut.printex(ex)

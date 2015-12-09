@@ -398,6 +398,8 @@ def _preload(mpl=True, par=True, logging=True):
     from ibeis import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return
+    if ut.VERBOSE:
+        print('[ibies] _preload')
     _parse_args()
     # mpl backends
     if logging and not params.args.nologging:
