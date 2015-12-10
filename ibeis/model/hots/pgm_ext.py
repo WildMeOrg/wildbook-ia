@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import networkx as netx
 import six  # NOQA
 import utool as ut
 import numpy as np
@@ -12,8 +13,11 @@ print, rrr, profile = ut.inject2(__name__, '[pgmext]')
 
 
 def print_factors(model, factor_list):
-    semtypes = [model.var2_cpd[f.variables[0]].ttype
-                for f in factor_list]
+    if hasattr(model, 'var2_cpd'):
+        semtypes = [model.var2_cpd[f.variables[0]].ttype
+                    for f in factor_list]
+    else:
+        semtypes = [0] * len(factor_list)
     for type_, factors in ut.group_items(factor_list, semtypes).items():
         print('Result Factors (%r)' % (type_,))
         factors = ut.sortedby(factors, [f.variables[0] for f in factors])
@@ -109,13 +113,14 @@ class TemplateCPD(object):
 
     def new_cpd(self, parents=None, pmf_func=None):
         """
-        Makes a new instance of this tempalte
+        Makes a new random variable that is an instance of this tempalte
 
         parents : only used to define the name of this node.
         """
         if pmf_func is None:
             pmf_func = self.pmf_func
 
+        # --- MAKE VARIABLE ID
         def _getid(obj):
             if isinstance(obj, int):
                 return str(obj)
@@ -123,8 +128,10 @@ class TemplateCPD(object):
                 return obj
             else:
                 return obj._template_id
+
         if not ut.isiterable(parents):
             parents = [parents]
+
         template_ids = [_getid(cpd) for cpd in parents]
         HACK_SAME_IDS = True
         # TODO: keep track of parent index inheritence
@@ -133,10 +140,13 @@ class TemplateCPD(object):
             _id = template_ids[0]
         else:
             _id = ''.join(template_ids)
+        variable = ''.join([self.varpref, _id])
+        #variable = '_'.join([self.varpref, '{' + _id + '}'])
+        #variable = '$%s$' % (variable,)
+
         evidence_cpds = [cpd for cpd in parents if hasattr(cpd, 'ttype')]
         if len(evidence_cpds) == 0:
             evidence_cpds = None
-        variable = ''.join([self.varpref, _id])
         variable_card = len(self.basis)
         statename_dict = {
             variable: self.basis,
@@ -152,17 +162,6 @@ class TemplateCPD(object):
             for cpd in evidence_cpds:
                 statename_dict.update(cpd.statename_dict)
 
-            # print('evidence_states = %r' % (evidence_states,))
-            # print('self.basis = %r' % (self.basis,))
-            values = np.array([
-                [pmf_func(vstate, *estates) for estates in evidence_states]
-                for vstate in self.basis
-            ])
-            #ut.embed()
-            ensure_normalized = True
-            if ensure_normalized:
-                # ensure normalized
-                values = values / values.sum(axis=0)
             evidence = [cpd.variable for cpd in evidence_cpds]
         else:
             if evidence_cpds is not None:
@@ -170,7 +169,16 @@ class TemplateCPD(object):
             evidence = None
             evidence_card = None
 
-        if pmf_func is None:
+        # --- MAKE TABLE VALUES
+        if pmf_func is not None:
+            values = np.array([
+                [pmf_func(vstate, *estates) for estates in evidence_states]
+                for vstate in self.basis
+            ])
+            ensure_normalized = True
+            if ensure_normalized:
+                values = values / values.sum(axis=0)
+        else:
             # assume uniform
             values = [[1.0 / variable_card] * variable_card]
 
@@ -196,7 +204,7 @@ def print_ascii_graph(model_):
     """
     from PIL import Image
     from six.moves import StringIO
-    import networkx as netx
+    #import networkx as netx
     import copy
     model = copy.deepcopy(model_)
     assert model is not model_
@@ -356,6 +364,9 @@ def coin_example():
         >>> evidence = model_inference._ensure_internal_evidence({'T01': 'tails'}, model)
         >>> factor_list2 = model_inference.query(['T02'], evidence).values()
         >>> print_factors(model, factor_list2)
+        >>> ut.quit_if_noshow()
+        >>> netx.draw_graphviz(model, with_labels=True)
+        >>> ut.show_if_requested()
     """
     def toss_pmf(side, coin):
         toss_lookup = {
@@ -373,6 +384,65 @@ def coin_example():
     toss1_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 1])
     toss2_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 2])
     model = define_model([coin_cpd, toss2_cpd, toss1_cpd])
+    return model
+
+
+def mustbe_example():
+    """
+    Simple example where observing F0 forces N0 to take on a value.
+
+    CommandLine:
+        python -m ibeis.model.hots.pgm_ext --exec-mustbe_example
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+        >>> model = mustbe_example()
+        >>> model.print_templates()
+        >>> model.print_priors()
+        >>> #model_inference = pgmpy.inference.VariableElimination(model)
+        >>> model_inference = pgmpy.inference.BeliefPropagation(model)
+        >>> print('Observe: ' + ','.join(model.pretty_evidence({})))
+        >>> factor_list1 = model_inference.query(['N0'], {}).values()
+        >>> print_factors(model, factor_list1)
+        >>> #
+        >>> evidence = model_inference._ensure_internal_evidence({'F0': 'true'}, model)
+        >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
+        >>> factor_list2 = model_inference.query(['N0'], evidence).values()
+        >>> print_factors(model, factor_list2)
+        >>> #
+        >>> evidence = model_inference._ensure_internal_evidence({'F0': 'false'}, model)
+        >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
+        >>> factor_list3 = model_inference.query(['N0'], evidence).values()
+        >>> print_factors(model, factor_list2)
+        >>> #
+        >>> phi1 = factor_list1[0]
+        >>> phi2 = factor_list2[0]
+        >>> assert phi1['fred'] == phi1['sue'], 'should be uniform'
+        >>> assert phi2['fred'] == 1, 'should be 1'
+        >>> ut.quit_if_noshow()
+        >>> netx.draw_graphviz(model, with_labels=True)
+        >>> ut.show_if_requested()
+
+    Ignore:
+        from ibeis.model.hots.pgm_ext import _debug_repr_model
+        _debug_repr_model(model)
+    """
+    def isfred_pmf(isfred, name):
+        toss_lookup = {
+            'fred': {'true': 1, 'false': 0},
+            'sue': {'true': 0, 'false': 1},
+            'tom': {'true': 0, 'false': 1},
+        }
+        return toss_lookup[name][isfred]
+    name_cpd_t = TemplateCPD(
+        'name', ['fred', 'sue', 'tom'], varpref='N')
+    isfred_cpd_t = TemplateCPD(
+        'fred', ['true', 'false'], varpref='F',
+        evidence_ttypes=[name_cpd_t], pmf_func=isfred_pmf)
+    name_cpd = name_cpd_t.new_cpd(0)
+    isfred_cpd = isfred_cpd_t.new_cpd(parents=[name_cpd])
+    model = define_model([name_cpd, isfred_cpd])
     return model
 
 

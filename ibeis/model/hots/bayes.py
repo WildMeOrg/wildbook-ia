@@ -88,6 +88,8 @@ import pgmpy.models
 from ibeis.model.hots import pgm_ext
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
+SPECIAL_BASIS_POOL = ['fred', 'sue', 'paul']
+
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                other_evidence={}, show_prior=False, noquery=False, **kwargs):
@@ -127,10 +129,12 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
             'factor_list': [],
             'joint_factor': None,
             'marginalized_joints': {},
+            'map_assign': None,
         }
 
     factor_list = query_results['factor_list']
     marginalized_joints = query_results['marginalized_joints']
+    map_assign = query_results['map_assign']
 
     if verbose:
         if verbose:
@@ -149,9 +153,174 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
             ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         print('L_____\n')
 
-    show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence,  show_prior=show_prior)
+    show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence,  show_prior=show_prior, map_assign=map_assign)
     return (model,)
     # print_ascii_graph(model)
+
+
+def name_model_mode5(num_annots, num_names=None, verbose=True, mode=1):
+    mode = ut.get_argval('--mode', default=mode)
+    annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
+    # The indexes of match CPDs will not change if another annotation is added
+    upper_diag_idxs = ut.colwise_diag_idxs(num_annots, 2)
+    if num_names is None:
+        num_names = num_annots
+
+    # -- Define CPD Templates
+
+    name_cpd_t = pgm_ext.TemplateCPD(
+        'name', ('n', num_names), varpref='N',
+        special_basis_pool=SPECIAL_BASIS_POOL)
+    name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
+
+    def match_pmf(match_type, n1, n2):
+        return {
+            True: {'same': 1.0, 'diff': 0.0},
+            False: {'same': 0.0, 'diff': 1.0},
+        }[n1 == n2][match_type]
+    match_cpd_t = pgm_ext.TemplateCPD(
+        'match', ['diff', 'same'], varpref='M',
+        evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
+    namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
+    match_cpds = [match_cpd_t.new_cpd(parents=cpds)
+                  for cpds in namepair_cpds]
+
+    def trimatch_pmf(match_ab, match_bc, match_ca):
+        lookup = {'same': {'same': {'same': 1, 'diff': 0, },
+                           'diff': {'same': 0, 'diff': 1, }, },
+                  'diff': {'same': {'same': 0, 'diff': 1, },
+                           'diff': {'same': .5, 'diff': .5, }, } }
+        return lookup[match_ca][match_bc][match_ab]
+    trimatch_cpd_t = pgm_ext.TemplateCPD(
+        'tri_match', ['diff', 'same'], varpref='T',
+        evidence_ttypes=[match_cpd_t, match_cpd_t],
+        pmf_func=trimatch_pmf)
+    #triple_idxs = ut.colwise_diag_idxs(num_annots, 3)
+    tid2_match = {cpd._template_id: cpd for cpd in match_cpds}
+    trimatch_cpds = []
+    # such hack
+    for cpd in match_cpds:
+        parents = []
+        this_ = list(cpd._template_id)
+        for aid in annots:
+            if aid in this_:
+                continue
+            for aid2 in this_:
+                key = aid2 + aid
+                if key not in tid2_match:
+                    key = aid + aid2
+                parents += [tid2_match[key]]
+        trimatch_cpds += [trimatch_cpd_t.new_cpd(parents=parents)]
+
+    def score_pmf(score_type, match_type):
+        score_lookup = {
+            'same': {'low': .1, 'high': .9, 'veryhigh': .9},
+            'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
+        }
+        val = score_lookup[match_type][score_type]
+        return val
+    score_cpd_t = pgm_ext.TemplateCPD(
+        'score', ['low', 'high'],
+        varpref='S',
+        evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
+    score_cpds = [score_cpd_t.new_cpd(parents=cpds)
+                  for cpds in zip(match_cpds)]
+
+    #score_cpds = [score_cpd_t.new_cpd(parents=cpds)
+    #              for cpds in zip(trimatch_cpds)]
+
+    cpd_list = name_cpds + score_cpds + match_cpds + trimatch_cpds
+    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+
+    # Make Model
+    model = pgm_ext.define_model(cpd_list)
+    model.num_names = num_names
+
+    if verbose:
+        model.print_templates()
+    return model
+
+
+def name_model_mode1(num_annots, num_names=None, verbose=True):
+    r"""
+    Args:
+        num_annots (int):
+        num_names (int): (default = None)
+        verbose (bool):  verbosity flag(default = True)
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-name_model_mode1 --show
+        python -m ibeis.model.hots.bayes --exec-name_model_mode1
+        python -m ibeis.model.hots.bayes --exec-name_model_mode1 --num-annots=3
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> defaults = dict(num_annots=2, num_names=2, verbose=True)
+        >>> kw = ut.argparse_funckw(name_model_mode1, defaults)
+        >>> model = name_model_mode1(**kw)
+        >>> ut.quit_if_noshow()
+        >>> show_model(model, {}, '', [], {}, {},  show_prior=False, show_title=False)
+        >>> ut.show_if_requested()
+
+    Ignore:
+        import nx2tikz
+        print(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
+    """
+    annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
+    # The indexes of match CPDs will not change if another annotation is added
+    upper_diag_idxs = ut.colwise_diag_idxs(num_annots, 2)
+    if num_names is None:
+        num_names = num_annots
+
+    # +--- Define CPD Templates ---
+
+    # +-- Name Factor ---
+    name_cpd_t = pgm_ext.TemplateCPD(
+        'name', ('n', num_names), varpref='N',
+        special_basis_pool=SPECIAL_BASIS_POOL)
+    name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
+
+    # +-- Match Factor ---
+    def match_pmf(match_type, n1, n2):
+        return {
+            True: {'same': 1.0, 'diff': 0.0},
+            False: {'same': 0.0, 'diff': 1.0},
+        }[n1 == n2][match_type]
+    match_cpd_t = pgm_ext.TemplateCPD(
+        'match', ['diff', 'same'], varpref='M',
+        evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
+    namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
+    match_cpds = [match_cpd_t.new_cpd(parents=cpds)
+                  for cpds in namepair_cpds]
+
+    # +-- Score Factor ---
+    def score_pmf(score_type, match_type):
+        score_lookup = {
+            'same': {'low': .1, 'high': .9, 'veryhigh': .9},
+            'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
+        }
+        val = score_lookup[match_type][score_type]
+        return val
+    score_cpd_t = pgm_ext.TemplateCPD(
+        'score', ['low', 'high'],
+        varpref='S',
+        evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
+    score_cpds = [score_cpd_t.new_cpd(parents=cpds)
+                  for cpds in zip(match_cpds)]
+
+    # L___ End CPD Definitions ___
+
+    cpd_list = name_cpds + score_cpds + match_cpds
+    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+
+    # Make Model
+    model = pgm_ext.define_model(cpd_list)
+    model.num_names = num_names
+
+    if verbose:
+        model.print_templates()
+    return model
 
 
 def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
@@ -176,7 +345,6 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     mode = ut.get_argval('--mode', default=mode)
     annots = ut.chr_range(num_annots, base=ut.get_argval('--base', default='a'))
     # The indexes of match CPDs will not change if another annotation is added
-    # It actually just needs to be a an index in rows of columns
     upper_diag_idxs = ut.colwise_diag_idxs(num_annots, 2)
     if num_names is None:
         num_names = num_annots
@@ -236,29 +404,19 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     def trimatch_pmf(match_ab, match_bc, match_ca):
         lookup = {
             'same': {
-                'same': {
-                    'same': 1, 'diff': 0,
-                },
-                'diff': {
-                    'same': 0, 'diff': 1,
-                }
+                'same': {'same': 1, 'diff': 0, },
+                'diff': {'same': 0, 'diff': 1, }
             },
             'diff': {
-                'same': {
-                    'same': 0, 'diff': 1,
-                },
-                'diff': {
-                    'same': .5, 'diff': .5,
-                }
+                'same': {'same': 0, 'diff': 1, },
+                'diff': {'same': .5, 'diff': .5, }
             }
         }
         return lookup[match_ca][match_bc][match_ab]
 
-    special_basis_pool = ['fred', 'sue', 'paul']
-
     name_cpd_t = pgm_ext.TemplateCPD(
         'name', ('n', num_names), varpref='N',
-        special_basis_pool=special_basis_pool)
+        special_basis_pool=SPECIAL_BASIS_POOL)
 
     if mode == 1 or mode == 5:
         match_cpd_t = pgm_ext.TemplateCPD(
@@ -287,7 +445,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     elif mode == 2:
         name_cpd_t = pgm_ext.TemplateCPD(
             'name', ('n', num_names), varpref='N',
-            special_basis_pool=special_basis_pool)
+            special_basis_pool=SPECIAL_BASIS_POOL)
         score_cpd_t = pgm_ext.TemplateCPD(
             #'score', ['low', 'high', 'veryhigh'],
             'score', ['low', 'high'],
@@ -485,12 +643,12 @@ def try_query(model, model_inference, evidence, interest_ttypes=[], verbose=True
     # Compute all marginals
     probs = model_inference.query(query_vars, evidence)
     #probs = model_inference.query(query_vars, evidence)
-
-    #ut.embed()
-    #probs = model_inference.map_query(query_vars, evidence)
     factor_list = probs.values()
 
+    #ut.embed()
     # Compute MAP joints
+    map_assign = model_inference.map_query(query_vars, evidence)
+
     # (probably an invalid thing to do)
     joint_factor = pgmpy.factors.factor_product(*factor_list)
 
@@ -505,71 +663,59 @@ def try_query(model, model_inference, evidence, interest_ttypes=[], verbose=True
     query_results = {
         'factor_list': factor_list,
         'joint_factor': joint_factor,
+        'map_assign': map_assign,
         'marginalized_joints': marginalized_joints,
     }
     return query_results
 
 
-def draw_tree_model(model):
+def draw_tree_model(model, **kwargs):
     import plottool as pt
     import networkx as netx
-    fnum = pt.ensure_fnum(None)
-    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
-    ax = pt.gca()
-    #name_nodes = sorted(ut.list_getattr(model.ttype2_cpds['name'], 'variable'))
-    netx_graph = model.to_markov_model()
-    #pos = netx.pygraphviz_layout(netx_graph)
-    #pos = netx.graphviz_layout(netx_graph)
-    #pos = get_hacked_pos(netx_graph, name_nodes, prog='neato')
-    pos = netx.pydot_layout(netx_graph)
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1000)
-    netx.draw(netx_graph, **drawkw)
-    pt.set_figtitle('Markov Model')
+    if not ut.get_argval('--hackjunc'):
+        fnum = pt.ensure_fnum(None)
+        fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
+        ax = pt.gca()
+        #name_nodes = sorted(ut.list_getattr(model.ttype2_cpds['name'], 'variable'))
+        netx_graph = model.to_markov_model()
+        #pos = netx.pygraphviz_layout(netx_graph)
+        #pos = netx.graphviz_layout(netx_graph)
+        #pos = get_hacked_pos(netx_graph, name_nodes, prog='neato')
+        pos = netx.pydot_layout(netx_graph)
+        node_color = [pt.WHITE] * len(pos)
+        drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
+                      node_size=1100)
+        netx.draw(netx_graph, **drawkw)
+        if kwargs.get('show_title', True):
+            pt.set_figtitle('Markov Model')
 
-    fnum = pt.ensure_fnum(None)
-    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
-    ax = pt.gca()
-    netx_graph = model.to_junction_tree()
-    #netx_graph = model.to_markov_model()
-    #pos = netx.pygraphviz_layout(netx_graph)
-    #pos = netx.graphviz_layout(netx_graph)
-    pos = netx.pydot_layout(netx_graph)
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1000)
-    netx.draw(netx_graph, **drawkw)
-    pt.set_figtitle('Junction/Clique Tree / Cluster Graph')
-
-
-def get_hacked_pos2(netx_graph, name_nodes=None, prog='dot'):
-    import pygraphviz
-    import networkx as netx
-    # Add "invisible" edges to induce an ordering
-    # Hack for layout (ordering of top level nodes)
-    if hasattr(netx_graph, 'ttype2_cpds'):
-        name_nodes = sorted(ut.list_getattr(netx_graph.ttype2_cpds['name'], 'variable'))
-    if name_nodes is not None:
-        #netx.set_node_attributes(netx_graph, 'label', {n: {'label': n} for n in all_nodes})
-        invis_edges = list(ut.itertwo(name_nodes))
-        netx_graph2 = netx_graph.copy()
-        netx_graph2.add_edges_from(invis_edges)
-        A = netx.to_agraph(netx_graph2)
-        A.add_subgraph(name_nodes, rank='same')
-    else:
-        netx_graph2 = netx_graph
-        A = netx.to_agraph(netx_graph2)
-    args = ''
-    G = netx_graph
-    A.layout(prog=prog, args=args)
-    #A.draw('example.png', prog='dot')
-    node_pos = {}
-    for n in G:
-        node_ = pygraphviz.Node(A, n)
-        try:
-            xx, yy = node_.attr["pos"].split(',')
-            node_pos[n] = (float(xx), float(yy))
-        except:
-            print("no position for node", n)
-            node_pos[n] = (0.0, 0.0)
-    return node_pos
+    if not ut.get_argval('--hackmarkov'):
+        fnum = pt.ensure_fnum(None)
+        fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
+        ax = pt.gca()
+        netx_graph = model.to_junction_tree()
+        # prettify nodes
+        def fixtupkeys(dict_):
+            return {
+                ', '.join(k) if isinstance(k, tuple) else k: fixtupkeys(v)
+                for k, v in dict_.items()
+            }
+        n = fixtupkeys(netx_graph.node)
+        e = fixtupkeys(netx_graph.edge)
+        a = fixtupkeys(netx_graph.adj)
+        netx_graph.node = n
+        netx_graph.edge = e
+        netx_graph.adj = a
+        #netx_graph = model.to_markov_model()
+        #pos = netx.pygraphviz_layout(netx_graph)
+        #pos = netx.graphviz_layout(netx_graph)
+        pos = netx.pydot_layout(netx_graph)
+        node_color = [pt.WHITE] * len(pos)
+        drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
+                      node_size=2000)
+        netx.draw(netx_graph, **drawkw)
+        if kwargs.get('show_title', True):
+            pt.set_figtitle('Junction/Clique Tree / Cluster Graph')
 
 
 def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
@@ -621,7 +767,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
 
 
 def show_model(model, evidence=None, suff='', factor_list=None,
-               marginalized_joints=None, soft_evidence={}, show_prior=False, ):
+               marginalized_joints=None, soft_evidence={}, show_prior=False, **kwargs):
     """
     References:
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
@@ -637,6 +783,10 @@ def show_model(model, evidence=None, suff='', factor_list=None,
         pip install pygraphviz
         python -c "import pygraphviz; print(pygraphviz.__file__)"
     """
+    if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
+        draw_tree_model(model, **kwargs)
+        return
+
     import plottool as pt
     import networkx as netx
     import matplotlib as mpl
@@ -754,16 +904,19 @@ def show_model(model, evidence=None, suff='', factor_list=None,
         fig = pt.gcf()
 
         title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
-        max_marginal_list = []
-        for name, marginal in marginalized_joints.items():
-            # ut.embed()
-            states = list(ut.iprod(*marginal.statenames))
-            vals = marginal.values.ravel()
-            x = vals.argmax()
-            max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
-            # title += str(marginal)
-        title += '\n' + '\n'.join(max_marginal_list)
-        pt.set_figtitle(title, size=14)
+        map_assign = kwargs.get('map_assign', None)
+        #max_marginal_list = []
+        #for name, marginal in marginalized_joints.items():
+        #    # ut.embed()
+        #    states = list(ut.iprod(*marginal.statenames))
+        #    vals = marginal.values.ravel()
+        #    x = vals.argmax()
+        #    max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
+        # title += str(marginal)
+        if map_assign is not None:
+            title += '\nMAP=' + ut.repr2(map_assign)
+        if kwargs.get('show_title', True):
+            pt.set_figtitle(title, size=14)
         #pt.set_xlabel()
 
         def hack_fix_centeralign():

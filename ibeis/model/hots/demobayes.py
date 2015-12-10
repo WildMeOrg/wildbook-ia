@@ -60,12 +60,49 @@ def classify_one_new_unknown():
 
     constkw = dict(
         num_annots=3, num_names=3,
-        name_evidence=[0]
+        #name_evidence=[{0: .51}]
+        name_evidence=[],
         #name_evidence=[0, 0, 1, 1, None],
         #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
         #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
     )
-    test_model(score_evidence=['low', 'low', 'high'], mode=1, show_prior=True, **constkw)
+    test_model(
+        mode=1, show_prior=True,
+        # lll and llh have strikingly different
+        # probability of M marginals
+        score_evidence=['low', 'low', 'high'],
+        other_evidence={
+            'Mab': False,
+            'Mac': False,
+            'Mbc': True,
+        },
+        **constkw)
+
+
+def test_triangle_property():
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-test_triangle_property --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> result = test_triangle_property()
+        >>> ut.show_if_requested()
+    """
+    constkw = dict(
+        num_annots=3, num_names=3,
+        name_evidence=[],
+    )
+    test_model(
+        mode=1, show_prior=True,
+        other_evidence={
+            'Mab': False,
+            'Mac': False,
+            #'Na': 'fred',
+            #'Nb': 'sue',
+        },
+        **constkw)
 
 
 def demo_structure():
@@ -216,8 +253,9 @@ def demo_ambiguity():
     """
     constkw = dict(
         num_annots=3, num_names=3,
+        name_evidence=[0],
         #name_evidence=[],
-        name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
+        #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
     test_model(score_evidence=['low', 'low', 'high'], mode=5, show_prior=True, **constkw)
 
