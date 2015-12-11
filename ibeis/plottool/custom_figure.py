@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from os.path import exists, splitext, join, split
+import six
 import utool as ut
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
 import functools
 from plottool import custom_constants
+import matplotlib.gridspec as gridspec  # NOQA
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[customfig]')
 ut.noinject(__name__, '[customfig]')
 
@@ -72,12 +75,53 @@ def _convert_pnum_int_to_tup(int_pnum):
     return pnum
 
 
-def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
+def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
            doclf=False, projection=None, **kwargs):
     """
+    TODO: gridspec
+    http://matplotlib.org/users/gridspec.html
+
     Args:
         fnum (int):  fignum = figure number
         pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple
+
+    Args:
+        fnum (int): fignum = figure number
+        pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple
+        docla (bool): (default = False)
+        title (str):  (default = None)
+        figtitle (None): (default = None)
+        doclf (bool): (default = False)
+        projection (None): (default = None)
+
+    Returns:
+        ?: fig
+
+    CommandLine:
+        python -m plottool.custom_figure --exec-figure:0 --show
+        python -m plottool.custom_figure --exec-figure:1 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> fnum = 1
+        >>> fig = figure(fnum, (2, 2, 1))
+        >>> gca().text(0.5, 0.5, "ax1", va="center", ha="center")
+        >>> fig = figure(fnum, (2, 2, 2))
+        >>> gca().text(0.5, 0.5, "ax2", va="center", ha="center")
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> fnum = 1
+        >>> fig = figure(fnum, (2, 2, 1))
+        >>> gca().text(0.5, 0.5, "ax1", va="center", ha="center")
+        >>> fig = figure(fnum, (2, 2, 2))
+        >>> gca().text(0.5, 0.5, "ax2", va="center", ha="center")
+        >>> fig = figure(fnum, (2, 4, (1, slice(1, None))))
+        >>> gca().text(0.5, 0.5, "ax3", va="center", ha="center")
+        >>> ut.show_if_requested()
     """
     #mpl.pyplot.xkcd()
     fig = get_fig(fnum)
@@ -86,6 +130,21 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     customize_figure(fig, docla)
     if ut.is_int(pnum):
         pnum = _convert_pnum_int_to_tup(pnum)
+
+    def pnum_to_subspec(pnum):
+        if isinstance(pnum, six.string_types):
+            pnum = list(pnum)
+        #if isinstance(pnum, (list, tuple)):
+        nrow, ncols, plotnum = pnum
+
+        # Convert old pnums to gridspec
+        gs = gridspec.GridSpec(nrow, ncols)
+        if isinstance(plotnum, (tuple, slice, list)):
+            subspec = gs[plotnum]
+        else:
+            subspec = gs[plotnum - 1]
+        return subspec
+
     if doclf:  # a bit hacky. Need to rectify docla and doclf
         fig.clf()
         # <HACK TO CLEAR AXES>
@@ -102,14 +161,19 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
-            ax = fig.add_subplot(*pnum, projection=projection)
+            subspec = pnum_to_subspec(pnum)
+            ax = fig.add_subplot(subspec, projection=projection)
+            #ax = fig.add_subplot(*pnum, projection=projection)
             ax.cla()
         else:
             ax = gca()
     else:
         #printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
-            ax = plt.subplot(*pnum)  # fig.add_subplot fails here
+            subspec = pnum_to_subspec(pnum)
+            ax = plt.subplot(subspec)
+            #ax = plt.subplot(nrow, ncols, plotnum)
+            #ax = plt.subplot(*pnum)  # fig.add_subplot fails here
             #ax = fig.add_subplot(*pnum)
         else:
             ax = gca()
@@ -417,3 +481,15 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True, size=12
     window_figtitle = ('fig(%d) ' % fig.number) + figtitle
     window_figtitle = window_figtitle.replace('\n', ' ')
     fig.canvas.set_window_title(window_figtitle)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m plottool.custom_figure
+        python -m plottool.custom_figure --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

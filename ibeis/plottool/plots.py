@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-# Standard
 import warnings
 from six.moves import zip, range
 from plottool import draw_func2 as df2
-# Matplotlib
+import six
 import scipy.stats
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
@@ -257,7 +257,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     valid_vals = ut.dict_take(plot_list_kw, valid_keys)
     plot_kw_list = [dict(zip(valid_keys, vals)) for vals in zip(*valid_vals)]
 
-    extra_kw_keys = extra_plot_kw_keys
+    extra_kw_keys = [key for key in extra_plot_kw_keys if key in plot_list_kw]
     extra_kw_vals = ut.dict_take(plot_list_kw, extra_kw_keys)
     extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
@@ -361,9 +361,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ymin = kwargs.get('ymin', ax.get_ylim()[0])
     ymax = kwargs.get('ymax', ax.get_ylim()[1])
 
-    if xmax == 'data':
+    text_type = six.text_type
+
+    if text_type(xmax) == 'data':
         xmax = xdata.max()
-    if xmin == 'data':
+    if text_type(xmin) == 'data':
         xmin = xdata.min()
 
     # Setup axes ticks
@@ -1690,6 +1692,24 @@ def draw_time_histogram(unixtime_list, **kwargs):
                   #ymax=num_yticks - 1,
                   ylabel='Freq', xlabel='Time', **kwargs)
     pass
+
+
+def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
+                   xtick_rotation=0, transpose=False,
+                   **kwargs):
+    import plottool as pt
+    xints = np.arange(len(bin_labels))
+    width = .95
+    pt.multi_plot(xints, [bin_values], xpad=0, ypad_high=.5,
+                  #kind='plot',
+                  kind='bar',
+                  width=width,
+                  xtick_rotation=xtick_rotation,
+                  #num_yticks=num_yticks,
+                  xticklabels=bin_labels, xmin=-1, xmax=len(xints),
+                  transpose=transpose,
+                  #ymax=num_yticks - 1,
+                  ylabel=ylabel, xlabel=xlabel, **kwargs)
 
 
 def draw_time_distribution(unixtime_list):
