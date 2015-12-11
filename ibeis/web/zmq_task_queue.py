@@ -824,11 +824,16 @@ def collector_loop():
             elif action == 'job_result':
                 # From a Client
                 jobid = collect_request['jobid']
-                engine_result = collecter_data[jobid]
-                json_result = engine_result['json_result']
-                reply['jobid'] = jobid
-                reply['status'] = 'ok'
-                reply['json_result'] = json_result
+                try:
+                    engine_result = collecter_data[jobid]
+                    json_result = engine_result['json_result']
+                    reply['jobid'] = jobid
+                    reply['status'] = 'ok'
+                    reply['json_result'] = json_result
+                except KeyError:
+                    reply['jobid'] = jobid
+                    reply['status'] = 'invalid'
+                    reply['json_result'] = None
             else:
                 # Other
                 print('...error unknown action=%r' % (action,))
