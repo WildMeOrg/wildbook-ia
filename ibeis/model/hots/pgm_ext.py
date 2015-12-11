@@ -80,7 +80,7 @@ class TemplateCPD(object):
                 start = stop - len(special_basis_pool)
                 num_special = min(len(special_basis_pool), state_card)
                 basis = special_basis_pool[0:num_special]
-            if (state_card - num_special) > 0:
+            if (state_card - num_special) >= 0:
                 start = num_special
                 basis = basis + [state_pref + str(i) for i in range(start, stop)]
         if varpref is None:
@@ -171,10 +171,13 @@ class TemplateCPD(object):
 
         # --- MAKE TABLE VALUES
         if pmf_func is not None:
-            values = np.array([
-                [pmf_func(vstate, *estates) for estates in evidence_states]
-                for vstate in self.basis
-            ])
+            if isinstance(pmf_func, list):
+                values = np.array(pmf_func)
+            else:
+                values = np.array([
+                    [pmf_func(vstate, *estates) for estates in evidence_states]
+                    for vstate in self.basis
+                ])
             ensure_normalized = True
             if ensure_normalized:
                 values = values / values.sum(axis=0)
@@ -265,7 +268,7 @@ def _debug_repr_model(model):
         input_graph = {edges}
         model = pgmpy.models.BayesianModel(input_graph)
         model.add_cpds(*cpd_list)
-        model_inference = pgmpy.inference.BeliefPropagation(model)
+        infr = pgmpy.inference.BeliefPropagation(model)
         ''')
 
     code = code_fmt.format(
@@ -290,6 +293,13 @@ def _debug_repr_cpd(cpd):
             evidence_card={evidence_card_repr},
         )
         ''')
+    keys = ['variable', 'variable_card', 'values', 'evidence', 'evidence_card']
+    dict_ = ut.odict(zip(keys, [getattr(cpd, key) for key in keys]))
+    # HACK
+    dict_['values'] = cpd.get_cpd()
+    r = ut.repr2(dict_, explicit=True, nobraces=True, nl=True)
+    print(r)
+
     # Parse props that are needed for this fmtstr
     fmt_keys = [match.groups()[0] for match in re.finditer('{(.*?)}', code_fmt)]
     need_reprs = [key[:-5] for key in fmt_keys if key.endswith('_repr')]
@@ -341,14 +351,14 @@ def coin_example():
         >>> model = coin_example()
         >>> model.print_templates()
         >>> model.print_priors()
-        >>> model_inference = pgmpy.inference.VariableElimination(model)
+        >>> infr = pgmpy.inference.VariableElimination(model)
         >>> print('Observe nothing')
-        >>> factor_list1 = model_inference.query(['T02'], {}).values()
+        >>> factor_list1 = infr.query(['T02'], {}).values()
         >>> print_factors(model, factor_list1)
         >>> #
         >>> print('Observe that toss 1 was heads')
-        >>> evidence = model_inference._ensure_internal_evidence({'T01': 'heads'}, model)
-        >>> factor_list2 = model_inference.query(['T02'], evidence).values()
+        >>> evidence = infr._ensure_internal_evidence({'T01': 'heads'}, model)
+        >>> factor_list2 = infr.query(['T02'], evidence).values()
         >>> print_factors(model, factor_list2)
         >>> #
         >>> phi1 = factor_list1[0]
@@ -357,12 +367,12 @@ def coin_example():
         >>> print('Slightly more likely that you will see heads in the second coin toss')
         >>> #
         >>> print('Observe nothing')
-        >>> factor_list1 = model_inference.query(['T02'], {}).values()
+        >>> factor_list1 = infr.query(['T02'], {}).values()
         >>> print_factors(model, factor_list1)
         >>> #
         >>> print('Observe that toss 1 was tails')
-        >>> evidence = model_inference._ensure_internal_evidence({'T01': 'tails'}, model)
-        >>> factor_list2 = model_inference.query(['T02'], evidence).values()
+        >>> evidence = infr._ensure_internal_evidence({'T01': 'tails'}, model)
+        >>> factor_list2 = infr.query(['T02'], evidence).values()
         >>> print_factors(model, factor_list2)
         >>> ut.quit_if_noshow()
         >>> netx.draw_graphviz(model, with_labels=True)
@@ -400,21 +410,27 @@ def mustbe_example():
         >>> model = mustbe_example()
         >>> model.print_templates()
         >>> model.print_priors()
-        >>> #model_inference = pgmpy.inference.VariableElimination(model)
-        >>> model_inference = pgmpy.inference.BeliefPropagation(model)
+        >>> #infr = pgmpy.inference.VariableElimination(model)
+        >>> infr = pgmpy.inference.BeliefPropagation(model)
         >>> print('Observe: ' + ','.join(model.pretty_evidence({})))
-        >>> factor_list1 = model_inference.query(['N0'], {}).values()
+        >>> factor_list1 = infr.query(['N0'], {}).values()
+        >>> map1 = infr.map_query(['N0'], evidence)
+        >>> print('map1 = %r' % (map1,))
         >>> print_factors(model, factor_list1)
         >>> #
-        >>> evidence = model_inference._ensure_internal_evidence({'F0': 'true'}, model)
+        >>> evidence = infr._ensure_internal_evidence({'F0': 'true'}, model)
         >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
-        >>> factor_list2 = model_inference.query(['N0'], evidence).values()
+        >>> factor_list2 = infr.query(['N0'], evidence).values()
+        >>> map2 = infr.map_query(['N0'], evidence)
+        >>> print('map2 = %r' % (map2,))
         >>> print_factors(model, factor_list2)
         >>> #
-        >>> evidence = model_inference._ensure_internal_evidence({'F0': 'false'}, model)
+        >>> evidence = infr._ensure_internal_evidence({'F0': 'false'}, model)
         >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
-        >>> factor_list3 = model_inference.query(['N0'], evidence).values()
-        >>> print_factors(model, factor_list2)
+        >>> factor_list3 = infr.query(['N0'], evidence).values()
+        >>> map3 = infr.map_query(['N0'], evidence)
+        >>> print('map3 = %r' % (map3,))
+        >>> print_factors(model, factor_list3)
         >>> #
         >>> phi1 = factor_list1[0]
         >>> phi2 = factor_list2[0]
@@ -443,6 +459,47 @@ def mustbe_example():
     name_cpd = name_cpd_t.new_cpd(0)
     isfred_cpd = isfred_cpd_t.new_cpd(parents=[name_cpd])
     model = define_model([name_cpd, isfred_cpd])
+    return model
+
+
+def map_example():
+    """
+    Simple example where observing F0 forces N0 to take on a value.
+
+    CommandLine:
+        python -m ibeis.model.hots.pgm_ext --exec-map_example
+
+    References:
+        https://class.coursera.org/pgm-003/lecture/44
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+        >>> model = map_example()
+        >>> ut.quit_if_noshow()
+        >>> netx.draw_graphviz(model, with_labels=True)
+        >>> ut.show_if_requested()
+
+    Ignore:
+        from ibeis.model.hots.pgm_ext import _debug_repr_model
+        _debug_repr_model(model)
+    """
+    # https://class.coursera.org/pgm-003/lecture/44
+    a_cpd_t = TemplateCPD(
+        'A', ['0', '1'], varpref='A', pmf_func=[[.4], [.6]])
+    b_cpd_t = TemplateCPD(
+        'B', ['0', '1'], varpref='B',
+        evidence_ttypes=[a_cpd_t], pmf_func=[[.1, .5], [.9, .5]])
+    a_cpd = a_cpd_t.new_cpd(0)
+    b_cpd = b_cpd_t.new_cpd(parents=[a_cpd])
+    model = define_model([a_cpd, b_cpd])
+    model.print_templates()
+    model.print_priors()
+    infr = pgmpy.inference.VariableElimination(model)
+    marg_factors = infr.query(['A0', 'B0']).values()
+    print_factors(model, marg_factors)
+    map_res = infr.map_query()
+    print('map_res = %r' % (map_res,))
     return model
 
 

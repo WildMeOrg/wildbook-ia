@@ -31,12 +31,13 @@ def one_test():
 
 
 def classify_one_new_unknown():
-    """
+    r"""
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
         python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose
         python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --show --verbose --present
+        python3 -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -58,25 +59,76 @@ def classify_one_new_unknown():
         #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
         #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'low', 'low', 'low', 'low'], mode=1, show_prior=True, **constkw)
 
+    #from ibeis.model.hots.demobayes import *
     constkw = dict(
         num_annots=3, num_names=3,
-        #name_evidence=[{0: .51}]
-        name_evidence=[],
         #name_evidence=[0, 0, 1, 1, None],
         #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
         #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
+        #name_evidence=[{0: .51}]
+        name_evidence=[],
     )
-    test_model(
-        mode=1, show_prior=True,
+    model, evidence = test_model(
+        mode=1, show_prior=False,
         # lll and llh have strikingly different
         # probability of M marginals
         score_evidence=['low', 'low', 'high'],
         other_evidence={
-            'Mab': False,
-            'Mac': False,
-            'Mbc': True,
+            #'Mab': 'diff',
+            #'Mac': 'diff',
+            #'Mbc': 'same',
+            #'Sab': 'low',
+            #'Sac': 'low',
+            #'Sbc': 'high',
         },
         **constkw)
+
+    if False:
+        #from ibeis.model.hots import pgm_ext
+        import pgmpy
+        import pgmpy.models
+        import pgmpy.inference
+        assert isinstance(model, pgmpy.models.BayesianModel)
+
+        cpds = model.ttype2_cpds['score']
+        ut.embed()
+        #model1 = model.copy()
+        model.remove_cpds(*cpds)
+
+        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        query_vars = ut.setdiff_ordered(query_vars, ['Sab', 'Sbc', 'Sac'])
+
+        infr = pgmpy.inference.VariableElimination(model)
+        #infr = pgmpy.inference.BeliefPropagation(model)
+        #variables = query_vars
+        map_assign = infr.map_query(query_vars, evidence)
+        print('map_assign = %r' % (map_assign,))
+        #infr.max_marginal(query_vars)
+        infr.map_query(query_vars)
+
+        #model
+
+        #from pgmpy.factors.Factor import factor_product
+        #self = infr
+        #elimination_order = None
+
+        # MAP estimate
+        # argmax_y P(Y=y | E=e)
+        joint = model.joint_distribution()
+        j1 = joint.evidence_based_reduction(evidence=evidence)
+        print(j1._str(tablefmt='psql', sort=-1))
+
+        ut.embed()
+
+        new_rows = j1._row_labels()
+        new_vals = j1.values.ravel()
+        new_vals2 = new_vals.compress(new_vals > 0)
+        new_row2 = ut.compress(new_rows, new_vals > 0)
+        print('new_vals2 = %r' % (new_vals2,))
+        print('new_row2 = %r' % (new_row2,))
+        print(j1.marginalize(['Na', 'Nb'], inplace=False))
+        print(j1.marginalize(['Nc', 'Na'], inplace=False))
+        print(j1.marginalize(['Nb', 'Nc'], inplace=False))
 
 
 def test_triangle_property():
@@ -257,7 +309,7 @@ def demo_ambiguity():
         #name_evidence=[],
         #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    test_model(score_evidence=['low', 'low', 'high'], mode=5, show_prior=True, **constkw)
+    test_model(score_evidence=['low', 'low', 'high'], mode=1, show_prior=True, **constkw)
 
     ## We will end up making annots a and b fred and c and d sue
     #constkw = dict(
@@ -336,7 +388,7 @@ def demo_annot_idependence_overlap():
 
 
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-demo_annot_idependence_overlap --verbose --present
+        python -m ibeis.model.hots.demobayes --exec-demo_annot_idependence_overlap --verbose --present --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -346,13 +398,15 @@ def demo_annot_idependence_overlap():
     """
     # We will end up making annots a and b fred and c and d sue
     constkw = dict(
-        num_annots=4, num_names=5,
+        num_annots=4, num_names=4,
         name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}, {3: '+eps'}],
         #name_evidence=[{0: .9}, None, None, {1: .9}]
         #name_evidence=[0, None, None, None]
         #name_evidence=[0, None, None, None]
     )
     test_model(score_evidence=['high', 'high', 'high', None, None, None], **constkw)
+    test_model(score_evidence=['high', 'high', 'low', None, None, None], **constkw)
+    test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
 
 
 def demo_modes():
@@ -360,7 +414,7 @@ def demo_modes():
     Look at the last result of the different names demo under differet modes
     """
     constkw = dict(
-        num_annots=4, num_names=5,
+        num_annots=4, num_names=8,
         score_evidence=['high', 'low', 'low', 'low', 'low', 'high'],
         #name_evidence=[{0: .9}, None, None, {1: .9}],
         #name_evidence=[0, None, None, 1],

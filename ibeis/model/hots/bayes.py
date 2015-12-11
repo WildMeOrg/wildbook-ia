@@ -105,7 +105,8 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
         #        for fs_ in ut.ichunks(cpds, 4):
         #            ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), 'purple')
 
-    model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+    model, evidence, soft_evidence = update_model_evidence(
+        model, name_evidence, score_evidence, other_evidence)
 
     if verbose:
         ut.colorprint('\n --- Soft Evidence ---', 'white')
@@ -120,21 +121,15 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
 
     if (len(evidence) > 0 or len(soft_evidence) > 0) and not noquery:
         interest_ttypes = ['name']
-        model_inference = pgmpy.inference.VariableElimination(model)
-        #model_inference = pgmpy.inference.BeliefPropagation(model)
-        evidence = model_inference._ensure_internal_evidence(evidence, model)
-        query_results = try_query(model, model_inference, evidence, interest_ttypes, verbose=verbose)
+        infr = pgmpy.inference.VariableElimination(model)
+        #infr = pgmpy.inference.BeliefPropagation(model)
+        evidence = infr._ensure_internal_evidence(evidence, model)
+        query_results = try_query(
+            model, infr, evidence, interest_ttypes, verbose=verbose)
     else:
-        query_results = {
-            'factor_list': [],
-            'joint_factor': None,
-            'marginalized_joints': {},
-            'map_assign': None,
-        }
+        query_results = {}
 
     factor_list = query_results['factor_list']
-    marginalized_joints = query_results['marginalized_joints']
-    map_assign = query_results['map_assign']
 
     if verbose:
         if verbose:
@@ -147,14 +142,26 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
             for fs_ in ut.ichunks(factors, 4):
                 ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
                               'yellow')
-        print('Joint Factors')
-        for ttype, marginal in marginalized_joints.items():
-            print('Marginal Joint %s Factors' % (ttype,))
-            ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
+        print('MAP assignments')
+        top_assignments = query_results.get('top_assignments', [])
+        tmp = []
+        for lbl, val in top_assignments:
+            tmp.append('%s : %.4f' % (ut.repr2(lbl), val))
+        print(ut.align('\n'.join(tmp), ' :'))
+
+        #print('Joint Factors')
+        #for ttype, marginal in marginalized_joints.items():
+        #    print('Marginal Joint %s Factors' % (ttype,))
+        #    ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         print('L_____\n')
 
-    show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence,  show_prior=show_prior, map_assign=map_assign)
-    return (model,)
+    showkw = dict(evidence=evidence,
+                  soft_evidence=soft_evidence,
+                  show_prior=show_prior,
+                  **query_results)
+
+    show_model(model, **showkw)
+    return (model, evidence)
     # print_ascii_graph(model)
 
 
@@ -243,10 +250,7 @@ def name_model_mode5(num_annots, num_names=None, verbose=True, mode=1):
 
 def name_model_mode1(num_annots, num_names=None, verbose=True):
     r"""
-    Args:
-        num_annots (int):
-        num_names (int): (default = None)
-        verbose (bool):  verbosity flag(default = True)
+    spaghettii
 
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-name_model_mode1 --show
@@ -260,7 +264,7 @@ def name_model_mode1(num_annots, num_names=None, verbose=True):
         >>> kw = ut.argparse_funckw(name_model_mode1, defaults)
         >>> model = name_model_mode1(**kw)
         >>> ut.quit_if_noshow()
-        >>> show_model(model, {}, '', [], {}, {},  show_prior=False, show_title=False)
+        >>> show_model(model, show_prior=False, show_title=False)
         >>> ut.show_if_requested()
 
     Ignore:
@@ -333,12 +337,11 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.bayes import *  # NOQA
-        >>> #defaults = dict(num_annots=5, num_names=3, verbose=True, mode=1)
         >>> defaults = dict(num_annots=2, num_names=2, verbose=True, mode=2)
         >>> kw = ut.argparse_funckw(make_name_model, defaults)
         >>> model = make_name_model(**kw)
         >>> ut.quit_if_noshow()
-        >>> show_model(model, {}, '', [], {}, {},  show_prior=True)
+        >>> show_model(model, show_prior=True)
         >>> ut.show_if_requested()
     """
     #annots = ut.chr_range(num_annots, base='a')
@@ -391,12 +394,12 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         val = score_lookup[n1 == n2][score_type]
         return val
 
-    def dup_pmf(True, match_type):
+    def dup_pmf(dupstate, match_type):
         lookup = {
             'same': {'True': 0.5, 'False': 0.5},
             'diff': {'True': 0.0, 'False': 1.0}
         }
-        return lookup[match_type][True]
+        return lookup[match_type][dupstate]
 
     def check_pmf(n0, n1, match_type):
         pass
@@ -605,7 +608,7 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
     return model, evidence, soft_evidence
 
 
-def try_query(model, model_inference, evidence, interest_ttypes=[], verbose=True):
+def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     r"""
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-try_query --show
@@ -620,51 +623,95 @@ def try_query(model, model_inference, evidence, interest_ttypes=[], verbose=True
         >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
         >>> model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
         >>> interest_ttypes = ['name']
-        >>> model_inference = pgmpy.inference.BeliefPropagation(model)
-        >>> evidence = model_inference._ensure_internal_evidence(evidence, model)
-        >>> query_results = try_query(model, model_inference, evidence, interest_ttypes, verbose)
+        >>> infr = pgmpy.inference.BeliefPropagation(model)
+        >>> evidence = infr._ensure_internal_evidence(evidence, model)
+        >>> query_results = try_query(model, infr, evidence, interest_ttypes, verbose)
         >>> result = ('query_results = %s' % (str(query_results),))
-        >>> factor_list = query_results['factor_list']
-        >>> marginalized_joints = query_results['marginalized_joints']
         >>> ut.quit_if_noshow()
-        >>> show_model(model, evidence, '', factor_list, marginalized_joints, soft_evidence, show_prior=True)
+        >>> show_model(model, show_prior=True, **query_results)
         >>> ut.show_if_requested()
 
     Ignore:
         query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-        probs = model_inference.query(query_vars, evidence)
-        map_assignment = model_inference.map_query(query_vars, evidence)
+        probs = infr.query(query_vars, evidence)
+        map_assignment = infr.map_query(query_vars, evidence)
     """
+    import vtool as vt
     query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+    # hack
+    query_vars = ut.setdiff_ordered(query_vars, ut.list_getattr(model.ttype2_cpds['score'], 'variable'))
     if verbose:
         evidence_str = ', '.join(model.pretty_evidence(evidence))
         print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
-
     # Compute all marginals
-    probs = model_inference.query(query_vars, evidence)
-    #probs = model_inference.query(query_vars, evidence)
+    probs = infr.query(query_vars, evidence)
+    #probs = infr.query(query_vars, evidence)
     factor_list = probs.values()
-
-    #ut.embed()
     # Compute MAP joints
-    map_assign = model_inference.map_query(query_vars, evidence)
-
+    # There is a bug here.
+    #map_assign = infr.map_query(query_vars, evidence)
     # (probably an invalid thing to do)
-    joint_factor = pgmpy.factors.factor_product(*factor_list)
+    #joint_factor = pgmpy.factors.factor_product(*factor_list)
+    # Brute force MAP
+    query_vars2 = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
+    query_vars2 = ut.setdiff_ordered(query_vars2, list(evidence.keys()))
+    joint = model.joint_distribution()
+    joint.evidence_based_reduction(
+        query_vars2, evidence, inplace=True)
+    # Relabel rows based on the knowledge that everything
+    # is the same, only the names have changed.
+    new_rows = joint._row_labels()
+    cpd_t = model.ttype2_cpds['name'][0]._template_
+    basis = cpd_t.basis
+    def relabel_names(names, basis=basis):
+        names = list(map(six.text_type, names))
+        mapping = {}
+        for n in names:
+            if n not in mapping:
+                mapping[n] = len(mapping)
+        new_names = tuple([basis[mapping[n]] for n in names])
+        return new_names
+    relabeled_rows = list(map(relabel_names, new_rows))
+    data_ids = np.array(vt.other.compute_unique_data_ids_(relabeled_rows))
+    unique_ids, groupxs = vt.group_indices(data_ids)
+    reduced_row_lbls = ut.take(relabeled_rows, ut.get_list_column(groupxs, 0))
+    reduced_values = np.array([
+        g.sum() for g in vt.apply_grouping(joint.values.ravel(), groupxs)
+    ])
+    sortx = reduced_values.argsort()[::-1]
+    reduced_row_lbls = ut.take(reduced_row_lbls, sortx.tolist())
+    reduced_values = reduced_values[sortx]
+    # Better map assignment based on knowledge of labels
+    map_assign = reduced_row_lbls[0]
 
+    reduced_row_lbls = [','.join(x) for x in reduced_row_lbls]
+
+    top_assignments = list(zip(reduced_row_lbls[:3], reduced_values))
+    if len(reduced_values) > 3:
+        top_assignments += [('other', 1 - sum(reduced_values[:3]))]
+
+    #map_assign = joint.map_bruteforce(query_vars, evidence)
+    #joint.reduce(evidence)
+    ## Marginalize over non-query, non-evidence
+    #irrelevant_vars = ut.setdiff_ordered(joint.variables, list(evidence.keys()) + query_vars)
+    #joint.marginalize(irrelevant_vars)
+    #joint.normalize()
+    #new_rows = joint._row_labels()
+    #new_vals = joint.values.ravel()
+    #map_vals = new_rows[new_vals.argmax()]
+    #map_assign = dict(zip(joint.variables, map_vals))
     # Compute Marginalized MAP joints
-    marginalized_joints = {}
-    for ttype in interest_ttypes:
-        other_vars = [v for v in joint_factor.scope()
-                      if model.var2_cpd[v].ttype != ttype]
-        marginal = joint_factor.marginalize(other_vars, inplace=False)
-        marginalized_joints[ttype] = marginal
-
+    #marginalized_joints = {}
+    #for ttype in interest_ttypes:
+    #    other_vars = [v for v in joint_factor.scope()
+    #                  if model.var2_cpd[v].ttype != ttype]
+    #    marginal = joint_factor.marginalize(other_vars, inplace=False)
+    #    marginalized_joints[ttype] = marginal
     query_results = {
         'factor_list': factor_list,
-        'joint_factor': joint_factor,
+        'top_assignments': top_assignments,
         'map_assign': map_assign,
-        'marginalized_joints': marginalized_joints,
+        'marginalized_joints': None,
     }
     return query_results
 
@@ -766,8 +813,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     return node_pos
 
 
-def show_model(model, evidence=None, suff='', factor_list=None,
-               marginalized_joints=None, soft_evidence={}, show_prior=False, **kwargs):
+def show_model(model, evidence=None, soft_evidence={}, **kwargs):
     """
     References:
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
@@ -782,6 +828,9 @@ def show_model(model, evidence=None, suff='', factor_list=None,
         # pip install git+git://github.com/pygraphviz/pygraphviz.git
         pip install pygraphviz
         python -c "import pygraphviz; print(pygraphviz.__file__)"
+
+        sudo pip3 install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+        python3 -c "import pygraphviz; print(pygraphviz.__file__)"
     """
     if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
         draw_tree_model(model, **kwargs)
@@ -791,9 +840,10 @@ def show_model(model, evidence=None, suff='', factor_list=None,
     import networkx as netx
     import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
-    fig = pt.figure(fnum=fnum, doclf=True)  # NOQA
+    fig = pt.figure(fnum=fnum, pnum=(3, 1, (slice(0, 2), 0)), doclf=True)  # NOQA
+    #fig = pt.figure(fnum=fnum, pnum=(3, 2, (1, slice(1, 2))), doclf=True)  # NOQA
     ax = pt.gca()
-    var2_post = {f.variables[0]: f for f in factor_list}
+    var2_post = {f.variables[0]: f for f in kwargs.get('factor_list', [])}
 
     netx_graph = (model)
     #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
@@ -820,7 +870,7 @@ def show_model(model, evidence=None, suff='', factor_list=None,
             if cpd.ttype == 'score':
                 pass
         drawkw['node_color'] = node_colors
-        #ut.embed()
+
     netx.draw(netx_graph, **drawkw)
 
     if True:
@@ -854,6 +904,7 @@ def show_model(model, evidence=None, suff='', factor_list=None,
                           cpd.marginalize(cpd.evidence, inplace=False))
 
             prior_text = None
+
             text = None
             if variable in evidence:
                 text = cpd.variable_statenames[evidence[variable]]
@@ -865,7 +916,10 @@ def show_model(model, evidence=None, suff='', factor_list=None,
                 if len(evidence) == 0 and len(soft_evidence) == 0:
                     prior_text = pgm_ext.make_factor_text(prior_marg, 'prior_marginal')
 
-            if text is not None:
+            show_post = kwargs.get('show_post', False)
+            show_prior = kwargs.get('show_prior', False)
+            show_ev = (evidence is not None and variable in evidence)
+            if (show_post or show_ev) and text is not None:
                 offset_box = mpl.offsetbox.TextArea(text, textprops)
                 artist = mpl.offsetbox.AnnotationBbox(
                     # offset_box, (x + 5, y), xybox=(20., 5.),
@@ -907,14 +961,13 @@ def show_model(model, evidence=None, suff='', factor_list=None,
         map_assign = kwargs.get('map_assign', None)
         #max_marginal_list = []
         #for name, marginal in marginalized_joints.items():
-        #    # ut.embed()
         #    states = list(ut.iprod(*marginal.statenames))
         #    vals = marginal.values.ravel()
         #    x = vals.argmax()
         #    max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
         # title += str(marginal)
         if map_assign is not None:
-            title += '\nMAP=' + ut.repr2(map_assign)
+            title += '\nMAP=' + ut.repr2(map_assign, strvals=True)
         if kwargs.get('show_title', True):
             pt.set_figtitle(title, size=14)
         #pt.set_xlabel()
@@ -939,151 +992,20 @@ def show_model(model, evidence=None, suff='', factor_list=None,
                     A.translate((z.x1 - z.x0) / 2, 0)
                     offset_box._text.set_transform(T + A)
         hack_fix_centeralign()
+    top_assignments = kwargs.get('top_assignments', None)
+    if top_assignments is not None:
+        bin_labels = ut.get_list_column(top_assignments, 0)
+        bin_vals =  ut.get_list_column(top_assignments, 1)
+        pt.draw_histogram(bin_labels, bin_vals, fnum=fnum, pnum=(3, 8, (2, slice(1, None))),
+                          transpose=True,
+                          use_darkbackground=False,
+                          #xtick_rotation=-10,
+                          ylabel='Prob', xlabel='assignment')
+        pt.set_title('Assignment probabilities')
+
     #fpath = ('name_model_' + suff + '.png')
     #pt.plt.savefig(fpath)
     #return fpath
-
-
-def flow():
-    """
-    http://pmneila.github.io/PyMaxflow/maxflow.html#maxflow-fastmin
-
-    pip install PyMaxFlow
-    pip install pystruct
-    pip install hdbscan
-    """
-    # Toy problem representing attempting to discover names via annotation
-    # scores
-
-    import pystruct  # NOQA
-    import pystruct.models  # NOQA
-    import networkx as netx  # NOQA
-
-    import vtool as vt
-    num_annots = 10
-    num_names = num_annots
-    hidden_nids = np.random.randint(0, num_names, num_annots)
-    unique_nids, groupxs = vt.group_indices(hidden_nids)
-
-    toy_params = {
-        True: {'mu': 1.0, 'sigma': 2.2},
-        False: {'mu': 7.0, 'sigma': .9}
-    }
-
-    if True:
-        import plottool as pt
-        xdata = np.linspace(0, 100, 1000)
-        tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
-        fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
-        pt.plot_probabilities([tp_pdf, fp_pdf], ['TP', 'TF'], xdata=xdata)
-
-    def metric(aidx1, aidx2, hidden_nids=hidden_nids, toy_params=toy_params):
-        if aidx1 == aidx2:
-            return 0
-        rng = np.random.RandomState(int(aidx1 + aidx2))
-        same = hidden_nids[int(aidx1)] == hidden_nids[int(aidx2)]
-        mu, sigma = ut.dict_take(toy_params[same], ['mu', 'sigma'])
-        return np.clip(rng.normal(mu, sigma), 0, np.inf)
-
-    pairwise_aidxs = list(ut.iprod(range(num_annots), range(num_annots)))
-    pairwise_labels = np.array([hidden_nids[a1] == hidden_nids[a2] for a1, a2 in pairwise_aidxs])
-    pairwise_scores = np.array([metric(*zz) for zz in pairwise_aidxs])
-    pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
-    if num_annots <= 10:
-        print(ut.repr2(pairwise_scores_mat, precision=1))
-
-    #aids = list(range(num_annots))
-    #g = netx.DiGraph()
-    #g.add_nodes_from(aids)
-    #g.add_edges_from([(tup[0], tup[1], {'weight': score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])
-    #netx.draw_graphviz(g)
-    #pr = netx.pagerank(g)
-
-    X = pairwise_scores
-    Y = pairwise_labels
-
-    encoder = vt.ScoreNormalizer()
-    encoder.fit(X, Y)
-    encoder.visualize()
-
-    # meanshift clustering
-    import sklearn
-    bandwidth = sklearn.cluster.estimate_bandwidth(X[:, None])  # , quantile=quantile, n_samples=500)
-    assert bandwidth != 0, ('[enc] bandwidth is 0. Cannot cluster')
-    # bandwidth is with respect to the RBF used in clustering
-    #ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
-    ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=False)
-    ms.fit(X[:, None])
-    label_arr = ms.labels_
-    unique_labels = np.unique(label_arr)
-    max_label = max(0, unique_labels.max())
-    num_orphans = (label_arr == -1).sum()
-    label_arr[label_arr == -1] = np.arange(max_label + 1, max_label + 1 + num_orphans)
-
-    X_data = np.arange(num_annots)[:, None].astype(np.int64)
-
-    #graph = pystruct.models.GraphCRF(
-    #    n_states=None,
-    #    n_features=None,
-    #    inference_method='lp',
-    #    class_weight=None,
-    #    directed=False,
-    #)
-
-    import scipy
-    import scipy.cluster
-    import scipy.cluster.hierarchy
-
-    thresh = 2.0
-    labels = scipy.cluster.hierarchy.fclusterdata(X_data, thresh, metric=metric)
-    unique_lbls, lblgroupxs = vt.group_indices(labels)
-    print(groupxs)
-    print(lblgroupxs)
-    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
-    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
-    #X_data, seconds_thresh, criterion='distance')
-
-    #help(hdbscan.HDBSCAN)
-
-    import hdbscan
-    alg = hdbscan.HDBSCAN(metric=metric, min_cluster_size=1, p=1, gen_min_span_tree=1, min_samples=2)
-    labels = alg.fit_predict(X_data)
-    labels[labels == -1] = np.arange(np.sum(labels == -1)) + labels.max() + 1
-    unique_lbls, lblgroupxs = vt.group_indices(labels)
-    print(groupxs)
-    print(lblgroupxs)
-    print('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
-    print('common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),))
-
-    #import ddbscan
-    #help(ddbscan.DDBSCAN)
-    #alg = ddbscan.DDBSCAN(2, 2)
-
-    #D = np.zeros((len(aids), len(aids) + 1))
-    #D.T[-1] = np.arange(len(aids))
-
-    ## Can alpha-expansion be used when the pairwise potentials are not in a grid?
-
-    #hidden_ut.group_items(aids, hidden_nids)
-    if False:
-        import maxflow
-        #from maxflow import fastmin
-        # Create a graph with integer capacities.
-        g = maxflow.Graph[int](2, 2)
-        # Add two (non-terminal) nodes. Get the index to the first one.
-        nodes = g.add_nodes(2)
-        # Create two edges (forwards and backwards) with the given capacities.
-        # The indices of the nodes are always consecutive.
-        g.add_edge(nodes[0], nodes[1], 1, 2)
-        # Set the capacities of the terminal edges...
-        # ...for the first node.
-        g.add_tedge(nodes[0], 2, 5)
-        # ...for the second node.
-        g.add_tedge(nodes[1], 9, 4)
-        g = maxflow.Graph[float](2, 2)
-        g.maxflow()
-        g.get_nx_graph()
-        g.get_segment(nodes[0])
 
 
 if __name__ == '__main__':

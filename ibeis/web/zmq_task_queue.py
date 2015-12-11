@@ -279,6 +279,28 @@ def start_detect_image(ibs, image_uuid_list, species=None):
 def get_job_status(ibs, jobid):
     """
     Web call that returns the status of a job
+
+    CommandLine:
+        # Run Everything together
+        python -m ibeis.web.zmq_task_queue --exec-get_job_status
+
+        # Start job queue in its own process
+        python -m ibeis.web.zmq_task_queue --main --bg
+        # Start web server in its own process
+        ./dev.py --web
+        pass
+        # Run foreground process
+        python -m ibeis.web.zmq_task_queue --exec-get_job_status:0 --fg
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.zmq_task_queue import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', wait=3)  # , domain='http://52.33.105.88')
+        >>> # Test get status of a job id that does not exist
+        >>> response = web_ibs.send_ibeis_request('/api/core/get_job_status/', jobid='badjob')
+        >>> web_ibs.terminate2()
+
     """
     status = ibs.job_manager.jobiface.get_job_status(jobid)
     return status
@@ -327,7 +349,7 @@ def test_zmq_task():
         dbdir = sysres.get_args_dbdir('cache', False, None, None,
                                       cache_priority=False)
         reciever.initialize_background_processes(dbdir)
-        print('parent process is looping forever')
+        print('[testzmq] parent process is looping forever')
         while True:
             time.sleep(1)
     elif ut.get_argflag('--fg'):

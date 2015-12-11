@@ -2081,6 +2081,7 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None,
         python -m ibeis --db PZ_MTEST --web
         python -m ibeis --db PZ_MTEST --web --browser
     """
+    print('[web] start_from_ibeis()')
     if precache is None:
         precache = ut.get_argflag('--precache')
 
@@ -2094,13 +2095,16 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=None,
         ibs.compute_all_chips()
 
     if start_job_queue:
+        print('[web] opening job manager')
         ibs.load_plugin_module(zmq_task_queue)
         #import time
         #time.sleep(1)
         ibs.initialize_job_manager()
         #time.sleep(10)
 
+    print('[web] starting tornado')
     start_tornado(ibs, port, browser, url_suffix)
+    print('[web] closing job manager')
     ibs.close_job_manager()
 
 
