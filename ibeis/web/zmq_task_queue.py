@@ -194,6 +194,8 @@ def start_identify_annots(ibs, qannot_uuid_list, adata_annot_uuid_list=None,
         >>> jobid = ibs.start_identify_annots(qannot_uuid_list, adata_annot_uuid_list, pipecfg)
         >>> result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)
         >>> print(result)
+        >>> import utool as ut
+        >>> print(ut.to_json(result))
         >>> ibs.close_job_manager()
 
     Example:
