@@ -544,9 +544,10 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     def as_dict(cm):
         return cm.__getstate__()
 
-    def as_simple_dict(cm):
+    def as_simple_dict(cm, keys=[]):
         state_dict = cm.__getstate__()
-        simple_dict = ut.dict_subset(state_dict, ['qaid', 'daid_list', 'score_list'])
+        keys = ['qaid', 'daid_list', 'score_list'] + keys
+        simple_dict = ut.dict_subset(state_dict, keys)
         return simple_dict
 
     def __getstate__(cm):

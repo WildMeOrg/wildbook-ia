@@ -1372,7 +1372,11 @@ class IBEISController(BASE_CLASS):
         if return_cm or return_cm_dict or return_cm_simple_dict:
             # Convert to cm_list
             if return_cm_simple_dict:
-                cm_list = [cm.as_simple_dict() for cm in cm_list]
+                for cm in cm_list:
+                    cm.qauuid = ibs.get_annot_uuids(cm.qaid)
+                    cm.dauuid_list = ibs.get_annot_uuids(cm.daid_list)
+                keys = ['qauuid', 'dauuid_list']
+                cm_list = [cm.as_simple_dict(keys) for cm in cm_list]
             elif return_cm_dict:
                 cm_list = [cm.as_dict() for cm in cm_list]
             else:
