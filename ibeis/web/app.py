@@ -5,8 +5,10 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 import random
 from os.path import join, exists, splitext, basename
+import uuid
 import zipfile
 import time
+import six
 import math
 import tornado.wsgi
 import tornado.httpserver
@@ -1636,9 +1638,8 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
 
     Example:
         >>> # WEB_DOCTEST
-        >>> import uuid
-        >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
         >>> web_instance = ibeis.opendb(db='testdb1')
         >>> _payload = {
         >>>     'image_uri_list': [
@@ -1668,8 +1669,6 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         >>> print(web_instance.get_image_paths(gid_list))
         >>> print(web_instance.get_image_uris_original(gid_list))
     """
-    import uuid
-
     def _get_standard_ext(gpath):
         ext = splitext(gpath)[1].lower()
         return '.jpg' if ext == '.jpeg' else ext
@@ -1696,7 +1695,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         ext = _get_standard_ext(uri)
 
         uuid_ = _resolve(image_uuid_list, assert_=True)
-        if isinstance(uuid_, (str, unicode)):
+        if isinstance(uuid_, six.string_types):
             uuid_ = uuid.UUID(uuid_)
 
         param_tup = (
@@ -1758,7 +1757,6 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         python -m ibeis.web.app --test-add_annots_json
 
     Example:
-        >>> import uuid
         >>> import ibeis
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> web_instance = ibeis.opendb(db='testdb1')
@@ -1773,7 +1771,7 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         >>>     ],
         >>>     'annot_bbox_list': [
         >>>         [0, 0, 1992, 1328],
-        >>>>        [0, 0, 1194, 401],
+        >>>         [0, 0, 1194, 401],
         >>>     ],
         >>> }
         >>> aid_list = ibeis.web.app.add_annots_json(web_instance, **_payload)
@@ -1782,11 +1780,14 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         >>> print(web_instance.get_annot_uuids(aid_list))
         >>> print(web_instance.get_annot_bboxes(aid_list))
     """
-    import uuid
 
     image_uuid_list = [
-        uuid.UUID(uuid_) if isinstance(uuid_, (str, unicode)) else uuid_
+        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
         for uuid_ in image_uuid_list
+    ]
+    annot_uuid_list = [
+        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
+        for uuid_ in annot_uuid_list
     ]
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     aid_list = ibs.add_annots(gid_list, annot_uuid_list=annot_uuid_list,  # NOQA
