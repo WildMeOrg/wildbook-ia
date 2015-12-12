@@ -665,6 +665,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     new_rows = joint._row_labels()
     new_vals = joint.values.ravel()
     # HACK
+    ut.embed()
     new_rows = [('fred',) + x for x in new_rows]
     #new_vals = [('fred',) + x for x in new_rows]
     cpd_t = model.ttype2_cpds['name'][0]._template_
