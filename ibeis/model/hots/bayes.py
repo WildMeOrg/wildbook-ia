@@ -655,12 +655,18 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
     # Brute force MAP
     query_vars2 = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
     query_vars2 = ut.setdiff_ordered(query_vars2, list(evidence.keys()))
+    # TODO: incorporate case where Na is assigned to Fred
+    #evidence_h = ut.delete_keys(evidence.copy(), ['Na'])
     joint = model.joint_distribution()
     joint.evidence_based_reduction(
         query_vars2, evidence, inplace=True)
     # Relabel rows based on the knowledge that everything
     # is the same, only the names have changed.
     new_rows = joint._row_labels()
+    new_vals = joint.values.ravel()
+    # HACK
+    new_rows = [('fred',) + x for x in new_rows]
+    #new_vals = [('fred',) + x for x in new_rows]
     cpd_t = model.ttype2_cpds['name'][0]._template_
     basis = cpd_t.basis
     def relabel_names(names, basis=basis):
@@ -672,12 +678,14 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         new_names = tuple([basis[mapping[n]] for n in names])
         return new_names
     relabeled_rows = list(map(relabel_names, new_rows))
-    data_ids = np.array(vt.other.compute_unique_data_ids_(relabeled_rows))
-    unique_ids, groupxs = vt.group_indices(data_ids)
-    reduced_row_lbls = ut.take(relabeled_rows, ut.get_list_column(groupxs, 0))
-    reduced_values = np.array([
-        g.sum() for g in vt.apply_grouping(joint.values.ravel(), groupxs)
-    ])
+    import utool
+    with utool.embed_on_exception_context:
+        data_ids = np.array(vt.other.compute_unique_data_ids_(relabeled_rows))
+        unique_ids, groupxs = vt.group_indices(data_ids)
+        reduced_row_lbls = ut.take(relabeled_rows, ut.get_list_column(groupxs, 0))
+        reduced_values = np.array([
+            g.sum() for g in vt.apply_grouping(new_vals, groupxs)
+        ])
     sortx = reduced_values.argsort()[::-1]
     reduced_row_lbls = ut.take(reduced_row_lbls, sortx.tolist())
     reduced_values = reduced_values[sortx]

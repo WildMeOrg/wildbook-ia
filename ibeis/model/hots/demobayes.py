@@ -30,6 +30,38 @@ def one_test():
     # draw_tree_model(model)
 
 
+def checkchallenge():
+    r"""
+    Make a model that knows who the previous annots are and tries to classify a new annot
+
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-checkchallenge --show --verbose --present
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> result = checkchallenge()
+        >>> ut.show_if_requested()
+    """
+
+    constkw = dict(
+        num_annots=3, num_names=3,
+        #name_evidence=[0, 0, 1, 1, None],
+        #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
+        #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
+        #name_evidence=[{0: .51}]
+        name_evidence=[0],
+    )
+    model, evidence = test_model(
+        mode=1,
+        other_evidence={
+            'Sab': 0,
+            'Sac': 0,
+            'Sbc': 1,
+        },
+        **constkw)
+
+
 def classify_one_new_unknown():
     r"""
     Make a model that knows who the previous annots are and tries to classify a new annot
