@@ -41,6 +41,7 @@ def define_model(cpd_list):
     model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
     model._templates = list(set([cpd._template_
                                  for cpd in model.var2_cpd.values()]))
+    model.ttype2_template = {t.ttype: t for t in model._templates}
 
     def pretty_evidence(model, evidence):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])

@@ -30,36 +30,33 @@ def one_test():
     # draw_tree_model(model)
 
 
-def checkchallenge():
+def chuckchallenge():
     r"""
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-checkchallenge --show --verbose --present
+        python -m ibeis.model.hots.demobayes --exec-chuckchallenge --diskshow --verbose --present --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> result = checkchallenge()
+        >>> result = chuckchallenge()
         >>> ut.show_if_requested()
     """
 
     constkw = dict(
         num_annots=3, num_names=3,
-        #name_evidence=[0, 0, 1, 1, None],
-        #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
-        #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
-        #name_evidence=[{0: .51}]
-        name_evidence=[0],
+        # name_evidence=[None, None, {0: .99}],
+        # name_evidence=[1, 0, None],
     )
     model, evidence = test_model(
         mode=1,
-        other_evidence={
-            'Sab': 0,
-            'Sac': 0,
-            'Sbc': 1,
-        },
+        other_evidence={'Sab': 'high', 'Sac': 'high', 'Sbc': 'low'},
         **constkw)
+    # model, evidence = test_model(
+    #     mode=1,
+    #     other_evidence={ 'Sab': 0, 'Sac': 0 },
+    #     **constkw)
 
 
 def classify_one_new_unknown():
@@ -70,6 +67,7 @@ def classify_one_new_unknown():
         python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose
         python -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --show --verbose --present
         python3 -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose
+        python3 -m ibeis.model.hots.demobayes --exec-classify_one_new_unknown --verbose --diskshow --verbose --present --save demo5.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -93,12 +91,7 @@ def classify_one_new_unknown():
 
     #from ibeis.model.hots.demobayes import *
     constkw = dict(
-        num_annots=3, num_names=3,
-        #name_evidence=[0, 0, 1, 1, None],
-        #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
-        #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
-        #name_evidence=[{0: .51}]
-        name_evidence=[],
+        num_annots=4, num_names=4,
     )
     model, evidence = test_model(
         mode=1, show_prior=False,
@@ -106,61 +99,55 @@ def classify_one_new_unknown():
         # probability of M marginals
         score_evidence=['low', 'low', 'high'],
         other_evidence={
-            #'Mab': 'diff',
-            #'Mac': 'diff',
-            #'Mbc': 'same',
-            #'Sab': 'low',
-            #'Sac': 'low',
-            #'Sbc': 'high',
         },
         **constkw)
 
-    if False:
-        #from ibeis.model.hots import pgm_ext
-        import pgmpy
-        import pgmpy.models
-        import pgmpy.inference
-        assert isinstance(model, pgmpy.models.BayesianModel)
+    # if False:
+    #     #from ibeis.model.hots import pgm_ext
+    #     import pgmpy
+    #     import pgmpy.models
+    #     import pgmpy.inference
+    #     assert isinstance(model, pgmpy.models.BayesianModel)
 
-        cpds = model.ttype2_cpds['score']
-        ut.embed()
-        #model1 = model.copy()
-        model.remove_cpds(*cpds)
+    #     cpds = model.ttype2_cpds['score']
+    #     ut.embed()
+    #     #model1 = model.copy()
+    #     model.remove_cpds(*cpds)
 
-        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-        query_vars = ut.setdiff_ordered(query_vars, ['Sab', 'Sbc', 'Sac'])
+    #     query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+    #     query_vars = ut.setdiff_ordered(query_vars, ['Sab', 'Sbc', 'Sac'])
 
-        infr = pgmpy.inference.VariableElimination(model)
-        #infr = pgmpy.inference.BeliefPropagation(model)
-        #variables = query_vars
-        map_assign = infr.map_query(query_vars, evidence)
-        print('map_assign = %r' % (map_assign,))
-        #infr.max_marginal(query_vars)
-        infr.map_query(query_vars)
+    #     infr = pgmpy.inference.VariableElimination(model)
+    #     #infr = pgmpy.inference.BeliefPropagation(model)
+    #     #variables = query_vars
+    #     map_assign = infr.map_query(query_vars, evidence)
+    #     print('map_assign = %r' % (map_assign,))
+    #     #infr.max_marginal(query_vars)
+    #     infr.map_query(query_vars)
 
-        #model
+    #     #model
 
-        #from pgmpy.factors.Factor import factor_product
-        #self = infr
-        #elimination_order = None
+    #     #from pgmpy.factors.Factor import factor_product
+    #     #self = infr
+    #     #elimination_order = None
 
-        # MAP estimate
-        # argmax_y P(Y=y | E=e)
-        joint = model.joint_distribution()
-        j1 = joint.evidence_based_reduction(evidence=evidence)
-        print(j1._str(tablefmt='psql', sort=-1))
+    #     # MAP estimate
+    #     # argmax_y P(Y=y | E=e)
+    #     joint = model.joint_distribution()
+    #     j1 = joint.evidence_based_reduction(evidence=evidence)
+    #     print(j1._str(tablefmt='psql', sort=-1))
 
-        ut.embed()
+    #     ut.embed()
 
-        new_rows = j1._row_labels()
-        new_vals = j1.values.ravel()
-        new_vals2 = new_vals.compress(new_vals > 0)
-        new_row2 = ut.compress(new_rows, new_vals > 0)
-        print('new_vals2 = %r' % (new_vals2,))
-        print('new_row2 = %r' % (new_row2,))
-        print(j1.marginalize(['Na', 'Nb'], inplace=False))
-        print(j1.marginalize(['Nc', 'Na'], inplace=False))
-        print(j1.marginalize(['Nb', 'Nc'], inplace=False))
+    #     new_rows = j1._row_labels()
+    #     new_vals = j1.values.ravel()
+    #     new_vals2 = new_vals.compress(new_vals > 0)
+    #     new_row2 = ut.compress(new_rows, new_vals > 0)
+    #     print('new_vals2 = %r' % (new_vals2,))
+    #     print('new_row2 = %r' % (new_row2,))
+    #     print(j1.marginalize(['Na', 'Nb'], inplace=False))
+    #     print(j1.marginalize(['Nc', 'Na'], inplace=False))
+    #     print(j1.marginalize(['Nb', 'Nc'], inplace=False))
 
 
 def test_triangle_property():

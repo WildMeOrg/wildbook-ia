@@ -88,7 +88,7 @@ import pgmpy.models
 from ibeis.model.hots import pgm_ext
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
-SPECIAL_BASIS_POOL = ['fred', 'sue', 'paul']
+SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
@@ -618,9 +618,10 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         >>> from ibeis.model.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
-        >>> name_evidence = [0, 0, 1, 1, None]
-        >>> score_evidence = ['high', 'low', 'low', 'low', 'low', 'high']
-        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
+        >>> name_evidence = [1, None, 0, None]
+        >>> score_evidence = ['high', 'low', 'low']
+        >>> query_vars = None
+        >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
         >>> model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
         >>> interest_ttypes = ['name']
         >>> infr = pgmpy.inference.BeliefPropagation(model)
@@ -636,93 +637,292 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
         probs = infr.query(query_vars, evidence)
         map_assignment = infr.map_query(query_vars, evidence)
     """
-    import vtool as vt
-    query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-    # hack
-    query_vars = ut.setdiff_ordered(query_vars, ut.list_getattr(model.ttype2_cpds['score'], 'variable'))
-    if verbose:
-        evidence_str = ', '.join(model.pretty_evidence(evidence))
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
-    # Compute all marginals
-    probs = infr.query(query_vars, evidence)
-    #probs = infr.query(query_vars, evidence)
-    factor_list = probs.values()
-    # Compute MAP joints
-    # There is a bug here.
-    #map_assign = infr.map_query(query_vars, evidence)
-    # (probably an invalid thing to do)
-    #joint_factor = pgmpy.factors.factor_product(*factor_list)
-    # Brute force MAP
-    query_vars2 = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
-    query_vars2 = ut.setdiff_ordered(query_vars2, list(evidence.keys()))
-    # TODO: incorporate case where Na is assigned to Fred
-    #evidence_h = ut.delete_keys(evidence.copy(), ['Na'])
-    joint = model.joint_distribution()
-    joint.evidence_based_reduction(
-        query_vars2, evidence, inplace=True)
-    # Relabel rows based on the knowledge that everything
-    # is the same, only the names have changed.
-    new_rows = joint._row_labels()
-    new_vals = joint.values.ravel()
-    # HACK
-    ut.embed()
-    new_rows = [('fred',) + x for x in new_rows]
-    #new_vals = [('fred',) + x for x in new_rows]
-    cpd_t = model.ttype2_cpds['name'][0]._template_
-    basis = cpd_t.basis
-    def relabel_names(names, basis=basis):
-        names = list(map(six.text_type, names))
-        mapping = {}
-        for n in names:
-            if n not in mapping:
-                mapping[n] = len(mapping)
-        new_names = tuple([basis[mapping[n]] for n in names])
-        return new_names
-    relabeled_rows = list(map(relabel_names, new_rows))
-    import utool
-    with utool.embed_on_exception_context:
+    def bruteforce(model, query_vars=None, evidence=None):
+        import vtool as vt
+        full_joint = model.joint_distribution()
+        if query_vars is None:
+            query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        reduced_joint = full_joint.evidence_based_reduction(query_vars, evidence, inplace=False)
+
+        evidence_vars = list(evidence.keys())
+        evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
+        evidence_ttypes = [model.var2_cpd[var].ttype for var in evidence_vars]
+
+        reduced_variables = reduced_joint.variables
+        reduced_row_idxs = np.array(reduced_joint._row_labels(asindex=True))
+        reduced_values = reduced_joint.values.ravel()
+        reduced_ttypes = [model.var2_cpd[var].ttype for var in reduced_variables]
+
+        # ttype2_ev_vars = ut.group_items(evidence_vars, evidence_ttypes)
+        # ttype2_ev_idxs = ut.group_items(evidence_state_idxs, evidence_ttypes)
+        ttype2_ev_indices = ut.group_items(range(len(evidence_vars)), evidence_ttypes)
+        ttype2_re_indices = ut.group_items(range(len(reduced_variables)), reduced_ttypes)
+
+        # Allow specific types of labels to change
+        # everything is the same, only the names have changed.
+        # TODO: allow for multiple different label_ttypes
+        # for label_ttype in label_ttypes
+        label_ttypes = ['name']
+        label_ttype = label_ttypes[0]
+        ev_colxs = ttype2_ev_indices[label_ttype]
+        re_colxs = ttype2_re_indices[label_ttype]
+
+        # ev_variables = ut.take(evidence_vars, ev_colxs)
+        # ut.take(reduced_variables, re_colxs)
+
+        ev_state_idxs = ut.take(evidence_state_idxs, ev_colxs)
+        ev_state_idxs_tile = np.tile(ev_state_idxs, (len(reduced_values), 1)).astype(np.int)
+        num_ev_ = len(ev_colxs)
+
+        aug_colxs = list(range(num_ev_)) + (np.array(re_colxs) + num_ev_).tolist()
+        # aug_variables = ev_variables + reduced_variables
+        aug_state_idxs = np.hstack([ev_state_idxs_tile, reduced_row_idxs])
+
+        # Relabel rows based on the knowledge that
+        # everything is the same, only the names have changed.
+        def make_temp_state(state):
+            mapping = {}
+            for state_idx in state:
+                if state_idx not in mapping:
+                    mapping[state_idx] = -(len(mapping) + 1)
+            temp_state = [mapping[state_idx] for state_idx in state]
+            return temp_state
+
+        num_cols = len(aug_state_idxs.T)
+        mask = vt.index_to_boolmask(aug_colxs, num_cols)
+        other_colxs, = np.where(~mask)
+        relbl_states = aug_state_idxs.compress(mask, axis=1)
+        other_states = aug_state_idxs.compress(~mask, axis=1)
+        tmp_relbl_states = np.array(list(map(make_temp_state, relbl_states)))
+
+        max_tmp_state = -1
+        min_tmp_state = tmp_relbl_states.min()
+
+        # rebuild original state structure with temp state idxs
+        tmp_state_cols = [None] * num_cols
+        for count, colx in enumerate(aug_colxs):
+            tmp_state_cols[colx] = tmp_relbl_states[:, count:count + 1]
+        for count, colx in enumerate(other_colxs):
+            tmp_state_cols[colx] = other_states[:, count:count + 1]
+        tmp_state_idxs = np.hstack(tmp_state_cols)
+
+        data_ids = np.array(vt.other.compute_unique_data_ids_(map(tuple, tmp_state_idxs)))
+        unique_ids, groupxs = vt.group_indices(data_ids)
+        # Sum the values in the cpd to marginalize the duplicate probs
+        new_values = np.array([
+            g.sum() for g in vt.apply_grouping(reduced_values, groupxs)
+        ])
+        # Take only the unique rows under this induced labeling
+        unique_tmp_groupxs = np.array(ut.get_list_column(groupxs, 0))
+        new_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
+
+        tmp_idx_set = set((-np.arange(-max_tmp_state, (-min_tmp_state) + 1)).tolist())
+        true_idx_set = set(range(len(model.ttype2_template[label_ttype].basis)))
+
+        # Relabel the rows one more time to agree with initial constraints
+        for colx, true_idx in enumerate(ev_state_idxs):
+            tmp_idx = np.unique(new_state_idxs.T[colx])
+            assert len(tmp_idx) == 1
+            tmp_idx_set -= {tmp_idx[0]}
+            true_idx_set -= {true_idx}
+            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+        # Relabel the remaining idxs
+        remain_tmp_idxs = sorted(list(tmp_idx_set))[::-1]
+        remain_true_idxs = sorted(list(true_idx_set))
+        for tmp_idx, true_idx in zip(remain_tmp_idxs, remain_true_idxs):
+            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+
+        # Remove evidence based labels
+        # new_vars_ = new_vars[len(given_name_vars):]
+        new_state_idxs_ = new_state_idxs.T[num_ev_:].T
+
+        # hack into a new joint factor (that is the same size as the reduced_joint)
+        new_reduced_joint = reduced_joint.copy()
+        new_reduced_joint.values[:] = 0
+        flat_idxs = np.ravel_multi_index(new_state_idxs_.T, new_reduced_joint.values.shape)
+
+        old_values = new_reduced_joint.values.ravel()
+        old_values[flat_idxs] = new_values
+        new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
+        # print(new_reduced_joint._str(maxrows=4, sort=-1))
+
+        max_marginals = {}
+        for i, var in enumerate(query_vars):
+            one_out = query_vars[:i] + query_vars[i + 1:]
+            max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
+            # max_marginals[var] = joint2.maximize(one_out, inplace=False)
+
+        factor_list = max_marginals.values()
+
+        # Now find the most likely state
+        sortx = new_values.argsort()[::-1]
+        sort_new_state_idxs_ = new_state_idxs_.take(sortx, axis=0)
+        sort_new_values = new_values.take(sortx)
+        reduced_joint.variables
+        sort_new_states = list(zip(*[ut.dict_take(reduced_joint.statename_dict[var], idx) for var, idx in zip(reduced_joint.variables, sort_new_state_idxs_.T)]))
+
+        # Better map assignment based on knowledge of labels
+        map_assign = dict(zip(reduced_joint.variables, sort_new_states[0]))
+
+        sort_reduced_rowstr_lbls = [
+            ut.repr2(dict(zip(reduced_joint.variables, lbls)), explicit=True, nobraces=True,
+                     strvals=True)
+            for lbls in sort_new_states
+        ]
+
+        top_assignments = list(zip(sort_reduced_rowstr_lbls[:4], sort_new_values))
+        if len(sort_new_values) > 3:
+            top_assignments += [('other', 1 - sum(sort_new_values[:4]))]
+        query_results = {
+            'factor_list': factor_list,
+            'top_assignments': top_assignments,
+            'map_assign': map_assign,
+            'marginalized_joints': None,
+        }
+        return query_results
+    if True:
+        return bruteforce(model, query_vars=None, evidence=evidence)
+    else:
+        import vtool as vt
+        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        # hack
+        query_vars = ut.setdiff_ordered(query_vars, ut.list_getattr(model.ttype2_cpds['score'], 'variable'))
+        if verbose:
+            evidence_str = ', '.join(model.pretty_evidence(evidence))
+            print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ') = ')
+        # Compute MAP joints
+        # There is a bug here.
+        #map_assign = infr.map_query(query_vars, evidence)
+        # (probably an invalid thing to do)
+        #joint_factor = pgmpy.factors.factor_product(*factor_list)
+        # Brute force MAP
+
+        name_vars = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
+        query_name_vars = ut.setdiff_ordered(name_vars, list(evidence.keys()))
+        # TODO: incorporate case where Na is assigned to Fred
+        #evidence_h = ut.delete_keys(evidence.copy(), ['Na'])
+
+        joint = model.joint_distribution()
+        joint.evidence_based_reduction(
+            query_name_vars, evidence, inplace=True)
+
+        # Find static row labels in the evidence
+        given_name_vars = [var for var in name_vars if var in evidence]
+        given_name_idx = ut.dict_take(evidence, given_name_vars)
+        given_name_val = [joint.statename_dict[var][idx]
+                          for var, idx in zip(given_name_vars, given_name_idx)]
+        new_vals = joint.values.ravel()
+        # Add static evidence variables to the relabeled name states
+        new_vars = given_name_vars + joint.variables
+        new_rows = [tuple(given_name_val) + row for row in joint._row_labels()]
+        # Relabel rows based on the knowledge that
+        # everything is the same, only the names have changed.
+        temp_basis = [i for i in range(model.num_names)]
+        def relabel_names(names, temp_basis=temp_basis):
+            names = list(map(six.text_type, names))
+            mapping = {}
+            for n in names:
+                if n not in mapping:
+                    mapping[n] = len(mapping)
+            new_names = tuple([temp_basis[mapping[n]] for n in names])
+            return new_names
+        relabeled_rows = list(map(relabel_names, new_rows))
+        # Combine probability of rows with the same (new) label
         data_ids = np.array(vt.other.compute_unique_data_ids_(relabeled_rows))
         unique_ids, groupxs = vt.group_indices(data_ids)
         reduced_row_lbls = ut.take(relabeled_rows, ut.get_list_column(groupxs, 0))
+        reduced_row_lbls = list(map(list, reduced_row_lbls))
         reduced_values = np.array([
             g.sum() for g in vt.apply_grouping(new_vals, groupxs)
         ])
-    sortx = reduced_values.argsort()[::-1]
-    reduced_row_lbls = ut.take(reduced_row_lbls, sortx.tolist())
-    reduced_values = reduced_values[sortx]
-    # Better map assignment based on knowledge of labels
-    map_assign = reduced_row_lbls[0]
+        # Relabel the rows one more time to agree with initial constraints
+        used_ = []
+        replaced = []
+        for colx, (var, val) in enumerate(zip(given_name_vars, given_name_val)):
+            # All columns must be the same for this labeling
+            alias = reduced_row_lbls[0][colx]
+            reduced_row_lbls = ut.list_replace(reduced_row_lbls, alias, val)
+            replaced.append(alias)
+            used_.append(val)
+        basis = model.ttype2_cpds['name'][0]._template_.basis
+        find_remain_ = ut.setdiff_ordered(temp_basis, replaced)
+        repl_remain_ = ut.setdiff_ordered(basis, used_)
+        for find, repl in zip(find_remain_, repl_remain_):
+            reduced_row_lbls = ut.list_replace(reduced_row_lbls, find, repl)
 
-    reduced_row_lbls = [','.join(x) for x in reduced_row_lbls]
+        # Now find the most likely state
+        sortx = reduced_values.argsort()[::-1]
+        sort_reduced_row_lbls = ut.take(reduced_row_lbls, sortx.tolist())
+        sort_reduced_values = reduced_values[sortx]
 
-    top_assignments = list(zip(reduced_row_lbls[:3], reduced_values))
-    if len(reduced_values) > 3:
-        top_assignments += [('other', 1 - sum(reduced_values[:3]))]
+        # Remove evidence based labels
+        new_vars_ = new_vars[len(given_name_vars):]
+        sort_reduced_row_lbls_ = ut.get_list_column(sort_reduced_row_lbls, slice(len(given_name_vars), None))
 
-    #map_assign = joint.map_bruteforce(query_vars, evidence)
-    #joint.reduce(evidence)
-    ## Marginalize over non-query, non-evidence
-    #irrelevant_vars = ut.setdiff_ordered(joint.variables, list(evidence.keys()) + query_vars)
-    #joint.marginalize(irrelevant_vars)
-    #joint.normalize()
-    #new_rows = joint._row_labels()
-    #new_vals = joint.values.ravel()
-    #map_vals = new_rows[new_vals.argmax()]
-    #map_assign = dict(zip(joint.variables, map_vals))
-    # Compute Marginalized MAP joints
-    #marginalized_joints = {}
-    #for ttype in interest_ttypes:
-    #    other_vars = [v for v in joint_factor.scope()
-    #                  if model.var2_cpd[v].ttype != ttype]
-    #    marginal = joint_factor.marginalize(other_vars, inplace=False)
-    #    marginalized_joints[ttype] = marginal
-    query_results = {
-        'factor_list': factor_list,
-        'top_assignments': top_assignments,
-        'map_assign': map_assign,
-        'marginalized_joints': None,
-    }
-    return query_results
+        sort_reduced_row_lbls_[0]
+
+        # hack into a new joint factor
+        var_states = ut.lmap(ut.unique_keep_order, zip(*sort_reduced_row_lbls_))
+        statename_dict = dict(zip(new_vars, var_states))
+        cardinality = ut.lmap(len, var_states)
+        val_lookup = dict(zip(ut.lmap(tuple, sort_reduced_row_lbls_), sort_reduced_values))
+        values = np.zeros(np.prod(cardinality))
+        for idx, state in enumerate(ut.iprod(*var_states)):
+            if state in val_lookup:
+                values[idx] = val_lookup[state]
+        joint2 = pgmpy.factors.Factor(new_vars_, cardinality, values, statename_dict=statename_dict)
+        print(joint2)
+        max_marginals = {}
+        for i, var in enumerate(query_name_vars):
+            one_out = query_name_vars[:i] + query_name_vars[i + 1:]
+            max_marginals[var] = joint2.marginalize(one_out, inplace=False)
+            # max_marginals[var] = joint2.maximize(one_out, inplace=False)
+        print(joint2.marginalize(['Nb', 'Nc'], inplace=False))
+        factor_list = max_marginals.values()
+
+        # Better map assignment based on knowledge of labels
+        map_assign = dict(zip(new_vars_, sort_reduced_row_lbls_[0]))
+
+        sort_reduced_rowstr_lbls = [
+            ut.repr2(dict(zip(new_vars, lbls)), explicit=True, nobraces=True,
+                     strvals=True)
+            for lbls in sort_reduced_row_lbls_
+        ]
+
+        top_assignments = list(zip(sort_reduced_rowstr_lbls[:3], sort_reduced_values))
+        if len(sort_reduced_values) > 3:
+            top_assignments += [('other', 1 - sum(sort_reduced_values[:3]))]
+
+        # import utool
+        # utool.embed()
+
+        # Compute all marginals
+        # probs = infr.query(query_vars, evidence)
+        #probs = infr.query(query_vars, evidence)
+        # factor_list = probs.values()
+
+        ## Marginalize over non-query, non-evidence
+        #irrelevant_vars = ut.setdiff_ordered(joint.variables, list(evidence.keys()) + query_vars)
+        #joint.marginalize(irrelevant_vars)
+        #joint.normalize()
+        #new_rows = joint._row_labels()
+        #new_vals = joint.values.ravel()
+        #map_vals = new_rows[new_vals.argmax()]
+        #map_assign = dict(zip(joint.variables, map_vals))
+        # Compute Marginalized MAP joints
+        #marginalized_joints = {}
+        #for ttype in interest_ttypes:
+        #    other_vars = [v for v in joint_factor.scope()
+        #                  if model.var2_cpd[v].ttype != ttype]
+        #    marginal = joint_factor.marginalize(other_vars, inplace=False)
+        #    marginalized_joints[ttype] = marginal
+        query_results = {
+            'factor_list': factor_list,
+            'top_assignments': top_assignments,
+            'map_assign': map_assign,
+            'marginalized_joints': None,
+        }
+        return query_results
 
 
 def draw_tree_model(model, **kwargs):
@@ -822,7 +1022,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     return node_pos
 
 
-def show_model(model, evidence=None, soft_evidence={}, **kwargs):
+def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     """
     References:
         http://stackoverflow.com/questions/22207802/pygraphviz-networkx-set-node-level-or-layer
@@ -919,20 +1119,23 @@ def show_model(model, evidence=None, soft_evidence={}, **kwargs):
                 text = cpd.variable_statenames[evidence[variable]]
             elif variable in var2_post:
                 post_marg = var2_post[variable]
-                text = pgm_ext.make_factor_text(post_marg, 'post_marginal')
-                prior_text = pgm_ext.make_factor_text(prior_marg, 'prior_marginal')
+                text = pgm_ext.make_factor_text(post_marg, 'post')
+                prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
             else:
                 if len(evidence) == 0 and len(soft_evidence) == 0:
-                    prior_text = pgm_ext.make_factor_text(prior_marg, 'prior_marginal')
+                    prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
 
             show_post = kwargs.get('show_post', False)
             show_prior = kwargs.get('show_prior', False)
+            show_prior = True
+            show_post = True
+
             show_ev = (evidence is not None and variable in evidence)
             if (show_post or show_ev) and text is not None:
                 offset_box = mpl.offsetbox.TextArea(text, textprops)
                 artist = mpl.offsetbox.AnnotationBbox(
                     # offset_box, (x + 5, y), xybox=(20., 5.),
-                    offset_box, (x, y + 5), xybox=(0., 20.),
+                    offset_box, (x, y + 5), xybox=(4., 20.),
                     #box_alignment=(0, 0),
                     box_alignment=(.5, 0),
                     **textkw)
@@ -943,7 +1146,8 @@ def show_model(model, evidence=None, soft_evidence={}, **kwargs):
                 offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
                 artist2 = mpl.offsetbox.AnnotationBbox(
                     # offset_box2, (x - 5, y), xybox=(-20., -15.),
-                    offset_box2, (x, y - 5), xybox=(-15., -20.),
+                    # offset_box2, (x, y - 5), xybox=(-15., -20.),
+                    offset_box2, (x, y - 5), xybox=(-4, -20.),
                     #box_alignment=(1, 1),
                     box_alignment=(.5, 1),
                     **textkw)
@@ -975,8 +1179,12 @@ def show_model(model, evidence=None, soft_evidence={}, **kwargs):
         #    x = vals.argmax()
         #    max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
         # title += str(marginal)
-        if map_assign is not None:
-            title += '\nMAP=' + ut.repr2(map_assign, strvals=True)
+        top_assignments = kwargs.get('top_assignments', None)
+        if top_assignments is not None:
+            map_assign, map_prob = top_assignments[0]
+            if map_assign is not None:
+                # title += '\nMAP=' + ut.repr2(map_assign, strvals=True)
+                title += '\nMAP: ' + map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
         if kwargs.get('show_title', True):
             pt.set_figtitle(title, size=14)
         #pt.set_xlabel()
@@ -1005,7 +1213,10 @@ def show_model(model, evidence=None, soft_evidence={}, **kwargs):
     if top_assignments is not None:
         bin_labels = ut.get_list_column(top_assignments, 0)
         bin_vals =  ut.get_list_column(top_assignments, 1)
-        pt.draw_histogram(bin_labels, bin_vals, fnum=fnum, pnum=(3, 8, (2, slice(1, None))),
+
+        # bin_labels = ['\n'.join(ut.textwrap.wrap(_lbl, width=30)) for _lbl in bin_labels]
+
+        pt.draw_histogram(bin_labels, bin_vals, fnum=fnum, pnum=(3, 8, (2, slice(4, None))),
                           transpose=True,
                           use_darkbackground=False,
                           #xtick_rotation=-10,
