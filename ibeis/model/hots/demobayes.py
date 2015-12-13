@@ -113,6 +113,9 @@ def classify_one_new_unknown():
     #     ut.embed()
     #     #model1 = model.copy()
     #     model.remove_cpds(*cpds)
+    #     model.remove_cpds(*cpds)
+    #     variables = [cpd.variable for cpd in cpds]
+    #     self.delete_variables(variables)
 
     #     query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
     #     query_vars = ut.setdiff_ordered(query_vars, ['Sab', 'Sbc', 'Sac'])
