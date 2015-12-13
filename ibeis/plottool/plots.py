@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
-from six.moves import zip, range
+from six.moves import zip, range, zip_longest
 from plottool import draw_func2 as df2
 import six
 import scipy.stats
 import matplotlib.pyplot as plt
-import vtool.histogram as htool
-import utool
 import utool as ut  # NOQA
 import numpy as np
 
@@ -21,152 +19,16 @@ def is_default_dark_bg():
     return not lightbg
 
 
-def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
-                         target_label, title=None, use_legend=True,
-                         color_list=None, marker_list=None, report_max=True,
-                         **kwargs):
-    r"""
-    Plots nd-data in 2d using multiple contour lines
-
-    CommandLine:
-        python -m plottool.plots --test-plot_multiple_scores --show
-
-        python -m plottool.plots --exec-plot_rank_cumhist \
-            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
-            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> known_nd_data = np.array([[  1,   2,   4,   7,   1,   2,   4,   7,   1,   2,   4,   7,   1,
-        ...                              2,   4,   7,   1,   2,   4,   7],
-        ...                           [ 50,  50,  50,  50, 100, 100, 100, 100, 200, 200, 200, 200, 300,
-        ...                            300, 300, 300, 500, 500, 500, 500]], dtype=np.int64).T
-        >>> known_target_points = np.array([35, 32, 32, 30, 33, 32, 33, 30, 32, 31, 31, 32, 36, 33, 33, 32, 33,
-        ...                                 33, 32, 31], dtype=np.int64)
-        >>> label_list = ['custom', 'custom:sv_on=False']
-        >>> nd_labels = [u'K', u'dsize']
-        >>> target_label = 'score'
-        >>> fnum = None
-        >>> pnum = None
-        >>> use_legend = True
-        >>> title = 'test'
-        >>> result = plot_multiple_scores(known_nd_data, known_target_points, nd_labels, target_label, title=title)
-        >>> print(result)
-        >>> ut.show_if_requested()
-    """
-    #import matplotlib as mpl
-    assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
-
-    # Put the data into a dense field grid
-    nd_basis = [np.unique(arr) for arr in known_nd_data.T]
-    inverse_basis = [dict(zip(arr, np.arange(len(arr)))) for arr in nd_basis]
-    data_field = np.full(ut.maplen(nd_basis), np.nan)
-    # Fill in field values
-    for coord, val in zip(known_nd_data, known_target_points):
-        index = [invbase[pt] for invbase, pt in zip(inverse_basis, coord)]
-        data_field.__setitem__(tuple(index), val)
-
-    xdata = nd_basis[0]
-    ydata_list = data_field.T
-
-    if report_max:
-        # TODO: multiple max poses
-        import vtool as vt
-        maxpos_list = ydata_list.argmax(axis=1)
-        max_nd0_list = nd_basis[0].take(maxpos_list)
-        max_score_list = vt.ziptake(ydata_list, maxpos_list)
-        hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(axis=1) > 1
-        multiple_max_markers = ['*' if flag else '' for flag in hasmultiple_max]
-
-        if nd_labels[1] is None:
-            label_list = [
-                '%.2f%% %s=%r%s'
-                % (max_score, nd_labels[0], max_nd0, marker)
-                for max_nd0, max_score, marker in zip(
-                    max_nd0_list, max_score_list, multiple_max_markers)
-            ]
-        else:
-            label_list = [
-                '%.2f%% %s=%r%s - %s=%r'
-                % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
-                for val, max_nd0, max_score, marker in zip(
-                    nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
-            ]
-    else:
-        label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
-
-    fig = multi_plot(
-        xdata, ydata_list, label_list=label_list, markersize=10,
-        marker_list=marker_list, color_list=color_list, title=title,
-        xlabel=nd_labels[0], ylabel=target_label, **kwargs)
-    return fig
-
-
-def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
-                      edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
-                      num_xticks=None, **kwargs):
-    r"""
-
-    CommandLine:
-        python -m plottool.plots --test-plot_rank_cumhist --show
-
-        python -m plottool.plots --exec-plot_rank_cumhist \
-            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
-            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> cdf_list = np.array(
-        >>>     [[ 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
-        >>>      [ 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
-        >>> edges = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        >>> label_list = ['custom', 'custom:sv_on=False']
-        >>> fnum = None
-        >>> pnum = None
-        >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
-        >>> ut.show_if_requested()
-    """
-
-    num_cdfs = len(cdf_list)
-    num_data = len(cdf_list[0])
-    if color_list is None:
-        color_list = df2.distinct_colors(num_cdfs)
-
-    if edges is None:
-        x_data = np.arange(num_data)
-    else:
-        x_data = np.array(edges[1:])
-    #max_y = 0
-    #min_y = None
-    if True or marker_list is None:
-        #marker_list = ['o'] * num_cdfs
-        marker_list = df2.distinct_markers(num_cdfs)
-    if len(x_data) > 256:
-        marker_list = [None] * num_cdfs
-    if len(x_data) <= 10:
-        markersize = 12
-    else:
-        markersize = 7
-
-    fig = multi_plot(
-        x_data, cdf_list,
-        kind='bar',
-        label_list=label_list, color_list=color_list, marker_list=marker_list,
-        markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
-        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
-        use_legend=use_legend,
-        **kwargs
-    )
-
-    return fig
-
-
 def multi_plot(xdata, ydata_list, **kwargs):
     r"""
-    plots multiple lines
-   Args:
+    plots multiple lines, bars, etc...
+
+    This is the big function that implements almost all of the heavy lifting in
+    this file.  Any function not using this should probably find a way to use
+    it. It is pretty general and relatively clean.
+
+
+    Args:
         xdata (ndarray):
         ydata_list (list of ndarrays):
 
@@ -219,7 +81,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     plot_kw_keys = ['label', 'color', 'marker', 'markersize',
                     'markeredgewidth', 'linewidth', 'linestyle']
     # hackish / extra args that dont go to plot, but help
-    extra_plot_kw_keys = ['spread_alpha']
+    extra_plot_kw_keys = ['spread_alpha', 'autolabel']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
     plot_list_kw = dict([
@@ -282,10 +144,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     #ut.embed()
     #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
     #assert len(extra_kw_list) == len(ydata_list), 'bad length'
-
-    from six.moves import zip_longest
-
-    for count, (ydata, plot_kw, extra_kw) in enumerate(zip_longest(ydata_list, plot_kw_list, extra_kw_list)):
+    _iter = enumerate(zip_longest(ydata_list, plot_kw_list, extra_kw_list))
+    for count, (ydata, plot_kw, extra_kw) in _iter:
         ymask = np.isfinite(ydata)
         ydata_ = ydata.compress(ymask)
         xdata_ = xdata.compress(ymask)
@@ -295,8 +155,29 @@ def multi_plot(xdata, ydata_list, **kwargs):
             lineoffset = (width * count)
             offset = baseoffset - lineoffset  # Fixeme for more histogram bars
             xdata_ = xdata_ - offset
-        plot_func(xdata_, ydata_, **plot_kw)
+        objs = plot_func(xdata_, ydata_, **plot_kw)
+        if kind == 'bar':
+            if extra_kw is not None and extra_kw.get('autolabel', False):
+                # FIXME: probably a more cannonical way to include bar
+                # autolabeling with tranpose support, but this is a hack that
+                # works for now
+                for rect in objs:
+                    if transpose:
+                        numlbl = width = rect.get_width()
+                        xpos = width + ((xdata.max() - xdata.min()) * .005)
+                        ypos = rect.get_y() + rect.get_height() / 2.
+                        ha, va = 'left', 'center'
+                    else:
+                        numlbl = height = rect.get_height()
+                        xpos = rect.get_x() + rect.get_width() / 2.
+                        ypos = 1.05 * height
+                        ha, va = 'center', 'bottom'
+                    barlbl = '%.3f' % (numlbl,)
+                    ax.text(xpos, ypos, barlbl, ha=ha, va=va)
+
         if spread_list is not None:
+            # Plots a spread around plot lines usually indicating standard
+            # deviation
             xdata = np.array(xdata)
             spread = spread_list[count]
             ydata_ave = np.array(ydata_)
@@ -462,6 +343,148 @@ def multi_plot(xdata, ydata_list, **kwargs):
     return fig
 
 
+def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
+                         target_label, title=None, use_legend=True,
+                         color_list=None, marker_list=None, report_max=True,
+                         **kwargs):
+    r"""
+    Plots nd-data in 2d using multiple contour lines
+
+    CommandLine:
+        python -m plottool.plots --test-plot_multiple_scores --show
+
+        python -m plottool.plots --exec-plot_rank_cumhist \
+            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
+            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> known_nd_data = np.array([[  1,   2,   4,   7,   1,   2,   4,   7,   1,   2,   4,   7,   1,
+        ...                              2,   4,   7,   1,   2,   4,   7],
+        ...                           [ 50,  50,  50,  50, 100, 100, 100, 100, 200, 200, 200, 200, 300,
+        ...                            300, 300, 300, 500, 500, 500, 500]], dtype=np.int64).T
+        >>> known_target_points = np.array([35, 32, 32, 30, 33, 32, 33, 30, 32, 31, 31, 32, 36, 33, 33, 32, 33,
+        ...                                 33, 32, 31], dtype=np.int64)
+        >>> label_list = ['custom', 'custom:sv_on=False']
+        >>> nd_labels = [u'K', u'dsize']
+        >>> target_label = 'score'
+        >>> fnum = None
+        >>> pnum = None
+        >>> use_legend = True
+        >>> title = 'test'
+        >>> result = plot_multiple_scores(known_nd_data, known_target_points, nd_labels, target_label, title=title)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    #import matplotlib as mpl
+    assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
+
+    # Put the data into a dense field grid
+    nd_basis = [np.unique(arr) for arr in known_nd_data.T]
+    inverse_basis = [dict(zip(arr, np.arange(len(arr)))) for arr in nd_basis]
+    data_field = np.full(ut.maplen(nd_basis), np.nan)
+    # Fill in field values
+    for coord, val in zip(known_nd_data, known_target_points):
+        index = [invbase[pt] for invbase, pt in zip(inverse_basis, coord)]
+        data_field.__setitem__(tuple(index), val)
+
+    xdata = nd_basis[0]
+    ydata_list = data_field.T
+
+    if report_max:
+        # TODO: multiple max poses
+        import vtool as vt
+        maxpos_list = ydata_list.argmax(axis=1)
+        max_nd0_list = nd_basis[0].take(maxpos_list)
+        max_score_list = vt.ziptake(ydata_list, maxpos_list)
+        hasmultiple_max = (ydata_list == np.array(max_score_list)[:, None]).sum(axis=1) > 1
+        multiple_max_markers = ['*' if flag else '' for flag in hasmultiple_max]
+
+        if nd_labels[1] is None:
+            label_list = [
+                '%.2f%% %s=%r%s'
+                % (max_score, nd_labels[0], max_nd0, marker)
+                for max_nd0, max_score, marker in zip(
+                    max_nd0_list, max_score_list, multiple_max_markers)
+            ]
+        else:
+            label_list = [
+                '%.2f%% %s=%r%s - %s=%r'
+                % (max_score, nd_labels[0], max_nd0, marker, nd_labels[1], val)
+                for val, max_nd0, max_score, marker in zip(
+                    nd_basis[1], max_nd0_list, max_score_list, multiple_max_markers)
+            ]
+    else:
+        label_list = ['%s=%r' % (nd_labels[1], val,) for val in nd_basis[1]]
+
+    fig = multi_plot(
+        xdata, ydata_list, label_list=label_list, markersize=10,
+        marker_list=marker_list, color_list=color_list, title=title,
+        xlabel=nd_labels[0], ylabel=target_label, **kwargs)
+    return fig
+
+
+def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
+                      edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
+                      num_xticks=None, **kwargs):
+    r"""
+
+    CommandLine:
+        python -m plottool.plots --test-plot_rank_cumhist --show
+
+        python -m plottool.plots --exec-plot_rank_cumhist \
+            --adjust=.15 --dpi=512 --figsize=11,4 --clipwhite \
+            --dpath ~/latex/crall-candidacy-2015/ --save "figures/tmp.jpg"  --diskshow \
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> cdf_list = np.array(
+        >>>     [[ 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
+        >>>      [ 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
+        >>> edges = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        >>> label_list = ['custom', 'custom:sv_on=False']
+        >>> fnum = None
+        >>> pnum = None
+        >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
+        >>> ut.show_if_requested()
+    """
+
+    num_cdfs = len(cdf_list)
+    num_data = len(cdf_list[0])
+    if color_list is None:
+        color_list = df2.distinct_colors(num_cdfs)
+
+    if edges is None:
+        x_data = np.arange(num_data)
+    else:
+        x_data = np.array(edges[1:])
+    #max_y = 0
+    #min_y = None
+    if True or marker_list is None:
+        #marker_list = ['o'] * num_cdfs
+        marker_list = df2.distinct_markers(num_cdfs)
+    if len(x_data) > 256:
+        marker_list = [None] * num_cdfs
+    if len(x_data) <= 10:
+        markersize = 12
+    else:
+        markersize = 7
+
+    fig = multi_plot(
+        x_data, cdf_list,
+        kind='bar',
+        label_list=label_list, color_list=color_list, marker_list=marker_list,
+        markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
+        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
+        use_legend=use_legend,
+        **kwargs
+    )
+
+    return fig
+
+
 def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8, **kwargs):
     r"""
     Args:
@@ -482,17 +505,19 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
         >>> TAU = np.pi * 2
         >>> bin_colors = pt.df2.plt.get_cmap('hsv')(centers / TAU)
         >>> # execute function
-        >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors)
+        >>> use_darkbackground = True
+        >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors, use_darkbackground=use_darkbackground)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
     """
     # Find maxima
-    maxima_x, maxima_y, argmaxima = htool.hist_argmaxima(hist, centers, maxima_thresh)
+    import vtool as vt
+    maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(hist, centers, maxima_thresh)
     # Expand parabola points around submaxima
-    x123, y123 = htool.maxima_neighbors(argmaxima, hist, centers)
+    x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
-    submaxima_x, submaxima_y = htool.interpolate_submaxima(argmaxima, hist, centers)
+    submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
     xpoints = []
     ypoints = []
     for xtup, ytup in zip(x123.T, y123.T):
@@ -1047,6 +1072,7 @@ def plot_sorted_scores(scores_list,
         >>> ut.show_if_requested()
         >>> print(result)
     """
+    import matplotlib as mpl
     if figtitle is None:
         figtitle = 'sorted ' + score_label
     if scores_lbls is None:
@@ -1112,7 +1138,6 @@ def plot_sorted_scores(scores_list,
     # dont let xlimit go far over the number of labels
     ax.set_xlim(0, len(sorted_labelx) + 1)
 
-    import matplotlib as mpl
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight='light', size=kwargs.get('labelsize', 8))
@@ -1162,16 +1187,17 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     dy = np.diff(logy)
     dy_sortx = dy.argsort()
     # Get mean and standard deviation
-    dy_stats = utool.get_stats(dy)
+    dy_stats = ut.get_stats(dy)
     dy_sorted = dy[dy_sortx]
     # Find the number of standard deveations past the mean each datapoint is
     try:
         nStdDevs = np.abs(dy_sorted - dy_stats['mean']) / dy_stats['std']
     except Exception as ex:
-        utool.printex(ex, key_list=['dy_stats',
-                                    (len, 'y_data'),
-                                    'y_data',
-                                    ])
+        ut.printex(ex, key_list=[
+            'dy_stats',
+            (len, 'y_data'),
+            'y_data',
+        ])
         raise
     # Mark any above a threshold as knee points
     knee_indexes = np.where(nStdDevs > nStdDevs_thresh)[0]
@@ -1697,9 +1723,44 @@ def draw_time_histogram(unixtime_list, **kwargs):
 def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
                    xtick_rotation=0, transpose=False,
                    **kwargs):
+    r"""
+    Args:
+        bin_labels (?):
+        bin_values (?):
+        xlabel (unicode): (default = u'')
+        ylabel (unicode): (default = u'Freq')
+        xtick_rotation (int): (default = 0)
+        transpose (bool): (default = False)
+
+    Kwargs:
+        fnum, pnum, kind, spread_list, title, titlesize, labelsize,
+        legendsize, ticksize, num_xticks, num_yticks, yticklabels,
+        xticklabels, ytick_rotation, xpad, ypad, xpad_factor, ypad_factor,
+        ypad_high, ypad_low, xpad_high, xpad_low, xscale, yscale, legend_loc,
+        legend_alpha, use_darkbackground, lightbg
+
+    CommandLine:
+        python -m plottool.plots --exec-draw_histogram --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> bin_labels = ['label1', 'label2']
+        >>> bin_values = [.4, .6]
+        >>> xlabel = ''
+        >>> ylabel = 'Freq'
+        >>> xtick_rotation = 0
+        >>> transpose = False  # True
+        >>> kwargs = dict(use_darkbackground=False)
+        >>> result = draw_histogram(bin_labels, bin_values, xlabel, ylabel, xtick_rotation, transpose, **kwargs)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
     xints = np.arange(len(bin_labels))
     width = .95
+    kwargs = kwargs.copy()
+    kwargs['autolabel'] = kwargs.get('autolabel', True)
     pt.multi_plot(xints, [bin_values], xpad=0, ypad_high=.5,
                   #kind='plot',
                   kind='bar',
