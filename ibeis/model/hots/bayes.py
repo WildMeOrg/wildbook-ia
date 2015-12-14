@@ -584,12 +584,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
     import plottool as pt
     import networkx as netx
-    import matplotlib as mpl
     fnum = pt.ensure_fnum(None)
     fig = pt.figure(fnum=fnum, pnum=(3, 1, (slice(0, 2), 0)), doclf=True)  # NOQA
     #fig = pt.figure(fnum=fnum, pnum=(3, 2, (1, slice(1, 2))), doclf=True)  # NOQA
     ax = pt.gca()
-    var2_post = {f.variables[0]: f for f in kwargs.get('factor_list', [])}
 
     netx_graph = (model)
     #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
@@ -619,135 +617,96 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
     netx.draw(netx_graph, **drawkw)
 
-    show_probs = True
-    if show_probs:
-        textprops = {
-            'family': 'monospace',
-            'horizontalalignment': 'left',
-            #'horizontalalignment': 'center',
-            #'size': 12,
-            'size': 8,
-        }
+    textprops = {
+        'family': 'monospace',
+        'horizontalalignment': 'left',
+        #'horizontalalignment': 'center',
+        #'size': 12,
+        'size': 8,
+    }
 
-        textkw = dict(
-            xycoords='data', boxcoords='offset points', pad=0.25,
-            frameon=True, arrowprops=dict(arrowstyle='->'),
-            #bboxprops=dict(fc=node_attr['fillcolor']),
-        )
+    netx_nodes = model.nodes(data=True)
+    node_key_list = ut.get_list_column(netx_nodes, 0)
+    pos_list = ut.dict_take(pos, node_key_list)
 
-        netx_nodes = model.nodes(data=True)
-        node_key_list = ut.get_list_column(netx_nodes, 0)
-        pos_list = ut.dict_take(pos, node_key_list)
+    var2_post = {f.variables[0]: f for f in kwargs.get('factor_list', [])}
 
-        artist_list = []
-        offset_box_list = []
-        for pos_, node in zip(pos_list, netx_nodes):
-            x, y = pos_
-            variable = node[0]
+    prior_text = None
+    post_text = None
+    evidence_tas = []
+    post_tas = []
+    prior_tas = []
 
-            cpd = model.var2_cpd[variable]
+    show_prior_with_ttype = ['name']
 
-            prior_marg = (cpd if cpd.evidence is None else
-                          cpd.marginalize(cpd.evidence, inplace=False))
+    for node, pos in zip(netx_nodes, pos_list):
+        variable = node[0]
+        cpd = model.var2_cpd[variable]
+        prior_marg = (cpd if cpd.evidence is None else
+                      cpd.marginalize(cpd.evidence, inplace=False))
 
-            prior_text = None
+        show_evidence = variable in evidence
+        show_prior = cpd.ttype in show_prior_with_ttype
+        show_post = variable in var2_post
+        show_prior |= cpd.ttype in show_prior_with_ttype
 
-            text = None
-            if variable in evidence:
-                text = cpd.variable_statenames[evidence[variable]]
-            elif variable in var2_post:
-                post_marg = var2_post[variable]
-                text = pgm_ext.make_factor_text(post_marg, 'post')
-                prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
-            else:
-                if len(evidence) == 0 and len(soft_evidence) == 0:
-                    prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
+        if show_prior:
+            prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
+            prior_tas.append(dict(text=prior_text, pos=pos))
+        if show_evidence:
+            evidence_text = cpd.variable_statenames[evidence[variable]]
+            evidence_tas.append(dict(text=evidence_text, pos=pos))
+        if show_post:
+            post_marg = var2_post[variable]
+            post_text = pgm_ext.make_factor_text(post_marg, 'post')
+            post_tas.append(dict(text=post_text, pos=pos))
 
-            show_post = kwargs.get('show_post', False)
-            show_prior = kwargs.get('show_prior', False)
-            show_prior = True
-            show_post = True
+    def augkey(key):
+        return key + '_list'
 
-            show_ev = (evidence is not None and variable in evidence)
-            if (show_post or show_ev) and text is not None:
-                offset_box = mpl.offsetbox.TextArea(text, textprops)
-                artist = mpl.offsetbox.AnnotationBbox(
-                    # offset_box, (x + 5, y), xybox=(20., 5.),
-                    offset_box, (x, y + 5), xybox=(4., 20.),
-                    #box_alignment=(0, 0),
-                    box_alignment=(.5, 0),
-                    **textkw)
-                offset_box_list.append(offset_box)
-                artist_list.append(artist)
+    def trnps_(dict_list):
+        """ tranpose dict list """
+        list_dict = ut.ddict(list)
+        for dict_ in dict_list:
+            for key, val in dict_.items():
+                list_dict[augkey(key)].append(val)
+        return list_dict
 
-            if show_prior and prior_text is not None:
-                offset_box2 = mpl.offsetbox.TextArea(prior_text, textprops)
-                artist2 = mpl.offsetbox.AnnotationBbox(
-                    # offset_box2, (x - 5, y), xybox=(-20., -15.),
-                    # offset_box2, (x, y - 5), xybox=(-15., -20.),
-                    offset_box2, (x, y - 5), xybox=(-4, -20.),
-                    #box_alignment=(1, 1),
-                    box_alignment=(.5, 1),
-                    **textkw)
-                offset_box_list.append(offset_box2)
-                artist_list.append(artist2)
+    dpy = 5
+    dbx, dby = (20, 20)
+    takw1 = {'bbox_align': (.5, 0), 'pos_offset': (0, dpy), 'bbox_offset': (dbx, dby)}
+    takw2 = {'bbox_align': (.5, 1), 'pos_offset': (0, -dpy), 'bbox_offset': (-dbx, -dby)}
+    takw1_ = ut.dict_union(trnps_(post_tas + evidence_tas), ut.map_dict_keys(augkey, takw1))
+    takw2_ = ut.dict_union(trnps_(prior_tas), ut.map_dict_keys(augkey, takw2))
+    hack1 = pt.draw_text_annotations(textprops=textprops, **takw1_)
+    hack2 = pt.draw_text_annotations(textprops=textprops, **takw2_)
 
-        for artist in artist_list:
-            ax.add_artist(artist)
+    xmin, ymin = np.array(pos_list).min(axis=0)
+    xmax, ymax = np.array(pos_list).max(axis=0)
+    num_annots = len(model.ttype2_cpds['name'])
+    if num_annots > 4:
+        ax.set_xlim((xmin - 40, xmax + 40))
+        ax.set_ylim((ymin - 50, ymax + 50))
+        fig.set_size_inches(30, 7)
+    else:
+        ax.set_xlim((xmin - 42, xmax + 42))
+        ax.set_ylim((ymin - 50, ymax + 50))
+        fig.set_size_inches(23, 7)
+    fig = pt.gcf()
 
-        xmin, ymin = np.array(pos_list).min(axis=0)
-        xmax, ymax = np.array(pos_list).max(axis=0)
-        num_annots = len(model.ttype2_cpds['name'])
-        if num_annots > 4:
-            ax.set_xlim((xmin - 40, xmax + 40))
-            ax.set_ylim((ymin - 50, ymax + 50))
-            fig.set_size_inches(30, 7)
-        else:
-            ax.set_xlim((xmin - 42, xmax + 42))
-            ax.set_ylim((ymin - 50, ymax + 50))
-            fig.set_size_inches(23, 7)
-        fig = pt.gcf()
+    title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
+    map_assign = kwargs.get('map_assign', None)
 
-        title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots,)
-        map_assign = kwargs.get('map_assign', None)
-        #max_marginal_list = []
-        #for name, marginal in marginalized_joints.items():
-        #    states = list(ut.iprod(*marginal.statenames))
-        #    vals = marginal.values.ravel()
-        #    x = vals.argmax()
-        #    max_marginal_list += ['P(' + ', '.join(states[x]) + ') = ' + str(vals[x])]
-        # title += str(marginal)
-        top_assignments = kwargs.get('top_assignments', None)
-        if top_assignments is not None:
-            map_assign, map_prob = top_assignments[0]
-            if map_assign is not None:
-                # title += '\nMAP=' + ut.repr2(map_assign, strvals=True)
-                title += '\nMAP: ' + map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
-        if kwargs.get('show_title', True):
-            pt.set_figtitle(title, size=14)
-        #pt.set_xlabel()
-
-        def hack_fix_centeralign():
-            if textprops['horizontalalignment'] == 'center':
-                print('Fixing centeralign')
-                fig = pt.gcf()
-                fig.canvas.draw()
-
-                # Superhack for centered text. Fix bug in
-                # /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
-                # /usr/local/lib/python2.7/dist-packages/matplotlib/text.py
-                for offset_box in offset_box_list:
-                    offset_box.set_offset
-                    z = offset_box._text.get_window_extent()
-                    (z.x1 - z.x0) / 2
-                    offset_box._text
-                    T = offset_box._text.get_transform()
-                    A = mpl.transforms.Affine2D()
-                    A.clear()
-                    A.translate((z.x1 - z.x0) / 2, 0)
-                    offset_box._text.set_transform(T + A)
-        hack_fix_centeralign()
     top_assignments = kwargs.get('top_assignments', None)
+    if top_assignments is not None:
+        map_assign, map_prob = top_assignments[0]
+        if map_assign is not None:
+            title += '\nMAP: ' + map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
+    if kwargs.get('show_title', True):
+        pt.set_figtitle(title, size=14)
+
+    hack1(), hack2()
+
     if top_assignments is not None:
         bin_labels = ut.get_list_column(top_assignments, 0)
         bin_vals =  ut.get_list_column(top_assignments, 1)
