@@ -35,7 +35,7 @@ def chuckchallenge():
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-chuckchallenge --diskshow --verbose --present --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+        python -m ibeis.model.hots.demobayes --exec-chuckchallenge --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -51,8 +51,9 @@ def chuckchallenge():
     )
     model, evidence = test_model(
         mode=1,
-        other_evidence={'Sab': 'high', 'Sac': 'high', 'Sbc': 'low'},
-        **constkw)
+        other_evidence={'Sab': 'low', 'Sac': 'low', 'Sbc': 'high'},
+        **constkw
+    )
     # model, evidence = test_model(
     #     mode=1,
     #     other_evidence={ 'Sab': 0, 'Sac': 0 },
