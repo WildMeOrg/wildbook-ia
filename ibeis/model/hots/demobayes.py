@@ -160,7 +160,7 @@ def test_triangle_property():
         python -m ibeis.model.hots.demobayes --exec-test_triangle_property --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
         >>> result = test_triangle_property()
         >>> ut.show_if_requested()
