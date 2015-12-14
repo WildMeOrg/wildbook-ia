@@ -1,80 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-
 1) Ambiguity / num names
 2) independence of annotations
 3) continuous
 4) exponential case
 5) speicifc examples of our prob
 6) human in loop
-
-Arc reversal
-http://www.cs.toronto.edu/~cebly/Papers/simulation.pdf
-
-TODO:
-    Need to find faster more mature libraries
-    http://dlib.net/bayes.html
-    http://www.cs.waikato.ac.nz/ml/weka/
-    http://www.cs.waikato.ac.nz/~remco/weka.bn.pdf
-    https://code.google.com/p/pebl-project/
-    https://github.com/abhik/pebl
-    http://www.cs.ubc.ca/~murphyk/Software/bnsoft.html
-
-    Demo case where we think we know the labels of others.  Only one unknown
-    name. Need to classify it as one of the other known names.
-
-References:
-    https://en.wikipedia.org/wiki/Bayesian_network
-    https://class.coursera.org/pgm-003/lecture/17
-    http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
-    http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
-    http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
-    https://github.com/pgmpy/pgmpy.git
-    http://pgmpy.readthedocs.org/en/latest/
-    http://nipy.bic.berkeley.edu:5000/download/11
-    http://pgmpy.readthedocs.org/en/latest/wiki.html#add-feature-to-accept-and-output-state-names-for-models
-    http://www.csse.monash.edu.au/bai/book/BAI_Chapter2.pdf
-
-
-Clustering with CRF:
-    http://srl.informatik.uni-freiburg.de/publicationsdir/tipaldiIROS09.pdf
-    http://www.dis.uniroma1.it/~dottoratoii/media/students/documents/thesis_tipaldi.pdf
-    An Unsupervised Conditional Random Fields Approach for Clustering Gene Expression Time Series
-    http://bioinformatics.oxfordjournals.org/content/24/21/2467.full
-
-
-CRFs:
-    http://homepages.inf.ed.ac.uk/csutton/publications/crftutv2.pdf
-
-AlphaBeta Swap:
-    https://github.com/amueller/gco_python
-    https://github.com/pmneila/PyMaxflow
-    http://www.cs.cornell.edu/rdz/papers/bvz-iccv99.pdf
-
-    http://arxiv.org/pdf/1411.6340.pdf  Iteratively Reweighted Graph Cut for Multi-label MRFs with Non-convex Priors
-
-Fusion Moves:
-    http://www.robots.ox.ac.uk/~vilem/fusion.pdf
-    http://hci.iwr.uni-heidelberg.de/publications/mip/techrep/beier_15_fusion.pdf
-
-Consensus Clustering
-
-Explaining Away
-
-Course Notes:
-    Tie breaking for MAP assignment.
-    https://class.coursera.org/pgm-003/lecture/60
-    * random perdibiation
-
-    Correspondence Problem is discussed in
-    https://class.coursera.org/pgm-003/lecture/68
-
-    Sparse Pattern Factors
-
-    Collective Inference:
-    Plate Models / Aggragator CPD is used to define dependencies.
-
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
@@ -88,18 +19,13 @@ SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
-               other_evidence={}, show_prior=False, noquery=False, **kwargs):
+               other_evidence={}, noquery=False, **kwargs):
     verbose = ut.VERBOSE
 
     model = make_name_model(num_annots, num_names, verbose=verbose, **kwargs)
 
     if verbose:
         model.print_priors(ignore_ttypes=['match'])
-        #ut.colorprint('\n --- Priors ---', 'darkblue')
-        #for ttype, cpds in model.ttype2_cpds.items():
-        #    if ttype != 'match':
-        #        for fs_ in ut.ichunks(cpds, 4):
-        #            ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), 'purple')
 
     model, evidence, soft_evidence = update_model_evidence(
         model, name_evidence, score_evidence, other_evidence)
@@ -117,7 +43,11 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
 
     if (len(evidence) > 0 or len(soft_evidence) > 0) and not noquery:
         evidence = model._ensure_internal_evidence(evidence)
-        query_results = bruteforce_query(model, None, evidence)
+        query_vars = []
+        query_vars += ut.list_getattr(model.ttype2_cpds['name'], 'variable')
+        #query_vars += ut.list_getattr(model.ttype2_cpds['match'], 'variable')
+        query_vars = ut.setdiff(query_vars, evidence.keys())
+        query_results = bruteforce_query(model, query_vars, evidence)
     else:
         query_results = {}
 
@@ -140,24 +70,18 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
         for lbl, val in top_assignments:
             tmp.append('%s : %.4f' % (ut.repr2(lbl), val))
         print(ut.align('\n'.join(tmp), ' :'))
-
-        #print('Joint Factors')
-        #for ttype, marginal in marginalized_joints.items():
-        #    print('Marginal Joint %s Factors' % (ttype,))
-        #    ut.colorprint(marginal._str('phi', 'psql', sort=-1, maxrows=4), 'white')
         print('L_____\n')
 
     showkw = dict(evidence=evidence,
                   soft_evidence=soft_evidence,
-                  show_prior=show_prior,
                   **query_results)
 
     show_model(model, **showkw)
     return (model, evidence)
-    # print_ascii_graph(model)
+    # pgm_ext.print_ascii_graph(model)
 
 
-def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
+def make_name_model(num_annots, num_names=None, verbose=True, mode=1, num_scores=2):
     r"""
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-make_name_model --show
@@ -192,6 +116,8 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         'name', ('n', num_names), varpref='N',
         special_basis_pool=SPECIAL_BASIS_POOL)
     name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
+    #name_cpds = [name_cpd_t.new_cpd(parents=aid, constrain_state=count)
+    #             for count, aid in enumerate(annots, start=1)]
 
     # +-- Match Factor ---
     def match_pmf(match_type, n1, n2):
@@ -199,8 +125,9 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
             True: {'same': 1.0, 'diff': 0.0},
             False: {'same': 0.0, 'diff': 1.0},
         }[n1 == n2][match_type]
+    states = ['diff', 'same']
     match_cpd_t = pgm_ext.TemplateCPD(
-        'match', ['diff', 'same'], varpref='M',
+        'match', states, varpref='M',
         evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
     namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
     match_cpds = [match_cpd_t.new_cpd(parents=cpds)
@@ -208,14 +135,31 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
 
     # +-- Score Factor ---
     def score_pmf(score_type, match_type):
-        score_lookup = {
-            'same': {'low': .1, 'high': .9, 'veryhigh': .9},
-            'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
-        }
-        val = score_lookup[match_type][score_type]
+        if num_scores == 2:
+            score_lookup = {
+                'same': {'low': .1, 'high': .9, 'veryhigh': .9},
+                'diff': {'low': .9, 'high': .09, 'veryhigh': .01}
+            }
+            val = score_lookup[match_type][score_type]
+        else:
+            #tmp = np.logspace(0, 1, num_scores, base=10)
+            #tmp = 2 ** np.arange(num_scores)
+            tmp = np.arange(num_scores + 1)[1:]
+            #np.logspace(0, 1, num_scores, base=10)
+            tmp = np.cumsum(tmp)
+            tmp = (tmp / tmp.sum())
+
+            if match_type == 'same':
+                return tmp[score_type]
+            else:
+                return tmp[-(score_type + 1)]
         return val
+    if num_scores == 2:
+        states =  ['low', 'high']
+    else:
+        states = list(range(num_scores))
     score_cpd_t = pgm_ext.TemplateCPD(
-        'score', ['low', 'high'],
+        'score', states,
         varpref='S',
         evidence_ttypes=[match_cpd_t], pmf_func=score_pmf)
     score_cpds = [score_cpd_t.new_cpd(parents=cpds)
@@ -312,7 +256,8 @@ def bruteforce_query(model, query_vars=None, evidence=None):
         >>> score_evidence = ['high', 'low', 'low']
         >>> query_vars = None
         >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
-        >>> model, evidence, soft_evidence = update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+        >>> model, evidence, soft_evidence = update_model_evidence(
+        >>>     model, name_evidence, score_evidence, other_evidence)
         >>> evidence = model._ensure_internal_evidence(evidence)
         >>> query_results = bruteforce_query(model, query_vars, evidence)
         >>> result = ('query_results = %s' % (str(query_results),))
@@ -324,7 +269,7 @@ def bruteforce_query(model, query_vars=None, evidence=None):
     evidence = model._ensure_internal_evidence(evidence)
     full_joint = model.joint_distribution()
     if query_vars is None:
-        query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
+        query_vars = ut.setdiff(model.nodes(), list(evidence.keys()))
     reduced_joint = full_joint.evidence_based_reduction(query_vars, evidence, inplace=False)
 
     evidence_vars = list(evidence.keys())
@@ -346,83 +291,84 @@ def bruteforce_query(model, query_vars=None, evidence=None):
     # TODO: allow for multiple different label_ttypes
     # for label_ttype in label_ttypes
     label_ttypes = ['name']
-    label_ttype = label_ttypes[0]
-    ev_colxs = ttype2_ev_indices[label_ttype]
-    re_colxs = ttype2_re_indices[label_ttype]
+    for label_ttype in label_ttypes:
+        ev_colxs = ttype2_ev_indices[label_ttype]
+        re_colxs = ttype2_re_indices[label_ttype]
 
-    ev_state_idxs = ut.take(evidence_state_idxs, ev_colxs)
-    ev_state_idxs_tile = np.tile(ev_state_idxs, (len(reduced_values), 1)).astype(np.int)
-    num_ev_ = len(ev_colxs)
+        ev_state_idxs = ut.take(evidence_state_idxs, ev_colxs)
+        ev_state_idxs_tile = np.tile(ev_state_idxs, (len(reduced_values), 1)).astype(np.int)
+        num_ev_ = len(ev_colxs)
 
-    aug_colxs = list(range(num_ev_)) + (np.array(re_colxs) + num_ev_).tolist()
-    aug_state_idxs = np.hstack([ev_state_idxs_tile, reduced_row_idxs])
+        aug_colxs = list(range(num_ev_)) + (np.array(re_colxs) + num_ev_).tolist()
+        aug_state_idxs = np.hstack([ev_state_idxs_tile, reduced_row_idxs])
 
-    # Relabel rows based on the knowledge that
-    # everything is the same, only the names have changed.
-    def make_temp_state(state):
-        mapping = {}
-        for state_idx in state:
-            if state_idx not in mapping:
-                mapping[state_idx] = -(len(mapping) + 1)
-        temp_state = [mapping[state_idx] for state_idx in state]
-        return temp_state
+        # Relabel rows based on the knowledge that
+        # everything is the same, only the names have changed.
+        def make_temp_state(state):
+            mapping = {}
+            for state_idx in state:
+                if state_idx not in mapping:
+                    mapping[state_idx] = -(len(mapping) + 1)
+            temp_state = [mapping[state_idx] for state_idx in state]
+            return temp_state
 
-    num_cols = len(aug_state_idxs.T)
-    mask = vt.index_to_boolmask(aug_colxs, num_cols)
-    other_colxs, = np.where(~mask)
-    relbl_states = aug_state_idxs.compress(mask, axis=1)
-    other_states = aug_state_idxs.compress(~mask, axis=1)
-    tmp_relbl_states = np.array(list(map(make_temp_state, relbl_states)))
+        num_cols = len(aug_state_idxs.T)
+        mask = vt.index_to_boolmask(aug_colxs, num_cols)
+        other_colxs, = np.where(~mask)
+        relbl_states = aug_state_idxs.compress(mask, axis=1)
+        other_states = aug_state_idxs.compress(~mask, axis=1)
+        tmp_relbl_states = np.array(list(map(make_temp_state, relbl_states)))
 
-    max_tmp_state = -1
-    min_tmp_state = tmp_relbl_states.min()
+        max_tmp_state = -1
+        min_tmp_state = tmp_relbl_states.min()
 
-    # rebuild original state structure with temp state idxs
-    tmp_state_cols = [None] * num_cols
-    for count, colx in enumerate(aug_colxs):
-        tmp_state_cols[colx] = tmp_relbl_states[:, count:count + 1]
-    for count, colx in enumerate(other_colxs):
-        tmp_state_cols[colx] = other_states[:, count:count + 1]
-    tmp_state_idxs = np.hstack(tmp_state_cols)
+        # rebuild original state structure with temp state idxs
+        tmp_state_cols = [None] * num_cols
+        for count, colx in enumerate(aug_colxs):
+            tmp_state_cols[colx] = tmp_relbl_states[:, count:count + 1]
+        for count, colx in enumerate(other_colxs):
+            tmp_state_cols[colx] = other_states[:, count:count + 1]
+        tmp_state_idxs = np.hstack(tmp_state_cols)
 
-    data_ids = np.array(vt.other.compute_unique_data_ids_(map(tuple, tmp_state_idxs)))
-    unique_ids, groupxs = vt.group_indices(data_ids)
-    # Sum the values in the cpd to marginalize the duplicate probs
-    new_values = np.array([
-        g.sum() for g in vt.apply_grouping(reduced_values, groupxs)
-    ])
-    # Take only the unique rows under this induced labeling
-    unique_tmp_groupxs = np.array(ut.get_list_column(groupxs, 0))
-    new_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
+        data_ids = np.array(vt.compute_unique_data_ids_(map(tuple, tmp_state_idxs)))
+        unique_ids, groupxs = vt.group_indices(data_ids)
+        print('Collapsed %r states into %r states' % (len(data_ids), len(unique_ids),))
+        # Sum the values in the cpd to marginalize the duplicate probs
+        new_values = np.array([
+            g.sum() for g in vt.apply_grouping(reduced_values, groupxs)
+        ])
+        # Take only the unique rows under this induced labeling
+        unique_tmp_groupxs = np.array(ut.get_list_column(groupxs, 0))
+        new_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
 
-    tmp_idx_set = set((-np.arange(-max_tmp_state, (-min_tmp_state) + 1)).tolist())
-    true_idx_set = set(range(len(model.ttype2_template[label_ttype].basis)))
+        tmp_idx_set = set((-np.arange(-max_tmp_state, (-min_tmp_state) + 1)).tolist())
+        true_idx_set = set(range(len(model.ttype2_template[label_ttype].basis)))
 
-    # Relabel the rows one more time to agree with initial constraints
-    for colx, true_idx in enumerate(ev_state_idxs):
-        tmp_idx = np.unique(new_state_idxs.T[colx])
-        assert len(tmp_idx) == 1
-        tmp_idx_set -= {tmp_idx[0]}
-        true_idx_set -= {true_idx}
-        new_state_idxs[new_state_idxs == tmp_idx] = true_idx
-    # Relabel the remaining idxs
-    remain_tmp_idxs = sorted(list(tmp_idx_set))[::-1]
-    remain_true_idxs = sorted(list(true_idx_set))
-    for tmp_idx, true_idx in zip(remain_tmp_idxs, remain_true_idxs):
-        new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+        # Relabel the rows one more time to agree with initial constraints
+        for colx, true_idx in enumerate(ev_state_idxs):
+            tmp_idx = np.unique(new_state_idxs.T[colx])
+            assert len(tmp_idx) == 1
+            tmp_idx_set -= {tmp_idx[0]}
+            true_idx_set -= {true_idx}
+            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+        # Relabel the remaining idxs
+        remain_tmp_idxs = sorted(list(tmp_idx_set))[::-1]
+        remain_true_idxs = sorted(list(true_idx_set))
+        for tmp_idx, true_idx in zip(remain_tmp_idxs, remain_true_idxs):
+            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
 
-    # Remove evidence based labels
-    new_state_idxs_ = new_state_idxs.T[num_ev_:].T
+        # Remove evidence based labels
+        new_state_idxs_ = new_state_idxs.T[num_ev_:].T
 
-    # hack into a new joint factor (that is the same size as the reduced_joint)
-    new_reduced_joint = reduced_joint.copy()
-    new_reduced_joint.values[:] = 0
-    flat_idxs = np.ravel_multi_index(new_state_idxs_.T, new_reduced_joint.values.shape)
+        # hack into a new joint factor (that is the same size as the reduced_joint)
+        new_reduced_joint = reduced_joint.copy()
+        new_reduced_joint.values[:] = 0
+        flat_idxs = np.ravel_multi_index(new_state_idxs_.T, new_reduced_joint.values.shape)
 
-    old_values = new_reduced_joint.values.ravel()
-    old_values[flat_idxs] = new_values
-    new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
-    # print(new_reduced_joint._str(maxrows=4, sort=-1))
+        old_values = new_reduced_joint.values.ravel()
+        old_values[flat_idxs] = new_values
+        new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
+        # print(new_reduced_joint._str(maxrows=4, sort=-1))
 
     max_marginals = {}
     for i, var in enumerate(query_vars):
@@ -520,8 +466,6 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
     if getattr(netx_graph, 'ttype2_cpds', None) is not None:
         grouped_nodes = []
         for ttype in netx_graph.ttype2_cpds.keys():
-            # if ttype not in ['match', 'name']:
-            #     continue
             ttype_cpds = netx_graph.ttype2_cpds[ttype]
             # use defined ordering
             ttype_nodes = ut.list_getattr(ttype_cpds, 'variable')
@@ -577,6 +521,21 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
         sudo pip3 install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-show_model --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> model = '?'
+        >>> evidence = {}
+        >>> soft_evidence = {}
+        >>> result = show_model(model, evidence, soft_evidence)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
     if ut.get_argval('--hackmarkov') or ut.get_argval('--hackjunc'):
         draw_tree_model(model, **kwargs)
@@ -585,37 +544,14 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     import plottool as pt
     import networkx as netx
     fnum = pt.ensure_fnum(None)
-    fig = pt.figure(fnum=fnum, pnum=(3, 1, (slice(0, 2), 0)), doclf=True)  # NOQA
-    #fig = pt.figure(fnum=fnum, pnum=(3, 2, (1, slice(1, 2))), doclf=True)  # NOQA
-    ax = pt.gca()
-
     netx_graph = (model)
     #netx_graph.graph.setdefault('graph', {})['size'] = '"10,5"'
     #netx_graph.graph.setdefault('graph', {})['rankdir'] = 'LR'
 
-    pos = get_hacked_pos(netx_graph)
-    #netx.pygraphviz_layout(netx_graph)
+    pos_dict = get_hacked_pos(netx_graph)
+    #pos_dict = netx.pygraphviz_layout(netx_graph)
     #pos = netx.pydot_layout(netx_graph, prog='dot')
-    #pos = netx.graphviz_layout(netx_graph)
-
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_size=1500)
-    if evidence is not None:
-        node_colors = [
-            # (pt.TRUE_BLUE
-            (pt.WHITE
-             if node not in soft_evidence else
-             pt.LIGHT_PINK)
-            if node not in evidence
-            else pt.FALSE_RED
-            for node in netx_graph.nodes()]
-
-        for node in netx_graph.nodes():
-            cpd = model.var2_cpd[node]
-            if cpd.ttype == 'score':
-                pass
-        drawkw['node_color'] = node_colors
-
-    netx.draw(netx_graph, **drawkw)
+    #pos_dict = netx.graphviz_layout(netx_graph)
 
     textprops = {
         'family': 'monospace',
@@ -627,7 +563,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
     netx_nodes = model.nodes(data=True)
     node_key_list = ut.get_list_column(netx_nodes, 0)
-    pos_list = ut.dict_take(pos, node_key_list)
+    pos_list = ut.dict_take(pos_dict, node_key_list)
 
     var2_post = {f.variables[0]: f for f in kwargs.get('factor_list', [])}
 
@@ -636,8 +572,14 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     evidence_tas = []
     post_tas = []
     prior_tas = []
+    node_color = []
 
     show_prior_with_ttype = ['name']
+
+    dpy = 5
+    dbx, dby = (20, 20)
+    takw1 = {'bbox_align': (.5, 0), 'pos_offset': [0, dpy], 'bbox_offset': [dbx, dby]}
+    takw2 = {'bbox_align': (.5, 1), 'pos_offset': [0, -dpy], 'bbox_offset': [-dbx, -dby]}
 
     for node, pos in zip(netx_nodes, pos_list):
         variable = node[0]
@@ -650,16 +592,73 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         show_post = variable in var2_post
         show_prior |= cpd.ttype in show_prior_with_ttype
 
-        if show_prior:
-            prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
-            prior_tas.append(dict(text=prior_text, pos=pos))
-        if show_evidence:
-            evidence_text = cpd.variable_statenames[evidence[variable]]
-            evidence_tas.append(dict(text=evidence_text, pos=pos))
+        name_colors = pt.distinct_colors(model.num_names + 1)
+
+        post_marg = None
+        show_prior = False
+
         if show_post:
             post_marg = var2_post[variable]
+
+        #cmap_ = 'hot'
+        #mx = 0.65
+        #mn = 0.15
+        cmap_ = 'plasma'
+        _cmap = pt.plt.get_cmap(cmap_)
+        mx = 1.0
+        mn = 0.15
+        def cmap(x):
+            return _cmap((x * mx) + mn)
+        if variable in evidence:
+            if cpd.ttype == 'score':
+                cmap_index = evidence[variable] / (cpd.variable_card - 1)
+                color = cmap(cmap_index)
+                color = pt.lighten_rgb(color, .4)
+                color = np.array(color)
+                node_color.append(color)
+            else:
+                color = pt.FALSE_RED
+                node_color.append(color)
+        elif variable in soft_evidence:
+            color = pt.LIGHT_PINK
+            node_color.append(color)
+        else:
+            if cpd.ttype == 'name' and post_marg is not None:
+                order = post_marg.values.argsort()[::-1]
+                dist_next = post_marg.values[order[0]] - post_marg.values[order[1]]
+                dist_total = (post_marg.values[order[0]])
+                confidence = (dist_total * dist_next) ** (2.5 / 4)
+                #print('confidence = %r' % (confidence,))
+                color = name_colors[order[0]]
+                color = pt.color_funcs.desaturate_rgb(color, 1 - confidence)
+                color = np.array(color)
+                node_color.append(color)
+                #import utool
+                #utool.embed()
+            elif cpd.ttype == 'match' and post_marg is not None:
+                color = cmap(post_marg.values[1])
+                color = pt.lighten_rgb(color, .4)
+                color = np.array(color)
+                node_color.append(color)
+            else:
+                color = pt.WHITE
+                node_color.append(color)
+
+        if show_prior:
+            prior_text = pgm_ext.make_factor_text(prior_marg, 'prior')
+            prior_tas.append(dict(text=prior_text, pos=pos, color=color, **takw2))
+        if show_evidence:
+            _takw1 = takw1
+            if cpd.ttype == 'score':
+                _takw1 = takw2
+            evidence_text = cpd.variable_statenames[evidence[variable]]
+            evidence_tas.append(dict(text=evidence_text, pos=pos, color=color, **_takw1))
+        if show_post:
+            _takw1 = takw1
+            if cpd.ttype == 'match':
+                _takw1 = takw2
             post_text = pgm_ext.make_factor_text(post_marg, 'post')
-            post_tas.append(dict(text=post_text, pos=pos))
+            post_tas.append(dict(text=post_text, pos=pos, color=None, **_takw1))
 
     def augkey(key):
         return key + '_list'
@@ -672,14 +671,21 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
                 list_dict[augkey(key)].append(val)
         return list_dict
 
-    dpy = 5
-    dbx, dby = (20, 20)
-    takw1 = {'bbox_align': (.5, 0), 'pos_offset': (0, dpy), 'bbox_offset': (dbx, dby)}
-    takw2 = {'bbox_align': (.5, 1), 'pos_offset': (0, -dpy), 'bbox_offset': (-dbx, -dby)}
-    takw1_ = ut.dict_union(trnps_(post_tas + evidence_tas), ut.map_dict_keys(augkey, takw1))
-    takw2_ = ut.dict_union(trnps_(prior_tas), ut.map_dict_keys(augkey, takw2))
+    takw1_ = trnps_(post_tas + evidence_tas)
+    takw2_ = trnps_(prior_tas)
+    #takw1_ = ut.dict_union(trnps_(post_tas + evidence_tas), ut.map_dict_keys(augkey, takw1))
+    #takw2_ = ut.dict_union(trnps_(prior_tas), ut.map_dict_keys(augkey, takw2))
+
+    # Draw graph
+    fig = pt.figure(fnum=fnum, pnum=(3, 1, (slice(0, 2), 0)), doclf=True)  # NOQA
+    ax = pt.gca()
+    #print('node_color = %s' % (ut.repr3(node_color),))
+    drawkw = dict(pos=pos_dict, ax=ax, with_labels=True, node_size=1500,
+                  node_color=node_color)
+    netx.draw(netx_graph, **drawkw)
     hack1 = pt.draw_text_annotations(textprops=textprops, **takw1_)
-    hack2 = pt.draw_text_annotations(textprops=textprops, **takw2_)
+    if prior_tas:
+        hack2 = pt.draw_text_annotations(textprops=textprops, **takw2_)
 
     xmin, ymin = np.array(pos_list).min(axis=0)
     xmax, ymax = np.array(pos_list).max(axis=0)
@@ -705,8 +711,22 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     if kwargs.get('show_title', True):
         pt.set_figtitle(title, size=14)
 
-    hack1(), hack2()
+    hack1()
+    if prior_tas:
+        hack2()
 
+    # Hack in colorbars
+    pt.colorbar(np.linspace(0, 1, len(name_colors) - 1), name_colors[:-1], lbl='name',
+                ticklabels=model.ttype2_template['name'].basis, ticklocation='left')
+
+    scalars = np.linspace(0, 1, 100)
+    colors = pt.scores_to_color(scalars, cmap_=cmap_, reverse_cmap=False,
+                                cmap_range=(mn, mx))
+    colors = [pt.lighten_rgb(c, .4) for c in colors]
+    pt.colorbar(scalars, colors, lbl='score',
+                ticklabels=model.ttype2_template['score'].basis)
+
+    # Draw probability hist
     if top_assignments is not None:
         bin_labels = ut.get_list_column(top_assignments, 0)
         bin_vals =  ut.get_list_column(top_assignments, 1)
@@ -719,7 +739,6 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
                           #xtick_rotation=-10,
                           ylabel='Prob', xlabel='assignment')
         pt.set_title('Assignment probabilities')
-
     #fpath = ('name_model_' + suff + '.png')
     #pt.plt.savefig(fpath)
     #return fpath

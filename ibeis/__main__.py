@@ -74,13 +74,6 @@ def run_ibeis():
         ibeis.dev.devmain()
         sys.exit(0)
 
-    #if ut.get_argflag('-e'):
-    #    import ibeis
-    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),
-    #    prefix_list=['--', '-'])
-    #    ibeis.run_experiment(**expt_kw)
-    #    sys.exit(0)
-
     # Attempt to run a test using the funciton name alone
     # with the --tf flag
     import ibeis.tests.run_tests
@@ -90,7 +83,18 @@ def run_ibeis():
         'ibeis.control.__SQLITE3__',
         '_autogen_explicit_controller']
     ignore_suffix = ['_grave']
-    ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix)
+    func_to_module_dict = {
+        'demo_bayesnet': 'ibeis.model.hots.demobayes',
+    }
+    ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
+                            func_to_module_dict=func_to_module_dict)
+
+    #if ut.get_argflag('-e'):
+    #    import ibeis
+    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),
+    #    prefix_list=['--', '-'])
+    #    ibeis.run_experiment(**expt_kw)
+    #    sys.exit(0)
 
     doctest_modname = ut.get_argval(
         ('--doctest-module', '--tmod', '-tm', '--testmod'),

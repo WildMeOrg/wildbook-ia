@@ -5,59 +5,61 @@ from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__, '[demobayes]')
 
 
-def one_test():
-    """
-    CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-one_test --verbose
-        python -m ibeis.model.hots.demobayes --exec-one_test --show --verbose --present
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> result = one_test()
-        >>> ut.show_if_requested()
-    """
-    constkw = dict(
-        num_annots=4, num_names=4,
-        name_evidence=[0, None, None, None],
-    )
-    test_model(score_evidence=['veryhigh', 'high', 'high', None, None, 'high'], mode=4, **constkw)
-    test_model(score_evidence=['veryhigh', 'high', 'high', None, None, 'high'], mode=1, **constkw)
-    # test_model(score_evidence=['veryhigh', 'high', 'high', None, None, None], **constkw)
-    # test_model(score_evidence=['veryhigh', 'high', 'high', None, 'high', None], **constkw)
-    # constkw = dict(score_evidence=[], name_evidence=[], mode=1)
-    # model, = test_model(num_annots=4, num_names=10, **constkw)
-    # draw_tree_model(model)
-
-
-def chuckchallenge():
+def demo_bayesnet(cfg):
     r"""
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-chuckchallenge --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+        python -m ibeis --tf demo_bayesnet --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=3,Sab=low,Sac=low,Sbc=high
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Sbd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Scd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Sbd=high,Scd=high --show
+
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=3,Sab=low,Sac=low,Sbc=high
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=5,rand_scores=True --show
+
+        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,rand_scores=True,num_scores=5 --show --verbose
+
+        python -m ibeis.model.hots.demobayes --exec-demo_bayesnet \
+                --ev =:num_annots=4,Sab=low,Sac=low,Sbc=high \
+                :Sbd=high :Scd=high :Sbd=high,Scd=high :Sbd=high,Scd=high,Sad=low \
+                --show --present
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> result = chuckchallenge()
+        >>> cfg_list = ut.parse_argv_cfg('--ev')
+        >>> print('cfg_list = %r' % (cfg_list,))
+        >>> for cfg in cfg_list:
+        >>>     demo_bayesnet(cfg)
         >>> ut.show_if_requested()
     """
-
-    constkw = dict(
-        num_annots=3, num_names=3,
-        # name_evidence=[None, None, {0: .99}],
-        # name_evidence=[1, 0, None],
-    )
+    cfg = cfg.copy()
+    num_annots = cfg.pop('num_annots', 3)
+    rand_scores = cfg.pop('rand_scores', False)
+    num_scores = cfg.pop('num_scores', 2)
+    other_evidence = {k: v for k, v in cfg.items() if not k.startswith('_')}
+    if rand_scores:
+        #import randomdotorg
+        #import sys
+        #r = randomdotorg.RandomDotOrg('ExampleCode')
+        #seed = int((1 - 2 * r.random()) * sys.maxint)
+        import numpy as np
+        seed = 0
+        rng = np.random.RandomState(seed)
+        num_matches = (num_annots ** 2 - num_annots) // 2
+        score_evidence = rng.choice(np.arange(num_scores), size=num_matches)
+    else:
+        score_evidence = []
     model, evidence = test_model(
+        num_annots=num_annots, num_names=num_annots,
+        num_scores=num_scores,
+        score_evidence=score_evidence,
         mode=1,
-        other_evidence={'Sab': 'low', 'Sac': 'low', 'Sbc': 'high'},
-        **constkw
+        other_evidence=other_evidence,
     )
-    # model, evidence = test_model(
-    #     mode=1,
-    #     other_evidence={ 'Sab': 0, 'Sac': 0 },
-    #     **constkw)
 
 
 def classify_one_new_unknown():
@@ -84,18 +86,14 @@ def classify_one_new_unknown():
             #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
             #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
         )
-        test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, show_prior=True, **constkw)
-        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high'], mode=1, show_prior=True, **constkw)
-        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
-        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'high', 'high', 'high', 'high'], mode=1, show_prior=True, **constkw)
-        #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high', 'low', 'low', 'low', 'low'], mode=1, show_prior=True, **constkw)
+        test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, **constkw)
 
     #from ibeis.model.hots.demobayes import *
     constkw = dict(
         num_annots=4, num_names=4,
     )
     model, evidence = test_model(
-        mode=1, show_prior=False,
+        mode=1,
         # lll and llh have strikingly different
         # probability of M marginals
         score_evidence=['low', 'low', 'high'],
@@ -118,8 +116,8 @@ def classify_one_new_unknown():
     #     variables = [cpd.variable for cpd in cpds]
     #     self.delete_variables(variables)
 
-    #     query_vars = ut.setdiff_ordered(model.nodes(), list(evidence.keys()))
-    #     query_vars = ut.setdiff_ordered(query_vars, ['Sab', 'Sbc', 'Sac'])
+    #     query_vars = ut.setdiff(model.nodes(), list(evidence.keys()))
+    #     query_vars = ut.setdiff(query_vars, ['Sab', 'Sbc', 'Sac'])
 
     #     infr = pgmpy.inference.VariableElimination(model)
     #     #infr = pgmpy.inference.BeliefPropagation(model)
@@ -170,7 +168,7 @@ def test_triangle_property():
         name_evidence=[],
     )
     test_model(
-        mode=1, show_prior=True,
+        mode=1,
         other_evidence={
             'Mab': False,
             'Mac': False,
@@ -332,25 +330,8 @@ def demo_ambiguity():
         #name_evidence=[],
         #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    test_model(score_evidence=['low', 'low', 'high'], mode=1, show_prior=True, **constkw)
-
-    ## We will end up making annots a and b fred and c and d sue
-    #constkw = dict(
-    #    num_annots=4, num_names=5,
-    #    #name_evidence=[{0: .9}, None, None, {1: .9}]
-    #    name_evidence=[0, None, None, None]
-    #    #name_evidence=[0, None, None, None]
-    #)
-    #test_model(score_evidence=[None, None, None, None, None, None], show_prior=True, **constkw)
-    #test_model(score_evidence=['high', None, None, None, None, None], **constkw)
-    #test_model(score_evidence=['high', 'low', None, None, None, None], **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', None, None], **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', None], **constkw)
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
-    ## Resolve ambiguity
-    #constkw['name_evidence'][-1] = 1
-    #test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], **constkw)
+    test_model(score_evidence=['low', 'low', 'high'], mode=1,
+               **constkw)
 
 
 def demo_annot_idependence_overlap():

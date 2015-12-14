@@ -148,6 +148,7 @@ class TemplateCPD(object):
         evidence_cpds = [cpd for cpd in parents if hasattr(cpd, 'ttype')]
         if len(evidence_cpds) == 0:
             evidence_cpds = None
+
         variable_card = len(self.basis)
         statename_dict = {
             variable: self.basis,
