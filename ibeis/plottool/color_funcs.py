@@ -449,6 +449,7 @@ def show_all_colormaps():
         maps.sort()
     else:
         maps = CMAP_DICT[type_]
+        print('CMAP_DICT = %s' % (ut.repr3(CMAP_DICT),))
 
     l = len(maps) + 1
     for i, m in enumerate(maps):

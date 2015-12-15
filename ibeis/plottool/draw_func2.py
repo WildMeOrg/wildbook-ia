@@ -1550,6 +1550,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
                     cmap_range=(.1, .9)):
     """
     Other good colormaps are 'spectral', 'gist_rainbow', 'gist_ncar', 'Set1', 'Set2', 'Accent'
+    # TODO: plasma
 
     Args:
         score_list (list):
@@ -1558,6 +1559,9 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
 
     Returns:
         <class '_ast.ListComp'>
+
+    SeeAlso:
+        python -m plottool.color_funcs --test-show_all_colormaps --show --type "Perceptually Uniform Sequential"
 
     Example:
         >>> from plottool.draw_func2 import *  # NOQA
@@ -1578,7 +1582,10 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         return []
     if logscale:
         score_list = np.log2(np.log2(score_list + 2) + 1)
+    #if isinstance(cmap_, six.string_types):
     cmap = plt.get_cmap(cmap_)
+    #else:
+    #    cmap = cmap_
     if reverse_cmap:
         cmap = reverse_colormap(cmap)
     #if custom:
@@ -1743,26 +1750,29 @@ def print_valid_cmaps():
     print(ut.list_str(sorted(maps)))
 
 
-def colorbar(scalars, colors, custom=False, lbl=None):
+def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs):
     """
     adds a color bar next to the axes based on specific scalars
 
     Args:
         scalars (ndarray):
         colors (ndarray):
+        custom (bool): use custom ticks
 
     Returns:
         cb : matplotlib colorbar object
 
     CommandLine:
         python -m plottool.draw_func2 --exec-colorbar --show
+        python -m plottool.draw_func2 --exec-colorbar:1 --show
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> from plottool import draw_func2 as df2
         >>> from plottool.draw_func2 import *  # NOQA
         >>> scalars = np.array([-1, -2, 1, 1, 2, 7, 10])
-        >>> cmap_ = 'hot'
+        >>> cmap_ = 'plasma'
         >>> logscale = False
         >>> custom = True
         >>> reverse_cmap = True
@@ -1771,6 +1781,25 @@ def colorbar(scalars, colors, custom=False, lbl=None):
         ...        -2: LIGHT_BLUE,
         ...    }
         >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale, reverse_cmap=reverse_cmap, val2_customcolor=val2_customcolor)
+        >>> colorbar(scalars, colors, custom=custom)
+        >>> df2.present()
+        >>> import plottool as pt
+        >>> pt.show_if_requested()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> from plottool import draw_func2 as df2
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> scalars = np.linspace(0, 1, 100)
+        >>> cmap_ = 'plasma'
+        >>> logscale = False
+        >>> custom = False
+        >>> reverse_cmap = True
+        >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale,
+        >>>                          reverse_cmap=reverse_cmap)
+        >>> colors = [pt.lighten_rgb(c, .3) for c in colors]
         >>> colorbar(scalars, colors, custom=custom)
         >>> df2.present()
         >>> import plottool as pt
@@ -1812,7 +1841,7 @@ def colorbar(scalars, colors, custom=False, lbl=None):
     #COLORBAR_PAD = .01  # 1
     #COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
 
-    cb = plt.colorbar(sm, cax=cax)
+    cb = plt.colorbar(sm, cax=cax, **kwargs)
 
     ## Add the colorbar to the correct label
     #axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
@@ -1840,6 +1869,17 @@ def colorbar(scalars, colors, custom=False, lbl=None):
             ticklabels = unique_scalars
         cb.set_ticks(ticks)  # tick locations
         cb.set_ticklabels(ticklabels)  # tick labels
+    elif ticklabels is not None:
+        ticks_ = cb.ax.get_yticks()
+        mx = ticks_.max()
+        mn = ticks_.min()
+        ticks = np.linspace(mn, mx, len(ticklabels))
+        cb.set_ticks(ticks)  # tick locations
+        cb.set_ticklabels(ticklabels)
+        #utool.embed()
+        #cb.ax.get_yticks()
+        #cb.set_ticks(ticks)  # tick locations
+        #cb.set_ticklabels(ticklabels)  # tick labels
 
     # FIXME: Figure out how to make a maximum number of ticks
     # and to enforce them to be inside the data bounds
@@ -3008,6 +3048,89 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
         dark_background()
     return ax
 #L_____
+
+
+def draw_text_annotations(text_list,
+                          pos_list,
+                          bbox_offset_list=[0, 0],
+                          pos_offset_list=[0, 0],
+                          bbox_align_list=[0, 0],
+                          color_list=None,
+                          textprops={}):
+    """
+    Hack fixes to issues in text annotations
+    """
+    import plottool as pt
+
+    artist_list = []
+    offset_box_list = []
+
+    if not isinstance(bbox_offset_list[0], (list, tuple)):
+        bbox_offset_list = [bbox_offset_list] * len(text_list)
+    if not isinstance(pos_offset_list[0], (list, tuple)):
+        pos_offset_list = [pos_offset_list] * len(text_list)
+    if not isinstance(bbox_align_list[0], (list, tuple)):
+        bbox_align_list = [bbox_align_list] * len(text_list)
+
+    ax = pt.gca()
+
+    textkw = dict(
+        xycoords='data', boxcoords='offset points', pad=0.25,
+        frameon=True, arrowprops=dict(arrowstyle='->'),
+        #bboxprops=dict(fc=node_attr['fillcolor']),
+    )
+
+    _iter = zip(text_list, pos_list, pos_offset_list, bbox_offset_list,
+                bbox_align_list)
+    for count,  tup in enumerate(_iter):
+        (text, pos, pos_offset, bbox_offset, bbox_align) = tup
+        if color_list is not None:
+            color = color_list[count]
+        else:
+            color = None
+        if color is None:
+            color = pt.WHITE
+        x, y = pos
+        dpx, dpy = pos_offset
+
+        if text is not None:
+            offset_box = mpl.offsetbox.TextArea(text, textprops)
+            artist = mpl.offsetbox.AnnotationBbox(
+                offset_box, (x + dpx, y + dpy),
+                xybox=bbox_offset,
+                box_alignment=bbox_align,
+                bboxprops=dict(fc=color),
+                **textkw)
+            offset_box_list.append(offset_box)
+            artist_list.append(artist)
+
+    for artist in artist_list:
+        ax.add_artist(artist)
+
+    def hack_fix_centeralign():
+        """
+        Caller needs to call this after limits are set up
+        to fixe issue in matplotlib
+        """
+        if textprops.get('horizontalalignment', None) == 'center':
+            print('Fixing centeralign')
+            fig = pt.gcf()
+            fig.canvas.draw()
+
+            # Superhack for centered text. Fix bug in
+            # /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
+            # /usr/local/lib/python2.7/dist-packages/matplotlib/text.py
+            for offset_box in offset_box_list:
+                offset_box.set_offset
+                z = offset_box._text.get_window_extent()
+                (z.x1 - z.x0) / 2
+                offset_box._text
+                T = offset_box._text.get_transform()
+                A = mpl.transforms.Affine2D()
+                A.clear()
+                A.translate((z.x1 - z.x0) / 2, 0)
+                offset_box._text.set_transform(T + A)
+    return hack_fix_centeralign
 
 if __name__ == '__main__':
     """
