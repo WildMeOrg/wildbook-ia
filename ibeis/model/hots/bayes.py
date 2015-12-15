@@ -13,6 +13,9 @@ import utool as ut
 import numpy as np
 from six.moves import zip
 from ibeis.model.hots import pgm_ext
+import pgmpy
+import pgmpy.inference
+
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
 SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
@@ -30,13 +33,13 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
     model, evidence, soft_evidence = update_model_evidence(
         model, name_evidence, score_evidence, other_evidence)
 
-    if verbose:
-        ut.colorprint('\n --- Soft Evidence ---', 'white')
-        for ttype, cpds in model.ttype2_cpds.items():
-            if ttype != 'match':
-                for fs_ in ut.ichunks(cpds, 4):
-                    ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]),
-                                  'green')
+    #if verbose:
+    #    ut.colorprint('\n --- Soft Evidence ---', 'white')
+    #    for ttype, cpds in model.ttype2_cpds.items():
+    #        if ttype != 'match':
+    #            for fs_ in ut.ichunks(cpds, 4):
+    #                ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]),
+    #                              'green')
 
     if verbose:
         ut.colorprint('\n --- Inference ---', 'red')
@@ -254,23 +257,42 @@ def bruteforce_query(model, query_vars=None, evidence=None):
         >>> other_evidence = {}
         >>> name_evidence = [1, None, 0, None]
         >>> score_evidence = ['high', 'low', 'low']
-        >>> query_vars = None
         >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
         >>> model, evidence, soft_evidence = update_model_evidence(
         >>>     model, name_evidence, score_evidence, other_evidence)
         >>> evidence = model._ensure_internal_evidence(evidence)
+        >>> query_vars = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
         >>> query_results = bruteforce_query(model, query_vars, evidence)
         >>> result = ('query_results = %s' % (str(query_results),))
         >>> ut.quit_if_noshow()
-        >>> show_model(model, **query_results)
+        >>> show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
     """
     import vtool as vt
     evidence = model._ensure_internal_evidence(evidence)
-    full_joint = model.joint_distribution()
+
     if query_vars is None:
-        query_vars = ut.setdiff(model.nodes(), list(evidence.keys()))
-    reduced_joint = full_joint.evidence_based_reduction(query_vars, evidence, inplace=False)
+        query_vars = model.nodes()
+    orig_query_vars = query_vars  # NOQA
+
+    query_vars = ut.setdiff(query_vars, list(evidence.keys()))
+
+    if True:
+        operation = 'maximize'
+        variables = query_vars
+        # Dont brute force anymore
+        infr = pgmpy.inference.BeliefPropagation(model)
+        reduced_joint1 = infr.compute_conditional_joint(variables, operation, evidence)
+        reduced_joint1.normalize()
+        reduced_joint = reduced_joint1
+
+        #infr = pgmpy.inference.VariableElimination(model)
+        #self = infr
+        #elimination_order = None  # NOQA
+        #reduced_joint2 = self.compute_conditional_joint(variables, operation, evidence)
+        #reduced_joint2.normalize()
+    else:
+        reduced_joint = model.joint_distribution().evidence_based_reduction(query_vars, evidence, inplace=False)
 
     evidence_vars = list(evidence.keys())
     evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
@@ -581,6 +603,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     takw1 = {'bbox_align': (.5, 0), 'pos_offset': [0, dpy], 'bbox_offset': [dbx, dby]}
     takw2 = {'bbox_align': (.5, 1), 'pos_offset': [0, -dpy], 'bbox_offset': [-dbx, -dby]}
 
+    name_colors = pt.distinct_colors(model.num_names + 1)
+
     for node, pos in zip(netx_nodes, pos_list):
         variable = node[0]
         cpd = model.var2_cpd[variable]
@@ -591,8 +615,6 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         show_prior = cpd.ttype in show_prior_with_ttype
         show_post = variable in var2_post
         show_prior |= cpd.ttype in show_prior_with_ttype
-
-        name_colors = pt.distinct_colors(model.num_names + 1)
 
         post_marg = None
         show_prior = False
@@ -614,6 +636,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
                 cmap_index = evidence[variable] / (cpd.variable_card - 1)
                 color = cmap(cmap_index)
                 color = pt.lighten_rgb(color, .4)
+                color = np.array(color)
+                node_color.append(color)
+            elif cpd.ttype == 'name':
+                color = name_colors[evidence[variable]]
                 color = np.array(color)
                 node_color.append(color)
             else:
@@ -652,6 +678,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             if cpd.ttype == 'score':
                 _takw1 = takw2
             evidence_text = cpd.variable_statenames[evidence[variable]]
+            if isinstance(evidence_text, int):
+                evidence_text = '%d/%d' % (evidence_text + 1, cpd.variable_card)
+            #import utool
+            #utool.embed()
             evidence_tas.append(dict(text=evidence_text, pos=pos, color=color, **_takw1))
         if show_post:
             _takw1 = takw1
@@ -723,8 +753,12 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     colors = pt.scores_to_color(scalars, cmap_=cmap_, reverse_cmap=False,
                                 cmap_range=(mn, mx))
     colors = [pt.lighten_rgb(c, .4) for c in colors]
-    pt.colorbar(scalars, colors, lbl='score',
-                ticklabels=model.ttype2_template['score'].basis)
+    basis = model.ttype2_template['score'].basis
+
+    if ut.list_type(basis) is int:
+        pt.colorbar(scalars, colors, lbl='score', ticklabels=np.array(basis) + 1)
+    else:
+        pt.colorbar(scalars, colors, lbl='score', ticklabels=basis)
 
     # Draw probability hist
     if top_assignments is not None:

@@ -12,25 +12,29 @@ def demo_bayesnet(cfg):
     CommandLine:
         python -m ibeis --tf demo_bayesnet --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=3,Sab=low,Sac=low,Sbc=high
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Sbd=high --show
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Scd=high --show
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,Sab=low,Sac=low,Sbc=high,Sbd=high,Scd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=low,Sac=low,Sbc=high
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Sbd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Scd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Sbd=high,Scd=high --show
 
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=3,Sab=low,Sac=low,Sbc=high
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=5,rand_scores=True --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=low,Sac=low,Sbc=high
+        python -m ibeis --tf demo_bayesnet --ev :nA=5,rand_scores=True --show
 
-        python -m ibeis --tf demo_bayesnet --ev :num_annots=4,rand_scores=True,num_scores=5 --show --verbose
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,rand_scores=True --show --verbose
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,Na=fred,rand_scores=True --show --verbose
+        python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=2,Na=fred,rand_scores=True --show --verbose
+        python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=5,Na=fred,rand_scores=True --show --verbose
 
         python -m ibeis.model.hots.demobayes --exec-demo_bayesnet \
-                --ev =:num_annots=4,Sab=low,Sac=low,Sbc=high \
+                --ev =:nA=4,Sab=low,Sac=low,Sbc=high \
                 :Sbd=high :Scd=high :Sbd=high,Scd=high :Sbd=high,Scd=high,Sad=low \
                 --show --present
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> cfg_list = ut.parse_argv_cfg('--ev')
+        >>> alias_keys = {'nA': 'num_annots', 'nN': 'num_names', 'nS': 'num_scores'}
+        >>> cfg_list = ut.parse_argv_cfg('--ev', alias_keys=alias_keys)
         >>> print('cfg_list = %r' % (cfg_list,))
         >>> for cfg in cfg_list:
         >>>     demo_bayesnet(cfg)
@@ -38,6 +42,7 @@ def demo_bayesnet(cfg):
     """
     cfg = cfg.copy()
     num_annots = cfg.pop('num_annots', 3)
+    num_names = cfg.pop('num_names', None)
     rand_scores = cfg.pop('rand_scores', False)
     num_scores = cfg.pop('num_scores', 2)
     other_evidence = {k: v for k, v in cfg.items() if not k.startswith('_')}
@@ -47,14 +52,18 @@ def demo_bayesnet(cfg):
         #r = randomdotorg.RandomDotOrg('ExampleCode')
         #seed = int((1 - 2 * r.random()) * sys.maxint)
         import numpy as np
-        seed = 0
+        seed = None
         rng = np.random.RandomState(seed)
         num_matches = (num_annots ** 2 - num_annots) // 2
-        score_evidence = rng.choice(np.arange(num_scores), size=num_matches)
+        basis = np.arange(num_scores)
+        p = (basis[::-1] + len(basis))
+        p = p / p.sum()
+        print('p = %r' % (p,))
+        score_evidence = rng.choice(basis, size=num_matches, p=p)
     else:
         score_evidence = []
     model, evidence = test_model(
-        num_annots=num_annots, num_names=num_annots,
+        num_annots=num_annots, num_names=num_names,
         num_scores=num_scores,
         score_evidence=score_evidence,
         mode=1,
