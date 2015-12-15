@@ -549,19 +549,22 @@ def group_indices(idx2_groupid):
 
     CommandLine:
         python -m vtool.clustering2 --test-group_indices
+        python -m vtool.clustering2 --exec-group_indices:1
         utprof.py -m vtool.clustering2 --test-group_indices:2
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
-        >>> #np.random.seed(42)
-        >>> #size = 10
-        >>> #idx2_groupid = np.array(np.random.randint(0, 4, size=size))
         >>> idx2_groupid = np.array([2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3])
         >>> (keys, groupxs) = group_indices(idx2_groupid)
-        >>> result = str((keys, groupxs))
+        >>> result = ut.repr3((keys, groupxs), nobraces=1)
         >>> print(result)
-        (array([1, 2, 3]), [array([1, 3, 5]), array([0, 2, 4, 6]), array([ 7,  8,  9, 10])])
+        np.array([1, 2, 3], dtype=np.int64),
+        [
+            np.array([1, 3, 5], dtype=np.int64),
+            np.array([0, 2, 4, 6], dtype=np.int64),
+            np.array([ 7,  8,  9, 10], dtype=np.int64),
+        ],
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -571,9 +574,16 @@ def group_indices(idx2_groupid):
         >>> # 2d arrays must be flattened before coming into this function so
         >>> # information is on the last axis
         >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
-        >>> result = str((keys, groupxs))
+        >>> result = ut.repr3((keys, groupxs), nobraces=1)
         >>> print(result)
-        (array([ 24, 129, 659, 822]), [array([ 0,  4, 10]), array([1]), array([2, 3, 5, 6, 8, 9]), array([7])])
+        np.array([ 24, 129, 659, 822], dtype=np.int64),
+        [
+            np.array([ 0,  4, 10], dtype=np.int64),
+            np.array([1], dtype=np.int64),
+            np.array([2, 3, 5, 6, 8, 9], dtype=np.int64),
+            np.array([7], dtype=np.int64),
+        ],
+
 
     Example2:
         >>> # TIMING_TEST
@@ -618,12 +628,14 @@ def group_indices(idx2_groupid):
     SeeAlso:
         apply_grouping
 
+    References:
+        http://stackoverflow.com/questions/4651683/
+        numpy-grouping-using-itertools-groupby-performance
+
     TODO:
         Look into np.split
-        http://stackoverflow.com/questions/21888406/getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
-
-    References:
-        http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+        http://stackoverflow.com/questions/21888406/
+        getting-the-indexes-to-the-duplicate-columns-of-a-numpy-array
     """
     # Sort items and idx2_groupid by groupid
     # <len(data) bottlneck>
@@ -678,13 +690,15 @@ def find_duplicate_items(item_arr):
     diff = np.diff(groupids_sorted)
     #notdiff = np.bitwise_not(diff.astype(np.bool))
     edges = np.flatnonzero(diff.astype(np.bool)) + 1
-    duplicate_items = [group[0] for group in np.split(groupids_sorted, edges) if group.shape[0] > 1]
+    duplicate_items = [group[0] for group in np.split(groupids_sorted, edges)
+                       if group.shape[0] > 1]
     #duplicate_items = groupids_sorted.take(duplicate_idxs)
     return duplicate_items
 
 
 def apply_grouping(items, groupxs):
     """
+    applies grouping from group_indicies
     apply_grouping
 
     Args:
@@ -724,7 +738,7 @@ def apply_grouping(items, groupxs):
 
 def apply_grouping_(items, groupxs):
     """ non-optimized version """
-    return [ut.list_take(items, xs) for xs in groupxs]
+    return ut.apply_grouping(items, groupxs)
 
 
 def invert_apply_grouping(grouped_items, groupxs):
