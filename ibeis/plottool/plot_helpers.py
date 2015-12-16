@@ -129,9 +129,15 @@ def get_bbox_centers(bbox_list):
     return bbox_centers
 
 
+def ensure_pylab_qt4():
+    if ut.inIPython():
+        import IPython
+        IPython.get_ipython().magic('pylab qt4')
+
 #==========================#
 #  --- TESTING FUNCS ---   #
 #==========================#
+
 
 def kp_info(kp):
     import vtool.keypoint as ktool
