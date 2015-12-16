@@ -71,7 +71,7 @@ class TemplateCPD(object):
     """
     Factory for templated cpds
     """
-    def __init__(self, ttype, basis, varpref, evidence_ttypes=None,
+    def __init__(self, ttype, basis, varpref=None, evidence_ttypes=None,
                  pmf_func=None, special_basis_pool=None):
         if isinstance(basis, tuple):
             state_pref, state_card = basis
@@ -86,7 +86,7 @@ class TemplateCPD(object):
                 start = num_special
                 basis = basis + [state_pref + str(i) for i in range(start, stop)]
         if varpref is None:
-            varpref = ttype
+            varpref = ttype[0].upper()
         self.basis = basis
         self.ttype = ttype
         self.varpref = varpref
@@ -163,7 +163,8 @@ class TemplateCPD(object):
             evidence_states = list(ut.iprod(*evidence_bases))
 
             for cpd in evidence_cpds:
-                statename_dict.update(cpd.statename_dict)
+                _dict = ut.dict_subset(cpd.statename_dict, [cpd.variable])
+                statename_dict.update(_dict)
 
             evidence = [cpd.variable for cpd in evidence_cpds]
         else:
@@ -186,16 +187,33 @@ class TemplateCPD(object):
                 values = values / values.sum(axis=0)
         else:
             # assume uniform
-            values = [[1.0 / variable_card] * variable_card]
+            fill_value = 1.0 / variable_card
+            if evidence_card is None:
+                values = np.full((1, variable_card), fill_value)
+            else:
+                values = np.full([variable_card] + list(evidence_card), fill_value)
 
-        cpd = pgmpy.factors.TabularCPD(
-            variable=variable,
-            variable_card=variable_card,
-            values=values,
-            evidence=evidence,
-            evidence_card=evidence_card,
-            statename_dict=statename_dict,
-        )
+        try:
+            cpd = pgmpy.factors.TabularCPD(
+                variable=variable,
+                variable_card=variable_card,
+                values=values,
+                evidence=evidence,
+                evidence_card=evidence_card,
+                statename_dict=statename_dict,
+            )
+        except Exception as ex:
+            ut.printex(ex, 'Failed to create TabularCPD',
+                       keys=[
+                           'variable',
+                           'variable_card',
+                           'statename_dict',
+                           'evidence_card',
+                           'evidence',
+                           'values.shape',
+                       ])
+            raise
+
         cpd.ttype = self.ttype
         cpd._template_ = self
         cpd._template_id = _id

@@ -22,6 +22,12 @@ print, rrr, profile = ut.inject2(__name__, '[cfghelpers]')
 NAMEVARSEP = ':'
 
 
+INTERNAL_CFGKEYS = ut.INTERNAL_CFGKEYS
+get_varied_cfg_lbls = ut.get_varied_cfg_lbls
+partition_varied_cfg_list = ut.partition_varied_cfg_list
+get_cfg_lbl = ut.get_cfg_lbl
+
+
 def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
     if cfgtype is not None and cfgtype in ['qcfg', 'dcfg']:
         for key in list(cfg_options.keys()):

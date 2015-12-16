@@ -1744,7 +1744,7 @@ class TestResult(object):
 
         xdata = list(map(len, testres.cfgx2_daids))
 
-        USE_MEDIAN = 1
+        USE_MEDIAN = True  # not ut.get_argflag('--use-mean')
         #USE_LOG = True
         USE_LOG = False
         if USE_MEDIAN:

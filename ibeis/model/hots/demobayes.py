@@ -19,12 +19,12 @@ def demo_bayesnet(cfg={}):
     CommandLine:
         python -m ibeis --tf demo_bayesnet --diskshow --verbose --save demo4.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
-        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=low,Sac=low,Sbc=high
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Sbd=high --show
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Scd=high --show
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=low,Sac=low,Sbc=high,Sbd=high,Scd=high --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1 --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Scd=1 --show
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,Sab=0,Sac=0,Sbc=1,Sbd=1,Scd=1 --show
 
-        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=low,Sac=low,Sbc=high
+        python -m ibeis --tf demo_bayesnet --ev :nA=3,Sab=0,Sac=0,Sbc=1
         python -m ibeis --tf demo_bayesnet --ev :nA=5,rand_scores=True --show
 
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,rand_scores=True --show --verbose
@@ -33,8 +33,8 @@ def demo_bayesnet(cfg={}):
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=fred,rand_scores=True --show --verbose
 
         python -m ibeis.model.hots.demobayes --exec-demo_bayesnet \
-                --ev =:nA=4,Sab=low,Sac=low,Sbc=high \
-                :Sbd=high :Scd=high :Sbd=high,Scd=high :Sbd=high,Scd=high,Sad=low \
+                --ev =:nA=4,Sab=0,Sac=0,Sbc=1 \
+                :Sbd=1 :Scd=1 :Sbd=1,Scd=1 :Sbd=1,Scd=1,Sad=0 \
                 --show --present
 
     Example:
@@ -49,15 +49,15 @@ def demo_bayesnet(cfg={}):
     cfg = cfg.copy()
     num_annots = cfg.pop('num_annots', 3)
     num_names = cfg.pop('num_names', None)
-    rand_scores = cfg.pop('rand_scores', False)
     num_scores = cfg.pop('num_scores', 2)
+    rand_scores = cfg.pop('rand_scores', False)
     other_evidence = {k: v for k, v in cfg.items() if not k.startswith('_')}
     if rand_scores:
         #import randomdotorg
         #import sys
         #r = randomdotorg.RandomDotOrg('ExampleCode')
         #seed = int((1 - 2 * r.random()) * sys.maxint)
-        toy_data = get_toy_data(num_annots, nid_sequence=[0, 0, 1, 0, 1, 2])
+        toy_data = get_toy_data_1v1(num_annots, nid_sequence=[0, 0, 1, 0, 1, 2])
         print('toy_data = ' + ut.repr3(toy_data, nl=1))
         diag_scores, = ut.dict_take(
             toy_data, 'diag_scores'.split(', '))
@@ -67,15 +67,6 @@ def demo_bayesnet(cfg={}):
             score_idxs = np.abs(1 - (discr_domain / scores[:, None])).argmin(axis=1)
             return score_idxs
         score_evidence = discretize_scores(diag_scores)
-        #import numpy as np
-        #seed = None
-        #rng = np.random.RandomState(seed)
-        #num_matches = (num_annots ** 2 - num_annots) // 2
-        #basis = np.arange(num_scores)
-        #p = (basis[::-1] + len(basis))
-        #p = p / p.sum()
-        #print('p = %r' % (p,))
-        #score_evidence = rng.choice(basis, size=num_matches, p=p)
     else:
         score_evidence = []
         discr_p_same = None
@@ -91,21 +82,25 @@ def demo_bayesnet(cfg={}):
     )
 
 
-def classify_k():
+def classify_k(cfg={}):
     """
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-classify_k --show --k 1
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=1
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=3
 
     Example:
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> classify_k()
+        >>> cfg_list = testdata_demo_cfgs()
+        >>> classify_k(cfg_list[0])
         >>> ut.show_if_requested()
     """
-    num_annots = 3
-    #num_scores = 2
-    num_scores = 3
-    nid_sequence = np.array([0, 0, 1, 0, 1, 2, 1])
-    toy_data = get_toy_data(num_annots, nid_sequence=nid_sequence)
+    cfg = cfg.copy()
+    num_annots = cfg.pop('num_annots', 3)
+    num_scores = cfg.pop('num_scores', 2)
+    num_iter = cfg.pop('k', 0)
+    nid_sequence = np.array([0, 0, 1, 2, 2, 1, 1])
+    toy_data = get_toy_data_1v1(num_annots, nid_sequence=nid_sequence)
     diag_scores, = ut.dict_take(
         toy_data, 'diag_scores'.split(', '))
 
@@ -121,6 +116,8 @@ def classify_k():
 
     # Careful ordering is important here
     score_evidence = discretize_scores(diag_scores)
+    for x in range(len(score_evidence)):
+        score_evidence[x] = 0
 
     model, evidence, query_results = test_model(
         num_annots=num_annots, num_names=num_annots,
@@ -142,19 +139,23 @@ def classify_k():
     factor_list = query_results['factor_list']
     soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list]
 
-    num_iter = ut.get_argval('--k', type_=int, default=0)
     for _ in range(num_iter):
         print('\n\n ---------- \n\n')
         #toy_data1['all_nids'].max() + 1
         num_names_gen = len(toy_data1['all_aids']) + 1
         num_names_gen = toy_data1['all_nids'].max() + 2
-        toy_data2 = get_toy_data(
-            1, num_names_gen, toy_data1['all_aids'], toy_data1['all_nids'], nid_sequence=nid_sequence)
+        toy_data2 = get_toy_data_1v1(
+            1, num_names_gen,
+            initial_aids=toy_data1['all_aids'],
+            initial_nids=toy_data1['all_nids'],
+            nid_sequence=nid_sequence)
         diag_scores2, = ut.dict_take(
             toy_data2, 'diag_scores'.split(', '))
         print('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
 
         score_evidence2 = discretize_scores(diag_scores2).tolist()
+        for x in range(len(score_evidence2)):
+            score_evidence2[x] = 0
         print('score_evidence2 = %r' % (score_evidence2,))
 
         if 1:
@@ -205,17 +206,198 @@ def show_toy_distributions(toy_params):
         figtitle='Toy Distributions')
 
 
+def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
+    r"""
+    Args:
+        num_annots (int):
+        num_names (int): (default = None)
+
+    Kwargs:
+        initial_aids, initial_nids, nid_sequence, seed
+
+    Returns:
+        tuple: (pair_list, feat_list)
+
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-get_toy_data_1vM --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> num_annots = 1000
+        >>> num_names = 40
+        >>> get_toy_data_1vM(num_annots, num_names)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    tup_ = get_toy_annots(num_annots, num_names, **kwargs)
+    aids, nids, aids1, nids1, all_aids, all_nids = tup_
+    rng = vt.ensure_rng(None)
+
+    # Test a simple SVM classifier
+    nid2_nexemp = ut.dict_hist(nids1)
+    aid2_nid = dict(zip(aids, nids))
+
+    def fixembedglobals():
+        import utool as ut
+        globals_ = ut.get_parent_globals()
+        locals_ = ut.get_parent_locals()
+        globals_.update(locals_)
+        globals_['wasfixed'] = True
+
+    def add_to_globals(globals_, subdict):
+        globals_.update(subdict)
+
+    unique_nids = list(nid2_nexemp.keys())
+
+    def annot_to_class_feats2(aid, aid2_nid, top=None):
+        pair_list = []
+        score_list = []
+        nexemplar_list = []
+        for nid in unique_nids:
+            label = (aid2_nid[aid] == nid)
+            num_exemplars = nid2_nexemp.get(nid, 0)
+            if num_exemplars == 0:
+                continue
+            params = toy_params[label]
+            mu, sigma = ut.dict_take(params, ['mu', 'sigma'])
+            score_ = rng.normal(mu, sigma, size=num_exemplars).max()
+            score = np.clip(score_, 0, np.inf)
+            pair_list.append((aid, nid))
+            score_list.append(score)
+            nexemplar_list.append(num_exemplars)
+        rank_list = ut.argsort(score_list, reverse=True)
+        feat_list = np.array([score_list, rank_list, nexemplar_list]).T
+        sortx = np.argsort(rank_list)
+        feat_list = feat_list.take(sortx, axis=0)
+        pair_list = np.array(pair_list).take(sortx, axis=0)
+        if top is not None:
+            feat_list = feat_list[:top]
+            pair_list = pair_list[0:top]
+        return pair_list, feat_list
+
+    toclass_features = [annot_to_class_feats2(aid, aid2_nid, top=5) for aid in aids]
+    aidnid_pairs = np.vstack(ut.get_list_column(toclass_features, 0))
+    feat_list = np.vstack(ut.get_list_column(toclass_features, 1))
+    score_list = feat_list.T[0:1].T
+    lbl_list = [aid2_nid[aid] == nid for aid, nid in aidnid_pairs]
+
+    from sklearn import svm
+    #clf1 = svm.LinearSVC()
+    print('Learning classifiers')
+
+    clf3 = svm.SVC()
+    clf3.fit(feat_list, lbl_list)
+
+    clf1 = svm.LinearSVC()
+    clf1.fit(score_list, lbl_list)
+
+    # Score new annots against the training database
+    tup_ = get_toy_annots(num_annots * 2, num_names, initial_aids=all_aids, initial_nids=all_nids)
+    aids, nids, aids1, nids1, all_aids, all_nids = tup_
+    aid2_nid = dict(zip(aids, nids))
+    toclass_features = [annot_to_class_feats2(aid, aid2_nid) for aid in aids]
+    aidnid_pairs = np.vstack(ut.get_list_column(toclass_features, 0))
+    feat_list = np.vstack(ut.get_list_column(toclass_features, 1))
+    lbl_list = np.array([aid2_nid[aid] == nid for aid, nid in aidnid_pairs])
+
+    print('Running tests')
+
+    score_list = feat_list.T[0:1].T
+
+    tp_feat_list = feat_list[lbl_list]
+    tn_feat_list = feat_list[~lbl_list]
+    tp_lbls = lbl_list[lbl_list]
+    tn_lbls = lbl_list[~lbl_list]
+    print('num tp: %d' % len(tp_lbls))
+    print('num fp: %d' % len(tn_lbls))
+
+    tp_score_list = score_list[lbl_list]
+    tn_score_list = score_list[~lbl_list]
+
+    print('tp_feat' + ut.repr3(ut.get_stats(tp_feat_list, axis=0), precision=2))
+    print('tp_feat' + ut.repr3(ut.get_stats(tn_feat_list, axis=0), precision=2))
+
+    print('tp_score' + ut.repr2(ut.get_stats(tp_score_list), precision=2))
+    print('tp_score' + ut.repr2(ut.get_stats(tn_score_list), precision=2))
+
+    tp_pred3 = clf3.predict(tp_feat_list)
+    tn_pred3 = clf3.predict(tn_feat_list)
+    print((tp_pred3.sum(), tp_pred3.shape))
+    print((tn_pred3.sum(), tn_pred3.shape))
+
+    tp_score3 = clf3.score(tp_feat_list, tp_lbls)
+    tn_score3 = clf3.score(tn_feat_list, tn_lbls)
+
+    tp_pred1 = clf1.predict(tp_score_list)
+    tn_pred1 = clf1.predict(tn_score_list)
+    print((tp_pred1.sum(), tp_pred1.shape))
+    print((tn_pred1.sum(), tn_pred1.shape))
+
+    tp_score1 = clf1.score(tp_score_list, tp_lbls)
+    tn_score1 = clf1.score(tn_score_list, tn_lbls)
+    print('tp score with rank    = %r' % (tp_score3,))
+    print('tn score with rank    = %r' % (tn_score3,))
+
+    print('tp score without rank = %r' % (tp_score1,))
+    print('tn score without rank = %r' % (tn_score1,))
+    toy_data = {}
+
+    return toy_data
+
+
+def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=None, nid_sequence=None, seed=None):
+    import vtool as vt
+    if num_names is None:
+        num_names = num_annots
+    print('Generating toy data with num_annots=%r' % (num_annots,))
+    start = 0 if initial_aids is None else len(initial_aids)
+    aids = np.arange(start, num_annots + start)
+    rng = vt.ensure_rng(seed)
+    if nid_sequence is None:
+        nids = rng.randint(0, num_names, num_annots)
+    else:
+        need = start + num_annots
+        if need > len(nid_sequence):
+            nids = np.append(nid_sequence, rng.randint(0, num_names, need - len(nid_sequence)))
+        else:
+            nids = np.array(ut.take(nid_sequence, range(start, need)))
+
+    if initial_nids is None:
+        aids1 = aids
+        nids1 = nids
+        all_nids = nids
+        all_aids = aids
+    else:
+        aids1 = initial_aids
+        nids1 = initial_nids
+        all_nids = np.append(initial_nids, nids)
+        all_aids = np.append(initial_aids, aids)
+    return aids, nids, aids1, nids1, all_aids, all_nids
+
+
+toy_params = {
+    True: {'mu': 1.5, 'sigma': 3.0},
+    False: {'mu': 0.5, 'sigma': .4}
+    #True: {'mu': 3.5, 'sigma': 1.1},
+    #False: {'mu': .3, 'sigma': .7}
+    #'p': .7},
+    #'p': .2}
+}
+
+
 #@ut.cached_func('_toy_bayes_data3')
-def get_toy_data(num_annots=5, num_names=None, initial_aids=None,
-                 initial_nids=None, nid_sequence=None, seed=None):
+def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
     r"""
     CommandLine:
-        python -m ibeis.model.hots.demobayes --exec-get_toy_data --show
+        python -m ibeis.model.hots.demobayes --exec-get_toy_data_1v1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> toy_data = get_toy_data()
+        >>> toy_data = get_toy_data_1v1()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
@@ -224,105 +406,52 @@ def get_toy_data(num_annots=5, num_names=None, initial_aids=None,
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> toy_data = get_toy_data()
+        >>> toy_data = get_toy_data_1v1()
+        >>> kwargs = {}
         >>> initial_aids = toy_data['aids']
         >>> initial_nids = toy_data['nids']
         >>> num_annots = 1
         >>> num_names = 6
-        >>> toy_data2 = get_toy_data(num_annots, num_names, initial_aids, initial_nids)
+        >>> toy_data2 = get_toy_data_1v1(num_annots, num_names, initial_aids=initial_aids, initial_nids=initial_nids)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
+
+    Ignore:
+        >>> num_annots = 1000
+        >>> num_names = 400
     """
     import vtool as vt
-    if num_names is None:
-        num_names = num_annots
-    #num_annots = cfg.pop('num_annots', 5)
-    #num_names = cfg.pop('num_names', num_annots)
-    print('Generating toy data with num_annots=%r' % (num_annots,))
-    start = 0 if initial_aids is None else len(initial_aids)
-    #rng = vt.ensure_rng(start)
-    #print('seed = %r' % (seed,))
-    aids = np.arange(start, num_annots + start)
-    rng = vt.ensure_rng(seed)
-    if nid_sequence is None:
-        #seed = (start * 11)
-        #np.random.RandomState(seed)
-        if initial_nids is None:
-            hidden_nids = rng.randint(0, num_names, num_annots)
-        else:
-            # HACK
-            #import utool
-            #utool.embed()
-            nid_is_avail = vt.index_to_boolmask(initial_nids, initial_nids.max() + 1)
-            next_ = np.where(~nid_is_avail)[0]
-            if len(next_) == 0:
-                nid_is_avail = np.append(nid_is_avail, [True])
-                idx = len(nid_is_avail) - 1
-            else:
-                idx = next_[0]
-                nid_is_avail[idx] = True
-            avail_nids = np.where(nid_is_avail)[0]
-            p = np.ones(len(avail_nids))
-            # chance to see a new annotation
-            chance = .4
-            # more or less
-            p[:] = (1 - chance) / (len(p) - 1)
-            p[idx] = chance
-            #print('p = %r' % (p,))
-            #hidden_nids = rng.randint(0, num_names, num_annots)
-            #print('avail_nids = %r' % (avail_nids,))
-            hidden_nids = rng.choice(avail_nids, num_annots, p=p)
-            #print('hidden_nids = %r' % (hidden_nids,))
-    else:
-        hidden_nids = np.array(ut.take(nid_sequence, range(start, start + num_annots)))
+    tup_ = get_toy_annots(num_annots, num_names, **kwargs)
+    aids, nids, aids1, nids1, all_aids, all_nids = tup_
+    rng = vt.ensure_rng(None)
 
-    #print('hidden_nids = %r' % (hidden_nids,))
-
-    toy_params = {
-        #True: {'mu': 3.5, 'sigma': 1.1},
-        #False: {'mu': .3, 'sigma': .7}
-        True: {'mu': 3.5, 'sigma': .1},
-        False: {'mu': .3, 'sigma': .7}
-    }
-
-    if initial_nids is None:
-        aids1 = aids
-        hidden_nids1 = hidden_nids
-        all_nids = hidden_nids
-        all_aids = aids
-    else:
-        aids1 = initial_aids
-        hidden_nids1 = initial_nids
-        all_nids = np.append(initial_nids, hidden_nids)
-        all_aids = np.append(initial_aids, aids)
-
-    def metric(aidx1, aidx2, all_nids=all_nids, toy_params=toy_params):
+    def pairwise_feature(aidx1, aidx2, all_nids=all_nids, toy_params=toy_params):
         if aidx1 == aidx2:
             score = -1
         else:
             #rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))
             nid1 = all_nids[int(aidx1)]
             nid2 = all_nids[int(aidx2)]
-            same = nid1 == nid2
-            params = toy_params[same]
+            params = toy_params[nid1 == nid2]
             mu, sigma = ut.dict_take(params, ['mu', 'sigma'])
             score_ = rng.normal(mu, sigma)
             score = np.clip(score_, 0, np.inf)
         return score
 
-    pairwise_nids = list([tup[::-1] for tup in ut.iprod(hidden_nids, hidden_nids1)])
+    pairwise_nids = list([tup[::-1] for tup in ut.iprod(nids, nids1)])
     pairwise_matches = np.array(
         [nid1 == nid2 for nid1, nid2 in pairwise_nids])
 
     pairwise_aidxs = list([tup[::-1] for tup in ut.iprod(aids, aids1)])
 
-    pairwise_scores = np.array(
-        [metric(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs])
+    pairwise_features = np.array(
+        [pairwise_feature(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs])
+
     #pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
     is_diag = [r < c for r, c, in pairwise_aidxs]
-    diag_scores = pairwise_scores.compress(is_diag)
+    diag_scores = pairwise_features.compress(is_diag)
     diag_aidxs = ut.compress(pairwise_aidxs, is_diag)
     diag_nids = ut.compress(pairwise_nids, is_diag)
     diag_labels = pairwise_matches.compress(is_diag)
@@ -332,7 +461,7 @@ def get_toy_data(num_annots=5, num_names=None, initial_aids=None,
 
     toy_data = {
         'aids': aids,
-        'nids': hidden_nids,
+        'nids': nids,
         'all_nids': all_nids,
         'all_aids': all_aids,
         #'pairwise_aidxs': pairwise_aidxs,
@@ -372,7 +501,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
     """
     num_annots_train = 200
     num_names_train = 5
-    toy_data = get_toy_data(num_annots_train, num_names_train)
+    toy_data = get_toy_data_1v1(num_annots_train, num_names_train)
     #pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(
     #    toy_data, 'pairwise_aidxs, pairwise_scores, pairwise_matches'.split(', '))
 
@@ -449,56 +578,6 @@ def classify_one_new_unknown():
         other_evidence={
         },
         **constkw)
-
-    # if False:
-    #     #from ibeis.model.hots import pgm_ext
-    #     import pgmpy
-    #     import pgmpy.models
-    #     import pgmpy.inference
-    #     assert isinstance(model, pgmpy.models.BayesianModel)
-
-    #     cpds = model.ttype2_cpds['score']
-    #     ut.embed()
-    #     #model1 = model.copy()
-    #     model.remove_cpds(*cpds)
-    #     model.remove_cpds(*cpds)
-    #     variables = [cpd.variable for cpd in cpds]
-    #     self.delete_variables(variables)
-
-    #     query_vars = ut.setdiff(model.nodes(), list(evidence.keys()))
-    #     query_vars = ut.setdiff(query_vars, ['Sab', 'Sbc', 'Sac'])
-
-    #     infr = pgmpy.inference.VariableElimination(model)
-    #     #infr = pgmpy.inference.BeliefPropagation(model)
-    #     #variables = query_vars
-    #     map_assign = infr.map_query(query_vars, evidence)
-    #     print('map_assign = %r' % (map_assign,))
-    #     #infr.max_marginal(query_vars)
-    #     infr.map_query(query_vars)
-
-    #     #model
-
-    #     #from pgmpy.factors.Factor import factor_product
-    #     #self = infr
-    #     #elimination_order = None
-
-    #     # MAP estimate
-    #     # argmax_y P(Y=y | E=e)
-    #     joint = model.joint_distribution()
-    #     j1 = joint.evidence_based_reduction(evidence=evidence)
-    #     print(j1._str(tablefmt='psql', sort=-1))
-
-    #     ut.embed()
-
-    #     new_rows = j1._row_labels()
-    #     new_vals = j1.values.ravel()
-    #     new_vals2 = new_vals.compress(new_vals > 0)
-    #     new_row2 = ut.compress(new_rows, new_vals > 0)
-    #     print('new_vals2 = %r' % (new_vals2,))
-    #     print('new_row2 = %r' % (new_row2,))
-    #     print(j1.marginalize(['Na', 'Nb'], inplace=False))
-    #     print(j1.marginalize(['Nc', 'Na'], inplace=False))
-    #     print(j1.marginalize(['Nb', 'Nc'], inplace=False))
 
 
 def test_triangle_property():

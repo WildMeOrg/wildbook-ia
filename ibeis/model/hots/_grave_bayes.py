@@ -970,3 +970,32 @@ def flow():
         g.maxflow()
         g.get_nx_graph()
         g.get_segment(nodes[0])
+
+
+#seed = (start * 11)
+#np.random.RandomState(seed)
+#if initial_nids is None:
+#else:
+#    # HACK
+#    #import utool
+#    #utool.embed()
+#    nid_is_avail = vt.index_to_boolmask(initial_nids, initial_nids.max() + 1)
+#    next_ = np.where(~nid_is_avail)[0]
+#    if len(next_) == 0:
+#        nid_is_avail = np.append(nid_is_avail, [True])
+#        idx = len(nid_is_avail) - 1
+#    else:
+#        idx = next_[0]
+#        nid_is_avail[idx] = True
+#    avail_nids = np.where(nid_is_avail)[0]
+#    p = np.ones(len(avail_nids))
+#    # chance to see a new annotation
+#    chance = .4
+#    # more or less
+#    p[:] = (1 - chance) / (len(p) - 1)
+#    p[idx] = chance
+#    #print('p = %r' % (p,))
+#    #nids = rng.randint(0, num_names, num_annots)
+#    #print('avail_nids = %r' % (avail_nids,))
+#    nids = rng.choice(avail_nids, num_annots, p=p)
+#    #print('nids = %r' % (nids,))
