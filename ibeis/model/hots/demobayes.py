@@ -1,11 +1,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 import utool as ut
+import numpy as np
 from ibeis.model.hots.bayes import make_name_model, test_model, draw_tree_model
 print, rrr, profile = ut.inject2(__name__, '[demobayes]')
 
 
-def demo_bayesnet(cfg):
+def testdata_demo_cfgs():
+    alias_keys = {'nA': 'num_annots', 'nN': 'num_names', 'nS': 'num_scores'}
+    cfg_list = ut.parse_argv_cfg('--ev', alias_keys=alias_keys)
+    return cfg_list
+
+
+def demo_bayesnet(cfg={}):
     r"""
     Make a model that knows who the previous annots are and tries to classify a new annot
 
@@ -21,9 +28,9 @@ def demo_bayesnet(cfg):
         python -m ibeis --tf demo_bayesnet --ev :nA=5,rand_scores=True --show
 
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,rand_scores=True --show --verbose
-        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,Na=fred,rand_scores=True --show --verbose
         python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=2,Na=fred,rand_scores=True --show --verbose
         python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=5,Na=fred,rand_scores=True --show --verbose
+        python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=fred,rand_scores=True --show --verbose
 
         python -m ibeis.model.hots.demobayes --exec-demo_bayesnet \
                 --ev =:nA=4,Sab=low,Sac=low,Sbc=high \
@@ -33,8 +40,7 @@ def demo_bayesnet(cfg):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.demobayes import *  # NOQA
-        >>> alias_keys = {'nA': 'num_annots', 'nN': 'num_names', 'nS': 'num_scores'}
-        >>> cfg_list = ut.parse_argv_cfg('--ev', alias_keys=alias_keys)
+        >>> cfg_list = testdata_demo_cfgs()
         >>> print('cfg_list = %r' % (cfg_list,))
         >>> for cfg in cfg_list:
         >>>     demo_bayesnet(cfg)
@@ -51,24 +57,358 @@ def demo_bayesnet(cfg):
         #import sys
         #r = randomdotorg.RandomDotOrg('ExampleCode')
         #seed = int((1 - 2 * r.random()) * sys.maxint)
-        import numpy as np
-        seed = None
-        rng = np.random.RandomState(seed)
-        num_matches = (num_annots ** 2 - num_annots) // 2
-        basis = np.arange(num_scores)
-        p = (basis[::-1] + len(basis))
-        p = p / p.sum()
-        print('p = %r' % (p,))
-        score_evidence = rng.choice(basis, size=num_matches, p=p)
+        toy_data = get_toy_data(num_annots, nid_sequence=[0, 0, 1, 0, 1, 2])
+        print('toy_data = ' + ut.repr3(toy_data, nl=1))
+        diag_scores, = ut.dict_take(
+            toy_data, 'diag_scores'.split(', '))
+        discr_domain, discr_p_same = learn_prob_score(num_scores)[0:2]
+        def discretize_scores(scores):
+            # Assign continuous scores to discrete index
+            score_idxs = np.abs(1 - (discr_domain / scores[:, None])).argmin(axis=1)
+            return score_idxs
+        score_evidence = discretize_scores(diag_scores)
+        #import numpy as np
+        #seed = None
+        #rng = np.random.RandomState(seed)
+        #num_matches = (num_annots ** 2 - num_annots) // 2
+        #basis = np.arange(num_scores)
+        #p = (basis[::-1] + len(basis))
+        #p = p / p.sum()
+        #print('p = %r' % (p,))
+        #score_evidence = rng.choice(basis, size=num_matches, p=p)
     else:
         score_evidence = []
-    model, evidence = test_model(
+        discr_p_same = None
+        discr_domain = None
+    model, evidence, query_results = test_model(
         num_annots=num_annots, num_names=num_names,
         num_scores=num_scores,
         score_evidence=score_evidence,
         mode=1,
         other_evidence=other_evidence,
+        p_score_given_same=discr_p_same,
+        score_basis=discr_domain,
     )
+
+
+def classify_k():
+    """
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --k 1
+
+    Example:
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> classify_k()
+        >>> ut.show_if_requested()
+    """
+    num_annots = 3
+    #num_scores = 2
+    num_scores = 3
+    nid_sequence = np.array([0, 0, 1, 0, 1, 2, 1])
+    toy_data = get_toy_data(num_annots, nid_sequence=nid_sequence)
+    diag_scores, = ut.dict_take(
+        toy_data, 'diag_scores'.split(', '))
+
+    #print('diag_scores = %r' % (diag_scores,))
+    #diag_labels = pairwise_matches.compress(is_diag)
+    #diag_pairs = ut.compress(pairwise_aidxs, is_diag)
+
+    discr_domain, discr_p_same = learn_prob_score(num_scores)[0:2]
+    def discretize_scores(scores):
+        # Assign continuous scores to closest discrete index
+        score_idxs = np.abs(1 - (discr_domain / scores[:, None])).argmin(axis=1)
+        return score_idxs
+
+    # Careful ordering is important here
+    score_evidence = discretize_scores(diag_scores)
+
+    model, evidence, query_results = test_model(
+        num_annots=num_annots, num_names=num_annots,
+        num_scores=num_scores,
+        mode=1,
+        score_evidence=score_evidence,
+        p_score_given_same=discr_p_same,
+        score_basis=discr_domain,
+
+        #verbose=True
+    )
+    print(query_results['top_assignments'][0])
+    toy_data1 = toy_data
+    print('toy_data1 = ' + ut.repr3(toy_data1, nl=1))
+    num_annots2 = num_annots + 1
+    score_evidence1 = [None] * len(score_evidence)
+    full_evidence = score_evidence.tolist()
+
+    factor_list = query_results['factor_list']
+    soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list]
+
+    num_iter = ut.get_argval('--k', type_=int, default=0)
+    for _ in range(num_iter):
+        print('\n\n ---------- \n\n')
+        #toy_data1['all_nids'].max() + 1
+        num_names_gen = len(toy_data1['all_aids']) + 1
+        num_names_gen = toy_data1['all_nids'].max() + 2
+        toy_data2 = get_toy_data(
+            1, num_names_gen, toy_data1['all_aids'], toy_data1['all_nids'], nid_sequence=nid_sequence)
+        diag_scores2, = ut.dict_take(
+            toy_data2, 'diag_scores'.split(', '))
+        print('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
+
+        score_evidence2 = discretize_scores(diag_scores2).tolist()
+        print('score_evidence2 = %r' % (score_evidence2,))
+
+        if 1:
+            # Demo with soft evidence
+            model, evidence, query_results2 = test_model(
+                num_annots=num_annots2, num_names=num_annots2,
+                num_scores=num_scores,
+                mode=1,
+                name_evidence=soft_evidence1,
+                #score_evidence=score_evidence1 + score_evidence2,
+                score_evidence=score_evidence2,
+                p_score_given_same=discr_p_same,
+                score_basis=discr_domain,
+                #verbose=True,
+                hack_score_only=len(score_evidence2),
+            )
+
+        if 1:
+            # Demo with full evidence
+            model, evidence, query_results2 = test_model(
+                num_annots=num_annots2, num_names=num_annots2,
+                num_scores=num_scores,
+                mode=1,
+                score_evidence=full_evidence + score_evidence2,
+                p_score_given_same=discr_p_same,
+                score_basis=discr_domain,
+                verbose=True
+            )
+        factor_list2 = query_results2['factor_list']
+        soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list2]
+        score_evidence1 += ([None] * len(score_evidence2))
+        full_evidence = full_evidence + score_evidence2
+        num_annots2 += 1
+        toy_data1 = toy_data2
+
+
+def show_toy_distributions(toy_params):
+    import vtool as vt
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+    xdata = np.linspace(0, 8, 1000)
+    tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
+    fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
+    pt.plot_probabilities(
+        [tp_pdf, fp_pdf], ['TP', 'TF'],
+        prob_colors=[pt.TRUE_BLUE, pt.FALSE_RED],
+        xdata=xdata,
+        figtitle='Toy Distributions')
+
+
+#@ut.cached_func('_toy_bayes_data3')
+def get_toy_data(num_annots=5, num_names=None, initial_aids=None,
+                 initial_nids=None, nid_sequence=None, seed=None):
+    r"""
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-get_toy_data --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> toy_data = get_toy_data()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> show_toy_distributions(toy_data['toy_params'])
+        >>> ut.show_if_requested()
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> toy_data = get_toy_data()
+        >>> initial_aids = toy_data['aids']
+        >>> initial_nids = toy_data['nids']
+        >>> num_annots = 1
+        >>> num_names = 6
+        >>> toy_data2 = get_toy_data(num_annots, num_names, initial_aids, initial_nids)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> show_toy_distributions(toy_data['toy_params'])
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    if num_names is None:
+        num_names = num_annots
+    #num_annots = cfg.pop('num_annots', 5)
+    #num_names = cfg.pop('num_names', num_annots)
+    print('Generating toy data with num_annots=%r' % (num_annots,))
+    start = 0 if initial_aids is None else len(initial_aids)
+    #rng = vt.ensure_rng(start)
+    #print('seed = %r' % (seed,))
+    aids = np.arange(start, num_annots + start)
+    rng = vt.ensure_rng(seed)
+    if nid_sequence is None:
+        #seed = (start * 11)
+        #np.random.RandomState(seed)
+        if initial_nids is None:
+            hidden_nids = rng.randint(0, num_names, num_annots)
+        else:
+            # HACK
+            #import utool
+            #utool.embed()
+            nid_is_avail = vt.index_to_boolmask(initial_nids, initial_nids.max() + 1)
+            next_ = np.where(~nid_is_avail)[0]
+            if len(next_) == 0:
+                nid_is_avail = np.append(nid_is_avail, [True])
+                idx = len(nid_is_avail) - 1
+            else:
+                idx = next_[0]
+                nid_is_avail[idx] = True
+            avail_nids = np.where(nid_is_avail)[0]
+            p = np.ones(len(avail_nids))
+            # chance to see a new annotation
+            chance = .4
+            # more or less
+            p[:] = (1 - chance) / (len(p) - 1)
+            p[idx] = chance
+            #print('p = %r' % (p,))
+            #hidden_nids = rng.randint(0, num_names, num_annots)
+            #print('avail_nids = %r' % (avail_nids,))
+            hidden_nids = rng.choice(avail_nids, num_annots, p=p)
+            #print('hidden_nids = %r' % (hidden_nids,))
+    else:
+        hidden_nids = np.array(ut.take(nid_sequence, range(start, start + num_annots)))
+
+    #print('hidden_nids = %r' % (hidden_nids,))
+
+    toy_params = {
+        #True: {'mu': 3.5, 'sigma': 1.1},
+        #False: {'mu': .3, 'sigma': .7}
+        True: {'mu': 3.5, 'sigma': .1},
+        False: {'mu': .3, 'sigma': .7}
+    }
+
+    if initial_nids is None:
+        aids1 = aids
+        hidden_nids1 = hidden_nids
+        all_nids = hidden_nids
+        all_aids = aids
+    else:
+        aids1 = initial_aids
+        hidden_nids1 = initial_nids
+        all_nids = np.append(initial_nids, hidden_nids)
+        all_aids = np.append(initial_aids, aids)
+
+    def metric(aidx1, aidx2, all_nids=all_nids, toy_params=toy_params):
+        if aidx1 == aidx2:
+            score = -1
+        else:
+            #rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))
+            nid1 = all_nids[int(aidx1)]
+            nid2 = all_nids[int(aidx2)]
+            same = nid1 == nid2
+            params = toy_params[same]
+            mu, sigma = ut.dict_take(params, ['mu', 'sigma'])
+            score_ = rng.normal(mu, sigma)
+            score = np.clip(score_, 0, np.inf)
+        return score
+
+    pairwise_nids = list([tup[::-1] for tup in ut.iprod(hidden_nids, hidden_nids1)])
+    pairwise_matches = np.array(
+        [nid1 == nid2 for nid1, nid2 in pairwise_nids])
+
+    pairwise_aidxs = list([tup[::-1] for tup in ut.iprod(aids, aids1)])
+
+    pairwise_scores = np.array(
+        [metric(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs])
+    #pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)
+    is_diag = [r < c for r, c, in pairwise_aidxs]
+    diag_scores = pairwise_scores.compress(is_diag)
+    diag_aidxs = ut.compress(pairwise_aidxs, is_diag)
+    diag_nids = ut.compress(pairwise_nids, is_diag)
+    diag_labels = pairwise_matches.compress(is_diag)
+
+    #import utool
+    #utool.embed()
+
+    toy_data = {
+        'aids': aids,
+        'nids': hidden_nids,
+        'all_nids': all_nids,
+        'all_aids': all_aids,
+        #'pairwise_aidxs': pairwise_aidxs,
+        #'pairwise_scores': pairwise_scores,
+        #'pairwise_matches': pairwise_matches,
+        'diag_labels': diag_labels,
+        'diag_scores': diag_scores,
+        'diag_nids': diag_nids,
+        'diag_aidxs': diag_aidxs,
+        'toy_params': toy_params,
+    }
+    return toy_data
+
+
+@ut.cached_func('_toy_learn_prob_score5')
+def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
+    r"""
+    Args:
+        num_scores (int): (default = 5)
+
+    Returns:
+        tuple: (discr_domain, discr_p_same)
+
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-learn_prob_score --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> num_scores = 2
+        >>> (discr_domain, discr_p_same, encoder) = learn_prob_score(num_scores, ret_enc=True, use_cache=False)
+        >>> print('discr_p_same = %r' % (discr_p_same,))
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> encoder.visualize()
+        >>> ut.show_if_requested()
+    """
+    num_annots_train = 200
+    num_names_train = 5
+    toy_data = get_toy_data(num_annots_train, num_names_train)
+    #pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(
+    #    toy_data, 'pairwise_aidxs, pairwise_scores, pairwise_matches'.split(', '))
+
+    diag_scores, diag_labels = ut.dict_take(
+        toy_data, 'diag_scores, diag_labels'.split(', '))
+    #is_diag = [r < c for r, c, in pairwise_aidxs]
+    #diag_scores = pairwise_scores.compress(is_diag)
+    #diag_labels = pairwise_matches.compress(is_diag)
+
+    # Learn P(S_{ij} | M_{ij})
+    import vtool as vt
+    encoder = vt.ScoreNormalizer(
+        reverse=True, monotonize=True,
+        adjust=4,
+    )
+    encoder.fit(X=diag_scores, y=diag_labels, verbose=True)
+
+    if False:
+        import plottool as pt
+        pt.ensure_pylab_qt4()
+        encoder.visualize()
+        #show_toy_distributions()
+
+    def discretize_probs(encoder):
+        p_tp_given_score = encoder.p_tp_given_score / encoder.p_tp_given_score.sum()
+        bins = len(p_tp_given_score) - (pad * 2)
+        stride = int(np.ceil(bins / num_scores))
+        idxs = np.arange(0, bins, stride) + pad
+        discr_p_same = p_tp_given_score.take(idxs)
+        discr_p_same = discr_p_same / discr_p_same.sum()
+        discr_domain = encoder.score_domain.take(idxs)
+        return discr_domain, discr_p_same
+    discr_domain, discr_p_same = discretize_probs(encoder)
+    if ret_enc:
+        return discr_domain, discr_p_same, encoder
+    return discr_domain, discr_p_same
 
 
 def classify_one_new_unknown():
@@ -95,7 +435,7 @@ def classify_one_new_unknown():
             #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
             #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
         )
-        test_model(score_evidence=['high', 'low', 'low', 'low', 'low', 'high'], mode=1, **constkw)
+        test_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
 
     #from ibeis.model.hots.demobayes import *
     constkw = dict(
@@ -105,7 +445,7 @@ def classify_one_new_unknown():
         mode=1,
         # lll and llh have strikingly different
         # probability of M marginals
-        score_evidence=['low', 'low', 'high'],
+        score_evidence=[0, 0, 1],
         other_evidence={
         },
         **constkw)
@@ -290,15 +630,15 @@ def demo_single_add():
     # Initially there are only two annotations that have a strong match
     name_evidence = [{0: .9}]  # Soft label
     name_evidence = [0]  # Hard label
-    test_model(num_annots=2, num_names=5, score_evidence=['high'], name_evidence=name_evidence)
+    test_model(num_annots=2, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding a new annotation does not change the original probabilites
-    test_model(num_annots=3, num_names=5, score_evidence=['high'], name_evidence=name_evidence)
+    test_model(num_annots=3, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding evidence that Na matches Nc does not influence the probability
     # that Na matches Nb. However the probability that Nb matches Nc goes up.
-    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high'], name_evidence=name_evidence)
+    test_model(num_annots=3, num_names=5, score_evidence=[1, 1], name_evidence=name_evidence)
     # However, once Nb is scored against Nb that does increase the likelihood
     # that all 3 are fred goes up significantly.
-    test_model(num_annots=3, num_names=5, score_evidence=['high', 'high', 'high'],
+    test_model(num_annots=3, num_names=5, score_evidence=[1, 1, 1],
                name_evidence=name_evidence)
 
 
@@ -311,12 +651,12 @@ def demo_conflicting_evidence():
     constkw = dict(num_annots=2, num_names=5, score_evidence=[])
     test_model(name_evidence=[{0: .9}, {1: .9}], **constkw)
     # Having evidence that they are different increases this confidence.
-    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'low'}, **constkw)
+    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 0}, **constkw)
     # However,, confusion is introduced if there is evidence that they are the same
-    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 'high'}, **constkw)
+    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 1}, **constkw)
     # When Na is forced to be fred, this doesnt change Nbs evaulatation by more
     # than a few points
-    test_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 'high'}, **constkw)
+    test_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 1}, **constkw)
 
 
 def demo_ambiguity():
@@ -339,7 +679,7 @@ def demo_ambiguity():
         #name_evidence=[],
         #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    test_model(score_evidence=['low', 'low', 'high'], mode=1,
+    test_model(score_evidence=[0, 0, 1], mode=1,
                **constkw)
 
 
@@ -417,9 +757,9 @@ def demo_annot_idependence_overlap():
         #name_evidence=[0, None, None, None]
         #name_evidence=[0, None, None, None]
     )
-    test_model(score_evidence=['high', 'high', 'high', None, None, None], **constkw)
-    test_model(score_evidence=['high', 'high', 'low', None, None, None], **constkw)
-    test_model(score_evidence=['high', 'low', 'low', None, None, None], **constkw)
+    test_model(score_evidence=[1, 1, 1, None, None, None], **constkw)
+    test_model(score_evidence=[1, 1, 0, None, None, None], **constkw)
+    test_model(score_evidence=[1, 0, 0, None, None, None], **constkw)
 
 
 def demo_modes():
@@ -428,17 +768,17 @@ def demo_modes():
     """
     constkw = dict(
         num_annots=4, num_names=8,
-        score_evidence=['high', 'low', 'low', 'low', 'low', 'high'],
+        score_evidence=[1, 0, 0, 0, 0, 1],
         #name_evidence=[{0: .9}, None, None, {1: .9}],
         #name_evidence=[0, None, None, 1],
         name_evidence=[0, None, None, None],
         #other_evidence={
-        #    'Sad': 'low',
-        #    'Sab': 'high',
-        #    'Scd': 'high',
-        #    'Sac': 'low',
-        #    'Sbc': 'low',
-        #    'Sbd': 'low',
+        #    'Sad': 0,
+        #    'Sab': 1,
+        #    'Scd': 1,
+        #    'Sac': 0,
+        #    'Sbc': 0,
+        #    'Sbd': 0,
         #}
     )
     # The first mode uses a hidden Match layer

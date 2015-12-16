@@ -47,18 +47,19 @@ def define_model(cpd_list):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
                 for evar, val in evidence.items()]
 
-    def print_templates(model):
+    def print_templates(model, ignore_ttypes=[]):
         templates = model._templates
         ut.colorprint('\n --- CPD Templates ---', 'blue')
         for temp_cpd in templates:
-            ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
+            if temp_cpd.ttype not in ignore_ttypes:
+                ut.colorprint(temp_cpd._cpdstr('psql'), 'turquoise')
 
-    def print_priors(model, ignore_ttypes=[], title='Priors'):
-        ut.colorprint('\n --- %s ---' % (title,), 'darkblue')
+    def print_priors(model, ignore_ttypes=[], title='Priors', color='darkblue'):
+        ut.colorprint('\n --- %s ---' % (title,), color=color)
         for ttype, cpds in model.ttype2_cpds.items():
             if ttype not in ignore_ttypes:
                 for fs_ in ut.ichunks(cpds, 4):
-                    ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), 'darkblue')
+                    ut.colorprint(ut.hz_str([f._cpdstr('psql') for f in fs_]), color)
 
     ut.inject_func_as_method(model, print_priors)
     ut.inject_func_as_method(model, print_templates)
@@ -332,10 +333,14 @@ def make_factor_text(factor, name):
         for idx in idxs:
             rowstrs[idx] += '*'
         thresh = 4
+        always_sort = True
         if len(rowstrs) > thresh:
             sortx = factor.values.argsort()[::-1]
             rowstrs = ut.take(rowstrs, sortx[0:(thresh - 1)])
             rowstrs += ['... %d more' % ((len(values) - len(rowstrs)),)]
+        elif always_sort:
+            sortx = factor.values.argsort()[::-1]
+            rowstrs = ut.take(rowstrs, sortx)
         ftext = name + ': \n' + '\n'.join(rowstrs)
     return ftext
 

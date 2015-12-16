@@ -51,18 +51,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import numpy as np
 import vtool as vt
-#from ibeis.model.hots import neighbor_index
-#from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import chip_match
 from ibeis.model.hots import scoring
-#import pyflann
 import functools
-#from ibeis.model.hots import coverage_kpts
 from vtool import matching
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range, reduce  # NOQA
+#from ibeis.model.hots import neighbor_index
+#from ibeis.model.hots import name_scoring
+#import pyflann
+#from ibeis.model.hots import coverage_kpts
 #profile = ut.profile
 print, rrr, profile = ut.inject2(__name__, '[vsonepipe]')
 
@@ -983,9 +983,9 @@ def gridsearch_single_vsone_rerank():
         >>> gridsearch_single_vsone_rerank()
         >>> pt.show_if_requested()
     """
+    import plottool as pt
     ibs, qreq_, prior_cm = plh.testdata_matching()
     config = qreq_.qparams
-    import plottool as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
     cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_output_weighting=True)
