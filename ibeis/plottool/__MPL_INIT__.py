@@ -87,6 +87,7 @@ def get_target_backend():
 
 def _init_mpl_rcparams():
     import matplotlib as mpl
+    #from matplotlib import style
     if ut.get_argflag('--notoolbar'):
         toolbar = 'None'
     else:
@@ -97,12 +98,13 @@ def _init_mpl_rcparams():
     mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
+    #mpl.style.use('ggplot')
     #mpl.rcParams['text'].usetex = False
     #for key in mpl_keypress_shortcuts:
-        #print('%s = %s' % (key, mpl.rcParams[key]))
+    #    print('%s = %s' % (key, mpl.rcParams[key]))
     # Disable mpl shortcuts
-        #mpl.rcParams['toolbar'] = 'None'
-        #mpl.rcParams['interactive'] = True
+    #    mpl.rcParams['toolbar'] = 'None'
+    #    mpl.rcParams['interactive'] = True
 
 
 def _mpl_set_backend(target_backend):

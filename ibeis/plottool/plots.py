@@ -15,6 +15,7 @@ print, rrr, profile = ut.inject2(__name__, '[plots]')
 
 def is_default_dark_bg():
     #return True
+    #lightbg = not  ut.get_argflag('--darkbg')
     lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
     return not lightbg
 
