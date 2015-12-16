@@ -284,6 +284,7 @@ class Species(object):
     TIGER         = 'tiger'
     HYENA         = 'hyena'
     NAUT          = 'nautilus'
+    WHALE_FLUKES  = 'whale_fluke'
     OTHER         = 'other'
     UNKNOWN       = UNKNOWN
 
@@ -315,6 +316,7 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
     SpeciesTuple(Species.SNAIL,           'SNAIL', 'Snail'),
     SpeciesTuple(Species.LYNX,            'LYNX',  'Lynx'),
+    SpeciesTuple(Species.WHALE_FLUKES,      'WF',  'Whale Fluke'),
     SpeciesTuple(Species.OTHER,           'OTHER', 'Other'),
     SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]
@@ -327,6 +329,7 @@ SPECIES_WITH_DETECTORS = (
     #Species.ELEPHANT_SAV,
 
     #Species.GIRAFFE_MASAI,
+    Species.WHALE_FLUKES,
 )
 
 SPECIES_CODE_TO_TEXT = {
