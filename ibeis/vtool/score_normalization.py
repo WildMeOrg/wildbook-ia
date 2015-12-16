@@ -419,8 +419,11 @@ class ScoreNormalizer(object):
         if verbose:
             print('[scorenorm] Learning threshold to achieve %s=%.5f' % (
                 metric.upper(), value,))
-            print('[scorenorm]   * learned_thresh = %.5f' % (
-                encoder.learned_thresh,))
+            if encoder.learned_thresh is not None:
+                print('[scorenorm]   * learned_thresh = %.5f' % (
+                    encoder.learned_thresh,))
+            else:
+                print('[scorenorm]   * learned_thresh = %r' % (encoder.learned_thresh,))
             print('[scorenorm]   * score_thresh = %.5f' % (
                 score_thresh,))
             if metric == 'tpr':
@@ -611,7 +614,6 @@ class ScoreNormalizer(object):
             >>>     with_scores=False, with_prebayes=False, with_postbayes=False)
             >>> encoder.visualize(target_tpr=.95, **kwargs)
             >>> ut.show_if_requested()
-
         """
         import plottool as pt
         default_kw = dict(

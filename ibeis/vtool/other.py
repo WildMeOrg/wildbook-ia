@@ -1421,6 +1421,18 @@ def find_next_true_indices(flags_list, offset_list):
     return index_list
 
 
+def ensure_rng(seed=None):
+    """
+    Returns a numpy random number generator given a seed.
+    """
+    if seed is None:
+        rng = np.random
+    elif isinstance(seed, np.random.RandomState):
+        rng = seed
+    else:
+        rng = np.random.RandomState(seed)
+    return rng
+
 if __name__ == '__main__':
     """
     CommandLine:
