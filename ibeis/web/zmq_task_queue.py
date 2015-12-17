@@ -86,7 +86,7 @@ def ensure_simple_server(port=5832):
         python -m utool.util_web --exec-start_simple_webserver
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.web.zmq_task_queue import *  # NOQA
         >>> result = ensure_simple_server()
         >>> print(result)

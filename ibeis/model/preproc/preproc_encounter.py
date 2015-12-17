@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
+import vtool as vt
 from six.moves import zip, map, range  # NOQA
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
@@ -203,7 +204,7 @@ def _compute_encounter_datetime(ibs, enc_gids):
 
 def prepare_X_data(ibs, gid_list, use_gps=False):
     """
-    FIXME: use ut.haversine formula on gps dimensions
+    FIXME: use vt.haversine formula on gps dimensions
     fix weighting between seconds and gps
     """
     # Data to cluster
@@ -338,7 +339,7 @@ def filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None)
 def timespace_distance(pt1, pt2):
     (sec1, lat1, lon1) = pt1
     (sec2, lat2, lon2) = pt2
-    km_dist = ut.haversine((lat1, lon1), (lat1, lon2))
+    km_dist = vt.haversine((lat1, lon1), (lat1, lon2))
     km_per_sec = .002  # conversion ratio for reasonable animal walking speed
     sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
     timespace_dist = km_dist + sec_dist

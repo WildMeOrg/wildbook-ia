@@ -4582,7 +4582,7 @@ def get_unflat_annots_kmdists_list(ibs, aids_list):
     #ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
     latlon_arrs   = [np.array(latlons) for latlons in latlons_list]
-    km_dists_list   = [ut.safe_pdist(latlon_arr, metric=ut.haversine) for latlon_arr in latlon_arrs]
+    km_dists_list   = [ut.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs]
     return km_dists_list
 
 

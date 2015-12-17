@@ -382,7 +382,7 @@ def coin_example():
         >>> print_factors(model, factor_list1)
         >>> #
         >>> print('Observe that toss 1 was heads')
-        >>> evidence = infr._ensure_internal_evidence({'T01': 'heads'}, model)
+        >>> evidence = model._ensure_internal_evidence({'T01': 'heads'})
         >>> factor_list2 = infr.query(['T02'], evidence).values()
         >>> print_factors(model, factor_list2)
         >>> #
@@ -396,7 +396,7 @@ def coin_example():
         >>> print_factors(model, factor_list1)
         >>> #
         >>> print('Observe that toss 1 was tails')
-        >>> evidence = infr._ensure_internal_evidence({'T01': 'tails'}, model)
+        >>> evidence = model._ensure_internal_evidence({'T01': 'tails'})
         >>> factor_list2 = infr.query(['T02'], evidence).values()
         >>> print_factors(model, factor_list2)
         >>> ut.quit_if_noshow()
@@ -439,18 +439,18 @@ def mustbe_example():
         >>> infr = pgmpy.inference.BeliefPropagation(model)
         >>> print('Observe: ' + ','.join(model.pretty_evidence({})))
         >>> factor_list1 = infr.query(['N0'], {}).values()
-        >>> map1 = infr.map_query(['N0'], evidence)
+        >>> map1 = infr.map_query(['N0'], evidence={})
         >>> print('map1 = %r' % (map1,))
         >>> print_factors(model, factor_list1)
         >>> #
-        >>> evidence = infr._ensure_internal_evidence({'F0': 'true'}, model)
+        >>> evidence = model._ensure_internal_evidence({'F0': 'true'})
         >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
         >>> factor_list2 = infr.query(['N0'], evidence).values()
         >>> map2 = infr.map_query(['N0'], evidence)
         >>> print('map2 = %r' % (map2,))
         >>> print_factors(model, factor_list2)
         >>> #
-        >>> evidence = infr._ensure_internal_evidence({'F0': 'false'}, model)
+        >>> evidence = model._ensure_internal_evidence({'F0': 'false'})
         >>> print('Observe: ' + ','.join(model.pretty_evidence(evidence)))
         >>> factor_list3 = infr.query(['N0'], evidence).values()
         >>> map3 = infr.map_query(['N0'], evidence)
