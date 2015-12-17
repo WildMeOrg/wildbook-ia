@@ -327,7 +327,7 @@ def show_if_requested(N=1):
             fpath_list = [fpath_]
 
         # Print out latex info
-        default_caption = '% ---\n' + basename(fpath).replace('_', ' ') + '\n% ---'
+        default_caption = '\n% ---\n' + basename(fpath).replace('_', ' ') + '\n% ---\n'
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
         caption_list = ut.get_argval('--caption', type_=str,
                                      default=default_caption)
@@ -357,6 +357,16 @@ def show_if_requested(N=1):
                 )
             # HACK
         else:
+            RESHAPE = ut.get_argval('--reshape', type_=tuple, default=None)
+            if RESHAPE:
+                def list_reshape(list_, new_shape):
+                    for dim in reversed(new_shape):
+                        list_ = list(map(list, zip(*[list_[i::dim] for i in range(dim)])))
+                    return list_
+                newshape = (2,)
+                unflat_fpath_list = ut.list_reshape(fpath_list, newshape, trail=True)
+                fpath_list = ut.flatten(ut.list_transpose(unflat_fpath_list))
+
             figure_str  = ut.util_latex.get_latex_figure_str(fpath_list,
                                                              label_str=label_str,
                                                              caption_str=caption_str,
@@ -534,13 +544,55 @@ def get_all_markers():
 
 
 def get_pnum_func(nRows=1, nCols=1, base=0):
+    assert base in [0, 1], 'use base 0'
     offst = 0 if base == 1 else 1
     def pnum_(px):
         return (nRows, nCols, px + offst)
     return pnum_
 
 
-def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None):
+def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
+    r"""
+    Args:
+        nRows (int): (default = 1)
+        nCols (int): (default = 1)
+        base (int): (default = 0)
+        nSubplots (None): (default = None)
+
+    Yields:
+        tuple : pnum
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-pnum_generator --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> nRows = 3
+        >>> nCols = 2
+        >>> base = 0
+        >>> pnum_ = pnum_generator(nRows, nCols, base)
+        >>> result = ut.repr2(list(pnum_), nl=1, nobr=True)
+        >>> print(result)
+        (3, 2, 1),
+        (3, 2, 2),
+        (3, 2, 3),
+        (3, 2, 4),
+        (3, 2, 5),
+        (3, 2, 6),
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> nRows = 3
+        >>> nCols = 2
+        >>> pnum_ = pnum_generator(nRows, nCols, start=3)
+        >>> result = ut.repr2(list(pnum_), nl=1, nobr=True)
+        >>> print(result)
+        (3, 2, 4),
+        (3, 2, 5),
+        (3, 2, 6),
+    """
     pnum_func = get_pnum_func(nRows, nCols, base)
     total_plots = nRows * nCols
     # TODO: have the last pnums fill in the whole figure
@@ -548,13 +600,14 @@ def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None):
     #if nSubplots is not None:
     #    if nSubplots < total_plots:
     #        pass
-    for px in range(total_plots):
+    for px in range(start, total_plots):
         yield pnum_func(px)
 
 
-def make_pnum_nextgen(nRows=1, nCols=1, base=0, nSubplots=None):
+def make_pnum_nextgen(nRows=1, nCols=1, base=0, nSubplots=None, start=0):
     import functools
-    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base, nSubplots=nSubplots)
+    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base,
+                              nSubplots=nSubplots, start=start)
     pnum_next = functools.partial(six.next, pnum_gen)
     return pnum_next
 
@@ -1836,13 +1889,14 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
         >>> import plottool as pt
         >>> pt.show_if_requested()
     """
+    from plottool import plot_helpers as ph
     assert len(scalars) == len(colors), 'scalars and colors must be corresponding'
     if len(scalars) == 0:
         return None
     # Parameters
     ax = gca()
     divider = ensure_divider(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
 
     xy, width, height = get_axis_xy_width_height(ax)
     #orientation = ['vertical', 'horizontal'][0]
@@ -1911,7 +1965,8 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
         #cb.ax.get_yticks()
         #cb.set_ticks(ticks)  # tick locations
         #cb.set_ticklabels(ticklabels)  # tick labels
-
+    ph.set_plotdat(cb.ax, 'viztype', 'colorbar-%s' % (lbl,))
+    ph.set_plotdat(cb.ax, 'sm', sm)
     # FIXME: Figure out how to make a maximum number of ticks
     # and to enforce them to be inside the data bounds
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)

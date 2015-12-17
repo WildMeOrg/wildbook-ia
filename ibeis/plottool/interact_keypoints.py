@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 from plottool import draw_func2 as df2
@@ -94,6 +95,19 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                     sift = self.desc[hs_fx]
                     df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift, mode='vec',
                                                             fnum=df2.next_fnum())
+            elif viztype.startswith('colorbar'):
+                pass
+                # Hack to get a specific scoring feature
+                #sortx = self.fs.argsort()
+                #idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)
+                #mx = sortx[idx]
+                #(fx1, fx2) = self.fm[mx]
+                #(fx1, fx2) = self.fm[mx]
+                #print('... selected score at rank idx=%r' % (idx,))
+                #print('... selected score with fs=%r' % (self.fs[mx],))
+                #print('... resolved to mx=%r' % mx)
+                #print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
+                #self.select_ith_match(mx)
             else:
                 print('...unhandled')
         ph.draw()

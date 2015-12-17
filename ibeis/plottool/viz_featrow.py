@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import utool as ut  # NOQA
+import utool as ut
 import six
-import itertools
+#import itertools
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import custom_constants
@@ -26,10 +27,11 @@ def formatdist(val):
 
 
 #@ut.indent_func
-def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
+def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift=None,
                   origsift=None, aid=None, info='', type_=None,
                   shape_labels=False, vecfield=False, multicolored_arms=False,
-                  draw_warped=True, draw_unwarped=True, rect=True, ori=True, pts=False):
+                  draw_chip=False, draw_warped=True, draw_unwarped=True, draw_sift=True,
+                  rect=True, ori=True, pts=False):
     """
     draw_feat_row
 
@@ -62,24 +64,33 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         >>> nRows = 1
         >>> nCols = 2
         >>> px = 0
-        >>> prevsift = None
-        >>> origsift = None
-        >>> aid = None
-        >>> info = ''
-        >>> type_ = None
-        >>> shape_labels = False
-        >>> vecfield = False
-        >>> multicolored_arms = True
-        >>> draw_unwarped = False
-        >>> draw_warped = True
+        >>> hack = True
+        >>> kw = dict(
+        >>>     prevsift=None, origsift=None, aid=None, info='', type_=None,
+        >>>     shape_labels=False, vecfield=False, multicolored_arms=True,
+        >>>     draw_chip=hack, draw_unwarped=hack, draw_warped=True, draw_sift=True
+        >>> )
         >>> # execute function
-        >>> result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift, origsift, aid, info, type_, shape_labels, vecfield, multicolored_arms, draw_warped, draw_unwarped, rect=False, ori=False, pts=False)
+        >>> result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px,
+        >>>                           rect=False, ori=False, pts=False, **kw)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
-    countgen = itertools.count(1)
+    import numpy as np
+    import vtool as vt
+    # should not need ncols here
+
+    if nCols is not None:
+        if ut.VERBOSE:
+            print('Warning nCols is no longer needed')
+    #assert nCols_ == nCols
+    nCols = (draw_chip + draw_unwarped + draw_warped + draw_sift)
+
+    pnum_ = df2.make_pnum_nextgen(nRows, nCols, start=px)
+
+    #pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
+    #countgen = itertools.count(1)
 
     #pnumgen_ = df2.make_pnum_nextgen(nRows, nCols, base=1)
 
@@ -92,9 +103,17 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     # Feature strings
     xy_str, shape_str, scale, ori_str = ph.kp_info(kp)
 
+    if draw_chip:
+        pnum = pnum_()
+        df2.imshow(chip, fnum=fnum, pnum=pnum)
+        df2.draw_kpts2([kp], ell_linewidth=3)
+
     if draw_unwarped:
         # Draw the unwarped selected feature
-        ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)))
+        #ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)))
+        #pnum = pnum_(px + six.next(countgen)
+        pnum = pnum_()
+        ax = _draw_patch(fnum=fnum, pnum=pnum)
         ph.set_plotdat(ax, 'viztype', 'unwarped')
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
@@ -104,7 +123,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
 
     if draw_warped:
         # Draw the warped selected feature
-        ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
+        #ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
+        pnum = pnum_()
+        ax = _draw_patch(fnum=fnum, pnum=pnum, warped=True)
         ph.set_plotdat(ax, 'viztype', 'warped')
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
@@ -117,48 +138,50 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         warped_lbl += info
         custom_figure.set_xlabel(warped_lbl, ax)
 
-    border_color = {None: None,
-                    'query': None,
-                    'match': custom_constants.BLUE,
-                    'norm': custom_constants.ORANGE}[type_]
-    if border_color is not None:
-        df2.draw_border(ax, color=border_color)
+    if draw_sift:
+        border_color = {None: None,
+                        'query': None,
+                        'match': custom_constants.BLUE,
+                        'norm': custom_constants.ORANGE}[type_]
+        if border_color is not None:
+            df2.draw_border(ax, color=border_color)
 
-    # Draw the SIFT representation
-    pnum = pnum_(px + six.next(countgen))
-    if ph.SIFT_OR_VECFIELD or vecfield:
-        custom_figure.figure(fnum=fnum, pnum=pnum)
-        df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
-    else:
-        import numpy as np
-        if sift.dtype.type == np.uint8:
-            sigtitle =  'sift histogram' if (px % 3) == 0 else ''
-            ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+        # Draw the SIFT representation
+        #pnum = pnum_(px + six.next(countgen))
+        pnum = pnum_()
+        sift_as_vecfield = ph.SIFT_OR_VECFIELD or vecfield
+        if sift_as_vecfield:
+            custom_figure.figure(fnum=fnum, pnum=pnum)
+            df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
         else:
-            sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
-            ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
-        ax._hs_viztype = 'histogram'
-    #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
-    #dist_list = ['L2', 'hist_isect']
-    #dist_list = ['L2']
-    #dist_list = ['bar_L2_sift', 'cos_sift']
-    dist_list = ['L2_sift', 'bar_cos_sift']
-    dist_str_list = []
-    import vtool as vt
-    if origsift is not None:
-        distmap_orig = vt.compute_distances(sift, origsift, dist_list)
-        dist_str_list.append(
-            'query_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
-                                        for key, val in six.iteritems(distmap_orig)])
-        )
-    if prevsift is not None:
-        distmap_prev = vt.compute_distances(sift, prevsift, dist_list)
-        dist_str_list.append(
-            'prev_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
-                                       for key, val in six.iteritems(distmap_prev)])
-        )
-    dist_str = '\n'.join(dist_str_list)
-    custom_figure.set_xlabel(dist_str)
+            if sift.dtype.type == np.uint8:
+                sigtitle =  'sift histogram' if (px % 3) == 0 else ''
+                ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+            else:
+                sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
+                ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
+            ax._hs_viztype = 'histogram'
+        #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
+        #dist_list = ['L2', 'hist_isect']
+        #dist_list = ['L2']
+        #dist_list = ['bar_L2_sift', 'cos_sift']
+        #dist_list = ['L2_sift', 'bar_cos_sift']
+        dist_list = ['L2_sift']
+        dist_str_list = []
+        if origsift is not None:
+            distmap_orig = vt.compute_distances(sift, origsift, dist_list)
+            dist_str_list.append(
+                'query_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
+                                            for key, val in six.iteritems(distmap_orig)])
+            )
+        if prevsift is not None:
+            distmap_prev = vt.compute_distances(sift, prevsift, dist_list)
+            dist_str_list.append(
+                'prev_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
+                                           for key, val in six.iteritems(distmap_prev)])
+            )
+        dist_str = '\n'.join(dist_str_list)
+        custom_figure.set_xlabel(dist_str)
     return px + nCols
 
 
