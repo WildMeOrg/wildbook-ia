@@ -87,7 +87,16 @@ def get_target_backend():
 
 def _init_mpl_rcparams():
     import matplotlib as mpl
-    #from matplotlib import style
+    from matplotlib import style
+    #http://matplotlib.org/users/style_sheets.html
+    style.use('ggplot')
+    #style.use(['ggplot'])
+    #print('style.available = %r' % (style.available,))
+    #style.use(['bmh'])
+    #style.use(['classic'])
+    #import utool
+    #utool.embed()
+    #style.use(['ggplot', 'dark_background'])
     if ut.get_argflag('--notoolbar'):
         toolbar = 'None'
     else:
@@ -98,7 +107,59 @@ def _init_mpl_rcparams():
     mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
-    #mpl.style.use('ggplot')
+
+    CUSTOM_GGPLOT = False
+    if CUSTOM_GGPLOT:
+        ggplot_style = style.library['ggplot']
+        print('ggplot_style = %r' % (ggplot_style,))
+        custom_gg = {
+            'axes.axisbelow': True,
+            'axes.edgecolor': 'white',
+            'axes.facecolor': '#E5E5E5',
+            'axes.grid': True,
+            'axes.labelcolor': '#555555',
+            'axes.labelsize': 'large',
+            'axes.linewidth': 1.0,
+            'axes.titlesize': 'x-large',
+            'figure.edgecolor': '0.50',
+            'figure.facecolor': 'white',
+            'font.size': 10.0,
+            'grid.color': 'white',
+            'grid.linestyle': '-',
+            'patch.antialiased': True,
+            'patch.edgecolor': '#EEEEEE',
+            'patch.facecolor': '#348ABD',
+            'patch.linewidth': 0.5,
+            'xtick.color': '#555555',
+            'xtick.direction': 'out',
+            'ytick.color': '#555555',
+            'ytick.direction': 'out',
+            'axes.prop_cycle': mpl.cycler('color',
+                                          ['#E24A33', '#348ABD', '#988ED5',
+                                           '#777777', '#FBC15E', '#8EBA42',
+                                           '#FFB5B8']),
+
+        }
+        mpl.rcParams.update(custom_gg)
+
+    NICE_DARK_BG = False
+    if NICE_DARK_BG:
+        dark_style = {
+            'axes.edgecolor': 'white',
+            'axes.facecolor': 'black',
+            'axes.labelcolor': 'white',
+            'figure.edgecolor': 'black',
+            'figure.facecolor': 'black',
+            'grid.color': 'white',
+            'lines.color': 'white',
+            'patch.edgecolor': 'white',
+            'savefig.edgecolor': 'black',
+            'savefig.facecolor': 'black',
+            'text.color': 'white',
+            'xtick.color': 'white',
+            'ytick.color': 'white'
+        }
+        mpl.rcParams.update(dark_style)
     #mpl.rcParams['text'].usetex = False
     #for key in mpl_keypress_shortcuts:
     #    print('%s = %s' % (key, mpl.rcParams[key]))

@@ -40,7 +40,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
 
     References:
-        http://matplotlib.org/examples/api/barchart_demo.html
+        matplotlib.org/examples/api/barchart_demo.html
 
     CommandLine:
         python -m plottool.plots --exec-multi_plot
@@ -150,6 +150,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ymask = np.isfinite(ydata)
         ydata_ = ydata.compress(ymask)
         xdata_ = xdata.compress(ymask)
+        #print('count = %r' % (count,))
+        #print('ydata_ = %r' % (ydata_,))
+        #print('xdata_ = %r' % (xdata_,))
         #ax.plot(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
             baseoffset = (width * num_lines) / 2
@@ -579,7 +582,7 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     patches.
 
     References:
-        http://matplotlib.org/users/annotations_guide.html
+        matplotlib.org/users/annotations_guide.html
     """
     from matplotlib.transforms import (
         Bbox, TransformedBbox, blended_transform_factory)
@@ -648,7 +651,7 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'),
     Optionally specify a colormap, a norm function and a line width
 
     References:
-        http://nbviewer.ipython.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
+        nbviewer.ipython.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 
     CommandLine:
         python -m plottool.plots --test-colorline --show
@@ -801,7 +804,7 @@ def plot_score_histograms(scores_list,
     dmax = agg_scores.max()
 
     # References:
-    # http://stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
+    # stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
     #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
 
     if fnum is None:
@@ -1470,7 +1473,7 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
     def interpolate_error(known_nd_data, known_target_points, unknown_nd_data):
         """
         References:
-            http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html
+            docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html
         """
         #method = 'cubic'  # {'linear', 'nearest', 'cubic'}
         method = 'linear'  # {'linear', 'nearest', 'cubic'}
@@ -1647,7 +1650,7 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
         text_list (list):
 
     References:
-        http://stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
+        stackoverflow.com/questions/17430105/autofmt-xdate-deletes-x-axis-labels-of-all-subplots
 
     CommandLine:
         python -m plottool.plots --exec-word_histogram2 --show --lightbg
@@ -1810,7 +1813,7 @@ def draw_time_distribution(unixtime_list):
 def wordcloud(text, fnum=None, pnum=None):
     """
     References:
-        http://bioinfoexpert.com/?p=592
+        bioinfoexpert.com/?p=592
         sudo pip install git+git://github.com/amueller/word_cloud.git
 
     Args:

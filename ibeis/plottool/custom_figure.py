@@ -137,13 +137,16 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         #if isinstance(pnum, (list, tuple)):
         nrow, ncols, plotnum = pnum
 
-        # Convert old pnums to gridspec
-        gs = gridspec.GridSpec(nrow, ncols)
-        if isinstance(plotnum, (tuple, slice, list)):
-            subspec = gs[plotnum]
+        if kwargs.get('use_gridspec', True):
+            # Convert old pnums to gridspec
+            gs = gridspec.GridSpec(nrow, ncols)
+            if isinstance(plotnum, (tuple, slice, list)):
+                subspec = gs[plotnum]
+            else:
+                subspec = gs[plotnum - 1]
+            return (subspec,)
         else:
-            subspec = gs[plotnum - 1]
-        return subspec
+            return (nrow, ncols, plotnum)
 
     if doclf:  # a bit hacky. Need to rectify docla and doclf
         fig.clf()
@@ -162,7 +165,7 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
             subspec = pnum_to_subspec(pnum)
-            ax = fig.add_subplot(subspec, projection=projection)
+            ax = fig.add_subplot(*subspec, projection=projection)
             #ax = fig.add_subplot(*pnum, projection=projection)
             ax.cla()
         else:
@@ -171,7 +174,7 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         #printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
             subspec = pnum_to_subspec(pnum)
-            ax = plt.subplot(subspec)
+            ax = plt.subplot(*subspec)
             #ax = plt.subplot(nrow, ncols, plotnum)
             #ax = plt.subplot(*pnum)  # fig.add_subplot fails here
             #ax = fig.add_subplot(*pnum)

@@ -149,13 +149,15 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), 
 
     icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
     imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
-    if coord_type:
+    if coord_type == 'axes':
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
         xy = [
             xlim[0] * (1 - coords[0]) + xlim[1] * (coords[0]),
             ylim[0] * (1 - coords[1]) + ylim[1] * (coords[1]),
         ]
+    else:
+        raise NotImplementedError('')
     ab = mpl.offsetbox.AnnotationBbox(
         imagebox, xy,
         xybox=(0., 0.),
@@ -325,9 +327,10 @@ def show_if_requested(N=1):
             fpath_list = [fpath_]
 
         # Print out latex info
+        default_caption = '% ---\n' + basename(fpath).replace('_', ' ') + '\n% ---'
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
         caption_list = ut.get_argval('--caption', type_=str,
-                                     default=basename(fpath).replace('_', ' '))
+                                     default=default_caption)
         if isinstance(caption_list, six.string_types):
             caption_str = caption_list
         else:
@@ -1342,26 +1345,54 @@ def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
 
 
 def dark_background(ax=None, doubleit=False):
-    bgcolor = BLACK * .9
-    if ax is None:
-        ax = gca()
-    from mpl_toolkits.mplot3d import Axes3D
-    if isinstance(ax, Axes3D):
-        ax.set_axis_bgcolor(bgcolor)
-        ax.tick_params(colors='white')
-        return
-    xy, width, height = get_axis_xy_width_height(ax)
-    if doubleit:
-        halfw = (doubleit) * (width / 2)
-        halfh = (doubleit) * (height / 2)
-        xy = (xy[0] - halfw, xy[1] - halfh)
-        width *= (doubleit + 1)
-        height *= (doubleit + 1)
-    rect = mpl.patches.Rectangle(xy, width, height, lw=0, zorder=0)
-    rect.set_clip_on(True)
-    rect.set_fill(True)
-    rect.set_color(bgcolor)
-    rect = ax.add_patch(rect)
+    r"""
+    Args:
+        ax (None): (default = None)
+        doubleit (bool): (default = False)
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-dark_background --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> fig = pt.figure()
+        >>> pt.dark_background()
+        >>> ut.show_if_requested()
+    """
+    #import utool
+    #utool.embed()
+
+    def is_using_style(style):
+        style_dict = mpl.style.library[style]
+        return len(ut.dict_isect(style_dict, mpl.rcParams)) == len(style_dict)
+
+    #is_using_style('classic')
+    #is_using_style('ggplot')
+    HARD_DISABLE = True
+    if not HARD_DISABLE:
+        # Should use mpl style dark background instead
+        bgcolor = BLACK * .9
+        if ax is None:
+            ax = gca()
+        from mpl_toolkits.mplot3d import Axes3D
+        if isinstance(ax, Axes3D):
+            ax.set_axis_bgcolor(bgcolor)
+            ax.tick_params(colors='white')
+            return
+        xy, width, height = get_axis_xy_width_height(ax)
+        if doubleit:
+            halfw = (doubleit) * (width / 2)
+            halfh = (doubleit) * (height / 2)
+            xy = (xy[0] - halfw, xy[1] - halfh)
+            width *= (doubleit + 1)
+            height *= (doubleit + 1)
+        rect = mpl.patches.Rectangle(xy, width, height, lw=0, zorder=0)
+        rect.set_clip_on(True)
+        rect.set_fill(True)
+        rect.set_color(bgcolor)
+        rect = ax.add_patch(rect)
 
 
 def space_xticks(nTicks=9, spacing=16, ax=None):
@@ -3076,7 +3107,7 @@ def draw_text_annotations(text_list,
 
     textkw = dict(
         xycoords='data', boxcoords='offset points', pad=0.25,
-        frameon=True, arrowprops=dict(arrowstyle='->'),
+        frameon=True, arrowprops=dict(arrowstyle='->', ec='black'),
         #bboxprops=dict(fc=node_attr['fillcolor']),
     )
 

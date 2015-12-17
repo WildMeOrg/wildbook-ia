@@ -79,6 +79,7 @@ LIGHT_PURPLE  = np.array((255, 102, 255, 255)) / 255.0
 PURPLE2       = np.array((150,  51, 200, 255)) / 255.0
 LIGHT_BLUE    = np.array((102, 100, 255, 255)) / 255.0
 LIGHT_GREEN   = np.array((102, 255, 102, 255)) / 255.0
+NEUTRAL = np.array((225, 229, 231, 255)) / 255.0
 UNKNOWN_PURP  = PURPLE
 
 
