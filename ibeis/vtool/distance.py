@@ -690,6 +690,65 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     return index, dist
 
 
+def haversine(latlon1, latlon2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+
+    References:
+        en.wikipedia.org/wiki/Haversine_formula
+        gis.stackexchange.com/questions/81551/matching-gps-tracks
+        stackoverflow.com/questions/4913349/haversine-distance-gps-points
+
+    CommandLine:
+        python -m vtool.distance --exec-haversine --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> import scipy.spatial.distance as spdist
+        >>> import vtool as vt
+        >>> import functools
+        >>> gpsarr_track_list_ = [
+        ...    np.array([[ -80.21895315, -158.81099213],
+        ...              [ -12.08338926,   67.50368014],
+        ...              [ -11.08338926,   67.50368014],
+        ...              [ -11.08338926,   67.50368014],]
+        ...    ),
+        ...    np.array([[   9.77816711,  -17.27471498],
+        ...              [ -51.67678814, -158.91065495],])
+        ...    ]
+        >>> latlon1 = gpsarr_track_list_[0][0]
+        >>> latlon2 = gpsarr_track_list_[0][1]
+        >>> kilometers = vt.haversine(latlon1, latlon2)
+        >>> haversin_pdist = functools.partial(spdist.pdist, metric=vt.haversine)
+        >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
+        >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
+        >>> print('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2),))
+        dist_matrix_list = [
+            np.array([[    0.  ,  9417.52,  9527.8 ,  9527.8 ],
+                      [ 9417.52,     0.  ,   111.13,   111.13],
+                      [ 9527.8 ,   111.13,     0.  ,     0.  ],
+                      [ 9527.8 ,   111.13,     0.  ,     0.  ]], dtype=np.float64),
+            np.array([[     0.  ,  14197.57],
+                      [ 14197.57,      0.  ]], dtype=np.float64),
+        ]
+    """
+    # convert decimal degrees to radians
+    lat1, lon1 = np.radians(latlon1)
+    lat2, lon2 = np.radians(latlon2)
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    EARTH_RADIUS_KM = 6367
+    kilometers = EARTH_RADIUS_KM * c
+    return kilometers
+
+
 if __name__ == '__main__':
     """
     CommandLine:
