@@ -57,6 +57,26 @@ def testdata_filtcfg(default=None):
 
 
 def testdata_qreq_(t=None, **kwargs):
+    r"""
+    Args:
+        t (None): (default = None)
+
+    Kwargs:
+        default_qaids, a, defaultdb, ibs, verbose, return_annot_info
+
+    Returns:
+        QueryRequest: qreq_ -  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> t = None
+        >>> qreq_ = testdata_qreq_(t)
+        >>> result = ('qreq_ = %s' % (str(qreq_),))
+    """
     if t is None:
         t = ['default']
     ibs, qaids, daids = testdata_expanded_aids(**kwargs)
@@ -157,6 +177,7 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_expanded_aids
         python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata
+        python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db PZ_MTEST --qaid 3
         python -m ibeis.init.main_helpers --exec-testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata
 
     Example:
@@ -172,10 +193,12 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
         >>> ibs.get_annotconfig_stats(qaid_list, daid_list)
         >>> print('Combined annotconfig stats')
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
+        >>> print('qaid_list = %r' % (qaid_list,))
     """
     print('[testdata_expanded_aids] Getting test annot configs')
     if default_qaids is None:
-        default_qaids = [1]
+        # Hack to aggree with experiment-helpers
+        default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=[1])
     if defaultdb is None:
         defaultdb = 'testdb1'
     import ibeis

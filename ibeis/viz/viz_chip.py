@@ -5,8 +5,7 @@ import plottool as pt
 from plottool import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_chip]',
-                                                       DEBUG=False)
+(print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def testdata_showchip():

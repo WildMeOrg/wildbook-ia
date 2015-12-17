@@ -7,7 +7,7 @@ import plottool as pt  # NOQA
 from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[viz_nndesc]', DEBUG=False)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
@@ -17,8 +17,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
     if qreq_ is None:
         daid_list = ibs.get_valid_aids()
         qreq_ = ibs.new_query_request([qaid], daid_list)
-        qreq_.load_indexer()
-    #qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
+    qreq_.load_indexer()  # TODO: ensure lazy
     qfx2_vecs = ibs.get_annot_vecs(qaid)[qfx:(qfx + 1)]
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
@@ -32,7 +31,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
 
 #@utool.indent_func('[show_neardesc]')
 def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
-                             consecutive_distance_compare=True):
+                             qreq_=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -43,7 +42,13 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         consecutive_distance_compare (bool):
 
     CommandLine:
+        # Find a good match to inspect
+        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+
+        # Now inspect it
+        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show --db PZ_MTEST --qaid 3 --qfx 879
         python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show
+        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
 
     SeeAlso:
         plottool.viz_featrow
@@ -54,24 +59,35 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid = 1
-        >>> qfx = 225
+        >>> qreq_ = ibeis.testdata_qreq_()
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid = qreq_.qaids[0]
+        >>> qfx = ut.get_argval('--qfx', type_=int, default=879)
         >>> fnum = None
         >>> stride = 5
-        >>> consecutive_distance_compare = True
         >>> # execute function
-        >>> result = show_nearest_descriptors(ibs, qaid, qfx, fnum, stride, consecutive_distance_compare)
+        >>> skip = False
+        >>> result = show_nearest_descriptors(ibs, qaid, qfx, fnum, stride,
+        >>>                                   draw_chip=True,
+        >>>                                   draw_warped=True,
+        >>>                                   draw_unwarped=False,
+        >>>                                   draw_sift=False, qreq_=qreq_)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
     """
+    consecutive_distance_compare = True
+    draw_chip     = kwargs.get('draw_chip', False)
+    draw_sift     = kwargs.get('draw_sift', True)
+    draw_warped   = kwargs.get('draw_warped', True)
+    draw_unwarped = kwargs.get('draw_unwarped', True)
+    #skip = kwargs.get('skip', True)
     # Plots the nearest neighbors of a given feature (qaid, qfx)
     if fnum is None:
         fnum = df2.next_fnum()
     try:
         # Flann NN query
-        (qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx)
+        (qfx2_daid, qfx2_dfx, qfx2_dist, K, Knorm) = get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=qreq_)
 
         # Adds metadata to a feature match
         def get_extract_tuple(aid, fx, k=-1):
@@ -100,13 +116,14 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         origsift = extracted_list[0][2]
         skipped = 0
         for k in range(K + Knorm):
-            if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:
+            #if qfx2_daid[0, k] == qaid and qfx2_dfx[0, k] == qfx:
+            if qfx2_daid[0, k] == qaid:
                 skipped += 1
                 continue
             tup = get_extract_tuple(qfx2_daid[0, k], qfx2_dfx[0, k], k)
             extracted_list.append(tup)
         # Draw the _select_ith_match plot
-        nRows, nCols = len(extracted_list), 3
+        nRows = len(extracted_list)
         if stride is None:
             stride = nRows
         # Draw selected feature matches
@@ -123,10 +140,14 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                 _nRows = min(nExtracted - listx, stride)
                 px_shift = px
                 df2.figure(fnum=_fnum, docla=True, doclf=True)
-            printDBG('[viz] ' + info.replace('\n', ''))
             px_ = px - px_shift
-            px = draw_feat_row(rchip, fx, kp, sift, _fnum, _nRows, nCols, px_,
-                               prevsift=prevsift, origsift=origsift, aid=aid, info=info, type_=type_) + px_shift
+            px = draw_feat_row(rchip, fx, kp, sift, _fnum, _nRows, px=px_,
+                               prevsift=prevsift, origsift=origsift, aid=aid,
+                               info=info, type_=type_, draw_chip=draw_chip,
+                               draw_sift=draw_sift, draw_warped=draw_warped,
+                               draw_unwarped=draw_unwarped)
+
+            px += px_shift
             if prevsift is None or consecutive_distance_compare:
                 prevsift = sift
 

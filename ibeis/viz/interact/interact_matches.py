@@ -41,7 +41,7 @@ AbstractInteraction = abstract_interaction.AbstractInteraction
 def testdata_match_interact(**kwargs):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show
+        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
 
     Example:
         >>> from ibeis.viz.interact.interact_matches import *  # NOQA
@@ -51,18 +51,20 @@ def testdata_match_interact(**kwargs):
         >>> pt.show_if_requested()
     """
     import ibeis
-    ibs = ibeis.opendb('testdb1')
-    cfgdict = {}
-    ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict,
-                                           defaultdb='testdb1',
-                                           cmdline_ok=True)
-    qres = ibs.query_chips(qreq_=qreq_)[0]
-    cm = chip_match.ChipMatch2.from_qres(qres)
-    cm.score_nsum(qreq_)
+    #ibs = ibeis.opendb('testdb1')
+    #cfgdict = {}
+    qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', t=['default:Knorm=3'])
+    ibs = qreq_.ibs
+    #ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict,
+    #                                       defaultdb='testdb1',
+    #                                       cmdline_ok=True)
+    cm = ibs.query_chips(qreq_=qreq_)[0]
+    #cm = chip_match.ChipMatch2.from_qres(qres)
+    #cm.score_nsum(qreq_)
     cm.sortself()
     aid2 = None
     #self = MatchInteraction(ibs, qres, aid2, mode=1, dodraw=False, **kwargs)
-    self = MatchInteraction(ibs, cm, aid2, mode=1, dodraw=False, **kwargs)
+    self = MatchInteraction(ibs, cm, aid2, mode=1, dodraw=False, qreq_=qreq_, **kwargs)
     return self
 
 
@@ -196,7 +198,6 @@ class MatchInteraction(object):
     # Callback
     def on_click(self, event):
         aid       = self.daid
-        fm        = self.fm
         qaid      = self.qaid
         ibs       = self.ibs
         xywh2_ptr = self.xywh2_ptr
@@ -271,20 +272,22 @@ class MatchInteraction(object):
                 print('.. control click')
                 return self.sv_view()
             elif is_match_type:
-                if len(fm) == 0:
+                if len(self.fm) == 0:
                     print('[inter] no feature matches to click')
                 else:
                     # Normal Click
                     # Select nearest feature match to the click
                     kpts1 = ibs.get_annot_kpts([qaid], config2_=self.query_config2_)[0]
                     kpts2 = ibs.get_annot_kpts([aid], config2_=self.data_config2_)[0]
-                    kpts1_m = kpts1[fm[:, 0]]
-                    kpts2_m = kpts2[fm[:, 1]]
+                    kpts1_m = kpts1[self.fm.T[0]]
+                    kpts2_m = kpts2[self.fm.T[1]]
                     x2, y2, w2, h2 = xywh2_ptr[0]
                     _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
                     _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
                     mx = _mx1 if _dist1 < _dist2 else _mx2
+                    (fx1, fx2) = self.fm[mx]
                     print('... clicked mx=%r' % mx)
+                    print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
                     self.select_ith_match(mx)
             elif viztype in ['warped', 'unwarped']:
                 print('clicked at patch')
@@ -300,6 +303,18 @@ class MatchInteraction(object):
                 elif hs_aid is not None and viztype == 'warped':
                     viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx,
                                                             fnum=df2.next_fnum())
+            elif viztype.startswith('colorbar'):
+                # Hack to get a specific scoring feature
+                sortx = self.fs.argsort()
+                idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)
+                mx = sortx[idx]
+                (fx1, fx2) = self.fm[mx]
+                (fx1, fx2) = self.fm[mx]
+                print('... selected score at rank idx=%r' % (idx,))
+                print('... selected score with fs=%r' % (self.fs[mx],))
+                print('... resolved to mx=%r' % mx)
+                print('... fx1, fx2 = %r, %r' % (fx1, fx2,))
+                self.select_ith_match(mx)
             else:
                 print('...Unknown viztype: %r' % viztype)
             viz.draw()
@@ -580,7 +595,7 @@ class MatchInteraction(object):
     def query_last_feature(self):
         ibs      = self.ibs
         qaid     = self.qaid
-        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum())
+        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum(), qreq_=self.qreq_, draw_chip=True)
         fig3 = df2.gcf()
         ih.connect_callback(fig3, 'button_press_event', self.on_click)
         viz.draw()
