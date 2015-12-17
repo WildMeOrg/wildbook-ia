@@ -282,7 +282,7 @@ def make_temp_state(state):
     return temp_state
 
 
-def collapse_labels(model, reduced_joint, evidence):
+def collapse_factor_labels(model, reduced_joint, evidence):
     import vtool as vt
     evidence_vars = list(evidence.keys())
     evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
@@ -446,12 +446,12 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
 
     def compute_reduced_joint(model, query_vars, evidence):
 
-        _test_ = False
+        _test_ = 0
         if _test_:
             operation = 'maximize'
             variables = query_vars
 
-            infr_ve = pgmpy.inference.BeliefPropagation(model)
+            infr_ve = pgmpy.inference.VariableElimination(model)
             joint_ve = infr_ve.compute_joint(variables, operation, evidence)
             joint_ve.normalize()
             joint_ve.reorder()
@@ -470,12 +470,26 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
             assert np.allclose(joint_bf.values, joint_bp.values)
             print('BF and BP are the same')
 
+        import utool
+        utool.embed()
+
+        if False:
+            # Try to approximatly sample the map inference
+            from pgmpy.inference.Sampling import BayesianModelSampling
+            infr = BayesianModelSampling(model)
+            #from pgmpy.factors.Factor import State
+            #evidence_ = [State(*item) for item in evidence.items()]
+            sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=1000)
+            # TODO write a collapse function for this pandas datafram
+            #collapse_factor_labels
+
         if not bruteforce:
             operation = 'maximize'
             variables = query_vars
 
             # Dont brute force anymore
             infr = pgmpy.inference.BeliefPropagation(model)
+            #infr = pgmpy.inference.VariableElimination(model)
             reduced_joint1 = infr.compute_joint(variables, operation, evidence)
             reduced_joint1.normalize()
             reduced_joint1.reorder()
@@ -488,7 +502,47 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
 
     reduced_joint = compute_reduced_joint(model, query_vars, evidence)
 
-    new_reduced_joint, new_state_idxs_, new_values = collapse_labels(model, reduced_joint, evidence)
+    new_reduced_joint, new_state_idxs_, new_values = collapse_factor_labels(model, reduced_joint, evidence)
+
+
+    if False:
+        # compute partitioning statistics
+        import vtool as vt
+        vals, idxs = vt.group_indices(new_reduced_joint.values.ravel())
+        #groupsize = list(map(len, idxs))
+        #groupassigns = ut.unflat_vecmap(new_reduced_joint.assignment, idxs)
+        all_states = new_reduced_joint._row_labels(asindex=True)
+        clusterstats = [tuple(sorted(list(ut.dict_hist(a).values()))) for a in all_states]
+        grouped_vals = ut.group_items(new_reduced_joint.values.ravel(), clusterstats)
+
+        #probs_assigned_to_clustertype = [(
+        #    sorted(np.unique(np.array(b).round(decimals=5)).tolist())[::-1], a)
+        #    for a, b in grouped_vals.items()]
+        probs_assigned_to_clustertype = [(
+            ut.dict_hist(np.array(b).round(decimals=5)), a)
+            for a, b in grouped_vals.items()]
+        sortx = ut.argsort([max(c[0].keys()) for c in probs_assigned_to_clustertype])
+        probs_assigned_to_clustertype = ut.take(probs_assigned_to_clustertype, sortx)
+
+        # This list of 2-tuples with the first item being the unique
+        # probabilies that are assigned to a cluster type along with the number
+        # of times they were assigned. A cluster type is the second item. Every
+        # number represents how many annotations were assigned to a specific
+        # label. The length of that list is the number of total labels.  For
+        # all low scores you will see [[{somenum: 1}, {0: 800}], [1, 1, 1, ... 1]]
+        # indicating that that the assignment of everyone to a different label happend once
+        # where the probability was somenum and a 800 times where the probability was 0.
+
+        #print(sorted([(b, a) for a, b in ut.map_dict_vals(sum, x)]).items())
+        #z = sorted([(b, a) for a, b in ut.map_dict_vals(sum, grouped_vals).items()])
+        print(ut.repr2(probs_assigned_to_clustertype, nl=2, precision=2, sorted_=True))
+
+        #group_numperlbl = [
+        #    [sorted(list(ut.dict_hist(ut.get_list_column(a, 1)).values())) for a in assigns]
+        #    for assigns in groupassigns]
+
+    #import utool
+    #utool.embed()
 
     #isnonzero = (new_reduced_joint.values.ravel() > 0)
     #new_state_idxs_ = new_reduced_joint.assignment(np.where(isnonzero)[0])

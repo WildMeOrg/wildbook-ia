@@ -101,6 +101,8 @@ def classify_k(cfg={}):
     num_iter = cfg.pop('k', 0)
     nid_sequence = np.array([0, 0, 1, 2, 2, 1, 1])
     toy_data = get_toy_data_1v1(num_annots, nid_sequence=nid_sequence)
+    force_evidence = None
+    force_evidence = 0
     diag_scores, = ut.dict_take(
         toy_data, 'diag_scores'.split(', '))
 
@@ -116,8 +118,9 @@ def classify_k(cfg={}):
 
     # Careful ordering is important here
     score_evidence = discretize_scores(diag_scores)
-    for x in range(len(score_evidence)):
-        score_evidence[x] = 0
+    if force_evidence is not None:
+        for x in range(len(score_evidence)):
+            score_evidence[x] = 0
 
     model, evidence, query_results = test_model(
         num_annots=num_annots, num_names=num_annots,
@@ -126,7 +129,6 @@ def classify_k(cfg={}):
         score_evidence=score_evidence,
         p_score_given_same=discr_p_same,
         score_basis=discr_domain,
-
         #verbose=True
     )
     print(query_results['top_assignments'][0])
@@ -154,11 +156,12 @@ def classify_k(cfg={}):
         print('toy_data2 = ' + ut.repr3(toy_data2, nl=1))
 
         score_evidence2 = discretize_scores(diag_scores2).tolist()
-        for x in range(len(score_evidence2)):
-            score_evidence2[x] = 0
+        if force_evidence is not None:
+            for x in range(len(score_evidence2)):
+                score_evidence2[x] = force_evidence
         print('score_evidence2 = %r' % (score_evidence2,))
 
-        if 1:
+        if 0:
             # Demo with soft evidence
             model, evidence, query_results2 = test_model(
                 num_annots=num_annots2, num_names=num_annots2,
