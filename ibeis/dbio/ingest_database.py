@@ -1,16 +1,16 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-# TODO: ADD COPYRIGHT TAG
 """
 This module lists known raw databases and how to ingest them.
+# TODO: ADD COPYRIGHT TAG
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
-from os.path import relpath, dirname, exists, join, realpath
+from os.path import relpath, dirname, exists, join, realpath, basename
 from ibeis import ibsfuncs
 from ibeis import constants as const
-import utool as ut  # NOQA:
+import utool as ut
 import parse
 
 
@@ -825,7 +825,6 @@ def ingest_serengeti_mamal_cameratrap(species):
     """
     'https://snapshotserengeti.s3.msi.umn.edu/'
     import ibeis
-    from os.path import basename
 
     if species is None:
         code = 'ALL'

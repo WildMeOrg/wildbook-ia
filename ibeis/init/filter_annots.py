@@ -4,12 +4,14 @@ TODO: sort annotations at the end of every step
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
+import re
+import functools
+import copy
 import utool as ut
 import numpy as np
-import functools
 import six
 from ibeis.control import controller_inject
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[main_helpers]')
+(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
 
@@ -223,7 +225,6 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     if RESPECT_INTERNAL_CFGS:
         aid_cachestr = ibs.get_dbname() + '_' + ut.hashstr27(ut.to_json(aidcfg))
     else:
-        import copy
         relevant_aidcfg = copy.deepcopy(aidcfg)
         ut.delete_dict_keys(relevant_aidcfg['qcfg'],
                             cfghelpers.INTERNAL_CFGKEYS)
@@ -254,7 +255,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
     return aids
 
 
-def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
+def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None):
     """
     CommandLine:
         python -m ibeis --tf parse_acfg_combo_list  \
@@ -311,7 +312,8 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
 
         # Expand modified acfgdict
         with ut.Indenter('[%d] ' % (combox,)):
-            expanded_aids = expand_acfgs(ibs, acfg, use_cache=use_cache,
+            expanded_aids = expand_acfgs(ibs, acfg, initial_aids=initial_aids,
+                                         use_cache=use_cache,
                                          hack_exclude_keys=hack_exclude_keys)
 
             if dcfg.get('hack_extra', None):
@@ -413,11 +415,23 @@ def expand_acfgs_consistently(ibs, acfg_combo, use_cache=None):
 
 @profile
 def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
-                 hack_exclude_keys=None):
-    """
+                 hack_exclude_keys=None, initial_aids=None):
+    r"""
     Expands an annot config dict into qaids and daids
     New version of this function based on a configuration dictionary built from
     command line argumetns
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aidcfg (dict): configuration of the annotation filter
+        verbose (bool):  verbosity flag(default = False)
+        use_cache (bool):  turns on disk based caching(default = None)
+        hack_exclude_keys (None): (default = None)
+        initial_aids (None): (default = None)
+
+    Returns:
+        tuple: expanded_aids=(qaid_list, daid_list) - expanded list of aids
+            that meet the criteria of the aidcfg filter
 
     FIXME:
         The database should be created first in most circumstances, then
@@ -465,14 +479,27 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd  --veryverbtd
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) ---acfginfo --veryverbtd
 
+    CommandLine:
+        python -m ibeis.init.filter_annots --exec-expand_acfgs --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.expt import annotation_configs
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aidcfg = copy.deepcopy(annotation_configs.default)
+        >>> aidcfg['qcfg']['species'] = 'primary'
+        >>> initial_aids = None
+        >>> expanded_aids = expand_acfgs(ibs, aidcfg, initial_aids=initial_aids)
+        >>> result = ut.repr3(expanded_aids, nl=1, nobr=True)
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     """
 
     from ibeis.expt import annotation_configs
-    import copy
+    assert isinstance(aidcfg, dict), 'type(aidcfg)=%r' % (type(aidcfg),)
     aidcfg = copy.deepcopy(aidcfg)
 
     # Check if this filter has been cached
@@ -531,7 +558,8 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         #if aidcfg['qcfg']['hack_encounter'] is True:
         #    return ibs.get_encounter_expanded_aids()
         # Hack: Make hierarchical filters to supersede this
-        initial_aids = ibs._get_all_aids()
+        if initial_aids is None:
+            initial_aids = ibs._get_all_aids()
 
         verbflags  = dict(verbose=verbose)
         qfiltflags = dict(prefix='q', **verbflags)
@@ -825,13 +853,13 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
 @profile
 def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                              verbose=VERB_TESTDATA, withpre=False):
-    """ This filters annots using information about the relationships
+    r"""
+    This filters annots using information about the relationships
     between the annotations in the ``avail_aids`` group. This function is not
     independent and a second consecutive call may yield new results.
     Thus, the order in which this filter is applied matters.
 
     Example:
-
         >>> aidcfg['min_timedelta'] = 60 * 60 * 24
         >>> aidcfg['min_pername'] = 3
     """
@@ -1104,7 +1132,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
-        >>> aidcfg = annotation_configs.default['dcfg']
+        >>> aidcfg = copy.deepcopy(annotation_configs.default['dcfg'])
         >>> aidcfg['sample_per_name'] = 3
         >>> aidcfg['sample_size'] = 10
         >>> aidcfg['min_pername'] = 2
@@ -1263,7 +1291,6 @@ class CountstrParser(object):
 
     def parse_countstr_binop(self, part):
         import utool as ut
-        import re
         # Parse binary comparison operation
         left, op, right = re.split(ut.regex_or(('[<>]=?', '=')), part)
         # Parse length operation. Get prop_left_nids, prop_left_values
@@ -1292,7 +1319,6 @@ class CountstrParser(object):
             prop_nid2_result = self.parse_countstr_binop(part)
             prop_nid2_result_list.append(prop_nid2_result)
         # change to dict_union when parsing ors
-        import functools
         andcombine = functools.partial(
             ut.dict_isect_combine, combine_op=operator.and_)
         expr_nid2_result = reduce(andcombine, prop_nid2_result_list)

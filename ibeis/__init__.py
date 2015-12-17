@@ -73,13 +73,44 @@ def import_subs():
 
 
 def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
-                   qaid_override=None, lazy=False,
-                   **kwargs):
+                   initial_aids=None, qaid_override=None, daid_override=None,
+                   lazy=False, **kwargs):
     """
     Convience function
 
     CommandLine:
         ibeis -e print
+
+    Args:
+        e (str): (default = 'print')
+        db (str): (default = 'PZ_MTEST')
+        a (list): (default = ['unctrl'])
+        t (list): (default = ['default'])
+        qaid_override (None): (default = None)
+        lazy (bool): (default = False)
+
+    Returns:
+        function: func -  live python function
+
+    CommandLine:
+        python -m ibeis.__init__ --exec-run_experiment --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis import *  # NOQA
+        >>> e = 'rank_cdf'
+        >>> db = 'testdb1'
+        >>> a = ['default:species=primary']
+        >>> t = ['default']
+        >>> initial_aids = [2, 3, 4, 7, 9, 10, 11]
+        >>> qaid_override = [1, 9, 10, 11, 2, 3]
+        >>> testres = run_experiment(e, db, a, t, qaid_override=qaid_override,
+        >>>                          initial_aids=initial_aids)
+        >>> result = ('testres = %s' % (str(testres),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> testres.draw_func()
+        >>> ut.show_if_requested()
     """
     import functools
     def find_expt_func(e):
@@ -102,6 +133,8 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
                         ]
         if qaid_override is not None:
             command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
+        if daid_override is not None:
+            command_parts.extend(['--daid-override=', ','.join(map(str, daid_override))])
 
         # hack parse out important args that were on command line
         if 'f' in kwargs:
@@ -148,7 +181,11 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
         argspec = ut.get_func_argspec(func)
         if len(argspec.args) >= 2 and argspec.args[0] == 'ibs' and argspec.args[1] == 'testres':
             # most experiments need a testres
-            expts_kw = dict(defaultdb=db, a=a, t=t, qaid_override=qaid_override)
+            expts_kw = dict(defaultdb=db, a=a, t=t,
+                            qaid_override=qaid_override,
+                            daid_override=daid_override,
+                            initial_aids=initial_aids
+                           )
             testdata_expts_func = functools.partial(main_helpers.testdata_expts, **expts_kw)
 
             ibs, testres = testdata_expts_func()
@@ -257,3 +294,14 @@ Regen Command:
     makeinit.py -x web viz tests gui all_imports
     makeinit.py -x constants params main_module other control ibsfuncs dbio tests all_imports
 """
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis
+        python -m ibeis --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

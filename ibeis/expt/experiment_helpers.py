@@ -295,7 +295,9 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
     return expanded_aids_list_, acfg_list_
 
 
-def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None, use_cache=None):
+def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
+                      qaid_override=None, daid_override=None,
+                      initial_aids=None, use_cache=None):
     r"""
     For now can only specify one acfg name list
 
@@ -349,7 +351,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
 
     # + --- Do Parsing ---
     expanded_aids_combo_list = [
-        filter_annots.expand_acfgs_consistently(ibs, acfg_combo_, use_cache=use_cache)
+        filter_annots.expand_acfgs_consistently(ibs, acfg_combo_,
+                                                initial_aids=initial_aids,
+                                                use_cache=use_cache)
         for acfg_combo_ in acfg_combo_list
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
@@ -357,16 +361,20 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True, qaid_override=None,
     expanded_aids_list = ut.get_list_column(expanded_aids_combo_flag_list, 1)
     # L___
 
-    # Sliceing happens after expansion (but the labels get screwed up)
+    # Slicing happens after expansion (but the labels get screwed up)
     acfg_slice = ut.get_argval('--acfg_slice', type_='fuzzy_subset', default=None)
     if acfg_slice is not None:
         acfg_list = ut.list_take(acfg_list, acfg_slice)
         expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
 
     # + --- Hack: Override qaids ---
-    _qaids = ut.get_argval('--qaid', type_=list, default=qaid_override)
+    _qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=qaid_override)
     if _qaids is not None:
         expanded_aids_list = [(_qaids, daids) for qaids, daids in expanded_aids_list]
+    # more hack for daids
+    _daids = ut.get_argval('--daids-override', type_=list, default=daid_override)
+    if _daids is not None:
+        expanded_aids_list = [(qaids, _daids) for qaids, daids in expanded_aids_list]
     # L___
 
     if filter_dups:

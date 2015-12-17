@@ -1579,7 +1579,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
-            >>> clip_top = 3
+            >>> clip_top = ut.get_argval('--clip-top', default=3)
             >>> print('kwargs = %s' % (ut.repr2(kwargs, nl=True),))
             >>> cm.show_ranked_matches(qreq_, clip_top, **kwargs)
             >>> ut.show_if_requested()

@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 from ibeis.expt import cfghelpers
 import numpy as np  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[aidcfg]')
+print, rrr, profile = ut.inject2(__name__, '[aidcfg]')
 
 
 # easier to type names to alias some of these options

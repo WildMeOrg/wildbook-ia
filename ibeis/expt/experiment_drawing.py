@@ -943,13 +943,15 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
     return sel_rows, sel_cols, flat_case_labels
 
 
-def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
+def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
         testres (TestResult):  test result object
 
     CommandLine:
+        python -m ibeis --tf draw_rank_surface --db PZ_Master1 -a varysize_td -t CircQRH_K --show
+
         python -m ibeis --tf draw_rank_surface --show  -t best -a varysize --db PZ_Master1 --show
 
         python -m ibeis --tf draw_rank_surface --show  -t CircQRH_K -a varysize_td  --db PZ_Master1 --show
@@ -970,6 +972,8 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
     """
     import plottool as pt
     from ibeis.expt import annotation_configs
+    if verbose is None:
+        verbose = ut.VERBOSE
     #ut.embed()
     #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
@@ -1039,11 +1043,16 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
         marker_list = pt.distinct_markers(1)
 
     fnum = pt.ensure_fnum(fnum)
-    pnum0 = None
 
     nd_labels_full = [key for key in param_key_list if key != const_key]
 
     for const_idx, const_val in enumerate(const_basis):
+        pnum = pnum_()
+        if verbose:
+            print('---- NEXT PNUM=%r --- ' % (pnum,))
+            print('const_key = %r' % (const_key,))
+            print('const_val = %r' % (const_val,))
+            print('const_idx = %r' % (const_idx,))
         const_basis_cfgx_list = const_basis_cfgx_lists[const_idx]
         rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
@@ -1080,11 +1089,11 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
             title = ('accuracy when ' +
                      annotation_configs.shorten_to_alias_labels(const_key) +
                      '=%r' % (const_val,))
+        if verbose:
+            print('title = %r' % (title,))
         #PLOT3D = not ut.get_argflag('--no3dsurf')
-        PLOT3D = ut.get_argflag('--no2dsurf')
-        pnum = pnum_()
-        if pnum0 is None:
-            pnum0 = pnum
+        #PLOT3D = ut.get_argflag('--no2dsurf')
+        PLOT3D = ut.get_argflag('--3dsurf')
         if PLOT3D:
             pt.plot_search_surface(known_nd_data, known_target_points,
                                    nd_labels, target_label, title=title,
@@ -1098,6 +1107,11 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
             nonconst_covers_basis = np.in1d(nonconst_basis, nonconst_basis_vals)
             nonconst_color_list = ut.list_compress(color_list, nonconst_covers_basis)
             nonconst_marker_list = ut.list_compress(marker_list, nonconst_covers_basis)
+            if verbose:
+                #print('nd_labels = %r' % (nd_labels,))
+                print('target_label = %r' % (target_label,))
+                print('known_nd_data = %r' % (known_nd_data,))
+                #print('known_target_points = %r' % (known_target_points,))
 
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
@@ -1107,16 +1121,23 @@ def draw_rank_surface(ibs, testres, verbose=False, fnum=None):
                                     ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
 
-    pt.figure(fnum=fnum, pnum=pnum0)
+    #import utool
+    #utool.embed()
+
+    fig = pt.gcf()
+    ax = fig.axes[0]
+    pt.plt.sca(ax)
+    #pt.figure(fnum=fnum, pnum=pnum0)
     icon = ibs.get_database_icon()
     if icon is not None:
-        pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))
+        #pt.overlay_icon(icon, coords=(0, 0), bbox_alignment=(0, 0))
+        pt.overlay_icon(icon, coords=(.001, .001), bbox_alignment=(0, 0))
 
     nd_labels = [annotation_configs.shorten_to_alias_labels(key) for key in nd_labels_full]
-    plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on Accuracy'
+    plotname = 'Effect of ' + ut.conj_phrase(nd_labels, 'and') + ' on accuracy'
     figtitle = testres.make_figtitle(plotname)
     # hack
-    if verbose:
+    if 1 or verbose:
         testres.print_unique_annot_config_stats()
     pt.set_figtitle(figtitle, size=14)
     # HACK FOR FIGSIZE

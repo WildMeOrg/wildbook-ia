@@ -422,7 +422,7 @@ def postprocess_mask(mask):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show
+        python -m ibeis.model.preproc.preproc_probchip --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970 --adapteq=True
         python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid 9970 --adapteq=True
@@ -466,6 +466,7 @@ def postprocess_mask(mask):
     mask2[mask2 < thresh] = 0
     # open and close
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
     mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernel)
     mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernel)
     return mask2

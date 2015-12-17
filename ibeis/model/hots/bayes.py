@@ -372,10 +372,6 @@ def collapse_factor_labels(model, reduced_joint, evidence):
         assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
         new_reduced_joint.values.flags
         reduced_joint.values.flags
-        #import utool
-        #import utool
-        #utool.embed()
-        #utool.embed()
         new_reduced_joint.values[:] = 0
         flat_idxs = np.ravel_multi_index(new_state_idxs_.T, new_reduced_joint.values.shape)
 
@@ -470,20 +466,19 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
             assert np.allclose(joint_bf.values, joint_bp.values)
             print('BF and BP are the same')
 
-        import utool
-        utool.embed()
+        use_approx = False
 
-        if False:
+        if use_approx:
             # Try to approximatly sample the map inference
             from pgmpy.inference.Sampling import BayesianModelSampling
             infr = BayesianModelSampling(model)
             #from pgmpy.factors.Factor import State
             #evidence_ = [State(*item) for item in evidence.items()]
-            sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=1000)
+            #sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=1000)
+            pass
             # TODO write a collapse function for this pandas datafram
             #collapse_factor_labels
-
-        if not bruteforce:
+        elif not bruteforce:
             operation = 'maximize'
             variables = query_vars
 
@@ -503,7 +498,6 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
     reduced_joint = compute_reduced_joint(model, query_vars, evidence)
 
     new_reduced_joint, new_state_idxs_, new_values = collapse_factor_labels(model, reduced_joint, evidence)
-
 
     if False:
         # compute partitioning statistics
@@ -828,7 +822,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
                 color = np.array(color)
                 node_color.append(color)
             else:
-                color = pt.WHITE
+                #color = pt.WHITE
+                color = pt.NEUTRAL
                 node_color.append(color)
 
         if show_prior:

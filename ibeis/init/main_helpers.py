@@ -100,6 +100,8 @@ def testdata_expts(defaultdb='testdb1',
                    a=None,
                    t=None,
                    qaid_override=None,
+                   daid_override=None,
+                   initial_aids=None,
                    ):
     """
     Command line interface to quickly get testdata for test_results
@@ -131,7 +133,8 @@ def testdata_expts(defaultdb='testdb1',
     else:
         load_testres = experiment_harness.run_test_configurations2
     testres_list = load_testres(
-        ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override)
+        ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
+        daid_override=daid_override, initial_aids=initial_aids)
     testres = test_result.combine_testres_list(ibs, testres_list)
     return ibs, testres
     #return ibs, testres_list
