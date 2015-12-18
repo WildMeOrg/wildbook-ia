@@ -26,6 +26,7 @@ import pylab
 import warnings
 import numpy as np
 import vtool as vt
+from os.path import relpath
 try:
     import cv2
 except ImportError as ex:
@@ -49,6 +50,10 @@ ut.noinject(__name__, '[df2]')
 
 def printDBG(*args):
     pass
+
+
+def is_texmode():
+    return mpl.rcParams['text.usetex']
 
 
 # Bring over moved functions that still have dependants elsewhere
@@ -260,7 +265,6 @@ def show_if_requested(N=1):
             def full_extent(axs, pad=0.0):
                 """Get the full extent of an axes, including axes labels, tick labels, and
                 titles."""
-                import matplotlib as mpl
                 # For text objects, we need to draw the figure first, otherwise the extents
                 # are undefined.
                 items = []
@@ -297,7 +301,6 @@ def show_if_requested(N=1):
                 fig.savefig(subpath, bbox_inches=extent)
                 subpath_list.append(subpath)
             absfpath_ = subpath
-            from os.path import relpath
             fpath_list = [relpath(_, dpath) for _ in subpath_list]
 
             if CLIP_WHITE:
@@ -2302,7 +2305,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
     subkpts_ = np.array(subkpts)
     patch_dict_ = {
         'sifts': None if sift is None else np.array([sift]),
-        'ell_color':  (0, 0, 1),
+        'ell_color':  kwargs.get('ell_color', (0, 0, 1)),
         'pts': kwargs.get('pts', True),
         'ori': kwargs.get('ori', True),
         'ell': True,
@@ -2311,6 +2314,9 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         'multicolored_arms': kwargs.get('multicolored_arms', False),
     }
     patch_dict_.update(patch_dict)
+    if 'ell_alpha' in kwargs:
+        patch_dict['ell_alpha'] = kwargs['ell_alpha']
+
     # Draw patch with keypoint overlay
     fig, ax = imshow(patch, **kwargs)
     draw_kpts2(subkpts_, **patch_dict_)

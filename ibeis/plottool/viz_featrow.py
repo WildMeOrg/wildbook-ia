@@ -30,8 +30,8 @@ def formatdist(val):
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift=None,
                   origsift=None, aid=None, info='', type_=None,
                   shape_labels=False, vecfield=False, multicolored_arms=False,
-                  draw_chip=False, draw_warped=True, draw_unwarped=True, draw_sift=True,
-                  rect=True, ori=True, pts=False):
+                  draw_chip=False, draw_warped=True, draw_unwarped=True, draw_desc=True,
+                  rect=True, ori=True, pts=False, **kwargs):
     """
     draw_feat_row
 
@@ -85,7 +85,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         if ut.VERBOSE:
             print('Warning nCols is no longer needed')
     #assert nCols_ == nCols
-    nCols = (draw_chip + draw_unwarped + draw_warped + draw_sift)
+    nCols = (draw_chip + draw_unwarped + draw_warped + draw_desc)
 
     pnum_ = df2.make_pnum_nextgen(nRows, nCols, start=px)
 
@@ -106,7 +106,9 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     if draw_chip:
         pnum = pnum_()
         df2.imshow(chip, fnum=fnum, pnum=pnum)
-        df2.draw_kpts2([kp], ell_linewidth=3)
+        kpts_kw = dict(ell_linewidth=5, ell_alpha=1.0)
+        kpts_kw.update(kwargs)
+        df2.draw_kpts2([kp], **kpts_kw)
 
     if draw_unwarped:
         # Draw the unwarped selected feature
@@ -125,7 +127,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         # Draw the warped selected feature
         #ax = _draw_patch(fnum=fnum, pnum=pnum_(px + six.next(countgen)), warped=True)
         pnum = pnum_()
-        ax = _draw_patch(fnum=fnum, pnum=pnum, warped=True)
+        ax = _draw_patch(fnum=fnum, pnum=pnum, warped=True, **kwargs)
         ph.set_plotdat(ax, 'viztype', 'warped')
         ph.set_plotdat(ax, 'aid', aid)
         ph.set_plotdat(ax, 'fx', fx)
@@ -138,7 +140,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         warped_lbl += info
         custom_figure.set_xlabel(warped_lbl, ax)
 
-    if draw_sift:
+    if draw_desc:
         border_color = {None: None,
                         'query': None,
                         'match': custom_constants.BLUE,

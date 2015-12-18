@@ -43,7 +43,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         matplotlib.org/examples/api/barchart_demo.html
 
     CommandLine:
-        python -m plottool.plots --exec-multi_plot
+        python -m plottool.plots --exec-multi_plot --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -51,7 +51,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         >>> xdata = [1, 2, 3, 4, 5]
         >>> ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
         >>> kwargs = {'label_list': ['spam', 'eggs', 'jam', 'pram'],  'linestyle': '-'}
-        >>> fig = multi_plot(xdata, ydata_list, **kwargs)
+        >>> fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
         >>> result = ('fig = %s' % (str(fig),))
         >>> print(result)
         >>> ut.show_if_requested()

@@ -103,7 +103,12 @@ def _init_mpl_rcparams():
         toolbar = 'toolbar2'
     mpl.rcParams['toolbar'] = toolbar
     #mpl.rc('text', usetex=False)
-    #mpl.rc('text', usetex=True)
+
+    if ut.get_argflag('--usetex'):
+        #mpl.rc('text', usetex=True)
+        mpl.rcParams['text.usetex'] = True
+        #matplotlib.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+        mpl.rcParams['text.latex.unicode'] = True
     mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
     for key in mpl_keypress_shortcuts:
         mpl.rcParams[key] = ''
