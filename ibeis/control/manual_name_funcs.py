@@ -237,7 +237,7 @@ def get_empty_nids(ibs):
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
-    nid_list = list(ut.ifilter_items(_nid_list, isempty_list))
+    nid_list = list(ut.iter_compress(_nid_list, isempty_list))
     # Filter names with aliases (TODO: use transitivity to determine validity)
     hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
     nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
@@ -525,7 +525,7 @@ def get_name_exemplar_aids(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    exemplar_aids_list = [ut.filter_items(aids, flags) for aids, flags in
+    exemplar_aids_list = [ut.list_compress(aids, flags) for aids, flags in
                           zip(aids_list, flags_list)]
     return exemplar_aids_list
 

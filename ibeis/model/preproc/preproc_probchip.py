@@ -343,8 +343,8 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
             # caching should be implicit due to using the visual_annot_uuid in
             # the filename
             isdirty_list = ut.not_list(map(exists, probchip_fpaths))
-            dirty_aids = ut.filter_items(aids, isdirty_list)
-            dirty_probchip_fpath_list = ut.filter_items(probchip_fpaths, isdirty_list)
+            dirty_aids = ut.list_compress(aids, isdirty_list)
+            dirty_probchip_fpath_list = ut.list_compress(probchip_fpaths, isdirty_list)
             print(('[preproc_probchip.compute_and_write_probchip]'
                   ' Lazy compute of to compute %d/%d of species=%s') %
                   (len(dirty_aids), len(aids), species))

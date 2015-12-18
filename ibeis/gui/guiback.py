@@ -1257,7 +1257,7 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
             query_title += ' priority_subset'
-            #qaid_list = ut.filter_items(
+            #qaid_list = ut.list_compress(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
         if daids_mode == const.VS_EXEMPLARS_KEY:

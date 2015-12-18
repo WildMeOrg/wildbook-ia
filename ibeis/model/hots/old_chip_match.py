@@ -70,8 +70,8 @@ def fix_cmtup_old(cmtup_old_):
     fm_list_      = list(six.itervalues(aid2_fm_))
     isvalid_list_ = [len(fm) > minMatches for fm in fm_list_]
     # Filter invalid chipmatches
-    aid_list   = ut.filter_items(aid_list_, isvalid_list_)
-    fm_list    = ut.filter_items(fm_list_, isvalid_list_)
+    aid_list   = ut.list_compress(aid_list_, isvalid_list_)
+    fm_list    = ut.list_compress(fm_list_, isvalid_list_)
     fsv_list   = ut.dict_take(aid2_fsv_, aid_list)
     fk_list    = ut.dict_take(aid2_fk_, aid_list)
     score_list = (None if aid2_score_ is None or len(aid2_score_) == 0 else

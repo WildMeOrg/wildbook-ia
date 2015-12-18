@@ -161,7 +161,7 @@ def add_feat_featweights(ibs, feat_rowid_list, config2_=None, verbose=not ut.QUI
         ibs, feat_rowid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_featweight_rowid_list)
-    dirty_feat_rowid_list = ut.filter_items(feat_rowid_list, isdirty_list)
+    dirty_feat_rowid_list = ut.list_compress(feat_rowid_list, isdirty_list)
     num_dirty = len(dirty_feat_rowid_list)
     num_total = len(feat_rowid_list)
     if num_dirty > 0:

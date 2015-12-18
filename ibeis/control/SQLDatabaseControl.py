@@ -368,7 +368,7 @@ class SQLDatabaseController(object):
         if not any(needsadd_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        dirty_params = ut.filter_items(params_list, needsadd_list)
+        dirty_params = ut.list_compress(params_list, needsadd_list)
         if ut.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
@@ -515,8 +515,8 @@ class SQLDatabaseController(object):
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
             isunique_list = ut.flag_unique_items(id_list)
-            id_list  = ut.filter_items(id_list, isunique_list)
-            val_list = ut.filter_items(val_list, isunique_list)
+            id_list  = ut.list_compress(id_list, isunique_list)
+            val_list = ut.list_compress(val_list, isunique_list)
         else:
             raise AssertionError(
                 ('unknown duplicate_behavior=%r. '
@@ -1596,7 +1596,7 @@ class SQLDatabaseController(object):
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.filter_items(all_column_names, isvalid_list)
+        column_names = ut.list_compress(all_column_names, isvalid_list)
         column_list = [db.get_column(tablename, name)
                        for name in column_names if name not in exclude_columns]
         return column_list, column_names
@@ -1761,7 +1761,7 @@ class SQLDatabaseController(object):
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.filter_items(all_column_names, isvalid_list)
+        column_names = ut.list_compress(all_column_names, isvalid_list)
         column_list = [db.get_column(tablename, name)
                        for name in column_names if name not in exclude_columns]
 
@@ -2029,9 +2029,9 @@ class SQLDatabaseController(object):
             if rowid_subsets is not None and tablename in rowid_subsets:
                 valid_rowids = set(rowid_subsets[tablename])
                 isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
-                valid_old_rowid_list = ut.filter_items(old_rowid_list, isvalid_list)
-                valid_column_list_ = [ut.filter_items(col, isvalid_list) for col in column_list_]
-                valid_extern_superkey_colval_list =  [ut.filter_items(col, isvalid_list)
+                valid_old_rowid_list = ut.list_compress(old_rowid_list, isvalid_list)
+                valid_column_list_ = [ut.list_compress(col, isvalid_list) for col in column_list_]
+                valid_extern_superkey_colval_list =  [ut.list_compress(col, isvalid_list)
                                                       for col in extern_superkey_colval_list]
                 print(' * filtered number of rows from %d to %d.' % (
                     len(valid_rowids), len(valid_old_rowid_list)))

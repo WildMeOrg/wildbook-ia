@@ -11,7 +11,6 @@ TODO:
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 from collections import namedtuple
-import utool
 import utool as ut
 import datetime
 # import ibeis
@@ -303,14 +302,14 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
     config_td = export_config_transfer_data(ibs_src, config_rowid_list)
     # Get encounters
     #eid_list = ibs_src.get_valid_eids()
-    eid_list = utool.flatten(ibs_src.get_contributor_eids(config_rowid_list))
+    eid_list = ut.flatten(ibs_src.get_contributor_eids(config_rowid_list))
     encounter_td = export_encounter_transfer_data(
         ibs_src, eid_list, config_rowid_list)
     # Get images
     gid_list = ibs_src.get_contributor_gids(contributor_rowid)
     if valid_gid_list is not None:
         isvalid_list = [gid in valid_gid_list for gid in gid_list]
-        gid_list = ut.filter_items(gid_list, isvalid_list)
+        gid_list = ut.list_compress(gid_list, isvalid_list)
     image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list,
                                           nid_list, species_rowid_list)
     # Create Contributor TransferData
@@ -609,7 +608,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
     )[0]
     # Import configs
     if contributor_td.config_td is not None:
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[import_transfer_data]   Importing configs: %r' %
                   (contributor_td.config_td.config_suffixes_list,))
         else:
@@ -627,7 +626,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
         print('[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)')
     # Import encounters
     if contributor_td.encounter_td is not None:
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[import_transfer_data]   Importing encounters: %r' %
                   (contributor_td.encounter_td.encounter_uuid_list,))
         else:
@@ -645,7 +644,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
         print('[import_transfer_data]   NO ENCOUNTERS TO IMPORT')
     # Import images
     if contributor_td.image_td is not None:
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[import_transfer_data]   Importing images: %r' %
                   (contributor_td.image_td.image_uuid_list,))
         else:
@@ -702,13 +701,13 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid,
         known_config_rowid is None for known_config_rowid in known_config_rowid_list]
     if not all(valid_list):
         # Resolve conflicts
-        invalid_config_rowid_list = utool.filterfalse_items(
+        invalid_config_rowid_list = ut.filterfalse_items(
             known_config_rowid_list, valid_list)
         # invalid_indices =
-        # utool.filterfalse_items(range(len(known_config_rowid_list)),
+        # ut.filterfalse_items(range(len(known_config_rowid_list)),
         # valid_list) # TODO
         if bulk_conflict_resolution == 'replace':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[import_transfer_data]     Conflict Resolution - Replacing configs: %r' %
                       (invalid_config_rowid_list, ))
             else:
@@ -717,16 +716,16 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid,
             # Delete invalid configs
             ibs_dst.delete_configs(invalid_config_rowid_list)
         elif bulk_conflict_resolution == 'ignore':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[import_transfer_data]     Conflict Resolution - Ignoring configs: %r' %
                       (invalid_config_rowid_list, ))
             else:
                 print('[import_transfer_data]     Conflict Resolution - Ignoring %i configs...' %
                       (len(invalid_config_rowid_list), ))
-            config_suffixes_list = utool.filter_items(
+            config_suffixes_list = ut.filter_items(
                 config_td.config_suffixes_list, valid_list)
         else:
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[import_transfer_data]     Conflict Resolution - Merging configs: %r' %
                       (invalid_config_rowid_list, ))
             else:
@@ -753,11 +752,11 @@ def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list,
     valid_list = [known_eid is None for known_eid in known_eid_list]
     if not all(valid_list):
         # Resolve conflicts
-        invalid_eid_list = utool.filterfalse_items(known_eid_list, valid_list)
-        # invalid_indices = utool.filterfalse_items(range(len(known_eid_list)),
+        invalid_eid_list = ut.filterfalse_items(known_eid_list, valid_list)
+        # invalid_indices = ut.filterfalse_items(range(len(known_eid_list)),
         # valid_list)  # TODO
         if bulk_conflict_resolution == 'replace':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Replacing encounters: %r' %
                     (invalid_eid_list, ))
@@ -767,23 +766,23 @@ def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list,
             # Delete invalid gids
             ibs_dst.delete_encounters(invalid_eid_list)
         elif bulk_conflict_resolution == 'ignore':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Ignoring encounters: %r' %
                     (invalid_eid_list, ))
             else:
                 print('[import_transfer_data]     Conflict Resolution - Ignoring %i encounters...' %
                       (len(invalid_eid_list), ))
-            config_INDEX_list = utool.filter_items(
+            config_INDEX_list = ut.filter_items(
                 config_INDEX_list,   valid_list)
-            encounter_uuid_list = utool.filter_items(
+            encounter_uuid_list = ut.filter_items(
                 encounter_uuid_list, valid_list)
-            encounter_text_list = utool.filter_items(
+            encounter_text_list = ut.filter_items(
                 encounter_text_list, valid_list)
-            encoutner_note_list = utool.filter_items(
+            encoutner_note_list = ut.filter_items(
                 encoutner_note_list, valid_list)
         else:
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Merging encounters: %r' %
                     (invalid_eid_list, ))
@@ -826,11 +825,11 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     valid_list = [known_gid is None for known_gid in known_gid_list]
     if not all(valid_list):
         # Resolve conflicts
-        invalid_gid_list = utool.filterfalse_items(known_gid_list, valid_list)
-        # invalid_indices = utool.filterfalse_items(range(len(known_gid_list)),
+        invalid_gid_list = ut.filterfalse_items(known_gid_list, valid_list)
+        # invalid_indices = ut.filterfalse_items(range(len(known_gid_list)),
         # valid_list)  # TODO
         if bulk_conflict_resolution == 'replace':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Replacing images: %r' %
                     (invalid_gid_list, ))
@@ -840,45 +839,45 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
             # Delete invalid gids
             ibs_dst.delete_images(invalid_gid_list)
         elif bulk_conflict_resolution == 'ignore':
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Ignoring images: %r' %
                     (invalid_gid_list, ))
             else:
                 print('[import_transfer_data]     Conflict Resolution - Ignoring %i images...' %
                       (len(invalid_gid_list), ))
-            encounter_INDEXs_list = utool.filter_items(
+            encounter_INDEXs_list = ut.filter_items(
                 encounter_INDEXs_list,      valid_list)
-            image_path_list = utool.filter_items(
+            image_path_list = ut.filter_items(
                 image_path_list,            valid_list)
-            image_uuid_list = utool.filter_items(
+            image_uuid_list = ut.filter_items(
                 image_uuid_list,            valid_list)
-            image_ext_list = utool.filter_items(
+            image_ext_list = ut.filter_items(
                 image_ext_list,             valid_list)
-            image_original_name_list = utool.filter_items(
+            image_original_name_list = ut.filter_items(
                 image_original_name_list,   valid_list)
-            image_width_list = utool.filter_items(
+            image_width_list = ut.filter_items(
                 image_width_list,           valid_list)
-            image_height_list = utool.filter_items(
+            image_height_list = ut.filter_items(
                 image_height_list,          valid_list)
-            image_time_posix_list = utool.filter_items(
+            image_time_posix_list = ut.filter_items(
                 image_time_posix_list,      valid_list)
-            image_gps_lat_list = utool.filter_items(
+            image_gps_lat_list = ut.filter_items(
                 image_gps_lat_list,         valid_list)
-            image_gps_lon_list = utool.filter_items(
+            image_gps_lon_list = ut.filter_items(
                 image_gps_lon_list,         valid_list)
-            image_toggle_enabled_list = utool.filter_items(
+            image_toggle_enabled_list = ut.filter_items(
                 image_toggle_enabled_list,  valid_list)
-            image_toggle_reviewed_list = utool.filter_items(
+            image_toggle_reviewed_list = ut.filter_items(
                 image_toggle_reviewed_list, valid_list)
-            image_note_list = utool.filter_items(
+            image_note_list = ut.filter_items(
                 image_note_list,            valid_list)
-            lblimage_td_list = utool.filter_items(
+            lblimage_td_list = ut.filter_items(
                 lblimage_td_list,           valid_list)
-            annotation_td_list = utool.filter_items(
+            annotation_td_list = ut.filter_items(
                 annotation_td_list,         valid_list)
         else:
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     Conflict Resolution - Merging images: %r' %
                     (invalid_gid_list, ))
@@ -935,7 +934,7 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     aid_total = 0
     for gid, annotation_td in zip(gid_list, annotation_td_list):
         if annotation_td is not None:
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[import_transfer_data]     Importing annotations for image %r: %r ' % (
                     gid, annotation_td.annot_uuid_list,))
             aid_list = import_annot_transfer_data(
@@ -947,10 +946,10 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
                 config_rowid_list
             )
             aid_total += len(aid_list)
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print(
                     '[import_transfer_data]     ...imported %i annotations' % (len(aid_list),))
-        elif utool.VERBOSE:
+        elif ut.VERBOSE:
             print(
                 '[import_transfer_data]     NO ANNOTATIONS TO IMPORT FOR IMAGE %r' % (gid))
     print('[import_transfer_data]     ...imported %i annotations' %
@@ -988,7 +987,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
         # Turns off thumbnail deletion print statements
         quiet_delete_thumbs=True
     )
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print(
             '[import_transfer_data]       Setting the annotation\'s parent and exemplar bits...')
     # Adding parent rowids that come from the aid_list (only can come from this list because
@@ -1002,7 +1001,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
     ibs_dst.set_annot_exemplar_flags(
         aid_list, annot_td.annot_exemplar_flag_list)
     # Add lblannots
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[import_transfer_data]       Importing lblannots...')
     alrid_total = 0
     for aid, lblannot_td in zip(aid_list, annot_td.lblannot_td_list):
@@ -1014,7 +1013,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
                 config_rowid_list
             )
             alrid_total += len(alrid_list)
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[import_transfer_data]       ...imported %i lblimages' %
               (alrid_total,))
     return aid_list
@@ -1033,14 +1032,14 @@ def import_lblimage_transfer_data(ibs_dst, lblimage_td, gid, config_rowid_list):
         0 <= config_INDEX and config_INDEX < len(config_rowid_list)
         for config_INDEX in lblimage_td.config_INDEX_list
     ]
-    lblimage_rowid_list = utool.filter_items(lblimage_rowid_list, valid_list)
+    lblimage_rowid_list = ut.filter_items(lblimage_rowid_list, valid_list)
     gid_list = [gid] * len(lblimage_rowid_list)
     config_rowid_list = [
         config_rowid_list[config_INDEX]
         for config_INDEX, valid in zip(lblimage_td.config_INDEX_list, valid_list)
         if valid
     ]
-    glr_confidence_list = utool.filter_items(
+    glr_confidence_list = ut.filter_items(
         lblimage_td.glr_confidence_list, valid_list)
     glrid_list = ibs_dst.add_image_relationship(
         gid_list,
@@ -1064,14 +1063,14 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
         0 <= config_INDEX and config_INDEX < len(config_rowid_list)
         for config_INDEX in lblannot_td.config_INDEX_list
     ]
-    lblannot_rowid_list = utool.filter_items(lblannot_rowid_list, valid_list)
+    lblannot_rowid_list = ut.filter_items(lblannot_rowid_list, valid_list)
     aid_list = [aid] * len(lblannot_rowid_list)
     config_rowid_list = [
         config_rowid_list[config_INDEX]
         for config_INDEX, valid in zip(lblannot_td.config_INDEX_list, valid_list)
         if valid
     ]
-    alr_confidence_list = utool.filter_items(
+    alr_confidence_list = ut.filter_items(
         lblannot_td.alr_confidence_list, valid_list)
     alrid_list = ibs_dst.add_annot_relationship(
         aid_list,
@@ -1207,7 +1206,7 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None,
     ibs_dst.ensure_contributor_rowids(user_prompt=user_prompt)
     # Export source database
     td = export_transfer_data(ibs_src, gid_list=gid_list)
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('\n\n[merge_databases] -------------------\n\n')
         print('[merge_databases] %s' % (td,))
         print('\n\n[merge_databases] -------------------\n\n')
@@ -1529,7 +1528,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     flags2_list = [
         aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(annotmatch_rowid_list)]
     flag_list = ut.and_lists(flags1_list, flags2_list)
-    annotmatch_rowid_list = ut.filter_items(annotmatch_rowid_list, flag_list)
+    annotmatch_rowid_list = ut.list_compress(annotmatch_rowid_list, flag_list)
     #annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())
 
     rowid_subsets = {
@@ -1570,8 +1569,8 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 #     issameimg = [gid is not None for gid in sameimg_gid_list2_]
 # Check if databases contain the same images
 #     if any(issameimg):
-#         sameimg_gid_list2 = utool.filter_items(sameimg_gid_list2_, issameimg)
-#         sameimg_image_uuids = utool.filter_items(image_uuid_list1, issameimg)
+#         sameimg_gid_list2 = ut.filter_items(sameimg_gid_list2_, issameimg)
+#         sameimg_image_uuids = ut.filter_items(image_uuid_list1, issameimg)
 #         print('! %d/%d images are duplicates' % (len(sameimg_gid_list2), len(image_uuid_list1)))
 # Check if sameimg images in dst has any annotations.
 #         sameimg_aids_list2 = ibs_dst.get_image_aids(sameimg_gid_list2)
@@ -1579,8 +1578,8 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 #         if any(hasannots):
 # TODO: Merge based on some merge stratagy parameter (like annotation timestamp)
 #             sameimg_gid_list1 = ibs_src.get_image_gids_from_uuid(sameimg_image_uuids)
-#             hasannot_gid_list2 = utool.filter_items(sameimg_gid_list2, hasannots)
-#             hasannot_gid_list1 = utool.filter_items(sameimg_gid_list1, hasannots)
+#             hasannot_gid_list2 = ut.filter_items(sameimg_gid_list2, hasannots)
+#             hasannot_gid_list1 = ut.filter_items(sameimg_gid_list1, hasannots)
 #             print('  !! %d/%d of those have annotations' %
 #             (len(hasannot_gid_list2), len(sameimg_gid_list2)))
 # They had better be the same annotations!

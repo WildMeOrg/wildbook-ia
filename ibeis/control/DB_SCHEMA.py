@@ -308,7 +308,7 @@ def post_1_2_0(db, ibs=None):
             lbltype_rowids_list = ibs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
             # only want the nids of individuals, not species, for example
             valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-            alrids_list = [ut.filter_items(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
+            alrids_list = [ut.list_compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
             alrids_list = [
                 alrid_list[0:1]
                 if len(alrid_list) > 1 else

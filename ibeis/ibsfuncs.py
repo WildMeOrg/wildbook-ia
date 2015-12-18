@@ -2691,7 +2691,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
         return six.itervalues(nid2_aids)
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
-    unknown_aids = list(ut.iflatten(ut.ifilter_items(aid_gen(), isunknown_list)))
+    unknown_aids = list(ut.iflatten(ut.iter_compress(aid_gen(), isunknown_list)))
     if __debug__:
         # References:
         #     http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
@@ -4433,7 +4433,7 @@ def filter_aids_custom(ibs, aid_list):
     if not ibs.cfg.other_cfg.enable_custom_filter:
         return aid_list
     flags_list = ibs.get_annot_custom_filterflags(aid_list)
-    aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
+    aid_list_ = list(ut.iter_compress(aid_list, flags_list))
     #aid_list_ = list(ut.list_compress(aid_list, flags_list))
     return aid_list_
 
@@ -4505,7 +4505,7 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
             unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
             aid_list      = ut.sortedby(aid_list, unixtime_list)
     flags_list = ibs.flag_aids_count(aid_list)
-    aid_list_  = list(ut.ifilter_items(aid_list, flags_list))
+    aid_list_  = list(ut.iter_compress(aid_list, flags_list))
     return aid_list_
 
 

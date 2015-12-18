@@ -220,12 +220,12 @@ def ingest_testdb1(dbname):
         nid_list = ibs.get_annot_name_rowids(aid_list)
         nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
         unique_flag = ut.flag_unique_items(nid_list)
-        unique_nids = ut.filter_items(nid_list, unique_flag)
+        unique_nids = ut.list_compress(nid_list, unique_flag)
         none_nids = [ nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
         flag_list = list(map(all, zip(plural_flag, unique_flag, none_nids)))
-        flagged_aids = ut.filter_items(aid_list, flag_list)
+        flagged_aids = ut.list_compress(aid_list, flag_list)
         if ut.VERYVERBOSE:
             def print2(*args):
                 print('[post_testdb1] ' + ', '.join(args))
@@ -240,7 +240,7 @@ def ingest_testdb1(dbname):
             print2('flagged_aids=%r' % flagged_aids)
             # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
-        unname_aids = ut.filter_items(aid_list, flag_list)
+        unname_aids = ut.list_compress(aid_list, flag_list)
         ibs.delete_annot_nids(unname_aids)
         # Add all annotations with names as exemplars
         #from ibeis.control.IBEISControl import IBEISController

@@ -113,7 +113,7 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
     initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
-    dirty_aid_list = ut.filter_items(aid_list, isdirty_list)
+    dirty_aid_list = ut.list_compress(aid_list, isdirty_list)
     num_dirty = len(dirty_aid_list)
     num_total = len(aid_list)
     if num_dirty > 0:

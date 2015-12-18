@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 # developer convenience functions for ibs
-from __future__ import absolute_import, division, print_function
-import utool
+from __future__ import absolute_import, division, print_function, unicode_literals
+import utool as ut
 from six.moves import zip
 from ibeis import constants
-#from ibeis import ibsfuncs
-
-# Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')
 
 
 def fix_compname_configs(ibs):
     """ duct tape to keep version in check """
-    #ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_'  #+ utool.get_computer_name()
+    #ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_'  #+ ut.get_computer_name()
     #ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
     # We need to fix the manual config suffix to not use computer names anymore
 
@@ -151,7 +148,7 @@ def enforce_unkonwn_name_is_explicit(ibs):
     text_list = ibs.get_name_texts(nid_list)
     problem_nids = [text for text, nid in zip(text_list, nid_list) if text == constants.UNKNOWN]
     unknown_aids = ibs.get_name_aids(problem_nids)
-    assert len(utool.flatten(unknown_aids)) == 0
+    assert len(ut.flatten(unknown_aids)) == 0
     # TODO Take unknown_aids and remove any name relationships to make unknown
     # implicit
 
@@ -160,6 +157,6 @@ def fix_nulled_yaws(ibs):
     aid_list = ibs.get_valid_aids()
     yaw_list = ibs.get_annot_yaws(aid_list)
     valid_list = [yaw == 0.0 for yaw in yaw_list]
-    dirty_aid_list = utool.filter_items(aid_list, valid_list)
+    dirty_aid_list = ut.filter_items(aid_list, valid_list)
     print("[duct_tape] Nulling %d annotation yaws" % len(dirty_aid_list))
     ibs.set_annot_yaws(dirty_aid_list, [None] * len(dirty_aid_list))

@@ -153,7 +153,7 @@ Tadder_pl_dependant = ut.codeblock(
         initial_{leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, config2_=config2_)
         # Get corresponding "dirty" parent rowids
         isdirty_list = ut.flag_None_items(initial_{leaf}_rowid_list)
-        dirty_{parent}_rowid_list = ut.filter_items({parent}_rowid_list, isdirty_list)
+        dirty_{parent}_rowid_list = ut.list_compress({parent}_rowid_list, isdirty_list)
         num_dirty = len(dirty_{parent}_rowid_list)
         num_total = len({parent}_rowid_list)
         if num_dirty > 0:

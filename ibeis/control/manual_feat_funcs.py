@@ -330,7 +330,7 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         ibs, chip_rowid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_feat_rowid_list)
-    dirty_chip_rowid_list = ut.filter_items(chip_rowid_list, isdirty_list)
+    dirty_chip_rowid_list = ut.list_compress(chip_rowid_list, isdirty_list)
     num_dirty = len(dirty_chip_rowid_list)
     num_total = len(chip_rowid_list)
     if num_dirty > 0:
