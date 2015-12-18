@@ -24,7 +24,7 @@ class ThumbnailCacheContext(object):
     def __enter__(self):
         # These items need to be computed
         self.dirty_list = [not exists(gpath) for gpath in self.thumb_gpaths]
-        self.dirty_gpaths = ut.filter_items(self.thumb_gpaths, self.dirty_list)
+        self.dirty_gpaths = ut.list_compress(self.thumb_gpaths, self.dirty_list)
         #print('[gtool.thumb] len(dirty_gpaths): %r' % len(self.dirty_gpaths))
         self.needs_compute = len(self.dirty_gpaths) > 0
         return self
@@ -33,8 +33,8 @@ class ThumbnailCacheContext(object):
         """ Pass in any images marked by the context as dirty here """
         # Remove any non images
         isvalid_list = [img is not None for img in img_list]
-        valid_images  = ut.filter_items(img_list, isvalid_list)
-        valid_fpath = ut.filter_items(self.thumb_gpaths, isvalid_list)
+        valid_images  = ut.list_compress(img_list, isvalid_list)
+        valid_fpath = ut.list_compress(self.thumb_gpaths, isvalid_list)
         # Resize to thumbnails
         max_dsize = (self.thumb_size, self.thumb_size)
         valid_thumbs = [resize_thumb(img, max_dsize) for img in valid_images]
@@ -44,7 +44,7 @@ class ThumbnailCacheContext(object):
 
     def filter_dirty_items(self, list_):
         """ Returns only items marked by the context as dirty """
-        return ut.filter_items(list_, self.dirty_list)
+        return ut.list_compress(list_, self.dirty_list)
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
