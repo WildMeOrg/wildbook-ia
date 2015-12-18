@@ -1920,6 +1920,30 @@ def get_annot_image_unixtimes(ibs, aid_list):
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image_unixtimes/', methods=['GET'])
 def get_annot_image_unixtimes_asfloat(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+
+    Returns:
+        list: unixtime_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> unixtime_list = get_annot_image_unixtimes_asfloat(ibs, aid_list)
+        >>> result = ('unixtime_list = %s' % (str(unixtime_list),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
     unixtime_list[unixtime_list == -1] = np.nan
     return unixtime_list

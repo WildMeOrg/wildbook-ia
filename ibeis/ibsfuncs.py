@@ -453,7 +453,6 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
-        #ut.embed()
         raise
     if veryverbose:
         print('passed assert_valid_gids')
@@ -519,7 +518,6 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
-        #ut.embed()
         raise
     if veryverbose:
         print('passed assert_valid_aids')
@@ -5570,6 +5568,34 @@ def compare_nested_props(ibs, aids1_list,
     ExpandNestedComparisions:
         import itertools
         list(map(list, itertools.starmap(ut.iprod, zip(aids1_list, aids2_list))))
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aids1_list (list):
+        aids2_list (list):
+        getter_func (?):
+        cmp_func (?):
+
+    Returns:
+        list of ndarrays:
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-compare_nested_props --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids1_list = [ibs.get_valid_aids()[8:11]]
+        >>> aids2_list = [ibs.get_valid_aids()[8:11]]
+        >>> getter_func = ibs.get_annot_image_unixtimes_asfloat
+        >>> cmp_func = ut.unixtime_hourdiff
+        >>> result = compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
     def replace_none_with_nan(x):
         import utool as ut
@@ -5620,7 +5646,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:
-        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a default
+        python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db testdb1  -a default
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_FlankHack -a default:qaids=allgt
         python -m ibeis.ibsfuncs --exec-get_annotconfig_stats --db PZ_MTEST -a controlled:per_name=2,min_gt=4
@@ -5749,7 +5776,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
             # Distances between a query and its groundtruth
             ('viewdist', _stat_str(gt_viewdist_stats)),
             #('qualdist', _stat_str(gt_qualdist_stats)),
-            ('hourdist', _stat_str(gt_hourdelta_stats)),
+            ('hourdist', _stat_str(gt_hourdelta_stats, precision=4)),
         ]
 
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
