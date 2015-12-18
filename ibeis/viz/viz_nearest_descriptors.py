@@ -71,14 +71,14 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>>                                   draw_chip=True,
         >>>                                   draw_warped=True,
         >>>                                   draw_unwarped=False,
-        >>>                                   draw_sift=False, qreq_=qreq_)
+        >>>                                   draw_desc=False, qreq_=qreq_)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
     """
     consecutive_distance_compare = True
     draw_chip     = kwargs.get('draw_chip', False)
-    draw_sift     = kwargs.get('draw_sift', True)
+    draw_desc     = kwargs.get('draw_desc', True)
     draw_warped   = kwargs.get('draw_warped', True)
     draw_unwarped = kwargs.get('draw_unwarped', True)
     #skip = kwargs.get('skip', True)
@@ -94,18 +94,44 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
             rchip = ibs.get_annot_chips(aid)
             kp    = ibs.get_annot_kpts(aid)[fx]
             sift  = ibs.get_annot_vecs(aid)[fx]
-            aidstr = vh.get_aidstrs(aid)
-            nidstr = vh.get_nidstrs(ibs.get_annot_nids(aid))
-            id_str = aidstr + ' ' + nidstr + ' fx=%r' % (fx,)
+            if not ut.get_argflag('--texknormplot'):
+                aidstr = vh.get_aidstrs(aid)
+                nidstr = vh.get_nidstrs(ibs.get_annot_nids(aid))
+                id_str = ' ' + aidstr + ' ' + nidstr + ' fx=%r' % (fx,)
+            else:
+                id_str = nidstr = aidstr = ''
+            info = ''
             if k == -1:
-                info = '\nquery: %s' % (id_str,)
-                type_ = 'query'
+                if pt.is_texmode():
+                    info = '\\vspace{1cm}'
+                    info += 'Query $\\mathbf{d}_i$'
+                    info += '\n\\_'
+                    info += '\n\\_'
+                else:
+                    if len(id_str) > '':
+                        info = 'Query: %s' % (id_str,)
+                    else:
+                        info = 'Query'
+                type_ = 'Query'
             elif k < K:
-                type_ = 'match'
-                info = '\nmatch: %s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                type_ = 'Match'
+                if ut.get_argflag('--texknormplot') and  pt.is_texmode():
+                    #info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
+                    info = '\\vspace{1cm}'
+                    info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
+                    info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                else:
+                    info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                    info += '\nLNBNN=%.3f' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
             elif k < Knorm + K:
-                type_ = 'norm'
-                info = '\nnorm:  %s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                type_ = 'Norm'
+                if ut.get_argflag('--texknormplot') and  pt.is_texmode():
+                    #info = 'Norm: $j_%r$\ndist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                    info = '\\vspace{1cm}'
+                    info += 'Norm: $j_%r$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
+                    info += '\n\\_'
+                else:
+                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (id_str, k, qfx2_dist[0, k])
             else:
                 raise Exception('[viz] problem k=%r')
             return (rchip, kp, sift, fx, aid, info, type_)
@@ -131,6 +157,13 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         px = 0  # plot offset
         px_shift = 0  # plot stride shift
         nExtracted = len(extracted_list)
+        featrow_kw = dict(
+            draw_chip=draw_chip, draw_desc=draw_desc, draw_warped=draw_warped,
+            draw_unwarped=draw_unwarped,
+        )
+        if ut.get_argflag('--texknormplot'):
+            featrow_kw['ell_color'] = pt.ORANGE
+            pass
         for listx, tup in enumerate(extracted_list):
             (rchip, kp, sift, fx, aid, info, type_) = tup
             if listx % stride == 0:
@@ -143,9 +176,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
             px_ = px - px_shift
             px = draw_feat_row(rchip, fx, kp, sift, _fnum, _nRows, px=px_,
                                prevsift=prevsift, origsift=origsift, aid=aid,
-                               info=info, type_=type_, draw_chip=draw_chip,
-                               draw_sift=draw_sift, draw_warped=draw_warped,
-                               draw_unwarped=draw_unwarped)
+                               info=info, type_=type_, **featrow_kw)
 
             px += px_shift
             if prevsift is None or consecutive_distance_compare:
