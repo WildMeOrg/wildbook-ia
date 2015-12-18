@@ -1290,8 +1290,26 @@ class TestResult(object):
         #vt.unique_row_indexes(case_pos_list).shape
         return case_pos_list, case_labels_list
 
-    @ut.memoize
     def get_truth2_prop(testres):
+        r"""
+        Returns:
+            tuple: (truth2_prop, prop2_mat)
+
+        CommandLine:
+            python -m ibeis.expt.test_result --exec-get_truth2_prop --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.expt.test_result import *  # NOQA
+            >>> import ibeis
+            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
+            >>> result = ('(truth2_prop, prop2_mat) = %s' % (str((truth2_prop, prop2_mat)),))
+            >>> print(result)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> ut.show_if_requested()
+        """
         ibs = testres.ibs
         common_qaids = testres.get_common_qaids()
         #common_qaids = ut.random_sample(common_qaids, 20)

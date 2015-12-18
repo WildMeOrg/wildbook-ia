@@ -297,7 +297,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
 
 def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
                       qaid_override=None, daid_override=None,
-                      initial_aids=None, use_cache=None):
+                      initial_aids=None, use_cache=None, verbose=None):
     r"""
     For now can only specify one acfg name list
 
@@ -354,7 +354,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     expanded_aids_combo_list = [
         filter_annots.expand_acfgs_consistently(ibs, acfg_combo_,
                                                 initial_aids=initial_aids,
-                                                use_cache=use_cache)
+                                                use_cache=use_cache,
+                                                verbose=verbose)
         for acfg_combo_ in acfg_combo_list
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)

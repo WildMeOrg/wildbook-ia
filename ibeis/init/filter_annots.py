@@ -255,7 +255,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=VERB_TESTDATA):
     return aids
 
 
-def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None):
+def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None, verbose=None):
     """
     CommandLine:
         python -m ibeis --tf parse_acfg_combo_list  \
@@ -314,7 +314,8 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
         with ut.Indenter('[%d] ' % (combox,)):
             expanded_aids = expand_acfgs(ibs, acfg, initial_aids=initial_aids,
                                          use_cache=use_cache,
-                                         hack_exclude_keys=hack_exclude_keys)
+                                         hack_exclude_keys=hack_exclude_keys,
+                                         verbose=verbose)
 
             if dcfg.get('hack_extra', None):
                 # SUCH HACK to get a larger database
@@ -414,7 +415,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
 
 
 @profile
-def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
+def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
                  hack_exclude_keys=None, initial_aids=None):
     r"""
     Expands an annot config dict into qaids and daids
@@ -497,8 +498,10 @@ def expand_acfgs(ibs, aidcfg, verbose=VERB_TESTDATA, use_cache=None,
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     """
-
     from ibeis.expt import annotation_configs
+    if verbose is None:
+        verbose = VERB_TESTDATA
+
     assert isinstance(aidcfg, dict), 'type(aidcfg)=%r' % (type(aidcfg),)
     aidcfg = copy.deepcopy(aidcfg)
 

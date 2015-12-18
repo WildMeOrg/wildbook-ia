@@ -157,17 +157,21 @@ def make_ibeis_notebook(ibs):
         annotconfig_list_body = ut.codeblock(
             '''
             'default:is_known=True',
+            # See ibeis/expt/annotation_configs.py for names of annot configuration options
             #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
             #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'timectrl:',
             #'timectrl:qsize=10,dsize=20',
             #'timectrl:been_adjusted=True,dpername=3',
             #'unctrl:been_adjusted=True',
+            #'default:require_timestamp=True,min_timedelta=3600',
+            #'default:species=primary',
             '''
         )
     if ut.get_argflag('--hacktestscore'):
         pipeline_list_body = ut.codeblock(
             '''
+            # See ibeis/model/Config.py for names of pipeline config options
             'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True',
             'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True',
             'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True',
@@ -185,6 +189,7 @@ def make_ibeis_notebook(ibs):
             #'default:K=1,AI=False',
             #'default:K=1,AI=False,QRH=True',
             #'default:K=1,RI=True,AI=False',
+            #'default:fg_on=[True,False]',
             '''
         )
     locals_ = locals()
