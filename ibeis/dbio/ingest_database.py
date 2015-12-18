@@ -7,6 +7,7 @@ This module lists known raw databases and how to ingest them.
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
+import os
 from os.path import relpath, dirname, exists, join, realpath, basename
 from ibeis import ibsfuncs
 from ibeis import constants as const
@@ -623,18 +624,35 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #return aid_list
 
 
-def ingest_oxford_style_db(dbdir):
+def ingest_oxford_style_db(dbdir, dryrun=False):
     """
+    Ingest either oxford or paris
 
-    >>> from ibeis.dbio.ingest_database import *  # NOQA
-    >>> import ibeis
-    >>> dbdir = '/raid/work/Oxford'
-    >>> dbdir = '/raid/work/Paris'
-    >>>
-    #>>> ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)
+    Args:
+        dbdir (str):
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> dbdir = '/raid/work/Oxford'
+        >>> dryrun = True
+        >>> ingest_oxford_style_db(dbdir)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+
+    Ignore:
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> import ibeis
+        >>> dbdir = '/raid/work/Oxford'
+        >>> dbdir = '/raid/work/Paris'
+        >>>
+        #>>> ibeis.dbio.convert_db.ingest_oxford_style_db(dbdir)
     """
     from PIL import Image
-    import os
     print('Loading Oxford Style Images from: ' + dbdir)
 
     def _parse_oxsty_gtfname(gt_fname):
@@ -749,47 +767,66 @@ def ingest_oxford_style_db(dbdir):
     assert len(query_gname_list) == len(set(query_gname_list))
     #=======================================================
     # Build IBEIS database
-    ibs = ibeis.opendb(dbdir, allow_newdir=True)
-    ibs.cfg.other_cfg.auto_localize = False
-    print('adding to table: ')
-    # Add images to ibeis
-    gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
-    gid_list = ibs.add_images(gpath_list)
 
-    # 1) Add Query Annotations
-    qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)
-    # get image ids of queries
-    qgid_list = [gid_list[gname_list.index(gname)] for gname in qgname_list]
-    qnote_list = ['query'] * len(qgid_list)
-    # 2) Add nonquery database annots
-    dgname_list = list(gname2_annots.keys())  # NOQA
-    dgid_list = []
-    dname_list = []
-    dbbox_list = []
-    dnote_list = []
-    for gname in gname2_annots.keys():
-        gid = gid_list[gname_list.index(gname)]
-        annots = gname2_annots[gname]
-        for name, bbox, quality in annots:
-            dgid_list.append(gid)
-            dbbox_list.append(bbox)
-            dname_list.append(name)
-            dnote_list.append(quality)
-    # 3) Add distractors: TODO: 100k
-    ugid_list = [gid_list[gname_list.index(gname)]
-                 for gname in gname_without_groundtruth_list]
-    ubbox_list = [[0, 0, w, h] for (w, h) in ibs.get_image_sizes(ugid_list)]
-    unote_list = ['distractor'] * len(ugid_list)
+    if not dryrun:
+        ibs = ibeis.opendb(dbdir, allow_newdir=True)
+        ibs.cfg.other_cfg.auto_localize = False
+        print('adding to table: ')
+        # Add images to ibeis
+        gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
+        gid_list = ibs.add_images(gpath_list)
 
-    # TODO Annotation consistency in terms of duplicate bounding boxes
-    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list,
-                               name_list=qname_list, notes_list=qnote_list)
-    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list,
-                               name_list=dname_list, notes_list=dnote_list)
-    uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
-    print('Added %d query annototations' % len(qaid_list))
-    print('Added %d database annototations' % len(daid_list))
-    print('Added %d distractor annototations' % len(uaid_list))
+        # 1) Add Query Annotations
+        qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)
+        # get image ids of queries
+        qgid_list = [gid_list[gname_list.index(gname)] for gname in qgname_list]
+        qnote_list = ['query'] * len(qgid_list)
+        # 2) Add nonquery database annots
+        dgname_list = list(gname2_annots.keys())  # NOQA
+        dgid_list = []
+        dname_list = []
+        dbbox_list = []
+        dnote_list = []
+        for gname in gname2_annots.keys():
+            gid = gid_list[gname_list.index(gname)]
+            annots = gname2_annots[gname]
+            for name, bbox, quality in annots:
+                dgid_list.append(gid)
+                dbbox_list.append(bbox)
+                dname_list.append(name)
+                dnote_list.append(quality)
+        # 3) Add distractors: TODO: 100k
+        ugid_list = [gid_list[gname_list.index(gname)]
+                     for gname in gname_without_groundtruth_list]
+        ubbox_list = [[0, 0, w, h] for (w, h) in ibs.get_image_sizes(ugid_list)]
+        unote_list = ['distractor'] * len(ugid_list)
+
+        # TODO Annotation consistency in terms of duplicate bounding boxes
+        qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list,
+                                   name_list=qname_list, notes_list=qnote_list)
+        daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list,
+                                   name_list=dname_list, notes_list=dnote_list)
+        uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
+        print('Added %d query annototations' % len(qaid_list))
+        print('Added %d database annototations' % len(daid_list))
+        print('Added %d distractor annototations' % len(uaid_list))
+
+    update = False
+    if update:
+        ibs = ibeis.opendb(dbdir)
+        aid_list = ibs.get_valid_aids()
+        notes_list = ibs.get_annot_notes(aid_list)
+        _dict = {
+            'ok': ibs.const.QUAL_OK,
+            'good': ibs.const.QUAL_GOOD,
+            'junk': ibs.const.QUAL_JUNK,
+            'distractor': ibs.const.QUAL_JUNK
+        }
+        qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
+        ibs.set_annot_quality_texts(aid_list, qual_text_list)
+        ibs._overwrite_all_annot_species_to(ibs.const.Species.BUILDING)
+        #ibs._set
+        pass
 
 
 def ingest_serengeti_mamal_cameratrap(species):

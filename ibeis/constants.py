@@ -285,6 +285,7 @@ class Species(object):
     HYENA         = 'hyena'
     NAUT          = 'nautilus'
     WHALE_FLUKES  = 'whale_fluke'
+    BUILDING      = 'building'
     OTHER         = 'other'
     UNKNOWN       = UNKNOWN
 
@@ -315,8 +316,9 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
     SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
     SpeciesTuple(Species.SNAIL,           'SNAIL', 'Snail'),
-    SpeciesTuple(Species.LYNX,            'LYNX',  'Lynx'),
-    SpeciesTuple(Species.WHALE_FLUKES,      'WF',  'Whale Fluke'),
+    SpeciesTuple(Species.LYNX,             'LYNX', 'Lynx'),
+    SpeciesTuple(Species.WHALE_FLUKES,       'WF', 'Whale Fluke'),
+    SpeciesTuple(Species.BUILDING,     'BUILDING', 'Building'),
     SpeciesTuple(Species.OTHER,           'OTHER', 'Other'),
     SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]

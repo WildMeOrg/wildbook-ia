@@ -4977,6 +4977,9 @@ def filter_aids_without_name(ibs, aid_list, invert=False):
 @register_ibs_method
 def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     r"""
+    Uses a dynamic program to find the maximum number of annotations that are
+    above the minimum timedelta requirement.
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid_list (?):

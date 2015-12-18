@@ -1470,17 +1470,52 @@ class IBEISController(BASE_CLASS):
 
     @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192)):
+        r"""
+        Args:
+            max_dsize (tuple): (default = (None, 192))
+
+        Returns:
+            None: None
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --exec-get_database_icon --show
+            python -m ibeis.control.IBEISControl --exec-get_database_icon --show --db Oxford
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> icon = ibs.get_database_icon()
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.imshow(icon)
+            >>> ut.show_if_requested()
+        """
+        #if ibs.get_dbname() == 'Oxford':
+        #    pass
+        #else:
+        import vtool as vt
         species = ibs.get_primary_database_species()
+        # Use a url to get the icon
         url = {
             ibs.const.Species.GIRAFFE_MASAI: 'http://i.imgur.com/tGDVaKC.png',
             ibs.const.Species.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
             ibs.const.Species.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
         }.get(species, None)
         if url is None:
-            return None
-        #icon = vt.imread(ut.grab_test_imgpath('star.png'))
-        import vtool as vt
-        icon = vt.imread(ut.grab_file_url(url))
+            # use an aid to get the icon
+            aid = {
+                'Oxford': 73,
+            }.get(ibs.get_dbname(), None)
+            if aid is None:
+                # Just grab a random aid
+                aid = ibs.get_valid_aids()[0]
+            icon = ibs.get_annot_chips(aid)
+            #return None
+        else:
+            #icon = vt.imread(ut.grab_test_imgpath('star.png'))
+            icon = vt.imread(ut.grab_file_url(url))
         icon = vt.resize_to_maxdims(icon, max_dsize)
         return icon
 
