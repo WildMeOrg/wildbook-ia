@@ -329,6 +329,7 @@ SPECIES_WITH_DETECTORS = (
     #Species.ELEPHANT_SAV,
 
     #Species.GIRAFFE_MASAI,
+    Species.WHALEHUMPBACK,
     Species.WHALE_FLUKES,
 )
 
