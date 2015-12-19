@@ -738,9 +738,7 @@ def set_tags_in_textformat(prop, text_list, flags):
     for tags, flag in zip(new_tags_list, flags):
         if flag:
             tags.append(prop)
-    new_text_list = [
-        ';'.join(tags) for tags in new_tags_list
-    ]
+    new_text_list = [';'.join(tags) for tags in new_tags_list]
     return new_text_list
 
 
@@ -796,6 +794,18 @@ def set_annot_prop(ibs, prop, aid_list, flags):
     """
     text_list = ibs.get_annot_tags(aid_list)
     new_text_list = set_tags_in_textformat(prop, text_list, flags)
+    ibs.set_annot_tags(aid_list, new_text_list)
+
+
+def append_annot_case_tags(ibs, aid_list, tag_list):
+    """
+    Generally appends tags to annotations. Careful not to introduce too many random tags
+    """
+    tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
+    text_list = ibs.get_annot_tags(aid_list)
+    orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    new_tags_list = [t1 + t2 for t1, t2 in zip(tags_list, orig_tags_list)]
+    new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tags(aid_list, new_text_list)
 
 

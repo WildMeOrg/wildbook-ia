@@ -813,6 +813,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
 
     update = False
     if update:
+        # TODO: integrate this into normal ingest pipeline
         ibs = ibeis.opendb(dbdir)
         aid_list = ibs.get_valid_aids()
         notes_list = ibs.get_annot_notes(aid_list)
@@ -825,8 +826,16 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
         ibs.set_annot_quality_texts(aid_list, qual_text_list)
         ibs._overwrite_all_annot_species_to(ibs.const.Species.BUILDING)
+
+        tags_list = [[note] if note in ['query', 'distractor'] else [] for note in notes_list]
+        from ibeis import tag_funcs
+        tag_funcs.append_annot_case_tags(ibs, aid_list, tags_list)
         #ibs._set
-        pass
+        # tags_ = ibs.get_annot_case_tags(aid_list)
+        # pass
+        """
+        python -m ibeis --tf filter_annots_general --db Oxford --has_any=[query]
+        """
 
 
 def ingest_serengeti_mamal_cameratrap(species):
