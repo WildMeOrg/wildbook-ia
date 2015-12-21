@@ -124,7 +124,12 @@ def testdata_expts(defaultdb='testdb1',
                    initial_aids=None,
                    ):
     """
-    Command line interface to quickly get testdata for test_results
+    Use this if you want data from an experiment.
+    Command line interface to quickly get testdata for test_results.
+
+    Command line flags can be used to specify db, aidcfg, pipecfg, qaid
+    override, daid override (and maybe initial aids).
+
     """
     import ibeis
     from ibeis.expt import experiment_harness

@@ -2012,6 +2012,7 @@ class TestResult(object):
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
 
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db Oxford --disttypes=L2_sift -a ctrl:dpername=10 --show
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db Oxford --disttypes=L2_sift -a ctrl:dpername=10 --show --helpx
 
         Example:
             >>> # SCRIPT
