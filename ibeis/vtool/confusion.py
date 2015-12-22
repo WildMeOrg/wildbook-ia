@@ -9,9 +9,10 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np
+#raise ImportError('FOOO')
 import sklearn.metrics
 import scipy.interpolate
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[confusion]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[confusion]', DEBUG=False)
 
 
 def testdata_scores_labels():
