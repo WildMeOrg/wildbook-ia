@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 ### __init__.py ###
 # flake8: noqa
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-ut.noinject(__name__, '[ibeis.init.__init__]', DEBUG=False)
+ut.noinject(__name__, '[ibeis.other.__init__]')
 from ibeis.other import dbinfo
 from ibeis.other import duct_tape
 from ibeis.other import optimize_k

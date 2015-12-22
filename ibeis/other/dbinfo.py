@@ -8,12 +8,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import six
 import numpy as np
-import ibeis.constants as const
 from collections import OrderedDict
-from utool import util_latex as util_latex
+from utool import util_latex
 import functools
-from vtool import keypoint as ktool
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[dbinfo]')
+print, rrr, profile = ut.inject2(__name__, '[dbinfo]')
 
 
 def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
@@ -334,7 +332,7 @@ def get_dbinfo(ibs, verbose=True,
     def get_annot_sex_stats(aid_list):
         annot_sextext_list = ibs.get_annot_sex_texts(aid_list)
         sextext2_aids = ut.group_items(aid_list, annot_sextext_list)
-        sex_keys = list(const.SEX_TEXT_TO_INT.keys())
+        sex_keys = list(ibs.const.SEX_TEXT_TO_INT.keys())
         assert set(sex_keys) >= set(annot_sextext_list), 'bad keys: ' + str(set(annot_sextext_list) - set(sex_keys))
         sextext2_nAnnots = ut.odict([(key, len(sextext2_aids.get(key, []))) for key in sex_keys])
         # Filter 0's
@@ -547,6 +545,8 @@ def hackshow_names(ibs, aid_list, fnum=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
+    import plottool as pt
+    import vtool as vt
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
@@ -561,9 +561,7 @@ def hackshow_names(ibs, aid_list, fnum=None):
     for unixtimes in unixtimes_list:
         num_nan = sum(np.isnan(unixtimes))
         unixtimes[np.isnan(unixtimes)] = np.linspace(-1, -.5, num_nan)
-    import plottool as pt
     #ydata_list = [np.arange(len(aids)) for aids in grouped_aids]
-    import vtool as vt
     sortx_list = vt.argsort_groups(unixtimes_list, reverse=False)
     #markers_list = ut.list_ziptake(markers_list, sortx_list)
     yaws_list = ut.list_ziptake(yaws_list, sortx_list)
@@ -833,7 +831,7 @@ def latex_dbstats(ibs_list, **kwargs):
 
         qualalias = {'UNKNOWN': None}
 
-        extra_collbls['yawtext2_nAnnots'] = [const.YAWALIAS.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
+        extra_collbls['yawtext2_nAnnots'] = [ibs.const.YAWALIAS.get(val, val) for val in extra_collbls['yawtext2_nAnnots']]
         extra_collbls['qualtext2_nAnnots'] = [qualalias.get(val, val) for val in extra_collbls['qualtext2_nAnnots']]
 
         for key in extra_keys:
@@ -992,6 +990,7 @@ def get_keypoint_stats(ibs):
     #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats
     #ibs.refresh_features()
+    import vtool as vt
     from ibeis.control.IBEISControl import IBEISController
     assert(isinstance(ibs, IBEISController))
     valid_aids = np.array(ibs.get_valid_aids())
@@ -1003,7 +1002,7 @@ def get_keypoint_stats(ibs):
     print('[dbinfo] --- LaTeX --- ')
     #_printopts = np.get_printoptions()
     #np.set_printoptions(precision=3)
-    scales = ktool.get_scales(kpts)
+    scales = vt.get_scales(kpts)
     scales = np.array(sorted(scales))
     tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
     tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
@@ -1017,7 +1016,6 @@ def get_keypoint_stats(ibs):
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
-    from ut import util_latex
     print('[dev stats] cache_memory_stats()')
     #kpts_list = ibs.get_annot_kpts(cid_list)
     #desc_list = ibs.get_annot_vecs(cid_list)

@@ -87,7 +87,7 @@ def classify_k(cfg={}):
     CommandLine:
         python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3
         python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=1
-        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=3
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=3 --method=approx
 
     Example:
         >>> from ibeis.model.hots.demobayes import *  # NOQA
@@ -243,15 +243,10 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
     nid2_nexemp = ut.dict_hist(nids1)
     aid2_nid = dict(zip(aids, nids))
 
-    def fixembedglobals():
-        import utool as ut
-        globals_ = ut.get_parent_globals()
-        locals_ = ut.get_parent_locals()
-        globals_.update(locals_)
-        globals_['wasfixed'] = True
+    ut.fix_embed_globals()
 
-    def add_to_globals(globals_, subdict):
-        globals_.update(subdict)
+    #def add_to_globals(globals_, subdict):
+    #    globals_.update(subdict)
 
     unique_nids = list(nid2_nexemp.keys())
 
@@ -952,6 +947,8 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.demobayes
         python -m ibeis.model.hots.demobayes --allexamples
     """
+    if ut.VERBOSE:
+        print('[hs] demobayes')
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA

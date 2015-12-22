@@ -55,14 +55,17 @@ def run_ibeis():
     elif ut.get_argflag('--run-utool-tests'):
         import utool.tests.run_tests
         retcode = utool.tests.run_tests.run_tests()
+        print('... exiting')
         sys.exit(retcode)
     elif ut.get_argflag('--run-vtool-tests'):
         import vtool.tests.run_tests
         retcode = vtool.tests.run_tests.run_tests()
+        print('... exiting')
         sys.exit(retcode)
     elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
         from ibeis.tests import run_tests
         retcode = run_tests.run_tests()
+        print('... exiting')
         sys.exit(retcode)
 
     if ut.get_argflag('-e'):
@@ -72,6 +75,7 @@ def run_ibeis():
         # Run dev script if -e given
         import ibeis.dev  # NOQA
         ibeis.dev.devmain()
+        print('... exiting')
         sys.exit(0)
 
     # Attempt to run a test using the funciton name alone

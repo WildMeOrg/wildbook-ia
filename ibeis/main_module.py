@@ -122,6 +122,9 @@ def __import_parallel_modules():
 
 
 def _init_parallel():
+    import utool as ut
+    if ut.VERBOSE:
+        print('_init_parallel')
     from utool import util_parallel
     from ibeis import params
     __import_parallel_modules()
@@ -131,16 +134,22 @@ def _init_parallel():
 
 
 def _close_parallel():
+    #if ut.VERBOSE:
+    #    print('_close_parallel')
     try:
         from utool import util_parallel
         util_parallel.close_pool(terminate=True)
     except Exception as ex:
         import utool as ut
         ut.printex(ex, 'error closing parallel')
+        raise
 
 
 def _init_numpy():
+    import utool as ut
     import numpy as np
+    if ut.VERBOSE:
+        print('_init_numpy')
     error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
     on_err = error_options[0]
     #np.seterr(divide='ignore', invalid='ignore')
@@ -498,6 +507,9 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
 
 
 def main_close(main_locals=None):
+    #import utool as ut
+    #if ut.VERBOSE:
+    #    print('main_close')
     _close_parallel()
     _reset_signals()
 

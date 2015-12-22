@@ -15,6 +15,7 @@ from six.moves import zip
 from ibeis.model.hots import pgm_ext
 import pgmpy
 import pgmpy.inference
+import pgmpy.inference.Sampling
 
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
@@ -282,18 +283,51 @@ def make_temp_state(state):
     return temp_state
 
 
+def collapse_sampled_states(model, sampled_states, evidence, query_vars):
+    # Get state out of the weird pandas format
+    #sampled_variables = sampled_states.columns[:-1].values
+    #flags = ut.setdiff_flags(sampled_variables, evidence.keys())
+    #reduced_variables = ut.compress(sampled_variables, flags)
+    assert all(estate not in query_vars for estate in evidence), 'evidence in query'
+    reduced_variables = query_vars
+    reduced_row_idxs = np.array([[item.state for item in row] for row in
+                                 sampled_states[reduced_variables].values])
+    reduced_values = sampled_states['_weight']
+    new_state_idxs, new_values = collapse_labels(
+        model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
+    return new_state_idxs, new_values, reduced_variables
+
+
 def collapse_factor_labels(model, reduced_joint, evidence):
     import vtool as vt
-    evidence_vars = list(evidence.keys())
-    evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
-    evidence_ttypes = [model.var2_cpd[var].ttype for var in evidence_vars]
-
     reduced_variables = reduced_joint.variables
     reduced_row_idxs = np.array(reduced_joint._row_labels(asindex=True))
     reduced_values = reduced_joint.values.ravel()
-    #assert np.all(reduced_joint.values.ravel() == reduced_joint.values.flatten())
 
+    new_state_idxs, new_values = collapse_labels(
+        model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
+
+    # hack into a new joint factor (that is the same size as the reduced_joint)
+    new_reduced_joint = reduced_joint.copy()
+    assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
+    new_reduced_joint.values[:] = 0
+    flat_idxs = np.ravel_multi_index(new_state_idxs.T, new_reduced_joint.values.shape)
+
+    old_values = new_reduced_joint.values.ravel()
+    old_values[flat_idxs] = new_values
+    new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
+    # print(new_reduced_joint._str(maxrows=4, sort=-1))
+    return new_reduced_joint, new_state_idxs, new_values
+
+
+def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduced_values):
+    import vtool as vt
+    #assert np.all(reduced_joint.values.ravel() == reduced_joint.values.flatten())
     reduced_ttypes = [model.var2_cpd[var].ttype for var in reduced_variables]
+
+    evidence_vars = list(evidence.keys())
+    evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
+    evidence_ttypes = [model.var2_cpd[var].ttype for var in evidence_vars]
 
     #ttype2_ev_indices = dict(ut.group_indicies(evidence_ttypes))
     #ttype2_re_indices = dict(ut.group_indicies(reduced_ttypes))
@@ -346,40 +380,28 @@ def collapse_factor_labels(model, reduced_joint, evidence):
         ])
         # Take only the unique rows under this induced labeling
         unique_tmp_groupxs = np.array(ut.get_list_column(groupxs, 0))
-        new_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
+        new_aug_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
 
         tmp_idx_set = set((-np.arange(-max_tmp_state, (-min_tmp_state) + 1)).tolist())
         true_idx_set = set(range(len(model.ttype2_template[label_ttype].basis)))
 
         # Relabel the rows one more time to agree with initial constraints
         for colx, true_idx in enumerate(ev_state_idxs):
-            tmp_idx = np.unique(new_state_idxs.T[colx])
+            tmp_idx = np.unique(new_aug_state_idxs.T[colx])
             assert len(tmp_idx) == 1
             tmp_idx_set -= {tmp_idx[0]}
             true_idx_set -= {true_idx}
-            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+            new_aug_state_idxs[new_aug_state_idxs == tmp_idx] = true_idx
         # Relabel the remaining idxs
         remain_tmp_idxs = sorted(list(tmp_idx_set))[::-1]
         remain_true_idxs = sorted(list(true_idx_set))
         for tmp_idx, true_idx in zip(remain_tmp_idxs, remain_true_idxs):
-            new_state_idxs[new_state_idxs == tmp_idx] = true_idx
+            new_aug_state_idxs[new_aug_state_idxs == tmp_idx] = true_idx
 
-        # Remove evidence based labels
-        new_state_idxs_ = new_state_idxs.T[num_ev_:].T
+        # Remove evidence based augmented labels
+        new_state_idxs = new_aug_state_idxs.T[num_ev_:].T
+        return new_state_idxs, new_values
 
-        # hack into a new joint factor (that is the same size as the reduced_joint)
-        new_reduced_joint = reduced_joint.copy()
-        assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
-        new_reduced_joint.values.flags
-        reduced_joint.values.flags
-        new_reduced_joint.values[:] = 0
-        flat_idxs = np.ravel_multi_index(new_state_idxs_.T, new_reduced_joint.values.shape)
-
-        old_values = new_reduced_joint.values.ravel()
-        old_values[flat_idxs] = new_values
-        new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
-        # print(new_reduced_joint._str(maxrows=4, sort=-1))
-        return new_reduced_joint, new_state_idxs_, new_values
 
 
 def reduce_marginalize(phi, query_variables=None,
@@ -411,7 +433,7 @@ def reduce_marginalize(phi, query_variables=None,
         return reduced_joint
 
 
-def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bruteforce=False):
+def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, method=None):
     """
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-cluster_query --show
@@ -440,8 +462,27 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
     orig_query_vars = query_vars  # NOQA
     query_vars = ut.setdiff(query_vars, list(evidence.keys()))
 
-    def compute_reduced_joint(model, query_vars, evidence):
+    if method is None:
+        method = ut.get_argval('--method', type_=str, default='approx')
 
+    class ApproximateFactor(object):
+        def __init__(self, new_state_idxs, new_values, reduced_variables):
+            self.reduced_variables = reduced_variables
+            self.new_state_idxs = new_state_idxs
+            self.new_values = new_values
+
+        @property
+        def values(self):
+            return self.new_values
+
+        @property
+        def variables(self):
+            return self.reduced_variables
+
+        def _row_labels(self, asindex=True):
+            return self.new_state_idxs
+
+    def compute_reduced_joint(model, query_vars, evidence):
         _test_ = 0
         if _test_:
             operation = 'maximize'
@@ -466,63 +507,77 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
             assert np.allclose(joint_bf.values, joint_bp.values)
             print('BF and BP are the same')
 
-        use_approx = False
-        import utool
-        utool.embed()
-
-        if use_approx:
+        if method == 'approx':
             # Try to approximatly sample the map inference
-            import pgmpy.inference.Sampling
-            #from pgmpy.inference.Sampling import State
+            import vtool as vt
             infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
             #infr = pgmpy.inference.Sampling.GibbsSampling()
             #self = infr
-            #evidence_ = [State(*item) for item in evidence.items()]
+            evidence_ = [pgmpy.inference.Sampling.State(*item) for item in evidence.items()]
             with ut.Timer('sampling'):
-                sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=100)
+                sampled_states = infr.likelihood_weighted_sample(evidence=evidence_, size=500)
+            #import utool
+            #utool.embed()
+            new_state_idxs, new_values, reduced_variables = collapse_sampled_states(
+                model, sampled_states, evidence, query_vars)
+            new_values /= new_values.sum()
+            reduced_joint = ApproximateFactor(new_state_idxs, new_values, reduced_variables)
+            #state_arr = np.array([[item.state for item in row] for row in
+            #                      sampled_states[sampled_states.columns[:-1]].values])
+            #total_weight = sampled_states['_weight'].sum()
+            #dataids = vt.compute_unique_data_ids(state_arr)
 
-            import vtool as vt
-            state_arr = np.array([[item.state for item in row] for row in sampled_states[sampled_states.columns[:-1]].values])
-            total_weight = sampled_states['_weight'].sum()
-            dataids = vt.compute_unique_data_ids(state_arr)
-            unique_dataids, groupxs = vt.group_indices(dataids)
-            allweights = sampled_states['_weight'].values
-            groupweights = vt.apply_grouping(allweights, groupxs)
-            unique_weights = np.array([group.sum() for group in groupweights])
-            top_idx_list = unique_weights.argsort()[::-1][0:3]
-            sampled_max = [np.where(dataids == uid)[0][0] for uid in unique_dataids[top_idx_list]]
-            print('Top 3 states')
-            map_est = sampled_states.loc[sampled_max]
-            prob_est = unique_weights[top_idx_list] / total_weight
-            print('map_est = %r' % (map_est,))
-            print('prob_est = %r' % (prob_est,))
+            #unique_dataids, groupxs = vt.group_indices(dataids)
+            #allweights = sampled_states['_weight'].values
+            #groupweights = vt.apply_grouping(allweights, groupxs)
+            #unique_weights = np.array([group.sum() for group in groupweights])
+            #top_idx_list = unique_weights.argsort()[::-1][0:3]
+            #sampled_max = [np.where(dataids == uid)[0][0] for uid in unique_dataids[top_idx_list]]
+            #print('Top 3 states')
+            #map_est = sampled_states.loc[sampled_max]
+            #prob_est = unique_weights[top_idx_list] / total_weight
+            #print('map_est = %r' % (map_est,))
+            #print('prob_est = %r' % (prob_est,))
 
             #states2 = sampled_states[query_vars + ['_weight']]
             #states3 = states2[query_vars]
             #weights3 = states2['_weight']
-            pass
+            #pass
             # TODO write a collapse function for this pandas datafram
             #collapse_factor_labels
-        elif not bruteforce:
+        elif method == 'varelim':
+            infr = pgmpy.inference.VariableElimination(model)
+            reduced_joint1 = infr.compute_joint(query_vars, 'maximize', evidence)
+            reduced_joint1.normalize()
+            reduced_joint1.reorder()
+            reduced_joint = reduced_joint1
+        elif method in ['bp', 'beliefprop']:
             operation = 'maximize'
             variables = query_vars
-
             # Dont brute force anymore
             infr = pgmpy.inference.BeliefPropagation(model)
-            #infr = pgmpy.inference.VariableElimination(model)
             reduced_joint1 = infr.compute_joint(variables, operation, evidence)
             reduced_joint1.normalize()
             reduced_joint1.reorder()
             reduced_joint = reduced_joint1
-        else:
+        elif method in ['bf', 'brute', 'bruteforce']:
             full_joint = model.joint_distribution()
             reduced_joint = reduce_marginalize(full_joint, query_vars, evidence, inplace=False)
             del full_joint
+        else:
+            raise NotImplementedError('method=%r' % (method,))
         return reduced_joint
 
     reduced_joint = compute_reduced_joint(model, query_vars, evidence)
 
-    new_reduced_joint, new_state_idxs_, new_values = collapse_factor_labels(model, reduced_joint, evidence)
+    if not isinstance(reduced_joint, ApproximateFactor):
+        new_reduced_joint, new_state_idxs, new_values = collapse_factor_labels(
+            model, reduced_joint, evidence)
+    else:
+        new_reduced_joint = reduced_joint
+        new_state_idxs = reduced_joint.new_state_idxs
+        new_values = reduced_joint.new_values
+    reduced_variables = reduced_joint.variables
 
     if False:
         # compute partitioning statistics
@@ -564,29 +619,36 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
     #utool.embed()
 
     #isnonzero = (new_reduced_joint.values.ravel() > 0)
-    #new_state_idxs_ = new_reduced_joint.assignment(np.where(isnonzero)[0])
+    #new_state_idxs = new_reduced_joint.assignment(np.where(isnonzero)[0])
     #new_values = new_reduced_joint.values.ravel()[isnonzero]
 
-    max_marginals = {}
-    for i, var in enumerate(query_vars):
-        one_out = query_vars[:i] + query_vars[i + 1:]
-        max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
-        # max_marginals[var] = joint2.maximize(one_out, inplace=False)
-    factor_list = max_marginals.values()
+    if not isinstance(reduced_joint, ApproximateFactor):
+        max_marginals = {}
+        for i, var in enumerate(query_vars):
+            one_out = query_vars[:i] + query_vars[i + 1:]
+            max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
+            # max_marginals[var] = joint2.maximize(one_out, inplace=False)
+        factor_list = max_marginals.values()
+    else:
+        factor_list = []
 
     # Now find the most likely state
     sortx = new_values.argsort()[::-1]
-    sort_new_state_idxs_ = new_state_idxs_.take(sortx, axis=0)
+    sort_new_state_idxs = new_state_idxs.take(sortx, axis=0)
     sort_new_values = new_values.take(sortx)
-    sort_new_states = list(zip(*[ut.dict_take(reduced_joint.statename_dict[var], idx)
-                                 for var, idx in
-                                 zip(reduced_joint.variables, sort_new_state_idxs_.T)]))
+    sort_new_states = list(zip(*[
+        ut.dict_take(model.var2_cpd[var].statename_dict[var], idx)
+        for var, idx in
+        zip(reduced_variables, sort_new_state_idxs.T)]))
+    #sort_new_states = list(zip(*[ut.dict_take(reduced_joint.statename_dict[var], idx)
+    #                             for var, idx in
+    #                             zip(reduced_variables, sort_new_state_idxs.T)]))
 
     # Better map assignment based on knowledge of labels
-    map_assign = dict(zip(reduced_joint.variables, sort_new_states[0]))
+    map_assign = dict(zip(reduced_variables, sort_new_states[0]))
 
     sort_reduced_rowstr_lbls = [
-        ut.repr2(dict(zip(reduced_joint.variables, lbls)), explicit=True, nobraces=True,
+        ut.repr2(dict(zip(reduced_variables, lbls)), explicit=True, nobraces=True,
                  strvals=True)
         for lbls in sort_new_states
     ]
@@ -598,7 +660,6 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
         'factor_list': factor_list,
         'top_assignments': top_assignments,
         'map_assign': map_assign,
-        'marginalized_joints': None,
     }
     return query_results
 
@@ -974,6 +1035,8 @@ if __name__ == '__main__':
         python -m ibeis.model.hots.bayes
         python -m ibeis.model.hots.bayes --allexamples
     """
+    if ut.VERBOSE:
+        print('[hs] bayes')
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
