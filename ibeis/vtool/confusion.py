@@ -395,8 +395,8 @@ def get_confusion_metrics(scores, labels, verbose=False):
               (scores.shape, scores.dtype))
         print('[confusion]  * labels.shape=%r, labels.dtype=%r' %
               (labels.shape, labels.dtype))
-        print('[confusion]  * size(scores) = %r' % (ut.get_object_size_str(scores),))
-        print('[confusion]  * size(labels) = %r' % (ut.get_object_size_str(labels),))
+        #print('[confusion]  * size(scores) = %r' % (ut.get_object_size_str(scores),))
+        #print('[confusion]  * size(labels) = %r' % (ut.get_object_size_str(labels),))
 
     # TODO
     #sklearn.metrics.precision_recall_curve(labels, probs)
