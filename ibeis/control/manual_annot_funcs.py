@@ -887,29 +887,10 @@ def get_annot_eids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/annot/otherimage_aids/', methods=['GET'])
-def get_annot_otherimage_aids(ibs, aid_list):
-    r"""
-    Auto-docstr for 'get_annot_otherimage_aids'
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot/otherimage_aids/
-    """
-    gid_list = ibs.get_annot_gids(aid_list)
-    image_aids_list = ibs.get_image_aids(gid_list)
-    # Remove self from list
-    other_aids_list = [list(set(aids) - {aid})
-                       for aids, aid in zip(image_aids_list, aid_list)]
-    return other_aids_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1toM
 @register_api('/api/annot/gar_rowids/', methods=['GET'])
 def get_annot_gar_rowids(ibs, aid_list):
     r"""
-    Auto-docstr for 'get_annot_otherimage_aids'
+    Auto-docstr for 'get_annot_gar_rowids'
 
     RESTful:
         Method: GET
@@ -923,8 +904,35 @@ def get_annot_gar_rowids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
+@register_api('/api/annot/otherimage_aids/', methods=['GET'])
+def get_annot_otherimage_aids(ibs, aid_list, daid_list=None):
+    r"""
+    Auto-docstr for 'get_annot_otherimage_aids'
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/otherimage_aids/
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    if daid_list is None:
+        image_aids_list = ibs.get_image_aids(gid_list)
+        # Remove self from list
+        other_aids_list = [list(set(aids) - {aid})
+                           for aids, aid in zip(image_aids_list, aid_list)]
+    else:
+        daids = np.array(daid_list)
+        internal_data_gids  = ibs.get_annot_gids(daids)
+        other_aids_list = [
+            daids.compress(internal_data_gids == gid)
+            for gid in gid_list
+        ]
+    return other_aids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
 @register_api('/api/annot/contact_aids/', methods=['GET'])
-def get_annot_contact_aids(ibs, aid_list):
+def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
     r"""
     Returns the other aids that appear in the same image that this
     annotation is from.
@@ -934,7 +942,7 @@ def get_annot_contact_aids(ibs, aid_list):
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids;1
 
     RESTful:
         Method: GET
@@ -958,7 +966,7 @@ def get_annot_contact_aids(ibs, aid_list):
         ...     assert aid not in aids, 'should not include self'
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -969,14 +977,14 @@ def get_annot_contact_aids(ibs, aid_list):
         >>> # verify results
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
         >>> gid_list = ibs.get_annot_gids(aid_list)
+        >>> print('contact_aids = %r' % (contact_aids,))
         >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
         ...     assert ut.list_allsame(gids), 'annots should be from same image'
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """
-    other_aids_list = ibs.get_annot_otherimage_aids(aid_list)
-    check_intersection = False
-    if check_intersection:
+    other_aids_list = ibs.get_annot_otherimage_aids(aid_list, daid_list=daid_list)
+    if check_isect:
         import shapely.geometry
         # TODO: might not be accounting for rotated verticies
         verts_list = ibs.get_annot_verts(aid_list)
@@ -988,7 +996,6 @@ def get_annot_contact_aids(ibs, aid_list):
                       for p1, p2_list in zip(poly_list, other_polys_list)]
         contact_aids = [ut.list_compress(other_aids, flags)
                         for other_aids, flags in zip(other_aids_list, flags_list)]
-
     else:
         contact_aids = other_aids_list
     return contact_aids

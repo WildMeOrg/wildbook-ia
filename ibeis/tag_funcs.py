@@ -6,7 +6,7 @@ import vtool as vt
 from six.moves import zip, map
 import numpy as np
 from ibeis.control import controller_inject
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[tag_funcs]')
+print, rrr, profile = ut.inject2(__name__, '[tag_funcs]')
 
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -797,9 +797,11 @@ def set_annot_prop(ibs, prop, aid_list, flags):
     ibs.set_annot_tags(aid_list, new_text_list)
 
 
+@register_ibs_method
 def append_annot_case_tags(ibs, aid_list, tag_list):
     """
-    Generally appends tags to annotations. Careful not to introduce too many random tags
+    Generally appends tags to annotations. Careful not to introduce too many
+    random tags. Maybe we should just let that happen and introduce tag-aliases
     """
     tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
     text_list = ibs.get_annot_tags(aid_list)

@@ -95,6 +95,7 @@ def make_table_declarations(ibs):
             #'rdconf',
             #'nGt',  # ## <put back in
             'annotnotes',  # ## <put back in
+            'annot_tags',  # < Hack should have actual tag structure
             #'annot_visual_uuid',
             #'annot_semantic_uuid',
             #'nFeats',
@@ -333,9 +334,14 @@ def make_ibeis_headers_dict(ibs):
     def infer_unspecified_getters(tablename, shortname):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
-                getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
                 if ut.VERBOSE:
                     print('[guiheaders] infering %r' % (getters[tablename][colname],))
+                try:
+                    getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
+                except AttributeError:
+                    # we have inconsistently put in column names
+                    # try to "just make things work"
+                    getters[tablename][colname] = getattr(ibs, 'get_' + colname)
     # +--------------------------
     # Encounter Iders/Setters/Getters
     #ibs.cfg.other_cfg.ensure_attr(show_shipped_encounters, ut.is_developer())
@@ -427,6 +433,7 @@ def make_ibeis_headers_dict(ibs):
         'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
         'datetime'            : ibs.get_annot_image_datetime,
     }
+    infer_unspecified_getters(ANNOTATION_TABLE, 'annot')
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
         'species'    : ibs.set_annot_species,
@@ -453,11 +460,13 @@ def make_ibeis_headers_dict(ibs):
     # NAMES TREE
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
+        # level 0
         'nid'          : lambda nids: nids,
         'name'         : ibs.get_name_texts,
         'nAids'        : ibs.get_name_num_annotations,
         'nExAids'      : ibs.get_name_num_exemplar_annotations,
         'namenotes'    : ibs.get_name_notes,
+        # level 1
         'aid'          : lambda aids: aids,
         'exemplar'     : ibs.get_annot_exemplar_flags,
         'thumb'        : ibs.get_annot_chip_thumbtup,

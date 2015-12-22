@@ -292,19 +292,6 @@ def print_results(ibs, testres):
         cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
 
         t1, t2 = testres_list  # NOQA
-
-        #aidcfg = dcfg
-        #available_aids = available_daids
-        #reference_aids = qaids_expt
-        #prefix = 'd'
-        #gt_avl_aids = gt_aids_expt1
-        # TODO: figure out how to take the hard cases from one test and throw
-        # them back info another test for futher processing
-
-        # Need to encode in a cfg
-        # a total override to the query annots and
-        # a partial override of the database annots. (gf is still expanded, but gt is locked)
-        pass
     #ut.embed()
     #intersect_hack()
 

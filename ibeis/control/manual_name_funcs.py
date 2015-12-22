@@ -936,6 +936,8 @@ def get_valid_nids(ibs, eid=None, filter_empty=False, min_pername=None):
         _nid_list = ibs._get_all_known_name_rowids()
     else:
         _nid_list = ibs.get_encounter_nids(eid)
+    # HACK FOR UNKNOWN. Makes things crash
+    #_nid_list += [0]
     nid_list = _nid_list
 
     if filter_empty:

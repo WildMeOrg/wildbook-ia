@@ -945,6 +945,15 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
 
 def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     r"""
+    Draws n dimensional data + a score / rank
+    The rank is always on the y axis.
+
+    The first dimension is on the x axis.
+    The second dimension is split over multiple plots.
+    The third dimension becomes multiple lines.
+    May need to clean this scheme up a bit.
+
+
     Args:
         ibs (IBEISController):  ibeis controller object
         testres (TestResult):  test result object
@@ -1028,14 +1037,13 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     else:
         assert False
 
-    pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
-
     const_basis_cfgx_lists = cfgx_lists_dict[const_key]
 
     if len(param_key_list) > 2:
         # Use consistent markers and colors when varying a lot of params
         #num_other_params = len(basis_dict[param_key_list[-1]])
-        num_other_params = len(basis_dict[const_key])
+        #num_other_params = len(basis_dict[const_key])
+        num_other_params = len(basis_dict[ut.setdiff(param_key_list, const_key)[-1]])
         color_list = pt.distinct_colors(num_other_params)
         marker_list = pt.distinct_markers(num_other_params)
     else:
@@ -1046,6 +1054,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
     nd_labels_full = [key for key in param_key_list if key != const_key]
 
+    # setup args for all plots
+    pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(basis_dict[const_key])))
     for const_idx, const_val in enumerate(const_basis):
         pnum = pnum_()
         if verbose:
@@ -1091,6 +1101,11 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
                      '=%r' % (const_val,))
         if verbose:
             print('title = %r' % (title,))
+            #print('nd_labels = %r' % (nd_labels,))
+            print('target_label = %r' % (target_label,))
+            print('known_nd_data = %r' % (known_nd_data,))
+            #print('known_target_points = %r' % (known_target_points,))
+
         #PLOT3D = not ut.get_argflag('--no3dsurf')
         #PLOT3D = ut.get_argflag('--no2dsurf')
         PLOT3D = ut.get_argflag('--3dsurf')
@@ -1105,13 +1120,9 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
             nonconst_key = nd_labels_[1]
             nonconst_basis = np.array(basis_dict[nonconst_key])
             nonconst_covers_basis = np.in1d(nonconst_basis, nonconst_basis_vals)
+            # I dont remember what was trying to happen here
             nonconst_color_list = ut.list_compress(color_list, nonconst_covers_basis)
             nonconst_marker_list = ut.list_compress(marker_list, nonconst_covers_basis)
-            if verbose:
-                #print('nd_labels = %r' % (nd_labels,))
-                print('target_label = %r' % (target_label,))
-                print('known_nd_data = %r' % (known_nd_data,))
-                #print('known_target_points = %r' % (known_target_points,))
 
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
@@ -1120,9 +1131,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
                                     pnum=pnum, num_yticks=num_yticks,
                                     ymin=ymin, ymax=100, ypad=.5,
                                     xpad=.05, legend_loc='lower right', **FONTKW)
-
-    #import utool
-    #utool.embed()
 
     fig = pt.gcf()
     ax = fig.axes[0]
@@ -1427,7 +1435,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
     #import vtool as vt
     #xdata_pdf_list = [vt.estimate_pdf(xdata, gridsize=gridsize, adjust=adjust) for xdata in xdata_list]  # NOQA
     #min_score = min([xdata.min() for xdata in xdata_list])
-    max_score = max([xdata.max() for xdata in xdata_list])
+    max_score = max([0 if len(xdata) == 0 else xdata.max() for xdata in xdata_list])
     #xdata_domain = np.linspace(min_score, max_score, gridsize)  # NOQA
     #pxdata_list = [pdf.evaluate(xdata_domain) for pdf in xdata_pdf_list]
 

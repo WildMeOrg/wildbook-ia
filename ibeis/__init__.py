@@ -114,6 +114,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     """
     import functools
     def find_expt_func(e):
+        import utool as ut
         import ibeis.dev
         for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS:
             modname, funcname = tup[:2]
@@ -122,19 +123,31 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
                 module = ut.import_modname(modname)
                 func = module.__dict__[funcname]
                 return func
+        # hack in --tf magic
+        func = ut.find_testfunc('ibeis', funcname)[0]
+        return func
 
     def build_commandline(e=e, **kwargs):
         # Equivalent command line version of this func
+        import ibeis.dev
+        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2] for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
+        if e in valid_e_flags:
+            epref = '-e'
+        else:
+            # hack to use tf
+            epref = '--tf'
         command_parts = ['ibeis',
-                         '-e', e,
+                         epref, e,
                          '--db', db,
-                         '-a', ' '.join(a),
+                         '-a', ' '.join(a).replace('(', '\(').replace(')', '\)'),
                          '-t', ' '.join(t),
                         ]
         if qaid_override is not None:
             command_parts.extend(['--qaid=', ','.join(map(str, qaid_override))])
         if daid_override is not None:
             command_parts.extend(['--daid-override=', ','.join(map(str, daid_override))])
+        if 'disttypes' in kwargs:
+            command_parts.extend(['--disttypes=', ','.join(map(str, kwargs['disttypes']))])
 
         # hack parse out important args that were on command line
         if 'f' in kwargs:

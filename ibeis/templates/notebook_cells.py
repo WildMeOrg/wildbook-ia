@@ -56,8 +56,9 @@ initialize = ('# Initialization', ut.codeblock(
     import ibeis
     ibs = ibeis.opendb(db=db)
 
-
-
+    # Make notebook cells wider
+    from IPython.core.display import HTML
+    HTML("<style>body .container {{ width:99% !important; }}</style>")
     # ENDBLOCK
     '''))
 
@@ -66,7 +67,7 @@ annot_config_info =  ('# Annotation Config Info', ut.codeblock(
     # STARTBLOCK
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a)
-    ibeis.expt.annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
+    ibeis.expt.annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, per_qual=True)
     # ENDBLOCK
     ''')
 )
@@ -194,11 +195,25 @@ per_name_accuracy = ('# Query Accuracy (% correct names)', ut.codeblock(
     '''
 ))
 
+
+feat_score_sep = ('# Feature Score Separation', ut.codeblock(
+    r'''
+    # STARTBLOCK
+    test_result = ibeis.run_experiment(
+        e='TestResult.draw_feat_scoresep',
+        db=db,
+        a=a,
+        t=t, disttypes=['L2_sift'])
+    test_result.draw_feat_scoresep(f='', disttypes=['L2_sift'])
+    # ENDBLOCK
+    '''))
+
+
 success_scores = ('# Scores of Success Cases', ut.codeblock(
     r'''
     # STARTBLOCK
     testres = ibeis.run_experiment(
-        e='scores',
+        e='draw_feat_scoresep',
         db=db, a=a[0:1], t=t[0:1],
         f=[':fail=False,min_gf_timedelta=None'],
     )
@@ -219,6 +234,21 @@ all_scores = ('# Score Distribution', ut.codeblock(
     # ENDBLOCK
     '''))
 
+
+view_intereseting_tags = ('# Interesting Tags', ut.codeblock(
+    r'''
+    # STARTBLOCK
+    test_result = ibeis.run_experiment(
+        e='draw_cases',
+        db=db,
+        a=a,
+        t=t,
+        f=[':index=0:5,with_tag=interesting'],
+        **draw_case_kw)
+    _ = test_result.draw_func()
+    # ENDBLOCK
+    '''))
+
 success_cases = ('# Success Cases', ut.codeblock(
     r'''
     # STARTBLOCK
@@ -234,6 +264,11 @@ success_cases = ('# Success Cases', ut.codeblock(
     _ = testres.draw_func()
     # ENDBLOCK
     '''))
+
+# ================
+# Individual Cases
+# ================
+
 
 failure_type2_cases =  ('# Failure Cases Cases (false neg)', ut.codeblock(
     r'''
@@ -256,21 +291,6 @@ failure_type1_cases = ('# Failure Cases Cases (false pos)', ut.codeblock(
     f=[':fail=True,index=0:3,sortdsc=gfscore,max_pername=1'],
     **draw_case_kw)
     _ = testres.draw_func()
-    # ENDBLOCK
-    '''))
-
-
-view_intereseting_tags = ('# Interesting Tags', ut.codeblock(
-    r'''
-    # STARTBLOCK
-    test_result = ibeis.run_experiment(
-        e='draw_cases',
-        db=db,
-        a=a,
-        t=t,
-        f=[':index=0:5,with_tag=interesting'],
-        **draw_case_kw)
-    _ = test_result.draw_func()
     # ENDBLOCK
     '''))
 

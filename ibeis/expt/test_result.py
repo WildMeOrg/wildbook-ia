@@ -1934,13 +1934,11 @@ class TestResult(object):
         qx2_gf_raw_score = testres.get_infoprop_mat('qx2_gf_raw_score')
 
         nx2_gt_raw_score = np.array([
-            #ut.safe_max(scores)
             np.nanmax(scores, axis=0)
             for scores in vt.apply_grouping(qx2_gt_raw_score, groupxs)])
 
         nx2_gf_raw_score = np.array([
             np.nanmax(scores, axis=0)
-            #ut.safe_max(scores)
             for scores in vt.apply_grouping(qx2_gf_raw_score, groupxs)])
 
         cfgx2_success = (nx2_gt_raw_score > nx2_gf_raw_score).T
@@ -1997,8 +1995,8 @@ class TestResult(object):
         #cfgx2_qres
         pass
 
-    def draw_feat_scoresep(testres, f=None):
-        """
+    def draw_feat_scoresep(testres, f=None, disttypes=None):
+        r"""
         CommandLine:
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
@@ -2011,8 +2009,14 @@ class TestResult(object):
 
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=False,bar_l2_on=True  --fsvx=0:1
 
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db Oxford --disttypes=L2_sift -a ctrl:dpername=10 --show
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db Oxford --disttypes=L2_sift -a ctrl:dpername=10 --show --helpx
+            # We want to query the oxford annots taged query
+            # and we want the database to contain
+            # K correct images per query, as well as the distractors
+
+            python -m ibeis --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=ok
+            python -m ibeis --tf TestResult.draw_feat_scoresep  --show --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,minqual=good
+
+            python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
         Example:
             >>> # SCRIPT
@@ -2024,6 +2028,7 @@ class TestResult(object):
             >>> testres.draw_feat_scoresep(f=f)
             >>> ut.show_if_requested()
         """
+        import plottool as pt
         assert len(testres.cfgx2_qreq_) == 1, 'can only do this on one qreq_ right now'
         for qreq_ in testres.cfgx2_qreq_:
             break
@@ -2031,6 +2036,8 @@ class TestResult(object):
         print('Loading cached chipmatches')
         import ibeis  # NOQA
         from os.path import dirname, join  # NOQA
+
+        disttypes_ = ut.get_argval('--disttypes', type_=list, default=disttypes)
 
         class UnbalancedExampleException(Exception):
             pass
@@ -2056,8 +2063,10 @@ class TestResult(object):
             groundfalse names.
             """
             sortx = cm.name_argsort()
-            sorted_nids = cm.unique_nids[sortx]
-            sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+            import utool
+            with utool.embed_on_exception_context:
+                sorted_nids = np.take(cm.unique_nids, sortx)
+                sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
             # name ranks of the groundtrue name
             tp_ranks = np.where(sorted_nids == cm.qnid)[0]
             if len(tp_ranks) == 0:
@@ -2151,12 +2160,10 @@ class TestResult(object):
             tn_fsv = np.array(tn_fsv).T
             return tp_fsv, tn_fsv
 
-        disttypes = ut.get_argval('--disttypes', type_=list, default=None)
-
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_query=True)
         cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
-        cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes))
+        cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes_))
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[], use_cache=None)
         def get_cfgx_feat_scores(qreq_):
             cm_list = qreq_.load_cached_chipmatch()
@@ -2168,13 +2175,13 @@ class TestResult(object):
                                       lbl='building featscore lists',
                                       adjust=True, freq=1):
                 try:
-                    if disttypes is None:
+                    if disttypes_ is None:
                         # Use precomputed fsv distances
                         fsv_col_lbls = cm.fsv_col_lbls
                         tp_fsv, tn_fsv = get_training_fsv(cm)
                     else:
                         # Investigate independant computed dists
-                        fsv_col_lbls = disttypes
+                        fsv_col_lbls = disttypes_
                         tp_fsv, tn_fsv = get_training_desc_dist(cm, qreq_, fsv_col_lbls)
                     tp_fsvs_list.extend(tp_fsv)
                     tn_fsvs_list.extend(tn_fsv)
@@ -2196,9 +2203,10 @@ class TestResult(object):
 
         if fsv_col_lbls == ['L2_sift', 'fg']:
             # SUPER HACK. Use fg as a filter rather than multiplier
-            tp_scores = fsv_tp.T[0][fsv_tp.T[1] > .8]
-            tn_scores = fsv_tn.T[0][fsv_tp.T[1] > .8]
-            scoretype = fsv_col_lbls[0] + '[' + fsv_col_lbls[1] + ' > .8]'
+            thresh = .8
+            tp_scores = fsv_tp.T[0][fsv_tp.T[1] > thresh]
+            tn_scores = fsv_tn.T[0][fsv_tn.T[1] > thresh]
+            scoretype = fsv_col_lbls[0] + '[' + fsv_col_lbls[1] + ' > ' + str(thresh) + ']'
         else:
             tp_scores = fsv_tp.prod(axis=1)
             tn_scores = fsv_tn.prod(axis=1)
@@ -2216,7 +2224,6 @@ class TestResult(object):
             score_range=(0, 1),
             target_tpr=.95,
         )
-        import plottool as pt
         icon = qreq_.ibs.get_database_icon()
         if icon is not None:
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0))

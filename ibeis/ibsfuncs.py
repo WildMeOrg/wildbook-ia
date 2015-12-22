@@ -4699,7 +4699,7 @@ def get_name_hourdiffs(ibs, nid_list):
 @accessor_decors.getter
 def get_name_max_hourdiff(ibs, nid_list):
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list = np.array(list(map(ut.safe_max, hourdiffs_list)))
+    maxhourdiff_list = np.array(list(map(vt.safe_max, hourdiffs_list)))
     return maxhourdiff_list
 
 
@@ -4720,7 +4720,7 @@ def get_name_max_speed(ibs, nid_list):
         >>> print(maxspeed_list)
     """
     speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(list(map(ut.safe_max, speeds_list)))
+    maxspeed_list = np.array(list(map(vt.safe_max, speeds_list)))
     return maxspeed_list
 
 
@@ -5646,6 +5646,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
 
     SeeAlso:
         ibeis.dbinfo.print_qd_info
+        ibs.get_annot_stats_dict
         ibs.print_annotconfig_stats(qaid_list, daid_list)
 
     CommandLine:

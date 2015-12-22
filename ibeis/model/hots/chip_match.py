@@ -141,7 +141,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             assert score_list is None or len(score_list) == len(daid_list), 'incompatable data'
             assert dnid_list is None or len(dnid_list) == len(daid_list), 'incompatable data'
         cm.qaid         = qaid
-        cm.daid_list    = np.array(daid_list)
+        cm.daid_list    = np.array(daid_list, dtype=hstypes.INDEX_TYPE)
         cm.fm_list      = fm_list
         cm.fsv_list     = fsv_list
         cm.fk_list      = (fk_list if fk_list is not None else
@@ -153,9 +153,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #cm.daid2_idx    = None
         #cm.fs_list = None
         # TODO
-        cm.dnid_list = None if dnid_list is None else np.array(dnid_list)
+        cm.dnid_list = None if dnid_list is None else np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
         cm.qnid = qnid
-        cm.unique_nids = unique_nids
+        cm.unique_nids = None if unique_nids is None else np.array(unique_nids, dtype=hstypes.INDEX_TYPE)
         cm.name_score_list = name_score_list
         cm.annot_score_list = annot_score_list
         # standard groupings
@@ -186,8 +186,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.H_list = []
         cm.daid2_idx = {}
         cm.fs_list = []
-        cm.dnid_list = np.empty(0, dtype=np.int)
-        cm.unique_nids = np.empty(0, dtype=np.int)
+        cm.dnid_list = np.empty(0, dtype=hstypes.INDEX_TYPE)
+        cm.unique_nids = np.empty(0, dtype=hstypes.INDEX_TYPE)
         cm.score_list = np.empty(0)
         cm.name_score_list = np.empty(0)
         cm.annot_score_list = np.empty(0)
@@ -277,6 +277,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     def _update_unique_nid_index(cm):
         #assert cm.unique_nids is not None
         unique_nids_, name_groupxs_ = vt.group_indices(cm.dnid_list)
+        #assert unique_nids_.dtype == hstypes.INTEGER_TYPE
         if cm.unique_nids is None:
             assert cm.name_score_list is None
             cm.unique_nids = unique_nids_
@@ -290,7 +291,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def evaluate_dnids(cm, ibs):
         cm.qnid = ibs.get_annot_name_rowids(cm.qaid)
-        cm.dnid_list = np.array(ibs.get_annot_name_rowids(cm.daid_list))
+        dnid_list = ibs.get_annot_name_rowids(cm.daid_list)
+        cm.dnid_list = np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
         cm._update_unique_nid_index()
         # evaluate name groupings as well
         #unique_nids, name_groupxs = vt.group_indices(cm.dnid_list)
@@ -774,11 +776,14 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #    num_matches_list = cm.get_num_matches_list()
         #    sortx = ut.list_argsort(num_matches_list, reverse=True)
         #else:
-        sortx = ut.list_argsort(cm.score_list, reverse=True)
-        return np.array(sortx)
+        #sortx = ut.list_argsort(cm.score_list, reverse=True)
+        sortx = np.argsort(cm.score_list)[::-1]
+        return sortx
+        #return np.array(sortx)
 
     def name_argsort(cm):
-        return np.array(ut.list_argsort(cm.name_score_list, reverse=True))
+        #return np.array(ut.list_argsort(cm.name_score_list, reverse=True))
+        return np.argsort(cm.name_score_list)[::-1]
 
     @property
     def ranks(cm):

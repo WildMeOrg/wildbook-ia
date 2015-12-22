@@ -440,6 +440,12 @@ def ensure_pz_mtest():
     if nid is not None:
         ibs.set_name_texts([nid], ['lostname'])
 
+    # hack in some tags
+    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74, 80, 83, 91, 97, 103, 107, 109, 119]
+    mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
+    ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
+    ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
+
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):
     # TODO; rectify with rsycn script

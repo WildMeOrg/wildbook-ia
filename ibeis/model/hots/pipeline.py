@@ -298,19 +298,19 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             # it will cover this case for us
             _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
     if not can_match_sameimg:
-        # slow way of getting contact_aids
-        #contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids)
+        # slow way of getting contact_aids (now incorporates faster way)
+        contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids, daid_list=internal_daids)
         # Faster way
-        internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
-        internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
-        try:
-            contact_aids_list = [
-                internal_daids.compress(internal_data_gids == gid)
-                for gid in internal_query_gids
-            ]
-        except Exception as ex:
-            ut.printex(ex, keys=['internal_qaids', 'internal_daids'])
-            raise
+        #internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
+        #internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
+        #try:
+        #    contact_aids_list = [
+        #        internal_daids.compress(internal_data_gids == gid)
+        #        for gid in internal_query_gids
+        #    ]
+        #except Exception as ex:
+        #    ut.printex(ex, keys=['internal_qaids', 'internal_daids'])
+        #    raise
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # TODO: flag overlapping keypoints with another annot as likely to
@@ -332,11 +332,6 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             _impossible_daid_lists.append(contact_aids_gt_list)
 
     if not can_match_samename:
-        #internal_daids = qreq_.get_internal_daids()
-        # slow way of getting gt_aids
-        #gt_aids = qreq_.ibs.get_annot_groundtruth(
-        #    internal_qaids, daid_list=internal_daids)
-        #faster way
         internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
         internal_query_nids = qreq_.ibs.get_annot_nids(internal_qaids)
         gt_aids = [
@@ -519,6 +514,7 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
                                                   cachemiss_nn_compute_fn,
                                                   qreq_, Kpad_list, K, Knorm,
                                                   verbose)
+
     return nns_list
 
 
@@ -574,6 +570,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     nns_list = [
         qreq_.indexer.knn(qfx2_vec, num_neighbors)
         for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+
     # Verbose statistics reporting
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)

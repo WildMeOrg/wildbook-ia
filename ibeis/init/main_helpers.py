@@ -149,6 +149,8 @@ def testdata_expts(defaultdb='testdb1',
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
+    daid_override = ut.get_argval('--daids-override', type_=list, default=daid_override)
+    qaid_override = ut.get_argval(('--qaid', '--qaids-override'), type_=list, default=qaid_override)
 
     # Hack a cache here
     if ut.is_developer():

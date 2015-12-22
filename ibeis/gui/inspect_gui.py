@@ -272,11 +272,19 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     if ut.is_developer():
         def dev_debug():
+            print('=== DBG ===')
             print('ibs = %r' % (ibs,))
             print('cm = %r' % (cm,))
             print('aid1 = %r' % (aid1,))
             print('aid2 = %r' % (aid2,))
             print('qreq_ = %r' % (qreq_,))
+            cm.print_inspect_str(qreq_)
+            cm.print_rawinfostr()
+
+            cm2 = cm.extend_results(qreq_)
+            cm2.print_inspect_str(qreq_)
+            cm2.print_rawinfostr()
+
         def dev_embed(ibs=ibs, aid1=aid1, aid2=aid2, cm=cm, qreq_=qreq_):
             ut.embed()
         options += [

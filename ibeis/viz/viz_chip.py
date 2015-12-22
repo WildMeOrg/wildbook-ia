@@ -102,7 +102,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         print('[viz] show_chip(aid=%r)' % (aid,))
     #ibs.assert_valid_aids((aid,))
     # Get chip
-    print('in_image = %r' % (in_image,))
+    #print('in_image = %r' % (in_image,))
     chip = vh.get_chips(ibs, aid, in_image=in_image, config2_=config2_)
     # Create chip title
     chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
@@ -158,12 +158,12 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         zoom_ = ut.get_argval('--zoom', type_=float, default=None)
         if zoom_ is not None:
+            import vtool as vt
             # Zoom into the chip for some image context
             rotated_verts = ibs.get_annot_rotated_verts(aid)
             bbox = ibs.get_annot_bboxes(aid)
-            print(bbox)
-            print(rotated_verts)
-            import vtool as vt
+            #print(bbox)
+            #print(rotated_verts)
             rotated_bbox = vt.bbox_from_verts(rotated_verts)
             imgw, imgh = ibs.get_image_sizes(gid)
 

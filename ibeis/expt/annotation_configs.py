@@ -269,7 +269,30 @@ def compress_acfg_list_for_printing(acfg_list):
 
 def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                     combined=False, **kwargs):
+    r"""
+    Args:
+        acfg_list (list):
+        expanded_aids_list (list): (default = None)
+        ibs (IBEISController):  ibeis controller object(default = None)
+        combined (bool): (default = False)
 
+    CommandLine:
+        python -m ibeis.expt.annotation_configs --exec-print_acfg_list --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.expt.annotation_configs import *  # NOQA
+        >>> import ibeis
+        >>> acfg_list = '?'
+        >>> expanded_aids_list = None
+        >>> ibs = None
+        >>> combined = False
+        >>> result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     _tup = compress_acfg_list_for_printing(acfg_list)
     nonvaried_compressed_dict, varied_compressed_dict_list = _tup
 

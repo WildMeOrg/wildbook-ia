@@ -109,6 +109,7 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
         >>> import ibeis
+        >>> import vtool as vt
         >>> #ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> gid_list = ibs.get_valid_gids(require_unixtime=True, require_gps=True)
@@ -120,7 +121,7 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> aids_list = list(map(ut.flatten, aidsgroups_list))
         >>> nids_list = list(map(np.array, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)))
         >>> metric = [len(np.unique(nids[nids > -1])) for nids in nids_list]
-        >>> metric = [ut.safe_max(np.array(ut.dict_hist(nids).values())) for nids in nids_list]
+        >>> metric = [vt.safe_max(np.array(ut.dict_hist(nids).values())) for nids in nids_list]
         >>> #metric = list(map(len, aids_list))
         >>> sortx = ut.list_argsort(metric)[::-1]
         >>> index = sortx[20]

@@ -279,6 +279,12 @@ def ingest_testdb1(dbname):
         new_gps_list[:, 1] = (new_gps_list[:, 1] * valid_lon_range) + valid_lon_min
         new_gps_list[8, :] = [-1, -1]
         ibs.set_image_gps(gid_list, new_gps_list)
+
+        # TODO: add a nan timestamp
+        ibs.append_annot_case_tags([2], ['error:bbox'])
+        ibs.append_annot_case_tags([4], ['quality:washedout'])
+        ibs.append_annot_case_tags([4], ['lighting'])
+
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
@@ -814,6 +820,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     update = False
     if update:
         # TODO: integrate this into normal ingest pipeline
+        'Oxford'
         ibs = ibeis.opendb(dbdir)
         aid_list = ibs.get_valid_aids()
         notes_list = ibs.get_annot_notes(aid_list)
@@ -821,7 +828,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
             'ok': ibs.const.QUAL_OK,
             'good': ibs.const.QUAL_GOOD,
             'junk': ibs.const.QUAL_JUNK,
-            'distractor': ibs.const.QUAL_JUNK
+            #'distractor': ibs.const.QUAL_JUNK
         }
         qual_text_list = [_dict.get(note, ibs.const.QUAL_UNKNOWN) for note in notes_list]
         ibs.set_annot_quality_texts(aid_list, qual_text_list)

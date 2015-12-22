@@ -8,8 +8,9 @@ def generate_notebook_report(ibs):
     r"""
 
     CommandLine:
-        python -m ibeis --tf generate_notebook_report --db lynx --run
-        python -m ibeis --tf generate_notebook_report --db lynx --ipynb
+        python -m ibeis --tf generate_notebook_report --run --db lynx
+        python -m ibeis --tf generate_notebook_report --ipynb --db lynx
+        python -m ibeis --tf generate_notebook_report --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --ipynb
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --run
@@ -50,6 +51,7 @@ def get_default_cell_template_list():
         notebook_cells.per_name_accuracy,
         notebook_cells.timedelta_distribution,
         #notebook_cells.dbsize_expt,
+        notebook_cells.feat_score_sep,
         #notebook_cells.all_scores,
         #notebook_cells.success_scores,
         notebook_cells.success_cases,
@@ -57,6 +59,11 @@ def get_default_cell_template_list():
         notebook_cells.failure_type2_cases,
         #notebook_cells.investigate_specific_case,
         #notebook_cells.view_intereseting_tags,
+
+
+        # TODO:
+        # show query chips
+
     ]
     return cell_template_list
 
@@ -147,51 +154,54 @@ def make_ibeis_notebook(ibs):
     cell_template_list = get_default_cell_template_list()
     autogen_str = make_autogen_str()
     dbname = ibs.get_dbname()
-    if ut.get_argflag('--hacktestscore'):
-        annotconfig_list_body = ut.codeblock(
-            '''
-            'timectrl',
-            '''
-        )
-    else:
-        annotconfig_list_body = ut.codeblock(
-            '''
-            'default:is_known=True',
-            # See ibeis/expt/annotation_configs.py for names of annot configuration options
-            #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
-            #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
-            #'timectrl:',
-            #'timectrl:qsize=10,dsize=20',
-            #'timectrl:been_adjusted=True,dpername=3',
-            #'unctrl:been_adjusted=True',
-            #'default:require_timestamp=True,min_timedelta=3600',
-            #'default:species=primary',
-            '''
-        )
-    if ut.get_argflag('--hacktestscore'):
-        pipeline_list_body = ut.codeblock(
-            '''
-            # See ibeis/model/Config.py for names of pipeline config options
-            'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True',
-            'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True',
-            'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True',
-            'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=False',
-            'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=False',
-            'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=False',
-            '''
-        )
-    elif True:
-        pipeline_list_body = ut.codeblock(
-            '''
-            'default',
-            #'default:K=1',
-            #'default:K=1,adapteq=True',
-            #'default:K=1,AI=False',
-            #'default:K=1,AI=False,QRH=True',
-            #'default:K=1,RI=True,AI=False',
-            #'default:fg_on=[True,False]',
-            '''
-        )
+    #if ut.get_argflag('--hacktestscore'):
+    #    annotconfig_list_body = ut.codeblock(
+    #        '''
+    #        'timectrl',
+    #        '''
+    #    )
+    #else:
+    default_acfgstr = ut.get_argval('-a', type_=str, default='default:is_known=True')
+    annotconfig_list_body = ut.codeblock(
+        ut.repr2(default_acfgstr) +
+        '''
+        # See ibeis/expt/annotation_configs.py for names of annot configuration options
+        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True'
+        #'default:qsame_encounter=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
+        #'timectrl:',
+        #'timectrl:qsize=10,dsize=20',
+        #'timectrl:been_adjusted=True,dpername=3',
+        #'unctrl:been_adjusted=True',
+        #'default:require_timestamp=True,min_timedelta=3600',
+        #'default:species=primary',
+        #'default:has_any=(query,),dpername=1,exclude_reference=True',
+        '''
+    )
+    #if ut.get_argflag('--hacktestscore'):
+    #    pipeline_list_body = ut.codeblock(
+    #        '''
+    #        # See ibeis/model/Config.py for names of pipeline config options
+    #        'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True',
+    #        'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True',
+    #        'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True',
+    #        'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=False',
+    #        'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=False',
+    #        'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=False',
+    #        '''
+    #    )
+    #elif True:
+    default_pcfgstr = ut.get_argval(('-t', '-p'), type_=str, default='default')
+    pipeline_list_body = ut.codeblock(
+        ut.repr2(default_pcfgstr) +
+        '''
+        #'default:K=1',
+        #'default:K=1,adapteq=True',
+        #'default:K=1,AI=False',
+        #'default:K=1,AI=False,QRH=True',
+        #'default:K=1,RI=True,AI=False',
+        #'default:fg_on=[True,False]',
+        '''
+    )
     locals_ = locals()
     from functools import partial
     _format = partial(format_cells, locals_=locals_)

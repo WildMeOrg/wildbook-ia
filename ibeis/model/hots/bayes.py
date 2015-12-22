@@ -422,7 +422,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
         >>> verbose = True
         >>> other_evidence = {}
         >>> name_evidence = [1, None, 0, None]
-        >>> score_evidence = ['high', 'low', 'low']
+        >>> score_evidence = [1, 0, 0]
         >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
         >>> model, evidence, soft_evidence = update_model_evidence(
         >>>     model, name_evidence, score_evidence, other_evidence)
@@ -467,14 +467,39 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, bru
             print('BF and BP are the same')
 
         use_approx = False
+        import utool
+        utool.embed()
 
         if use_approx:
             # Try to approximatly sample the map inference
-            from pgmpy.inference.Sampling import BayesianModelSampling
-            infr = BayesianModelSampling(model)
-            #from pgmpy.factors.Factor import State
+            import pgmpy.inference.Sampling
+            #from pgmpy.inference.Sampling import State
+            infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
+            #infr = pgmpy.inference.Sampling.GibbsSampling()
+            #self = infr
             #evidence_ = [State(*item) for item in evidence.items()]
-            #sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=1000)
+            with ut.Timer('sampling'):
+                sampled_states = infr.likelihood_weighted_sample(evidence=evidence, size=100)
+
+            import vtool as vt
+            state_arr = np.array([[item.state for item in row] for row in sampled_states[sampled_states.columns[:-1]].values])
+            total_weight = sampled_states['_weight'].sum()
+            dataids = vt.compute_unique_data_ids(state_arr)
+            unique_dataids, groupxs = vt.group_indices(dataids)
+            allweights = sampled_states['_weight'].values
+            groupweights = vt.apply_grouping(allweights, groupxs)
+            unique_weights = np.array([group.sum() for group in groupweights])
+            top_idx_list = unique_weights.argsort()[::-1][0:3]
+            sampled_max = [np.where(dataids == uid)[0][0] for uid in unique_dataids[top_idx_list]]
+            print('Top 3 states')
+            map_est = sampled_states.loc[sampled_max]
+            prob_est = unique_weights[top_idx_list] / total_weight
+            print('map_est = %r' % (map_est,))
+            print('prob_est = %r' % (prob_est,))
+
+            #states2 = sampled_states[query_vars + ['_weight']]
+            #states3 = states2[query_vars]
+            #weights3 = states2['_weight']
             pass
             # TODO write a collapse function for this pandas datafram
             #collapse_factor_labels

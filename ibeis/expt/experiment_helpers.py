@@ -316,6 +316,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         ibeis -e print_acfg --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
         ibeis -e print_acfg --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
         ibeis -e print_acfg --db testdb1 -a default --ainfo --nocache-aid
+        ibeis -e print_acfg --db Oxford -a default:qhas_any=query --ainfo --nocache-aid
+        ibeis -e print_acfg --db Oxford -a default:qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
 
     Example0:
         >>> # DISABLE_DOCTEST
