@@ -137,11 +137,187 @@ def show_was_requested():
     #return ut.show_was_requested()
 
 
-def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), max_dsize=None):
+class OffsetImage2(mpl.offsetbox.OffsetBox):
     """
-    # Overlay a species icon
-    # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+    TODO: If this works reapply to mpl
     """
+    def __init__(self, arr,
+                 zoom=1,
+                 cmap=None,
+                 norm=None,
+                 interpolation=None,
+                 origin=None,
+                 filternorm=1,
+                 filterrad=4.0,
+                 resample=False,
+                 dpi_cor=True,
+                 **kwargs
+                 ):
+
+        mpl.offsetbox.OffsetBox.__init__(self)
+        self._dpi_cor = dpi_cor
+
+        self.image = mpl.offsetbox.BboxImage(
+            bbox=self.get_window_extent, cmap=cmap, norm=norm,
+            interpolation=interpolation, origin=origin, filternorm=filternorm,
+            filterrad=filterrad, resample=resample, **kwargs)
+
+        self._children = [self.image]
+
+        self.set_zoom(zoom)
+        self.set_data(arr)
+
+    def set_data(self, arr):
+        self._data = np.asarray(arr)
+        self.image.set_data(self._data)
+        self.stale = True
+
+    def get_data(self):
+        return self._data
+
+    def set_zoom(self, zoom):
+        self._zoom = zoom
+        self.stale = True
+
+    def get_zoom(self):
+        return self._zoom
+
+#     def set_axes(self, axes):
+#         self.image.set_axes(axes)
+#         martist.Artist.set_axes(self, axes)
+
+#     def set_offset(self, xy):
+#         """
+#         set offset of the container.
+
+#         Accept : tuple of x,y coordinate in disokay units.
+#         """
+#         self._offset = xy
+
+#         self.offset_transform.clear()
+#         self.offset_transform.translate(xy[0], xy[1])
+
+    def get_offset(self):
+        """
+        return offset of the container.
+        """
+        return self._offset
+
+    def get_children(self):
+        return [self.image]
+
+    def get_window_extent(self, renderer):
+        '''
+        get the bounding box in display space.
+        '''
+        import matplotlib.transforms as mtransforms
+        w, h, xd, yd = self.get_extent(renderer)
+        ox, oy = self.get_offset()
+        return mtransforms.Bbox.from_bounds(ox - xd, oy - yd, w, h)
+
+    def get_extent(self, renderer):
+
+        # FIXME dpi_cor is never used
+        if self._dpi_cor:  # True, do correction
+            # conversion (px / pt)
+            dpi_cor = renderer.points_to_pixels(1.)
+        else:
+            dpi_cor = 1.  # NOQA
+
+        zoom = self.get_zoom()
+        data = self.get_data()
+
+        # Data width and height in pixels
+        ny, nx = data.shape[:2]
+
+        #w /= dpi_cor
+        #h /= dpi_cor
+        #import utool
+        #utool.embed()
+        #if self.axes:
+        # Hack, find right axes
+        ax = self.figure.axes[0]
+        ax.get_window_extent()
+        #bbox = mpl.transforms.Bbox.union([ax.get_window_extent()])
+        #xmin, xmax = ax.get_xlim()
+        #ymin, ymax = ax.get_ylim()
+        #https://www.mail-archive.com/matplotlib-users@lists.sourceforge.net/msg25931.html
+        fig = self.figure
+        #dpi = fig.dpi  # (pt / in)
+        fw_in, fh_in = fig.get_size_inches()
+        #divider = make_axes_locatable(ax)
+
+        #fig_ppi = dpi * dpi_cor
+        #fw_px = fig_ppi * fw_in
+        #fh_px = fig_ppi * fh_in
+        #bbox.width
+
+        # transforms data to figure coordinates
+        #pt1 = ax.transData.transform_point([nx, ny])
+        pt1 = ax.transData.transform_point([1, 20])
+        pt2 = ax.transData.transform_point([0, 0])
+        w, h = pt1 - pt2
+
+        #zoom_factor = max(fw_px, )
+        #print('fw_px = %r' % (fw_px,))
+        #print('pos = %r' % (pos,))
+        #w = h = .2 * fw_px * pos[2]
+        #.1 * fig_dpi * fig_size[0] / data.shape[0]
+        #print('zoom = %r' % (zoom,))
+
+        w, h = w * zoom, h * zoom
+        return w, h, 0, 0
+        #return 30, 30, 0, 0
+
+    def draw(self, renderer):
+        """
+        Draw the children
+        """
+        self.image.draw(renderer)
+        # bbox_artist(self, renderer, fill=False, props=dict(pad=0.))
+        self.stale = False
+
+
+def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
+
+                 max_dsize=None):
+    """
+    Overlay a species icon
+
+    References:
+        http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
+        http://matplotlib.org/users/annotations_guide.html
+        /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py
+
+    Args:
+        icon (ndarray or str): image icon data or path
+        coords (tuple): (default = (0, 0))
+        coord_type (str): (default = 'axes')
+        bbox_alignment (tuple): (default = (0, 0))
+        max_dsize (None): (default = None)
+
+    CommandLine:
+        python -m plottool.draw_func2 --exec-overlay_icon --show --icon zebra.png
+        python -m plottool.draw_func2 --exec-overlay_icon --show --icon lena.png
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> pt.plot2(np.arange(100), np.arange(100))
+        >>> icon = ut.get_argval('--icon', type_=str, default='lena.png')
+        >>> coords = (0, 0)
+        >>> coord_type = 'axes'
+        >>> bbox_alignment = (0, 0)
+        >>> max_dsize = (128, None)
+        >>> result = overlay_icon(icon, coords, coord_type, bbox_alignment, max_dsize)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    #from mpl_toolkits.axes_grid.anchored_artists import AnchoredAuxTransformBox
+
     ax = gca()
     if isinstance(icon, six.string_types):
         # hack because icon is probably a url
@@ -153,7 +329,13 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), 
     print('icon.shape = %r' % (icon.shape,))
 
     icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
-    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
+    # Hack while I am trying to get constant size images working
+    if ut.get_argval('--save'):
+        zoom = 1.0
+    else:
+        zoom = .5
+    imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
+    #imagebox = OffsetImage2(icon, zoom=.3)
     if coord_type == 'axes':
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
@@ -163,10 +345,23 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0), 
         ]
     else:
         raise NotImplementedError('')
+
+    #ab = AnchoredAuxTransformBox(ax.transData, loc=2)
+    #ab.drawing_area.add_artist(imagebox)
+
+    #*xycoords* and *textcoords* are strings that indicate the
+    #coordinates of *xy* and *xytext*, and may be one of the
+    #following values:
+
+    #'figure points' #'figure pixels' #'figure fraction' #'axes points'
+    #'axes pixels' #'axes fraction' #'data' #'offset points' #'polar'
+
     ab = mpl.offsetbox.AnnotationBbox(
         imagebox, xy,
         xybox=(0., 0.),
-        xycoords='data', boxcoords="offset points",
+        xycoords='data',
+        #xycoords='axes fraction',
+        boxcoords="offset points",
         box_alignment=bbox_alignment, pad=0.0)
     ax.add_artist(ab)
 
@@ -867,7 +1062,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
                 # Just plot a little bit outside  the box
                 ax.set_xlim(-.01, 1.01)
                 ax.set_ylim(-.01, 1.01)
-                ax.grid(True)
+                #ax.grid(True)
             else:
                 ax.set_xlim(min_, max_)
                 ax.set_ylim(min_, max_)
@@ -878,7 +1073,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         if pad > 0:
             ax.set_xlim(min_x - pad, max_x + pad)
             ax.set_ylim(min_y - pad, max_y + pad)
-        ax.grid(True, color='w' if dark else 'k')
+        #ax.grid(True, color='w' if dark else 'k')
         if flipx:
             ax.invert_xaxis()
         if flipy:
