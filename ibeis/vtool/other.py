@@ -401,6 +401,27 @@ def unique_rows(arr, directed=True):
     return unique_arr
 
 
+def compute_ndarray_unique_rowids_unsafe(arr):
+    """
+    arr = np.random.randint(2, size=(10000, 10))
+    vt.compute_unique_data_ids_(list(map(tuple, arr)))
+    len(vt.compute_unique_data_ids_(list(map(tuple, arr))))
+    len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, arr)))))
+
+    %timeit vt.compute_unique_data_ids_(list(map(tuple, arr)))
+    %timeit compute_ndarray_unique_rowids_unsafe(arr)
+
+    """
+    # no checks performed
+    void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
+    #assert arr.flags['C_CONTIGUOUS']
+    arr_void_view = arr.view(void_dtype)
+    unique, rowids = np.unique(arr_void_view, return_inverse=True)
+    return rowids
+    #np.ascontiguousarray(arr).data == arr.data
+    #assert arr.data == arr_void_view.data
+
+
 def unique_row_indexes(arr):
     """ np.unique on rows
 
