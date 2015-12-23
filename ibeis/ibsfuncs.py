@@ -5439,7 +5439,7 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
 
 # Indepdentent query / database stats
 @register_ibs_method
-def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
+def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, **kwargs):
     """ stats for a set of annots
 
     Args:
@@ -5488,44 +5488,52 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
         ('num_' + prefix + 'aids', len(aids)),
     ]
 
-    if kwargs.pop('bigstr', False):
+    if kwargs.pop('bigstr', False or forceall):
         bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
         keyval_list += [
             (prefix + 'bigstr',
              bigstr(str(aids)))]
 
-    if kwargs.pop('hashid', True):
+    if kwargs.pop('hashid', True or forceall):
         keyval_list += [
             (prefix + 'hashid',
              ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
 
-    if kwargs.pop('per_name', True):
+    if kwargs.pop('per_name', True or forceall):
         keyval_list += [
             (prefix + 'per_name',
              _stat_str(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
                                     use_nan=True, use_median=True)))]
 
-    if kwargs.pop('per_qual', False):
+    if kwargs.pop('per_qual', False or forceall):
         keyval_list += [(prefix + 'per_qual',
                          _stat_str(ibs.get_annot_qual_stats(aids)))]
 
     #if kwargs.pop('per_vp', False):
-    if kwargs.pop('per_vp', True):
+    if kwargs.pop('per_vp', True or forceall):
         keyval_list += [(prefix + 'per_vp',
                          _stat_str(ibs.get_annot_yaw_stats(aids)))]
 
     # information about overlapping viewpoints
-    if kwargs.pop('per_name_vpedge', False):
+    if kwargs.pop('per_name_vpedge', False or forceall):
         keyval_list += [
             (prefix + 'per_name_vpedge',
              _stat_str(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
 
-    if kwargs.pop('per_image', False):
+    if kwargs.pop('per_image', False or forceall):
         keyval_list += [
             (prefix + 'aid_per_image',
              _stat_str(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
 
-    if kwargs.pop('min_name_hourdist', False):
+    if kwargs.pop('case_tag_hist', False or forceall):
+        keyval_list += [
+            (prefix + 'case_tags', ut.dict_hist(ut.flatten(ibs.get_annot_case_tags(aids))))]
+
+    if kwargs.pop('match_tag_hist', False or forceall):
+        keyval_list += [
+            (prefix + 'match_tags', ut.dict_hist(ut.flatten(ibs.get_annot_annotmatch_tags(aids))))]
+
+    if kwargs.pop('min_name_hourdist', False or forceall):
         grouped_aids = ibs.group_annots_by_name(aids)[0]
         #ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
         timedeltas = ibs.get_unflat_annots_timedelta_list(grouped_aids)
@@ -5540,7 +5548,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', **kwargs):
             for dists in timedeltas]
         #min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
         min_name_timedelta_stats = ut.get_stats(min_timedelta_list, use_nan=True)
-        keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats))]
+        keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats, precision=4))]
 
     aid_stats_dict = ut.odict(keyval_list)
     return aid_stats_dict

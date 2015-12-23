@@ -29,7 +29,7 @@ def ibeis_compute_encounters(ibs, gid_list):
         tuple: (None, None)
 
     CommandLine:
-        python -m ibeis.model.preproc.preproc_encounter --exec-ibeis_compute_encounters
+        python -m ibeis.model.preproc.preproc_encounter --exec-ibeis_compute_encounters:0 --show
 
         TODO: FIXME: good example of autogen doctest return failure
 
@@ -59,17 +59,30 @@ def ibeis_compute_encounters(ibs, gid_list):
         >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
         >>> ut.show_if_requested()
 
-    Ignore:
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_encounter import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> gid_list = ibs.get_valid_gids()
+        >>> aid_list_ = ibs.filter_annots_general(aid_list, filter_kw)
         >>> (flat_eids, flat_gids) = ibeis_compute_encounters(ibs, gid_list)
-        >>> result = ('(None, None) = %s' % (str((None, None)),))
+        >>> aids_list = list(ut.group_items(aid_list_, flat_eids).values())
+        >>> metric = list(map(len, aids_list))
+        >>> sortx = ut.list_argsort(metric)[::-1]
+        >>> index = sortx[1]
+        >>> #gids = enc_gids[index]
+        >>> aids = aids_list[index]
+        >>> gids = list(set(ibs.get_annot_gids(aids)))
+        >>> print('len(aids) = %r' % (len(aids),))
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> from ibeis.viz import viz_graph
+        >>> import plottool as pt
+        >>> #pt.imshow(bigimg)
+        >>> #bigimg = vt.stack_image_recurse(img_list)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+        >>> ut.show_if_requested()
     """
     enc_cfgstr       = ibs.cfg.enc_cfg.get_cfgstr()
     print('[enc] enc_cfgstr = %r' % enc_cfgstr)
@@ -137,6 +150,21 @@ def compute_encounter_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=Fa
         >>> #pt.imshow(bigimg)
         >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
         >>> ut.show_if_requested()
+
+        ibs.unflat_map(ibs.get_annot_case_tags, aids_list)
+        ibs.filter_aidpairs_by_tags(has_any='photobomb')
+
+        photobomb_aids = ibs.filter_aidpairs_by_tags(has_any='photobomb')
+        aids = photobomb_aids[0:10].flatten()
+        _gt_aids = ibs.get_annot_groundtruth(aids)
+        gt_aids = ut.get_list_column_slice(_gt_aids, slice(0, 3))
+        aid_set = np.unique(np.append(aids.flatten(), ut.flatten(gt_aids)))
+        aid_set = ibs.filter_annots_general(aid_set, minqual='ok')
+
+        # This is the set of annotations used for testing intraencounter photobombs
+        #print(ut.repr3(ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_set), strvals=True, nl=1))
+        print(ut.repr3(ibs.get_annot_stats_dict(aid_set, forceall=True), strvals=True, nl=1))
+
     """
     # Config info
     gid_list = np.unique(gid_list)

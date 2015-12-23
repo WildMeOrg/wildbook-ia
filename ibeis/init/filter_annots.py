@@ -86,7 +86,10 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
         >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list_)
         >>> ut.show_if_requested()
     """
-    filter_kw.update(kwargs)
+    filter_kw_ = get_default_annot_filter_form()
+    filter_kw_.update(filter_kw)
+    filter_kw_.update(kwargs)
+    filter_kw = filter_kw_
     aid_list_ = aid_list
     #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
