@@ -12,6 +12,298 @@ import pgmpy.models
 print, rrr, profile = ut.inject2(__name__, '[pgmext]')
 
 
+class ApproximateFactor(object):
+    """
+    Instead of holding a weight for all possible states, an approximate factor
+    simply lists a set of (potentially duplicate) states. Each state has a
+    weight that is approximately proportional to the probability of that state.
+
+    The main difference is that the cardinality are implicit and the row labels
+    are explicit. In a normal factor it is reversed.
+
+    Maybe rename to sparse factor?
+
+    CommandLine:
+        python -m ibeis.model.hots.pgm_ext --exec-ApproximateFactor --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+        >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
+        >>> weights = [.1, .2, .1]
+        >>> variables = ['v1', 'v2', 'v3']
+        >>> self = ApproximateFactor(state_idxs, weights, variables)
+        >>> result = str(self)
+        >>> print(result)
+    """
+    @classmethod
+    def from_sampled(cls, sampled, variables=None):
+        """
+        convert sampled states into an approximate factor
+        """
+        if variables is None:
+            variables = sampled.columns[:-1]
+        state_idxs = np.array([[item.state for item in row] for row in
+                                     sampled[variables].values])
+        weights = sampled['_weight']
+        phi = cls(state_idxs, weights, variables)
+        return phi
+
+    def __init__(self, state_idxs, weights, variables, statename_dict=None):
+        self.variables = variables
+        self.state_idxs = np.array(state_idxs)
+        self.weights = np.array(weights)
+        self.statename_dict = statename_dict
+
+    def copy(self):
+        """
+        Returns a copy of the factor.
+        """
+        statename_dict = (self.statename_dict.copy()
+                          if self.statename_dict is not None else None)
+        other = ApproximateFactor(self.state_idxs, self.weights,
+                                  self.variables, statename_dict)
+        return other
+
+    @property
+    def values(self):
+        return self.weights
+
+    def get_sparse_values(self):
+        # http://stackoverflow.com/questions/20114194/sparse-array-in-python-cython
+        #from scipy.sparse import coo_matrix
+        #values = coo_matrix((self.weights, self.state_idxs.T), shape=self.cardinality)
+        raise NotImplementedError('scipy only supports sparse 2D-arrays')
+
+    def scope(self):
+        return self.variables
+
+    def marginalize(self, variables, inplace=True):
+        """
+        Modifies the factor with marginalized values.
+
+        Args:
+            variables (list, array-like):
+                List of variables over which to marginalize.
+
+            inplace (bool):
+                If inplace=True it will modify the factor itself, else would
+                return a new factor.
+
+        Returns:
+            Factor or None:
+                if inplace=True (default) returns None
+                if inplace=False returns a new `Factor` instance.
+
+        Example:
+            >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+            >>> state_idxs = [[1, 1, 1], [1, 0, 1], [2, 0, 2]]
+            >>> weights = [.1, .2, .1]
+            >>> variables = ['v1', 'v2', 'v3']
+            >>> self = ApproximateFactor(state_idxs, weights, variables)
+            >>> variables = ['v2']
+            >>> inplace = False
+            >>> phi = self.marginalize(variables, inplace)
+            >>> print(phi)
+            +------+------+--------------------+
+            | v1   | v3   |   \hat{phi}(v1,v3) |
+            |------+------+--------------------|
+            | v1_1 | v3_1 |             0.3000 |
+            | v1_2 | v3_2 |             0.1000 |
+            +------+------+--------------------+
+        """
+        if isinstance(variables, six.string_types):
+            raise TypeError("variables: Expected type list or array-like, got type str")
+
+        phi = self if inplace else self.copy()
+
+        for var in variables:
+            if var not in phi.variables:
+                raise ValueError("{var} not in scope.".format(var=var))
+
+        var_indexes = [phi.variables.index(var) for var in variables]
+
+        index_to_keep = list(set(range(len(self.variables))) - set(var_indexes))
+        index_to_keep = sorted(index_to_keep)
+        phi.variables = [phi.variables[index] for index in index_to_keep]
+        phi.state_idxs = phi.state_idxs.T[index_to_keep].T
+
+        if True:
+            phi.collapse()
+
+        if not inplace:
+            return phi
+
+    def collapse(self, inplace=False):
+        """ removes duplicate entries
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+            >>> state_idxs = [[1, 0, 1], [1, 0, 1], [1, 0, 2]]
+            >>> weights = [.1, .2, .1]
+            >>> variables = ['v1', 'v2', 'v3']
+            >>> self = ApproximateFactor(state_idxs, weights, variables)
+            >>> inplace = False
+            >>> phi = self.collapse(inplace)
+            >>> print(phi)
+            +------+------+------+-----------------------+
+            | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |
+            |------+------+------+-----------------------|
+            | v1_1 | v2_0 | v3_1 |                0.3000 |
+            | v1_1 | v2_0 | v3_2 |                0.1000 |
+            +------+------+------+-----------------------+
+        """
+        import vtool as vt
+
+        phi = self if inplace else self.copy()
+
+        data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs))))
+        unique_ids, groupxs = vt.group_indices(data_ids)
+        #print('Collapsed %r states into %r states' % (len(data_ids), len(unique_ids),))
+        # Sum the values in the cpd to marginalize the duplicate probs
+        # Take only the unique rows under this induced labeling
+        unique_tmp_groupxs = np.array([gxs[0] for gxs in groupxs])
+        self.state_idxs = self.state_idxs.take(unique_tmp_groupxs, axis=0)
+        self.weights = np.array([
+            g.sum() for g in vt.apply_grouping(self.weights, groupxs)
+        ])
+
+        if not inplace:
+            return phi
+
+    def normalize(self, inplace=True):
+        """
+        Normalizes the weights of factor so that they sum to 1.
+
+        Args:
+            inplace (bool): (default = True)
+
+        CommandLine:
+            python -m ibeis.model.hots.pgm_ext --exec-normalize
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+            >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
+            >>> weights = [.1, .2, .1]
+            >>> variables = ['v1', 'v2', 'v3']
+            >>> self = ApproximateFactor(state_idxs, weights, variables)
+            >>> inplace = True
+            >>> print(self)
+            >>> self.normalize(inplace)
+            >>> result = ('%s' % (self,))
+            >>> print(result)
+            +------+------+------+-----------------------+
+            | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |
+            |------+------+------+-----------------------|
+            | v1_0 | v2_0 | v3_1 |                0.2500 |
+            | v1_1 | v2_0 | v3_1 |                0.5000 |
+            | v1_2 | v2_0 | v3_2 |                0.2500 |
+            +------+------+------+-----------------------+
+        """
+        phi = self if inplace else self.copy()
+        phi.weights = phi.weights / phi.weights.sum()
+        if not inplace:
+            return phi
+
+    def reorder(self, order=None, inplace=True):
+        r"""
+        Changes internal variable ordering
+
+        CommandLine:
+            python -m ibeis.model.hots.pgm_ext --exec-reorder
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.pgm_ext import *  # NOQA
+            >>> state_idxs = [[0, 0, 1], [1, 0, 1], [2, 0, 2]]
+            >>> weights = [.1, .2, .1]
+            >>> variables = ['v1', 'v2', 'v3']
+            >>> self = ApproximateFactor(state_idxs, weights, variables)
+            >>> order = [2, 0, 1]
+            >>> inplace = True
+            >>> print(self)
+            >>> self.reorder(order, inplace)
+            >>> result = ('%s' % (self,))
+            >>> print(result)
+            +------+------+------+-----------------------+
+            | v3   | v1   | v2   |   \hat{phi}(v3,v1,v2) |
+            |------+------+------+-----------------------|
+            | v3_1 | v1_0 | v2_0 |                0.1000 |
+            | v3_1 | v1_1 | v2_0 |                0.2000 |
+            | v3_2 | v1_2 | v2_0 |                0.1000 |
+            +------+------+------+-----------------------+
+        """
+        phi = self if inplace else self.copy()
+        if order is not None:
+            if all(isinstance(x, int) for x in order):
+                sortx = np.array(order)
+            else:
+                sortx = np.array([phi.variables.index(v) for v in order])
+        else:
+            sortx = np.lexsort((phi.variables,))
+        phi.variables = [phi.variables[i] for i in sortx]
+        phi.state_idxs = np.ascontiguousarray(phi.state_idxs[:, sortx])
+        if not inplace:
+            return phi
+
+    def _row_labels(self, asindex=False):
+        if asindex:
+            row_labels = self.state_idxs
+        else:
+            row_labels = [['{var}_{i}'.format(var=var, i=i)
+                           for var, i in zip(self.variables, state)]
+                          for state in self.state_idxs]
+        return row_labels
+
+    def _str(self, phi_or_p=None, tablefmt=None, sort=False, maxrows=None):
+        """
+        Generate the string from `__str__` method.
+        """
+        if phi_or_p is None:
+            phi_or_p = r'\hat{phi}'
+        if tablefmt is None:
+            tablefmt = 'psql'
+        string_header = list(self.scope())
+        string_header.append('{phi_or_p}({variables})'.format(
+            phi_or_p=phi_or_p, variables=','.join(string_header)))
+
+        factor_table = []
+
+        row_values = self.values.ravel()
+        row_labels = self._row_labels(asindex=False)
+        factor_table = [list(lbls) + [val]
+                        for lbls, val in zip(row_labels, row_values)]
+
+        if sort:
+            sortx = row_values.argsort()[::sort]
+            factor_table = [factor_table[row] for row in sortx]
+
+        if maxrows is not None and maxrows < len(factor_table):
+            factor_table = factor_table[:maxrows]
+            factor_table.append(['...'] * len(string_header))
+
+        from pgmpy.extern import tabulate
+        return tabulate(factor_table, headers=string_header, tablefmt=tablefmt,
+                        floatfmt='.4f')
+
+    def __str__(self):
+        return self._str()
+
+    @property
+    def cardinality(self):
+        cardinality = self.state_idxs.max(axis=0) + 1
+        return cardinality
+
+    def __repr__(self):
+        var_card = ', '.join([
+            '{var}:{card}'.format(var=var, card=card)
+            for var, card in zip(self.variables, self.cardinality)])
+        return r'<ApproximateFactor representing phi({var_card}) at {address}>'.format(
+            address=hex(id(self)), var_card=var_card)
+
+
 def print_factors(model, factor_list):
     if hasattr(model, 'var2_cpd'):
         semtypes = [model.var2_cpd[f.variables[0]].ttype
@@ -345,8 +637,12 @@ def make_factor_text(factor, name):
         ftext = name + ':\nuniform(%.3f)' % (factor.values[0],)
     else:
         values = factor.values
-        rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
-                   for n, v in zip(zip(*factor.statenames), values)]
+        try:
+            rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
+                       for n, v in zip(zip(*factor.statenames), values)]
+        except Exception:
+            rowstrs = ['p(%s)=%.3f' % (','.join(n), v,)
+                       for n, v in zip(factor._row_labels(False), values)]
         idxs = ut.list_argmaxima(values)
         for idx in idxs:
             rowstrs[idx] += '*'

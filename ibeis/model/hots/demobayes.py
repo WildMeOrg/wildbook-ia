@@ -87,7 +87,8 @@ def classify_k(cfg={}):
     CommandLine:
         python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3
         python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=1
-        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=3 --method=approx
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=3,k=0 --method=approx
+        python -m ibeis.model.hots.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
 
     Example:
         >>> from ibeis.model.hots.demobayes import *  # NOQA
@@ -347,32 +348,76 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
 
 
 def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=None, nid_sequence=None, seed=None):
+    r"""
+    Args:
+        num_annots (int):
+        num_names (int): (default = None)
+        initial_aids (None): (default = None)
+        initial_nids (None): (default = None)
+        nid_sequence (None): (default = None)
+        seed (None): (default = None)
+
+    Returns:
+        tuple: (aids, nids, aids1, nids1, all_aids, all_nids)
+
+    CommandLine:
+        python -m ibeis.model.hots.demobayes --exec-get_toy_annots
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.demobayes import *  # NOQA
+        >>> num_annots = 1
+        >>> num_names = 5
+        >>> initial_aids = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int64)
+        >>> initial_nids = np.array([0, 0, 1, 2, 2, 1, 1, 1, 2, 3], dtype=np.int64)
+        >>> nid_sequence = np.array([0, 0, 1, 2, 2, 1, 1], dtype=np.int64)
+        >>> seed = 0
+        >>> (aids, nids, aids1, nids1, all_aids, all_nids) = get_toy_annots(num_annots, num_names, initial_aids, initial_nids, nid_sequence, seed)
+        >>> result = ('(aids, nids, aids1, nids1, all_aids, all_nids) = %s' % (ut.repr2((aids, nids, aids1, nids1, all_aids, all_nids), nl=1),))
+        >>> print(result)
+    """
     import vtool as vt
     if num_names is None:
         num_names = num_annots
     print('Generating toy data with num_annots=%r' % (num_annots,))
-    start = 0 if initial_aids is None else len(initial_aids)
-    aids = np.arange(start, num_annots + start)
+    if initial_aids is None:
+        assert initial_nids is None
+        first_step = True
+        initial_aids = []
+        initial_nids = []
+    else:
+        first_step = False
+        assert initial_nids is not None
+
+    aids = np.arange(len(initial_aids), num_annots + len(initial_aids))
     rng = vt.ensure_rng(seed)
     if nid_sequence is None:
         nids = rng.randint(0, num_names, num_annots)
     else:
-        need = start + num_annots
-        if need > len(nid_sequence):
-            nids = np.append(nid_sequence, rng.randint(0, num_names, need - len(nid_sequence)))
+        unused_from_sequence = max(len(nid_sequence) - len(initial_aids), 0)
+        if unused_from_sequence == 0:
+            nids = rng.randint(0, num_names, num_annots)
+        elif unused_from_sequence > 0 and unused_from_sequence < num_annots:
+            num_remain = num_annots - unused_from_sequence
+            nids = np.append(nid_sequence[-unused_from_sequence:], rng.randint(0, num_names, num_remain))
         else:
-            nids = np.array(ut.take(nid_sequence, range(start, need)))
+            nids = nid_sequence[-unused_from_sequence]
+            nids = np.array(ut.take(nid_sequence, range(len(initial_aids), len(initial_aids) + num_annots)))
 
-    if initial_nids is None:
+    if first_step:
         aids1 = aids
         nids1 = nids
-        all_nids = nids
-        all_aids = aids
     else:
         aids1 = initial_aids
         nids1 = initial_nids
-        all_nids = np.append(initial_nids, nids)
-        all_aids = np.append(initial_aids, aids)
+
+    all_nids = np.append(initial_nids, nids)
+    all_aids = np.append(initial_aids, aids)
+    import utool
+    with utool.embed_on_exception_context:
+        ut.assert_eq(len(aids), len(nids), 'len new')
+        ut.assert_eq(len(aids1), len(nids1), 'len comp')
+        ut.assert_eq(len(all_aids), len(all_nids), 'len all')
     return aids, nids, aids1, nids1, all_aids, all_nids
 
 
@@ -451,7 +496,9 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
     is_diag = [r < c for r, c, in pairwise_aidxs]
     diag_scores = pairwise_features.compress(is_diag)
     diag_aidxs = ut.compress(pairwise_aidxs, is_diag)
-    diag_nids = ut.compress(pairwise_nids, is_diag)
+    import utool
+    with utool.embed_on_exception_context:
+        diag_nids = ut.compress(pairwise_nids, is_diag)
     diag_labels = pairwise_matches.compress(is_diag)
 
     #import utool

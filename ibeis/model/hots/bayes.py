@@ -19,7 +19,9 @@ import pgmpy.inference.Sampling
 
 print, rrr, profile = ut.inject2(__name__, '[bayes]')
 
-SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
+#SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
+SPECIAL_BASIS_POOL = []
+#'fred', 'sue', 'tom']
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
@@ -36,7 +38,8 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
         model, name_evidence, score_evidence, other_evidence)
 
     if verbose and len(soft_evidence) != 0:
-        model.print_priors(ignore_ttypes=['match', 'score'], title='Soft Evidence', color='green')
+        model.print_priors(ignore_ttypes=['match', 'score'],
+                           title='Soft Evidence', color='green')
 
     #if verbose:
     #    ut.colorprint('\n --- Soft Evidence ---', 'white')
@@ -274,6 +277,35 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
     return model, evidence, soft_evidence
 
 
+def reduce_marginalize(phi, query_variables=None,
+                       evidence={}, inplace=False):
+    """
+    Hack for reduction followed by marginalization
+
+    Example:
+        >>> reduced_joint = joint.observe(
+        >>>     query_variables, evidence, inplace=False)
+        >>> new_rows = reduced_joint._row_labels()
+        >>> new_vals = reduced_joint.values.ravel()
+        >>> map_vals = new_rows[new_vals.argmax()]
+        >>> map_assign = dict(zip(reduced_joint.variables, map_vals))
+    """
+    reduced_joint = phi if inplace else phi.copy()
+    if query_variables is None:
+        query_variables = reduced_joint.variables
+    reduced_joint.reduce(evidence)
+    reduced_joint.normalize()
+    # Marginalize over non-query, non-evidence
+    irrelevant_vars = (
+        set(reduced_joint.variables) -
+        (set(evidence.keys()) | set(query_variables))
+    )
+    reduced_joint.marginalize(irrelevant_vars)
+    reduced_joint.normalize()
+    if not inplace:
+        return reduced_joint
+
+
 def make_temp_state(state):
     mapping = {}
     for state_idx in state:
@@ -281,43 +313,6 @@ def make_temp_state(state):
             mapping[state_idx] = -(len(mapping) + 1)
     temp_state = [mapping[state_idx] for state_idx in state]
     return temp_state
-
-
-def collapse_sampled_states(model, sampled_states, evidence, query_vars):
-    # Get state out of the weird pandas format
-    #sampled_variables = sampled_states.columns[:-1].values
-    #flags = ut.setdiff_flags(sampled_variables, evidence.keys())
-    #reduced_variables = ut.compress(sampled_variables, flags)
-    assert all(estate not in query_vars for estate in evidence), 'evidence in query'
-    reduced_variables = query_vars
-    reduced_row_idxs = np.array([[item.state for item in row] for row in
-                                 sampled_states[reduced_variables].values])
-    reduced_values = sampled_states['_weight']
-    new_state_idxs, new_values = collapse_labels(
-        model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
-    return new_state_idxs, new_values, reduced_variables
-
-
-def collapse_factor_labels(model, reduced_joint, evidence):
-    import vtool as vt
-    reduced_variables = reduced_joint.variables
-    reduced_row_idxs = np.array(reduced_joint._row_labels(asindex=True))
-    reduced_values = reduced_joint.values.ravel()
-
-    new_state_idxs, new_values = collapse_labels(
-        model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
-
-    # hack into a new joint factor (that is the same size as the reduced_joint)
-    new_reduced_joint = reduced_joint.copy()
-    assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
-    new_reduced_joint.values[:] = 0
-    flat_idxs = np.ravel_multi_index(new_state_idxs.T, new_reduced_joint.values.shape)
-
-    old_values = new_reduced_joint.values.ravel()
-    old_values[flat_idxs] = new_values
-    new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
-    # print(new_reduced_joint._str(maxrows=4, sort=-1))
-    return new_reduced_joint, new_state_idxs, new_values
 
 
 def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduced_values):
@@ -403,34 +398,127 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
         return new_state_idxs, new_values
 
 
+def collapse_factor_labels(model, reduced_joint, evidence):
+    reduced_variables = reduced_joint.variables
+    reduced_row_idxs = np.array(reduced_joint._row_labels(asindex=True))
+    reduced_values = reduced_joint.values.ravel()
 
-def reduce_marginalize(phi, query_variables=None,
-                       evidence={}, inplace=False):
-    """
-    Hack for reduction followed by marginalization
+    new_state_idxs, new_values = collapse_labels(
+        model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
 
-    Example:
-        >>> reduced_joint = joint.observe(
-        >>>     query_variables, evidence, inplace=False)
-        >>> new_rows = reduced_joint._row_labels()
-        >>> new_vals = reduced_joint.values.ravel()
-        >>> map_vals = new_rows[new_vals.argmax()]
-        >>> map_assign = dict(zip(reduced_joint.variables, map_vals))
-    """
-    reduced_joint = phi if inplace else phi.copy()
-    if query_variables is None:
-        query_variables = reduced_joint.variables
-    reduced_joint.reduce(evidence)
-    reduced_joint.normalize()
-    # Marginalize over non-query, non-evidence
-    irrelevant_vars = (
-        set(reduced_joint.variables) -
-        (set(evidence.keys()) | set(query_variables))
-    )
-    reduced_joint.marginalize(irrelevant_vars)
-    reduced_joint.normalize()
-    if not inplace:
-        return reduced_joint
+    if isinstance(reduced_joint, pgm_ext.ApproximateFactor):
+        new_reduced_joint = pgm_ext.ApproximateFactor(new_state_idxs,
+                                                      new_values,
+                                                      reduced_variables)
+    else:
+        # hack into a new joint factor (that is the same size as the reduced_joint)
+        new_reduced_joint = reduced_joint.copy()
+        assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
+        new_reduced_joint.values[:] = 0
+        flat_idxs = np.ravel_multi_index(new_state_idxs.T, new_reduced_joint.values.shape)
+
+        old_values = new_reduced_joint.values.ravel()
+        old_values[flat_idxs] = new_values
+        new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
+        # print(new_reduced_joint._str(maxrows=4, sort=-1))
+    return new_reduced_joint, new_state_idxs, new_values
+
+
+def report_partitioning_statistics(new_reduced_joint):
+    # compute partitioning statistics
+    import vtool as vt
+    vals, idxs = vt.group_indices(new_reduced_joint.values.ravel())
+    #groupsize = list(map(len, idxs))
+    #groupassigns = ut.unflat_vecmap(new_reduced_joint.assignment, idxs)
+    all_states = new_reduced_joint._row_labels(asindex=True)
+    clusterstats = [tuple(sorted(list(ut.dict_hist(a).values()))) for a in all_states]
+    grouped_vals = ut.group_items(new_reduced_joint.values.ravel(), clusterstats)
+
+    #probs_assigned_to_clustertype = [(
+    #    sorted(np.unique(np.array(b).round(decimals=5)).tolist())[::-1], a)
+    #    for a, b in grouped_vals.items()]
+    probs_assigned_to_clustertype = [(
+        ut.dict_hist(np.array(b).round(decimals=5)), a)
+        for a, b in grouped_vals.items()]
+    sortx = ut.argsort([max(c[0].keys()) for c in probs_assigned_to_clustertype])
+    probs_assigned_to_clustertype = ut.take(probs_assigned_to_clustertype, sortx)
+
+    # This list of 2-tuples with the first item being the unique
+    # probabilies that are assigned to a cluster type along with the number
+    # of times they were assigned. A cluster type is the second item. Every
+    # number represents how many annotations were assigned to a specific
+    # label. The length of that list is the number of total labels.  For
+    # all low scores you will see [[{somenum: 1}, {0: 800}], [1, 1, 1, ... 1]]
+    # indicating that that the assignment of everyone to a different label happend once
+    # where the probability was somenum and a 800 times where the probability was 0.
+
+    #print(sorted([(b, a) for a, b in ut.map_dict_vals(sum, x)]).items())
+    #z = sorted([(b, a) for a, b in ut.map_dict_vals(sum, grouped_vals).items()])
+    print(ut.repr2(probs_assigned_to_clustertype, nl=2, precision=2, sorted_=True))
+
+    #group_numperlbl = [
+    #    [sorted(list(ut.dict_hist(ut.get_list_column(a, 1)).values())) for a in assigns]
+    #    for assigns in groupassigns]
+
+
+def _test_compute_reduced_joint(model, query_vars, evidence, method):
+    operation = 'maximize'
+    variables = query_vars
+
+    infr_ve = pgmpy.inference.VariableElimination(model)
+    joint_ve = infr_ve.compute_joint(variables, operation, evidence)
+    joint_ve.normalize()
+    joint_ve.reorder()
+
+    infr_bp = pgmpy.inference.BeliefPropagation(model)
+    joint_bp = infr_bp.compute_joint(variables, operation, evidence)
+    joint_bp.normalize()
+    joint_bp.reorder()
+
+    assert np.allclose(joint_ve.values, joint_bp.values)
+    print('VE and BP are the same')
+
+    joint_bf = model.joint_distribution()
+    reduce_marginalize(joint_bf, query_vars, evidence, inplace=True)
+
+    assert np.allclose(joint_bf.values, joint_bp.values)
+    print('BF and BP are the same')
+
+
+def compute_reduced_joint(model, query_vars, evidence, method):
+    if method == 'approx':
+        query_states = model.get_number_of_states(query_vars)
+        print('model.number_of_states = %r' % (model.get_number_of_states(),))
+        print('query_states = %r' % (query_states,))
+        # Try to approximatly sample the map inference
+        infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
+        #infr = pgmpy.inference.Sampling.GibbsSampling()
+        evidence_ = [pgmpy.inference.Sampling.State(*item)
+                     for item in evidence.items()]
+        sampled = infr.likelihood_weighted_sample(
+            evidence=evidence_, size=min(500, query_states * 20))
+        reduced_joint = pgm_ext.ApproximateFactor.from_sampled(sampled, query_vars)
+        reduced_joint.normalize()
+        reduced_joint.reorder()
+    elif method == 'varelim':
+        infr = pgmpy.inference.VariableElimination(model)
+        reduced_joint = infr.compute_joint(query_vars, 'maximize', evidence)
+        reduced_joint.normalize()
+        reduced_joint.reorder()
+    elif method in ['bp', 'beliefprop']:
+        # Dont brute force anymore
+        infr = pgmpy.inference.BeliefPropagation(model)
+        reduced_joint = infr.compute_joint(query_vars, 'maximize', evidence)
+        reduced_joint.normalize()
+        reduced_joint.reorder()
+    elif method in ['bf', 'brute', 'bruteforce']:
+        full_joint = model.joint_distribution()
+        reduced_joint = reduce_marginalize(full_joint, query_vars,
+                                           evidence, inplace=False)
+        del full_joint
+    else:
+        raise NotImplementedError('method=%r' % (method,))
+    return reduced_joint
 
 
 def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, method=None):
@@ -438,20 +526,33 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-cluster_query --show
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    ParamGrid:
+        >>> param_grid = dict(
+        >>>     #method=['approx', 'bf', 'bp'],
+        >>>     method=['approx', 'bp'],
+        >>> )
+        >>> combos = ut.all_dict_combinations(param_grid)
+        >>> index = 0
+        >>> keys = 'method'.split(', ')
+        >>> method, = ut.dict_take(combos[index], keys)
+
+    Setup:
         >>> from ibeis.model.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
         >>> name_evidence = [1, None, 0, None]
         >>> score_evidence = [1, 0, 0]
         >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
+        >>> method = None
         >>> model, evidence, soft_evidence = update_model_evidence(
         >>>     model, name_evidence, score_evidence, other_evidence)
         >>> evidence = model._ensure_internal_evidence(evidence)
         >>> query_vars = ut.list_getattr(model.ttype2_cpds['name'], 'variable')
-        >>> query_results = cluster_query(model, query_vars, evidence)
-        >>> result = ('query_results = %s' % (str(query_results),))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> query_results = cluster_query(model, query_vars, evidence, method=method)
+        >>> print(ut.repr2(query_results['top_assignments'], nl=1))
         >>> ut.quit_if_noshow()
         >>> show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
@@ -465,184 +566,37 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
     if method is None:
         method = ut.get_argval('--method', type_=str, default='approx')
 
-    class ApproximateFactor(object):
-        def __init__(self, new_state_idxs, new_values, reduced_variables):
-            self.reduced_variables = reduced_variables
-            self.new_state_idxs = new_state_idxs
-            self.new_values = new_values
+    reduced_joint = compute_reduced_joint(model, query_vars, evidence, method)
 
-        @property
-        def values(self):
-            return self.new_values
-
-        @property
-        def variables(self):
-            return self.reduced_variables
-
-        def _row_labels(self, asindex=True):
-            return self.new_state_idxs
-
-    def compute_reduced_joint(model, query_vars, evidence):
-        _test_ = 0
-        if _test_:
-            operation = 'maximize'
-            variables = query_vars
-
-            infr_ve = pgmpy.inference.VariableElimination(model)
-            joint_ve = infr_ve.compute_joint(variables, operation, evidence)
-            joint_ve.normalize()
-            joint_ve.reorder()
-
-            infr_bp = pgmpy.inference.BeliefPropagation(model)
-            joint_bp = infr_bp.compute_joint(variables, operation, evidence)
-            joint_bp.normalize()
-            joint_bp.reorder()
-
-            assert np.allclose(joint_ve.values, joint_bp.values)
-            print('VE and BP are the same')
-
-            joint_bf = model.joint_distribution()
-            reduce_marginalize(joint_bf, query_vars, evidence, inplace=True)
-
-            assert np.allclose(joint_bf.values, joint_bp.values)
-            print('BF and BP are the same')
-
-        if method == 'approx':
-            # Try to approximatly sample the map inference
-            import vtool as vt
-            infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
-            #infr = pgmpy.inference.Sampling.GibbsSampling()
-            #self = infr
-            evidence_ = [pgmpy.inference.Sampling.State(*item) for item in evidence.items()]
-            with ut.Timer('sampling'):
-                sampled_states = infr.likelihood_weighted_sample(evidence=evidence_, size=500)
-            #import utool
-            #utool.embed()
-            new_state_idxs, new_values, reduced_variables = collapse_sampled_states(
-                model, sampled_states, evidence, query_vars)
-            new_values /= new_values.sum()
-            reduced_joint = ApproximateFactor(new_state_idxs, new_values, reduced_variables)
-            #state_arr = np.array([[item.state for item in row] for row in
-            #                      sampled_states[sampled_states.columns[:-1]].values])
-            #total_weight = sampled_states['_weight'].sum()
-            #dataids = vt.compute_unique_data_ids(state_arr)
-
-            #unique_dataids, groupxs = vt.group_indices(dataids)
-            #allweights = sampled_states['_weight'].values
-            #groupweights = vt.apply_grouping(allweights, groupxs)
-            #unique_weights = np.array([group.sum() for group in groupweights])
-            #top_idx_list = unique_weights.argsort()[::-1][0:3]
-            #sampled_max = [np.where(dataids == uid)[0][0] for uid in unique_dataids[top_idx_list]]
-            #print('Top 3 states')
-            #map_est = sampled_states.loc[sampled_max]
-            #prob_est = unique_weights[top_idx_list] / total_weight
-            #print('map_est = %r' % (map_est,))
-            #print('prob_est = %r' % (prob_est,))
-
-            #states2 = sampled_states[query_vars + ['_weight']]
-            #states3 = states2[query_vars]
-            #weights3 = states2['_weight']
-            #pass
-            # TODO write a collapse function for this pandas datafram
-            #collapse_factor_labels
-        elif method == 'varelim':
-            infr = pgmpy.inference.VariableElimination(model)
-            reduced_joint1 = infr.compute_joint(query_vars, 'maximize', evidence)
-            reduced_joint1.normalize()
-            reduced_joint1.reorder()
-            reduced_joint = reduced_joint1
-        elif method in ['bp', 'beliefprop']:
-            operation = 'maximize'
-            variables = query_vars
-            # Dont brute force anymore
-            infr = pgmpy.inference.BeliefPropagation(model)
-            reduced_joint1 = infr.compute_joint(variables, operation, evidence)
-            reduced_joint1.normalize()
-            reduced_joint1.reorder()
-            reduced_joint = reduced_joint1
-        elif method in ['bf', 'brute', 'bruteforce']:
-            full_joint = model.joint_distribution()
-            reduced_joint = reduce_marginalize(full_joint, query_vars, evidence, inplace=False)
-            del full_joint
-        else:
-            raise NotImplementedError('method=%r' % (method,))
-        return reduced_joint
-
-    reduced_joint = compute_reduced_joint(model, query_vars, evidence)
-
-    if not isinstance(reduced_joint, ApproximateFactor):
-        new_reduced_joint, new_state_idxs, new_values = collapse_factor_labels(
-            model, reduced_joint, evidence)
-    else:
-        new_reduced_joint = reduced_joint
-        new_state_idxs = reduced_joint.new_state_idxs
-        new_values = reduced_joint.new_values
+    new_reduced_joint, new_state_idxs, new_values = collapse_factor_labels(
+        model, reduced_joint, evidence)
     reduced_variables = reduced_joint.variables
 
     if False:
-        # compute partitioning statistics
-        import vtool as vt
-        vals, idxs = vt.group_indices(new_reduced_joint.values.ravel())
-        #groupsize = list(map(len, idxs))
-        #groupassigns = ut.unflat_vecmap(new_reduced_joint.assignment, idxs)
-        all_states = new_reduced_joint._row_labels(asindex=True)
-        clusterstats = [tuple(sorted(list(ut.dict_hist(a).values()))) for a in all_states]
-        grouped_vals = ut.group_items(new_reduced_joint.values.ravel(), clusterstats)
-
-        #probs_assigned_to_clustertype = [(
-        #    sorted(np.unique(np.array(b).round(decimals=5)).tolist())[::-1], a)
-        #    for a, b in grouped_vals.items()]
-        probs_assigned_to_clustertype = [(
-            ut.dict_hist(np.array(b).round(decimals=5)), a)
-            for a, b in grouped_vals.items()]
-        sortx = ut.argsort([max(c[0].keys()) for c in probs_assigned_to_clustertype])
-        probs_assigned_to_clustertype = ut.take(probs_assigned_to_clustertype, sortx)
-
-        # This list of 2-tuples with the first item being the unique
-        # probabilies that are assigned to a cluster type along with the number
-        # of times they were assigned. A cluster type is the second item. Every
-        # number represents how many annotations were assigned to a specific
-        # label. The length of that list is the number of total labels.  For
-        # all low scores you will see [[{somenum: 1}, {0: 800}], [1, 1, 1, ... 1]]
-        # indicating that that the assignment of everyone to a different label happend once
-        # where the probability was somenum and a 800 times where the probability was 0.
-
-        #print(sorted([(b, a) for a, b in ut.map_dict_vals(sum, x)]).items())
-        #z = sorted([(b, a) for a, b in ut.map_dict_vals(sum, grouped_vals).items()])
-        print(ut.repr2(probs_assigned_to_clustertype, nl=2, precision=2, sorted_=True))
-
-        #group_numperlbl = [
-        #    [sorted(list(ut.dict_hist(ut.get_list_column(a, 1)).values())) for a in assigns]
-        #    for assigns in groupassigns]
-
-    #import utool
-    #utool.embed()
+        report_partitioning_statistics(new_reduced_joint)
 
     #isnonzero = (new_reduced_joint.values.ravel() > 0)
     #new_state_idxs = new_reduced_joint.assignment(np.where(isnonzero)[0])
     #new_values = new_reduced_joint.values.ravel()[isnonzero]
 
-    if not isinstance(reduced_joint, ApproximateFactor):
-        max_marginals = {}
-        for i, var in enumerate(query_vars):
-            one_out = query_vars[:i] + query_vars[i + 1:]
-            max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
-            # max_marginals[var] = joint2.maximize(one_out, inplace=False)
-        factor_list = max_marginals.values()
-    else:
-        factor_list = []
+    #if not isinstance(reduced_joint, pgm_ext.ApproximateFactor):
+    max_marginals = {}
+    for i, var in enumerate(query_vars):
+        one_out = query_vars[:i] + query_vars[i + 1:]
+        max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
+        # max_marginals[var] = joint2.maximize(one_out, inplace=False)
+    factor_list = max_marginals.values()
+    #else:
+    #    factor_list = []
 
     # Now find the most likely state
     sortx = new_values.argsort()[::-1]
     sort_new_state_idxs = new_state_idxs.take(sortx, axis=0)
     sort_new_values = new_values.take(sortx)
     sort_new_states = list(zip(*[
-        ut.dict_take(model.var2_cpd[var].statename_dict[var], idx)
+        ut.dict_take(model.statename_dict[var], idx)
         for var, idx in
         zip(reduced_variables, sort_new_state_idxs.T)]))
-    #sort_new_states = list(zip(*[ut.dict_take(reduced_joint.statename_dict[var], idx)
-    #                             for var, idx in
-    #                             zip(reduced_variables, sort_new_state_idxs.T)]))
 
     # Better map assignment based on knowledge of labels
     map_assign = dict(zip(reduced_variables, sort_new_states[0]))
@@ -660,6 +614,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
         'factor_list': factor_list,
         'top_assignments': top_assignments,
         'map_assign': map_assign,
+        'method': method,
     }
     return query_results
 
@@ -836,7 +791,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         show_prior = False
     else:
         ignore_prior_with_ttype = []
-        show_prior = True
+        #show_prior = True
+        show_prior = False
 
     dpy = 5
     dbx, dby = (20, 20)
@@ -926,8 +882,6 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             evidence_text = cpd.variable_statenames[evidence[variable]]
             if isinstance(evidence_text, int):
                 evidence_text = '%d/%d' % (evidence_text + 1, cpd.variable_card)
-            #import utool
-            #utool.embed()
             evidence_tas.append(dict(text=evidence_text, pos=pos, color=color, **_takw1))
         if show_post:
             _takw1 = takw1
@@ -986,7 +940,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     if top_assignments is not None:
         map_assign, map_prob = top_assignments[0]
         if map_assign is not None:
-            title += '\nMAP: ' + map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
+            def word_insert(text):
+                return '' if len(text) == 0 else text + ' '
+            title += '\n%sMAP: ' % (word_insert(kwargs.get('method', '')))
+            title += map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
     if kwargs.get('show_title', True):
         pt.set_figtitle(title, size=14)
 
