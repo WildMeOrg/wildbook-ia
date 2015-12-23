@@ -37,7 +37,7 @@ class ApproximateFactor(object):
         >>> print(result)
     """
     @classmethod
-    def from_sampled(cls, sampled, variables=None):
+    def from_sampled(cls, sampled, variables=None, statename_dict=None):
         """
         convert sampled states into an approximate factor
         """
@@ -46,7 +46,7 @@ class ApproximateFactor(object):
         state_idxs = np.array([[item.state for item in row] for row in
                                      sampled[variables].values])
         weights = sampled['_weight']
-        phi = cls(state_idxs, weights, variables)
+        phi = cls(state_idxs, weights, variables, statename_dict)
         return phi
 
     def __init__(self, state_idxs, weights, variables, statename_dict=None):
@@ -129,12 +129,18 @@ class ApproximateFactor(object):
         phi.state_idxs = phi.state_idxs.T[index_to_keep].T
 
         if True:
-            phi.collapse()
+            phi.consolidate()
 
         if not inplace:
             return phi
 
-    def collapse(self, inplace=False):
+    def _compute_unique_state_ids(self):
+        import vtool as vt
+        data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
+        #data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, self.state_idxs))))
+        return data_ids
+
+    def consolidate(self, inplace=False):
         """ removes duplicate entries
 
         Example:
@@ -145,7 +151,7 @@ class ApproximateFactor(object):
             >>> variables = ['v1', 'v2', 'v3']
             >>> self = ApproximateFactor(state_idxs, weights, variables)
             >>> inplace = False
-            >>> phi = self.collapse(inplace)
+            >>> phi = self.consolidate(inplace)
             >>> print(phi)
             +------+------+------+-----------------------+
             | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |
@@ -158,16 +164,20 @@ class ApproximateFactor(object):
 
         phi = self if inplace else self.copy()
 
-        data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs))))
+        data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
         unique_ids, groupxs = vt.group_indices(data_ids)
-        #print('Collapsed %r states into %r states' % (len(data_ids), len(unique_ids),))
-        # Sum the values in the cpd to marginalize the duplicate probs
-        # Take only the unique rows under this induced labeling
-        unique_tmp_groupxs = np.array([gxs[0] for gxs in groupxs])
-        self.state_idxs = self.state_idxs.take(unique_tmp_groupxs, axis=0)
-        self.weights = np.array([
-            g.sum() for g in vt.apply_grouping(self.weights, groupxs)
-        ])
+        #assert len(unique_ids) == len(np.unique(vt.compute_unique_data_ids_(list(map(tuple, phi.state_idxs)))))
+        if len(data_ids) != len(unique_ids):
+            # Sum the values in the cpd to marginalize the duplicate probs
+            # Take only the unique rows under this induced labeling
+            unique_tmp_groupxs = np.array([gxs[0] for gxs in groupxs])
+            self.state_idxs = self.state_idxs.take(unique_tmp_groupxs, axis=0)
+            self.weights = np.array([
+                g.sum() for g in vt.apply_grouping(self.weights, groupxs)
+            ])
+            #print('[pgm] Consolidated %r states into %r states' % (len(data_ids), len(unique_ids),))
+        #else:
+        #    print('[pgm] Cannot consolidated %r unique states' % (len(data_ids),))
 
         if not inplace:
             return phi

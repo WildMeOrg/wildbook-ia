@@ -409,7 +409,8 @@ def collapse_factor_labels(model, reduced_joint, evidence):
     if isinstance(reduced_joint, pgm_ext.ApproximateFactor):
         new_reduced_joint = pgm_ext.ApproximateFactor(new_state_idxs,
                                                       new_values,
-                                                      reduced_variables)
+                                                      reduced_variables,
+                                                      statename_dict=reduced_joint.statename_dict)
     else:
         # hack into a new joint factor (that is the same size as the reduced_joint)
         new_reduced_joint = reduced_joint.copy()
@@ -492,12 +493,66 @@ def compute_reduced_joint(model, query_vars, evidence, method):
         print('query_states = %r' % (query_states,))
         # Try to approximatly sample the map inference
         infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
+
+        # The markov blanket of a name node in our network
+        # can be quite large. It includes all other names.
+
+        infr = pgmpy.inference.Sampling.GibbsSampling(model)
+        import utool
+        utool.embed()
+
         #infr = pgmpy.inference.Sampling.GibbsSampling()
+        #infr._get_kernel_from_bayesian_model(model)
+
         evidence_ = [pgmpy.inference.Sampling.State(*item)
                      for item in evidence.items()]
+
+        # TODO: apply hoffding and chernoff bounds
+        delta = .1  # desired probability of error
+        eps = .2  # desired error bound
+
+        u = 1 / (2 ** len(evidence))  # upper bound on cpd entries of evidence
+        k = len(evidence)
+        gamma = (4 * (1 + eps) / (eps ** 2)) * np.log(2 / delta)
+
+        thresh = gamma * (u ** k)
+
+        # We are observing the leaves of this network, which means
+        # we are effectively sampling from the prior distribution
+        # when using forward sampling.
+
+        Py = 1 / query_states
+        Py_hueristic = 1 / (4 ** len(query_vars))
+        M_hoffding = (np.log(2 / delta) / (2 * eps ** 2))
+        M_chernoff = 3 * (np.log(2 / delta) / (Py * eps ** 2))
+        M_chernoff_hueristic = 3 * (np.log(2 / delta) / (Py_hueristic * eps ** 2))
+        hueristic_size = 2 ** (len(query_vars) + 2)
+        size = min(100000, max(hueristic_size, 128))
+        print('\n-----')
+        print('u = %r' % (u,))
+        print('thresh = %r' % (thresh,))
+        print('k = %r' % (k,))
+        print('gamma = %r' % (gamma,))
+        print('M_chernoff_hueristic = %r' % (M_chernoff_hueristic,))
+        print('hueristic_size = %r' % (hueristic_size,))
+        print('M_hoffding = %r' % (M_hoffding,))
+        print('M_chernoff = %r' % (M_chernoff,))
+        print('size = %r' % (size,))
+        #np.log(2 / .1) / (2 * (.2 ** 2))
+
         sampled = infr.likelihood_weighted_sample(
-            evidence=evidence_, size=min(500, query_states * 20))
-        reduced_joint = pgm_ext.ApproximateFactor.from_sampled(sampled, query_vars)
+            evidence=evidence_, size=size)
+        reduced_joint = pgm_ext.ApproximateFactor.from_sampled(sampled,
+                                                               query_vars,
+                                                               statename_dict=model.statename_dict)
+        #self = reduced_joint  # NOQA
+        #arr = self.state_idxs  # NOQA
+        #import utool
+        #utool.embed()
+        num_raw_states = len(reduced_joint.state_idxs)
+        reduced_joint.consolidate()
+        num_unique_states = len(reduced_joint.state_idxs)
+        print('[pgm] %r / %r initially sampled states are unique' % (num_unique_states, num_raw_states,))
         reduced_joint.normalize()
         reduced_joint.reorder()
     elif method == 'varelim':
@@ -579,7 +634,6 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
     #new_state_idxs = new_reduced_joint.assignment(np.where(isnonzero)[0])
     #new_values = new_reduced_joint.values.ravel()[isnonzero]
 
-    #if not isinstance(reduced_joint, pgm_ext.ApproximateFactor):
     max_marginals = {}
     for i, var in enumerate(query_vars):
         one_out = query_vars[:i] + query_vars[i + 1:]
@@ -826,7 +880,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
 
         def get_name_color(phi):
             order = phi.values.argsort()[::-1]
-            dist_next = phi.values[order[0]] - phi.values[order[1]]
+            if len(order) < 2:
+                dist_next = phi.values[order[0]]
+            else:
+                dist_next = phi.values[order[0]] - phi.values[order[1]]
             dist_total = (phi.values[order[0]])
             confidence = (dist_total * dist_next) ** (2.5 / 4)
             #print('confidence = %r' % (confidence,))

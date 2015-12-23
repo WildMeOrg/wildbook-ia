@@ -140,7 +140,9 @@ def classify_k(cfg={}):
     full_evidence = score_evidence.tolist()
 
     factor_list = query_results['factor_list']
-    soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list]
+    using_soft = False
+    if using_soft:
+        soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list]
 
     for _ in range(num_iter):
         print('\n\n ---------- \n\n')
@@ -162,7 +164,7 @@ def classify_k(cfg={}):
                 score_evidence2[x] = force_evidence
         print('score_evidence2 = %r' % (score_evidence2,))
 
-        if 0:
+        if using_soft:
             # Demo with soft evidence
             model, evidence, query_results2 = test_model(
                 num_annots=num_annots2, num_names=num_annots2,
@@ -189,7 +191,8 @@ def classify_k(cfg={}):
                 verbose=True
             )
         factor_list2 = query_results2['factor_list']
-        soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list2]
+        if using_soft:
+            soft_evidence1 = [dict(zip(x.statenames[0], x.values)) for x in factor_list2]
         score_evidence1 += ([None] * len(score_evidence2))
         full_evidence = full_evidence + score_evidence2
         num_annots2 += 1
