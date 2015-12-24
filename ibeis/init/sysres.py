@@ -416,9 +416,14 @@ def ensure_pz_mtest():
     """
     Ensures that you have the PZ_MTEST dataset
 
+    CommandLine:
+        python -m ibeis.init.sysres --exec-ensure_pz_mtest
+        python -m ibeis --tf ensure_pz_mtest
+
     Example:
-        >>> # DISABLE DOCTEST
-        >>> pass
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> ensure_pz_mtest()
     """
     from ibeis import sysres
     import utool
@@ -441,6 +446,7 @@ def ensure_pz_mtest():
         ibs.set_name_texts([nid], ['lostname'])
 
     # hack in some tags
+    print('Hacking in some tags')
     foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74, 80, 83, 91, 97, 103, 107, 109, 119]
     mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))

@@ -3,7 +3,7 @@
 Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut  # NOQA
 import six
 import itertools
@@ -11,8 +11,7 @@ from ibeis.expt import experiment_configs
 from ibeis.expt import cfghelpers
 from ibeis.model import Config
 from ibeis.init import filter_annots
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[expt_helpers]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[expt_helpers]')
 
 QUIET = ut.QUIET
 

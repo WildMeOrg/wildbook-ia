@@ -56,7 +56,7 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_qreq_(t=None, **kwargs):
+def testdata_qreq_(t=None, p=None, **kwargs):
     r"""
     Args:
         t (None): (default = None)
@@ -77,6 +77,8 @@ def testdata_qreq_(t=None, **kwargs):
         >>> qreq_ = testdata_qreq_(t)
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
+    if p is not None:
+        t = p
     if t is None:
         t = ['default']
     ibs, qaids, daids = testdata_expanded_aids(**kwargs)
