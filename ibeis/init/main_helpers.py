@@ -56,7 +56,7 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_qreq_(t=None, p=None, **kwargs):
+def testdata_qreq_(t=None, p=None, a=None, **kwargs):
     r"""
     Args:
         t (None): (default = None)
@@ -65,7 +65,7 @@ def testdata_qreq_(t=None, p=None, **kwargs):
         default_qaids, a, defaultdb, ibs, verbose, return_annot_info
 
     Returns:
-        QueryRequest: qreq_ -  query request object with hyper-parameters
+        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
 
     CommandLine:
         python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3
@@ -81,13 +81,13 @@ def testdata_qreq_(t=None, p=None, **kwargs):
         t = p
     if t is None:
         t = ['default']
-    ibs, qaids, daids = testdata_expanded_aids(**kwargs)
+    ibs, qaids, daids = testdata_expanded_aids(a=a, **kwargs)
     pcfgdict = testdata_pipecfg(t=t)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     return qreq_
 
 
-def testdata_cm(defaultdb=None, default_qaids=None):
+def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None):
     r"""
     CommandLine:
         python -m ibeis.init.main_helpers --test-testdata_cm
@@ -102,7 +102,7 @@ def testdata_cm(defaultdb=None, default_qaids=None):
         >>> cm.show_single_annotmatch(qreq_, 2)
         >>> ut.show_if_requested()
     """
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids)
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p)
     qaids = qreq_.get_external_qaids()
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
@@ -110,8 +110,8 @@ def testdata_cm(defaultdb=None, default_qaids=None):
     return cm, qreq_
 
 
-def testdata_cmlist(defaultdb=None, default_qaids=None):
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids)
+def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     return cm_list, qreq_
 

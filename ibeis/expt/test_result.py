@@ -2002,6 +2002,7 @@ class TestResult(object):
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift,fg
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True
 
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2

@@ -71,7 +71,10 @@ class DistinctivnessNormalizer(ut.Cachable):
         dstcnvs_normer.max_distance_sqrd = dstcnvs_normer.max_distance ** 2
         dstcnvs_normer.cachedir = cachedir
         dstcnvs_normer.species = species
-        dstcnvs_normer.flann_params = {'algorithm': 'kdtree', 'trees': 8, 'checks': 800}
+        dstcnvs_normer.flann_params = {
+            'algorithm': 'kdtree',
+            'trees': 8,
+            'checks': 800}
         dstcnvs_normer.checks = dstcnvs_normer.flann_params.get('checks')
         dstcnvs_normer.cores  = dstcnvs_normer.flann_params.get('cores', 0)
 
@@ -131,8 +134,10 @@ class DistinctivnessNormalizer(ut.Cachable):
         publish_fpath = join(publish_dpath, archive_fname)
         if ut.checkpath(publish_fpath, verbose=True):
             print('Overwriting model')
-            print('old nBytes(publish_fpath) = %s' % (ut.get_file_nBytes_str(publish_fpath),))
-            print('new nBytes(archive_fpath) = %s' % (ut.get_file_nBytes_str(archive_fpath),))
+            print('old nBytes(publish_fpath) = %s' %
+                  (ut.get_file_nBytes_str(publish_fpath),))
+            print('new nBytes(archive_fpath) = %s' %
+                  (ut.get_file_nBytes_str(archive_fpath),))
         else:
             print('Publishing model')
         print('publish_fpath = %r' % (publish_fpath,))
@@ -142,7 +147,8 @@ class DistinctivnessNormalizer(ut.Cachable):
         flann_fpath = dstcnvs_normer.get_fpath(cachedir, ext='.flann')
         return flann_fpath
 
-    def exists(dstcnvs_normer, cachedir=None, verbose=True, need_flann=False, *args, **kwargs):
+    def exists(dstcnvs_normer, cachedir=None, verbose=True, need_flann=False,
+               *args, **kwargs):
         r"""
         Args:
             cachedir (str): cache directory
@@ -175,13 +181,15 @@ class DistinctivnessNormalizer(ut.Cachable):
         # Inherited method
         cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         kwargs['ignore_keys'] = ['flann']
-        super(DistinctivnessNormalizer, dstcnvs_normer).load(cachedir, *args, **kwargs)
+        super(DistinctivnessNormalizer, dstcnvs_normer).load(cachedir, *args,
+                                                             **kwargs)
         dstcnvs_normer.load_or_build_flann(cachedir, verbose, *args, **kwargs)
         ## Load Flann
         #if ut.VERBOSE:
         #    print('[nnindex] load_success = %r' % (load_success,))
 
-    def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args, **kwargs):
+    def load_or_build_flann(dstcnvs_normer, cachedir=None, verbose=True, *args,
+                            **kwargs):
         import pyflann
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
@@ -191,7 +199,8 @@ class DistinctivnessNormalizer(ut.Cachable):
                 assert dstcnvs_normer.flann._FLANN__curindex is not None
                 #load_success = True
             except Exception as ex:
-                ut.printex(ex, '... cannot load distinctiveness flann', iswarning=True)
+                ut.printex(ex, '... cannot load distinctiveness flann',
+                           iswarning=True)
                 dstcnvs_normer.rebuild(cachedir)
         else:
             dstcnvs_normer.ensure_flann(cachedir)
@@ -207,7 +216,8 @@ class DistinctivnessNormalizer(ut.Cachable):
         # Inherited method
         kwargs['ignore_keys'] = ['flann']
         # Save everything but flann
-        super(DistinctivnessNormalizer, dstcnvs_normer).save(cachedir, *args, **kwargs)
+        super(DistinctivnessNormalizer, dstcnvs_normer).save(cachedir, *args,
+                                                             **kwargs)
         # Save flann
         if dstcnvs_normer.flann is not None:
             dstcnvs_normer.save_flann(cachedir, verbose=verbose)
@@ -235,7 +245,8 @@ class DistinctivnessNormalizer(ut.Cachable):
             dstcnvs_normer.rebuild(cachedir)
             dstcnvs_normer.save_flann(cachedir)
 
-    def get_distinctiveness(dstcnvs_normer, qfx2_vec, dcvs_K=2, dcvs_power=1.0, dcvs_max_clip=1.0, dcvs_min_clip=0.0):
+    def get_distinctiveness(dstcnvs_normer, qfx2_vec, dcvs_K=2, dcvs_power=1.0,
+                            dcvs_max_clip=1.0, dcvs_min_clip=0.0):
         r"""
         Args:
             qfx2_vec (ndarray):  mapping from query feature index to vec
@@ -277,7 +288,8 @@ class DistinctivnessNormalizer(ut.Cachable):
 
         """
         #ut.embed()
-        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), (
+            'dcvs_K=%r' % (dcvs_K,))
         if len(qfx2_vec) == 0:
             #(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
             qfx2_idx  = np.empty((0, dcvs_K), dtype=np.int32)
@@ -285,17 +297,21 @@ class DistinctivnessNormalizer(ut.Cachable):
         else:
             # perform nearest neighbors
             (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.flann.nn_index(
-                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
+                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks,
+                cores=dstcnvs_normer.cores)
             # Ensure that distance returned are between 0 and 1
             #qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
-            qfx2_dist = np.sqrt(qfx2_dist_sqrd.astype(np.float64)) / hstypes.VEC_PSEUDO_MAX_DISTANCE
+            qfx2_dist = (np.sqrt(qfx2_dist_sqrd.astype(np.float64)) /
+                         hstypes.VEC_PSEUDO_MAX_DISTANCE)
             #qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
             #qfx2_dist =
             #qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
         if dcvs_K == 1:
             qfx2_dist = qfx2_dist[:, None]
         norm_dist = qfx2_dist.T[dcvs_K - 1].T
-        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip)
+        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, dcvs_power,
+                                                         dcvs_max_clip,
+                                                         dcvs_min_clip)
         return qfx2_dstncvs
 
 
@@ -346,7 +362,8 @@ def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
     sortx = dstncvs.argsort()
     #pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])
     pt.plt.sca(ax1)
-    pt.colorline(np.arange(len(sortx)), dstncvs[sortx], cmap=pt.plt.get_cmap(cmapstr))
+    pt.colorline(np.arange(len(sortx)), dstncvs[sortx],
+                 cmap=pt.plt.get_cmap(cmapstr))
     pt.gca().set_xlim(0, len(sortx))
     pt.dark_background()
     pt.plt.sca(ax2)
@@ -396,7 +413,9 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
     species = unique_species[0]
     global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
     cachedir = global_distinctdir
-    dstcnvs_normer = request_species_distinctiveness_normalizer(species, cachedir, verbose=False)
+    dstcnvs_normer = request_species_distinctiveness_normalizer(species,
+                                                                cachedir,
+                                                                verbose=False)
     return dstcnvs_normer
 
 
@@ -417,7 +436,8 @@ def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=F
         print(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
         print('Loaded distinctivness normalizer')
         #dstcnvs_normer.ensure_flann(cachedir)
-        assert dstcnvs_normer.exists(cachedir, need_flann=True), 'normalizer should have been downloaded, but it doesnt exist'
+        assert dstcnvs_normer.exists(cachedir, need_flann=True), (
+            'normalizer should have been downloaded, but it doesnt exist')
         DISTINCTIVENESS_NORMALIZER_CACHE[species] = dstcnvs_normer
     return dstcnvs_normer
 
@@ -532,7 +552,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
 
     # Get distinctivness over all params
     dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
-                    for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
+                    for cfgdict in ut.ProgIter(cfgdict_list, lbl='get dstcvns')]
 
     #fgweights = ibs.get_annot_fgweights([aid])[0]
     #dstncvs_list = [x * fgweights for x in dstncvs_list]
@@ -612,7 +632,8 @@ def dev_train_distinctiveness(species=None):
             # Keep only a certain number of annots for distinctiveness mapping
             aid_list_ = ut.listclip(aid_list, max_annots)
             print('total num named annots = %r' % (sum(num_annots_list)))
-            print('training distinctiveness using %d/%d singleton annots' % (len(aid_list_), len(aid_list)))
+            print('training distinctiveness using %d/%d singleton annots' %
+                  (len(aid_list_), len(aid_list)))
             # vec
             # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)

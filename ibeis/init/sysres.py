@@ -421,10 +421,11 @@ def ensure_pz_mtest():
         python -m ibeis --tf ensure_pz_mtest
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
         >>> ensure_pz_mtest()
     """
+    print('ensure_pz_mtest')
     from ibeis import sysres
     import utool
     workdir = sysres.get_workdir()

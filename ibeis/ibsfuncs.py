@@ -5979,9 +5979,33 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
 
 @register_ibs_method
 def get_annot_lazy_dict(ibs, aid, config2_=None):
-    import ibeis.control.IBEISControl
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aid (int):  annotation id
+        config2_ (dict): (default = None)
+
+    Returns:
+        ut.LazyDict: metadata
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --exec-get_annot_lazy_dict --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid = '?'
+        >>> config2_ = None
+        >>> metadata = get_annot_lazy_dict(ibs, aid, config2_)
+        >>> result = ('metadata = %s' % (ut.repr2(metadata),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     from ibeis.viz.interact import interact_chip
-    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
     metadata = ut.LazyDict({
         'aid': aid,
         'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],

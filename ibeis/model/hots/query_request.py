@@ -21,12 +21,16 @@ import utool as ut
 import numpy as np
 import warnings
 #from ibeis.model.hots import hots_query_result
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
+(print, rrr, profile) = ut.inject2(__name__, '[qreq]')
 
 VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qreq', '--verbqreq'))
 
 
 def testdata_newqreq(defaultdb):
+    """
+    Returns:
+        (ibeis.IBEISController, list, list)
+    """
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     qaid_list = [1]
@@ -35,6 +39,10 @@ def testdata_newqreq(defaultdb):
 
 
 def testdata_qreq():
+    """
+    Returns:
+        (ibeis.QueryRequest, ibeis.IBEISController)
+    """
     import ibeis
     qaid_list = [1, 2]
     daid_list = [1, 2, 3, 4, 5]
@@ -49,6 +57,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             use_memcache=True, query_cfg=None):
     """
     ibeis entry point to create a new query request object
+
+    Returns:
+        ibeis.QueryRequest
 
     CommandLine:
         python -m ibeis.model.hots.query_request --test-new_ibeis_query_request
@@ -228,6 +239,17 @@ class QueryRequest(object):
                           _indexer_request_params):
         """
         old way of calling new
+
+        Args:
+            qaid_list (list):
+            daid_list (list):
+            qparams (QueryParams):  query hyper-parameters
+            qresdir (str):
+            ibs (ibeis.IBEISController):  image analysis api
+            _indexer_request_params (dict):
+
+        Returns:
+            ibeis.QueryRequest
         """
         qreq_ = cls()
         qreq_.ibs = ibs
@@ -251,7 +273,13 @@ class QueryRequest(object):
         qreq_.internal_qaids_mask = None
         qreq_.internal_daids_mask = None
         # Loaded Objects
-        qreq_.ibs = None  # Handle to parent IBEIS Controller
+        # Handle to parent IBEIS Controller
+        # jedi type hinting. Need to have non-obvious condition
+        try:
+            qreq_.ibs = None   # type: ibeis.IBEISController
+        except Exception:
+            import ibeis
+            qreq_.ibs = ibeis.IBEISController()   # type: ibeis.IBEISController
         qreq_.indexer = None  # The nearest neighbor mechanism
         qreq_.normalizer = None  # The scoring normalization mechanism
         qreq_.dstcnvs_normer = None

@@ -74,7 +74,6 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
         >>> show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)
         >>> #cm.show_single_annotmatch(qreq_, daid)
         >>> ut.show_if_requested()
-
     """
     pass
     # breaking
@@ -492,6 +491,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
             self.selected_aids = selected_aids
             self._nids = nids if nids is not None else []
             self._aids = aids if aids is not None else []
+            self.with_images = True
             self._aids2 = None
 
         def update_netx_graph(self):
@@ -518,7 +518,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
             from ibeis.viz.viz_graph import viz_netx_chipgraph
             self.update_netx_graph()
             self.pos = viz_netx_chipgraph(self.ibs, self.netx_graph,
-                                          fnum=self.fnum, with_images=True,
+                                          fnum=self.fnum, with_images=self.with_images,
                                           zoom=zoom)
             self.ax = pt.gca()
 
@@ -533,6 +533,10 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
             index = self.aid2_index[aid]
             artist = ax.artists[index]
             artist.patch.set_facecolor(color)
+
+        def toggle_images(self):
+            self.with_images = not self.with_images
+            self.show_page()
 
         def toggle_selected_aid(self, aid):
             if aid in self.selected_aids:
@@ -622,6 +626,12 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[], zoo
                         ibs, aid, refresh_func=refresh_func,
                         with_interact_name=False,
                         config2_=config2_)
+                    self.show_popup_menu(options, event)
+            else:
+                if self.event.button == 3:
+                    options = [
+                        ('Toggle images', self.toggle_images),
+                    ]
                     self.show_popup_menu(options, event)
 
     self = NameGraphInteraction(ibs, nids, aids, selected_aids=selected_aids)

@@ -416,34 +416,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
 
-    #def as_qres2(cm, qreq_):
-    #    qres = qreq_.make_empty_query_result(cm.qaid)
-    #    #ut.assert_eq(qaid, cm.qaid)
-    #    qres.filtkey_list = cm.fsv_col_lbls
-    #    qres.aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
-    #    qres.aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
-    #    qres.aid2_fs    = dict(zip(cm.daid_list, [fsv.prod(axis=1) for fsv in cm.fsv_list]))
-    #    qres.aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
-    #    qres.aid2_score = dict(zip(cm.daid_list, cm.score_list))
-    #    qres.aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-    #    qres.aid2_prob  = None if cm.prob_list is None else dict(zip(cm.daid_list, cm.prob_list))
-    #    return qres
-
-    #def as_qres(cm, qreq_):
-    #    from ibeis.model.hots import scoring
-    #    assert qreq_ is not None
-    #    # Perform final scoring
-    #    # TODO: only score if already unscored
-    #    score_method = qreq_.qparams.score_method
-    #    # TODO: move scoring part to pipeline
-    #    scoring.score_chipmatch_list(qreq_, [cm], score_method)
-    #    # Normalize scores if requested
-    #    if qreq_.qparams.score_normalization:
-    #        normalizer = qreq_.normalizer
-    #        cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-    #    qres = cm.as_qres2(qreq_)
-    #    return qres
-
     @classmethod
     def from_json(cls, json_str):
         r"""
@@ -668,6 +640,42 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     #------------------
     # Getter Functions
     #------------------
+
+    def get_flat_fm_info(cm, flags=None):
+        r"""
+        Returns:
+            dict: info_
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --exec-get_flat_fm_info --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> info_ = cm.get_flat_fm_info()
+            >>> result = ('info_ = %s' % (ut.repr3(info_),))
+            >>> print(result)
+        """
+        import vtool as vt
+        if flags is None:
+            flags = [True] * len(cm.daid_list)
+            # flags = cm.score_list > 0
+        # Compress to desired info
+        fsv_list  = ut.compress(cm.fsv_list, flags)
+        fm_list   = ut.compress(cm.fm_list, flags)
+        daid_list = ut.compress(cm.daid_list, flags)
+        # Flatten on a feature level
+        len_list = [fm.shape[0] for fm in fm_list]
+        info_ = {}
+        nfilt = len(cm.filtkey_list)
+        info_['fsv'] = vt.safe_cat(fsv_list, axis=0, default_shape=(0, nfilt)),
+        info_['fm'] = vt.safe_cat(fm_list, axis=0, default_shape=(0, 2), default_dtype=hstypes.FM_DTYPE),
+        info_['aid1'] = np.full(sum(len_list), cm.qaid, dtype=hstypes.INDEX_TYPE),
+        info_['aid2'] = vt.safe_cat([np.array([daid] * n, dtype=hstypes.INDEX_TYPE) for daid, n in zip(daid_list, len_list)],
+                                    default_shape=(0,), default_dtype=hstypes.INDEX_TYPE),
+        return info_
 
     def get_num_feat_score_cols(cm):
         return len(cm.fsv_col_lbls)
@@ -987,12 +995,10 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return top_truth_aids
 
     def get_top_gf_aids(cm, ibs, ntop=None):
-        import ibeis
-        return cm.get_top_truth_aids(ibs, ibeis.const.TRUTH_NOT_MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.TRUTH_NOT_MATCH, ntop)
 
     def get_top_gt_aids(cm, ibs, ntop=None):
-        import ibeis
-        return cm.get_top_truth_aids(ibs, ibeis.const.TRUTH_MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.TRUTH_MATCH, ntop)
 
     def get_annot_scores(cm, daids, score_method=None):
         #idx_list = [cm.daid2_idx.get(daid, None) for daid in daids]
@@ -1104,7 +1110,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def get_rawinfostr(cm):
         def varinfo(varname, onlyrepr=False, canshowrepr=True, cm=cm):
-            import utool as ut
             varval = getattr(cm, varname.replace('cm.', ''))
             show_if_smaller_than = 7
             if canshowrepr:

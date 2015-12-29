@@ -16,7 +16,7 @@ EPS = 1E-8
 
 
 def _register_nn_normalized_weight_func(func):
-    """
+    r"""
     Decorator for weighting functions
 
     Registers a nearest neighbor normalized weighting
@@ -48,7 +48,7 @@ def _register_misc_weight_func(func):
 
 @_register_nn_simple_weight_func
 def const_match_weighter(nns_list, nnvalid0_list, qreq_):
-    """
+    r"""
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -161,7 +161,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
 
 @_register_misc_weight_func
 def distinctiveness_match_weighter(qreq_):
-    """
+    r"""
     TODO: finish intergration
 
     Example:
@@ -184,7 +184,7 @@ def distinctiveness_match_weighter(qreq_):
 
 
 def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
-    """
+    r"""
     Generic function to weight nearest neighbors
 
     ratio, lnbnn, and other nearest neighbor based functions use this
@@ -192,6 +192,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Args:
         normweight_fn (func): chosen weight function e.g. lnbnn
         nns_list (dict): query descriptor nearest neighbors and distances. (qfx2_nnx, qfx2_dist)
+        nnvalid0_list (list): list of neighbors preflagged as valid
         qreq_ (QueryRequest): hyper-parameters
 
     Returns:
@@ -245,7 +246,8 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 
 def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule,
                      Knorm, qreq_):
-    """ helper applies the normalized weight function to one query annotation
+    r"""
+    helper applies the normalized weight function to one query annotation
 
     Args:
         normweight_fn (func):  chosen weight function e.g. lnbnn
@@ -301,7 +303,8 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule,
 
 
 def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
-    """ helper normalizers for 'name' normalizer_rule
+    r"""
+    helper normalizers for 'name' normalizer_rule
 
     Args:
         qaid (int): query annotation id
@@ -345,13 +348,15 @@ def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
 
 
 def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
-    """ Helper func that allows matches only to the first result for a name
+    r"""
+    Helper func that allows matches only to the first result for a name
 
-    Each query feature finds its K matches and Kn normalizing matches. These are the
-    candidates from which it can choose a set of matches and a single normalizer.
+    Each query feature finds its K matches and Kn normalizing matches. These
+    are the candidates from which it can choose a set of matches and a single
+    normalizer.
 
-    A normalizer is marked as invalid if it belongs to a name that was also in its
-    feature's candidate matching set.
+    A normalizer is marked as invalid if it belongs to a name that was also in
+    its feature's candidate matching set.
 
     Args:
         qfx2_topnid (ndarray): marks the names a feature matches
@@ -396,25 +401,12 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
         print(ut.doctest_repr(qfx2_normnid, 'qfx2_normnid', verbose=False))
         print(ut.doctest_repr(qfx2_topnid, 'qfx2_topnid', verbose=False))
     """
-    # The normalizer should be from a name that is not in any of the top
-    # matches if possible. If not possible it should be from the name with the
-    # highest k value.
-
-    #old_qfx2_invalid = vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid, comp_op=np.equal, logic_op=np.logical_or)
-    # Find the positions in the normalizers that could be valid
-    # (assumes Knorm > 1)
-    # IE positions in qfx2_normnid that appear anywhere in the corresponding
-    # row of qfx2_topnid
-    # TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), 'Normalizers are potential matches. Increase Knorm'
-
-    #qfx2_invalid = np.logical_or.reduce([col1[:, None] == qfx2_normnid for col1 in qfx2_topnid.T])
-    #qfx2_valid = np.logical_not(qfx2_invalid)
-    qfx2_valid = np.logical_and.reduce([col1[:, None] != qfx2_normnid for col1 in qfx2_topnid.T])
-
-    #if qnid is not None:
+    # TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), (
+    #    'Normalizers are potential matches. Increase Knorm')
+    qfx2_valid = np.logical_and.reduce([col1[:, None] != qfx2_normnid
+                                        for col1 in qfx2_topnid.T])
     # Mark self as invalid, if given that information
     qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
-
     # For each query feature find its best normalizer (using negative indices)
     Knorm = qfx2_normnid.shape[1]
     qfx2_validxs = [np.nonzero(normrow)[0] for normrow in qfx2_valid]
@@ -425,7 +417,7 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
 
 @_register_nn_normalized_weight_func
 def lnbnn_fn(vdist, ndist):
-    """
+    r"""
     Locale Naive Bayes Nearest Neighbor weighting
 
     Example:
@@ -472,7 +464,7 @@ def ratio_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def bar_l2_fn(vdist, ndist):
-    """
+    r"""
     The feature weight is (1 - the euclidian distance
     between the features). The normalizers are unused.
 
@@ -494,7 +486,7 @@ def bar_l2_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def loglnbnn_fn(vdist, ndist):
-    """
+    r"""
     Ignore:
         import vtool as vt
         vt.check_expr_eq('log(d) - log(n)', 'log(d / n)')   # True
@@ -518,7 +510,7 @@ def loglnbnn_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def logratio_fn(vdist, ndist):
-    """
+    r"""
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -537,7 +529,7 @@ def logratio_fn(vdist, ndist):
 
 @_register_nn_normalized_weight_func
 def normonly_fn(vdist, ndist):
-    """
+    r"""
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
@@ -619,7 +611,7 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
 
 
 def test_all_normalized_weights():
-    """
+    r"""
     CommandLine:
         python -m ibeis.model.hots.nn_weights --exec-test_all_normalized_weights
 
@@ -655,7 +647,7 @@ def test_all_normalized_weights():
 
 
 if __name__ == '__main__':
-    """
+    r"""
     python -m ibeis.model.hots.nn_weights --allexamples
     python -m ibeis.model.hots.nn_weights
     """

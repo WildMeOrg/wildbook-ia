@@ -626,7 +626,7 @@ def dev_autogen_explicit_injects():
         '--exec-dev_autogen_explicit_injects')
     import ibeis.control.IBEISControl
     conditional_imports = [
-        modname for modname in ibeis.control.IBEISControl.inject_modnames
+        modname for modname in ibeis.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
         if isinstance(modname, tuple)
     ]
     source_block = ut.autogen_explicit_injectable_metaclass(

@@ -78,6 +78,37 @@ def crftest():
         inference_method=inference_method,
     )
 
+    import opengm
+
+    numVar = 10
+    unaries = np.ones([numVar, 3], dtype=opengm.value_type)
+    gm = opengm.gm(np.ones(numVar, dtype=opengm.label_type) * 3)
+    unary_fids = gm.addFunctions(unaries)
+    gm.addFactors(unary_fids, np.arange(numVar))
+    infParam = opengm.InfParam(
+        workflow=ut.ensure_ascii('(IC)(TTC-I,CC-I)'),
+    )
+    inf = opengm.inference.Multicut(gm, parameter=infParam)
+    visitor = inf.verboseVisitor(printNth=1, multiline=False)
+    inf.infer(visitor)
+    arg = inf.arg()
+
+    # gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])
+    # fid = gm.addFunction(regularizer)
+    # gm.addFactors(fid, gridVariableIndices)
+    # regularizer = opengm.pottsFunction([3, 3], 0.0, beta)
+    # gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])
+    # fid = gm.addFunction(regularizer)
+    # gm.addFactors(fid, gridVariableIndices)
+
+    unaries = np.random.rand(10, 10, 2)
+    potts = opengm.PottsFunction([2, 2], 0.0, 0.4)
+    gm = opengm.grid2d2Order(unaries=unaries, regularizer=potts)
+
+    inf = opengm.inference.GraphCut(gm)
+    inf.infer()
+    arg = inf.arg()
+
 
 def chain_crf():
     from pystruct.datasets import load_letters

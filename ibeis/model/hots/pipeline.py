@@ -2,10 +2,6 @@
 """
 Hotspotter pipeline module
 
-TODO:
-    We need to remove dictionaries from the pipeline
-    We can easily use parallel lists
-
 Module Concepts::
     PREFIXES:
     qaid2_XXX - prefix mapping query chip index to
@@ -23,10 +19,8 @@ Module Concepts::
 
     PIPELINE_VARS::
     nns_list - maping from query chip index to nns
-    {
      * qfx2_idx   - ranked list of query feature indexes to database feature indexes
      * qfx2_dist - ranked list of query feature indexes to database feature indexes
-    }
 
     * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
              = qaid2_nnfiltagg[qaid]
@@ -272,7 +266,11 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
-        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(codename='vsmany', use_k_padding=True, can_match_sameimg=False, can_match_samename=False))
+        >>> qreq_ = ibs.new_query_request(qaids, daids,
+        >>>                               cfgdict=dict(codename='vsmany',
+        >>>                                            use_k_padding=True,
+        >>>                                            can_match_sameimg=False,
+        >>>                                            can_match_samename=False))
         >>> # execute function
         >>> impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
         >>> # verify results
@@ -300,17 +298,6 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     if not can_match_sameimg:
         # slow way of getting contact_aids (now incorporates faster way)
         contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids, daid_list=internal_daids)
-        # Faster way
-        #internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
-        #internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
-        #try:
-        #    contact_aids_list = [
-        #        internal_daids.compress(internal_data_gids == gid)
-        #        for gid in internal_query_gids
-        #    ]
-        #except Exception as ex:
-        #    ut.printex(ex, keys=['internal_qaids', 'internal_daids'])
-        #    raise
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # TODO: flag overlapping keypoints with another annot as likely to
@@ -425,6 +412,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
             'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)thwwvxuhbjayuscx)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1',
         ]
     """
+    from ibeis.model import Config
     internal_daids = qreq_.get_internal_daids()
     internal_qaids = qreq_.get_internal_qaids()
     data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
@@ -435,7 +423,6 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     if HACK_KCFG:
         # hack config so we consolidate different k values
         # (ie, K=2,Knorm=1 == K=1,Knorm=2)
-        from ibeis.model import Config
         nn_cfgstr = Config.NNConfig(**qreq_.qparams).get_cfgstr(
             ignore_keys={'K', 'Knorm', 'use_k_padding'})
     else:
@@ -443,9 +430,10 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
-    nn_mid_cacheid = (
-        data_hashid + nn_cfgstr + feat_cfgstr + flann_cfgstr +
-        ('aug_quryside' if qreq_.qparams.augment_queryside_hack else ''))
+    aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
+                  else '')
+    nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, feat_cfgstr,
+                              flann_cfgstr, aug_cfgstr])
 
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
@@ -553,7 +541,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     Knorm  = qreq_.qparams.Knorm
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
-    num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
+    num_neighbors_list = [(K + Kpad + Knorm) for Kpad in Kpad_list]
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
@@ -650,10 +638,13 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors('testdb1', qaid_list=[1, 2, 3], cfgdict=dict(bar_l2_on=True, fg_on=False))
+        >>> args = plh.testdata_pre_weight_neighbors(
+        >>>     'testdb1', qaid_list=[1, 2, 3], cfgdict=dict(
+        >>>         bar_l2_on=True, fg_on=False))
         >>> ibs, qreq_, nns_list, nnvalid0_list = args
         >>> # execute function
-        >>> filtkey_list, filtweights_list, filtvalids_list = weight_neighbors(qreq_, nns_list, nnvalid0_list)
+        >>> tup = weight_neighbors(qreq_, nns_list, nnvalid0_list)
+        >>> filtkey_list, filtweights_list, filtvalids_list = tup
         >>> nInternAids = len(qreq_.get_internal_qaids())
         >>> nFiltKeys = len(filtkey_list)
         >>> filtweight_depth = ut.depth_profile(filtweights_list)
@@ -664,14 +655,28 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(filtvalid_depth, (nInternAids, nFiltKeys))
         >>> ut.assert_eq(filtvalids_list, [[None, None], [None, None], [None, None]])
         >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.BARL2])
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> verbose = True
+        >>> cm_list = build_chipmatches(
+        >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>>     filtvalids_list, verbose=verbose)
+        >>> cm = cm_list[0]
+        >>> cm.score_csum(qreq_)
+        >>> cm.ishow_analysis(qreq_)
+        >>> ut.show_if_requested()
+
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors('testdb1', codename='vsone', cfgdict=dict(lnbnn_on=False, ratio_on=True, fg_on=False, ratio_thresh=.625))
+        >>> args = plh.testdata_pre_weight_neighbors(
+        >>>     'testdb1', codename='vsone', cfgdict=dict(
+        >>>         lnbnn_on=false, ratio_on=true, fg_on=false,
+        >>>         ratio_thresh=.625))
         >>> ibs, qreq_, nns_list, nnvalid0_list = args
-        >>> # execute function
-        >>> filtkey_list, filtweights_list, filtvalids_list = weight_neighbors(qreq_, nns_list, nnvalid0_list)
+        >>> tup = weight_neighbors(qreq_, nns_list, nnvalid0_list)
+        >>> filtkey_list, filtweights_list, filtvalids_list = tup
         >>> print('filtkey_list = %r' % (filtkey_list,))
         >>> print('filtvalids_list = %r' % (filtvalids_list,))
         >>> nFiltKeys = len(filtkey_list)
@@ -680,7 +685,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> filtvalid_depth = ut.depth_profile(filtvalids_list)
         >>> ut.assert_eq(nInternAids, len(filtweights_list))
         >>> ut.assert_eq(nInternAids, len(filtvalids_list))
-        >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), [nFiltKeys] * nInternAids)
+        >>> target = [nFiltKeys] * nInternAids
+        >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), target)
         >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.RATIO])
         >>> assert filtvalids_list[0][0] is not None
     """
@@ -699,6 +705,11 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     _filtvalid_list  = []
 
     config2_ = qreq_.get_external_data_config2()
+
+    # soft_weights = ['lnbnn', 'normonly', 'bar_l2', 'const', 'borda', 'fg']
+    # for filtname in soft_weights:
+    #     pass
+    # hard_weights = ['ratio']
 
     if config2_.lnbnn_on:
         filtname = 'lnbnn'
