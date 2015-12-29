@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 # LICENCE
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
 from six.moves import zip
-#import itertools
-#if six.PY2:
-#    from functools32 import lru_cache  # Python2.7 support
-#elif six.PY3:
-#    from functools import lru_cache  # Python3 only
 import numpy as np
 from vtool import histogram as htool
 from vtool import keypoint as ktool
@@ -24,11 +19,7 @@ except ImportError as ex:
     cv2.INTER_CUBIC = None
     cv2.BORDER_CONSTANT = None
     cv2.BORDER_REPLICATE = None
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[patch]', DEBUG=False)
-
-
-# Command line switch
-#sys.argv.append('--vecfield')
+(print, rrr, profile) = ut.inject2(__name__, '[patch]')
 
 
 TAU = np.pi * 2  # References: tauday.com
@@ -282,8 +273,6 @@ def test_show_gaussian_patches2(shape=(19, 19)):
         python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,41
         python -m vtool.patch --test-test_show_gaussian_patches2 --show --shape=41,7
 
-
-
     References:
         http://matplotlib.org/examples/mplot3d/surface3d_demo.html
 
@@ -354,8 +343,6 @@ def test_show_gaussian_patches(shape=(19, 19)):
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=17,17
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,41
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,7
-
-
 
     References:
         http://matplotlib.org/examples/mplot3d/surface3d_demo.html
@@ -467,7 +454,9 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
 
 @profile
 def get_unwarped_patches(img, kpts):
-    """ Returns cropped unwarped (keypoint is still elliptical) patch around a keypoint
+    r"""
+    Returns cropped unwarped (keypoint is still elliptical) patch around a
+    keypoint
 
     Args:
         img (ndarray): array representing an image
@@ -499,11 +488,11 @@ def get_unwarped_patches(img, kpts):
 
 
 @profile
-def get_warped_patches(img, kpts,
-                       flags=cv2.INTER_LANCZOS4,
-                       borderMode=cv2.BORDER_REPLICATE,
-                       patch_size=41, use_cpp=False):
-    """ Returns warped (into a unit circle) patch around a keypoint
+def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
+                       borderMode=cv2.BORDER_REPLICATE, patch_size=41,
+                       use_cpp=False):
+    r"""
+    Returns warped (into a unit circle) patch around a keypoint
 
     FIXME:
         there is a slight translation difference in the way Python extracts
@@ -511,21 +500,16 @@ def get_warped_patches(img, kpts,
         TODO: have C++ able to extract color.
 
     Args:
-        img (ndarray): array representing an image
-        kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
-
-    Returns:
-        tuple : (warped_patches, warped_subkpts) the normalized 41x41 patches from the img corresonding to the keypoint
-
-    Args:
-        img (ndarray[uint8_t, ndim=2]):  image data
-        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        img (ndarray[uint8_t, ndim=2]): array representing an image
+        kpts (ndarray[float32_t, ndim=2]): list of keypoint ndarrays in
+            [[x, y, a, c, d, theta]] format
         flags (long): cv2 interpolation flags
         borderMode (long): cv2 border flags
         patch_size (int): resolution of resulting image patch
 
     Returns:
-        tuple: (warped_patches, warped_subkpts)
+        (list, list) : (warped_patches, warped_subkpts) the normalized 41x41
+            patches from the img corresonding to the keypoint
 
     CommandLine:
         python -m vtool.patch --test-get_warped_patches --show --use_cpp
@@ -597,7 +581,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
                              patch_size,
                              flags=cv2.INTER_CUBIC,
                              borderMode=cv2.BORDER_REPLICATE):
-    """
+    r"""
     Sympy:
         # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
         from vtool.patch import *  # NOQA
@@ -715,17 +699,18 @@ def intern_warp_single_patch(img, x, y, ori, V,
 
 
 @profile
-def get_warped_patch(imgBGR, kp, gray=False,
-                       flags=cv2.INTER_LANCZOS4,
-                       borderMode=cv2.BORDER_REPLICATE,
-                       patch_size=41):
-    """Returns warped (into a unit circle) patch around a keypoint
+def get_warped_patch(imgBGR, kp, gray=False, flags=cv2.INTER_LANCZOS4,
+                     borderMode=cv2.BORDER_REPLICATE, patch_size=41):
+    r"""
+    Returns warped (into a unit circle) patch around a keypoint
 
     Args:
         img (ndarray): array representing an image
         kpt (ndarray): keypoint ndarray in [x, y, a, c, d, theta] format
+
     Returns:
-        tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
+        (ndarray, ndarray) : (wpatch, wkp) the normalized 41x41 patches from
+            the img corresonding to the keypoint
     """
     kpts = np.array([kp])
     wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags,

@@ -777,7 +777,8 @@ def invert_apply_grouping(grouped_items, groupxs):
     if len(grouped_items) == 0:
         assert len(groupxs) == 0, 'inconsistant. len(grouped_items)=%d, len(groupxs)=%d' % (len(grouped_items), len(groupxs))
         return []
-    maxval = max(map(max, groupxs))
+    # maxval = max(map(max, groupxs))
+    maxval = _max(list(map(_max, groupxs)))
     ungrouped_items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):
@@ -785,11 +786,13 @@ def invert_apply_grouping(grouped_items, groupxs):
     return ungrouped_items
 
 
+def _max(x):
+    return np.max(x) if len(x) > 0 else 0
+
+
 def invert_apply_grouping2(grouped_items, groupxs, dtype=None):
     """ use only when ungrouping will be complete """
-    def max_(x):
-        return np.max(x) if len(x) > 0 else 0
-    maxval = max_(list(map(max_, groupxs)))
+    maxval = _max(list(map(_max, groupxs)))
     ungrouped_items = np.zeros((maxval + 1,), dtype=dtype)
     for itemgroup, ix_list in zip(grouped_items, groupxs):
         ungrouped_items[ix_list] = itemgroup

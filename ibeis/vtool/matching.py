@@ -54,7 +54,7 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_
         python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
         >>> import vtool as vt
         >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
@@ -79,25 +79,99 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_
     return matches, metdata
 
 
+def testdata_annot_metadata(rchip_fpath, cfgdict={}):
+    metadata = ut.LazyDict({'rchip_fpath': rchip_fpath})
+    ensure_metadata_feats(metadata, '', cfgdict)
+    return metadata
+
+
+def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
+    r"""
+    Adds feature evaluation keys to a lazy dictionary
+
+    Args:
+        metadata (utool.LazyDict):
+        suffix (str): (default = '')
+        cfgdict (dict): (default = {})
+
+    CommandLine:
+        python -m vtool.matching --exec-ensure_metadata_feats --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> rchip_fpath = ut.grab_test_imgpath('easy1.png')
+        >>> metadata = ut.LazyDict({'rchip_fpath': rchip_fpath})
+        >>> suffix = ''
+        >>> cfgdict = {}
+        >>> ensure_metadata_feats(metadata, suffix, cfgdict)
+        >>> assert len(metadata._stored_results) == 1
+        >>> metadata['kpts']
+        >>> assert len(metadata._stored_results) == 4
+        >>> metadata['vecs']
+        >>> assert len(metadata._stored_results) == 5
+    """
+    import vtool as vt
+    rchip_key = 'rchip' + suffix
+    _feats_key = '_feats' + suffix
+    kpts_key = 'kpts' + suffix
+    vecs_key = 'vecs' + suffix
+    rchip_fpath_key = 'rchip_fpath' + suffix
+
+    if rchip_key not in metadata:
+        def eval_rchip1():
+            rchip_fpath1 = metadata[rchip_fpath_key]
+            return vt.imread(rchip_fpath1)
+        metadata.set_lazy_func(rchip_key, eval_rchip1)
+
+    if kpts_key not in metadata or vecs_key not in metadata:
+        def eval_feats():
+            rchip = metadata[rchip_key]
+            _feats = vt.extract_features(rchip, **cfgdict)
+            return _feats
+
+        def eval_kpts():
+            _feats = metadata[_feats_key]
+            kpts = _feats[0]
+            return kpts
+
+        def eval_vecs():
+            _feats = metadata[_feats_key]
+            vecs = _feats[1]
+            return vecs
+        metadata.set_lazy_func(_feats_key, eval_feats)
+        metadata.set_lazy_func(kpts_key, eval_kpts)
+        metadata.set_lazy_func(vecs_key, eval_vecs)
+    return metadata
+
+
 def vsone_matching(metadata, cfgdict={}, verbose=None):
     """
     Metadata is a dictionary that contains either computed information
     necessary for matching or the dependenceis of those computations.
+
+    Args:
+        metadata (utool.LazyDict):
+        cfgdict (dict): (default = {})
+        verbose (bool):  verbosity flag(default = None)
     """
-    import vtool as vt
+    # import vtool as vt
     assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
 
-    if 'rchip1' not in metadata:
-        def eval_rchip1():
-            rchip_fpath1 = metadata['rchip_fpath1']
-            return vt.imread(rchip_fpath1)
-        metadata.set_lazy_func('rchip1', eval_rchip1)
+    ensure_metadata_feats(metadata, suffix='1', cfgdict=cfgdict)
+    ensure_metadata_feats(metadata, suffix='2', cfgdict=cfgdict)
 
-    if 'rchip2' not in metadata:
-        def eval_rchip2():
-            rchip_fpath2 = metadata['rchip_fpath2']
-            return vt.imread(rchip_fpath2)
-        metadata.set_lazy_func('rchip2', eval_rchip2)
+    # if 'rchip1' not in metadata:
+    #     def eval_rchip1():
+    #         rchip_fpath1 = metadata['rchip_fpath1']
+    #         return vt.imread(rchip_fpath1)
+    #     metadata.set_lazy_func('rchip1', eval_rchip1)
+
+    # if 'rchip2' not in metadata:
+    #     def eval_rchip2():
+    #         rchip_fpath2 = metadata['rchip_fpath2']
+    #         return vt.imread(rchip_fpath2)
+    #     metadata.set_lazy_func('rchip2', eval_rchip2)
 
     if 'dlen_sqrd2' not in metadata:
         def eval_dlen_sqrd2():
@@ -106,43 +180,43 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
             return dlen_sqrd2
         metadata.set_lazy_func('dlen_sqrd2', eval_dlen_sqrd2)
 
-    if 'kpts1' not in metadata or 'vecs1' not in metadata:
-        def eval_feats1():
-            rchip1 = metadata['rchip1']
-            _feats1 = vt.extract_features(rchip1, **cfgdict)
-            return _feats1
+    # if 'kpts1' not in metadata or 'vecs1' not in metadata:
+    #     def eval_feats1():
+    #         rchip1 = metadata['rchip1']
+    #         _feats1 = vt.extract_features(rchip1, **cfgdict)
+    #         return _feats1
 
-        def eval_kpts1():
-            _feats1 = metadata['_feats1']
-            kpts1 = _feats1[0]
-            return kpts1
+    #     def eval_kpts1():
+    #         _feats1 = metadata['_feats1']
+    #         kpts1 = _feats1[0]
+    #         return kpts1
 
-        def eval_vecs1():
-            _feats1 = metadata['_feats1']
-            vecs1 = _feats1[1]
-            return vecs1
-        metadata.set_lazy_func('_feats1', eval_feats1)
-        metadata.set_lazy_func('kpts1', eval_kpts1)
-        metadata.set_lazy_func('vecs1', eval_vecs1)
+    #     def eval_vecs1():
+    #         _feats1 = metadata['_feats1']
+    #         vecs1 = _feats1[1]
+    #         return vecs1
+    #     metadata.set_lazy_func('_feats1', eval_feats1)
+    #     metadata.set_lazy_func('kpts1', eval_kpts1)
+    #     metadata.set_lazy_func('vecs1', eval_vecs1)
 
-    if 'kpts2' not in metadata or 'vecs2' not in metadata:
-        def eval_feats2():
-            rchip2 = metadata['rchip2']
-            _feats2 = vt.extract_features(rchip2, **cfgdict)
-            return _feats2
+    # if 'kpts2' not in metadata or 'vecs2' not in metadata:
+    #     def eval_feats2():
+    #         rchip2 = metadata['rchip2']
+    #         _feats2 = vt.extract_features(rchip2, **cfgdict)
+    #         return _feats2
 
-        def eval_kpts2():
-            _feats2 = metadata['_feats2']
-            kpts2 = _feats2[0]
-            return kpts2
+    #     def eval_kpts2():
+    #         _feats2 = metadata['_feats2']
+    #         kpts2 = _feats2[0]
+    #         return kpts2
 
-        def eval_vecs2():
-            _feats2 = metadata['_feats2']
-            vecs2 = _feats2[1]
-            return vecs2
-        metadata.set_lazy_func('_feats2', eval_feats2)
-        metadata.set_lazy_func('kpts2', eval_kpts2)
-        metadata.set_lazy_func('vecs2', eval_vecs2)
+    #     def eval_vecs2():
+    #         _feats2 = metadata['_feats2']
+    #         vecs2 = _feats2[1]
+    #         return vecs2
+    #     metadata.set_lazy_func('_feats2', eval_feats2)
+    #     metadata.set_lazy_func('kpts2', eval_kpts2)
+    #     metadata.set_lazy_func('vecs2', eval_vecs2)
 
     # Exceute relevant dependencies
     kpts1 = metadata['kpts1']
@@ -282,7 +356,7 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
         python -m vtool.matching --test-assign_spatially_constrained_matches
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
         >>> kpts1 = np.array([[  6.,   4.,   15.84,    4.66,    7.24,    0.  ],
         ...                   [  9.,   3.,   20.09,    5.76,    6.2 ,    0.  ],
@@ -320,6 +394,7 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     assigns spatially constrained vsone match using results of nearest
     neighbors.
     """
+    import vtool as vt
     index_dtype = fx2_to_fx1.dtype
     # Find spatial errors of keypoints under current homography (kpts1 mapped into image2 space)
     fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
@@ -329,7 +404,6 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     # Find matches and normalizers that satisfy spatial constraints
     fx2_to_valid_match      = ut.inbounds(fx2_to_xyerr_norm, 0.0, match_xy_thresh, eq=True)
     fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *norm_xy_bounds, eq=True)
-    import vtool as vt
     fx2_to_fx1_match_col = vt.find_first_true_indices(fx2_to_valid_match)
     fx2_to_fx1_norm_col  = vt.find_next_true_indices(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
 

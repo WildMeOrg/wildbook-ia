@@ -695,13 +695,17 @@ def haversine(latlon1, latlon2):
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
 
+    Args:
+        latlon1 (ndarray):
+        latlon2 (ndarray):
+
     References:
         en.wikipedia.org/wiki/Haversine_formula
         gis.stackexchange.com/questions/81551/matching-gps-tracks
         stackoverflow.com/questions/4913349/haversine-distance-gps-points
 
     CommandLine:
-        python -m vtool.distance --exec-haversine --show
+        python -m vtool.distance --exec-haversine
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -724,7 +728,8 @@ def haversine(latlon1, latlon2):
         >>> haversin_pdist = functools.partial(spdist.pdist, metric=vt.haversine)
         >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
         >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
-        >>> print('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2),))
+        >>> result = ('dist_matrix_list = %s' % (ut.repr3(dist_matrix_list, precision=2),))
+        >>> print(result)
         dist_matrix_list = [
             np.array([[    0.  ,  9417.52,  9527.8 ,  9527.8 ],
                       [ 9417.52,     0.  ,   111.13,   111.13],

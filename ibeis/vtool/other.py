@@ -17,6 +17,14 @@ def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
         return np.empty(default_shape, dtype=default_dtype)
 
 
+def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
+    """ stacks a tuple even if it is empty """
+    try:
+        return np.concatenate(tup, axis=axis)
+    except ValueError:
+        return np.empty(default_shape, dtype=default_dtype)
+
+
 def median_abs_dev(arr_list, **kwargs):
     """
     References:
@@ -1403,9 +1411,7 @@ def find_first_true_indices(flags_list):
 
 
 def find_next_true_indices(flags_list, offset_list):
-    """
-    TODO: move to vtool
-
+    r"""
     Uses output of either this function or find_first_true_indices
     to find the next index of true flags
 
@@ -1461,6 +1467,109 @@ def safe_max(arr):
 
 def safe_min(arr):
     return np.nan if arr is None or len(arr) == 0 else arr.min()
+
+
+def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
+    r"""
+    Slow version of multigroup_lookup. Makes a call to custom_func for each
+    item in zip(keys_list, subkeys_list).
+
+    SeeAlso:
+        vt.multigroup_lookup
+    """
+    data_lists = []
+    for keys, subkeys in zip(keys_list, subkeys_list):
+        subvals_list = [
+            custom_func(lazydict, key, [subkey])[0]
+            for key, subkey in zip(keys, subkeys)
+        ]
+        data_lists.append(subvals_list)
+    return data_lists
+
+
+def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
+    r"""
+    Efficiently calls custom_func for each item in zip(keys_list, subkeys_list)
+    by grouping subkeys to minimize the number of calls to custom_func.
+
+    We are given multiple lists of keys, and subvals.
+    The goal is to group the subvals by keys and apply the subval lookups
+    (a call to a function) to the key only once and at the same time.
+
+    Args:
+        lazydict (dict of utool.LazyDict):
+        keys_list (list):
+        subkeys_list (list):
+        custom_func (func): must have signature custom_func(lazydict, key, subkeys)
+
+    SeeAlso:
+        vt.multigroup_lookup_naive - unoptomized version, but simple to read
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import vtool as vt
+        >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
+        >>> lazydict = {count: vt.testdata_annot_metadata(fpath) for count, fpath in enumerate(fpath_list)}
+        >>> aids_list = np.array([(0, 1), (0, 2), (1, 2), (2, 3)])
+        >>> fms = np.array([[0, 1], [0, 1], [0, 1], [0, 1]])
+        >>> keys_list = aids_list.T
+        >>> subkeys_list = fms.T
+        >>> def custom_func(lazydict, key, subkeys):
+        >>>     annot = lazydict[key]
+        >>>     kpts = annot['kpts']
+        >>>     rchip = annot['rchip']
+        >>>     kpts_m = kpts.take(subkeys, axis=0)
+        >>>     warped_patches = vt.get_warped_patches(rchip, kpts_m)[0]
+        >>>     return warped_patches
+        >>> data_lists1 = multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func)
+        >>> data_lists2 = multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func)
+        >>> vt.sver_c_wrapper.assert_output_equal(data_lists1, data_lists2)
+    """
+    import vtool as vt
+    # Group the keys in each multi-list individually
+    multi_groups = [vt.group_indices(keys) for keys in keys_list]
+    # Combine keys across multi-lists usings a dict_stack
+    dict_list = [dict(zip(k, v)) for k, v in multi_groups]
+    nested_order = ut.dict_stack2(dict_list, default=[])
+    # Use keys and values for explicit ordering
+    group_key_list = list(nested_order.keys())
+    group_subxs_list = list(nested_order.values())
+    # Extract unique and flat subkeys.
+    # Maintain an information to invert back into multi-list form
+    group_uf_subkeys_list = []
+    group_invx_list = []
+    group_cumsum_list = []
+    for key, subxs in zip(group_key_list, group_subxs_list):
+        # Group subkeys for each key
+        subkey_group = vt.ziptake(subkeys_list, subxs, axis=0)
+        flat_subkeys, group_cumsum = ut.invertible_flatten2(subkey_group)
+        unique_subkeys, invx = np.unique(flat_subkeys, return_inverse=True)
+        # Append info
+        group_uf_subkeys_list.append(unique_subkeys)
+        group_invx_list.append(invx)
+        group_cumsum_list.append(group_cumsum)
+    # Apply custom function (lookup) to unique each key and its flat subkeys
+    group_subvals_list = [
+        custom_func(lazydict, key, subkeys)
+        for key, subkeys in zip(group_key_list, group_uf_subkeys_list)
+    ]
+    # Efficiently invert values back into input shape
+    # First invert the subkey groupings
+    multi_subvals_list = [[] for _ in range(len(multi_groups))]
+    _iter = zip(group_key_list, group_subvals_list, group_cumsum_list, group_invx_list)
+    for key, subvals, group_cumsum, invx in _iter:
+        nonunique_subvals = ut.take(subvals, invx)
+        unflat_subvals_list = ut.unflatten2(nonunique_subvals, group_cumsum)
+        for subvals_list, unflat_subvals in zip(multi_subvals_list, unflat_subvals_list):
+            subvals_list.append(unflat_subvals)
+    # Then invert the key groupings
+    data_lists = []
+    multi_groupxs_list = list(zip(*group_subxs_list))
+    for subvals_list, groupxs in zip(multi_subvals_list, multi_groupxs_list):
+        datas = vt.invert_apply_grouping(subvals_list, groupxs)
+        data_lists.append(datas)
+    return data_lists
+
 
 if __name__ == '__main__':
     """
