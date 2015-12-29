@@ -205,6 +205,9 @@ class AbstractInteraction(object):
         pass
 
     def show_popup_menu(self, options, event):
+        """
+        context menu
+        """
         import guitool
         height = self.fig.canvas.geometry().height()
         qpoint = guitool.newQPoint(event.x, height - event.y)
