@@ -544,18 +544,20 @@ class NNWeightConfig(ConfigBase):
         python -m ibeis.model.Config --test-NNWeightConfig
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> cfg_list = [
         ...     NNWeightConfig(),
         ...     NNWeightConfig(can_match_sameimg=True, can_match_samename=False),
-        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_on=False)
+        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_on=False),
+        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_normalizer='foobarstr'),
         ... ]
         >>> result = '\n'.join([cfg.get_cfgstr() for cfg in cfg_list])
         >>> print(result)
-        _NNWeight(lnbnn,fg)
-        _NNWeight(lnbnn,fg,sameimg,nosamename)
-        _NNWeight(ratio_thresh=0.625,fg)
+        _NNWeight(lnbnn,fg,last)
+        _NNWeight(lnbnn,fg,last,sameimg,nosamename)
+        _NNWeight(ratio_thresh=0.625,fg,last)
+        _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normalizer=foobarstr)
     """
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
@@ -588,6 +590,7 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
                 ut.ParamInfo('normalizer_rule', 'last', ''),
+                ut.ParamInfo('lnbnn_normalizer', None,  hideif=None, help_='config string for lnbnn score normalizer'),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),

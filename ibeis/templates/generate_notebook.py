@@ -11,6 +11,7 @@ def generate_notebook_report(ibs):
         python -m ibeis --tf generate_notebook_report --run --db lynx
         python -m ibeis --tf generate_notebook_report --ipynb --db lynx
         python -m ibeis --tf generate_notebook_report --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m ibeis --tf generate_notebook_report --ipynb  --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --ipynb
         python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --run

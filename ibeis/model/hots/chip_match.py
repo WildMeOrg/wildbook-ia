@@ -43,11 +43,12 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None, TRUNCATE_UUIDS=TR
         fname = 'qaid=18_cm_mnzkiegiilcsbwxy_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl'
     """
     if qauuid is None:
-        print('[chipmatch] Warning qasuuid should be passed into get_chipmatch_fname')
+        print('[chipmatch] Warning qasuuid should be given')
         qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
     if cfgstr is None:
-        print('[chipmatch] Warning cfgstr should be passed into get_chipmatch_fname')
-        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True, with_pipe=True)
+        print('[chipmatch] Warning cfgstr should be passed given')
+        cfgstr = qreq_.get_cfgstr(with_query=False, with_data=True,
+                                  with_pipe=True)
     #print('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'
     text_type = six.text_type
@@ -133,13 +134,14 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         encouraged and will probalby break things if they are not there.
         """
         if DEBUG_CHIPMATCH:
+            msg = 'incompatable data'
             assert daid_list is not None, 'must give daids'
-            assert fm_list is None or len(fm_list) == len(daid_list), 'incompatable data'
-            assert fsv_list is None or len(fsv_list) == len(daid_list), 'incompatable data'
-            assert fk_list is None or len(fk_list) == len(daid_list), 'incompatable data'
-            assert H_list is None or len(H_list) == len(daid_list), 'incompatable data'
-            assert score_list is None or len(score_list) == len(daid_list), 'incompatable data'
-            assert dnid_list is None or len(dnid_list) == len(daid_list), 'incompatable data'
+            assert fm_list is None or len(fm_list) == len(daid_list), msg
+            assert fsv_list is None or len(fsv_list) == len(daid_list), msg
+            assert fk_list is None or len(fk_list) == len(daid_list), msg
+            assert H_list is None or len(H_list) == len(daid_list), msg
+            assert score_list is None or len(score_list) == len(daid_list), msg
+            assert dnid_list is None or len(dnid_list) == len(daid_list), msg
         cm.qaid         = qaid
         cm.daid_list    = np.array(daid_list, dtype=hstypes.INDEX_TYPE)
         cm.fm_list      = fm_list
@@ -153,9 +155,11 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #cm.daid2_idx    = None
         #cm.fs_list = None
         # TODO
-        cm.dnid_list = None if dnid_list is None else np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
+        cm.dnid_list = (None if dnid_list is None else
+                        np.array(dnid_list, dtype=hstypes.INDEX_TYPE))
         cm.qnid = qnid
-        cm.unique_nids = None if unique_nids is None else np.array(unique_nids, dtype=hstypes.INDEX_TYPE)
+        cm.unique_nids = (None if unique_nids is None
+                          else np.array(unique_nids, dtype=hstypes.INDEX_TYPE))
         cm.name_score_list = name_score_list
         cm.annot_score_list = annot_score_list
         # standard groupings
@@ -348,11 +352,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid        = qres.qaid
         cmtup_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
         fsv_col_lbls = qres.filtkey_list
-        cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls, daid_list=qres.daids)
-        #with ut.embed_on_exception_context:
-        #if 'lnbnn' in fsv_col_lbls:
-        #    assert 'lnbnn' in fsv_col_lbls, 'cm.fsv_col_lbls=%r' % (cm.fsv_col_lbls,)
-        #    fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
+        cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls,
+                                daid_list=qres.daids)
         #else:
         if True:
             fs_list = ut.dict_take(qres.aid2_fs, cm.daid_list,
@@ -362,7 +363,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     @classmethod
     @profile
-    def from_unscored(cls, prior_cm, fm_list, fs_list, H_list=None, fsv_col_lbls=None):
+    def from_unscored(cls, prior_cm, fm_list, fs_list, H_list=None,
+                      fsv_col_lbls=None):
         qaid = prior_cm.qaid
         daid_list = prior_cm.daid_list
         fsv_list = matching.ensure_fsv_list(fs_list)
@@ -373,7 +375,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
         score_list = [-1 for fsv in fsv_list]
         #fsv.prod(axis=1).sum() for fsv in fsv_list]
-        cm = cls(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list,
+                 fsv_col_lbls)
         cm.fs_list = fs_list
         return cm
 
@@ -391,29 +394,36 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         """
         # CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
         # Vsmany - create new cmtup_old
-        (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
+        (valid_daid, valid_qfx, valid_dfx,
+         valid_scorevec, valid_rank) = valid_match_tup
         #valid_fm = np.vstack((valid_qfx, valid_dfx)).T
-        valid_fm = np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
+        valid_fm = np.ascontiguousarray(np.hstack((valid_qfx[:, None],
+                                                   valid_dfx[:, None])))
         daid_list, daid_groupxs = vt.group_indices(valid_daid)
         fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
         #fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
-        fsv_list = vt.apply_grouping(np.ascontiguousarray(valid_scorevec), daid_groupxs)
+        fsv_list = vt.apply_grouping(np.ascontiguousarray(valid_scorevec),
+                                     daid_groupxs)
         fk_list  = vt.apply_grouping(valid_rank, daid_groupxs)
-        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
+                 fsv_col_lbls=fsv_col_lbls)
         return cm
 
     @classmethod
     @profile
     def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None,
                              qaid=None, fsv_col_lbls=None):
-        assert all(list(map(ut.list_allsame, ut.get_list_column(valid_match_tup_list, 0)))),\
-            'internal daids should not have different daids for vsone'
+        assert all(list(map(ut.list_allsame,
+                            ut.get_list_column(valid_match_tup_list, 0)))), (
+            'internal daids should not have different daids for vsone')
         qfx_list = ut.get_list_column(valid_match_tup_list, 1)
         dfx_list = ut.get_list_column(valid_match_tup_list, 2)
-        fm_list  = [np.vstack(dfx_qfx).T for dfx_qfx in zip(dfx_list, qfx_list)]
+        fm_list  = [np.vstack(dfx_qfx).T
+                    for dfx_qfx in zip(dfx_list, qfx_list)]
         fsv_list = ut.get_list_column(valid_match_tup_list, 3)
         fk_list  = ut.get_list_column(valid_match_tup_list, 4)
-        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
+                 fsv_col_lbls=fsv_col_lbls)
         return cm
 
     @classmethod
@@ -451,7 +461,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
             if len(other_keys) > 0:
-                print('Not unserializing extra attributes: %s' % (ut.list_str(other_keys)))
+                print('Not unserializing extra attributes: %s' % (
+                    ut.list_str(other_keys)))
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],
                                                      hstypes.FM_DTYPE)
@@ -477,7 +488,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> from ibeis.model.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=True, return_request=True)
+            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=true,
+            >>>                             return_request=true)
             >>> cm.compress_feature_matches(num=4, rng=np.random.RandomState(0))
             >>> # Serialize
             >>> print('\n\nRaw ChipMatch2 JSON:\n')
@@ -652,10 +664,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
+            >>>     defaultdb='PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> info_ = cm.get_flat_fm_info()
-            >>> result = ('info_ = %s' % (ut.repr3(info_),))
+            >>> ut.assert_all_eq(ut.lmap(len, info_.values()))
+            >>> result = ('info_ = %s' % (ut.repr3(info_, precision=2),))
             >>> print(result)
         """
         import vtool as vt
@@ -670,11 +684,15 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         len_list = [fm.shape[0] for fm in fm_list]
         info_ = {}
         nfilt = len(cm.filtkey_list)
-        info_['fsv'] = vt.safe_cat(fsv_list, axis=0, default_shape=(0, nfilt)),
-        info_['fm'] = vt.safe_cat(fm_list, axis=0, default_shape=(0, 2), default_dtype=hstypes.FM_DTYPE),
-        info_['aid1'] = np.full(sum(len_list), cm.qaid, dtype=hstypes.INDEX_TYPE),
-        info_['aid2'] = vt.safe_cat([np.array([daid] * n, dtype=hstypes.INDEX_TYPE) for daid, n in zip(daid_list, len_list)],
-                                    default_shape=(0,), default_dtype=hstypes.INDEX_TYPE),
+        info_['fsv'] = vt.safe_cat(fsv_list, axis=0, default_shape=(0, nfilt))
+        info_['fm'] = vt.safe_cat(fm_list, axis=0, default_shape=(0, 2),
+                                  default_dtype=hstypes.FM_DTYPE)
+        info_['aid1'] = np.full(sum(len_list), cm.qaid,
+                                dtype=hstypes.INDEX_TYPE)
+        info_['aid2'] = vt.safe_cat(
+            [np.array([daid] * n, dtype=hstypes.INDEX_TYPE)
+             for daid, n in zip(daid_list, len_list)],
+            default_shape=(0,), default_dtype=hstypes.INDEX_TYPE)
         return info_
 
     def get_num_feat_score_cols(cm):
@@ -1817,6 +1835,222 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         print('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
+
+
+def testdata_cm():
+    ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST',
+                                                qaid_list=[18])
+    cm = cm_list[0]
+    cm.score_nsum(qreq_)
+    return cm, qreq_
+
+
+class UnbalancedExampleException(Exception):
+    pass
+
+
+def get_topannot_training_idxs(cm, num=2):
+    """ top annots version
+
+    Args:
+        cm (ibeis.ChipMatch2):  object of feature correspondences and scores
+        num (int): (default = 5)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> num = 2
+        >>> cm.score_csum(qreq_)
+        >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
+        >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
+        >>> print(result)
+        (tp_idxs, tn_idxs) = (
+            np.array([0, 1], dtype=np.int64),
+            np.array([2, 3], dtype=np.int64),
+        )
+    """
+    sortx = cm.argsort()
+    sorted_nids = cm.dnid_list[sortx]
+    mask = sorted_nids == cm.qnid
+    tp_idxs_ = np.where(mask)[0]
+    if len(tp_idxs_) == 0:
+        raise UnbalancedExampleException()
+    tn_idxs_ = np.where(~mask)[0]
+    if len(tn_idxs_) == 0:
+        raise UnbalancedExampleException()
+    tp_idxs = tp_idxs_[0:num]
+    tn_idxs = tn_idxs_[0:num]
+    return tp_idxs, tn_idxs
+
+
+def get_topname_training_idxs(cm, num_false=5):
+    """
+    gets the index of the annots in the top groundtrue name and the top
+    groundfalse names.
+
+    Args:
+        cm (ibeis.ChipMatch2):  object of feature correspondences and scores
+        num_false (int): (default = 5)
+
+    Returns:
+        tuple: (tp_idxs, tn_idxs)
+            cm.daid_list[tp_idxs] are all of the
+               annotations in the correct name.
+            cm.daid_list[tn_idxs] are all of the
+               annotations in the top `num_false` incorrect names.
+
+    CommandLine:
+        python -m ibeis --tf get_topname_training_idxs --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> num_false = 5
+        >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num_false)
+        >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
+        >>> print(result)
+        (tp_idxs, tn_idxs) = (
+            np.array([16, 17, 18, 19], dtype=np.int64),
+            [101, 99, 100, 97, 98, 0, 1, 2, 3, 13, 12, 14, 10, 9, 11, 31, 32, 30, 28, 27, 29, 115, 116, 113, 114, 117],
+        )
+    """
+    sortx = cm.name_argsort()
+    sorted_nids = np.take(cm.unique_nids, sortx)
+    sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+    # name ranks of the groundtrue name
+    tp_ranks = np.where(sorted_nids == cm.qnid)[0]
+    if len(tp_ranks) == 0:
+        raise UnbalancedExampleException()
+    # name ranks of the top groundfalse names
+    tp_rank = tp_ranks[0]
+    tn_ranks = [rank for rank in range(num_false + 1)
+                if rank != tp_rank and rank < len(sorted_groupxs)]
+    if len(tn_ranks) == 0:
+        raise UnbalancedExampleException()
+    # annot idxs of the examples
+    tp_idxs = sorted_groupxs[tp_rank]
+    tn_idxs = ut.flatten(ut.list_take(sorted_groupxs, tn_ranks))
+    return tp_idxs, tn_idxs
+
+
+def get_training_fsv(cm, namemode=True):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> (tp_fsv, tn_fsv) = get_training_fsv(cm, namemode=False)
+        >>> result = ('(tp_fsv, tn_fsv) = %s' % (ut.repr2((tp_fsv, tn_fsv), nl=1),))
+        >>> print(result)
+    """
+    if namemode:
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+    else:
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm)
+    tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
+    tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
+    return tp_fsv, tn_fsv
+
+
+def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True):
+    """
+    computes custom distances on prematched descriptors
+
+    CommandLine:
+        python -m ibeis.model.hots.chip_match --exec-get_training_desc_dist --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> fsv_col_lbls = ['L2_sift']
+        >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=False)
+        >>> result = ('(tp_fsv, tn_fsv) = %s' % (ut.repr2((tp_fsv, tn_fsv), nl=1),))
+        >>> print(result)
+    """
+    ibs = qreq_.ibs
+    qaid = cm.qaid
+    if namemode:
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+    else:
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm)
+    tp_daids = cm.daid_list.take(tp_idxs)
+    tn_daids = cm.daid_list.take(tn_idxs)
+    tp_fm = ut.list_take(cm.fm_list, tp_idxs)
+    tn_fm = ut.list_take(cm.fm_list, tn_idxs)
+    tp_fx0 = [fm.T[0] for fm in tp_fm]
+    tn_fx0 = [fm.T[0] for fm in tn_fm]
+    tp_fx1 = [fm.T[1] for fm in tp_fm]
+    tn_fx1 = [fm.T[1] for fm in tn_fm]
+    query_config2_ = qreq_.get_external_query_config2()
+    data_config2_ = qreq_.get_external_data_config2()
+    special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg'])
+    dist_lbls = ut.list_take(fsv_col_lbls, dist_xs)
+    special_lbls = ut.list_take(fsv_col_lbls, special_xs)
+    if len(special_xs) > 0:
+        assert special_lbls[0] == 'fg'
+        # hack for fgweights (could get them directly from fsv)
+        qfgweights = ibs.get_annot_fgweights([qaid],
+                                             config2_=query_config2_)[0]
+        tp_dfgweights = ibs.get_annot_fgweights(tp_daids,
+                                                config2_=data_config2_)
+        tn_dfgweights = ibs.get_annot_fgweights(tn_daids,
+                                                config2_=data_config2_)
+        # Align weights
+        tp_qfgweights_m = vt.ziptake([qfgweights] * len(tp_fx0),
+                                     tp_fx0, axis=0)
+        tn_qfgweights_m = vt.ziptake([qfgweights] * len(tn_fx0),
+                                     tn_fx0, axis=0)
+        tp_dfgweights_m = vt.ziptake(tp_dfgweights, tp_fx1, axis=0)
+        tn_dfgweights_m = vt.ziptake(tn_dfgweights, tn_fx1, axis=0)
+        tp_qfgweights_flat_m = np.hstack(tp_qfgweights_m)
+        tn_qfgweights_flat_m = np.hstack(tn_qfgweights_m)
+        tp_dfgweights_flat_m = np.hstack(tp_dfgweights_m)
+        tn_dfgweights_flat_m = np.hstack(tn_dfgweights_m)
+        tp_fgweights = np.sqrt(tp_qfgweights_flat_m *
+                               tp_dfgweights_flat_m)
+        tn_fgweights = np.sqrt(tn_qfgweights_flat_m *
+                               tn_dfgweights_flat_m)
+        special_tp_dists = tp_fgweights[:, None]
+        special_tn_dists = tn_fgweights[:, None]
+    else:
+        special_tp_dists = np.empty((0, 0))
+        special_tn_dists = np.empty((0, 0))
+    if len(dist_xs) > 0:
+        # Get descriptors
+        qvecs = ibs.get_annot_vecs(qaid, config2_=query_config2_)
+        tp_dvecs = ibs.get_annot_vecs(tp_daids, config2_=data_config2_)
+        tn_dvecs = ibs.get_annot_vecs(tn_daids, config2_=data_config2_)
+        # Align descriptors
+        tp_qvecs_m = vt.ziptake([qvecs] * len(tp_fx0), tp_fx0, axis=0)
+        tn_qvecs_m = vt.ziptake([qvecs] * len(tn_fx0), tn_fx0, axis=0)
+        tp_dvecs_m = vt.ziptake(tp_dvecs, tp_fx1, axis=0)
+        tn_dvecs_m = vt.ziptake(tn_dvecs, tn_fx1, axis=0)
+        tp_qvecs_flat_m = np.vstack(tp_qvecs_m)
+        tn_qvecs_flat_m = np.vstack(tn_qvecs_m)
+        tp_dvecs_flat_m = np.vstack(tp_dvecs_m)
+        tn_dvecs_flat_m = np.vstack(tn_dvecs_m)
+        # Compute descriptor distnaces
+        _tp_dists = vt.compute_distances(
+            tp_qvecs_flat_m, tp_dvecs_flat_m, dist_lbls)
+        _tn_dists = vt.compute_distances(
+            tn_dvecs_flat_m, tn_qvecs_flat_m, dist_lbls)
+        tp_dists = np.vstack(_tp_dists.values()).T
+        tn_dists = np.vstack(_tn_dists.values()).T
+    else:
+        tp_dists = np.empty((0, 0))
+        tn_dists = np.empty((0, 0))
+
+    tp_fsv = vt.rebuild_partition(special_tp_dists.T, tp_dists.T,
+                                  special_xs, dist_xs)
+    tn_fsv = vt.rebuild_partition(special_tn_dists.T, tn_dists.T,
+                                  special_xs, dist_xs)
+    tp_fsv = np.array(tp_fsv).T
+    tn_fsv = np.array(tn_fsv).T
+    return tp_fsv, tn_fsv
+
 
 if __name__ == '__main__':
     """

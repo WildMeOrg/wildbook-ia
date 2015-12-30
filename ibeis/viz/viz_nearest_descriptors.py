@@ -36,10 +36,13 @@ def show_top_featmatches(qreq_, cm_list):
         cm_list (list):
 
     SeeAlso:
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True,lnbnn_normalizer=normlnbnn-test -a default --sephack
+
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 -t best:lnbnn_on=True -a timectrl --sephack
         python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default:size=30 --sephack
         python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=5,lnbnn_on=True -a default:size=30 --sephack
-        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=4,lnbnn_on=True -a default --sephack
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=3,lnbnn_on=True -a default --sephack
+
 
     CommandLine:
         python -m ibeis.viz.viz_nearest_descriptors --exec-show_top_featmatches --show
@@ -55,15 +58,15 @@ def show_top_featmatches(qreq_, cm_list):
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
+    # for cm in cm_list:
+    #     cm.score_csum(qreq_)
     import numpy as np
     import vtool as vt
     from functools import partial
-    # for cm in cm_list:
-    #     cm.score_csum(qreq_)
     # Stack chipmatches
     ibs = qreq_.ibs
     infos = [cm.get_flat_fm_info() for cm in cm_list]
-    flat_metadata = dict([(k, np.concatenate(ut.flatten(v)))
+    flat_metadata = dict([(k, np.concatenate(v))
                           for k, v in ut.dict_stack2(infos).items()])
     fsv_flat = flat_metadata['fsv']
     flat_metadata['fs'] = fsv_flat.prod(axis=1)

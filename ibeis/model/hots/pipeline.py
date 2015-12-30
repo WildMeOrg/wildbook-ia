@@ -715,6 +715,32 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         filtname = 'lnbnn'
         lnbnn_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
             nns_list, nnvalid0_list, qreq_)
+
+        if config2_.lnbnn_normalizer is not None:
+            print('[hs] normalizing feat scores')
+            if qreq_.lnbnn_normer is None:
+                qreq_.lnbnn_normer = vt.ScoreNormalizer()
+                qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normalizer)
+
+            lnbnn_weight_list = [
+                qreq_.lnbnn_normer.normalize_scores(s.ravel()).reshape(s.shape)
+                for s in lnbnn_weight_list
+            ]
+
+            # Thresholding like a champ!
+            lnbnn_weight_list = [
+                s * [s > .5] for s in lnbnn_weight_list
+            ]
+            # Softmaxing
+            # from scipy.special import expit
+            # y = expit(x * 6)
+            # lnbnn_weight_list = [
+            #     vt.logistic_01(s)
+            #     for s in lnbnn_weight_list
+            # ]
+
+            filtname += '_norm'
+
         _filtweight_list.append(lnbnn_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append(filtname)

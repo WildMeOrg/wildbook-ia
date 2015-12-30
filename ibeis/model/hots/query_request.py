@@ -293,6 +293,7 @@ class QueryRequest(object):
         qreq_.unique_species = None  # HACK
         qreq_.qresdir = None
         qreq_.prog_hook = None
+        qreq_.lnbnn_normer = None
 
     #def write_query_request(qreq_, fpath):
     #    ut.save_cPickle(fpath, qreq_)
@@ -320,6 +321,7 @@ class QueryRequest(object):
         state_dict['normalizer'] = None
         state_dict['dstcnvs_normer'] = None
         state_dict['hasloaded'] = False
+        state_dict['lnbnn_normer'] = False
         return state_dict
 
     def __setstate__(qreq_, state_dict):
@@ -1001,6 +1003,10 @@ class QueryRequest(object):
         qreq_.dstcnvs_normer = dstcnvs_normer
         if verbose:
             print('qreq_.dstcnvs_normer = %r' % (qreq_.dstcnvs_normer,))
+
+    @profile
+    def load_lnbnn_normalizer(qreq_, verbose=ut.NOT_QUIET):
+        pass
 
     def get_infostr(qreq_):
         infostr_list = []

@@ -49,7 +49,7 @@ NORMALIZER_CACHE = ut.get_lru_cache(MAX_NORMALIZER_CACHE_SIZE)
 #NORMALIZER_CACHE = {}
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+# @six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(ut.Cachable):
     r"""
     Args:

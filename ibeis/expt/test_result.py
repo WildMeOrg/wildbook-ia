@@ -15,8 +15,7 @@ from ibeis.expt import experiment_helpers  # NOQA
 #    __name__, '[expt_harn]')
 
 from ibeis.expt.old_storage import ResultMetadata  # NOQA
-print, rrr, profile = ut.inject2(
-    __name__, '[expt_harn]')
+print, rrr, profile = ut.inject2(__name__, '[testres]')
 
 
 def combine_testres_list(ibs, testres_list):
@@ -2002,7 +2001,8 @@ class TestResult(object):
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift,fg
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --disttypes=L2_sift
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=True
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=False
 
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
@@ -2019,153 +2019,58 @@ class TestResult(object):
 
             python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
+            # Write Encoder
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True,K=1 -a timectrl --sephack --fsvx=0 --threshx=1
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack --fsvx=0 --threshx=1
+
+            # Compare with encoder vs without
+            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default:qsize=10 -t best:lnbnn_normalizer=[None,lnbnn_test] --show --nocache --nocache-hs
+            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default:qsize=10 -t best:lnbnn_normalizer=[None,lnbnn_test],K=1 --show --nocache --nocache-hs
+
+            # Show results of encoder
+            python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnnfg0.9_test --show --nocache --nocache-hs
+
+            # Show results on ranking of encoder
+            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_test],K=1 --show --nocache --nocache-hs
+            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test],K=1 --show --nocache --nocache-hs
+            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test] --show --nocache --nocache-hs
+
+            # Compare in ipynb
+            python -m ibeis --tf generate_notebook_report --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn-test]
+            python -m ibeis --tf generate_notebook_report --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test]
+
         Example:
             >>> # SCRIPT
             >>> from ibeis.expt.experiment_drawing import *  # NOQA
             >>> from ibeis.init import main_helpers
-            >>> defaultdb = 'PZ_MTEST'
-            >>> ibs, testres = main_helpers.testdata_expts(defaultdb, a=['timectrl'], t=['best'])
+            >>> ibs, testres = main_helpers.testdata_expts(
+            >>>     defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
             >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
             >>> testres.draw_feat_scoresep(f=f)
             >>> ut.show_if_requested()
         """
         import plottool as pt
-        assert len(testres.cfgx2_qreq_) == 1, 'can only do this on one qreq_ right now'
+        assert len(testres.cfgx2_qreq_) == 1, (
+            'can only do this on one qreq_ right now')
         for qreq_ in testres.cfgx2_qreq_:
             break
 
         print('Loading cached chipmatches')
         import ibeis  # NOQA
         from os.path import dirname, join  # NOQA
+        from ibeis.model.hots import chip_match
 
         disttypes_ = ut.get_argval('--disttypes', type_=list, default=disttypes)
-
-        class UnbalancedExampleException(Exception):
-            pass
-
-        def get_topannot_training_idxs(cm):
-            """ top annots version """
-            sortx = cm.argsort()
-            sorted_nids = cm.dnid_list[sortx]
-            tp_idxs_ = np.where(sorted_nids == cm.qnid)[0]
-            if len(tp_idxs_) == 0:
-                raise UnbalancedExampleException()
-            tp_idx = tp_idxs_[0]
-            tn_idx = 0 if tp_idx > 0 else tp_idx + 1
-            if (tn_idx) >= len(cm.dnid_list):
-                raise UnbalancedExampleException()
-            tp_idxs = [tp_idx]
-            tn_idxs = [tn_idx]
-            return tp_idxs, tn_idxs
-
-        def get_topname_training_idxs(cm, num_false=5):
-            """
-            gets the index of the annots in the top groundtrue name and the top
-            groundfalse names.
-            """
-            sortx = cm.name_argsort()
-            import utool
-            with utool.embed_on_exception_context:
-                sorted_nids = np.take(cm.unique_nids, sortx)
-                sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
-            # name ranks of the groundtrue name
-            tp_ranks = np.where(sorted_nids == cm.qnid)[0]
-            if len(tp_ranks) == 0:
-                raise UnbalancedExampleException()
-            # name ranks of the top groundfalse names
-            tp_rank = tp_ranks[0]
-            tn_ranks = [rank for rank in range(num_false + 1)
-                        if rank != tp_rank and rank < len(sorted_groupxs)]
-            if len(tn_ranks) == 0:
-                raise UnbalancedExampleException()
-            # annot idxs of the examples
-            tp_idxs = sorted_groupxs[tp_rank]
-            tn_idxs = ut.flatten(ut.list_take(sorted_groupxs, tn_ranks))
-            return tp_idxs, tn_idxs
-
-        def get_training_fsv(cm):
-            tp_idxs, tn_idxs = get_topname_training_idxs(cm)
-            tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
-            tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
-            return tp_fsv, tn_fsv
-
-        def get_training_desc_dist(cm, qreq_, fsv_col_lbls):
-            """ computes custom distances on prematched descriptors """
-            ibs = qreq_.ibs
-            qaid = cm.qaid
-            tp_idxs, tn_idxs = get_topname_training_idxs(cm)
-            tp_daids = cm.daid_list.take(tp_idxs)
-            tn_daids = cm.daid_list.take(tn_idxs)
-            tp_fm = ut.list_take(cm.fm_list, tp_idxs)
-            tn_fm = ut.list_take(cm.fm_list, tn_idxs)
-            tp_fx0 = [fm.T[0] for fm in tp_fm]
-            tn_fx0 = [fm.T[0] for fm in tn_fm]
-            tp_fx1 = [fm.T[1] for fm in tp_fm]
-            tn_fx1 = [fm.T[1] for fm in tn_fm]
-            query_config2_ = qreq_.get_external_query_config2()
-            data_config2_ = qreq_.get_external_data_config2()
-            #assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
-            special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg'])
-            dist_lbls = ut.list_take(fsv_col_lbls, dist_xs)
-            special_lbls = ut.list_take(fsv_col_lbls, special_xs)
-            if len(special_xs) > 0:
-                assert special_lbls[0] == 'fg'
-                # hack for fgweights (could potentially get them directly from fsv)
-                qfgweights = ibs.get_annot_fgweights([qaid], config2_=query_config2_)[0]
-                tp_dfgweights = ibs.get_annot_fgweights(tp_daids, config2_=data_config2_)
-                tn_dfgweights = ibs.get_annot_fgweights(tn_daids, config2_=data_config2_)
-                # Align weights
-                tp_qfgweights_m = vt.ziptake([qfgweights] * len(tp_fx0), tp_fx0, axis=0)
-                tn_qfgweights_m = vt.ziptake([qfgweights] * len(tn_fx0), tn_fx0, axis=0)
-                tp_dfgweights_m = vt.ziptake(tp_dfgweights, tp_fx1, axis=0)
-                tn_dfgweights_m = vt.ziptake(tn_dfgweights, tn_fx1, axis=0)
-                tp_qfgweights_flat_m = np.hstack(tp_qfgweights_m)
-                tn_qfgweights_flat_m = np.hstack(tn_qfgweights_m)
-                tp_dfgweights_flat_m = np.hstack(tp_dfgweights_m)
-                tn_dfgweights_flat_m = np.hstack(tn_dfgweights_m)
-                tp_fgweights = np.sqrt(tp_qfgweights_flat_m * tp_dfgweights_flat_m)
-                tn_fgweights = np.sqrt(tn_qfgweights_flat_m * tn_dfgweights_flat_m)
-                special_tp_dists = tp_fgweights[:, None]
-                special_tn_dists = tn_fgweights[:, None]
-            else:
-                special_tp_dists = np.empty((0, 0))
-                special_tn_dists = np.empty((0, 0))
-            if len(dist_xs) > 0:
-                # Get descriptors
-                qvecs = ibs.get_annot_vecs(qaid, config2_=query_config2_)
-                tp_dvecs = ibs.get_annot_vecs(tp_daids, config2_=data_config2_)
-                tn_dvecs = ibs.get_annot_vecs(tn_daids, config2_=data_config2_)
-                # Align descriptors
-                tp_qvecs_m = vt.ziptake([qvecs] * len(tp_fx0), tp_fx0, axis=0)
-                tn_qvecs_m = vt.ziptake([qvecs] * len(tn_fx0), tn_fx0, axis=0)
-                tp_dvecs_m = vt.ziptake(tp_dvecs, tp_fx1, axis=0)
-                tn_dvecs_m = vt.ziptake(tn_dvecs, tn_fx1, axis=0)
-                tp_qvecs_flat_m = np.vstack(tp_qvecs_m)
-                tn_qvecs_flat_m = np.vstack(tn_qvecs_m)
-                tp_dvecs_flat_m = np.vstack(tp_dvecs_m)
-                tn_dvecs_flat_m = np.vstack(tn_dvecs_m)
-                # Compute descriptor distnaces
-                _tp_dists = vt.compute_distances(
-                    tp_qvecs_flat_m, tp_dvecs_flat_m, dist_lbls)
-                _tn_dists = vt.compute_distances(
-                    tn_dvecs_flat_m, tn_qvecs_flat_m, dist_lbls)
-                tp_dists = np.vstack(_tp_dists.values()).T
-                tn_dists = np.vstack(_tn_dists.values()).T
-            else:
-                tp_dists = np.empty((0, 0))
-                tn_dists = np.empty((0, 0))
-
-            tp_fsv = vt.rebuild_partition(special_tp_dists.T, tp_dists.T, special_xs, dist_xs)
-            tn_fsv = vt.rebuild_partition(special_tn_dists.T, tn_dists.T, special_xs, dist_xs)
-            tp_fsv = np.array(tp_fsv).T
-            tn_fsv = np.array(tn_fsv).T
-            return tp_fsv, tn_fsv
 
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_query=True)
         cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
-        cache_name = 'get_cfgx_feat_scores_' + ut.hashstr27(cfgstr + str(disttypes_))
-        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[], use_cache=None)
+        namemode = ut.get_argval('--namemode', default=True)
+        cache_name = ('get_cfgx_feat_scores_' +
+                      ut.hashstr27(cfgstr + str(disttypes_) + str(namemode)))
+        @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
+                        use_cache=None)
         def get_cfgx_feat_scores(qreq_):
             cm_list = qreq_.load_cached_chipmatch()
             print('Done loading cached chipmatches')
@@ -2179,14 +2084,16 @@ class TestResult(object):
                     if disttypes_ is None:
                         # Use precomputed fsv distances
                         fsv_col_lbls = cm.fsv_col_lbls
-                        tp_fsv, tn_fsv = get_training_fsv(cm)
+                        tp_fsv, tn_fsv = chip_match.get_training_fsv(
+                            cm, namemode=namemode)
                     else:
                         # Investigate independant computed dists
                         fsv_col_lbls = disttypes_
-                        tp_fsv, tn_fsv = get_training_desc_dist(cm, qreq_, fsv_col_lbls)
+                        tp_fsv, tn_fsv = chip_match.get_training_desc_dist(
+                            cm, qreq_, fsv_col_lbls, namemode=namemode)
                     tp_fsvs_list.extend(tp_fsv)
                     tn_fsvs_list.extend(tn_fsv)
-                except UnbalancedExampleException:
+                except chip_match.UnbalancedExampleException:
                     continue
             fsv_tp = np.vstack(tp_fsvs_list)
             fsv_tn = np.vstack(tn_fsvs_list)
@@ -2196,27 +2103,41 @@ class TestResult(object):
         #fsv_tp = 1 - fsv_tp
         #fsv_tn = 1 - fsv_tn
 
-        slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset', default=slice(None, None, None))
+        slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset',
+                               default=slice(None, None, None))
 
-        fsv_col_lbls = ut.list_take(fsv_col_lbls, slice_)
-        fsv_tp = fsv_tp.T[slice_].T
-        fsv_tn = fsv_tn.T[slice_].T
+        fsv_col_lbls_ = ut.list_take(fsv_col_lbls, slice_)
+        fsv_tp_ = fsv_tp.T[slice_].T
+        fsv_tn_ = fsv_tn.T[slice_].T
 
-        if fsv_col_lbls == ['L2_sift', 'fg']:
+        threshx = ut.get_argval('--threshx', type_=int, default=None)
+        if threshx is not None:
+            thresh = .9
+            tp_scores = fsv_tp_[fsv_tp.T[threshx] > thresh].prod(axis=1)
+            tn_scores = fsv_tn_[fsv_tn.T[threshx] > thresh].prod(axis=1)
+            scoretype = ('*'.join(fsv_col_lbls_) + '[' + fsv_col_lbls[threshx] +
+                         ' > ' + str(thresh) + ']')
+        elif fsv_col_lbls_ == ['L2_sift', 'fg']:
             # SUPER HACK. Use fg as a filter rather than multiplier
             thresh = .8
-            tp_scores = fsv_tp.T[0][fsv_tp.T[1] > thresh]
-            tn_scores = fsv_tn.T[0][fsv_tn.T[1] > thresh]
-            scoretype = fsv_col_lbls[0] + '[' + fsv_col_lbls[1] + ' > ' + str(thresh) + ']'
+            tp_scores = fsv_tp_.T[0][fsv_tp_.T[1] > thresh]
+            tn_scores = fsv_tn_.T[0][fsv_tn_.T[1] > thresh]
+            scoretype = (fsv_col_lbls_[0] + '[' + fsv_col_lbls_[1] +
+                         ' > ' + str(thresh) + ']')
         else:
-            tp_scores = fsv_tp.prod(axis=1)
-            tn_scores = fsv_tn.prod(axis=1)
-            scoretype = '*'.join(fsv_col_lbls)
+            tp_scores = fsv_tp_.prod(axis=1)
+            tn_scores = fsv_tn_.prod(axis=1)
+            scoretype = '*'.join(fsv_col_lbls_)
 
         # TODO: learn this score normalizer as a model
-        encoder = vt.ScoreNormalizer()
+        # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
+        encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
         encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
-        figtitle = 'Feature Scores: %s, %s' % (scoretype, testres.get_title_aug())
+        if 'lnbnn_norm' not in fsv_col_lbls_:
+            # hack for making encoder
+            encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
+        figtitle = 'Feature Scores: %s, %s' % (scoretype,
+                                               testres.get_title_aug())
         fnum = None
 
         vizkw = {}
@@ -2228,8 +2149,8 @@ class TestResult(object):
         encoder.visualize(
             figtitle=figtitle, fnum=fnum,
             with_scores=False,
-            with_prebayes=False,
-            with_postbayes=False,
+            with_prebayes=1,
+            with_postbayes=True,
             **vizkw
         )
         icon = qreq_.ibs.get_database_icon()
