@@ -36,40 +36,6 @@ from ibeis.algo.hots import chip_match
 print, rrr, profile = utool.inject2(__name__, '[scorenorm]')
 
 
-def train_featscore_normalizer():
-    r"""
-    CommandLine:
-        # Write Encoder
-        python -m ibeis --tf train_featscore_normalizer --show
-        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --show
-        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
-
-        # Visualize encoder score adjustment
-        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnn_fg_featscore --show --nocache --nocache-hs
-
-        # Compare ranking with encoder vs without
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
-
-        # Compare in ipynb
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore]
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> encoder = train_featscore_normalizer()
-        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
-        >>> ut.show_if_requested()
-    """
-    import ibeis
-    # TODO: training / loading / general external models
-    qreq_ = ibeis.testdata_qreq_(
-        defaultdb='PZ_MTEST', a=['default'], p=['default'])
-    encoder = learn_featscore_normalizer(qreq_)
-    encoder.save()
-    return encoder
-
-
 def learn_annotscore_normalizer(qreq_, learnkw={}):
     """
     Takes the result of queries and trains a score encoder
@@ -109,6 +75,40 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
     encoder = vt.ScoreNormalizer(**_learnkw)
     encoder.fit(scores, labels, attrs=attrs)
     encoder.cfgstr = 'annotscore'
+    return encoder
+
+
+def train_featscore_normalizer():
+    r"""
+    CommandLine:
+        python -m ibeis --tf train_featscore_normalizer --show
+
+        # Write Encoder
+        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
+
+        # Visualize encoder score adjustment
+        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnn_fg_featscore --show --nocache --nocache-hs
+
+        # Compare ranking with encoder vs without
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
+
+        # Compare in ipynb
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore]
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> encoder = train_featscore_normalizer()
+        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    # TODO: training / loading / general external models
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST', a=['default'], p=['default'])
+    encoder = learn_featscore_normalizer(qreq_)
+    encoder.save()
     return encoder
 
 
