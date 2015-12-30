@@ -704,6 +704,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     Takes collected data and applys parzen window density estimation and bayes rule.
 
     #True positive scores must be larger than true negative scores.
+    FIXME: might be an issue with pdfs summing to 1 here.
 
     Args:
         tp_support (ndarray):
@@ -733,9 +734,9 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         >>> verbose = True
         >>> reverse = False
         >>> (score_domain, p_tp_given_score) = learn_score_normalization(tp_support, tn_support)
-        >>> result = int(p_tp_given_score.sum())
+        >>> result = '%.2f' % (np.diff(p_tp_given_score).sum())
         >>> print(result)
-        92
+        0.99
     """
     import vtool as vt
     if verbose:
