@@ -51,7 +51,7 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2, 3, 4, 5, 6, 7, 18])
         >>> [cm.score_nsum(qreq_) for cm in cm_list]
         >>> ut.quit_if_noshow()
@@ -64,7 +64,7 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
-        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list='all')
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list='all')
         >>> [cm.score_nsum(qreq_) for cm in cm_list]

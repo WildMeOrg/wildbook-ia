@@ -4,7 +4,7 @@
 from __future__ import absolute_import, division, print_function
 import sys
 from PIL import Image
-from ibeis.model.preproc import preproc_image
+from ibeis.algo.preproc import preproc_image
 from uuid import UUID
 from vtool.tests import grabdata
 import hashlib

@@ -673,7 +673,7 @@ def check_image_uuid_consistency(ibs, gid_list):
         >>> ibeis.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
-    import ibeis.model.preproc.preproc_image as preproc_image
+    import ibeis.algo.preproc.preproc_image as preproc_image
     gpath_list = ibs.get_image_paths(gid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
     for ix in ut.ProgressIter(range(len(gpath_list))):
@@ -3489,8 +3489,8 @@ def redownload_detection_models(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -c "from ibeis.model.detect import grabmodels; grabmodels.redownload_models()"
-        python -c "import utool, ibeis.model; utool.view_directory(ibeis.model.detect.grabmodels._expand_modeldir())"
+        python -c "from ibeis.algo.detect import grabmodels; grabmodels.redownload_models()"
+        python -c "import utool, ibeis.algo; utool.view_directory(ibeis.algo.detect.grabmodels._expand_modeldir())"
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3501,7 +3501,7 @@ def redownload_detection_models(ibs):
         >>> print(result)
     """
     print('[ibsfuncs] redownload_detection_models')
-    from ibeis.model.detect import grabmodels
+    from ibeis.algo.detect import grabmodels
     modeldir = ibs.get_detect_modeldir()
     grabmodels.redownload_models(modeldir=modeldir)
 
@@ -5954,11 +5954,11 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         dconfig2_ (dict): (default = None)
 
     CommandLine:
-        python -m ibeis.model.hots.vsone_pipeline --exec-get_annot_pair_lazy_dict
+        python -m ibeis.algo.hots.vsone_pipeline --exec-get_annot_pair_lazy_dict
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> qaid, daid = ibs.get_valid_aids()[0:2]

@@ -137,8 +137,8 @@ from ibeis import gui
 from ibeis import viz
 from ibeis import main_module
 from ibeis.viz import interact
-from ibeis.model import hots
-from ibeis.model import preproc
+from ibeis.algo import hots
+from ibeis.algo import preproc
 # IBEIS DEV
 from ibeis import params
 from ibeis import ibsfuncs
@@ -161,32 +161,32 @@ from ibeis.dbio import export_hsdb
 from ibeis.dbio import ingest_hsdb
 from ibeis.dbio import ingest_database
 # IBEIS MODEL
-from ibeis.model import Config
-from ibeis.model import preproc
-from ibeis.model import hots
+from ibeis.algo import Config
+from ibeis.algo import preproc
+from ibeis.algo import hots
 # IBEIS MODEL PREPROCESSING
-from ibeis.model.preproc import preproc_annot
-from ibeis.model.preproc import preproc_image
-from ibeis.model.preproc import preproc_chip
-from ibeis.model.preproc import preproc_feat
-from ibeis.model.preproc import preproc_detectimg
+from ibeis.algo.preproc import preproc_annot
+from ibeis.algo.preproc import preproc_image
+from ibeis.algo.preproc import preproc_chip
+from ibeis.algo.preproc import preproc_feat
+from ibeis.algo.preproc import preproc_detectimg
 # IBEIS MODEL HOTSPOTTER
-from ibeis.model.hots import pipeline
-from ibeis.model.hots import pipeline as hspipe
-from ibeis.model.hots import match_chips4 as mc4
-from ibeis.model.hots import nn_weights
-from ibeis.model.hots import query_request
-from ibeis.model.hots import neighbor_index
-from ibeis.model.hots import automated_matcher
-from ibeis.model.hots import automated_helpers
-from ibeis.model.hots import hots_query_result
-from ibeis.model.hots import scoring
-from ibeis.model.hots import query_helpers
-from ibeis.model.hots import score_normalization
-from ibeis.model.hots.hots_query_result import QueryResult
+from ibeis.algo.hots import pipeline
+from ibeis.algo.hots import pipeline as hspipe
+from ibeis.algo.hots import match_chips4 as mc4
+from ibeis.algo.hots import nn_weights
+from ibeis.algo.hots import query_request
+from ibeis.algo.hots import neighbor_index
+from ibeis.algo.hots import automated_matcher
+from ibeis.algo.hots import automated_helpers
+from ibeis.algo.hots import hots_query_result
+from ibeis.algo.hots import scoring
+from ibeis.algo.hots import query_helpers
+from ibeis.algo.hots import score_normalization
+from ibeis.algo.hots.hots_query_result import QueryResult
 # IBEIS MODEL DETECT
-from ibeis.model.detect import randomforest
-from ibeis.model.detect import grabmodels
+from ibeis.algo.detect import randomforest
+from ibeis.algo.detect import grabmodels
 # IBEIS VIEW GUI
 from ibeis.gui import newgui
 from ibeis.gui import guiback

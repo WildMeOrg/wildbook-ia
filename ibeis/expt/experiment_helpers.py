@@ -9,7 +9,7 @@ import six
 import itertools
 from ibeis.expt import experiment_configs
 from ibeis.expt import cfghelpers
-from ibeis.model import Config
+from ibeis.algo import Config
 from ibeis.init import filter_annots
 print, rrr, profile = ut.inject2(__name__, '[expt_helpers]')
 
@@ -17,7 +17,7 @@ QUIET = ut.QUIET
 
 
 def get_varied_pipecfg_lbls(cfgdict_list):
-    from ibeis.model import Config
+    from ibeis.algo import Config
     cfg_default_dict = dict(Config.QueryConfig().parse_items())
     cfgx2_lbl = cfghelpers.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
     return cfgx2_lbl
@@ -113,7 +113,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     _pipecfg_list = [Config.QueryConfig(**_cfgdict) for _cfgdict in _pcfgdict_list]
 
     # Enforce rule that removes duplicate configs
-    # by using feasiblity from ibeis.model.Config
+    # by using feasiblity from ibeis.algo.Config
     # TODO: Move this unique finding code to its own function
     # and then move it up one function level so even the custom
     # configs can be uniquified

@@ -245,7 +245,7 @@ def post_1_2_0(db, ibs=None):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+            >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
             >>> import ibeis
             >>> #import sys
             #>>> sys.argv.append('--force-fresh')
@@ -382,7 +382,7 @@ def post_1_2_1(db, ibs=None):
     if ibs is not None:
         print('applying post_1_2_1')
         import utool as ut
-        from ibeis.model.preproc import preproc_annot
+        from ibeis.algo.preproc import preproc_annot
         if ibs is not None:
             ibs._init_rowid_constants()
             #db = ibs.db
@@ -491,7 +491,7 @@ def pre_1_3_1(db, ibs=None):
         ibs._init_config()
         aid_list = ibs.get_valid_aids()
         def pre_1_3_1_update_visual_uuids(ibs, aid_list):
-            from ibeis.model.preproc import preproc_annot
+            from ibeis.algo.preproc import preproc_annot
             def pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list):
                 image_uuid_list = ibs.get_annot_image_uuids(aid_list)
                 verts_list      = ibs.get_annot_verts(aid_list)
@@ -535,7 +535,7 @@ def pre_1_3_1(db, ibs=None):
             print('About to delete toremove_aids=%r' % (toremove_aids,))
             #if ut.are_you_sure():
             #ibs.delete_annots(toremove_aids)
-            #from ibeis.model.preproc import preproc_annot
+            #from ibeis.algo.preproc import preproc_annot
             #preproc_annot.on_delete(ibs, toremove_aids)
             ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
 
@@ -1362,7 +1362,7 @@ def autogen_db_schema():
 
 if __name__ == '__main__':
     """
-    python -m ibeis.model.preproc.preproc_chip
+    python -m ibeis.algo.preproc.preproc_chip
     python -m ibeis.control.DB_SCHEMA --allexamples
     """
     import multiprocessing

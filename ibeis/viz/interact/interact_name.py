@@ -169,7 +169,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.cm = kwargs.get('cm', None)
         self.qreq_ = kwargs.get('qreq_', None)
         if self.cm is not None:
-            from ibeis.model.hots import chip_match
+            from ibeis.algo.hots import chip_match
             assert isinstance(self.cm, chip_match.ChipMatch2)
             assert self.qreq_ is not None
         self.infer_data()

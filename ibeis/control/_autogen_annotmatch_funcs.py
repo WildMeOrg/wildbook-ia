@@ -144,7 +144,7 @@ def delete_annotmatch(ibs, annotmatch_rowid_list, config2_=None):
         >>> num_deleted = ibs.delete_annotmatch(annotmatch_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.model.preproc import preproc_annotmatch
+    #from ibeis.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))

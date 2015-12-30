@@ -123,7 +123,7 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+        >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import vtool as vt
         >>> import numpy as np
         >>> import ibeis
@@ -221,7 +221,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
 #@adder
 #def add_chip_feat(ibs, cid_list, force=False, config2_=None):
 #    """ Computes the features for every chip without them """
-#    from ibeis.model.preproc import preproc_feat
+#    from ibeis.algo.preproc import preproc_feat
 #    fid_list = ibs.get_chip_fids(cid_list, ensure=False, config2_=config2_)
 #    dirty_cids = ut.get_dirty_items(cid_list, fid_list)
 #    if len(dirty_cids) > 0:
@@ -321,7 +321,7 @@ def add_chip_feat(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, ret
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_feat_rowid_list3_ensured)
     """
-    from ibeis.model.preproc import preproc_feat
+    from ibeis.algo.preproc import preproc_feat
     ut.assert_all_not_None(chip_rowid_list, ' chip_rowid_list')
     # Get requested configuration id
     config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
@@ -515,7 +515,7 @@ def get_valid_fids(ibs, config2_=None):
 @accessor_decors.cache_invalidator(const.FEATURE_TABLE)
 def delete_features(ibs, feat_rowid_list, config2_=None):
     """ deletes images from the database that belong to fids"""
-    from ibeis.model.preproc import preproc_feat
+    from ibeis.algo.preproc import preproc_feat
     if ut.VERBOSE:
         print('[ibs] deleting %d features' % len(feat_rowid_list))
     # remove non-sql external dependeinces of these rowids
@@ -546,7 +546,7 @@ def get_feat_config_rowid(ibs, config2_=None):
     defined by ibs.cfg.feat_cfg.get_cfgstr()
 
     # FIXME: Configs are still handled poorly
-    used in ibeis.model.preproc.preproc_feats in the param
+    used in ibeis.algo.preproc.preproc_feats in the param
     generator. (that should probably be moved into the controller)
     """
     if config2_ is not None:

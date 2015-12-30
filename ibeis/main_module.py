@@ -118,7 +118,7 @@ def __import_parallel_modules():
     #util_sysreq.ensure_in_pythonpath('code')
     #import pyhesaff  # NOQA
     #import pyrf  # NOQA
-    from ibeis.model.preproc import preproc_chip  # NOQA
+    from ibeis.algo.preproc import preproc_chip  # NOQA
 
 
 def _init_parallel():

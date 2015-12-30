@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from ibeis.model.hots import chip_match
+from ibeis.algo.hots import chip_match
 import plottool as pt
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih  # NOQA

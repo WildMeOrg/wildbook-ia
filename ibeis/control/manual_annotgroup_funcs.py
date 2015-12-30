@@ -119,7 +119,7 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
         >>> num_deleted = ibs.delete_annotgroup(annotgroup_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.model.preproc import preproc_annotgroup
+    #from ibeis.algo.preproc import preproc_annotgroup
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))

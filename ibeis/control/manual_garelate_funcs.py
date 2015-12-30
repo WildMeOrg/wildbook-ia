@@ -118,7 +118,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
         >>> num_deleted = ibs.delete_gar(gar_rowid_list)
         >>> print('num_deleted = %r' % (num_deleted,))
     """
-    #from ibeis.model.preproc import preproc_gar
+    #from ibeis.algo.preproc import preproc_gar
     # NO EXTERN IMPORT
     if ut.VERBOSE:
         print('[ibs] deleting %d gar rows' %

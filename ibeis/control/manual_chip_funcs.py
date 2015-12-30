@@ -105,7 +105,7 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_chip_rowid_list3_ensured)
     """
-    from ibeis.model.preproc import preproc_chip
+    from ibeis.algo.preproc import preproc_chip
     ut.assert_all_not_None(aid_list, ' annot_rowid_list')
     # Get requested configuration id
     config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
@@ -562,7 +562,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
         Method: DELETE
         URL:    /api/chip/
     """
-    from ibeis.model.preproc import preproc_chip
+    from ibeis.algo.preproc import preproc_chip
     if verbose:
         print('[ibs] deleting %d annotation-chips' % len(cid_list))
     # Delete sql-external (on-disk) information
@@ -603,8 +603,8 @@ def get_chip_aids(ibs, cid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.model import Config
-        >>> from ibeis.model.hots import query_params
+        >>> from ibeis.algo import Config
+        >>> from ibeis.algo.hots import query_params
         >>> #chip_config2_ = Config.ChipConfig(chip_sqrt_area=450)
         >>> #chip_config3_ = Config.ChipConfig(chip_sqrt_area=200)
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -685,7 +685,7 @@ def get_chip_detectpaths(ibs, cid_list):
         Method: GET
         URL:    /api/chip/detectpaths/
     """
-    from ibeis.model.preproc import preproc_detectimg
+    from ibeis.algo.preproc import preproc_detectimg
     new_gfpath_list = preproc_detectimg.compute_and_write_detectchip_lazy(ibs, cid_list)
     return new_gfpath_list
 
@@ -788,7 +788,7 @@ def get_chips(ibs, cid_list, ensure=True, verbose=False, eager=True, config2_=No
     """
     # FIXME: HACK: this should not have to read in config2
     # (unless it needs to compute the chips?)
-    from ibeis.model.preproc import preproc_chip
+    from ibeis.algo.preproc import preproc_chip
     if ensure:
         try:
             ut.assert_all_not_None(cid_list, 'cid_list')

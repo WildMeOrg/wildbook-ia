@@ -11,7 +11,7 @@ from six.moves import range, input, zip, map  # NOQA
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
-from ibeis.model import Config
+from ibeis.algo import Config
 #from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, profile = ut.inject2(__name__, '[manual_meta]')
@@ -1094,7 +1094,7 @@ def _default_config(ibs, cfgname=None, new=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.Config import *  # NOQA
+        >>> from ibeis.algo.Config import *  # NOQA
         >>> from ibeis.control.manual_meta_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data

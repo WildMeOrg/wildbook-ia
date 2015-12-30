@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
 # IBEIST
-from ibeis.model.preproc import preproc_detectimg
+from ibeis.algo.preproc import preproc_detectimg
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_DETECTIMG]')
 
 

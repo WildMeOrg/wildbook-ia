@@ -23,14 +23,14 @@ from plottool import viz_featrow
 from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
 from ibeis import viz
-from ibeis.model.hots import scoring
-from ibeis.model.hots import hstypes
-from ibeis.model.hots import chip_match
+from ibeis.algo.hots import scoring
+from ibeis.algo.hots import hstypes
+from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
 from plottool import abstract_interaction  # TODO
-from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.viz.interact.interact_chip import ishow_chip
 (print, rrr, profile) = ut.inject2(__name__, '[interact_matches]', DEBUG=False)
 

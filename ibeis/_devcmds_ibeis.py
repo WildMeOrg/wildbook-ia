@@ -110,7 +110,7 @@ def query_aids(ibs, qaid_list, daid_list=None):
         daid_list = ibs.get_valid_aids()
     qres_list = ibs.query_chips(qaid_list, daid_list)
     for qres in qres_list:
-        assert isinstance(qres, ibeis.model.hots.hots_query_result.QueryResult)
+        assert isinstance(qres, ibeis.algo.hots.hots_query_result.QueryResult)
         qres.ishow_top(ibs, fnum=df2.next_fnum(), annot_mode=1, make_figtitle=True)
 
 

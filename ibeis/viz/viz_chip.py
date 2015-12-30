@@ -18,7 +18,7 @@ def testdata_showchip():
     annote = not ut.get_argflag('--no-annote')
     kwargs = dict(ori=ut.get_argflag('--ori'), weight_label=weight_label, annote=annote)
     ut.print_dict(kwargs)
-    default_config = dict(ibeis.model.Config.FeatureWeightConfig().parse_items())
+    default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
     print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
     config2_ = ibs.new_query_params(cfgdict=cfgdict)
@@ -119,7 +119,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
         if 'color' not in kwargs:
-            #from ibeis.model.preproc import preproc_featweight
+            #from ibeis.algo.preproc import preproc_featweight
             #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
             if weight_label == 'fg_weights':
                 if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
@@ -207,7 +207,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 #    annote = True
 #    kpts = ibs.get_annot_kpts(aid)
 #    kwargs = {}
-#    #from ibeis.model.preproc import preproc_featweight
+#    #from ibeis.algo.preproc import preproc_featweight
 #    #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[-1]
 #    #color = featweights
 #    #import numpy as np

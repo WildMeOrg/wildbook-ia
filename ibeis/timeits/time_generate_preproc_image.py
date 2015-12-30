@@ -27,7 +27,7 @@ def timeit2(stmt, setup='', number=1000):
 
 @profile
 def TIME_GEN_PREPROC_IMG(ibs):
-    from ibeis.model.preproc.preproc_image import add_images_params_gen
+    from ibeis.algo.preproc.preproc_image import add_images_params_gen
     print('[TIME_GEN_PREPROC_IMG]')
     gid_list = ibs.get_valid_gids()
     gpath_list = ibs.get_image_paths(gid_list)
@@ -57,7 +57,7 @@ def TIME_GEN_PREPROC_IMG(ibs):
 
     setup = utool.unindent(
         '''
-        from ibeis.model.preproc.preproc_image import add_images_params_gen
+        from ibeis.algo.preproc.preproc_image import add_images_params_gen
         genkw = dict(prog=False, verbose=True)
         gpath_list = %r
         ''' % (gpath_list,))
@@ -81,7 +81,7 @@ def TIME_GEN_PREPROC_IMG(ibs):
 @profile
 def TIME_GEN_PREPROC_FEAT(ibs):
     print('[TIME_GEN_PREPROC_FEAT]')
-    from ibeis.model.preproc.preproc_feat import extract_hesaff_sift_feats
+    from ibeis.algo.preproc.preproc_feat import extract_hesaff_sift_feats
     from six.moves import zip
     import numpy as np
 
@@ -122,7 +122,7 @@ def TIME_GEN_PREPROC_FEAT(ibs):
 
     setup = utool.unindent(
         '''
-        from ibeis.model.preproc.preproc_feat import extract_hesaff_sift_feats
+        from ibeis.algo.preproc.preproc_feat import extract_hesaff_sift_feats
         genkw = dict(prog=False, verbose=True)
         cfpath_list = %r
         ''' % (cfpath_list,))

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 from ibeis.viz import viz_helpers as vh
 from vtool import image as gtool
-from ibeis.model.detect import randomforest
+from ibeis.algo.detect import randomforest
 from os.path import splitext
 from plottool import viz_image2
 import plottool as pt

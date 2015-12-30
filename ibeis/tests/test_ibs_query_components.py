@@ -12,7 +12,7 @@ import utool
 from plottool import draw_func2 as df2
 #IBEIS
 from ibeis import viz
-from ibeis.model.hots import query_helpers
+from ibeis.algo.hots import query_helpers
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[TEST_QUERY_COMP]')
 

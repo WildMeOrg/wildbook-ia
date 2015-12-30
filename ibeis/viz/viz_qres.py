@@ -4,7 +4,7 @@ import plottool as pt
 import utool as ut  # NOQA
 import numpy as np
 from ibeis import ibsfuncs
-from ibeis.model.hots import chip_match
+from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches  # NOQA

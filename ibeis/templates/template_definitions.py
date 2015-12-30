@@ -145,7 +145,7 @@ Tadder_pl_dependant = ut.codeblock(
             >>> ut.assert_all_not_None(sub_{leaf}_rowid_list3_ensured)
         """
         #REM raise NotImplementedError('this code is a stub, you must populate it')
-        from ibeis.model.preproc import preproc_{leaf}
+        from ibeis.algo.preproc import preproc_{leaf}
         ut.assert_all_not_None({parent}_rowid_list, ' {parent}_rowid_list')
         # Get requested configuration id
         config_rowid = {self}.get_{leaf}_config_rowid(config2_=config2_)
@@ -438,7 +438,7 @@ Tdeleter_native_tbl = ut.codeblock(
             >>> num_deleted = {self}.delete_{tbl}({tbl}_rowid_list)
             >>> print('num_deleted = %r' % (num_deleted,))
         """
-        #from ibeis.model.preproc import preproc_{tbl}
+        #from ibeis.algo.preproc import preproc_{tbl}
         {Tdeleter_native_tbl_import}
         if ut.VERBOSE:
             print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))

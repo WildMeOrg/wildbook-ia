@@ -36,7 +36,7 @@ from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import xml.etree.ElementTree as ET
-from ibeis.model.hots import pipeline
+from ibeis.algo.hots import pipeline
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
@@ -875,7 +875,7 @@ class IBEISController(BASE_CLASS):
         """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
-        from ibeis.model.detect import randomforest  # NOQA
+        from ibeis.algo.detect import randomforest  # NOQA
         if isinstance(gid_list, int):
             gid_list = [gid_list]
         print('TYPE:' + str(type(gid_list)))
@@ -1126,7 +1126,7 @@ class IBEISController(BASE_CLASS):
             >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
             >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
         """
-        from ibeis.model.preproc import preproc_encounter
+        from ibeis.algo.preproc import preproc_encounter
         print('[ibs] Computing and adding encounters.')
         #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         # only cluster ungrouped images
@@ -1431,7 +1431,7 @@ class IBEISController(BASE_CLASS):
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """
-        from ibeis.model.hots import match_chips4 as mc4
+        from ibeis.algo.hots import match_chips4 as mc4
         # Check fo empty queries
         try:
             assert len(daid_list) > 0, 'there are no database chips'

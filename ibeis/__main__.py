@@ -88,7 +88,7 @@ def run_ibeis():
         '_autogen_explicit_controller']
     ignore_suffix = ['_grave']
     func_to_module_dict = {
-        'demo_bayesnet': 'ibeis.model.hots.demobayes',
+        'demo_bayesnet': 'ibeis.algo.hots.demobayes',
     }
     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
                             func_to_module_dict=func_to_module_dict)
@@ -108,9 +108,9 @@ def run_ibeis():
         Allow any doctest to be run the main ibeis script
 
         python -m ibeis --tmod utool.util_str --test-align:0
-        python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        python -m ibeis --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
         python -m ibeis --tf request_ibeis_query_L0:0 --show
-        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA
+        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests

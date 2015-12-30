@@ -12,10 +12,14 @@ CHMOD_PATTERNS = [
     'ingest_*.py',
 ]
 
-PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
-                'ibeis/init', 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
-                'ibeis/hots', 'ibeis/preproc', 'ibeis/viz',
-                'ibeis/viz/interact', ]
+# python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
+PROJECT_DIRS = ['.', 'ibeis', 'ibeis/algo', 'ibeis/control', 'ibeis/dbio',
+                'ibeis/expt', 'ibeis/gui', 'ibeis/init', 'ibeis/other',
+                'ibeis/scripts', 'ibeis/templates', 'ibeis/tests', 'ibeis/viz',
+                'ibeis/web', 'ibeis/algo/detect', 'ibeis/algo/hots',
+                'ibeis/algo/preproc', 'ibeis/algo/hots/smk',
+                'ibeis/viz/interact']
+
 
 CLUTTER_PATTERNS = [
     '\'',
@@ -45,6 +49,7 @@ CLUTTER_DIRS = [
     'ibeis/export',
     'ibeis/ingest',
     'ibeis/injest',
+    'ibeis/model',
     'ibeis/io',
     'ibeis/dev',
     'testsuite',

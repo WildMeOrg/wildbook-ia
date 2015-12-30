@@ -10,7 +10,7 @@ import utool as ut
 import vtool as vt
 from ibeis.expt import test_result
 from ibeis.expt import old_storage
-from ibeis.model.hots import match_chips4 as mc4
+from ibeis.algo.hots import match_chips4 as mc4
 from six.moves import map, range
 print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
 

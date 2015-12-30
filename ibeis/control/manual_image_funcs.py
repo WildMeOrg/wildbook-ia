@@ -252,7 +252,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         >>> # Clean things up
         >>> ibs.delete_images(new_gids1)
     """
-    from ibeis.model.preproc import preproc_image
+    from ibeis.algo.preproc import preproc_image
     from ibeis import ibsfuncs
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
@@ -988,7 +988,7 @@ def get_image_detectpaths(ibs, gid_list):
         Method: GET
         URL:    /api/image/detectpaths/
     """
-    from ibeis.model.preproc import preproc_detectimg
+    from ibeis.algo.preproc import preproc_detectimg
     new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
     return new_gfpath_list
 

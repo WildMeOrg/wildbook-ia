@@ -152,7 +152,7 @@ def add_feat_featweights(ibs, feat_rowid_list, config2_=None, verbose=not ut.QUI
         >>> ut.assert_eq(num_dirty1, 2, 'Only two params should have been computed here')
         >>> ut.assert_all_not_None(sub_featweight_rowid_list3_ensured)
     """
-    from ibeis.model.preproc import preproc_featweight
+    from ibeis.algo.preproc import preproc_featweight
     ut.assert_all_not_None(feat_rowid_list, ' feat_rowid_list')
     # Get requested configuration id
     config_rowid = ibs.get_featweight_config_rowid(config2_=config2_)
@@ -309,7 +309,7 @@ def delete_featweight(ibs, featweight_rowid_list, config2_=None):
         >>> featweight_rowid_list = ibs._get_all_featweight_rowids()[:2]
         >>> ibs.delete_featweight(featweight_rowid_list)
     """
-    from ibeis.model.preproc import preproc_featweight
+    from ibeis.algo.preproc import preproc_featweight
     if ut.VERBOSE:
         print('[ibs] deleting %d featweight rows' % len(featweight_rowid_list))
     # Prepare: Delete externally stored data (if any)

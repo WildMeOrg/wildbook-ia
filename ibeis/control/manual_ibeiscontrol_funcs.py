@@ -16,7 +16,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                       verbose=ut.NOT_QUIET, **kwargs):
     """
-    alias for ibeis.model.hots.query_request.new_ibeis_query_request
+    alias for ibeis.algo.hots.query_request.new_ibeis_query_request
 
     Args:
         qaid_list (list):
@@ -48,7 +48,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
         _QSUUIDS((1)nztoqb6&7apjltd1)
     """
-    from ibeis.model.hots import query_request
+    from ibeis.algo.hots import query_request
     qreq_ = query_request.new_ibeis_query_request(
         ibs, qaid_list, daid_list, cfgdict=cfgdict, verbose=verbose, **kwargs)
     return qreq_
@@ -80,7 +80,7 @@ def new_query_params(ibs, cfgdict=None, **kwargs):
         >>> result = ('qparams = %s' % (str(qparams),))
         >>> print(result)
     """
-    from ibeis.model.hots import query_params
+    from ibeis.algo.hots import query_params
     query_cfg = ibs.cfg.query_cfg
     if cfgdict is None:
         cfgdict = {}
@@ -119,7 +119,7 @@ def get_vocab_cfgstr(ibs, taids=None, qreq_=None):
 def get_vocab_words(ibs, taids=None, qreq_=None):
     """
     Hackyish way of putting vocab generation into the controller.
-    Ideally there would be a preproc_vocab in ibeis.model.preproc
+    Ideally there would be a preproc_vocab in ibeis.algo.preproc
     and sql would store this under some config
 
     Example:
@@ -194,7 +194,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
-        >>> from ibeis.model.hots import distinctiveness_normalizer
+        >>> from ibeis.algo.hots import distinctiveness_normalizer
         >>> import ibeis
         >>> import numpy as np
         >>> config2_ = None
@@ -213,7 +213,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         >>> assert np.all(np.array(stats_dict['min']) >= 0), 'distinctiveness was out of bounds'
         >>> assert np.all(np.array(stats_dict['max']) <= 1), 'distinctiveness was out of bounds'
     """
-    from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
+    from ibeis.algo.hots import distinctiveness_normalizer as dcvs_normer
 
     # per-species disinctivness wrapper around ibeis cached function
     # get feature rowids

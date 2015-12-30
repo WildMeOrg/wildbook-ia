@@ -779,7 +779,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def train_rf_with_encounter(back, **kwargs):
-        from ibeis.model.detect import randomforest
+        from ibeis.algo.detect import randomforest
         eid = back._eidfromkw(kwargs)
         if eid < 0:
             gid_list = back.ibs.get_valid_gids()
@@ -1339,7 +1339,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.incremental_query()
             >>> # verify results
         """
-        from ibeis.model.hots import qt_inc_automatch as iautomatch
+        from ibeis.algo.hots import qt_inc_automatch as iautomatch
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
         eid = back._eidfromkw(kwargs)
         print('------')

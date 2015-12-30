@@ -99,10 +99,10 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots import chip_match
-        >>> from ibeis.model.hots import name_scoring
+        >>> from ibeis.algo.hots import chip_match
+        >>> from ibeis.algo.hots import name_scoring
         >>> from ibeis.viz.viz_matches import *  # NOQA
-        >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+        >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
         >>> func = chip_match.ChipMatch2.show_single_namematch
         >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
@@ -460,7 +460,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST', default_qaids=[18])
         >>> cm.score_nsum(qreq_)

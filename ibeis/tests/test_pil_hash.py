@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
 from vtool.tests import grabdata
-from ibeis.model.preproc import preproc_image
+from ibeis.algo.preproc import preproc_image
 from PIL import Image
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PIL_HASH]')
 

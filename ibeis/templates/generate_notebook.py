@@ -181,7 +181,7 @@ def make_ibeis_notebook(ibs):
     #if ut.get_argflag('--hacktestscore'):
     #    pipeline_list_body = ut.codeblock(
     #        '''
-    #        # See ibeis/model/Config.py for names of pipeline config options
+    #        # See ibeis/algo/Config.py for names of pipeline config options
     #        'default:lnbnn_on=True,bar_l2_on=False,normonly_on=False,fg_on=True',
     #        'default:lnbnn_on=False,bar_l2_on=True,normonly_on=False,fg_on=True',
     #        'default:lnbnn_on=False,bar_l2_on=False,normonly_on=True,fg_on=True',

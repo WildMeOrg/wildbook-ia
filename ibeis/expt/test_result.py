@@ -2059,7 +2059,7 @@ class TestResult(object):
         print('Loading cached chipmatches')
         import ibeis  # NOQA
         from os.path import dirname, join  # NOQA
-        from ibeis.model.hots import chip_match
+        from ibeis.algo.hots import chip_match
 
         disttypes_ = ut.get_argval('--disttypes', type_=list, default=disttypes)
 

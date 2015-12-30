@@ -280,7 +280,7 @@ def get_qres_name_result_info(ibs, qres, qreq_):
        and the difference
 
     """
-    from ibeis.model.hots import chip_match
+    from ibeis.algo.hots import chip_match
     if isinstance(qres, chip_match.ChipMatch2):
         cm = qres
         qaid = cm.qaid

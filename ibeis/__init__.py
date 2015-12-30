@@ -54,12 +54,12 @@ try:
     from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
                                    test_main, opendb, opendb_in_background, opendb_bg_web)
     from ibeis.control.IBEISControl import IBEISController
-    from ibeis.model.hots.query_request import QueryRequest
-    from ibeis.model.hots.chip_match import ChipMatch2
+    from ibeis.algo.hots.query_request import QueryRequest
+    from ibeis.algo.hots.chip_match import ChipMatch2
     from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
     from ibeis.init import main_helpers
 
-    from ibeis import model
+    from ibeis import algo
 
     from ibeis import expt
     from ibeis import templates
@@ -71,7 +71,7 @@ except Exception as ex:
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
-    from ibeis import model
+    from ibeis import algo
     from ibeis import viz
     from ibeis import web
     from ibeis import gui
@@ -231,7 +231,7 @@ def testdata_expts(*args, **kwargs):
 
 #import_subs()
 #from ibeis import gui
-#from ibeis import model
+#from ibeis import algo
 #from ibeis import templates
 #from ibeis import viz
 #from ibeis import web
@@ -282,12 +282,12 @@ def reload_subs(verbose=True):
     getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(viz, 'reload_subs', lambda: None)()
 
     getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)
 

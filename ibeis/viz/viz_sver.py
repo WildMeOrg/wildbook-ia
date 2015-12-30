@@ -25,8 +25,8 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, con
 
 def _compute_svvars(ibs, aid1):
     """ If spatial-verfication dbginfo is not in we need to compute it """
-    from ibeis.model.hots import _pipeline_helpers as plh
-    from ibeis.model.hots import query_request
+    from ibeis.algo.hots import _pipeline_helpers as plh
+    from ibeis.algo.hots import query_request
     daids = ibs.get_valid_aids()
     qaids = [aid1]
     cfgdict = dict(with_metadata=True)

@@ -37,7 +37,7 @@ from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
-#from ibeis.model.hots import smk
+#from ibeis.algo.hots import smk
 import plottool as pt
 import ibeis
 if __name__ == '__main__':
@@ -176,7 +176,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
         >>> qaid_list = ibs.get_valid_aids()
         >>> daid_list = None
     """
-    from ibeis.model.hots import automated_matcher
+    from ibeis.algo.hots import automated_matcher
     ibs1 = ibs
     num_initial = ut.get_argval('--ninit', type_=int, default=0)
     return automated_matcher.incremental_test(ibs1, num_initial)
@@ -500,8 +500,8 @@ def devfunc(ibs, qaid_list):
     """ Function for developing something """
     print('[dev] devfunc')
     import ibeis  # NOQA
-    from ibeis.model import Config  # NOQA
-    #from ibeis.model.Config import *  # NOQA
+    from ibeis.algo import Config  # NOQA
+    #from ibeis.algo.Config import *  # NOQA
     feat_cfg = Config.FeatureConfig()
     #feat_cfg.printme3()
     print('\ncfgstr..')

@@ -15,7 +15,7 @@ from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
-from ibeis.model.hots import chip_match
+from ibeis.algo.hots import chip_match
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
 #import functools
@@ -181,7 +181,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_vsone = True
     if with_vsone:
-        from ibeis.model.hots import vsone_pipeline
+        from ibeis.algo.hots import vsone_pipeline
 
         #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
         def vsone_single_hack(ibs, qaid, daid, qreq_):
@@ -1291,7 +1291,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> print(candidate_matches)
     """
     import vtool as vt
-    from ibeis.model.hots import chip_match
+    from ibeis.algo.hots import chip_match
     print(('[resorg] get_automatch_candidates('
            'filter_reviewed={filter_reviewed},'
            'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'

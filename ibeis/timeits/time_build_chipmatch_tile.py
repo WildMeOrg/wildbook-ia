@@ -24,12 +24,12 @@ def build_match_iterator(qfx2_idx, qfx2_score_agg, qfx2_valid_agg, qreq_):
         qreq_ (QueryRequest):  hyper-parameters
 
     CommandLine:
-        python -m ibeis.model.hots.pipeline --test-build_match_iterator
+        python -m ibeis.algo.hots.pipeline --test-build_match_iterator
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> from ibeis.model.hots import pipeline
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> from ibeis.algo.hots import pipeline
         >>> verbose = True
         >>> cfgdict = dict(codename='vsmany')
         >>> ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict=cfgdict)

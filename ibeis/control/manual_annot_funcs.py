@@ -409,7 +409,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         [14, 15]
     """
     #ut.embed()
-    from ibeis.model.preproc import preproc_annot
+    from ibeis.algo.preproc import preproc_annot
     from vtool import geometry
     if ut.VERBOSE:
         print('[ibs] adding annotations')
@@ -647,7 +647,7 @@ def delete_annots(ibs, aid_list):
     if ut.VERBOSE:
         print('[ibs] deleting %d annotations' % len(aid_list))
     # Delete chips and features first
-    from ibeis.model.preproc import preproc_annot
+    from ibeis.algo.preproc import preproc_annot
     preproc_annot.on_delete(ibs, aid_list)
     # TODO:
     # delete parent rowid column if exists in annot table
@@ -1459,7 +1459,7 @@ def get_annot_verts(ibs, aid_list):
         Method: GET
         URL:    /api/annot/verts/
     """
-    from ibeis.model.preproc import preproc_annot
+    from ibeis.algo.preproc import preproc_annot
     vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
     vert_list = preproc_annot.postget_annot_verts(vertstr_list)
     #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
@@ -1531,7 +1531,7 @@ def get_annot_yaws(ibs, aid_list):
         >>> print(result)
         [None, None, None, None, None]
     """
-    #from ibeis.model.preproc import preproc_annot
+    #from ibeis.algo.preproc import preproc_annot
     yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
     yaw_list = [yaw if yaw >= 0.0 else None for yaw in yaw_list]
     return yaw_list
@@ -1718,7 +1718,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     colnames = (NAME_ROWID,)
     nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
     if distinguish_unknowns:
-        #from ibeis.model.preproc import preproc_annot
+        #from ibeis.algo.preproc import preproc_annot
         #nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
         nid_list = [(None if aid is None else -aid)
                     if nid == ibs.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
@@ -2134,7 +2134,7 @@ def get_annot_visual_uuid_info(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
@@ -2176,7 +2176,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
@@ -2212,7 +2212,7 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
         Method: PUT
         URL:    /api/annot/semantic_uuids/
     """
-    from ibeis.model.preproc import preproc_annot
+    from ibeis.algo.preproc import preproc_annot
     semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
     annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
@@ -2248,7 +2248,7 @@ def update_annot_visual_uuids(ibs, aid_list):
         >>> aid_list = ibs._get_all_aids()
         >>> update_annot_visual_uuids(ibs, aid_list)
     """
-    from ibeis.model.preproc import preproc_annot
+    from ibeis.algo.preproc import preproc_annot
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
     annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
@@ -2592,7 +2592,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     """
     # FIXME: this is implemented very poorly. Caches not robust. IE they are
     # never invalidated. Not all config information is passed through
-    from ibeis.model.preproc import preproc_probchip
+    from ibeis.algo.preproc import preproc_probchip
     probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs,
                                                                       aid_list,
                                                                       config2_=config2_)
