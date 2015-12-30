@@ -614,6 +614,30 @@ def gauss_func1d_unnormalized(x, sigma=1.0):
     return gaussval
 
 
+def logistic_01(x):
+    r"""
+    Args:
+        x (?):
+
+    CommandLine:
+        python -m vtool.math --exec-logistic --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> x = np.linspace(0, 1)
+        >>> y = logistic_01(x)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.plot(x, y)
+        >>> ut.show_if_requested()
+    """
+    from scipy.special import expit
+    y = expit(((x * 2) - 1.0) * 6)
+    return y
+    # return L / (1 + np.exp(-k * (x - x0)))
+
+
 if __name__ == '__main__':
     """
     CommandLine:

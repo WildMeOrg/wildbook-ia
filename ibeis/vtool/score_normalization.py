@@ -746,6 +746,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[scorenorm] * monotonize = %r' % (monotonize,))
         next_ = ut.next_counter(1)
         total = 8
+    # import utool
+    # utool.embed()
     # Find good score domain range
     min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
     score_domain = np.linspace(min_score, max_score, gridsize)
@@ -765,16 +767,29 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     if verbose:
         print('[scorenorm] %d/%d evaluating tn density' % (next_(), total))
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
+
+    if True:
+        # Make sure we still have probability functions
+        p_score_given_tp = p_score_given_tp / np.trapz(p_score_given_tp, score_domain)
+        p_score_given_tn = p_score_given_tn / np.trapz(p_score_given_tn, score_domain)
+        if ut.DEBUG2:
+            assert np.isclose(np.trapz(p_score_given_tp, score_domain), 1.0)
+            assert np.isclose(np.trapz(p_score_given_tn, score_domain), 1.0)
     if verbose:
         print('[scorenorm] %d/%d evaluating posterior probabilities' % (next_(), total))
+    # FIXME: not always going to be equal probability of true and positive cases
+    # p_tp = len(tp_support) / (len(tp_support) + len(tn_support))
+    p_tp = .5
     # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
-    # FIXME: not always going to be equal probability of true and positive cases
-    p_tp = .5
     p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
+    if ut.DEBUG2:
+        assert np.isclose(np.trapz(p_score, score_domain), 1.0)
+        assert np.isclose(np.trapz(p_score, p_tp_given_score), 1.0)
     if np.any(np.isnan(p_tp_given_score)):
         if False:
+            # np.trapz(p_tp_given_score / np.trapz(p_tp_given_score, score_domain), score_domain)
             print('stats:p_score_given_tn = ' + ut.get_stats_str(p_score_given_tn, newlines=True, use_nan=True))
             print('stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, newlines=True, use_nan=True))
             print('stats:p_score = ' + ut.get_stats_str(p_score, newlines=True, use_nan=True))
@@ -1323,6 +1338,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         python -m vtool.score_normalization --exec-estimate_pdf --show
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
         >>> import vtool as vt
         >>> rng = np.random.RandomState(0)
@@ -1330,9 +1346,21 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         >>> data_pdf = vt.estimate_pdf(data)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.plot(data_pdf.cdf)
-        >>> pt.plot(data_pdf.density)
+        >>> #pt.plot(data_pdf.support, data_pdf.cdf)
+        >>> #pt.plot(data_pdf.support, data_pdf.density)
+        >>> pt.plot(data_pdf.support[:-1], np.diff(data_pdf.cdf))
+        >>> #pt.plot(data_pdf.cumhazard)
         >>> ut.show_if_requested()
+
+    Ignore:
+        mx = data_pdf.support.max()
+        mn = data_pdf.support.min()
+        scipy.integrate.quad(data_pdf.evaluate, mn, mx)
+
+        assert np.isclose(np.sum(np.diff(data_pdf.support)[0] * data_pdf.density), 1)
+        assert np.isclose(np.trapz(data_pdf.density, data_pdf.support), 1)
+
+        np.trapz(data_pdf.density, data_pdf.support)
     """
     import utool as ut
     #import scipy.stats as spstats
