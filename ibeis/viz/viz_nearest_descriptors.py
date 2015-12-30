@@ -35,9 +35,25 @@ def show_top_featmatches(qreq_, cm_list):
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
         cm_list (list):
 
-    Ignore:
-        import ibeis
-        cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:has_none=mother,size=30'])
+    SeeAlso:
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default:size=30 --sephack
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=5,lnbnn_on=True -a default:size=30 --sephack
+        python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:K=1,Knorm=4,lnbnn_on=True -a default --sephack
+
+    CommandLine:
+        python -m ibeis.viz.viz_nearest_descriptors --exec-show_top_featmatches --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
+        >>> import ibeis
+        >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST',
+        >>>                                        a=['default:has_none=mother,size=30'])
+        >>> show_top_featmatches(qreq_, cm_list)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
     import numpy as np
     import vtool as vt
@@ -47,10 +63,13 @@ def show_top_featmatches(qreq_, cm_list):
     # Stack chipmatches
     ibs = qreq_.ibs
     infos = [cm.get_flat_fm_info() for cm in cm_list]
-    flat_metadata = dict([(k, np.concatenate(ut.flatten(v))) for k, v in ut.dict_stack2(infos).items()])
+    flat_metadata = dict([(k, np.concatenate(ut.flatten(v)))
+                          for k, v in ut.dict_stack2(infos).items()])
     fsv_flat = flat_metadata['fsv']
     flat_metadata['fs'] = fsv_flat.prod(axis=1)
-    flat_metadata['aid_pairs'] = np.concatenate([flat_metadata['aid1'][:, None], flat_metadata['aid2'][:, None]], axis=1)
+    aids1 = flat_metadata['aid1'][:, None]
+    aids2 = flat_metadata['aid2'][:, None]
+    flat_metadata['aid_pairs'] = np.concatenate([aids1, aids2], axis=1)
 
     # Take sample of metadata
     sortx = flat_metadata['fs'].argsort()[::-1]
@@ -62,21 +81,20 @@ def show_top_featmatches(qreq_, cm_list):
 
     annots = {}
     aids = np.unique(np.hstack((aid1s, aid2s)))
-    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams) for aid in aids}
+    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams)
+              for aid in aids}
 
     label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.TRUTH_MATCH
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):
-        """ custom_func(lazydict, key, subkeys)
-        annots, aid, fxs = lazydict, key, subkeys
-        subvals = warped_patches
-        """
+        """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
         annot = annots[aid]
         kpts = annot['kpts']
         rchip = annot['rchip']
         kpts_m = kpts.take(fxs, axis=0)
-        warped_patches, warped_subkpts = vt.get_warped_patches(rchip, kpts_m, patch_size=patch_size)
+        warped_patches, warped_subkpts = vt.get_warped_patches(rchip, kpts_m,
+                                                               patch_size=patch_size)
         return warped_patches
 
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
@@ -86,28 +104,8 @@ def show_top_featmatches(qreq_, cm_list):
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
         label_lists, data_lists, flat_metadata_top, chunck_sizes=(2, 4),
-        ibs=ibs)
+        ibs=ibs, hack_one_per_aid=False, sortby='fs', qreq_=qreq_)
     inter.show()
-
-    # TODO: Generalize this to take in a worker function
-    # Order work by aids
-    # Need to get patches in a list corresponding to (aid1, aid2, fx1, fx2)
-    # or rather, two lists. (aid1, fx1), (aid2, fx2)
-    # This is done by first grouping by a key, and then by a subkey.
-    # Then results are separated by which of the  multilists they belong to
-
-    # annot = annots[1]
-    # rchip = annot['rchip']
-    # kpts = annot['kpts']
-    # warped_patches, warped_subkpts = vt.get_warped_patches(rchip, kpts[0:1], patch_size=patch_size, use_cpp=True)
-
-    # ----
-    # for annot in ut.iflatten(ut.dict_take(annots, ['aid1', 'aid2'])):
-    #     annot.reprkw['keys'] = ['aid', 'kpts', 'vecs', 'rchip']
-    # flat_metadata['aid1_list'].take(sortx[:num])
-    # flat_metadata['aid2_list'].take(sortx[:num])
-    # flat_metadata['fm_flat'].take(sortx[:num])
-    # flat_metadata['fs_flat'].take(sortx[:num])
 
 
 #@utool.indent_func('[show_neardesc]')

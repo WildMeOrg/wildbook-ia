@@ -29,42 +29,44 @@ if ut.is_developer():
         #'show_vocabulary',
     ]
 
-
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
 # something is not guitool, ibeis.viz
 # has to be before control, can be after constants, params, and main_module
 #import plottool
 
+try:
+    from ibeis import constants
+    from ibeis import constants as const
+    from ibeis import params
+    from ibeis import main_module
+    from ibeis import species
+    from ibeis import other
+    from ibeis.init import sysres
+    #main_module._preload()
 
-from ibeis import constants
-from ibeis import constants as const
-from ibeis import params
-from ibeis import main_module
-from ibeis import species
-from ibeis import other
-from ibeis.init import sysres
-#main_module._preload()
+    from ibeis import control
+    from ibeis import ibsfuncs
+    from ibeis import dbio
+    #from ibeis import web
 
-from ibeis import control
-from ibeis import ibsfuncs
-from ibeis import dbio
-#from ibeis import web
+    from ibeis.init import sysres
+    from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
+                                   test_main, opendb, opendb_in_background, opendb_bg_web)
+    from ibeis.control.IBEISControl import IBEISController
+    from ibeis.model.hots.query_request import QueryRequest
+    from ibeis.model.hots.chip_match import ChipMatch2
+    from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
+    from ibeis.init import main_helpers
 
-from ibeis.init import sysres
-from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
-                               test_main, opendb, opendb_in_background, opendb_bg_web)
-from ibeis.control.IBEISControl import IBEISController
-from ibeis.model.hots.query_request import QueryRequest
-from ibeis.model.hots.chip_match import ChipMatch2
-from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
-from ibeis.init import main_helpers
+    from ibeis import model
 
-from ibeis import model
-
-from ibeis import expt
-from ibeis import templates
-from ibeis.templates import generate_notebook
+    from ibeis import expt
+    from ibeis import templates
+    from ibeis.templates import generate_notebook
+except Exception as ex:
+    ut.printex(ex, 'Error when importing ibeis', tb=True)
+    raise
 
 def import_subs():
     # Weird / Fancy loading.

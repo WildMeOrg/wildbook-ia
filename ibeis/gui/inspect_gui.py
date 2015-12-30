@@ -40,11 +40,11 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     """ assert that the ampersand cannot have duplicate keys
 
     Args:
-        ibs (IBEISController):  ibeis controller object
+        ibs (ibeis.IBEISController):  ibeis controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
-        cm (ChipMatch2):  object of feature correspondences and scores
-        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+        cm (ibeis.ChipMatch2):  object of feature correspondences and scores
+        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)
         aid_list (list):  list of annotation rowids(default = None)
 
     Returns:
@@ -187,18 +187,35 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         def vsone_single_hack(ibs, qaid, daid, qreq_):
             import vtool as vt
             import plottool as pt
-            qreq_ = ibs.new_query_request([qaid], [daid], cfgdict={})
-            matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq_, use_ibscache=True)
-            interact = vt.matching.show_matching_dict(matches, metadata, mode=1)
-            interact
+            if qreq_ is None:
+                qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+            else:
+                qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
+            matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_, use_ibscache=True)
+            interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
             pt.update()
 
         options += [
-            ('Run Vsone(1)', partial(vsone_pipeline.vsone_independant_pair_hack,
-                                     ibs, aid1, aid2, qreq_=qreq_)),
-            ('Run Vsone(2)', partial(vsone_single_hack,
-                                     ibs, aid1, aid2, qreq_=qreq_)),
+            ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
+                                      ibs, aid1, aid2, qreq_=qreq_)),
+            ('Run Vsone(vt)', partial(vsone_single_hack,
+                                      ibs, aid1, aid2, qreq_=qreq_)),
         ]
+    with_vsmany = True
+    if with_vsmany:
+        def vsmany_load_and_show():
+            if qreq_ is None:
+                print('no qreq_ given')
+                return None
+                # qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+            else:
+                qreq2_ = qreq_
+            cm = qreq2_.load_cached_chipmatch(aid1)
+            cm.ishow_single_annotmatch(qreq_, aid2, mode=0)
+        options += [
+            ('Load Vsmany', vsmany_load_and_show),
+        ]
+        pass
 
     with_match_tags = True
     if with_match_tags:

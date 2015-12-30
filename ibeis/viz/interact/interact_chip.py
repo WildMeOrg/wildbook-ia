@@ -6,7 +6,7 @@ Also defines annotation context menu.
 CommandLine:
     python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis import viz
 import utool as ut
 import vtool as vt
@@ -19,8 +19,7 @@ from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
 from plottool import interact_helpers as ih
 
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[interact_chip]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[interact_chip]')
 
 
 def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
@@ -291,7 +290,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 #        pass
 #    else:
 #        viztype = vh.get_ibsdat(ax, 'viztype')
-#        print_('[ic] viztype=%r' % viztype)
+#        print('[ic] viztype=%r' % viztype)
 #        if viztype == 'chip':
 #            if event.button == 3:   # right-click
 #                import guitool
@@ -378,7 +377,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
-        print_('[inter] clicked chip')
+        print('[inter] clicked chip')
         ax, x, y = event.inaxes, event.xdata, event.ydata
         if ih.clicked_outside_axis(event):
             if not ischild:
@@ -404,7 +403,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 #    with_interact_chip=False, config2_=config2_)
             else:
                 viztype = vh.get_ibsdat(ax, 'viztype')
-                print_('[ic] viztype=%r' % viztype)
+                print('[ic] viztype=%r' % viztype)
                 if viztype == 'chip' and event.key == 'shift':
                     _chip_view(**kwargs)
                     ih.disconnect_callback(fig, 'button_press_event')

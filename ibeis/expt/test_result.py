@@ -2213,17 +2213,24 @@ class TestResult(object):
             tn_scores = fsv_tn.prod(axis=1)
             scoretype = '*'.join(fsv_col_lbls)
 
+        # TODO: learn this score normalizer as a model
         encoder = vt.ScoreNormalizer()
         encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
         figtitle = 'Feature Scores: %s, %s' % (scoretype, testres.get_title_aug())
         fnum = None
+
+        vizkw = {}
+        sephack = ut.get_argflag('--sephack')
+        if not sephack:
+            vizkw['target_tpr'] = .95
+            vizkw['score_range'] = (0, 1.0)
+
         encoder.visualize(
             figtitle=figtitle, fnum=fnum,
             with_scores=False,
             with_prebayes=False,
             with_postbayes=False,
-            score_range=(0, 1),
-            target_tpr=.95,
+            **vizkw
         )
         icon = qreq_.ibs.get_database_icon()
         if icon is not None:
