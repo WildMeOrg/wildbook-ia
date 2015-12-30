@@ -8,7 +8,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import multi_index
-from ibeis.model.hots import score_normalization
+from ibeis.model.hots import scorenorm
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import query_params
 from ibeis.model.hots import chip_match
@@ -82,9 +82,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(result)
         PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
 
-        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
-        PZ_MTEST_DSUUIDS((5)q87ho9a0@9s02imh)
-
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -103,8 +100,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(result)
         NAUT_test_DSUUIDS((5)2s8!cj@nrf6iuqgd)
 
-        NAUT_test_DSUUIDS((5)&flvjboruwyi08%t)
-
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
@@ -122,9 +117,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
         PZ_MTEST_DSUUIDS((5)@5wlqu@jl+j8l9io)
-
-        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
-
 
     Ignore:
         # This is supposed to be the begginings of the code to transition the
@@ -274,12 +266,14 @@ class QueryRequest(object):
         qreq_.internal_daids_mask = None
         # Loaded Objects
         # Handle to parent IBEIS Controller
-        # jedi type hinting. Need to have non-obvious condition
+
+        # HACK: jedi type hinting. Need to have non-obvious condition
         try:
-            qreq_.ibs = None   # type: ibeis.IBEISController
+            qreq_.ibs = None
         except Exception:
             import ibeis
-            qreq_.ibs = ibeis.IBEISController()   # type: ibeis.IBEISController
+            qreq_.ibs = ibeis.IBEISController()
+
         qreq_.indexer = None  # The nearest neighbor mechanism
         qreq_.normalizer = None  # The scoring normalization mechanism
         qreq_.dstcnvs_normer = None
@@ -294,9 +288,6 @@ class QueryRequest(object):
         qreq_.qresdir = None
         qreq_.prog_hook = None
         qreq_.lnbnn_normer = None
-
-    #def write_query_request(qreq_, fpath):
-    #    ut.save_cPickle(fpath, qreq_)
 
     def __getstate__(qreq_):
         """
@@ -500,7 +491,7 @@ class QueryRequest(object):
 
     @profile
     def set_internal_masked_qaids(qreq_, masked_qaid_list):
-        """
+        r"""
         used by the pipeline to execute a subset of the query request
         without modifying important state
 
@@ -820,7 +811,8 @@ class QueryRequest(object):
     # load query data structures
     @profile
     def ensure_chips(qreq_, verbose=ut.NOT_QUIET, extra_tries=1):
-        r""" ensure chips are computed (used in expt, not used in pipeline)
+        r"""
+        ensure chips are computed (used in expt, not used in pipeline)
 
         Args:
             verbose (bool):  verbosity flag(default = True)
@@ -839,8 +831,10 @@ class QueryRequest(object):
             >>> qreq_ = ibs.new_query_request(qaids, daids)
             >>> verbose = True
             >>> extra_tries = 1
-            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(qaids, config2_=qreq_.get_external_query_config2()))
-            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(daids, config2_=qreq_.get_external_data_config2()))
+            >>> qchip_fpaths = ibs.get_annot_chip_fpath(qaids, config2_=qreq_.extern_query_config2)
+            >>> dchip_fpaths = ibs.get_annot_chip_fpath(daids, config2_=qreq_.extern_data_config2)
+            >>> ut.remove_file_list(qchip_fpaths)
+            >>> ut.remove_file_list(dchip_fpaths)
             >>> result = qreq_.ensure_chips(verbose, extra_tries)
             >>> print(result)
         """
@@ -981,7 +975,7 @@ class QueryRequest(object):
         if verbose:
             print('[qreq] loading score normalizer')
         # TODO: SYSTEM updatable normalizer
-        normalizer = score_normalization.request_ibeis_normalizer(
+        normalizer = scorenorm.request_annoscore_normer(
             qreq_, verbose=verbose)
         qreq_.normalizer = normalizer
 

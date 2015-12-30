@@ -49,7 +49,8 @@ def parse_config_items(cfg):
             pass
         else:
             if key in seen:
-                print('[Config] WARNING: key=%r appears more than once' % (key,))
+                print('[Config] WARNING: key=%r appears more than once' %
+                      (key,))
             seen.add(key)
             param_list.append(item)
             #print(key)
@@ -99,15 +100,21 @@ def make_config_metaclass():
         """ default get_cfgstr_list, can be overrided by a config object """
         if hasattr(cfg, 'get_param_info_list'):
             if ignore_keys is not None:
-                itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list() if pi.varname not in ignore_keys]
+                itemstr_list = [pi.get_itemstr(cfg)
+                                for pi in cfg.get_param_info_list()
+                                if pi.varname not in ignore_keys]
             else:
-                itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list()]
+                itemstr_list = [pi.get_itemstr(cfg)
+                                for pi in cfg.get_param_info_list()]
         else:
             item_list = parse_config_items(cfg)
             if ignore_keys is not None:
-                itemstr_list = [key + '=' + str(val) for key, val in item_list]
+                itemstr_list = [key + '=' + str(val)
+                                for key, val in item_list]
             else:
-                itemstr_list = [key + '=' + str(val) for key, val in item_list if key not in ignore_keys]
+                itemstr_list = [key + '=' + str(val)
+                                for key, val in item_list
+                                if key not in ignore_keys]
         filtered_itemstr_list = list(filter(len, itemstr_list))
         config_name = cfg.get_config_name()
         body = ','.join(filtered_itemstr_list)
@@ -131,7 +138,6 @@ def make_config_metaclass():
         full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
         return config_name
-        #return 'METACONFIG'
 
     @_register
     def __hash__(cfg):
@@ -154,7 +160,8 @@ def make_config_metaclass():
             supers - bases
             dct - class dictionary
             """
-            #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list.  name=%r' % (name,)
+            #assert 'get_cfgstr_list' in dct, (
+            #  'must have defined get_cfgstr_list.  name=%r' % (name,))
             # Inject registered function
             for func in methods_list:
                 if get_funcname(func) not in dct:
@@ -176,16 +183,6 @@ class GenericConfig(ConfigBase):
     def __init__(cfg, *args, **kwargs):
         super(GenericConfig, cfg).__init__(*args, **kwargs)
 
-    #def get_cfgstr_list(cfg, **kwargs):
-    #    #raise NotImplementedError('abstract')
-    #    item_list = parse_config_items(cfg)
-    #    return ['GENERIC(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
-    #    #return ['unimplemented']
-    #    #pass
-
-    #@abstract():
-    #def get_cfgstr_list(cfg, **kwargs):
-
 
 @six.add_metaclass(ConfigMetaclass)
 class NNConfig(ConfigBase):
@@ -206,15 +203,19 @@ class NNConfig(ConfigBase):
             nn_cfg.initialize_params()
         else:
             nn_cfg.K = 4
-            nn_cfg.use_k_padding = False  # TODO: force to false when in vsone
-            #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
+            # TODO: force to false when in vsone
+            nn_cfg.use_k_padding = False
+            # number of annots before a new multi-indexer is built
+            #nn_cfg.min_reindex_thresh = 3
             #nn_cfg.index_method = 'multi'
             nn_cfg.index_method = 'single'
             nn_cfg.Knorm = 1
             nn_cfg.checks = 800
             nn_cfg.normalizer_rule = ['last', 'name'][0]
-        nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
-        nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
+        # number of annots before a new multi-indexer is built
+        nn_cfg.min_reindex_thresh = 200
+        # number of annots before a new multi-indexer is built
+        nn_cfg.max_subindexers = 2
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
         nn_cfg.update(**kwargs)
 
@@ -271,9 +272,11 @@ class SpatialVerifyConfig(ConfigBase):
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
-        sv_cfg.sver_output_weighting = False  # weight feature scores with sver errors
+        # weight feature scores with sver errors
+        sv_cfg.sver_output_weighting = False
         sv_cfg.refine_method = 'homog'
-        sv_cfg.weight_inliers = True  # weight feature scores with sver errors
+        # weight feature scores with sver errors
+        sv_cfg.weight_inliers = True
         sv_cfg.update(**kwargs)
 
     def get_cfgstr_list(sv_cfg, **kwargs):
@@ -313,7 +316,7 @@ class AggregateConfig(ConfigBase):
         # chipsum, namesum, placketluce
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
-        agg_cfg.score_normalization = False
+        agg_cfg.score_normalization = None
         #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
@@ -349,8 +352,7 @@ class AggregateConfig(ConfigBase):
 
 @six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
-    """
-
+    r"""
     this flann is only for neareset neighbors in vsone/many
     TODO: this might not need to be here, should be part of neighbor config
 
@@ -437,7 +439,8 @@ class SMKConfig(ConfigBase):
         hasvalid_weighting = any([
             smk_cfg.vocab_weighting == x
             for x in smk_cfg._valid_vocab_weighting])
-        assert hasvalid_weighting, 'invalid vocab weighting %r' % smk_cfg.vocab_weighting
+        assert hasvalid_weighting, (
+            'invalid vocab weighting %r' % smk_cfg.vocab_weighting)
 
     def get_cfgstr_list(smk_cfg, **kwargs):
         smk_cfgstr_list = [
@@ -467,13 +470,15 @@ class VocabTrainConfig(ConfigBase):
 
     """
     def __init__(vocabtrain_cfg, **kwargs):
-        super(VocabTrainConfig, vocabtrain_cfg).__init__(name='vocabtrain_cfg')
+        super(VocabTrainConfig, vocabtrain_cfg).__init__(
+            name='vocabtrain_cfg')
         vocabtrain_cfg.override_vocab = 'default'  # Vocab
         vocabtrain_cfg.vocab_taids = 'all'  # Vocab
         vocabtrain_cfg.nWords = int(8E3)  #
         vocabtrain_cfg.vocab_init_method = 'akmeans++'
         vocabtrain_cfg.vocab_nIters = 128
-        vocabtrain_cfg.vocab_flann_params = dict(cores=0)  # TODO: easy flann params cfgstr
+        # TODO: easy flann params cfgstr
+        vocabtrain_cfg.vocab_flann_params = dict(cores=0)
         vocabtrain_cfg.update(**kwargs)
 
     def get_cfgstr_list(vocabtrain_cfg, **kwargs):
@@ -481,7 +486,8 @@ class VocabTrainConfig(ConfigBase):
             if isinstance(vocabtrain_cfg.vocab_taids, six.string_types):
                 taids_cfgstr = 'taids=%s' % vocabtrain_cfg.vocab_taids
             else:
-                taids_cfgstr = ut.hashstr_arr(vocabtrain_cfg.vocab_taids, 'taids', hashlen=8)
+                taids_cfgstr = ut.hashstr_arr(vocabtrain_cfg.vocab_taids,
+                                              'taids', hashlen=8)
             vocabtrain_cfg_list = [
                 '_VocabTrain(',
                 'nWords=%d' % (vocabtrain_cfg.nWords,),
@@ -508,7 +514,8 @@ class VocabAssignConfig(ConfigBase):
         >>> print(result)
     """
     def __init__(vocabassign_cfg, **kwargs):
-        super(VocabAssignConfig, vocabassign_cfg).__init__(name='vocabassign_cfg')
+        super(VocabAssignConfig, vocabassign_cfg).__init__(
+            name='vocabassign_cfg')
         vocabassign_cfg.nAssign = 10  # MultiAssignment
         vocabassign_cfg.massign_equal_weights = True
         vocabassign_cfg.massign_alpha = 1.2
@@ -530,7 +537,8 @@ class VocabAssignConfig(ConfigBase):
             '_VocabAssign(',
             'nAssign=', str(vocabassign_cfg.nAssign),
             ',a=', str(vocabassign_cfg.massign_alpha),
-            ',s=', str(vocabassign_cfg.massign_sigma) if vocabassign_cfg.massign_equal_weights else '',
+            ',s=', (str(vocabassign_cfg.massign_sigma)
+                    if vocabassign_cfg.massign_equal_weights else ''),
             ',eqw=T' if vocabassign_cfg.massign_equal_weights else ',eqw=F',
             ')',
         ]
@@ -564,14 +572,6 @@ class NNWeightConfig(ConfigBase):
         nnweight_cfg.initialize_params()
         nnweight_cfg.update(**kwargs)
 
-    #def get_config_name(nnweight_cfg):
-    #    return 'NNWeight'
-
-    #def make_feasible(nnweight_cfg):
-    #    # normalizer rule depends on Knorm
-    #    #if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
-    #    #    nn_cfg.normalizer_rule = 'last'
-
     def get_param_info_list(nnweight_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
@@ -590,10 +590,13 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
                 ut.ParamInfo('normalizer_rule', 'last', ''),
-                ut.ParamInfo('lnbnn_normalizer', None,  hideif=None, help_='config string for lnbnn score normalizer'),
+                ut.ParamInfo('lnbnn_normalizer', None,  hideif=None,
+                             help_='config string for lnbnn score normalizer'),
                 #
-                ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
-                ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
+                ut.ParamInfoBool('can_match_sameimg', False,  'sameimg',
+                                 hideif=False),
+                ut.ParamInfoBool('can_match_samename', True, 'samename',
+                                 hideif=True),
             ],
         ])
         return param_info_list
@@ -704,8 +707,10 @@ class QueryConfig(ConfigBase):
         # <Hack Paramaters>
         query_cfg.with_metadata = False
         query_cfg.augment_queryside_hack = False
-        query_cfg.return_expanded_nns = False  # for hacky distinctivness
-        query_cfg.use_external_distinctiveness = False  # for distinctivness model
+        # for hacky distinctivness
+        query_cfg.return_expanded_nns = False
+        # for distinctivness model
+        query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         # </Hack Paramaters>
@@ -817,9 +822,9 @@ class QueryConfig(ConfigBase):
             if '_extern_distinctiveness' in codename:
                 query_cfg.use_external_distinctiveness = True
             if codename.startswith('vsone_unnorm'):
-                agg_cfg.score_normalization = False
+                agg_cfg.score_normalization = None
             elif codename.startswith('vsone_norm'):
-                agg_cfg.score_normalization = True
+                agg_cfg.score_normalization = 'vsone_default'
         elif codename.startswith('asmk'):
             query_cfg.pipeline_root = 'asmk'
         elif codename.startswith('smk'):
@@ -849,7 +854,8 @@ class QueryConfig(ConfigBase):
         agg_cfg = query_cfg.agg_cfg
         #sv_cfg = query_cfg.sv_cfg
 
-        #assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be different yet.'
+        #assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be
+        # different yet.'
 
         if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
             assert agg_cfg.score_method == 'nsum'
@@ -862,7 +868,8 @@ class QueryConfig(ConfigBase):
             query_cfg.pipeline_root == root
             for root in query_cfg._valid_pipeline_roots])
         try:
-            assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
+            assert hasvalid_root, (
+                'invalid pipeline root %r' % query_cfg.pipeline_root)
         except AssertionError as ex:
             ut.printex(ex)
             if ut.SUPER_STRICT:
@@ -898,7 +905,8 @@ class FeatureWeightConfig(ConfigBase):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
-        >>> featweight_cfg = FeatureWeightConfig(featweight_detector='rf', featweight_enabled=True)
+        >>> featweight_cfg = FeatureWeightConfig(featweight_detector='rf',
+        >>>                                      featweight_enabled=True)
         >>> result = featweight_cfg.get_cfgstr()
         >>> print(result)
         _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
@@ -908,7 +916,8 @@ class FeatureWeightConfig(ConfigBase):
     """
 
     def __init__(featweight_cfg, **kwargs):
-        super(FeatureWeightConfig, featweight_cfg).__init__(name='featweight_cfg')
+        super(FeatureWeightConfig, featweight_cfg).__init__(
+            name='featweight_cfg')
         # Featweights depend on features
         featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
         # Feature weights depend on the detector, but we only need to mirror
@@ -940,7 +949,8 @@ class FeatureWeightConfig(ConfigBase):
                     ',' + featweight_cfg.featweight_species,
                     ',' + featweight_cfg.featweight_detector,
                     ')'])
-        featweight_cfgstrs.extend(featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs))
+        _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
+        featweight_cfgstrs.extend(_cfgstrlist)
         return featweight_cfgstrs
 
 
@@ -969,8 +979,6 @@ class FeatureConfig(ConfigBase):
         >>> result = (feat_cfg.get_cfgstr())
         >>> print(result)
         _FEAT(hesaff+sift_rotation_invariance=True)_CHIP(sz450)
-
-    _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
     def __init__(feat_cfg, **kwargs):
         # Features depend on chips
@@ -979,7 +987,8 @@ class FeatureConfig(ConfigBase):
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
         feat_cfg.feat_type = 'hesaff+sift'
         feat_cfg.bgmethod = None
-        feat_cfg._param_list = list(six.iteritems(pyhesaff.get_hesaff_default_params()))
+        feat_cfg._param_list = list(six.iteritems(
+            pyhesaff.get_hesaff_default_params()))
 
         for type_, name, default, doc in feat_cfg._iterparams():
             setattr(feat_cfg, name, default)
@@ -990,7 +999,8 @@ class FeatureConfig(ConfigBase):
         """
         # TODO:
             multiple features (lists of features to use)
-            per-chip filtering based on decision (this probably should belong to chip cfg)
+            per-chip filtering based on decision (this probably should belong
+                to chip cfg)
             optional mask
         """
 
@@ -1017,7 +1027,6 @@ class FeatureConfig(ConfigBase):
             import pyhesaff
             feat_cfgstrs = ['_FEAT(']
             feat_cfgstrs += [feat_cfg.feat_type]
-            #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
             feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
             feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
             if feat_cfg.bgmethod is not None:
@@ -1043,9 +1052,6 @@ class FeatureConfig(ConfigBase):
                         valstr = '%.2f' % val
                     else:
                         valstr = str(val)
-                    #namestr = ut.hashstr(alias.get(name, name), hashlen=6,
-                    #                        alphabet=ut.util_hash.ALPHABET_27)
-                    #namestr = ut.clipstr(alias.get(name, name), 5)
                     namestr = alias.get(name, name)
                     str_ = namestr + '=' + valstr
                     yield str_
@@ -1055,23 +1061,6 @@ class FeatureConfig(ConfigBase):
             feat_cfgstrs = []
         feat_cfgstrs.extend(feat_cfg._chip_cfg.get_cfgstr_list(**kwargs))
         return feat_cfgstrs
-
-    #def get(self, key, *d):
-    #    """ get a paramater value by string
-    #    HUGE HACK. Makes it appear like the chip config string is part of the
-    #    dictionary of this item This is a monkey patch
-    #    """
-    #    ERROR_ON_DEFAULT = True
-    #    if ERROR_ON_DEFAULT:
-    #        if key == 'feat_cfgstr':
-    #            return self.get_cfgstr()
-    #        elif key == 'feat_cfg_dict':
-    #            return self.to_dict()
-    #        else:
-    #            #return super(ConfigBase, self).__getitem(key)
-    #            return getattr(self, key)
-    #    else:
-    #        return getattr(self, key, *d)
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1090,30 +1079,12 @@ class ChipConfig(ConfigBase):
         cc_cfg.chipfmt         = '.png'
         cc_cfg.update(**kwargs)
 
-    #def __getitem__(self, key):
-
-    #def get(self, key, *d):
-    #    """ get a paramater value by string
-    #    HUGE HACK. Makes it appear like the chip config string is part of the
-    #    dictionary of this item This is a monkey patch
-    #    """
-    #    ERROR_ON_DEFAULT = True
-    #    if ERROR_ON_DEFAULT:
-    #        if key == 'chip_cfgstr':
-    #            return self.get_cfgstr()
-    #        elif key == 'chip_cfg_dict':
-    #            return self.to_dict()
-    #        else:
-    #            #return super(ConfigBase, self).__getitem(key)
-    #            return getattr(self, key)
-    #    else:
-    #        return getattr(self, key, *d)
-
     def get_cfgstr_list(cc_cfg, **kwargs):
         if kwargs.get('use_chip', True):
             chip_cfgstr = []
             #assert cc_cfg.chipfmt[0] == '.'
-            chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (cc_cfg.chipfmt != '.png')
+            chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (
+                cc_cfg.chipfmt != '.png')
             chip_cfgstr += ['histeq']  * cc_cfg.histeq
             chip_cfgstr += ['adapteq'] * cc_cfg.adapteq
             chip_cfgstr += ['grabcut'] * cc_cfg.grabcut
@@ -1121,8 +1092,10 @@ class ChipConfig(ConfigBase):
             chip_cfgstr += ['rankeq']  * cc_cfg.rank_eq
             chip_cfgstr += ['localeq'] * cc_cfg.local_eq
             chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
-            isOrig = cc_cfg.chip_sqrt_area is None or cc_cfg.chip_sqrt_area  <= 0
-            chip_cfgstr += ['szorig'] if isOrig else ['sz%r' % cc_cfg.chip_sqrt_area]
+            isOrig = (cc_cfg.chip_sqrt_area is None or
+                      cc_cfg.chip_sqrt_area <= 0)
+            chip_cfgstr += (['szorig'] if isOrig else
+                            ['sz%r' % cc_cfg.chip_sqrt_area])
             chip_cfgstr_list = ['_CHIP(', (','.join(chip_cfgstr)), ')']
         else:
             chip_cfgstr_list = []
@@ -1148,8 +1121,6 @@ class DetectionConfig(ConfigBase):
         #detect_cfg.species_text = const.Species.ZEB_GREVY
         detect_cfg.species_text = const.Species.UNKNOWN
         detect_cfg.detector = 'rf'
-        # detect_cfg.scale_list  = '1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1'
-        # detect_cfg.scale_list  = '1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10'
         detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
         detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
@@ -1236,10 +1207,6 @@ class OtherConfig(ConfigBase):
         other_cfg.show_shipped_encounters = ut.is_developer()
         other_cfg.update(**kwargs)
 
-    #def get_cfgstr_list(nn_cfg):
-    #    raise NotImplementedError('abstract')
-    #    return ['unimplemented']
-
 
 # Convinience
 def __dict_default_func(dict_):
@@ -1279,7 +1246,8 @@ def update_query_config(cfg, **kwargs):
     cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
-def load_named_config(cfgname, dpath, use_config_cache=False, verbose=ut.VERBOSE and ut.NOT_QUIET):
+def load_named_config(cfgname, dpath, use_config_cache=False,
+                      verbose=ut.VERBOSE and ut.NOT_QUIET):
     """ hack 12-30-2014
 
     Args:
@@ -1440,8 +1408,6 @@ def _default_named_config(cfg, cfgname):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config, allexamples=True)"
-        python -c "import utool, ibeis.model.Config; utool.doctest_funcs(ibeis.model.Config)"
         python -m ibeis.model.Config
         python -m ibeis.model.Config --allexamples
     """

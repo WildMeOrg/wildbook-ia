@@ -389,7 +389,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
             controller
 
     Returns:
-        IBEISController: ibs
+        ibeis.IBEISController: ibs
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import six  # NOQA
 from ibeis.init import old_main_helpers
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[main_helpers]')
+(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 
 # DEPRICATE

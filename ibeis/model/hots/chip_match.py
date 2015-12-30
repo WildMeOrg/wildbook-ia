@@ -745,7 +745,11 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return sorted_nids, sorted_name_scores
 
     def get_ranked_nids_and_aids(cm):
-        """ Hacky func """
+        """ Hacky func
+
+        Returns:
+            ibeis.model.hots.name_scoring.NameScoreTup
+        """
         sortx = cm.name_score_list.argsort()[::-1]
         sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
         sorted_nids = cm.unique_nids.take(sortx, axis=0)
