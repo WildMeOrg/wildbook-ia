@@ -26,74 +26,157 @@ GOALS:
     * Add ability for user to relearn encoder from labeled database.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import re
 import utool
 import numpy as np
 import utool as ut
 import vtool as vt
 import six  # NOQA
-print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
+from ibeis.algo.hots import chip_match
+print, rrr, profile = utool.inject2(__name__, '[scorenorm]')
 
 
-def learn_annotscore_normalizer(qreq_, **learnkw):
+def train_featscore_normalizer():
+    r"""
+    CommandLine:
+        # Write Encoder
+        python -m ibeis --tf train_featscore_normalizer --show
+        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --show
+        python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
+
+        # Visualize encoder score adjustment
+        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnn_fg_featscore --show --nocache --nocache-hs
+
+        # Compare ranking with encoder vs without
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show --nocache --nocache-hs
+
+        # Compare in ipynb
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore]
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> encoder = train_featscore_normalizer()
+        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    # TODO: training / loading / general external models
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST', a=['default'], p=['default'])
+    encoder = learn_featscore_normalizer(qreq_)
+    encoder.save()
+    return encoder
+
+
+def learn_annotscore_normalizer(qreq_, learnkw={}):
     """
     Takes the result of queries and trains a score encoder
 
     Args:
-        ibs (ibeis.IBEISController):
-        cm_list (list):  object of feature correspondences and scores
-        cfgstr (str):
-
-    Returns:
-        vtool.ScoreNormalizer: freshly trained score encoder
-
-    Args:
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
-        cfgstr (str):
-        prefix (?):
 
     Returns:
         vtool.ScoreNormalizer: encoder
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-learn_annotscore_normalizer --show
+        python -m ibeis --tf learn_annotscore_normalizer --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a=['default'], p=['default'])
-        >>> encoder = learn_annotscore_normalizer(qreq_, cfgstr, prefix)
-        >>> result = ('encoder = %s' % (ut.repr2(encoder),))
-        >>> print(result)
+        >>> qreq_ = ibeis.testdata_qreq_(
+        >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
+        >>> encoder = learn_annotscore_normalizer(qreq_)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> encoder.visualize()
+        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
     """
-    ibs = qreq_.ibs
-    cm_list = ibs.query_chips(qreq_=qreq_)
-    datatup = get_annotscore_training_data(ibs, cm_list)
-    (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
-    if len(tp_support) < 2 or len(tn_support) < 2:
-        print('len(tp_support) = %r' % (len(tp_support),))
-        print('len(tn_support) = %r' % (len(tn_support),))
-        print('Warning: [scorenorm] not enough data')
-        import warnings
-        warnings.warn('Warning: [scorenorm] not enough data')
+    cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    tup = get_training_annotscores(qreq_, cm_list)
+    tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs = tup
+    part_attrs = {
+        0: {'aid_pairs': good_tn_aidnid_pairs},
+        1: {'aid_pairs': good_tp_aidnid_pairs},
+    }
+    scores, labels, attrs = vt.flatten_scores(tp_scores, tn_scores,
+                                              part_attrs)
+    _learnkw = {'monotonize': True}
+    _learnkw.update(learnkw)
     # timestamp = ut.get_printable_timestamp()
-    encoder = vt.ScoreNormalizer()
-    vt.fit()
+    encoder = vt.ScoreNormalizer(**_learnkw)
+    encoder.fit(scores, labels, attrs=attrs)
+    encoder.cfgstr = 'annotscore'
     return encoder
 
 
-def get_annotscore_training_data(ibs, cm_list):
+def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
+    r"""
+    Takes the result of queries and trains a score encoder
+
+    Args:
+        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+
+    Returns:
+        vtool.ScoreNormalizer: encoder
+
+    CommandLine:
+        python -m ibeis --tf learn_featscore_normalizer --show
+        python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> learnkw = {}
+        >>> datakw = {}
+        >>> qreq_ = ibeis.testdata_qreq_(
+        >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
+        >>> encoder = learn_featscore_normalizer(qreq_)
+        >>> ut.quit_if_noshow()
+        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
+        >>> ut.show_if_requested()
     """
-    Returns "good" taining examples
+    cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    disttypes_ = None
+    if True:
+        # Hack
+        namemode = ut.get_argval('--namemode', default=True)
+        fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
+                             default=slice(None, None, None))
+        threshx = ut.get_argval('--threshx', type_=int, default=None)
+    else:
+        namemode = datakw.get('namemode', True)
+        fsvx = datakw.get('fsvx', True)
+        threshx = datakw.get('threshx', True)
+    thresh = .9
+    tp_scores, tn_scores, scorecfg = get_training_featscores(
+        qreq_, cm_list, disttypes_, namemode, fsvx, threshx, thresh)
+    _learnkw = dict(monotonize=True, adjust=2)
+    _learnkw.update(learnkw)
+    encoder = vt.ScoreNormalizer(**_learnkw)
+    encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
+    # ut.hashstr27(qreq_.get_cfgstr())
+    cfgstr = scorecfg
+    cfgstr = re.sub('[' + re.escape('()= ') + ']', '', cfgstr)
+    cfgstr = re.sub('[' + re.escape('+*<>[]') + ']', '_', cfgstr)
+    encoder.cfgstr = cfgstr + '_featscore'
+    return encoder
+
+
+def get_training_annotscores(qreq_, cm_list):
+    """
+    Returns the annotation scores between each query and the correct groundtruth
+    annotations as well as the top scoring false annotations.
     """
     good_tp_nscores = []
     good_tn_nscores = []
     good_tp_aidnid_pairs = []
     good_tn_aidnid_pairs = []
+
+    ibs = qreq_.ibs
 
     trainable = [ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list)
                  for cm in cm_list]
@@ -122,22 +205,66 @@ def get_annotscore_training_data(ibs, cm_list):
                 good_tn_nscores.append(sorted_nscores[gf_rank])
                 good_tp_aidnid_pairs.append((qaid, sorted_nids[gt_rank]))
                 good_tn_aidnid_pairs.append((qaid, sorted_nids[gf_rank]))
-    tp_support = np.array(good_tp_nscores)
-    tn_support = np.array(good_tn_nscores)
-    tp_support_labels = good_tp_aidnid_pairs
-    tn_support_labels = good_tp_aidnid_pairs
-    return (tp_support, tn_support, tp_support_labels, tn_support_labels)
+    tp_scores = np.array(good_tp_nscores)
+    tn_scores = np.array(good_tn_nscores)
+    return tp_scores, tn_scores, good_tn_aidnid_pairs, good_tp_aidnid_pairs
 
 
-def get_featscore_training_data(qreq_, cm_list, disttypes_=None,
-                                namemode=True):
-    from ibeis.algo.hots import chip_match
+def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
+                            fsvx=None, threshx=None, thresh=.9):
+    """
+    Returns the flattened set of feature scores between each query and the
+    correct groundtruth annotations as well as the top scoring false
+    annotations.
+
+    Args:
+        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        cm_list (list):
+        disttypes_ (None): (default = None)
+        namemode (bool): (default = True)
+        fsvx (slice): (default = slice(None, None, None))
+        threshx (None): (default = None)
+        thresh (float): only used if threshx is specified (default = 0.9)
+
+    SeeAlso:
+        TestResult.draw_feat_scoresep
+
+    Returns:
+        tuple: (tp_scores, tn_scores, scorecfg)
+
+    CommandLine:
+        python -m ibeis.algo.hots.scorenorm --exec-get_training_featscores
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> cm_list, qreq_ = ibeis.testdata_cmlist(defaultdb='PZ_MTEST', a=['default:qsize=10'])
+        >>> disttypes_ = None
+        >>> namemode = True
+        >>> fsvx = None
+        >>> threshx = 1
+        >>> thresh = 0.5
+        >>> (tp_scores, tn_scores, scorecfg) = get_training_featscores(
+        >>>     qreq_, cm_list, disttypes_, namemode, fsvx, threshx, thresh)
+        >>> print(scorecfg)
+        lnbnn*fg[fg > 0.5]
+    """
+    if fsvx is None:
+        fsvx = slice(None, None, None)
+
     fsv_col_lbls = None
     tp_fsvs_list = []
     tn_fsvs_list = []
-    for cm in ut.ProgressIter(cm_list,
-                              lbl='building featscore lists',
-                              adjust=True, freq=1):
+
+    trainable = [
+        qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list)
+        for cm in cm_list
+    ]
+    cm_list_ = ut.compress(cm_list, trainable)
+
+    for cm in ut.ProgIter(cm_list_, lbl='building train featscores',
+                          adjust=True, freq=1):
         try:
             if disttypes_ is None:
                 # Use precomputed fsv distances
@@ -155,7 +282,22 @@ def get_featscore_training_data(qreq_, cm_list, disttypes_=None,
             continue
     fsv_tp = np.vstack(tp_fsvs_list)
     fsv_tn = np.vstack(tn_fsvs_list)
-    return fsv_tp, fsv_tn, fsv_col_lbls
+
+    fsv_col_lbls_ = ut.list_take(fsv_col_lbls, fsvx)
+    fsv_tp_ = fsv_tp.T[fsvx].T
+    fsv_tn_ = fsv_tn.T[fsvx].T
+
+    if threshx is not None:
+        tp_scores = fsv_tp_[fsv_tp.T[threshx] > thresh].prod(axis=1)
+        tn_scores = fsv_tn_[fsv_tn.T[threshx] > thresh].prod(axis=1)
+        threshpart = ('[' + fsv_col_lbls[threshx] + ' > ' + str(thresh) + ']')
+        scorecfg = '(%s)%s' % ('*'.join(fsv_col_lbls_), threshpart)
+    else:
+        tp_scores = fsv_tp_.prod(axis=1)
+        tn_scores = fsv_tn_.prod(axis=1)
+        scorecfg = '*'.join(fsv_col_lbls_)
+
+    return tp_scores, tn_scores, scorecfg
 
 
 if __name__ == '__main__':

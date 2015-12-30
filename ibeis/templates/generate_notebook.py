@@ -4,17 +4,18 @@ import utool as ut
 from ibeis.templates import notebook_cells
 
 
-def generate_notebook_report(ibs):
+def autogen_ipynb(ibs):
     r"""
+    Autogenerates standard IBEIS Image Analysis IPython notebooks.
 
     CommandLine:
-        python -m ibeis --tf generate_notebook_report --run --db lynx
-        python -m ibeis --tf generate_notebook_report --ipynb --db lynx
-        python -m ibeis --tf generate_notebook_report --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
-        python -m ibeis --tf generate_notebook_report --ipynb  --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
-        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --ipynb
-        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --ipynb
-        python -m ibeis --tf generate_notebook_report --db PZ_Master1 --hacktestscore --run
+        python -m ibeis --tf autogen_ipynb --run --db lynx
+        python -m ibeis --tf autogen_ipynb --ipynb --db lynx
+        python -m ibeis --tf autogen_ipynb --ipynb  --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m ibeis --tf autogen_ipynb --ipynb  --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --ipynb
+        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --hacktestscore --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
@@ -23,7 +24,7 @@ def generate_notebook_report(ibs):
         >>> from ibeis.templates.generate_notebook import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> result = generate_notebook_report(ibs)
+        >>> result = autogen_ipynb(ibs)
         >>> print(result)
     """
     dbname = ibs.get_dbname()

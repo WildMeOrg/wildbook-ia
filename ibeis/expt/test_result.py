@@ -1996,6 +1996,9 @@ class TestResult(object):
 
     def draw_feat_scoresep(testres, f=None, disttypes=None):
         r"""
+        SeeAlso:
+            ibeis.algo.hots.scorenorm.train_featscore_normalizer
+
         CommandLine:
             python -m ibeis --tf TestResult.draw_feat_scoresep --show
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
@@ -2019,27 +2022,6 @@ class TestResult(object):
 
             python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
-            # Write Encoder
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True,K=1 -a timectrl --sephack --fsvx=0 --threshx=1
-            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True -a default --sephack --fsvx=0 --threshx=1
-
-            # Compare with encoder vs without
-            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default:qsize=10 -t best:lnbnn_normalizer=[None,lnbnn_test] --show --nocache --nocache-hs
-            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default:qsize=10 -t best:lnbnn_normalizer=[None,lnbnn_test],K=1 --show --nocache --nocache-hs
-
-            # Show results of encoder
-            python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnnfg0.9_test --show --nocache --nocache-hs
-
-            # Show results on ranking of encoder
-            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_test],K=1 --show --nocache --nocache-hs
-            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test],K=1 --show --nocache --nocache-hs
-            python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test] --show --nocache --nocache-hs
-
-            # Compare in ipynb
-            python -m ibeis --tf generate_notebook_report --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn-test]
-            python -m ibeis --tf generate_notebook_report --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnnfg0.9_test]
-
         Example:
             >>> # SCRIPT
             >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -2059,7 +2041,6 @@ class TestResult(object):
         print('Loading cached chipmatches')
         import ibeis  # NOQA
         from os.path import dirname, join  # NOQA
-        from ibeis.algo.hots import chip_match
 
         disttypes_ = ut.get_argval('--disttypes', type_=list, default=disttypes)
 
@@ -2067,77 +2048,42 @@ class TestResult(object):
         cfgstr = qreq_.get_cfgstr(with_query=True)
         cache_dir = join(dirname(dirname(ibeis.__file__)), 'TMP_FEATSCORE_CACHE')
         namemode = ut.get_argval('--namemode', default=True)
-        cache_name = ('get_cfgx_feat_scores_' +
-                      ut.hashstr27(cfgstr + str(disttypes_) + str(namemode)))
+        fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
+                             default=slice(None, None, None))
+        threshx = ut.get_argval('--threshx', type_=int, default=None)
+        thresh = .9
+        cache_name = (
+            'get_cfgx_feat_scores_' +
+            ut.hashstr27(
+                cfgstr +
+                str(disttypes_) +
+                str(namemode) +
+                str(fsvx) +
+                str(threshx) +
+                str(thresh)
+            ))
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
                         use_cache=None)
         def get_cfgx_feat_scores(qreq_):
+            from ibeis.algo.hots import scorenorm
             cm_list = qreq_.load_cached_chipmatch()
             print('Done loading cached chipmatches')
-            fsv_col_lbls = None
-            tp_fsvs_list = []
-            tn_fsvs_list = []
-            for cm in ut.ProgressIter(cm_list,
-                                      lbl='building featscore lists',
-                                      adjust=True, freq=1):
-                try:
-                    if disttypes_ is None:
-                        # Use precomputed fsv distances
-                        fsv_col_lbls = cm.fsv_col_lbls
-                        tp_fsv, tn_fsv = chip_match.get_training_fsv(
-                            cm, namemode=namemode)
-                    else:
-                        # Investigate independant computed dists
-                        fsv_col_lbls = disttypes_
-                        tp_fsv, tn_fsv = chip_match.get_training_desc_dist(
-                            cm, qreq_, fsv_col_lbls, namemode=namemode)
-                    tp_fsvs_list.extend(tp_fsv)
-                    tn_fsvs_list.extend(tn_fsv)
-                except chip_match.UnbalancedExampleException:
-                    continue
-            fsv_tp = np.vstack(tp_fsvs_list)
-            fsv_tn = np.vstack(tn_fsvs_list)
-            return fsv_tp, fsv_tn, fsv_col_lbls
+            return scorenorm.get_training_featscores(qreq_, cm_list,
+                                                     disttypes_, namemode,
+                                                     fsvx, threshx, thresh)
 
-        fsv_tp, fsv_tn, fsv_col_lbls = get_cfgx_feat_scores(qreq_)
+        tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_)
         #fsv_tp = 1 - fsv_tp
         #fsv_tn = 1 - fsv_tn
-
-        slice_ = ut.get_argval('--fsvx', type_='fuzzy_subset',
-                               default=slice(None, None, None))
-
-        fsv_col_lbls_ = ut.list_take(fsv_col_lbls, slice_)
-        fsv_tp_ = fsv_tp.T[slice_].T
-        fsv_tn_ = fsv_tn.T[slice_].T
-
-        threshx = ut.get_argval('--threshx', type_=int, default=None)
-        if threshx is not None:
-            thresh = .9
-            tp_scores = fsv_tp_[fsv_tp.T[threshx] > thresh].prod(axis=1)
-            tn_scores = fsv_tn_[fsv_tn.T[threshx] > thresh].prod(axis=1)
-            scoretype = ('*'.join(fsv_col_lbls_) + '[' + fsv_col_lbls[threshx] +
-                         ' > ' + str(thresh) + ']')
-        elif fsv_col_lbls_ == ['L2_sift', 'fg']:
-            # SUPER HACK. Use fg as a filter rather than multiplier
-            thresh = .8
-            tp_scores = fsv_tp_.T[0][fsv_tp_.T[1] > thresh]
-            tn_scores = fsv_tn_.T[0][fsv_tn_.T[1] > thresh]
-            scoretype = (fsv_col_lbls_[0] + '[' + fsv_col_lbls_[1] +
-                         ' > ' + str(thresh) + ']')
-        else:
-            tp_scores = fsv_tp_.prod(axis=1)
-            tn_scores = fsv_tn_.prod(axis=1)
-            scoretype = '*'.join(fsv_col_lbls_)
 
         # TODO: learn this score normalizer as a model
         # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
         encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
         encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
-        if 'lnbnn_norm' not in fsv_col_lbls_:
-            # hack for making encoder
-            encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
-        figtitle = 'Feature Scores: %s, %s' % (scoretype,
-                                               testres.get_title_aug())
+        # if 'lnbnn_norm' not in fsv_col_lbls_:
+        # hack for making encoder
+        # encoder.save(cfgstr=ut.remove_chars(scoretype, ' []><=') + '_test')
+        figtitle = 'Feature Scores: %s, %s' % (scorecfg, testres.get_title_aug())
         fnum = None
 
         vizkw = {}

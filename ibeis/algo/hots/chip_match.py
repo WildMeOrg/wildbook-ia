@@ -1858,7 +1858,7 @@ def get_topannot_training_idxs(cm, num=2):
 
     Args:
         cm (ibeis.ChipMatch2):  object of feature correspondences and scores
-        num (int): (default = 5)
+        num (int): number of top annots per TP/TN (default = 2)
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1888,14 +1888,14 @@ def get_topannot_training_idxs(cm, num=2):
     return tp_idxs, tn_idxs
 
 
-def get_topname_training_idxs(cm, num_false=5):
+def get_topname_training_idxs(cm, num=5):
     """
     gets the index of the annots in the top groundtrue name and the top
     groundfalse names.
 
     Args:
         cm (ibeis.ChipMatch2):  object of feature correspondences and scores
-        num_false (int): (default = 5)
+        num(int): number of false names (default = 5)
 
     Returns:
         tuple: (tp_idxs, tn_idxs)
@@ -1911,8 +1911,8 @@ def get_topname_training_idxs(cm, num_false=5):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> cm, qreq_ = testdata_cm()
-        >>> num_false = 5
-        >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num_false)
+        >>> num = 5
+        >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
         (tp_idxs, tn_idxs) = (
@@ -1929,7 +1929,7 @@ def get_topname_training_idxs(cm, num_false=5):
         raise UnbalancedExampleException()
     # name ranks of the top groundfalse names
     tp_rank = tp_ranks[0]
-    tn_ranks = [rank for rank in range(num_false + 1)
+    tn_ranks = [rank for rank in range(num + 1)
                 if rank != tp_rank and rank < len(sorted_groupxs)]
     if len(tn_ranks) == 0:
         raise UnbalancedExampleException()
