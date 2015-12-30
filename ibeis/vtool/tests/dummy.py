@@ -1,9 +1,10 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 from vtool import keypoint as ktool
 import vtool.math as mtool
 import numpy as np
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[dummy]', DEBUG=False)
+import utool as ut
+(print, rrr, profile) = ut.inject2(__name__, '[dummy]')
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
@@ -581,7 +582,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     try:
         invV_aug = np.random.normal(0, scale=invV_std, size=(len(kpts), 3)).astype(ktool.KPTS_DTYPE)
     except ValueError as ex:
-        utool.printex(ex, key_list=[(type, 'invV_std')])
+        ut.printex(ex, key_list=[(type, 'invV_std')])
         raise
     ori_aug = np.random.normal(0, scale=ori_std, size=(len(kpts), 1)).astype(ktool.KPTS_DTYPE)
     # Augment keypoints
@@ -589,7 +590,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     kpts_ = kpts + aug
     # Ensure keypoint feasibility
     kpts_ = force_kpts_feasibility(kpts_)
-    #print(utool.dict_str({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
+    #print(ut.dict_str({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().items()}))
     #assert kpts_.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts_.dtype=%r' % (kpts_.dtype)
     return kpts_
 
