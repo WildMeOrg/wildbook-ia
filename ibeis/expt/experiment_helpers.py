@@ -384,7 +384,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         expanded_aids_list, acfg_list = filter_duplicate_acfgs(
             expanded_aids_list, acfg_list, acfg_name_list)
 
-    if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo')):
+    if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')):
         import sys
         ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
         print('combo_slice = %r' % (combo_slice,))

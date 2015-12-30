@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
 # TODO: Restructure
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 from six.moves import zip, range, map
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[query_helpers]')
+print, rrr, profile = ut.inject2(__name__, '[query_helpers]')
 
 
 def get_query_components(ibs, qaids):
@@ -110,42 +110,6 @@ def data_index_integrity(ibs, qreq):
         np.all(dx2_data[dx_list] == desc_list[count])
         np.all(dx2_fx[dx_list] == np.arange(len(dx_list)))
     print('... seems ok')
-
-
-#def find_matchable_chips(ibs):
-#    """ quick and dirty test to score by number of assignments """
-#    import six
-#    from . import match_chips3 as mc3
-#    from . import matching_functions as pipeline
-#    qreq = ibs.qreq
-#    qaids = ibs.get_valid_aids()
-#    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)
-#    mc3.pre_exec_checks(ibs, qreq)
-#    qaid2_nns = pipeline.nearest_neighbors(ibs, qaids, qreq)
-#    pipeline.rrr()
-#    qaid2_nnfilt = pipeline.identity_filter(qaid2_nns, qreq)
-#    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
-#    qaid2_ranked_list = {}
-#    qaid2_ranked_scores = {}
-#    for qaid, cmtup_old in six.iteritems(qaid2_chipmatch_FILT):
-#        (aid2_fm, aid2_fs, aid2_fk) = cmtup_old
-#        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}
-#        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}
-#        nMatches_list = np.array(aid2_nMatches.values())
-#        aid_list      = np.array(aid2_nMatches.keys())
-#        sortx = nMatches_list.argsort()[::-1]
-#        qaid2_ranked_list[qaid] = aid_list[sortx]
-#        qaid2_ranked_scores[qaid] = nMatches_list[sortx]
-
-#    scores_list = []
-#    strings_list = []
-#    for qaid in qaids:
-#        aid   = qaid2_ranked_list[qaid][0]
-#        score = qaid2_ranked_scores[qaid][0]
-#        strings_list.append('qaid=%r, aid=%r, score=%r' % (qaid, aid, score))
-#        scores_list.append(score)
-#    sorted_scorestr = np.array(strings_list)[np.array(scores_list).argsort()]
-#    print('\n'.join(sorted_scorestr))
 
 
 def check_sift_desc(desc):

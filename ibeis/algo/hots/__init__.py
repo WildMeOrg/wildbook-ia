@@ -17,7 +17,6 @@ from ibeis.algo.hots import multi_index
 from ibeis.algo.hots import nn_weights
 from ibeis.algo.hots import pipeline
 from ibeis.algo.hots import precision_recall
-from ibeis.algo.hots import query_helpers
 from ibeis.algo.hots import query_request
 from ibeis.algo.hots import _pipeline_helpers
 print, rrr, profile = ut.inject2(__name__, '[ibeis.algo.hots]')
@@ -37,7 +36,6 @@ def reload_subs(verbose=True):
     getattr(nn_weights, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(pipeline, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(precision_recall, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(query_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(query_request, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)
 rrrr = reload_subs
@@ -54,7 +52,6 @@ IMPORT_TUPLES = [
     ('nn_weights', None, False),
     ('pipeline', None, False),
     ('precision_recall', None, False),
-    ('query_helpers', None, False),
     ('query_request', None, False),
     ('_pipeline_helpers', None, False),
 ]

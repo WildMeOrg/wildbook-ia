@@ -48,17 +48,13 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     Ignore:
         >>> import utool as ut
         >>> from ibeis.algo.hots import pipeline
-        >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0)
-        >>> stripsource = source[:]
-        >>> stripsource = ut.strip_line_comments(stripsource)
-        >>> triplequote1 = ut.TRIPLE_DOUBLE_QUOTE
-        >>> triplequote2 = ut.TRIPLE_SINGLE_QUOTE
-        >>> docstr_regex1 = 'r?' + triplequote1 + '.* + ' + triplequote1 + '\n    '
-        >>> docstr_regex2 = 'r?' + triplequote2 + '.* + ' + triplequote2 + '\n    '
-        >>> stripsource = ut.regex_replace(docstr_regex1, '', stripsource)
-        >>> stripsource = ut.regex_replace(docstr_regex2, '', stripsource)
-        >>> stripsource = ut.strip_line_comments(stripsource)
-        >>> print(stripsource)
+        >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0,
+        >>>                                 strip_docstr=True, stripdef=True,
+        >>>                                 strip_comments=True)
+        >>> import re
+        >>> source = re.sub(r'^\s*$\n', '', source, flags=re.MULTILINE)
+        >>> print(source)
+        >>> ut.replace_between_tags(source, '', sentinal)
     """
     from ibeis.algo.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
@@ -81,14 +77,18 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     #---
     if stop_node == 'weight_neighbors':
         return locals()
-    filtkey_list, filtweights_list, filtvalids_list = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=verbose)
+    weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=verbose)
+    filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = weight_ret
     #---
     if stop_node == 'filter_neighbors':
         raise AssertionError('no longer exists')
     #---
     if stop_node == 'build_chipmatches':
         return locals()
-    cm_list_FILT = build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, verbose=verbose)
+    cm_list_FILT = build_chipmatches(qreq_, nns_list, nnvalid0_list,
+                                     filtkey_list, filtweights_list,
+                                     filtvalids_list, filtnormxs_list,
+                                     verbose=verbose)
     #---
     if stop_node == 'spatial_verification':
         return locals()
@@ -136,6 +136,7 @@ def get_pipeline_testdata(dbname=None,
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots._pipeline_helpers import *
         >>> import ibeis  # NOQA
         >>> from ibeis.algo.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
@@ -238,19 +239,20 @@ def testdata_pre_weight_neighbors(defaultdb='testdb1', qaid_list=[1, 2], daid_li
 
 def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', codename='vsmany'):
     ibs, qreq_, args = testdata_pre_build_chipmatch(defaultdb=defaultdb, codename=codename)
-    nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list = args
+    nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
     if qreq_.qparams.vsone:
-        interal_index = 1
+        internal_index = 1
     else:
-        interal_index = 0
+        internal_index = 0
     qaid = qreq_.get_external_qaids()[0]
     daid = qreq_.get_external_daids()[1]
-    qfx2_idx, _     = nns_list[interal_index]
-    qfx2_valid0     = nnvalid0_list[interal_index]
-    qfx2_score_list = filtweights_list[interal_index]
-    qfx2_valid_list = filtvalids_list[interal_index]
+    qfx2_idx, _     = nns_list[internal_index]
+    qfx2_valid0     = nnvalid0_list[internal_index]
+    qfx2_score_list = filtweights_list[internal_index]
+    qfx2_valid_list = filtvalids_list[internal_index]
+    qfx2_normx      = filtnormxs_list[internal_index]
     Knorm = qreq_.qparams.Knorm
-    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, Knorm)
+    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm)
     return qreq_, qaid, daid, args
 
 
@@ -258,7 +260,9 @@ def testdata_pre_build_chipmatch(defaultdb='testdb1', codename='vsmany'):
     cfgdict = dict(codename=codename)
     ibs, qreq_ = get_pipeline_testdata(defaultdb=defaultdb, cfgdict=cfgdict)
     locals_ = testrun_pipeline_upto(qreq_, 'build_chipmatches')
-    args = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list', 'filtkey_list', 'filtweights_list', 'filtvalids_list'])
+    args = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list', 'filtkey_list',
+                                  'filtweights_list', 'filtvalids_list',
+                                  'filtnormxs_list'])
     return ibs, qreq_, args
 
 

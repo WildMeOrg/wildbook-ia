@@ -26,7 +26,7 @@ def combine_testres_list(ibs, testres_list):
         python -m ibeis --tf combine_testres_list
 
         python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis --tf -draw_rank_cdf --db PZ_Master0 --show
+        python -m ibeis --tf -draw_rank_cdf --db PZ_Master1 --show
         python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
         python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
 

@@ -181,7 +181,6 @@ from ibeis.algo.hots import automated_matcher
 from ibeis.algo.hots import automated_helpers
 from ibeis.algo.hots import hots_query_result
 from ibeis.algo.hots import scoring
-from ibeis.algo.hots import query_helpers
 from ibeis.algo.hots import score_normalization
 from ibeis.algo.hots.hots_query_result import QueryResult
 # IBEIS MODEL DETECT

@@ -20,6 +20,7 @@ def _register_nn_normalized_weight_func(func):
     Decorator for weighting functions
 
     Registers a nearest neighbor normalized weighting
+    Used for LNBNN
     """
     global NN_WEIGHT_FUNC_DICT
     filtkey = ut.get_funcname(func).replace('_fn', '').lower()
@@ -31,6 +32,9 @@ def _register_nn_normalized_weight_func(func):
 
 
 def _register_nn_simple_weight_func(func):
+    """
+    Used for things that dont require a normalizer like const, cos, and borda
+    """
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
         print('[nn_weights] registering simple func: %r' % (filtkey,))
@@ -220,10 +224,10 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> normweight_fn = ratio_fn
-        >>> weights_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['ratio']
-        >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
+        >>> weights_list2, normk_list = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
         >>> ut.assert_inbounds(weights1.sum(), 2700, 4000)
@@ -236,16 +240,37 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     normalizer_rule  = qreq_.qparams.normalizer_rule
     # Database feature index to chip index
     qaid_list = qreq_.get_internal_qaids()
-    weight_list = [
-        apply_normweight(
-            normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, Knorm, qreq_)
+    normk_list = [
+        get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)
         for qaid, (qfx2_idx, qfx2_dist) in zip(qaid_list, nns_list)
     ]
-    return weight_list
+    weight_list = [
+        apply_normweight(
+            normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)
+        for qfx2_normk, (qfx2_idx, qfx2_dist) in zip(normk_list, nns_list)
+    ]
+    return weight_list, normk_list
 
 
-def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule,
-                     Knorm, qreq_):
+def get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule):
+    """
+    Get positions of the LNBNN/ratio tests normalizers
+    """
+    K = len(qfx2_idx.T) - Knorm
+    assert K > 0, 'K=%r cannot be 0' % (K,)
+    # qfx2_nndist = qfx2_dist.T[0:K].T
+    if normalizer_rule == 'last':
+        qfx2_normk = np.zeros(len(qfx2_idx), hstypes.FK_DTYPE) + (K + Knorm - 1)
+    elif normalizer_rule == 'name':
+        qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
+    elif normalizer_rule == 'external':
+        pass
+    else:
+        raise NotImplementedError('[nn_weights] no normalizer_rule=%r' % normalizer_rule)
+    return qfx2_normk
+
+
+def apply_normweight(normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm):
     r"""
     helper applies the normalized weight function to one query annotation
 
@@ -254,7 +279,6 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule,
         qaid (int):  query annotation id
         qfx2_idx (ndarray[int32_t, ndims=2]):  mapping from query feature index to db neighbor index
         qfx2_dist (ndarray):  mapping from query feature index to dist
-        normalizer_rule (str):
         Knorm (int):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
@@ -276,26 +300,16 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule,
         >>> normweight_fn = lnbnn_fn
         >>> normalizer_rule  = qreq_.qparams.normalizer_rule
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
-        >>> qfx2_normweight = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
-        ...         qfx2_dist, normalizer_rule, Knorm, qreq_)
+        >>> qfx2_normk = get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)
+        >>> qfx2_normweight = nn_weights.apply_normweight(
+        >>>   normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)
         >>> ut.assert_inbounds(qfx2_normweight.sum(), 800, 950)
     """
     K = len(qfx2_idx.T) - Knorm
-    assert K > 0, 'K cannot be 0'
-    qfx2_nndist = qfx2_dist.T[0:K].T
-    if normalizer_rule == 'last':
-        # Normalizers for 'last' normalizer_rule
-        qfx2_normk = np.zeros(len(qfx2_dist), hstypes.FK_DTYPE) + (K + Knorm - 1)
-    elif normalizer_rule == 'name':
-        # Normalizers for 'name' normalizer_rule
-        qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
-    elif normalizer_rule == 'external':
-        pass
-    else:
-        raise NotImplementedError('[nn_weights] no normalizer_rule=%r' % normalizer_rule)
-    qfx2_normdist = np.array([dists[normk]
-                              for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
+    qfx2_normdist = np.array(
+        [dists[normk] for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
     qfx2_normdist.shape = (len(qfx2_idx), 1)
+    qfx2_nndist = qfx2_dist.T[0:K].T
     vdist = qfx2_nndist    # voting distance
     ndist = qfx2_normdist  # normalizer distance
     qfx2_normweight = normweight_fn(vdist, ndist)
@@ -467,6 +481,8 @@ def bar_l2_fn(vdist, ndist):
     r"""
     The feature weight is (1 - the euclidian distance
     between the features). The normalizers are unused.
+
+    (not really a normaalized function)
 
     Example:
         >>> # ENABLE_DOCTEST
