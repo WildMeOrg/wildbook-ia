@@ -301,7 +301,7 @@ def compute_distinctivness(vecs_list, species='zebra_plains'):
     """
     hack in distinctivness
     """
-    from ibeis.model.hots import distinctiveness_normalizer
+    from ibeis.algo.hots import distinctiveness_normalizer
     cachedir = ut.get_app_resource_dir('ibeis', 'distinctiveness_model')
     dstcnvs_normer = distinctiveness_normalizer.DistinctivnessNormalizer(species, cachedir=cachedir)
     dstcnvs_normer.load(cachedir)

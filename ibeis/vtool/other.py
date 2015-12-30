@@ -1226,7 +1226,7 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
     Performs logic_op on the results of each individual row
 
     SeeAlso:
-        ibeis.model.hots.nn_weights.mark_name_valid_normalizers
+        ibeis.algo.hots.nn_weights.mark_name_valid_normalizers
 
     compop   = np.equal
     logic_op = np.logical_or

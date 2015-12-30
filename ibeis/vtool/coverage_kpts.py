@@ -395,7 +395,7 @@ def testdata_coverage(fname=None):
     kpts, vecs = vt.dummy.get_testdata_kpts(fname, with_vecs=True)
     # HACK IN DISTINCTIVENESS
     if fname is not None:
-        from ibeis.model.hots import distinctiveness_normalizer
+        from ibeis.algo.hots import distinctiveness_normalizer
         cachedir = ut.get_app_resource_dir('ibeis', 'distinctiveness_model')
         species = 'zebra_plains'
         dstcnvs_normer = distinctiveness_normalizer.DistinctivnessNormalizer(species, cachedir=cachedir)

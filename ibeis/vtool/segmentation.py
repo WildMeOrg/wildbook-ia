@@ -79,7 +79,7 @@ def demo_grabcut(bgr_img):
         python -m vtool.segmentation --test-demo_grabcut --show
 
     SeeAlso:
-        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
+        python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev
 
     Example:
         >>> # DISABLE_DOCTEST

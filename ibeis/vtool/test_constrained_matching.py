@@ -42,7 +42,7 @@ def param_interaction():
     import plottool as pt
     USE_IBEIS = False and ut.is_developer()
     if USE_IBEIS:
-        from ibeis.model.hots import devcases
+        from ibeis.algo.hots import devcases
         index = 2
         fpath1, fpath2, fpath3 = devcases.get_dev_test_fpaths(index)
         testtup1 = testdata_matcher(fpath1, fpath2)
