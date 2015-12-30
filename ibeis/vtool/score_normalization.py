@@ -27,119 +27,6 @@ def testdata_score_normalier():
     return encoder, data, labels
 
 
-def partition_scores(X, y, attrs=None):
-    """
-    convinience helper to translate partitioned to unpartitioned data
-
-    Args:
-        tp_scores (ndarray):
-        tn_scores (ndarray):
-        attrs (dict): (default = None)
-
-    Returns:
-        tuple: (scores, labels, attrs)
-
-    CommandLine:
-        python -m vtool.score_normalization --test-partition_scores
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
-        >>> X = np.array([5, 6, 6, 7, 1, 2, 2])
-        >>> attrs = {'qaid': np.array([21, 24, 25, 26, 11, 14, 15])}
-        >>> y = np.array([1, 1, 1, 1, 0, 0, 0], dtype=np.bool)
-        >>> tup = partition_scores(X, y, attrs)
-        >>> resdict = ut.odict(zip(
-        >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=2)
-        >>> print(result)
-        tp_scores=np.array([5, 6, 6, 7]),
-        tn_scores=np.array([1, 2, 2]),
-        part_attrs={
-            False: {'qaid': np.array([11, 14, 15])},
-            True: {'qaid': np.array([21, 24, 25, 26])},
-        },
-
-    """
-    import vtool as vt
-    import operator
-    # Make partitioning
-    unique_labels, groupxs = vt.group_indices(y)
-    _grouper = partial(vt.apply_grouping, groupxs=groupxs)
-    # Group data
-    X_parts = _grouper(X)
-    # Group attributes
-    _nested_attrs = ut.map_dict_vals(_grouper, attrs)
-    def _getitem(a, b):
-        return operator.getitem(b, a)
-    part_attrs = {
-        label: ut.map_dict_vals(partial(_getitem, lblx), _nested_attrs)
-        for lblx, label in enumerate(unique_labels)
-    }
-    assert len(unique_labels) == 2, 'exepcted two groups'
-    assert not unique_labels[0], 'expected true negatives to be first'
-    assert unique_labels[1], 'expected true positives to be second'
-    #
-    tn_scores, tp_scores = X_parts
-    return tp_scores, tn_scores, part_attrs
-
-
-def flatten_scores(tp_scores, tn_scores, part_attrs=None):
-    """
-    convinience helper to translate partitioned to unpartitioned data
-
-    Args:
-        tp_scores (ndarray):
-        tn_scores (ndarray):
-        part_attrs (dict): (default = None)
-
-    Returns:
-        tuple: (scores, labels, attrs)
-
-    CommandLine:
-        python -m vtool.score_normalization --test-flatten_scores
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.score_normalization import *  # NOQA
-        >>> tp_scores = np.array([5, 6, 6, 7])
-        >>> tn_scores = np.array([1, 2, 2])
-        >>> part_attrs = {
-        ...     1: {'qaid': [21, 24, 25, 26]},
-        ...     0: {'qaid': [11, 14, 15]},
-        ... }
-        >>> tup = flatten_scores(
-        ... tp_scores, tn_scores, part_attrs)
-        >>> (X, y, attrs) = tup
-        >>> y = y.astype(np.int)
-        >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
-        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=1)
-        >>> print(result)
-        X=np.array([5, 6, 6, 7, 1, 2, 2]),
-        y=np.array([1, 1, 1, 1, 0, 0, 0]),
-        attrs={'qaid': np.array([21, 24, 25, 26, 11, 14, 15])},
-    """
-    scores = np.hstack([tp_scores, tn_scores])
-    labels = np.zeros(scores.size, dtype=np.bool)
-    labels[0:len(tp_scores)] = True
-    if part_attrs is None:
-        return scores, labels
-    else:
-        tp_attrs = part_attrs[1]
-        tn_attrs = part_attrs[0]
-        assert (tp_attrs is None) == (tn_attrs is None), (
-            'must specify both or none')
-        assert sorted(tp_attrs.keys()) == sorted(tn_attrs.keys()), (
-            'dicts do not agree')
-        attrs = ut.dict_isect_combine(tp_attrs, tn_attrs, combine_op=np.append)
-        num_attrs = np.array(list(map(len, attrs.values())))
-        assert np.all(num_attrs == len(scores)), (
-            'num attrs must agree with data')
-        return scores, labels, attrs
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(ut.Cachable):
     """
@@ -237,11 +124,11 @@ class ScoreNormalizer(ut.Cachable):
 
     def fit(encoder, X, y, attrs=None, verbose=False, finite_only=True):
         """
-        Fits estimator to data.
+        Fits estimator to data
 
         Args:
-            X (ndarray):   1 dimensional scores
-            y (ndarray): True or False labels
+            X (ndarray): one dimensional scores
+            y (ndarray): binary labels
             attrs (dict): dictionary of data attributes
         """
         # Record support
@@ -252,12 +139,12 @@ class ScoreNormalizer(ut.Cachable):
         encoder.learn_threshold(verbose=verbose)
 
     @staticmethod
-    @ut.apply_docstr(flatten_scores)
+    # @ut.apply_docstr(flatten_scores)
     def _to_xy(tp_scores, tn_scores, part_attrs=None):
         return flatten_scores(tp_scores, tn_scores, part_attrs)
 
     @staticmethod
-    @ut.apply_docstr(partition_scores)
+    # @ut.apply_docstr(partition_scores)
     def _to_partitioned(X, y, attrs={}):
         return partition_scores(X, y, attrs)
 
@@ -694,6 +581,123 @@ class ScoreNormalizer(ut.Cachable):
         pt.adjust_subplots(bottom=.06, left=.06, right=.97, wspace=.25,
                            hspace=.25, top=.9)
         return inter
+
+
+def partition_scores(X, y, attrs=None):
+    """
+    convinience helper to translate partitioned to unpartitioned data
+
+    Args:
+        tp_scores (ndarray):
+        tn_scores (ndarray):
+        attrs (dict): (default = None)
+
+    Returns:
+        tuple: (scores, labels, attrs)
+
+    CommandLine:
+        python -m vtool.score_normalization --test-partition_scores
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.score_normalization import *  # NOQA
+        >>> X = np.array([5, 6, 6, 7, 1, 2, 2])
+        >>> attrs = {'qaid': np.array([21, 24, 25, 26, 11, 14, 15])}
+        >>> y = np.array([1, 1, 1, 1, 0, 0, 0], dtype=np.bool)
+        >>> tup = partition_scores(X, y, attrs)
+        >>> resdict = ut.odict(zip(
+        >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
+        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
+        >>>                      explicit=True, nl=2)
+        >>> print(result)
+        tp_scores=np.array([5, 6, 6, 7]),
+        tn_scores=np.array([1, 2, 2]),
+        part_attrs={
+            False: {'qaid': np.array([11, 14, 15])},
+            True: {'qaid': np.array([21, 24, 25, 26])},
+        },
+
+    """
+    import vtool as vt
+    import operator
+    # Make partitioning
+    unique_labels, groupxs = vt.group_indices(y)
+    _grouper = partial(vt.apply_grouping, groupxs=groupxs)
+    # Group data
+    X_parts = _grouper(X)
+    # Group attributes
+    _nested_attrs = ut.map_dict_vals(_grouper, attrs)
+    def _getitem(a, b):
+        return operator.getitem(b, a)
+    part_attrs = {
+        label: ut.map_dict_vals(partial(_getitem, lblx), _nested_attrs)
+        for lblx, label in enumerate(unique_labels)
+    }
+    assert len(unique_labels) == 2, 'exepcted two groups'
+    assert not unique_labels[0], 'expected true negatives to be first'
+    assert unique_labels[1], 'expected true positives to be second'
+    #
+    tn_scores, tp_scores = X_parts
+    return tp_scores, tn_scores, part_attrs
+
+
+def flatten_scores(tp_scores, tn_scores, part_attrs=None):
+    """
+    convinience helper to translate partitioned to unpartitioned data
+
+    Args:
+        tp_scores (ndarray):
+        tn_scores (ndarray):
+        part_attrs (dict): (default = None)
+
+    Returns:
+        tuple: (scores, labels, attrs)
+
+    CommandLine:
+        python -m vtool.score_normalization --test-flatten_scores
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.score_normalization import *  # NOQA
+        >>> tp_scores = np.array([5, 6, 6, 7])
+        >>> tn_scores = np.array([1, 2, 2])
+        >>> part_attrs = {
+        ...     1: {'qaid': [21, 24, 25, 26]},
+        ...     0: {'qaid': [11, 14, 15]},
+        ... }
+        >>> tup = flatten_scores(
+        ... tp_scores, tn_scores, part_attrs)
+        >>> (X, y, attrs) = tup
+        >>> y = y.astype(np.int)
+        >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
+        >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
+        >>>                      explicit=True, nl=1)
+        >>> print(result)
+        X=np.array([5, 6, 6, 7, 1, 2, 2]),
+        y=np.array([1, 1, 1, 1, 0, 0, 0]),
+        attrs={'qaid': np.array([21, 24, 25, 26, 11, 14, 15])},
+    """
+    scores = np.hstack([tp_scores, tn_scores])
+    labels = np.zeros(scores.size, dtype=np.bool)
+    labels[0:len(tp_scores)] = True
+    if part_attrs is None:
+        return scores, labels
+    else:
+        tp_attrs = part_attrs[1]
+        tn_attrs = part_attrs[0]
+        assert (tp_attrs is None) == (tn_attrs is None), (
+            'must specify both or none')
+        assert sorted(tp_attrs.keys()) == sorted(tn_attrs.keys()), (
+            'dicts do not agree')
+        # attrs = ut.dict_isect_combine(tp_attrs, tn_attrs, combine_op=np.append)
+        from functools import partial
+        combine_op = partial(np.append, axis=0)
+        attrs = ut.dict_isect_combine(tp_attrs, tn_attrs, combine_op=combine_op)
+        num_attrs = np.array(list(map(len, attrs.values())))
+        assert np.all(num_attrs == len(scores)), (
+            'num_attrs=%r must agree with data. len(scores)=%r' % (
+                num_attrs, len(scores)))
+        return scores, labels, attrs
 
 
 def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
