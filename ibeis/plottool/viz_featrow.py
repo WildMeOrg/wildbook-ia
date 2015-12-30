@@ -141,10 +141,10 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         custom_figure.set_xlabel(warped_lbl, ax)
 
     if draw_desc:
-        border_color = {None: None,
+        border_color = {'None': None,
                         'query': None,
                         'match': custom_constants.BLUE,
-                        'norm': custom_constants.ORANGE}[type_]
+                        'norm': custom_constants.ORANGE}.get(str(type_).lower(), None)
         if border_color is not None:
             df2.draw_border(ax, color=border_color)
 
