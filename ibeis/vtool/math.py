@@ -4,11 +4,11 @@
 
 FIXME: monotization functions need more hueristics
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
 from six.moves import range, zip
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[math]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[math]', DEBUG=False)
 
 
 TAU = np.pi * 2  # References: tauday.com
@@ -516,10 +516,12 @@ def iceil(num, dtype=np.int32):
     CommandLine:
         python -m vtool.math --test-iceil
 
+    Setup:
+        >>> from vtool.math import *  # NOQA
+        >>> import vtool as vt
+
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> import vtool as vt
         >>> num = 1.5
         >>> result = repr(vt.iceil(num))
         >>> print(result)
@@ -527,8 +529,6 @@ def iceil(num, dtype=np.int32):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> import vtool as vt
         >>> num = [1.5, 2.9]
         >>> result = ut.numpy_str(vt.iceil(num))
         >>> print(result)

@@ -49,7 +49,7 @@ def argsort_groups(scores_list, reverse=False, rng=np.random, randomize_levels=T
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from vtool.other import *  # NOQA
         >>> scores_list = [
         >>>     np.array([np.nan, np.nan], dtype=np.float32),
         >>>     np.array([np.nan, 2], dtype=np.float32),
@@ -1389,7 +1389,7 @@ def find_first_true_indices(flags_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
+        >>> from vtool.other import *  # NOQA
         >>> # build test data
         >>> flags_list = [[True, False, True],
         ...               [False, False, False],
@@ -1423,7 +1423,7 @@ def find_next_true_indices(flags_list, offset_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
+        >>> from vtool.other import *  # NOQA
         >>> # build test data
         >>> flags_list = [[True, False, True],
         ...               [False, False, False],
@@ -1506,7 +1506,7 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
         vt.multigroup_lookup_naive - unoptomized version, but simple to read
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import vtool as vt
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
         >>> lazydict = {count: vt.testdata_annot_metadata(fpath) for count, fpath in enumerate(fpath_list)}

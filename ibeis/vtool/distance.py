@@ -18,9 +18,9 @@ TAU = 2 * np.pi  # References: tauday.com
 
 def testdata_hist():
     import vtool as vt
-    np.random.seed(0)
-    hist1 = vt.tests.dummy.testdata_dummy_sift()
-    hist2 = vt.tests.dummy.testdata_dummy_sift()
+    rng = np.random.RandomState(0)
+    hist1 = vt.tests.dummy.testdata_dummy_sift(rng=rng)
+    hist2 = vt.tests.dummy.testdata_dummy_sift(rng=rng)
     return hist1, hist2
 
 
@@ -73,9 +73,9 @@ def ori_distance(ori1, ori2, out=None):
         ...     '''
                 import numpy as np
                 TAU = np.pi * 2
-                np.random.seed(53)
-                ori1 = (np.random.rand(100000) * TAU) - np.pi
-                ori2 = (np.random.rand(100000) * TAU) - np.pi
+                rng = np.random.RandomState(53)
+                ori1 = (rng.rand(100000) * TAU) - np.pi
+                ori2 = (rng.rand(100000) * TAU) - np.pi
 
                 def func_outvars():
                     ori_dist = np.abs(ori1 - ori2)
@@ -164,10 +164,10 @@ def det_distance(det1, det2):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> np.random.seed(53)
-        >>> det1 = np.random.rand(1000)
-        >>> det2 = np.random.rand(1000)
+        >>> from vtool.distance import *  # NOQA
+        >>> rng = np.random.RandomState(53)
+        >>> det1 = rng.rand(1000)
+        >>> det2 = rng.rand(1000)
         >>> scaledist = det_distance(det1, det2)
         >>> result = ut.numpy_str(scaledist, precision=2, threshold=2)
         >>> print(result)
@@ -221,10 +221,10 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> np.random.seed(53)
-        >>> hist1 = np.random.rand(1000, 2)
-        >>> hist2 = np.random.rand(1000, 2)
+        >>> from vtool.distance import *  # NOQA
+        >>> rng = np.random.RandomState(53)
+        >>> hist1 = rng.rand(1000, 2)
+        >>> hist2 = rng.rand(1000, 2)
         >>> l2dist = L2_sqrd(hist1, hist2)
         >>> result = ut.numpy_str(l2dist, precision=2, threshold=2)
         >>> print(result)

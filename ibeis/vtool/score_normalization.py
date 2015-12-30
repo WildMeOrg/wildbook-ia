@@ -141,12 +141,12 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class ScoreNormalizer(object):
+class ScoreNormalizer(ut.Cachable):
     """
     Conforms to scikit-learn Estimator interface
 
     CommandLine:
-        python -m vtool.score_normalization --test-ScoreNormalizer --show
+        python -m vtool.score_normalization --test-ScoreNormalizer --show --cmd
 
     Kwargs:
         tpr (float): target true positive rate (default .90)
@@ -192,10 +192,10 @@ class ScoreNormalizer(object):
         if not any(encoder.thresh_kw.values()):
             encoder.thresh_kw['tpr'] = .90
         # Support data
-        encoder.oldsupport = dict(
-            tp_support=None,
-            tn_support=None,
-        )
+        # encoder.oldsupport = dict(
+        #     tp_support=None,
+        #     tn_support=None,
+        # )
         encoder.support = dict(
             X=None,
             y=None,
@@ -210,6 +210,30 @@ class ScoreNormalizer(object):
         encoder.p_score = None
         # Learneed classification threshold
         encoder.learned_thresh   = None
+        # Learned interpolation function
+        encoder.interp_fn = None
+
+    def __getstate__(encoder):
+        """
+
+        CommandLine:
+            python -m vtool.score_normalization --test-__getstate__
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from vtool.score_normalization import *  # NOQA
+            >>> encoder = ScoreNormalizer()
+            >>> from six.moves import cPickle as pickle
+            >>> dump = pickle.dumps(encoder)
+            >>> encoder2 = pickle.loads(dump)
+        """
+        state_dict = encoder.__dict__.copy()
+        state_dict['interp_fn'] = None
+        return state_dict
+
+    def __setstate__(encoder, state_dict):
+        encoder.__dict__.update(state_dict)
+        encoder._update_interp_fn()
 
     def fit(encoder, X, y, attrs=None, verbose=False, finite_only=True):
         """
@@ -287,10 +311,17 @@ class ScoreNormalizer(object):
         encoder.p_score_given_tn = p_score_given_tn
         encoder.p_score_given_tp = p_score_given_tp
         encoder.p_score = p_score
+        encoder._update_interp_fn()
 
-        encoder.interp_fn = scipy.interpolate.interp1d(
-            encoder.score_domain, encoder.p_tp_given_score, kind='linear',
-            copy=False, assume_sorted=False)
+    def _update_interp_fn(encoder):
+        """
+        Internal call to update interpolation function. Used when learning and
+        when loading from cache.
+        """
+        if encoder.p_tp_given_score is not None:
+            encoder.interp_fn = scipy.interpolate.interp1d(
+                encoder.score_domain, encoder.p_tp_given_score, kind='linear',
+                copy=False, assume_sorted=False)
 
     def learn_threshold2(encoder):
         """

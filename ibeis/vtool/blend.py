@@ -72,7 +72,7 @@ def blend_images_average(img1, img2, alpha=.5):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_average(img1, img2, alpha)
@@ -83,6 +83,7 @@ def blend_images_average(img1, img2, alpha=.5):
 
     Example2:
         >>> # GRIDSEARCH
+        >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_average
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
@@ -120,7 +121,7 @@ def blend_images_mult_average(img1, img2, alpha=.5):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
+        >>> from vtool.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
         >>> imgB = blend_images_mult_average(img1, img2, alpha)
@@ -131,6 +132,7 @@ def blend_images_mult_average(img1, img2, alpha=.5):
 
     Example2:
         >>> # GRIDSEARCH
+        >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_mult_average
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
@@ -180,6 +182,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
 
     Example2:
         >>> # GRIDSEARCH
+        >>> from vtool.blend import *  # NOQA
         >>> test_func = blend_images_multiply
         >>> args = testdata_blend(scale=128)
         >>> param_info = ut.ParamInfoList('blend_params', [
