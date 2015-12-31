@@ -741,6 +741,104 @@ def ziptake(arr_list, indices_list, axis=None):
     return [arr.take(indices, axis=axis) for arr, indices in zip(arr_list, indices_list)]
 
 
+def zipcat(arr1_list, arr2_list, axis=None):
+    r"""
+    Args:
+        arr1_list (list):
+        arr2_list (list):
+        axis (None): (default = None)
+
+    Returns:
+        list:
+
+    CommandLine:
+        python -m vtool.other --exec-zipcat --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1_list = [np.array([0, 0, 0]), np.array([0, 0, 0, 0])]
+        >>> arr2_list = [np.array([1, 1, 1]), np.array([1, 1, 1, 1])]
+        >>> axis = None
+        >>> arr3_list = zipcat(arr1_list, arr2_list, axis)
+        >>> arr3_list0 = zipcat(arr1_list, arr2_list, axis=0)
+        >>> arr3_list1 = zipcat(arr1_list, arr2_list, axis=1)
+        >>> arr3_list2 = zipcat(arr1_list, arr2_list, axis=2)
+        >>> print('arr3_list = %s' % (ut.repr3(arr3_list),))
+        >>> print('arr3_list0 = %s' % (ut.repr3(arr3_list0),))
+        >>> print('arr3_list2 = %s' % (ut.repr3(arr3_list2),))
+    """
+    assert len(arr1_list) == len(arr2_list), 'lists must correspond'
+    if axis is None:
+        arr1_iter = arr1_list
+        arr2_iter = arr2_list
+    else:
+        arr1_iter = [atleast_nd(arr1, axis + 1) for arr1 in arr1_list]
+        arr2_iter = [atleast_nd(arr2, axis + 1) for arr2 in arr2_list]
+    arrs_iter = list(zip(arr1_iter, arr2_iter))
+    arr3_list = [np.concatenate(arrs, axis=axis) for arrs in arrs_iter]
+    return arr3_list
+
+
+def atleast_nd(arr, n):
+    """
+    View inputs as arrays with at least n dimensions.
+    TODO: Commit to numpy
+
+    Args:
+        arr (array_like): One array-like object.  Non-array inputs are
+                converted to arrays.  Arrays that already have n or more dimensions
+                are preserved.
+        n (int):
+
+    Returns:
+        ndarray :
+            An array with ``a.ndim >= n``.  Copies are avoided where possible,
+            and views with three or more dimensions are returned.  For example,
+            a 1-D array of shape ``(N,)`` becomes a view of shape
+            ``(1, N, 1)``, and a 2-D array of shape ``(M, N)`` becomes a view of shape
+            ``(M, N, 1)``.
+
+    See Also:
+        atleast_1d, atleast_2d, atleast_3d
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> n = 2
+        >>> arr = np.array([1, 1, 1])
+        >>> arr_ = atleast_nd(arr, n)
+        array([[[ 3.]]])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> n = 4
+        >>> arr1 = [1, 1, 1]
+        >>> arr2 = np.array(0)
+        >>> arr3 = np.array([[[[[1]]]]])
+        >>> arr1_ = atleast_nd(arr1, n)
+        >>> arr2_ = atleast_nd(arr2, n)
+        >>> arr3_ = atleast_nd(arr3, n)
+        >>> print(arr1_)
+        >>> print(arr2_)
+        >>> print(arr3_)
+        array([[[ 3.]]])
+
+    Ignore:
+        # Hmm, mine is actually faster
+        %timeit atleast_nd(arr, 3)
+        %timeit np.atleast_3d(arr)
+    """
+    arr_ = np.asanyarray(arr)
+    ndims = len(arr_.shape)
+    if n is not None and ndims <  n:
+        # append the required number of dimensions to the end
+        expander = (Ellipsis,) + (None,) * (n - ndims)
+        arr_ = arr_[expander]
+    return arr_
+
+
 def iter_reduce_ufunc(ufunc, arr_iter, out=None):
     """
     constant memory iteration and reduction
