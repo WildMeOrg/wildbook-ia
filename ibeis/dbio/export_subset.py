@@ -1631,10 +1631,7 @@ def test_merge():
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = test_merge()
-        >>> # verify results
         >>> print(result)
     """
     from ibeis.dbio import export_subset
@@ -1664,6 +1661,7 @@ def test_merge():
     check_merge(ibs3, ibs_dst)
 
     ibs_dst.print_dbinfo()
+    return ibs_dst
 
     #ibs_src.print_annotation_table(exclude_columns=['annot_verts',
     #'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid',

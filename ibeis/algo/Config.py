@@ -29,6 +29,7 @@ def parse_config_items(cfg):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.Config import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> cfg = ibs.cfg.query_cfg

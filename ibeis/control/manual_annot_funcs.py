@@ -1101,6 +1101,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ut.get_argval('--aids', list, ibs.get_valid_aids())
@@ -1112,6 +1113,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example1:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -1123,6 +1125,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
     Example2:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -1232,7 +1235,7 @@ def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
 
 @register_ibs_method
 @register_api('/api/annot/hashid_visual_uuid/', methods=['GET'])
-def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', _new=False):
+def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', _new=False, pathsafe=True):
     r"""
     builds an aggregate visual hash id for a list of aids
 
@@ -1247,7 +1250,7 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', _new=False):
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     label = ''.join(('_', prefix, 'VUUIDS'))
     if _new:
-        visual_uuid_hashid  = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=True)
+        visual_uuid_hashid  = ut.hashstr_arr27(visual_uuid_list, label, pathsafe=pathsafe)
     else:
         visual_uuid_hashid  = ut.hashstr_arr(visual_uuid_list, label)
     return visual_uuid_hashid
@@ -1255,27 +1258,23 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix='', _new=False):
 
 @register_ibs_method
 @register_api('/api/annot/hashid_semantic_uuid/', methods=['GET'])
-def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
+def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False, pathsafe=True):
     r"""
     builds an aggregate semantic hash id for a list of aids
 
     Args:
+        ibs (ibeis.IBEISController):  ibeis controller object
+        aid_list (list):  list of annotation rowids
+        prefix (str): (default = '')
         _new (bool): Eventually we will change the hashing scheme and all old
             data will be invalidated. (default=False)
+
+    Returns:
+        str: semantic_uuid_hashid
 
     RESTful:
         Method: GET
         URL:    /api/annot/hashid_semantic_uuid/
-
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (list):  list of annotation rowids
-        prefix (str): (default = '')
-        _new (bool): (default = False)
-
-    Returns:
-        str: semantic_uuid_hashid
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --exec-get_annot_hashid_semantic_uuid
@@ -1287,7 +1286,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> prefix = ''
-        >>> _new = False
+        >>> _new = True
         >>> semantic_uuid_hashid = get_annot_hashid_semantic_uuid(ibs, aid_list, prefix, _new)
         >>> result = ut.list_str(ibs.get_annot_semantic_uuids(aid_list)) + '\n'
         >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
@@ -1296,18 +1295,12 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', _new=False):
             UUID('bf774bf3-582d-dbce-6ca6-329adeb086a6'),
             UUID('60f10a02-1bd1-c2b4-75bb-a34c0a4b6867'),
         ]
-        semantic_uuid_hashid = _SUUIDS((2)49@orjsiy@lbibo6)
-
-        [
-            UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6'),
-            UUID('60f10a02-1bd1-c2b4-75bb-a34c0a4b6867'),
-        ]
-        semantic_uuid_hashid = _SUUIDS((2)w9l23schf96c2n63)
+        semantic_uuid_hashid = _SUUIDS-_2_biovwevqycuemoik-
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
     label = ''.join(('_', prefix, 'SUUIDS'))
     if _new:
-        semantic_uuid_hashid  = ut.hashstr_arr27(semantic_uuid_list, label, pathsafe=True)
+        semantic_uuid_hashid  = ut.hashstr_arr27(semantic_uuid_list, label, pathsafe=pathsafe)
     else:
         semantic_uuid_hashid  = ut.hashstr_arr(semantic_uuid_list, label)
     return semantic_uuid_hashid

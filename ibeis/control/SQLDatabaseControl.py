@@ -1400,6 +1400,7 @@ class SQLDatabaseController(object):
 
         Example0:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='lblimage')
@@ -1464,6 +1465,7 @@ class SQLDatabaseController(object):
 
         Example0:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> tablename = ut.get_argval('--tablename', type_=str, default='contributors')

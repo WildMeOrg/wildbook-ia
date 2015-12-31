@@ -323,6 +323,32 @@ class QueryRequest(object):
         state_dict['ibs'] = ibeis.opendb(dbdir=dbdir, web=False)
         qreq_.__dict__.update(state_dict)
 
+    def _custom_str(qreq_):
+        r"""
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> custom_str = qreq_._custom_str()
+            >>> result = ('custom_str = %s' % (ut.repr2(custom_str),))
+            >>> print(result)
+        """
+        # typestr = ut.type_str(type(ibs)).split('.')[-1]
+        typestr = qreq_.__class__.__name__
+        dbname = None if qreq_.ibs is None else qreq_.ibs.get_dbname()
+        # hashkw = dict(_new=True, pathsafe=False)
+        # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
+        infostr_ = 'nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashstr())
+        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(qreq_)))
+        return custom_str
+
+    def __repr__(qreq_):
+        return qreq_._custom_str()
+
+    def __str__(qreq_):
+        return qreq_._custom_str()
+
     @profile
     def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
         """
@@ -497,6 +523,7 @@ class QueryRequest(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import utool as ut
             >>> from ibeis.algo.hots import pipeline
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
@@ -531,6 +558,7 @@ class QueryRequest(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import utool as ut
             >>> from ibeis.algo.hots import pipeline
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
@@ -673,7 +701,7 @@ class QueryRequest(object):
     # External id-hashes
 
     #@ut.memoize
-    def get_data_hashid(qreq_):
+    def get_data_hashid(qreq_, **hashkw):
         daids = qreq_.get_external_daids()
         try:
             assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
@@ -681,16 +709,16 @@ class QueryRequest(object):
             ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            daids, prefix='D')
+            daids, prefix='D', **hashkw)
         return data_hashid
 
     #@ut.memoize
-    def get_query_hashid(qreq_):
+    def get_query_hashid(qreq_, **hashkw):
         qaids = qreq_.get_external_qaids()
         assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            qaids, prefix='Q')
+            qaids, prefix='Q', **hashkw)
         return query_hashid
 
     def get_internal_query_hashid(qreq_):
@@ -721,7 +749,7 @@ class QueryRequest(object):
         return pipe_hashstr
 
     @profile
-    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True):
+    def get_cfgstr(qreq_, with_query=False, with_data=True, with_pipe=True, hash_pipe=False, hashkw={}):
         r"""
         main cfgstring used to identify the 'querytype'
         FIXME: name params + data
@@ -754,11 +782,14 @@ class QueryRequest(object):
         """
         cfgstr_list = []
         if with_query:
-            cfgstr_list.append(qreq_.get_query_hashid())
+            cfgstr_list.append(qreq_.get_query_hashid(**hashkw))
         if with_data:
-            cfgstr_list.append(qreq_.get_data_hashid())
+            cfgstr_list.append(qreq_.get_data_hashid(**hashkw))
         if with_pipe:
-            cfgstr_list.append(qreq_.get_pipe_cfgstr())
+            if hash_pipe:
+                cfgstr_list.append(qreq_.get_pipe_hashstr())
+            else:
+                cfgstr_list.append(qreq_.get_pipe_cfgstr())
         cfgstr = ''.join(cfgstr_list)
         return cfgstr
 

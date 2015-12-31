@@ -1,51 +1,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-#import six
-#import numpy as np
-#from ibeis.algo.hots import hstypes
 import utool as ut
-#profile = ut.profile
-print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[_plh]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__, '[_plh]')
 
 
 VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVERBOSE
 VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
 
 
-def testdata_hs2(defaultdb='testdb1', qaids=None, daids=None, cfgdict=None, stop_node=None, argnames=[]):
-    """
-    CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --test-testdata_hs2
-
-    Example0:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots._pipeline_helpers import *
-        >>> defaultdb = 'testdb1'
-        >>> qaids = None
-        >>> daids = None
-        >>> stop_node = 'build_chipmatches'
-        >>> cfgdict = None
-        >>> argnames = []
-        >>> # execute function
-        >>> result = testdata_hs2(defaultdb, qaids, daids, cfgdict, stop_node, argnames)
-        >>> # verify results
-        >>> print(result)
-    """
-    from ibeis.algo.hots import pipeline
-    func = getattr(pipeline, stop_node)
-    ibs, qreq_ = get_pipeline_testdata(qaid_list=qaids, daid_list=daids, defaultdb=defaultdb, cfgdict=cfgdict)
-    func_argnames = ut.get_func_argspec(func).args
-    locals_ = testrun_pipeline_upto(qreq_, stop_node)
-    args = ut.dict_take(locals_, func_argnames)
-    return args
-
-
 def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     r"""
+    Main tester function. Runs the pipeline by mirroring
+    `request_ibeis_query_L0`, but stops at a requested breakpoint and returns
+    the local variables.
+
     convinience: runs pipeline for tests
     this should mirror request_ibeis_query_L0
 
     Ignore:
+        >>> # TODO: autogenerate
+        >>> # The following is a stub that starts the autogeneration process
         >>> import utool as ut
         >>> from ibeis.algo.hots import pipeline
         >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0,
@@ -107,6 +81,48 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
 
     #qaid2_svtups = qreq_.metadata['qaid2_svtups']
     return locals()
+
+
+def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
+                 a=['default:qindex=0:1,dindex=0:5']):
+    """ New (1-1-2016) generic pipeline node testdata getter
+
+    Args:
+        stopnode (str):
+        defaultdb (str): (default = u'testdb1')
+        p (list): (default = [u'default:'])
+        a (list): (default = [u'default:qsize=1,dsize=4'])
+
+    Returns:
+        tuple: (ibs, qreq_, args)
+
+    CommandLine:
+        python -m ibeis.algo.hots._pipeline_helpers --exec-testdata_pre --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
+        >>> stopnode = 'build_chipmatches'
+        >>> defaultdb = 'testdb1'
+        >>> p = ['default:']
+        >>> a = ['default:qindex=0:1,dindex=0:5']
+        >>> qreq_, args = testdata_pre(stopnode, defaultdb, p, a)
+    """
+    import ibeis
+    from ibeis.algo.hots import pipeline
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, p=p, a=a)
+    locals_ = testrun_pipeline_upto(qreq_, stopnode)
+    func = getattr(pipeline, stopnode)
+    argnames = ut.get_argnames(func)
+    # Hack to ignore qreq_, and verbose
+    for ignore in ['qreq_', 'ibs', 'verbose']:
+        try:
+            argnames.remove(ignore)
+        except ValueError:
+            pass
+    tupname = '_Ret_' + stopnode.upper()
+    args = ut.dict_take_asnametup(locals_, argnames, name=tupname)
+    return qreq_, args
 
 
 def get_pipeline_testdata(dbname=None,
@@ -237,33 +253,21 @@ def testdata_pre_weight_neighbors(defaultdb='testdb1', qaid_list=[1, 2], daid_li
     return ibs, qreq_, nns_list, nnvalid0_list
 
 
-def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', codename='vsmany'):
-    ibs, qreq_, args = testdata_pre_build_chipmatch(defaultdb=defaultdb, codename=codename)
-    nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
-    if qreq_.qparams.vsone:
-        internal_index = 1
-    else:
-        internal_index = 0
+def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
+    qreq_, args = testdata_pre('build_chipmatches', defaultdb=defaultdb, p=p)
+    internal_index = 1 if qreq_.qparams.vsone else 0
+    # qaid = qreq_.qaids[0]
+    # daid = qreq_.daids[1]
     qaid = qreq_.get_external_qaids()[0]
     daid = qreq_.get_external_daids()[1]
-    qfx2_idx, _     = nns_list[internal_index]
-    qfx2_valid0     = nnvalid0_list[internal_index]
-    qfx2_score_list = filtweights_list[internal_index]
-    qfx2_valid_list = filtvalids_list[internal_index]
-    qfx2_normx      = filtnormxs_list[internal_index]
+    qfx2_idx, qfx2_dist = args.nns_list[internal_index]
+    qfx2_valid0         = args.nnvalid0_list[internal_index]
+    qfx2_score_list     = args.filtweights_list[internal_index]
+    qfx2_valid_list     = args.filtvalids_list[internal_index]
+    qfx2_normx          = args.filtnormxs_list[internal_index]
     Knorm = qreq_.qparams.Knorm
     args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm)
     return qreq_, qaid, daid, args
-
-
-def testdata_pre_build_chipmatch(defaultdb='testdb1', codename='vsmany'):
-    cfgdict = dict(codename=codename)
-    ibs, qreq_ = get_pipeline_testdata(defaultdb=defaultdb, cfgdict=cfgdict)
-    locals_ = testrun_pipeline_upto(qreq_, 'build_chipmatches')
-    args = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list', 'filtkey_list',
-                                  'filtweights_list', 'filtvalids_list',
-                                  'filtnormxs_list'])
-    return ibs, qreq_, args
 
 
 def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=None, codename='vsmany'):
@@ -287,73 +291,6 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     cm_list = locals_['cm_list_FILT']
     #nnfilts_list   = locals_['nnfilts_list']
     return ibs, qreq_, cm_list
-
-
-def get_pipeline_testdata2(defaultdb='testdb1', default_aidcfg_name_list=['default'], default_test_cfg_name_list=['default'], preload=False):
-    r"""
-    Gets testdata for pipeline defined by tests / and or command line
-
-    Args:
-        cmdline_ok : if false does not check command line
-
-    Returns:
-        tuple: ibs, qreq_
-
-    CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST
-        python -m ibeis.algo.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata
-
-    Example:
-        >>> # UNSTABLE_DOCTEST
-        >>> import ibeis  # NOQA
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh
-        >>> ibs, qreq_list = plh.get_pipeline_testdata2('PZ_MTEST', default_test_cfg_name_list=['candidacy_namescore'])
-
-        daids = array([1, 2, 3, 4, 5])
-        qaids = array([1])
-    """
-    #from ibeis.init import main_helpers
-    from ibeis.expt import experiment_helpers
-    from ibeis.algo.hots import query_request
-    #from ibeis.expt import experiment_helpers
-    import ibeis
-    ibs = ibeis.opendb(defaultdb=defaultdb)
-    acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_aidcfg_name_list)
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
-
-    # Generate list of query pipeline param configs
-    acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, acfg_name_list)
-    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)
-
-    qreq_list = []
-
-    for qaids, daids in expanded_aids_list:
-        for query_cfg in pipecfg_list:
-            qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids, query_cfg=query_cfg)
-            qreq_list.append(qreq_)
-
-    if preload:
-        for qreq_ in qreq_list:
-            qreq_.lazy_load()
-    return ibs, qreq_list
-
-
-def testdata_pre_sver2(*args, **kwargs):
-    """
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
-        >>> args = (,)
-        >>> kwargs = {}
-    """
-    #from ibeis.algo import Config
-    ibs, qreq_list = get_pipeline_testdata2(*args, **kwargs)
-    locals_list = [testrun_pipeline_upto(qreq_, 'spatial_verification')
-                   for qreq_ in qreq_list]
-    cms_list = [locals_['cm_list_FILT'] for locals_ in locals_list]
-    #nnfilts_list   = locals_['nnfilts_list']
-    return ibs, qreq_list, cms_list
 
 
 def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):

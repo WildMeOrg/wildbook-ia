@@ -488,8 +488,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=true,
-            >>>                             return_request=true)
+            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=True,
+            >>>                             return_request=True)
             >>> cm.compress_feature_matches(num=4, rng=np.random.RandomState(0))
             >>> # Serialize
             >>> print('\n\nRaw ChipMatch2 JSON:\n')
@@ -1713,6 +1713,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
             >>> cm = cm_list[0]
@@ -1860,8 +1861,11 @@ def get_topannot_training_idxs(cm, num=2):
         cm (ibeis.ChipMatch2):  object of feature correspondences and scores
         num (int): number of top annots per TP/TN (default = 2)
 
+    CommandLine:
+        python -m ibeis.algo.hots.chip_match --exec-get_topannot_training_idxs --show
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> cm, qreq_ = testdata_cm()
         >>> num = 2
@@ -1911,13 +1915,13 @@ def get_topname_training_idxs(cm, num=5):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> cm, qreq_ = testdata_cm()
-        >>> num = 5
+        >>> num = 1
         >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
         (tp_idxs, tn_idxs) = (
             np.array([16, 17, 18, 19], dtype=np.int64),
-            [101, 99, 100, 97, 98, 0, 1, 2, 3, 13, 12, 14, 10, 9, 11, 31, 32, 30, 28, 27, 29, 115, 116, 113, 114, 117],
+            [101, 99, 100, 97, 98],
         )
     """
     sortx = cm.name_argsort()

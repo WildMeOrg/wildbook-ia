@@ -837,7 +837,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
 @profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
-                      filtweights_list, filtvalids_list, filtnormxs_list=None,
+                      filtweights_list, filtvalids_list, filtnormxs_list,
                       verbose=VERB_PIPELINE):
     """
     pipeline step 4 - builds sparse chipmatches
@@ -857,7 +857,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_, args = plh.testdata_pre_build_chipmatch('testdb1', codename='vsmany')
+        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
         >>> verbose = True
         >>> # execute function
@@ -877,18 +877,19 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> ibs, qreq_, args = plh.testdata_pre_build_chipmatch('testdb1', codename='vsone')
+        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
-        >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
+        >>> cm = cm_list[0]
+        >>> fm = cm.fm_list[cm.daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 25, 42, 'vsone nmatches out of bounds')
         >>> ut.quit_if_noshow()
-        >>> cm_list[0].show_single_annotmatch(qreq_)
+        >>> cm.show_single_annotmatch(qreq_, daid=2)
         >>> ut.show_if_requested()
     """
     is_vsone =  qreq_.qparams.vsone
@@ -953,7 +954,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(codename='vsmany')
+        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsmany'])
         >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm = args
         >>> # execute function
         >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, *args)
@@ -967,7 +968,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(codename='vsone')
+        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsone'])
         >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm = args
         >>> # execute function
         >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, *args)
@@ -1012,7 +1013,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
 #============================
 
 
-def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
+def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
     r"""
     pipeline step 5 - spatially verify feature matches
 
@@ -1078,6 +1079,7 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         #print(sv_tup[0])
         #print(sv_tup[3])
     """
+    cm_list = cm_list_FILT
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
             print('[hs] Step 5) Spatial verification: off')
@@ -1128,14 +1130,13 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 def sver_single_chipmatch(qreq_, cm):
     """
     loops over a shortlist of results for a specific query annotation
-    python -m ibeis --tf chipmatch_to_resdict:1
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
         cm (ChipMatch2):
 
     Returns:
-        ChipMatch2: cmSV
+        ibeis.ChipMatch2: cmSV
 
     CommandLine:
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
@@ -1168,15 +1169,12 @@ def sver_single_chipmatch(qreq_, cm):
         python -m ibeis --tf sver_single_chipmatch --show --qaid=18 --y=0
         python -m ibeis --tf sver_single_chipmatch --show --qaid=18 --y=1
 
-        8
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_list, cms_list = plh.testdata_pre_sver2('PZ_MTEST')  #, qaid_list=[18])
-        >>> assert len(qreq_list) == 1
-        >>> qreq_ = qreq_list[0]
-        >>> cm_list = cms_list[0]
+        >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='PZ_MTEST')  #, qaid_list=[18])
+        >>> cm_list = args.cm_list_FILT
+        >>> ibs = qreq_.ibs
         >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> cm = cm_list[0]
         >>> source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)

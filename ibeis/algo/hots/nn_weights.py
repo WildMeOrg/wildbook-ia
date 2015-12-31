@@ -209,10 +209,10 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> normweight_fn = lnbnn_fn
-        >>> weights_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
-        >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
+        >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
         >>> ut.assert_inbounds(weights1.sum(), 200, 300)
@@ -224,10 +224,10 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> normweight_fn = ratio_fn
-        >>> weights_list1, normk_list = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
         >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['ratio']
-        >>> weights_list2, normk_list = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
+        >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
         >>> ut.assert_inbounds(weights1.sum(), 2700, 4000)
@@ -633,6 +633,7 @@ def test_all_normalized_weights():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> test_all_normalized_weights()
     """
     from ibeis.algo.hots import nn_weights
@@ -641,16 +642,14 @@ def test_all_normalized_weights():
     qaid = qreq_.get_external_qaids()[0]
 
     def test_weight_fn(nn_weight, nns_list, qreq_, qaid):
-        from ibeis.algo.hots import nn_weights
-        #----
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
-        weight_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        weight_list1, nomx_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         weights1 = weight_list1[0]
         #---
         # test NN_WEIGHT_FUNC_DICT
         #---
         nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT[nn_weight]
-        weight_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
+        weight_list2, nomx_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         weights2 = weight_list2[0]
         assert np.all(weights1 == weights2)
         print(nn_weight + ' passed')

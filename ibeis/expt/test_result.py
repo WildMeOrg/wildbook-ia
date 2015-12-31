@@ -1301,7 +1301,7 @@ class TestResult(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl'])
             >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
             >>> result = ('(truth2_prop, prop2_mat) = %s' % (str((truth2_prop, prop2_mat)),))
             >>> print(result)

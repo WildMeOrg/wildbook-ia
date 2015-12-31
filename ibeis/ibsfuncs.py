@@ -3254,6 +3254,7 @@ def get_database_species(ibs, aid_list=None):
 
     Example1:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = ut.list_str(ibs.get_database_species(), nl=False)
@@ -3262,6 +3263,7 @@ def get_database_species(ibs, aid_list=None):
 
     Example2:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> result = ut.list_str(ibs.get_database_species(), nl=False)
@@ -3353,6 +3355,7 @@ def get_database_species_count(ibs, aid_list=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
         >>> ibs = ibeis.opendb('testdb1')

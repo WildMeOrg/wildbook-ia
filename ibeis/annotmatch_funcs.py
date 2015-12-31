@@ -370,11 +370,11 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False, on_nontrivia
         aid2 (int):  matching annotation id
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-set_annot_pair_as_positive_match
+        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_positive_match
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
@@ -443,11 +443,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivia
         dryrun (bool):
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-set_annot_pair_as_negative_match
+        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_negative_match
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')

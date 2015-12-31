@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import collections
-#import six
 import utool as ut
 from ibeis.algo.hots import hstypes
 from ibeis.algo import Config
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
+(print, rrr, profile) = ut.inject2(__name__, '[qreq]')
 
 
 def testdata_queryparams():
-    from ibeis.algo.hots import query_params
     cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-    qparams = query_params.QueryParams(cfgdict=cfgdict)
+    qparams = QueryParams(cfgdict=cfgdict)
     return qparams
 
 
@@ -33,13 +31,13 @@ class QueryParams(collections.Mapping):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots import query_params
+            >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> query_cfg = ibs.cfg.query_cfg
             >>> #query_cfg.pipeline_root = 'asmk'
             >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-            >>> qparams = query_params.QueryParams(query_cfg, cfgdict)
+            >>> qparams = QueryParams(query_cfg, cfgdict)
             >>> assert qparams.pipeline_root == 'smk'
             >>> assert qparams.fg_on is True
             >>> result = qparams.query_cfgstr
@@ -47,13 +45,13 @@ class QueryParams(collections.Mapping):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots import query_params
+            >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> query_cfg = ibs.cfg.query_cfg
             >>> #query_cfg.pipeline_root = 'asmk'
             >>> cfgdict = dict(rotation_invariance=True)
-            >>> qparams = query_params.QueryParams(query_cfg, cfgdict)
+            >>> qparams = QueryParams(query_cfg, cfgdict)
             >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
 
             _smk_SMK(agg=True,t=0.0,a=3.0,idf)_

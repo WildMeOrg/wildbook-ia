@@ -250,6 +250,7 @@ def delete_chip_feats(ibs, chip_rowid_list, config2_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[::3]
         >>> ibs.delete_chip_feats(chip_rowid_list, config2_=config2_)

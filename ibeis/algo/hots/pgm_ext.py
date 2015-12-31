@@ -152,7 +152,8 @@ class ApproximateFactor(object):
             >>> self = ApproximateFactor(state_idxs, weights, variables)
             >>> inplace = False
             >>> phi = self.consolidate(inplace)
-            >>> print(phi)
+            >>> result = str(phi)
+            >>> print(result)
             +------+------+------+-----------------------+
             | v1   | v2   | v3   |   \hat{phi}(v1,v2,v3) |
             |------+------+------+-----------------------|
@@ -162,7 +163,7 @@ class ApproximateFactor(object):
         """
         import vtool as vt
 
-        phi = self if inplace else self.copy()
+        phi = self.copy() if inplace else self
 
         data_ids = vt.compute_ndarray_unique_rowids_unsafe(self.state_idxs)
         unique_ids, groupxs = vt.group_indices(data_ids)

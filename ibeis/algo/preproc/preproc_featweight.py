@@ -12,9 +12,8 @@ import vtool as vt
 import numpy as np
 from ibeis.algo.preproc import preproc_probchip
 from os.path import exists
-from ibeis import constants as const
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_featweight]')
+(print, rrr, profile) = utool.inject2(__name__, '[preproc_featweight]')
 
 
 def test_featweight_worker():
@@ -258,8 +257,8 @@ def generate_featweight_properties(ibs, feat_rowid_list, config2_=None):
     # HACK: TODO AUTOGENERATE THIS
     #cid_list = ibs.get_feat_cids(feat_rowid_list)
     #aid_list = ibs.get_chip_aids(cid_list)
-    chip_rowid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), feat_rowid_list)
-    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), chip_rowid_list)
+    chip_rowid_list = ibs.dbcache.get(ibs.const.FEATURE_TABLE, ('chip_rowid',), feat_rowid_list)
+    aid_list = ibs.dbcache.get(ibs.const.CHIP_TABLE, ('annot_rowid',), chip_rowid_list)
     featweight_list = compute_fgweights(ibs, aid_list, config2_=config2_)
     return zip(featweight_list)
 

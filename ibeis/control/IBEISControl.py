@@ -1102,7 +1102,7 @@ class IBEISController(BASE_CLASS):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.control import *  # NOQA
+            >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> # build test data
             >>> ibs = ibeis.opendb('testdb1')
@@ -1520,7 +1520,8 @@ class IBEISController(BASE_CLASS):
         return icon
 
     def _custom_ibsstr(ibs):
-        typestr = ut.type_str(type(ibs)).split('.')[-1]
+        # typestr = ut.type_str(type(ibs)).split('.')[-1]
+        typestr = ibs.__class__.__name__
         dbname = ibs.get_dbname()
         ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hex(id(ibs)))
         return ibsstr

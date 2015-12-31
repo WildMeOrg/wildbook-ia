@@ -4,7 +4,7 @@
 downloads standard test datasets. can delete them as well
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.init import sysres
 from ibeis.dbio import ingest_database
 from os.path import join
@@ -51,7 +51,7 @@ def get_testdata_dir(ensure=True, key='testdb1'):
     Gets test img directory and downloads it if it doesn't exist
     """
     testdata_map = {
-        'testdb1': 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+        'testdb1': 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip',
     }
     zipped_testdata_url = testdata_map[key]
     testdata_dir = ut.grab_zipped_url(zipped_testdata_url, ensure=ensure)
@@ -64,6 +64,7 @@ TEST_DBNAMES_MAP = {
     'mtest': 'PZ_MTEST',
     'testdb0': 'testdb0',
     'testdb1': 'testdb1',
+    'testdb2': 'testdb2',
     'testdb_guiall': 'testdb_guiall',
 }
 
@@ -73,6 +74,9 @@ def delete_dbdir(dbname):
 
 
 def ensure_smaller_testingdbs():
+    """
+    Makes the smaller test databases
+    """
     def make_testdb0():
         """ makes testdb0 """
         def get_test_gpaths(ndata=None, names=None, **kwargs):
@@ -131,7 +135,9 @@ def ensure_smaller_testingdbs():
 
 
 def reset_testdbs(**kwargs):
-    default_args = {'reset_' + key: False for key in six.iterkeys(TEST_DBNAMES_MAP) }
+    # Step 0) Parse Args
+    default_args = {'reset_' + key: False
+                    for key in six.iterkeys(TEST_DBNAMES_MAP)}
     default_args['reset_all'] = False
     default_args.update(kwargs)
     argdict = ut.parse_dict_from_argv(default_args)
@@ -140,14 +146,23 @@ def reset_testdbs(**kwargs):
         argdict['reset_testdb0'] = True
         argdict['reset_testdb1'] = True
         argdict['reset_testdb_guiall'] = True
+
+    # Step 1) Delete DBs to be Reset
     for key, dbname in six.iteritems(TEST_DBNAMES_MAP):
         if argdict.get('reset_' + key, False) or argdict['reset_all']:
             delete_dbdir(dbname)
+
+    # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'PZ_MTEST'), verbose=True):
+    workdir = ibeis.sysres.get_workdir()
+    if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
         ibeis.ensure_pz_mtest()
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'NAUT_test'), verbose=True):
+    if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
         ibeis.ensure_nauts()
+    if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
+        ibeis.init.sysres.ensure_testdb2()
+
+    # Step 4) testdb1 becomes the main database
     workdir = ibeis.sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
@@ -175,8 +190,6 @@ if __name__ == '__main__':
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.tests.reset_testdbs import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = reset_testdbs()
         >>> # verify results
         >>> print(result)

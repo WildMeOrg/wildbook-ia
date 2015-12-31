@@ -8,7 +8,6 @@ but without the need for an actual IBEIS Controller
 from __future__ import absolute_import, division, print_function
 import os
 from os.path import exists, join, realpath
-import utool
 import utool as ut
 from six.moves import input, zip, map
 from utool import util_cache, util_list
@@ -16,11 +15,11 @@ from ibeis import constants as const
 from ibeis import params
 
 # Inject utool functions
-(print, rrr, profile) = utool.inject2(__name__, '[sysres]')
+(print, rrr, profile) = ut.inject2(__name__, '[sysres]')
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
-LOGDIR_CACHEID = utool.logdir_cacheid
+LOGDIR_CACHEID = ut.logdir_cacheid
 __APPNAME__ = 'ibeis'
 
 
@@ -133,10 +132,10 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
 def set_logdir(log_dir):
     from os.path import realpath, expanduser
     log_dir = realpath(expanduser(log_dir))
-    utool.ensuredir(log_dir, verbose=True)
-    utool.stop_logging()
+    ut.ensuredir(log_dir, verbose=True)
+    ut.stop_logging()
     _ibeis_cache_write(LOGDIR_CACHEID, log_dir)
-    utool.start_logging(appname=__APPNAME__)
+    ut.start_logging(appname=__APPNAME__)
 
 
 def get_logdir():
@@ -146,7 +145,7 @@ def get_logdir():
 def get_rawdir():
     """ Returns the standard raw data directory """
     workdir = get_workdir()
-    rawdir = utool.truepath(join(workdir, '../raw'))
+    rawdir = ut.truepath(join(workdir, '../raw'))
     return rawdir
 
 
@@ -172,7 +171,7 @@ def guiselect_workdir():
 
 def get_dbalias_dict():
     dbalias_dict = {}
-    if utool.is_developer():
+    if ut.is_developer():
         # For jon's convinience
         dbalias_dict.update({
             'NAUTS':            'NAUT_Dan',
@@ -209,7 +208,7 @@ def get_dbalias_dict():
 
 def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     """ Implicitly gets dbdir. Searches for db inside of workdir """
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
 
     work_dir = get_workdir()
@@ -237,7 +236,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     # Create the database if newdbs are allowed in the workdir
     #print('allow_newdir=%r' % allow_newdir)
     if allow_newdir:
-        utool.ensuredir(dbdir, verbose=True)
+        ut.ensuredir(dbdir, verbose=True)
 
     # Complain if the implicit dbdir does not exist
     if not exists(dbdir):
@@ -249,7 +248,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
         index = util_list.listfind(lower_list, db.lower())
         if index is not None:
             print('[sysres] WARNING: db capitalization seems to be off')
-            if not utool.STRICT:
+            if not ut.STRICT:
                 print('[sysres] attempting to fix it')
                 db = fname_list[index]
                 dbdir = join(work_dir, db)
@@ -260,7 +259,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
             print('<!!!>')
             print(msg)
             print('[sysres!] Here is a list of valid dbs: ' +
-                  utool.indentjoin(sorted(fname_list), '\n  * '))
+                  ut.indentjoin(sorted(fname_list), '\n  * '))
             print('[sysres!] dbdir=%r' % dbdir)
             print('[sysres!] db=%r' % db)
             print('[sysres!] work_dir=%r' % work_dir)
@@ -278,7 +277,7 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
     Needs to just return a database dir and use the following priority
     dbdir, db, cache, something like that...
     """
-    if not utool.QUIET and utool.VERBOSE:
+    if not ut.QUIET and ut.VERBOSE:
         print('[sysres] get_args_dbdir: parsing commandline for dbdir')
         print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
@@ -427,10 +426,9 @@ def ensure_pz_mtest():
     """
     print('ensure_pz_mtest')
     from ibeis import sysres
-    import utool
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import ibeis
@@ -664,12 +662,23 @@ def ensure_pz_mtest_mergesplit_test():
 
 def ensure_nauts():
     """ Ensures that you have the NAUT_test dataset """
+    ensure_db_from_url(const.ZIPPED_URLS.NAUTS)
+
+
+def ensure_testdb2():
+    """ SeeAlso ibeis.init.sysres """
+    zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
+    ensure_db_from_url(zipped_db_url)
+
+
+def ensure_db_from_url(zipped_db_url):
+    """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres
-    import utool
+    dbname = 'testdb2'
     workdir = sysres.get_workdir()
-    nauts_zipped_url = const.ZIPPED_URLS.NAUTS
-    nauts_dir = utool.grab_zipped_url(nauts_zipped_url, ensure=True, download_dir=workdir)
-    print('have nauts_dir=%r' % (nauts_dir,))
+    zipped_db_url = 'https://dl.dropboxusercontent.com/s/or2ngpaodrb42gd/testdb2.tar.gz'
+    dbdir = ut.grab_zipped_url(zipped_db_url, ensure=True, download_dir=workdir)
+    print('have %s=%r' % (dbname, dbdir,))
 
 
 def get_global_distinctiveness_modeldir(ensure=True):
@@ -713,16 +722,14 @@ def grab_example_smart_xml_fpath():
     Example:
         >>> # DISABLE_DOCTEST
         >>> import ibeis
-        >>> import utool as ut
         >>> import os
         >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
         >>> os.system('gvim ' + smart_xml_fpath)
         >>> #ut.editfile(smart_xml_fpath)
 
     """
-    import utool
     smart_xml_url = 'https://www.dropbox.com/s/g1mpjzp57wfnhk6/LWC_000261.xml'
-    smart_sml_fpath = utool.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
+    smart_sml_fpath = ut.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
     return smart_sml_fpath
 
 
