@@ -786,6 +786,14 @@ def invert_apply_grouping(grouped_items, groupxs):
     return ungrouped_items
 
 
+def invert_apply_grouping3(grouped_items, groupxs, maxval):
+    ungrouped_items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
+    for itemgroup, xs in zip(grouped_items, groupxs):
+        for item, x in zip(itemgroup, xs):
+            ungrouped_items[x] = item
+    return ungrouped_items
+
+
 def _max(x):
     return np.max(x) if len(x) > 0 else 0
 

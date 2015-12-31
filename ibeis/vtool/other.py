@@ -625,9 +625,25 @@ def index_partition(item_list, part1_items):
     ]
     part1_indexes = np.array(part1_indexes_)
     part2_indexes = np.setdiff1d(np.arange(len(item_list)), part1_indexes)
+    # FIXME: use dtype np.int_
     part1_indexes = part1_indexes.astype(np.int32)
     part2_indexes = part2_indexes.astype(np.int32)
     return part1_indexes, part2_indexes
+
+
+# def partition_Nones(item_list):
+#     """
+#     Example:
+#         >>> # ENABLE_DOCTEST
+#         >>> from vtool.other import *  # NOQA
+#         >>> item_list = ['foo', None, None, 'bar']
+#         >>> part1_indexes, part2_indexes = partition_Nones(item_list)
+#     """
+#     # part1_indexes_ = ut.list_where(item_list)
+#     part1_indexes_ = [index for index, item in enumerate(item_list) if item is not None]
+#     part1_indexes = np.array(part1_indexes_)
+#     part2_indexes = np.setdiff1d(np.arange(len(item_list)), part1_indexes)
+#     return part1_indexes, part2_indexes
 
 
 def rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes):
