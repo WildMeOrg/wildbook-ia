@@ -390,7 +390,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             fsv_col_lbls (None):
 
         Returns:
-            ChipMatch2: cm
+            ibeis.ChipMatch2: cm
         """
         # CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
         # Vsmany - create new cmtup_old
@@ -413,13 +413,24 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     @profile
     def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None,
                              qaid=None, fsv_col_lbls=None):
+        r"""
+        Args:
+            valid_match_tup (tuple):
+            qaid (int):  query annotation id
+            fsv_col_lbls (None):
+
+        Returns:
+            ibeis.ChipMatch2: cm
+        """
         assert all(list(map(ut.list_allsame,
                             ut.get_list_column(valid_match_tup_list, 0)))), (
             'internal daids should not have different daids for vsone')
         qfx_list = ut.get_list_column(valid_match_tup_list, 1)
         dfx_list = ut.get_list_column(valid_match_tup_list, 2)
-        fm_list  = [np.vstack(dfx_qfx).T
-                    for dfx_qfx in zip(dfx_list, qfx_list)]
+        # fm_list  = [np.vstack((dfx, qfx)).T
+        #             for dfx, qfx in zip(dfx_list, qfx_list)]
+        fm_list = [np.concatenate((dfx[:, None], qfx[:, None]), axis=1)
+                   for dfx, qfx in zip(dfx_list, qfx_list)]
         fsv_list = ut.get_list_column(valid_match_tup_list, 3)
         fk_list  = ut.get_list_column(valid_match_tup_list, 4)
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,

@@ -963,6 +963,10 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
         >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(valid_dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(valid_daid, config2_=qreq_.qparams)))
+        >>> ut.quit_if_noshow()
+        >>> cm = chip_match.ChipMatch2.from_vsmany_match_tup(valid_match_tup, qaid=qaid)
+        >>> cm.show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -977,6 +981,12 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
         >>> ut.assert_inbounds(valid_dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
+        >>> ut.quit_if_noshow()
+        >>> daid_list = [daid]
+        >>> valid_match_tup_list = [valid_match_tup]
+        >>> cm = chip_match.ChipMatch2.from_vsone_match_tup(valid_match_tup_list, daid_list=daid_list, qaid=qaid)
+        >>> cm.show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
     """
     # TODO: unpacking can be external
     # Unpack neighbor ids, indices, filter scores, and flags
