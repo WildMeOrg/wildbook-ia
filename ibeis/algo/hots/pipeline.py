@@ -89,8 +89,10 @@ PROGKW = dict(freq=1, time_thresh=30.0, adjust=True)
 
 
 # Internal tuples denoting return types
-_WeightRet = namedtuple('weight_ret', ('filtkey_list', 'filtweights_list', 'filtvalids_list', 'filtnormxs_list'))
-_ValidMatchTup = namedtuple('valid_match_tup', ('valid_daid', 'valid_qfx', 'valid_dfx', 'valid_scorevec', 'valid_rank'))
+WeightRet_ = namedtuple('weight_ret', ('filtkey_list', 'filtweights_list',
+                                       'filtvalids_list', 'filtnormks_list'))
+ValidMatchTup_ = namedtuple('vmt', (  # valid_match_tup
+    'daid', 'qfx', 'dfx', 'scorevec', 'rank', 'norm_aids', 'norm_fxs'))
 
 
 # Query Level 0
@@ -196,14 +198,14 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # that maps a filter name to that query's weights for that filter
         weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list,
                                       verbose=verbose)
-        filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = weight_ret
+        filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
 
         # Nearest neighbors to chip matches (cm_list)
         # * Initial scoring occurs
         # * vsone un-swapping occurs here
         cm_list_FILT = build_chipmatches(qreq_, nns_list, nnvalid0_list,
                                          filtkey_list, filtweights_list, filtvalids_list,
-                                         filtnormxs_list, verbose=verbose)
+                                         filtnormks_list, verbose=verbose)
     else:
         print('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
 
@@ -709,7 +711,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     filtkey_list     = []
     _filtweight_list = []
     _filtvalid_list  = []
-    _filtnormx_list  = []
+    _filtnormk_list  = []
 
     config2_ = qreq_.get_external_data_config2()
 
@@ -749,7 +751,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             filtname += '_norm'
 
         _filtweight_list.append(lnbnn_weight_list)
-        _filtnormx_list.append(normk_list)
+        _filtnormk_list.append(normk_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append(filtname)
     if config2_.normonly_on:
@@ -758,7 +760,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(normonly_weight_list)
         _filtvalid_list.append(None)  # None means all valid
-        _filtnormx_list.append(normk_list)
+        _filtnormk_list.append(normk_list)
         filtkey_list.append(filtname)
     if config2_.bar_l2_on:
         filtname = 'bar_l2'
@@ -766,7 +768,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(bar_l2_weight_list)
         _filtvalid_list.append(None)  # None means all valid
-        _filtnormx_list.append(None)
+        _filtnormk_list.append(None)
         filtkey_list.append(filtname)
     if config2_.ratio_thresh:
         filtname = 'ratio'
@@ -779,7 +781,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
                            for qfx2_ratio in ratio_weight_list]
         _filtweight_list.append(ratioscore_list)
         _filtvalid_list.append(ratio_isvalid)
-        _filtnormx_list.append(normk_list)
+        _filtnormk_list.append(normk_list)
         filtkey_list.append(filtname)
     # --simple weighted implm
     if config2_.const_on:
@@ -788,7 +790,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(constvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
-        _filtnormx_list.append(None)
+        _filtnormk_list.append(None)
         filtkey_list.append(filtname)
     if config2_.borda_on:
         filtname = 'borda'
@@ -796,7 +798,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(constvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
-        _filtnormx_list.append(None)
+        _filtnormk_list.append(None)
         filtkey_list.append(filtname)
     if config2_.fg_on:
         filtname = 'fg'
@@ -804,7 +806,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
         _filtweight_list.append(fgvote_weight_list)
         _filtvalid_list.append(None)  # None means all valid
-        _filtnormx_list.append(None)
+        _filtnormk_list.append(None)
         filtkey_list.append(filtname)
 
     # Switch nested list structure from [filt, qaid] to [qaid, filt]
@@ -818,15 +820,15 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             for filtvalid in _filtvalid_list
     ] for index in range(nInternAids) ]
 
-    filtnormxs_list = [[
-        None if normx is None else normx[index]
-        for normx in _filtnormx_list
+    filtnormks_list = [[
+        None if normk is None else normk[index]
+        for normk in _filtnormk_list
     ] for index in range(nInternAids)]
 
     assert len(filtkey_list) > 0, (
         'no feature correspondece filter keys were specified')
 
-    weight_ret = _WeightRet(filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list)
+    weight_ret = WeightRet_(filtkey_list, filtweights_list, filtvalids_list, filtnormks_list)
     return weight_ret
 
 
@@ -837,7 +839,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
 @profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
-                      filtweights_list, filtvalids_list, filtnormxs_list,
+                      filtweights_list, filtvalids_list, filtnormks_list,
                       verbose=VERB_PIPELINE):
     """
     pipeline step 4 - builds sparse chipmatches
@@ -858,7 +860,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany'])
-        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
+        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> verbose = True
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
@@ -878,7 +880,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone'])
-        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = args
+        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
@@ -899,14 +901,14 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
     idx_list = [qfx2_idx for (qfx2_idx, _) in nns_list]
     #nnvalid0_list
-    # if filtnormxs_list is None:
-    #     filtnormxs_list = [None] * len(filtweights_list)
-    valid_match_tup_list = [
+    # if filtnormks_list is None:
+    #     filtnormks_list = [None] * len(filtweights_list)
+    vmt_list = [
         get_sparse_matchinfo_nonagg(
             qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
-            qfx2_valid_list, qfx2_normx, Knorm)
-        for qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx in
-        zip(idx_list, nnvalid0_list, filtweights_list, filtvalids_list, filtnormxs_list)
+            qfx2_valid_list, qfx2_normk_list, Knorm)
+        for qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk_list in
+        zip(idx_list, nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list)
     ]
     # Iterate over INTERNAL query annotation ids
     internal_qaids = qreq_.get_internal_qaids()
@@ -924,81 +926,81 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         # build vsone dict output
         qaid = external_qaids[0]
         cm = chip_match.ChipMatch2.from_vsone_match_tup(
-            valid_match_tup_list, daid_list=external_daids, qaid=qaid,
+            vmt_list, daid_list=external_daids, qaid=qaid,
             fsv_col_lbls=filtkey_list)
         cm_list = [cm]
     else:
         # VSMANY build many cmtup_olds
         cm_list = [
             chip_match.ChipMatch2.from_vsmany_match_tup(
-                valid_match_tup, qaid=qaid, fsv_col_lbls=filtkey_list)
-            for valid_match_tup, qaid in zip(valid_match_tup_list, intern_qaid_iter)]
+                vmt, qaid=qaid, fsv_col_lbls=filtkey_list)
+            for vmt, qaid in zip(vmt_list, intern_qaid_iter)]
     return cm_list
 
 
 @profile
 def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
-                                qfx2_valid_list, qfx2_normx, Knorm):
+                                qfx2_valid_list, qfx2_normk_list, Knorm):
     """
     builds sparse iterator that generates feature match pairs, scores, and ranks
 
     Returns:
-        _ValidMatchTup : a tuple of corresponding lists. Each item in the list
-            corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...
+        ValidMatchTup_ : vmt a tuple of corresponding lists. Each item in the
+            list corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
-        utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
+        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:0 --show
+        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show
 
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> verbose = True
-        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsmany'])
-        >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm = args
-        >>> # execute function
-        >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, *args)
-        >>> # check results
-        >>> (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
-        >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
-        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
-        >>> ut.assert_inbounds(valid_dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(valid_daid, config2_=qreq_.qparams)))
-        >>> ut.quit_if_noshow()
-        >>> cm = chip_match.ChipMatch2.from_vsmany_match_tup(valid_match_tup, qaid=qaid)
-        >>> cm.show_single_annotmatch(qreq_)
-        >>> ut.show_if_requested()
+        utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsone'])
-        >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm = args
+        >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk_list, Knorm = args
         >>> # execute function
-        >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, *args)
+        >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
-        >>> (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
-        >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
-        >>> ut.assert_inbounds(valid_dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
-        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
+        >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
+        >>> ut.assert_inbounds(vmt.dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
+        >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
         >>> ut.quit_if_noshow()
         >>> daid_list = [daid]
-        >>> valid_match_tup_list = [valid_match_tup]
-        >>> cm = chip_match.ChipMatch2.from_vsone_match_tup(valid_match_tup_list, daid_list=daid_list, qaid=qaid)
+        >>> vmt_list = [vmt]
+        >>> cm = chip_match.ChipMatch2.from_vsone_match_tup(vmt_list, daid_list=daid_list, qaid=qaid)
+        >>> cm.show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> verbose = True
+        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
+        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2'])
+        >>> qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk_list, Knorm = args
+        >>> # execute function
+        >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
+        >>> # check results
+        >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
+        >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
+        >>> ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))
+        >>> ut.quit_if_noshow()
+        >>> cm = chip_match.ChipMatch2.from_vsmany_match_tup(vmt, qaid=qaid)
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
     """
-    # TODO: unpacking can be external
     # Unpack neighbor ids, indices, filter scores, and flags
+    indexer = qreq_.indexer
     qfx2_nnidx = qfx2_idx.T[:-Knorm].T
     K = qfx2_nnidx.T.shape[0]
-    qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
-    qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
-    # And all valid lists together to get a final mask
-    qfx2_valid_agg = np.logical_and.reduce(
-        [qfx2_valid0] + ut.filter_Nones(qfx2_valid_list))
+    qfx2_daid = indexer.get_nn_aids(qfx2_nnidx)
+    qfx2_dfx = indexer.get_nn_featxs(qfx2_nnidx)
 
-    # TODO Incorporate Knorm
+    # Determine matches that are valid using all measurements
+    qfx2_valid_list_ = [qfx2_valid0] + ut.filter_Nones(qfx2_valid_list)
+    qfx2_valid_agg = np.logical_and.reduce(qfx2_valid_list_)
 
     # We fill filter each relavant matrix by aggregate validity
     flat_validx = np.flatnonzero(qfx2_valid_agg)
@@ -1009,13 +1011,39 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
     # annot_rowids, feature indexes, and all scores
     valid_daid  = qfx2_daid.take(flat_validx, axis=None)
     valid_dfx   = qfx2_dfx.take(flat_validx, axis=None)
-    valid_scorevec = np.hstack(
+    valid_scorevec = np.concatenate(
         [qfx2_score.take(flat_validx)[:, None]
-         for qfx2_score in qfx2_score_list])
+         for qfx2_score in qfx2_score_list], axis=1)
+
+    # Incorporate Normalizers
+    # Normalizers for each weight filter that used a normalizer
+    # Determine which feature per annot was used as the normalizer for each filter
+    # Each non-None sub list is still in qfx2_ format
+    num_filts = len(qfx2_normk_list)
+    K = len(qfx2_idx.T) - Knorm
+    norm_filtxs = ut.where_not_None(qfx2_normk_list)
+    num_normed_filts = len(norm_filtxs)
+    if num_normed_filts > 0:
+        _normks = ut.take(qfx2_normk_list, norm_filtxs)
+        # Offset index to get flat normalizer positions
+        _offset = np.arange(0, qfx2_idx.size, qfx2_idx.shape[1])
+        flat_normxs = [_offset + qfx2_normk for qfx2_normk in _normks]
+        flat_normidxs = [qfx2_idx.take(ks) for ks in flat_normxs]
+        flat_norm_aids = [indexer.get_nn_aids(idx)   for idx in flat_normidxs]
+        flat_norm_fxs  = [indexer.get_nn_featxs(idx) for idx in flat_normidxs]
+        # Take the valid indicies
+        _valid_norm_aids = [aids.take(valid_qfx) for aids in flat_norm_aids]
+        _valid_norm_fxs  = [fxs.take(valid_qfx)  for fxs in flat_norm_fxs]
+    else:
+        _valid_norm_aids = []
+        _valid_norm_fxs = []
+    valid_norm_aids = ut.ungroup([_valid_norm_aids], [norm_filtxs], num_filts)
+    valid_norm_fxs = ut.ungroup([_valid_norm_fxs], [norm_filtxs], num_filts)
+
     # The q/d's are all internal here, thus in vsone they swap
-    valid_match_tup = _ValidMatchTup(valid_daid, valid_qfx, valid_dfx,
-                                     valid_scorevec, valid_rank)
-    return valid_match_tup
+    vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,
+                         valid_rank, valid_norm_aids, valid_norm_fxs)
+    return vmt
 
 
 #============================

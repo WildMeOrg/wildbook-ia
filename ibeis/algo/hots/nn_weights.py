@@ -63,10 +63,13 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> print(result)
     """
     constvote_weight_list = []
-    K = qreq_.qparams.K
+    # K = qreq_.qparams.K  # Dont use K because K is dynamic per query
+    # Subtract Knorm from size instead
+    Knorm = qreq_.qparams.Knorm
+
     for nns in (nns_list):
         (qfx2_idx, qfx2_dist) = nns
-        qfx2_constvote = np.ones((len(qfx2_idx), K), dtype=np.float)
+        qfx2_constvote = np.ones((len(qfx2_idx), len(qfx2_idx.T) - Knorm), dtype=np.float)
         constvote_weight_list.append(qfx2_constvote)
     return constvote_weight_list
 
@@ -84,6 +87,7 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> print(result)
     """
     bordavote_weight_list = []
+    # FIXME: K
     K = qreq_.qparams.K
     _branks = np.arange(1, K + 1, dtype=np.float)[::-1]
     bordavote_weight_list = [

@@ -52,7 +52,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     if stop_node == 'weight_neighbors':
         return locals()
     weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=verbose)
-    filtkey_list, filtweights_list, filtvalids_list, filtnormxs_list = weight_ret
+    filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
     #---
     if stop_node == 'filter_neighbors':
         raise AssertionError('no longer exists')
@@ -61,7 +61,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
         return locals()
     cm_list_FILT = build_chipmatches(qreq_, nns_list, nnvalid0_list,
                                      filtkey_list, filtweights_list,
-                                     filtvalids_list, filtnormxs_list,
+                                     filtvalids_list, filtnormks_list,
                                      verbose=verbose)
     #---
     if stop_node == 'spatial_verification':
@@ -264,9 +264,9 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     qfx2_valid0         = args.nnvalid0_list[internal_index]
     qfx2_score_list     = args.filtweights_list[internal_index]
     qfx2_valid_list     = args.filtvalids_list[internal_index]
-    qfx2_normx          = args.filtnormxs_list[internal_index]
+    qfx2_normk          = args.filtnormks_list[internal_index]
     Knorm = qreq_.qparams.Knorm
-    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normx, Knorm)
+    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk, Knorm)
     return qreq_, qaid, daid, args
 
 

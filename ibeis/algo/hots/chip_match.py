@@ -128,7 +128,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                    fk_list=None, score_list=None, H_list=None,
                    fsv_col_lbls=None, dnid_list=None, qnid=None,
                    unique_nids=None, name_score_list=None,
-                   annot_score_list=None, autoinit=True):
+                   annot_score_list=None, autoinit=True,
+                   filtnorm_aids=None, filtnorm_fxs=None):
         """
         qaid and daid_list are not optional. fm_list and fsv_list are strongly
         encouraged and will probalby break things if they are not there.
@@ -152,6 +153,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         cm.score_list   = score_list
         cm.H_list       = H_list
         cm.fsv_col_lbls = fsv_col_lbls
+        # HACKY normalizer info
+        cm.filtnorm_aids = filtnorm_aids
+        cm.filtnorm_fxs = filtnorm_fxs
         #cm.daid2_idx    = None
         #cm.fs_list = None
         # TODO
@@ -382,40 +386,48 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     @classmethod
     @profile
-    def from_vsmany_match_tup(cls, valid_match_tup, qaid=None, fsv_col_lbls=None):
+    def from_vsmany_match_tup(cls, vmt, qaid=None, fsv_col_lbls=None):
         r"""
         Args:
-            valid_match_tup (tuple):
+            vmt (ibeis.algo.hots.pipeline.ValidMatchTup_): valid_match_tup
             qaid (int):  query annotation id
             fsv_col_lbls (None):
 
         Returns:
             ibeis.ChipMatch2: cm
         """
-        # CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
-        # Vsmany - create new cmtup_old
-        (valid_daid, valid_qfx, valid_dfx,
-         valid_scorevec, valid_rank) = valid_match_tup
-        #valid_fm = np.vstack((valid_qfx, valid_dfx)).T
-        valid_fm = np.ascontiguousarray(np.hstack((valid_qfx[:, None],
-                                                   valid_dfx[:, None])))
-        daid_list, daid_groupxs = vt.group_indices(valid_daid)
+        # NOTE: CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
+        valid_fm = np.concatenate((vmt.qfx[:, None],
+                                   vmt.dfx[:, None]), axis=1)
+        assert valid_fm.flags.c_contiguous, 'non-contiguous'
+        # valid_fm = np.ascontiguousarray(valid_fm)
+        daid_list, daid_groupxs = vt.group_indices(vmt.daid)
+
+        filtnorm_aids = [
+            [None] * len(daid_groupxs)
+            if aids is None else vt.apply_grouping(aids, daid_groupxs)
+            for aids in vmt.norm_aids]
+
+        filtnorm_fxs = [
+            [None] * len(daid_groupxs)
+            if fxs is None else vt.apply_grouping(fxs, daid_groupxs)
+            for fxs in vmt.norm_fxs]
+
         fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
-        #fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
-        fsv_list = vt.apply_grouping(np.ascontiguousarray(valid_scorevec),
-                                     daid_groupxs)
-        fk_list  = vt.apply_grouping(valid_rank, daid_groupxs)
+        fsv_list = vt.apply_grouping(vmt.scorevec, daid_groupxs)
+        fk_list  = vt.apply_grouping(vmt.rank, daid_groupxs)
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
-                 fsv_col_lbls=fsv_col_lbls)
+                 fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,
+                 filtnorm_fxs=filtnorm_fxs)
         return cm
 
     @classmethod
     @profile
-    def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None,
+    def from_vsone_match_tup(cls, vmt_list, daid_list=None,
                              qaid=None, fsv_col_lbls=None):
         r"""
         Args:
-            valid_match_tup (tuple):
+            vmt_list (list of ValidMatchTup_): list of valid_match_tups
             qaid (int):  query annotation id
             fsv_col_lbls (None):
 
@@ -423,18 +435,22 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             ibeis.ChipMatch2: cm
         """
         assert all(list(map(ut.list_allsame,
-                            ut.get_list_column(valid_match_tup_list, 0)))), (
+                            ut.get_list_column(vmt_list, 0)))), (
             'internal daids should not have different daids for vsone')
-        qfx_list = ut.get_list_column(valid_match_tup_list, 1)
-        dfx_list = ut.get_list_column(valid_match_tup_list, 2)
+        qfx_list = ut.get_list_column(vmt_list, 1)
+        dfx_list = ut.get_list_column(vmt_list, 2)
         # fm_list  = [np.vstack((dfx, qfx)).T
         #             for dfx, qfx in zip(dfx_list, qfx_list)]
         fm_list = [np.concatenate((dfx[:, None], qfx[:, None]), axis=1)
                    for dfx, qfx in zip(dfx_list, qfx_list)]
-        fsv_list = ut.get_list_column(valid_match_tup_list, 3)
-        fk_list  = ut.get_list_column(valid_match_tup_list, 4)
+        fsv_list = ut.get_list_column(vmt_list, 3)
+        fk_list  = ut.get_list_column(vmt_list, 4)
+
+        filtnorm_aids = ut.list_transpose(ut.get_list_column(vmt_list, 5))
+        filtnorm_fxs = ut.list_transpose(ut.get_list_column(vmt_list, 6))
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
-                 fsv_col_lbls=fsv_col_lbls)
+                 fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,
+                 filtnorm_fxs=filtnorm_fxs)
         return cm
 
     @classmethod
