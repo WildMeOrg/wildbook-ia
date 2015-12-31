@@ -970,6 +970,8 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> daid_list = [daid]
         >>> vmt_list = [vmt]
         >>> cm = chip_match.ChipMatch2.from_vsone_match_tup(vmt_list, daid_list=daid_list, qaid=qaid)
+        >>> cm.assert_self(verbose=False)
+        >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
@@ -986,8 +988,9 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
         >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))
-        >>> ut.quit_if_noshow()
         >>> cm = chip_match.ChipMatch2.from_vsmany_match_tup(vmt, qaid=qaid)
+        >>> cm.assert_self(verbose=False)
+        >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
     """
@@ -1037,8 +1040,8 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
     else:
         _valid_norm_aids = []
         _valid_norm_fxs = []
-    valid_norm_aids = ut.ungroup([_valid_norm_aids], [norm_filtxs], num_filts)
-    valid_norm_fxs = ut.ungroup([_valid_norm_fxs], [norm_filtxs], num_filts)
+    valid_norm_aids = ut.ungroup([_valid_norm_aids], [norm_filtxs], num_filts - 1)
+    valid_norm_fxs = ut.ungroup([_valid_norm_fxs], [norm_filtxs], num_filts - 1)
 
     # The q/d's are all internal here, thus in vsone they swap
     vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,
@@ -1167,6 +1170,10 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 @profile
 def sver_single_chipmatch(qreq_, cm):
     """
+    Spatially verifies a shortlist of a single chipmatch
+
+    TODO: move to chip match?
+
     loops over a shortlist of results for a specific query annotation
 
     Args:
@@ -1209,12 +1216,13 @@ def sver_single_chipmatch(qreq_, cm):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # Visualization
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='PZ_MTEST')  #, qaid_list=[18])
         >>> cm_list = args.cm_list_FILT
         >>> ibs = qreq_.ibs
-        >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> cm = cm_list[0]
+        >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)
         >>> source = ut.replace_between_tags(source, '', '# <SENTINAL>', '# </SENTINAL>')
         >>> globals_ = globals().copy()
@@ -1266,6 +1274,8 @@ def sver_single_chipmatch(qreq_, cm):
         match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
     else:
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
+
+    # Make an svtup for every daid in the shortlist
     _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list,
                  top_dlen_sqrd_list, match_weight_list)
     svtup_list = []
@@ -1292,46 +1302,79 @@ def sver_single_chipmatch(qreq_, cm):
 
     # <SENTINAL>
 
-    # Remove all matches that failed spatial verification
-    # TODO: change to list compress and numpy arrays
-    isnone_list = ut.flag_None_items(svtup_list)
-    svtup_list_ = ut.filterfalse_items(svtup_list, isnone_list)
-    daid_list   = ut.filterfalse_items(cm.daid_list, isnone_list)
-    dnid_list   = ut.filterfalse_items(cm.dnid_list, isnone_list)
-    fm_list     = ut.filterfalse_items(cm.fm_list, isnone_list)
-    fsv_list    = ut.filterfalse_items(cm.fsv_list, isnone_list)
-    fk_list     = ut.filterfalse_items(cm.fk_list, isnone_list)
+    # New way
+    if True:
+        inliers_list = []
+        for sv_tup in svtup_list:
+            if sv_tup is None:
+                inliers_list.append(None)
+            else:
+                (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = sv_tup
+                inliers_list.append(homog_inliers)
 
-    sver_matchtup_list = []
-    fsv_col_lbls = cm.fsv_col_lbls[:]
-    if sver_output_weighting:
-        fsv_col_lbls += [hstypes.FiltKeys.HOMOGERR]
+        indicies_list = inliers_list
+        cmSV = cm.take_feature_matches(indicies_list)
 
-    for sv_tup, daid, fm, fsv, fk in zip(svtup_list_, daid_list, fm_list, fsv_list, fk_list):
-        # Return the inliers to the homography from chip2 to chip1
-        (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = sv_tup
-        fm_SV  = fm.take(homog_inliers, axis=0)
-        fsv_SV = fsv.take(homog_inliers, axis=0)
-        fk_SV  = fk.take(homog_inliers, axis=0)
+        # NOTE: It is not very clear explicitly, but the way H_list and
+        # homog_err_weight_list are built will correspond with the daid_list in
+        # cmSV returned by cm.take_feature_matches
+        svtup_list_ = ut.filter_Nones(svtup_list)
+        H_list_SV = ut.get_list_column(svtup_list_, 2)
+        cmSV.H_list = H_list_SV
+
         if sver_output_weighting:
-            # Rescore based on homography errors
+            homog_err_weight_list = []
             xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-            homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
-            homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
-            homog_err_weight.shape = (homog_err_weight.size, 1)
-            fsv_SV = np.concatenate((fsv_SV, homog_err_weight), axis=1)
-        sver_matchtup_list.append((fm_SV, fsv_SV, fk_SV, H))
+            for sv_tup in svtup_list_:
+                (homog_inliers, homog_errors) = sv_tup[0:2]
+                homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
+                homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
+                homog_err_weight_list.append(homog_err_weight)
+            # Rescore based on homography errors
+            filtkey = hstypes.FiltKeys.HOMOGERR
+            filtweight_list = homog_err_weight_list
+            cmSV.append_featscore_column(filtkey, filtweight_list)
+    else:
+        # Remove all matches that failed spatial verification
+        # TODO: change to list compress and numpy arrays
+        flags = ut.flag_not_None_items(svtup_list)
+        svtup_list_ = ut.compress(svtup_list, flags)
+        daid_list   = ut.compress(cm.daid_list, flags)
+        dnid_list   = ut.compress(cm.dnid_list, flags)
+        fm_list     = ut.compress(cm.fm_list, flags)
+        fsv_list    = ut.compress(cm.fsv_list, flags)
+        fk_list     = ut.compress(cm.fk_list, flags)
 
-    fm_list_SV  = ut.get_list_column(sver_matchtup_list, 0)
-    fsv_list_SV = ut.get_list_column(sver_matchtup_list, 1)
-    fk_list_SV  = ut.get_list_column(sver_matchtup_list, 2)
-    H_list_SV   = ut.get_list_column(sver_matchtup_list, 3)
+        sver_matchtup_list = []
+        fsv_col_lbls = cm.fsv_col_lbls[:]
+        if sver_output_weighting:
+            fsv_col_lbls += [hstypes.FiltKeys.HOMOGERR]
 
-    cmSV = chip_match.ChipMatch2(
-        qaid=cm.qaid, daid_list=daid_list,
-        fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
-        H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,
-        fsv_col_lbls=fsv_col_lbls)
+        for sv_tup, daid, fm, fsv, fk in zip(svtup_list_, daid_list, fm_list, fsv_list, fk_list):
+            # Return the inliers to the homography from chip2 to chip1
+            (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = sv_tup
+            fm_SV  = fm.take(homog_inliers, axis=0)
+            fsv_SV = fsv.take(homog_inliers, axis=0)
+            fk_SV  = fk.take(homog_inliers, axis=0)
+            if sver_output_weighting:
+                # Rescore based on homography errors
+                xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
+                homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
+                homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
+                homog_err_weight.shape = (homog_err_weight.size, 1)
+                fsv_SV = np.concatenate((fsv_SV, homog_err_weight), axis=1)
+            sver_matchtup_list.append((fm_SV, fsv_SV, fk_SV, H))
+
+        fm_list_SV  = ut.get_list_column(sver_matchtup_list, 0)
+        fsv_list_SV = ut.get_list_column(sver_matchtup_list, 1)
+        fk_list_SV  = ut.get_list_column(sver_matchtup_list, 2)
+        H_list_SV   = ut.get_list_column(sver_matchtup_list, 3)
+
+        cmSV = chip_match.ChipMatch2(
+            qaid=cm.qaid, daid_list=daid_list,
+            fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
+            H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,
+            fsv_col_lbls=fsv_col_lbls)
     return cmSV
 
 
