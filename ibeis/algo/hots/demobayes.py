@@ -51,6 +51,7 @@ def demo_bayesnet(cfg={}):
     num_names = cfg.pop('num_names', None)
     num_scores = cfg.pop('num_scores', 2)
     rand_scores = cfg.pop('rand_scores', False)
+    method = cfg.pop('method', 'bp')
     other_evidence = {k: v for k, v in cfg.items() if not k.startswith('_')}
     if rand_scores:
         #import randomdotorg
@@ -79,6 +80,7 @@ def demo_bayesnet(cfg={}):
         other_evidence=other_evidence,
         p_score_given_same=discr_p_same,
         score_basis=discr_domain,
+        method=method,
     )
 
 

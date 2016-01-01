@@ -13,6 +13,7 @@ import utool as ut
 import numpy as np
 from six.moves import zip
 from ibeis.algo.hots import pgm_ext
+from ibeis.algo.hots import pgm_viz
 import pgmpy
 import pgmpy.inference
 import pgmpy.inference.Sampling
@@ -25,10 +26,12 @@ SPECIAL_BASIS_POOL = []
 
 
 def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
-               other_evidence={}, noquery=False, verbose=None, **kwargs):
+               other_evidence={}, noquery=False, verbose=None,
+               **kwargs):
     if verbose is None:
         verbose = ut.VERBOSE
 
+    method = kwargs.pop('method', None)
     model = make_name_model(num_annots, num_names, verbose=verbose, **kwargs)
 
     if verbose:
@@ -59,7 +62,8 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
         #query_vars += ut.list_getattr(model.ttype2_cpds['match'], 'variable')
         query_vars = ut.setdiff(query_vars, evidence.keys())
         #query_vars = ut.setdiff(query_vars, soft_evidence.keys())
-        query_results = cluster_query(model, query_vars, evidence, soft_evidence)
+        query_results = cluster_query(model, query_vars, evidence,
+                                      soft_evidence, method)
     else:
         query_results = {}
 
@@ -88,14 +92,15 @@ def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                   soft_evidence=soft_evidence,
                   **query_results)
 
-    show_model(model, **showkw)
+    pgm_viz.show_model(model, **showkw)
     return (model, evidence, query_results)
     # pgm_ext.print_ascii_graph(model)
 
 
 def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
                     num_scores=2, p_score_given_same=None,
-                    hack_score_only=False, score_basis=None):
+                    hack_score_only=False, score_basis=None,
+                    special_names=None):
     r"""
     CommandLine:
         python -m ibeis.algo.hots.bayes --exec-make_name_model --show
@@ -106,18 +111,19 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.bayes import *  # NOQA
         >>> defaults = dict(num_annots=2, num_names=2, verbose=True)
+        >>> modeltype = ut.get_argval('--modeltype', default='bayes')
         >>> kw = ut.argparse_funckw(make_name_model, defaults)
         >>> model = make_name_model(**kw)
         >>> ut.quit_if_noshow()
-        >>> show_model(model, show_prior=False, show_title=False)
+        >>> model.show_model(show_prior=False, show_title=False, modeltype=modeltype)
         >>> ut.show_if_requested()
-
-    Ignore:
-        import nx2tikz
-        print(nx2tikz.dumps_tikz(model, layout='layered', use_label=True))
     """
+    if special_names is None:
+        special_names = SPECIAL_BASIS_POOL
+
     assert mode == 1, 'only can do mode 1'
-    annots = ut.chr_range(num_annots, base=ut.get_argval('--base', type_=str, default='a'))
+    base = ut.get_argval('--base', type_=str, default='a')
+    annots = ut.chr_range(num_annots, base=base)
     # The indexes of match CPDs will not change if another annotation is added
     upper_diag_idxs = ut.colwise_diag_idxs(num_annots, 2)
     if hack_score_only:
@@ -132,7 +138,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
     # Name Factor
     name_cpd_t = pgm_ext.TemplateCPD(
         'name', ('n', num_names),
-        special_basis_pool=SPECIAL_BASIS_POOL)
+        special_basis_pool=special_names)
     name_cpds = [name_cpd_t.new_cpd(parents=aid) for aid in annots]
     #name_cpds = [name_cpd_t.new_cpd(parents=aid, constrain_state=count)
     #             for count, aid in enumerate(annots, start=1)]
@@ -222,8 +228,10 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
         >>> other_evidence = {}
         >>> name_evidence = [0, 0, 1, 1, None]
         >>> score_evidence = ['high', 'low', 'low', 'low', 'low', 'high']
-        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True, mode=1)
-        >>> update_model_evidence(model, name_evidence, score_evidence, other_evidence)
+        >>> model = make_name_model(num_annots=5, num_names=3, verbose=True,
+        >>>                         mode=1)
+        >>> update_model_evidence(model, name_evidence, score_evidence,
+        >>>                       other_evidence)
     """
     name_cpds = model.ttype2_cpds['name']
     score_cpds = model.ttype2_cpds['score']
@@ -315,7 +323,8 @@ def make_temp_state(state):
     return temp_state
 
 
-def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduced_values):
+def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs,
+                    reduced_values):
     import vtool as vt
     #assert np.all(reduced_joint.values.ravel() == reduced_joint.values.flatten())
     reduced_ttypes = [model.var2_cpd[var].ttype for var in reduced_variables]
@@ -324,15 +333,17 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
     evidence_state_idxs = ut.dict_take(evidence, evidence_vars)
     evidence_ttypes = [model.var2_cpd[var].ttype for var in evidence_vars]
 
-    #ttype2_ev_indices = dict(ut.group_indicies(evidence_ttypes))
-    #ttype2_re_indices = dict(ut.group_indicies(reduced_ttypes))
-    ttype2_ev_indices = ut.group_items(range(len(evidence_vars)), evidence_ttypes)
-    ttype2_re_indices = ut.group_items(range(len(reduced_variables)), reduced_ttypes)
+    ttype2_ev_indices = dict(zip(*ut.group_indices(evidence_ttypes)))
+    ttype2_re_indices = dict(zip(*ut.group_indices(reduced_ttypes)))
+    # ttype2_ev_indices = ut.group_items(range(len(evidence_vars)), evidence_ttypes)
+    # ttype2_re_indices = ut.group_items(range(len(reduced_variables)), reduced_ttypes)
 
     # Allow specific types of labels to change
     # everything is the same, only the names have changed.
     # TODO: allow for multiple different label_ttypes
     # for label_ttype in label_ttypes
+    if 'name' not in model.ttype2_template:
+        return reduced_row_idxs, reduced_values
     label_ttypes = ['name']
     for label_ttype in label_ttypes:
         ev_colxs = ttype2_ev_indices[label_ttype]
@@ -366,9 +377,11 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
             tmp_state_cols[colx] = other_states[:, count:count + 1]
         tmp_state_idxs = np.hstack(tmp_state_cols)
 
-        data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, tmp_state_idxs))))
+        data_ids = np.array(
+            vt.compute_unique_data_ids_(list(map(tuple, tmp_state_idxs))))
         unique_ids, groupxs = vt.group_indices(data_ids)
-        print('Collapsed %r states into %r states' % (len(data_ids), len(unique_ids),))
+        print('Collapsed %r states into %r states' % (
+            len(data_ids), len(unique_ids),))
         # Sum the values in the cpd to marginalize the duplicate probs
         new_values = np.array([
             g.sum() for g in vt.apply_grouping(reduced_values, groupxs)
@@ -377,7 +390,8 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
         unique_tmp_groupxs = np.array(ut.get_list_column(groupxs, 0))
         new_aug_state_idxs = tmp_state_idxs.take(unique_tmp_groupxs, axis=0)
 
-        tmp_idx_set = set((-np.arange(-max_tmp_state, (-min_tmp_state) + 1)).tolist())
+        tmp_idx_set = set((-np.arange(-max_tmp_state,
+                                      (-min_tmp_state) + 1)).tolist())
         true_idx_set = set(range(len(model.ttype2_template[label_ttype].basis)))
 
         # Relabel the rows one more time to agree with initial constraints
@@ -407,22 +421,26 @@ def collapse_factor_labels(model, reduced_joint, evidence):
         model, evidence, reduced_variables, reduced_row_idxs, reduced_values)
 
     if isinstance(reduced_joint, pgm_ext.ApproximateFactor):
-        new_reduced_joint = pgm_ext.ApproximateFactor(new_state_idxs,
-                                                      new_values,
-                                                      reduced_variables,
-                                                      statename_dict=reduced_joint.statename_dict)
+        new_reduced_joint = pgm_ext.ApproximateFactor(
+            new_state_idxs, new_values, reduced_variables,
+            statename_dict=reduced_joint.statename_dict)
     else:
-        # hack into a new joint factor (that is the same size as the reduced_joint)
+        # hack into a new joint factor
+        # (that is the same size as the reduced_joint)
         new_reduced_joint = reduced_joint.copy()
-        assert new_reduced_joint.values is not reduced_joint.values, 'copy did not work'
+        assert new_reduced_joint.values is not reduced_joint.values, (
+            'copy did not work')
         new_reduced_joint.values[:] = 0
-        flat_idxs = np.ravel_multi_index(new_state_idxs.T, new_reduced_joint.values.shape)
+        flat_idxs = np.ravel_multi_index(new_state_idxs.T,
+                                         new_reduced_joint.values.shape)
 
         old_values = new_reduced_joint.values.ravel()
         old_values[flat_idxs] = new_values
-        new_reduced_joint.values = old_values.reshape(reduced_joint.cardinality)
+        new_reduced_joint.values = old_values.reshape(
+            reduced_joint.cardinality)
         # print(new_reduced_joint._str(maxrows=4, sort=-1))
-    return new_reduced_joint, new_state_idxs, new_values
+    # return new_reduced_joint, new_state_idxs, new_values
+    return new_reduced_joint
 
 
 def report_partitioning_statistics(new_reduced_joint):
@@ -432,8 +450,10 @@ def report_partitioning_statistics(new_reduced_joint):
     #groupsize = list(map(len, idxs))
     #groupassigns = ut.unflat_vecmap(new_reduced_joint.assignment, idxs)
     all_states = new_reduced_joint._row_labels(asindex=True)
-    clusterstats = [tuple(sorted(list(ut.dict_hist(a).values()))) for a in all_states]
-    grouped_vals = ut.group_items(new_reduced_joint.values.ravel(), clusterstats)
+    clusterstats = [tuple(sorted(list(ut.dict_hist(a).values())))
+                    for a in all_states]
+    grouped_vals = ut.group_items(new_reduced_joint.values.ravel(),
+                                  clusterstats)
 
     #probs_assigned_to_clustertype = [(
     #    sorted(np.unique(np.array(b).round(decimals=5)).tolist())[::-1], a)
@@ -441,7 +461,8 @@ def report_partitioning_statistics(new_reduced_joint):
     probs_assigned_to_clustertype = [(
         ut.dict_hist(np.array(b).round(decimals=5)), a)
         for a, b in grouped_vals.items()]
-    sortx = ut.argsort([max(c[0].keys()) for c in probs_assigned_to_clustertype])
+    sortx = ut.argsort([max(c[0].keys())
+                        for c in probs_assigned_to_clustertype])
     probs_assigned_to_clustertype = ut.take(probs_assigned_to_clustertype, sortx)
 
     # This list of 2-tuples with the first item being the unique
@@ -486,10 +507,13 @@ def _test_compute_reduced_joint(model, query_vars, evidence, method):
     print('BF and BP are the same')
 
 
-def compute_reduced_joint(model, query_vars, evidence, method):
+def compute_reduced_joint(model, query_vars, evidence, method,
+                          operation='maximize'):
     if method == 'approx':
+        # TODO: incorporate operation?
         query_states = model.get_number_of_states(query_vars)
-        print('model.number_of_states = %r' % (model.get_number_of_states(),))
+        print('model.number_of_states = %r' % (
+            model.get_number_of_states(),))
         print('query_states = %r' % (query_states,))
         # Try to approximatly sample the map inference
         infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
@@ -497,9 +521,9 @@ def compute_reduced_joint(model, query_vars, evidence, method):
         # The markov blanket of a name node in our network
         # can be quite large. It includes all other names.
 
-        infr = pgmpy.inference.Sampling.GibbsSampling(model)
-        import utool
-        utool.embed()
+        # infr = pgmpy.inference.Sampling.GibbsSampling(model)
+        # import utool
+        # utool.embed()
 
         #infr = pgmpy.inference.Sampling.GibbsSampling()
         #infr._get_kernel_from_bayesian_model(model)
@@ -552,21 +576,24 @@ def compute_reduced_joint(model, query_vars, evidence, method):
         num_raw_states = len(reduced_joint.state_idxs)
         reduced_joint.consolidate()
         num_unique_states = len(reduced_joint.state_idxs)
-        print('[pgm] %r / %r initially sampled states are unique' % (num_unique_states, num_raw_states,))
+        print('[pgm] %r / %r initially sampled states are unique' % (
+            num_unique_states, num_raw_states,))
         reduced_joint.normalize()
         reduced_joint.reorder()
     elif method == 'varelim':
         infr = pgmpy.inference.VariableElimination(model)
-        reduced_joint = infr.compute_joint(query_vars, 'maximize', evidence)
+        reduced_joint = infr.compute_joint(query_vars, operation, evidence)
         reduced_joint.normalize()
         reduced_joint.reorder()
     elif method in ['bp', 'beliefprop']:
         # Dont brute force anymore
         infr = pgmpy.inference.BeliefPropagation(model)
-        reduced_joint = infr.compute_joint(query_vars, 'maximize', evidence)
+        reduced_joint = infr.compute_joint(query_vars, operation, evidence)
         reduced_joint.normalize()
         reduced_joint.reorder()
     elif method in ['bf', 'brute', 'bruteforce']:
+        # TODO: incorporate operation?
+
         full_joint = model.joint_distribution()
         reduced_joint = reduce_marginalize(full_joint, query_vars,
                                            evidence, inplace=False)
@@ -576,7 +603,8 @@ def compute_reduced_joint(model, query_vars, evidence, method):
     return reduced_joint
 
 
-def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, method=None):
+def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
+                  method=None, operation='maximize'):
     """
     CommandLine:
         python -m ibeis.algo.hots.bayes --exec-cluster_query --show
@@ -595,9 +623,12 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
         >>> from ibeis.algo.hots.bayes import *  # NOQA
         >>> verbose = True
         >>> other_evidence = {}
-        >>> name_evidence = [1, None, 0, None]
-        >>> score_evidence = [1, 0, 0]
-        >>> model = make_name_model(num_annots=4, num_names=4, verbose=True, mode=1)
+        >>> name_evidence = [1, None, None, 0]
+        >>> score_evidence = [2, 0, 2]
+        >>> special_names = ['fred', 'sue', 'tom', 'paul']
+        >>> model = make_name_model(
+        >>>     num_annots=4, num_names=4, num_scores=3, verbose=True, mode=1,
+        >>>     special_names=special_names)
         >>> method = None
         >>> model, evidence, soft_evidence = update_model_evidence(
         >>>     model, name_evidence, score_evidence, other_evidence)
@@ -606,10 +637,11 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> query_results = cluster_query(model, query_vars, evidence, method=method)
+        >>> query_results = cluster_query(model, query_vars, evidence,
+        >>>                               method=method)
         >>> print(ut.repr2(query_results['top_assignments'], nl=1))
         >>> ut.quit_if_noshow()
-        >>> show_model(model, evidence=evidence, **query_results)
+        >>> pgm_ext.show_model(model, evidence=evidence, **query_results)
         >>> ut.show_if_requested()
     """
     evidence = model._ensure_internal_evidence(evidence)
@@ -619,31 +651,29 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
     query_vars = ut.setdiff(query_vars, list(evidence.keys()))
 
     if method is None:
-        method = ut.get_argval('--method', type_=str, default='approx')
+        method = ut.get_argval('--method', type_=str, default='bp')
 
-    reduced_joint = compute_reduced_joint(model, query_vars, evidence, method)
+    reduced_joint = compute_reduced_joint(model, query_vars, evidence,
+                                          method, operation)
 
-    new_reduced_joint, new_state_idxs, new_values = collapse_factor_labels(
-        model, reduced_joint, evidence)
-    reduced_variables = reduced_joint.variables
+    new_reduced_joint = collapse_factor_labels(model, reduced_joint, evidence)
 
     if False:
         report_partitioning_statistics(new_reduced_joint)
 
-    #isnonzero = (new_reduced_joint.values.ravel() > 0)
-    #new_state_idxs = new_reduced_joint.assignment(np.where(isnonzero)[0])
-    #new_values = new_reduced_joint.values.ravel()[isnonzero]
-
+    # FIXME: are these max marginals?
     max_marginals = {}
     for i, var in enumerate(query_vars):
         one_out = query_vars[:i] + query_vars[i + 1:]
-        max_marginals[var] = new_reduced_joint.marginalize(one_out, inplace=False)
+        max_marginals[var] = new_reduced_joint.marginalize(one_out,
+                                                           inplace=False)
         # max_marginals[var] = joint2.maximize(one_out, inplace=False)
     factor_list = max_marginals.values()
-    #else:
-    #    factor_list = []
 
     # Now find the most likely state
+    reduced_variables = new_reduced_joint.variables
+    new_state_idxs = np.array(new_reduced_joint._row_labels(asindex=True))
+    new_values = new_reduced_joint.values.ravel()
     sortx = new_values.argsort()[::-1]
     sort_new_state_idxs = new_state_idxs.take(sortx, axis=0)
     sort_new_values = new_values.take(sortx)
@@ -656,7 +686,8 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
     map_assign = dict(zip(reduced_variables, sort_new_states[0]))
 
     sort_reduced_rowstr_lbls = [
-        ut.repr2(dict(zip(reduced_variables, lbls)), explicit=True, nobraces=True,
+        ut.repr2(dict(zip(reduced_variables, lbls)), explicit=True,
+                 nobraces=True,
                  strvals=True)
         for lbls in sort_new_states
     ]
@@ -670,6 +701,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None, met
         'map_assign': map_assign,
         'method': method,
     }
+    print('query_results = %s' % (ut.repr3(query_results, nl=2),))
     return query_results
 
 
