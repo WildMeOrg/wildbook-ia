@@ -389,6 +389,11 @@ def make_colorcodes(model):
 
 def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
                         pnum=None, **kwargs):
+
+    from pgmpy.models import BayesianModel
+    if not isinstance(model, BayesianModel):
+        model = model.to_bayesian_model()
+
     import plottool as pt
     import networkx as netx
     factor_list = kwargs.get('factor_list', [])
@@ -470,7 +475,11 @@ def draw_markov_model(model, fnum=None, **kwargs):
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, doclf=True)
     ax = pt.gca()
-    markovmodel = model.to_markov_model()
+    from pgmpy.models import MarkovModel
+    if isinstance(model, MarkovModel):
+        markovmodel = model
+    else:
+        markovmodel = model.to_markov_model()
     # pos = netx.pydot_layout(markovmodel)
     pos = netx.pygraphviz_layout(markovmodel)
     # Referenecs:
@@ -485,7 +494,7 @@ def draw_markov_model(model, fnum=None, **kwargs):
     # markovmodel.graph.setdefault('edge', {})['splines'] = 'curved'
 
     node_color = [pt.NEUTRAL] * len(pos)
-    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,
+    drawkw = dict(pos=pos, ax=ax, with_labels=True, node_color=node_color,  # NOQA
                   node_size=1100)
 
     from matplotlib.patches import FancyArrowPatch, Circle
@@ -535,7 +544,11 @@ def draw_junction_tree(model, fnum=None, **kwargs):
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum)
     ax = pt.gca()
-    netx_graph = model.to_junction_tree()
+    from pgmpy.models import JunctionTree
+    if not isinstance(model, JunctionTree):
+        netx_graph = model.to_junction_tree()
+    else:
+        netx_graph = model
     # prettify nodes
     def fixtupkeys(dict_):
         return {

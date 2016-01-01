@@ -23,12 +23,16 @@ def define_model(cpd_list):
     ])
     model = pgmpy.models.BayesianModel(input_graph)
     model.add_cpds(*cpd_list)
+    customize_model(model)
+    return model
+
+
+def customize_model(model):
     model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
     model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
     model._templates = list(set([cpd._template_
                                  for cpd in model.var2_cpd.values()]))
     model.ttype2_template = {t.ttype: t for t in model._templates}
-
     def pretty_evidence(model, evidence):
         return [evar + '=' + str(model.var2_cpd[evar].variable_statenames[val])
                 for evar, val in evidence.items()]
@@ -711,6 +715,24 @@ def coin_example():
     toss2_cpd = toss_cpd_t.new_cpd(parents=[coin_cpd, 2])
     model = define_model([coin_cpd, toss1_cpd, toss2_cpd])
     return model
+
+
+def test_markovmodel():
+    """
+        >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
+    """
+    from pgmpy.models import MarkovModel
+    from pgmpy.factors import Factor
+    markovmodel = MarkovModel([('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')])
+    factor_a_b = Factor(variables=['A', 'B'], cardinality=[2, 2], values=[100, 5, 5, 100])
+    factor_b_c = Factor(variables=['B', 'C'], cardinality=[2, 2], values=[100, 3, 2, 4])
+    factor_c_d = Factor(variables=['C', 'D'], cardinality=[2, 2], values=[3, 5, 1, 6])
+    factor_d_a = Factor(variables=['D', 'A'], cardinality=[2, 2], values=[6, 2, 56, 2])
+    markovmodel.add_factors(factor_a_b, factor_b_c, factor_c_d, factor_d_a)
+
+    pgm_viz.show_markov_model(markovmodel)
+    # model = markovmodel.to_bayesian_model()
+    # customize_model(model)
 
 
 if __name__ == '__main__':
