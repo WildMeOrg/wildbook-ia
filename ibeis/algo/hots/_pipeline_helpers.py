@@ -35,6 +35,10 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
         build_chipmatches, spatial_verification,
         vsone_reranking, build_impossible_daids_list)
 
+    print('RUN PIPELINE UPTO: %s' % (stop_node,))
+
+    print(qreq_)
+
     qreq_.lazy_load(verbose=verbose)
     #---
     if stop_node == 'build_impossible_daids_list':
@@ -84,7 +88,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
 
 
 def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
-                 a=['default:qindex=0:1,dindex=0:5']):
+                 a=['default:qindex=0:1,dindex=0:5'], **kwargs):
     """ New (1-1-2016) generic pipeline node testdata getter
 
     Args:
@@ -110,7 +114,7 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
     """
     import ibeis
     from ibeis.algo.hots import pipeline
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, p=p, a=a)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, p=p, a=a, **kwargs)
     locals_ = testrun_pipeline_upto(qreq_, stopnode)
     func = getattr(pipeline, stopnode)
     argnames = ut.get_argnames(func)
@@ -250,6 +254,8 @@ def testdata_pre_weight_neighbors(defaultdb='testdb1', qaid_list=[1, 2], daid_li
         qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
     locals_ = testrun_pipeline_upto(qreq_, 'weight_neighbors')
     nns_list, nnvalid0_list = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list'])
+
+    # qreq_, args = testdata_pre('weight_neighbors', defaultdb=defaultdb, p=['default:bar_l2_on=True,fg_on=False'])
     return ibs, qreq_, nns_list, nnvalid0_list
 
 

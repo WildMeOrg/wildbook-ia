@@ -87,17 +87,17 @@ def train_featscore_normalizer():
         python -m ibeis --tf train_featscore_normalizer --db PZ_MTEST -t best -a default --fsvx=0 --threshx=1 --show
 
         # Visualize encoder score adjustment
-        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=lnbnn_fg_featscore --show --nocache --nocache-hs
+        python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normer=lnbnn_fg_featscore --show --nocache --nocache-hs
 
         # Compare ranking with encoder vs without
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
 
         # Compare in ipynb
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore]
+        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore]
 
         # Big Test
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normalizer=[None,lnbnn_fg_0.9__featscore] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
 
         # Big Train
         python -m ibeis --tf learn_featscore_normalizer --db PZ_Master1 -a timectrl -t best:K=1 --fsvx=0 --threshx=1 --show

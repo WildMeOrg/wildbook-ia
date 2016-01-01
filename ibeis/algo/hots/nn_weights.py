@@ -9,6 +9,15 @@ from ibeis.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[nnweight]')
 
+"""
+TODO: replace testdata_pre_weight_neighbors with
+
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+
+"""
+
 
 NN_WEIGHT_FUNC_DICT = {}
 MISC_WEIGHT_FUNC_DICT = {}

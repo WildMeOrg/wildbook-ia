@@ -231,6 +231,7 @@ class IBEISController(BASE_CLASS):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
+        ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
         #ibs.allow_override = 'override+warn'

@@ -643,17 +643,44 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
     CommandLine:
         python -m ibeis.algo.hots.pipeline --test-weight_neighbors
+        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose
+        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show
+        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:1 --show
+
+        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors(
-        >>>     'testdb1', qaid_list=[1, 2, 3], cfgdict=dict(
-        >>>         bar_l2_on=True, fg_on=False))
-        >>> ibs, qreq_, nns_list, nnvalid0_list = args
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
+        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+        >>> nns_list, nnvalid0_list = args
+        >>> verbose = True
         >>> # execute function
-        >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
-        >>> filtkey_list, filtweights_list, filtvalids_list = weight_ret[0:3]
+        >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
+        >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
+        >>> import plottool as pt
+        >>> verbose = True
+        >>> cm_list = build_chipmatches(
+        >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>>     filtvalids_list, filtnormks_list, verbose=verbose)
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> cm.ishow_analysis(qreq_)
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
+        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+        >>> nns_list, nnvalid0_list = args
+        >>> verbose = True
+        >>> # execute function
+        >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
+        >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
         >>> nInternAids = len(qreq_.get_internal_qaids())
         >>> nFiltKeys = len(filtkey_list)
         >>> filtweight_depth = ut.depth_profile(filtweights_list)
@@ -669,22 +696,22 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> verbose = True
         >>> cm_list = build_chipmatches(
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
-        >>>     filtvalids_list, verbose=verbose)
+        >>>     filtvalids_list, filtnormks_list, verbose=verbose)
         >>> cm = cm_list[0]
-        >>> cm.score_csum(qreq_)
+        >>> cm.score_nsum(qreq_)
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> args = plh.testdata_pre_weight_neighbors(
-        >>>     'testdb1', codename='vsone', cfgdict=dict(
-        >>>         lnbnn_on=False, ratio_on=True, fg_on=False,
-        >>>         ratio_thresh=.625))
-        >>> ibs, qreq_, nns_list, nnvalid0_list = args
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+        >>>                                p=['default:codename=vsone,fg_on=False,ratio_thresh=.625'], verbose=True)
+        >>> nns_list, nnvalid0_list = args
+        >>> ibs = qreq_.ibs
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
-        >>> filtkey_list, filtweights_list, filtvalids_list = weight_ret[0:3]
+        >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
         >>> print('filtkey_list = %r' % (filtkey_list,))
         >>> print('filtvalids_list = %r' % (filtvalids_list,))
         >>> nFiltKeys = len(filtkey_list)
@@ -697,6 +724,16 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), target)
         >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.RATIO])
         >>> assert filtvalids_list[0][0] is not None
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> verbose = True
+        >>> cm_list = build_chipmatches(
+        >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>>     filtvalids_list, filtnormks_list, verbose=verbose)
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> cm.ishow_analysis(qreq_)
+        >>> ut.show_if_requested()
     """
     if verbose:
         print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
@@ -725,11 +762,11 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         lnbnn_weight_list, normk_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
             nns_list, nnvalid0_list, qreq_)
 
-        if config2_.lnbnn_normalizer is not None:
+        if config2_.lnbnn_normer is not None:
             print('[hs] normalizing feat scores')
             if qreq_.lnbnn_normer is None:
                 qreq_.lnbnn_normer = vt.ScoreNormalizer()
-                qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normalizer)
+                qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)
 
             lnbnn_weight_list = [
                 qreq_.lnbnn_normer.normalize_scores(s.ravel()).reshape(s.shape)
@@ -737,10 +774,11 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             ]
 
             # Thresholding like a champ!
-            lnbnn_norm_thresh = .5
-            lnbnn_weight_list = [
-                s * [s > lnbnn_norm_thresh] for s in lnbnn_weight_list
-            ]
+            lnbnn_norm_thresh = config2_.lnbnn_norm_thresh
+            # lnbnn_weight_list = [
+            #     s * [s > lnbnn_norm_thresh] for s in lnbnn_weight_list
+            # ]
+            lnbnn_isvalid = [s > lnbnn_norm_thresh for s in lnbnn_weight_list]
             # Softmaxing
             # from scipy.special import expit
             # y = expit(x * 6)
@@ -749,10 +787,12 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             #     for s in lnbnn_weight_list
             # ]
             filtname += '_norm'
+            _filtvalid_list.append(lnbnn_isvalid)  # None means all valid
+        else:
+            _filtvalid_list.append(None)  # None means all valid
 
         _filtweight_list.append(lnbnn_weight_list)
         _filtnormk_list.append(normk_list)
-        _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append(filtname)
     if config2_.normonly_on:
         filtname = 'normonly'
@@ -811,14 +851,16 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
     # Switch nested list structure from [filt, qaid] to [qaid, filt]
     nInternAids = len(nns_list)
-    # print('ut.depth_profile(_filtweight_list) = %r' % (ut.depth_profile(_filtweight_list),))
-    # print('ut.depth_profile(filtweights_list) = %r' % (ut.depth_profile(filtweights_list),))
+    # import utool
+    # with utool.embed_on_exception_context:
     filtweights_list = [ut.get_list_column(_filtweight_list, index)
                         for index in range(nInternAids)]
     filtvalids_list = [[
             None if filtvalid is None else filtvalid[index]
             for filtvalid in _filtvalid_list
     ] for index in range(nInternAids) ]
+    # print('ut.depth_profile(_filtweight_list) = %r' % (ut.depth_profile(_filtweight_list),))
+    # print('ut.depth_profile(filtweights_list) = %r' % (ut.depth_profile(filtweights_list),))
 
     filtnormks_list = [[
         None if normk is None else normk[index]

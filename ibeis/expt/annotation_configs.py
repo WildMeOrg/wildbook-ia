@@ -24,10 +24,12 @@ ALIAS_KEYS = {
 }
 
 OTHER_DEFAULTS = {
-    'force_const_size'    : None,
     # forces a consistnet sample size across combinations
+    'force_const_size'    : None,
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_encounter': None,
+    # Hack out errors in test data
+    'hackerrors'    : True,
 }
 
 # Defaults for the independent filter

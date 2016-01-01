@@ -289,6 +289,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
                 --nofilter-dups
     """
     from ibeis.expt import annotation_configs
+
+    if verbose is None:
+        verbose = VERB_TESTDATA
     # Edit configs so the sample sizes are consistent
     # FIXME: requiers that smallest configs are specified first
     def tmpmin(a, b):
@@ -385,7 +388,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
             # is unstable Remove queries that have labeling errors in them.
             # TODO: fix errors AND remove labels
             #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
-            REMOVE_LABEL_ERRORS = True
+            REMOVE_LABEL_ERRORS = qcfg.get('hackerrors', True)
             #ut.is_developer() or ut.get_argflag('--noerrors')
             if REMOVE_LABEL_ERRORS:
                 qaids_, daids_ = expanded_aids
@@ -419,6 +422,11 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
                 filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
 
                 expanded_aids = (filtered_qaids_, daids_)
+
+                if verbose:
+                    ut.colorprint('+---------------------', 'red')
+                    ibs.print_annotconfig_stats(filtered_qaids_, daids_)
+                    ut.colorprint('L___ HACKED_EXPAND_ACFGS ___', 'red')
 
         #ibs.print_annotconfig_stats(*expanded_aids)
         expanded_aids_list.append(expanded_aids)
@@ -639,6 +647,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         partition_avail_aids[1] = avail_aids
 
         # TODO: GENERALIZE SUBINDEX
+        # Subindex if requested (typically not done)
         subindex_cfgs = [qcfg, dcfg]
         for index in range(len(partition_avail_aids)):
             avail_aids = partition_avail_aids[index]
@@ -649,7 +658,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
             partition_avail_aids[index] = avail_aids
         avail_qaids, avail_daids = partition_avail_aids
 
-        # Subindex if requested (typically not done)
+        # Comment out?
         avail_qaids = subindex_annots(ibs, avail_qaids, qcfg, **qfiltflags)
         avail_daids = subindex_annots(ibs, avail_daids, dcfg, **dfiltflags)
 
