@@ -119,7 +119,7 @@ class ScoreNormalizer(ut.Cachable):
         return state_dict
 
     def get_prefix(encoder):
-        return 'ScoreNorm'
+        return 'ScoreNorm_'
 
     def __setstate__(encoder, state_dict):
         encoder.__dict__.update(state_dict)
