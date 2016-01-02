@@ -766,7 +766,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             print('[hs] normalizing feat scores')
             if qreq_.lnbnn_normer is None:
                 qreq_.lnbnn_normer = vt.ScoreNormalizer()
-                qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)
+                # qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)
+                qreq_.lnbnn_normer.fuzzyload(partial_cfgstr=config2_.lnbnn_normer)
 
             lnbnn_weight_list = [
                 qreq_.lnbnn_normer.normalize_scores(s.ravel()).reshape(s.shape)

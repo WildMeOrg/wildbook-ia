@@ -142,10 +142,12 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> import ibeis
         >>> learnkw = {}
         >>> datakw = dict(
+        >>>     disttypes_=None,
         >>>     namemode=ut.get_argval('--namemode', default=True),
         >>>     fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
         >>>                          default=slice(None, None, None)),
         >>>     threshx=ut.get_argval('--threshx', type_=int, default=None),
+        >>>     thresh=ut.get_argval('--thresh', type_=float, default=.9),
         >>> )
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
@@ -155,13 +157,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> ut.show_if_requested()
     """
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
-    disttypes_ = None
-    namemode = datakw.get('namemode', True)
-    fsvx = datakw.get('fsvx', True)
-    threshx = datakw.get('threshx', True)
-    thresh = .9
     tp_scores, tn_scores, scorecfg = get_training_featscores(
-        qreq_, cm_list, disttypes_, namemode, fsvx, threshx, thresh)
+        qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
     _learnkw.update(learnkw)
     encoder = vt.ScoreNormalizer(**_learnkw)
@@ -187,9 +184,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
 
     hashid = ut.hashstr27(ut.to_json(encoder._regen_info))
     naidinfo = ('q%s_d%s' % (len(qreq_.qaids), len(qreq_.daids)))
-    cfgstr = '{}_{}_{}_{}'.format(scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid)
-
-    encoder.cfgstr = cfgstr + '_featscore'
+    cfgstr = 'featscore_{}_{}_{}_{}'.format(scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid)
+    encoder.cfgstr = cfgstr
     return encoder
 
 
@@ -238,7 +234,7 @@ def get_training_annotscores(qreq_, cm_list):
 
 
 def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
-                            fsvx=None, threshx=None, thresh=.9):
+                            fsvx=slice(None, None, None), threshx=None, thresh=.9):
     """
     Returns the flattened set of feature scores between each query and the
     correct groundtruth annotations as well as the top scoring false
