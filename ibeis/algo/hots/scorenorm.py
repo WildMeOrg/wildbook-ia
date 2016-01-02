@@ -85,6 +85,7 @@ def load_featscore_normalizer(normer_cfgstr):
 
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
+        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
 
     Example:
         >>> # SCRIPT
@@ -137,7 +138,15 @@ def train_featscore_normalizer():
     # TODO: training / loading / general external models
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
-    encoder = learn_featscore_normalizer(qreq_)
+    datakw = dict(
+        disttypes_=None,
+        namemode=ut.get_argval('--namemode', default=True),
+        fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
+                             default=slice(None, None, None)),
+        threshx=ut.get_argval('--threshx', type_=int, default=None),
+        thresh=ut.get_argval('--thresh', type_=float, default=.9),
+    )
+    encoder = learn_featscore_normalizer(qreq_, datakw=datakw)
     encoder.save()
     return encoder
 
