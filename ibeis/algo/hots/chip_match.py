@@ -2034,6 +2034,8 @@ def get_topannot_training_idxs(cm, num=2):
             np.array([2, 3], dtype=np.int64),
         )
     """
+    if num is None:
+        num = 2
     sortx = cm.argsort()
     sorted_nids = cm.dnid_list[sortx]
     mask = sorted_nids == cm.qnid
@@ -2080,6 +2082,8 @@ def get_topname_training_idxs(cm, num=5):
             [101, 99, 100, 97, 98],
         )
     """
+    if num is None:
+        num = 5
     sortx = cm.name_argsort()
     sorted_nids = np.take(cm.unique_nids, sortx)
     sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
@@ -2099,7 +2103,7 @@ def get_topname_training_idxs(cm, num=5):
     return tp_idxs, tn_idxs
 
 
-def get_training_fsv(cm, namemode=True):
+def get_training_fsv(cm, namemode=True, num=None):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -2110,9 +2114,9 @@ def get_training_fsv(cm, namemode=True):
         >>> print(result)
     """
     if namemode:
-        tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm, num=num)
     else:
-        tp_idxs, tn_idxs = get_topannot_training_idxs(cm)
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
     tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
     tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
     return tp_fsv, tn_fsv

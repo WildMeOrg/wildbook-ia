@@ -85,7 +85,7 @@ def load_featscore_normalizer(normer_cfgstr):
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
         python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=eatazkvtnbfmqcwz
+        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
 
     Example:
         >>> # SCRIPT
@@ -113,19 +113,23 @@ def train_featscore_normalizer():
         python -m ibeis --tf TestResult.draw_feat_scoresep --db PZ_MTEST -a timectrl -t best:lnbnn_normer=lnbnn_fg_featscore --show --nocache --nocache-hs
 
         # Compare ranking with encoder vs without
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
-        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a timectrl -t best:lnbnn_normer=[None,wulu] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_MTEST -a default  -t best:lnbnn_normer=[None,wulu] --show
 
         # Compare in ipynb
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore]
 
         # Big Test
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,qvneocwisnclfaqs],lnbnn_norm_thresh=.5 --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,lovb],lnbnn_norm_thresh=.5 --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=.1 --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,jypz],lnbnn_norm_thresh=0 --show
+
 
         # Big Train
         python -m ibeis --tf learn_featscore_normalizer --db PZ_Master1 -a timectrl -t best:K=1 --fsvx=0 --threshx=1 --show
         python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show --ainfo
         python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show
+        python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=3 --fsvx=0 --threshx=1 --show
 
     Example:
         >>> # SCRIPT
@@ -164,6 +168,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     CommandLine:
         python -m ibeis --tf learn_featscore_normalizer --show
         python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
+        python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -324,7 +329,7 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
                 # Use precomputed fsv distances
                 fsv_col_lbls = cm.fsv_col_lbls
                 tp_fsv, tn_fsv = chip_match.get_training_fsv(
-                    cm, namemode=namemode)
+                    cm, namemode=namemode, num=1000)
             else:
                 # Investigate independant computed dists
                 fsv_col_lbls = disttypes_

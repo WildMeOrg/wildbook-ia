@@ -52,6 +52,7 @@ def get_default_cell_template_list():
         notebook_cells.per_annotation_accuracy,
         notebook_cells.per_name_accuracy,
         notebook_cells.timedelta_distribution,
+        notebook_cells.config_overlap,
         #notebook_cells.dbsize_expt,
         notebook_cells.feat_score_sep,
         #notebook_cells.all_scores,

@@ -135,6 +135,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
 
 def print_pipe_configs(cfgdict_list, pipecfg_list):
     pipecfg_lbls = get_varied_pipecfg_lbls(cfgdict_list)
+    assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
     for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
         print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
         ut.colorprint(lbl, 'white')

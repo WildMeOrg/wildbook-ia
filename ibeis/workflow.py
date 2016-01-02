@@ -4,6 +4,15 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[ibs]')
 
 
+"""
+Buidl probability curves of
+* lnbnn, ratio, logratio, l2dist, etc for tp and tn of different db sizes
+
+Rescore based on progressively increasing thresholds
+
+"""
+
+
 def testdata_workflow(defaltdb='PZ_MTEST', t=['default'], a=['defualt']):
     # qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default', t='default')
     # ibs = qreq_.ibs

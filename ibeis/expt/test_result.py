@@ -125,6 +125,22 @@ class TestResult(object):
     def __str__(testres):
         return testres.reconstruct_test_flags()
 
+    def __repr__(qreq_):
+        return qreq_._custom_str()
+
+    def _custom_str(testres):
+        typestr = testres.__class__.__name__
+        dbname = None if testres.ibs is None else testres.ibs.get_dbname()
+        # hashkw = dict(_new=True, pathsafe=False)
+        # infostr_ = qreq_.get_cfgstr(with_query=True, with_pipe=True, hash_pipe=True, hashkw=hashkw)
+        infostr_ = 'nCfg=%s'  % testres.nConfig
+        if testres.nConfig ==  1:
+            qreq_ = testres.cfgx2_qreq_[0]
+            infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashstr())
+        # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashstr())
+        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(testres)))
+        return custom_str
+
     @property
     def ibs(testres):
         ibs_list = [qreq_.ibs for qreq_ in testres.cfgx2_qreq_]
@@ -382,6 +398,8 @@ class TestResult(object):
 
     def get_all_varied_params(testres):
         r"""
+        Returns the parameters that were varied between different configurations in this test
+
         Returns:
             list: varied_params
 
@@ -488,6 +506,9 @@ class TestResult(object):
         return cfgstr
 
     def _shorten_lbls(testres, lbl):
+        """
+        hacky function
+        """
         import re
         repl_list = [
             ('candidacy_', ''),
@@ -774,8 +795,28 @@ class TestResult(object):
         fname_aug = fname_aug.strip('_')
         return fname_aug
 
+    def print_pcfg_info(testres):
+        """
+        Prints verbose information about each pipeline configuration
+
+            >>> from ibeis.expt.test_result import *  # NOQA
+        """
+        # TODO: Rectify with other printers
+        # for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
+        #     print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
+        #     ut.colorprint(lbl, 'white')
+        #     print(pipecfg.get_cfgstr())
+        #     print('L___')
+        # for qreq_ in testres.cfgx2_qreq_:
+        #     print(qreq_.get_full_cfgstr())
+        # cfgdict_list = [qreq_.qparams for qreq_ in testres.cfgx2_qreq_]
+        experiment_helpers.print_pipe_configs(testres.cfgx2_pcfg,  testres.cfgx2_qreq_)
+
     def print_acfg_info(testres, **kwargs):
         """
+        Prints verbose information about the annotations used in each test
+        configuration
+
         CommandLine:
             python -m ibeis --tf TestResult.print_acfg_info
 
@@ -2007,6 +2048,9 @@ class TestResult(object):
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=True
             python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST -t best:lnbnn_on=True --namemode=False
 
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=L2_sift
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=L2_sift -t best:SV=False
+
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=1:2
             utprof.py -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_Master1 --fsvx=0:1
@@ -2032,11 +2076,14 @@ class TestResult(object):
             >>> testres.draw_feat_scoresep(f=f)
             >>> ut.show_if_requested()
         """
+        print('[testres] draw_feat_scoresep')
         import plottool as pt
         assert len(testres.cfgx2_qreq_) == 1, (
             'can only do this on one qreq_ right now')
         for qreq_ in testres.cfgx2_qreq_:
             break
+
+        testres.print_pcfg_info()
 
         print('Loading cached chipmatches')
         import ibeis  # NOQA

@@ -171,6 +171,12 @@ detection_summary = ('# Detection Summary', ut.codeblock(
     # ENDBLOCK
 '''))
 
+
+#######
+# CONFIG COMPARISONS
+#######
+
+
 per_annotation_accuracy = ('# Query Accuracy (% correct annotations)', ut.codeblock(
     r'''
     # STARTBLOCK
@@ -191,6 +197,16 @@ per_name_accuracy = ('# Query Accuracy (% correct names)', ut.codeblock(
         db=db, a=a, t=t, do_per_annot=False)
     #testres.print_unique_annot_config_stats()
     _ = testres.draw_func()
+    # ENDBLOCK
+    '''
+))
+
+
+config_overlap = ('# Configuration Overlap', ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # How well do different configurations compliment each other?
+    testres.print_config_overlap()
     # ENDBLOCK
     '''
 ))

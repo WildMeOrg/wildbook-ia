@@ -38,6 +38,10 @@ CommandLine:
     python main.py --verbose --noqcache --cfg codename:vsone_norm --query 1
     python main.py --verbose --noqcache --cfg codename:vsmany --query 1
     python main.py --verbose --noqcache --cfg codename:vsmany_nsum  --query 1
+
+TODO:
+    * Don't preload the nn-indexer in case the nearest neighbors have already
+    been computed?
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals

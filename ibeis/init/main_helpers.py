@@ -24,7 +24,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #or ut.VERBOSE or VERB_TESTDATA
 
 
-def testdata_pipecfg(t=['default']):
+def testdata_pipecfg(p=None, t=None):
     r"""
     Returns:
         dict: pcfgdict
@@ -40,6 +40,11 @@ def testdata_pipecfg(t=['default']):
         >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
         >>> print(result)
     """
+    print('[main_helpers] testdata_pipecfg')
+    if t is not None and p is None:
+        p = t
+    if p is None:
+        p = ['default']
     from ibeis.expt import experiment_helpers
     test_cfg_name_list = ut.get_argval('-t', type_=list, default=t)
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
@@ -50,6 +55,7 @@ def testdata_pipecfg(t=['default']):
 
 def testdata_filtcfg(default=None):
     from ibeis.expt import cfghelpers
+    print('[main_helpers] testdata_filtcfg')
     if default is None:
         default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
@@ -78,6 +84,7 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
         >>> qreq_ = testdata_qreq_(p)
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
+    print('[main_helpers] testdata_qreq_')
     if t is not None and p is None:
         p = t
     if p is None:
@@ -109,11 +116,12 @@ def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None):
         >>> cm.show_single_annotmatch(qreq_, 2)
         >>> ut.show_if_requested()
     """
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p)
+    print('[main_helpers] testdata_cm')
+    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p)
     qaids = qreq_.get_external_qaids()
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
-    cm = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)[0]
+    cm = cm_list[0]
     return cm, qreq_
 
 
@@ -122,6 +130,7 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     Returns:
         list, ibeis.QueryRequest: cm_list, qreq_
     """
+    print('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_, return_cm=True)
     return cm_list, qreq_
@@ -144,6 +153,7 @@ def testdata_expts(defaultdb='testdb1',
     override, daid override (and maybe initial aids).
 
     """
+    print('[main_helpers] testdata_expts')
     import ibeis
     from ibeis.expt import experiment_harness
     from ibeis.expt import test_result
@@ -166,7 +176,10 @@ def testdata_expts(defaultdb='testdb1',
     qaid_override = ut.get_argval(('--qaid', '--qaids-override'), type_=list, default=qaid_override)
 
     # Hack a cache here
-    if ut.is_developer():
+    use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
+    use_bigtest_cache3 &= ut.is_developer()
+    use_bigtest_cache3 &= False
+    if use_bigtest_cache3:
         from os.path import dirname, join
         cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))
         load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(experiment_harness.run_test_configurations2)
@@ -176,6 +189,9 @@ def testdata_expts(defaultdb='testdb1',
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
         daid_override=daid_override, initial_aids=initial_aids)
     testres = test_result.combine_testres_list(ibs, testres_list)
+
+    print(testres)
+
     return ibs, testres
     #return ibs, testres_list
 
@@ -215,7 +231,8 @@ def testdata_expanded_aids(default_qaids=None, a=None, defaultdb=None,
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
         >>> print('qaid_list = %r' % (qaid_list,))
     """
-    print('[testdata_expanded_aids] Getting test annot configs')
+    print('[main_helpers] testdata_expanded_aids')
+    # print('[testdata_expanded_aids] Getting test annot configs')
     if default_qaids is None:
         # Hack to aggree with experiment-helpers
         default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=[1])
@@ -293,6 +310,8 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None, return_a
     from ibeis.expt import annotation_configs
     from ibeis.expt import cfghelpers
     import ibeis
+
+    print('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
     a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a)
