@@ -27,13 +27,12 @@ GOALS:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import utool
 import numpy as np
 import utool as ut
 import vtool as vt
 import six  # NOQA
 from ibeis.algo.hots import chip_match
-print, rrr, profile = utool.inject2(__name__, '[scorenorm]')
+print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 
 
 def learn_annotscore_normalizer(qreq_, learnkw={}):
@@ -86,6 +85,7 @@ def load_featscore_normalizer(normer_cfgstr):
     CommandLine:
         python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
         python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
+        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=eatazkvtnbfmqcwz
 
     Example:
         >>> # SCRIPT
@@ -187,7 +187,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     """
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
     print('learning scorenorm')
-    print('datakw = ' + ut.repr3(datakw))
+    print('datakw = %s' % ut.repr3(datakw))
     tp_scores, tn_scores, scorecfg = get_training_featscores(
         qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
