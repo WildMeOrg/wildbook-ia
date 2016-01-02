@@ -117,6 +117,7 @@ def train_featscore_normalizer():
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
     encoder = learn_featscore_normalizer(qreq_)
+    encoder.visualize()
     encoder.save()
     return encoder
 
@@ -140,7 +141,12 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> learnkw = {}
-        >>> datakw = {}
+        >>> datakw = dict(
+        >>>     namemode=ut.get_argval('--namemode', default=True),
+        >>>     fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
+        >>>                          default=slice(None, None, None)),
+        >>>     threshx=ut.get_argval('--threshx', type_=int, default=None),
+        >>> )
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
         >>> encoder = learn_featscore_normalizer(qreq_)
@@ -150,16 +156,9 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     """
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
     disttypes_ = None
-    if True:
-        # Hack
-        namemode = ut.get_argval('--namemode', default=True)
-        fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
-                             default=slice(None, None, None))
-        threshx = ut.get_argval('--threshx', type_=int, default=None)
-    else:
-        namemode = datakw.get('namemode', True)
-        fsvx = datakw.get('fsvx', True)
-        threshx = datakw.get('threshx', True)
+    namemode = datakw.get('namemode', True)
+    fsvx = datakw.get('fsvx', True)
+    threshx = datakw.get('threshx', True)
     thresh = .9
     tp_scores, tn_scores, scorecfg = get_training_featscores(
         qreq_, cm_list, disttypes_, namemode, fsvx, threshx, thresh)
@@ -168,9 +167,28 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     encoder = vt.ScoreNormalizer(**_learnkw)
     encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
     # ut.hashstr27(qreq_.get_cfgstr())
-    cfgstr = scorecfg
-    cfgstr = re.sub('[' + re.escape('()= ') + ']', '', cfgstr)
-    cfgstr = re.sub('[' + re.escape('+*<>[]') + ']', '_', cfgstr)
+
+    # Maintain regen command info: TODO: generalize and integrate
+    encoder._regen_info = {
+        'cmd': 'python -m ibeis --tf learn_featscore_normalizer',
+        'scorecfg': scorecfg,
+        'learnkw': learnkw,
+        'datakw': datakw,
+        'qaids': qreq_.qaids,
+        'daids': qreq_.daids,
+        'qreq_cfg': qreq_.get_full_cfgstr(),
+        'qreq_regen_info': getattr(qreq_, '_regen_info', {}),
+        'timestamp': ut.get_printable_timestamp(),
+    }
+
+    scorecfg_safe = scorecfg
+    scorecfg_safe = re.sub('[' + re.escape('()= ') + ']', '', scorecfg_safe)
+    scorecfg_safe = re.sub('[' + re.escape('+*<>[]') + ']', '_', scorecfg_safe)
+
+    hashid = ut.hashstr27(ut.to_json(encoder._regen_info))
+    naidinfo = ('q%s_d%s' % (len(qreq_.qaids), len(qreq_.daids)))
+    cfgstr = '{}_{}_{}_{}'.format(scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid)
+
     encoder.cfgstr = cfgstr + '_featscore'
     return encoder
 

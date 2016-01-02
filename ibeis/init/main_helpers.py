@@ -56,7 +56,7 @@ def testdata_filtcfg(default=None):
     return filt_cfg
 
 
-def testdata_qreq_(t=None, p=None, a=None, **kwargs):
+def testdata_qreq_(p=None, a=None, t=None, **kwargs):
     r"""
     Args:
         t (None): (default = None)
@@ -73,17 +73,24 @@ def testdata_qreq_(t=None, p=None, a=None, **kwargs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> t = None
-        >>> qreq_ = testdata_qreq_(t)
+        >>> kwargs = {}
+        >>> p = None
+        >>> qreq_ = testdata_qreq_(p)
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
-    if p is not None:
-        t = p
-    if t is None:
-        t = ['default']
-    ibs, qaids, daids = testdata_expanded_aids(a=a, **kwargs)
-    pcfgdict = testdata_pipecfg(t=t)
+    if t is not None and p is None:
+        p = t
+    if p is None:
+        p = ['default']
+    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True, **kwargs)
+    pcfgdict = testdata_pipecfg(t=p)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
+    # Maintain regen command info: TODO: generalize and integrate
+    qreq_._regen_info = {
+        '_acfgstr': acfg['qcfg']['_cfgstr'],
+        '_pcfgstr': pcfgdict['_cfgstr'],
+        'dbname': ibs.get_dbname()
+    }
     return qreq_
 
 
