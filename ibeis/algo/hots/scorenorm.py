@@ -206,8 +206,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         'daids': qreq_.daids,
         'qreq_cfg': qreq_.get_full_cfgstr(),
         'qreq_regen_info': getattr(qreq_, '_regen_info', {}),
-        'timestamp': ut.get_printable_timestamp(),
     }
+    # 'timestamp': ut.get_printable_timestamp(),
 
     scorecfg_safe = scorecfg
     scorecfg_safe = re.sub('[' + re.escape('()= ') + ']', '', scorecfg_safe)
