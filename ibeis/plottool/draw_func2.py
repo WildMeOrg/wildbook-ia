@@ -626,10 +626,10 @@ def show_if_requested(N=1):
     if ut.inIPython():
         import plottool as pt
         pt.iup()
-    elif ut.get_argflag('--cmd'):
-        import plottool as pt
-        pt.draw()
-        ut.embed(N=N)
+    # elif ut.get_argflag('--cmd'):
+    #     import plottool as pt
+    #     pt.draw()
+    #     ut.embed(N=N)
     elif ut.get_argflag('--show'):
         if ut.get_argflag('--present'):
             fig_presenter.present()
@@ -1240,9 +1240,21 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
 
 
 def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
-    """ Base function for text """
+    """ Base function for text
+
+    Kwargs:
+        horizontalalignment in ['right', 'center', 'left'],
+        verticalalignment in ['top']
+        color
+
+    """
     if ax is None:
         ax = gca()
+    if 'ha' in kwargs:
+        kwargs['horizontalalignment'] = kwargs['ha']
+    if 'va' in kwargs:
+        kwargs['verticalalignment'] = kwargs['va']
+
     if 'fontproperties' in kwargs:
         kwargs['fontproperties'] = custom_constants.FONTS.relative
     if roffset is not None:
