@@ -186,6 +186,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> ut.show_if_requested()
     """
     cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+    print('learning scorenorm')
+    print('datakw = ' + ut.repr3(datakw))
     tp_scores, tn_scores, scorecfg = get_training_featscores(
         qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
