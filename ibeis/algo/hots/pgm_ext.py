@@ -731,6 +731,7 @@ def test_markovmodel():
     markovmodel.add_factors(factor_a_b, factor_b_c, factor_c_d, factor_d_a)
 
     pgm_viz.show_markov_model(markovmodel)
+    pgm_viz.show_junction_tree(markovmodel)
     # model = markovmodel.to_bayesian_model()
     # customize_model(model)
 
