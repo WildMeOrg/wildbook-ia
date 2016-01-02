@@ -515,7 +515,8 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     import vtool as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
-    thresh = 128
+    # thresh = 128
+    thresh = 64
     img = vt.imread(fpath_in)
     fillval = np.array([255] * get_num_channels(img))
     if verbose:

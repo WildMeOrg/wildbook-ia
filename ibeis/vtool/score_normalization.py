@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool
 import numpy as np
 import utool as ut
@@ -117,6 +117,9 @@ class ScoreNormalizer(ut.Cachable):
         state_dict = encoder.__dict__.copy()
         state_dict['interp_fn'] = None
         return state_dict
+
+    def get_prefix(encoder):
+        return 'ScoreNorm'
 
     def __setstate__(encoder, state_dict):
         encoder.__dict__.update(state_dict)
