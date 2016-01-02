@@ -117,7 +117,6 @@ def train_featscore_normalizer():
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a=['default'], p=['default'])
     encoder = learn_featscore_normalizer(qreq_)
-    encoder.visualize()
     encoder.save()
     return encoder
 
