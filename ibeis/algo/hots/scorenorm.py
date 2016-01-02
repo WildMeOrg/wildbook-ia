@@ -78,6 +78,28 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
     return encoder
 
 
+def load_featscore_normalizer(normer_cfgstr):
+    r"""
+    Args:
+        normer_cfgstr (?):
+
+    CommandLine:
+        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> normer_cfgstr = ut.get_argval('--cfgstr', default='featscore')
+        >>> encoder = load_featscore_normalizer(normer_cfgstr)
+        >>> encoder.visualize(figtitle=encoder.get_cfgstr())
+        >>> ut.show_if_requested()
+    """
+    encoder = vt.ScoreNormalizer()
+    # qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)
+    encoder.fuzzyload(partial_cfgstr=normer_cfgstr)
+    return encoder
+
+
 def train_featscore_normalizer():
     r"""
     CommandLine:
@@ -97,13 +119,12 @@ def train_featscore_normalizer():
         python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore]
 
         # Big Test
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,lnbnn_fg_0.9__featscore] --show
+        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 -a timectrl -t best:lnbnn_normer=[None,qvneocwisnclfaqs],lnbnn_norm_thresh=.5 --show
 
         # Big Train
         python -m ibeis --tf learn_featscore_normalizer --db PZ_Master1 -a timectrl -t best:K=1 --fsvx=0 --threshx=1 --show
         python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show --ainfo
         python -m ibeis --tf train_featscore_normalizer --db PZ_Master1 -a timectrl:has_none=photobomb -t best:K=1 --fsvx=0 --threshx=1 --show
-
 
     Example:
         >>> # SCRIPT
