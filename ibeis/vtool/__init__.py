@@ -9,6 +9,11 @@ __version__ = '1.0.1.dev1'
 import utool as ut
 ut.noinject(__name__, '[vtool]')
 
+"""
+python -c "import vtool" --dump-vtool-init
+python -c "import vtool" --update-vtool-init
+"""
+
 
 # TODO finish utoolifying this this
 IMPORT_TUPLES = [
@@ -267,16 +272,18 @@ if DOELSE:
                             ensure_monotone_strictly_increasing, eps, 
                             gauss_func1d, gauss_func1d_unnormalized, 
                             group_consecutive, iceil, interpolate_nans, iround, 
-                            non_decreasing, non_increasing, 
+                            logistic_01, non_decreasing, non_increasing, 
                             strictly_decreasing, strictly_increasing, 
                             test_language_modulus,) 
     from vtool.matching import (PSEUDO_MAX_DIST, PSEUDO_MAX_DIST_SQRD, 
                                 PSEUDO_MAX_VEC_COMPONENT, 
                                 assign_spatially_constrained_matches, 
                                 assign_unconstrained_matches, ensure_fsv_list, 
-                                marge_matches, normalized_nearest_neighbors, 
-                                ratio_test, show_matching_dict, 
+                                ensure_metadata_feats, marge_matches, 
+                                normalized_nearest_neighbors, ratio_test, 
+                                show_matching_dict, 
                                 spatially_constrained_ratio_match, 
+                                testdata_annot_metadata, 
                                 unconstrained_ratio_match, 
                                 vsone_feature_matching, 
                                 vsone_image_fpath_matching, vsone_matching,) 
@@ -304,7 +311,8 @@ if DOELSE:
                                    get_akmeans_cfgstr, group_indices, groupby, 
                                    groupby_dict, groupby_gen, groupedzip, 
                                    initialize_centroids, invert_apply_grouping, 
-                                   invert_apply_grouping2, jagged_group, 
+                                   invert_apply_grouping2, 
+                                   invert_apply_grouping3, jagged_group, 
                                    plot_centroids, refine_akmeans, 
                                    sparse_multiply_rows, sparse_normalize_rows, 
                                    tune_flann2, uniform_sample_hypersphere,) 
@@ -317,8 +325,9 @@ if DOELSE:
                                 signed_ori_distance, testdata_hist, 
                                 understanding_pseudomax_props,) 
     from vtool.other import (and_lists, argsort_groups, argsort_multiarray, 
-                             assert_zipcompress, axiswise_operation2, 
-                             check_sift_validity, clipnorm, colwise_operation, 
+                             assert_zipcompress, atleast_nd, 
+                             axiswise_operation2, check_sift_validity, 
+                             clipnorm, colwise_operation, 
                              compare_matrix_columns, compare_matrix_to_rows, 
                              componentwise_dot, 
                              compute_ndarray_unique_rowids_unsafe, 
@@ -335,15 +344,16 @@ if DOELSE:
                              intersect2d_flags, intersect2d_indices, 
                              intersect2d_numpy, intersect2d_structured_numpy, 
                              iter_reduce_ufunc, list_compress_, list_take_, 
-                             median_abs_dev, mult_lists, next, 
+                             median_abs_dev, mult_lists, multigroup_lookup, 
+                             multigroup_lookup_naive, next, 
                              nonunique_row_flags, nonunique_row_indexes, 
                              norm01, or_lists, pdist_argsort, 
-                             rebuild_partition, rowwise_operation, safe_max, 
-                             safe_min, safe_vstack, trytake, 
+                             rebuild_partition, rowwise_operation, safe_cat, 
+                             safe_max, safe_min, safe_vstack, trytake, 
                              unique_row_indexes, unique_rows, 
                              weighted_average_scoring, weighted_geometic_mean, 
-                             weighted_geometic_mean_unnormalized, zipcompress, 
-                             zipcompress_safe, ziptake,) 
+                             weighted_geometic_mean_unnormalized, zipcat, 
+                             zipcompress, zipcompress_safe, ziptake,) 
     from vtool.confusion import (ConfusionMetrics, draw_precision_recall_curve, 
                                  draw_roc_curve, get_confusion_metrics, 
                                  interact_roc_factory, 
@@ -369,8 +379,7 @@ if DOELSE:
                                 symbolic_randcheck, sympy_latex_repr, 
                                 sympy_mat,) 
     import utool
-    print, print_, printDBG, rrr, profile = utool.inject(
-        __name__, '[vtool]')
+    print, rrr, profile = utool.inject2(__name__, '[vtool]')
     
     
     def reassign_submodule_attributes(verbose=True):
@@ -403,32 +412,47 @@ if DOELSE:
     
     def reload_subs(verbose=True):
         """ Reloads vtool and submodules """
+        if verbose:
+            print('Reloading submodules')
         rrr(verbose=verbose)
-        def fbrrr(*args, **kwargs):
-            """ fallback reload """
-            pass
-        getattr(image, 'rrr', fbrrr)(verbose=verbose)
-        getattr(histogram, 'rrr', fbrrr)(verbose=verbose)
-        getattr(image, 'rrr', fbrrr)(verbose=verbose)
-        getattr(exif, 'rrr', fbrrr)(verbose=verbose)
-        getattr(keypoint, 'rrr', fbrrr)(verbose=verbose)
-        getattr(features, 'rrr', fbrrr)(verbose=verbose)
-        getattr(linalg, 'rrr', fbrrr)(verbose=verbose)
-        getattr(patch, 'rrr', fbrrr)(verbose=verbose)
-        getattr(chip, 'rrr', fbrrr)(verbose=verbose)
-        getattr(spatial_verification, 'rrr', fbrrr)(verbose=verbose)
-        getattr(trig, 'rrr', fbrrr)(verbose=verbose)
-        getattr(math, 'rrr', fbrrr)(verbose=verbose)
-        getattr(matching, 'rrr', fbrrr)(verbose=verbose)
-        getattr(geometry, 'rrr', fbrrr)(verbose=verbose)
-        getattr(nearest_neighbors, 'rrr', fbrrr)(verbose=verbose)
-        getattr(clustering2, 'rrr', fbrrr)(verbose=verbose)
-        getattr(distance, 'rrr', fbrrr)(verbose=verbose)
-        getattr(other, 'rrr', fbrrr)(verbose=verbose)
-        getattr(confusion, 'rrr', fbrrr)(verbose=verbose)
-        getattr(score_normalization, 'rrr', fbrrr)(verbose=verbose)
-        getattr(blend, 'rrr', fbrrr)(verbose=verbose)
-        getattr(symbolic, 'rrr', fbrrr)(verbose=verbose)
+        def wrap_fbrrr(mod):
+            def fbrrr(*args, **kwargs):
+                """ fallback reload """
+                if verbose:
+                    print('No fallback relaod for mod=%r' % (mod,))
+                # Breaks ut.Pref (which should be depricated anyway)
+                # import imp
+                # imp.reload(mod)
+            return fbrrr
+        def get_rrr(mod):
+            if hasattr(mod, 'rrr'):
+                return mod.rrr
+            else:
+                return wrap_fbrrr(mod)
+        def get_reload_subs(mod):
+            return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+        get_rrr(image)(verbose=verbose)
+        get_rrr(histogram)(verbose=verbose)
+        get_rrr(image)(verbose=verbose)
+        get_rrr(exif)(verbose=verbose)
+        get_rrr(keypoint)(verbose=verbose)
+        get_rrr(features)(verbose=verbose)
+        get_rrr(linalg)(verbose=verbose)
+        get_rrr(patch)(verbose=verbose)
+        get_rrr(chip)(verbose=verbose)
+        get_rrr(spatial_verification)(verbose=verbose)
+        get_rrr(trig)(verbose=verbose)
+        get_rrr(math)(verbose=verbose)
+        get_rrr(matching)(verbose=verbose)
+        get_rrr(geometry)(verbose=verbose)
+        get_rrr(nearest_neighbors)(verbose=verbose)
+        get_rrr(clustering2)(verbose=verbose)
+        get_rrr(distance)(verbose=verbose)
+        get_rrr(other)(verbose=verbose)
+        get_rrr(confusion)(verbose=verbose)
+        get_rrr(score_normalization)(verbose=verbose)
+        get_rrr(blend)(verbose=verbose)
+        get_rrr(symbolic)(verbose=verbose)
         rrr(verbose=verbose)
         try:
             # hackish way of propogating up the new reloaded submodule attributes

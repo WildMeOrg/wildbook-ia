@@ -594,6 +594,20 @@ def list_take_(list_, index_list):
         return ut.list_take(list_, index_list)
 
 
+def compress2(arr, flag_list, axis=None, out=None):
+    """
+    Wrapper around numpy compress that makes the signature more similar to take
+    """
+    return np.compress(flag_list, arr, axis=axis, out=out)
+
+
+def take2(arr, index_list, axis=None, out=None):
+    """
+    Wrapper around numpy compress that makes the signature more similar to take
+    """
+    return np.take(arr, index_list, axis=axis, out=out)
+
+
 @profile
 def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
@@ -780,7 +794,7 @@ def zipcat(arr1_list, arr2_list, axis=None):
     return arr3_list
 
 
-def atleast_nd(arr, n):
+def atleast_nd(arr, n, tofront=False):
     """
     View inputs as arrays with at least n dimensions.
     TODO: Commit to numpy
@@ -790,6 +804,7 @@ def atleast_nd(arr, n):
                 converted to arrays.  Arrays that already have n or more dimensions
                 are preserved.
         n (int):
+        tofront (bool); if True new dimensions are added to the front of the array
 
     Returns:
         ndarray :
@@ -834,7 +849,10 @@ def atleast_nd(arr, n):
     ndims = len(arr_.shape)
     if n is not None and ndims <  n:
         # append the required number of dimensions to the end
-        expander = (Ellipsis,) + (None,) * (n - ndims)
+        if tofront:
+            expander = (None,) * (n - ndims) + (Ellipsis,)
+        else:
+            expander = (Ellipsis,) + (None,) * (n - ndims)
         arr_ = arr_[expander]
     return arr_
 
@@ -1621,11 +1639,12 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
 
     Example:
         >>> # SLOW_DOCTEST
+        >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
         >>> lazydict = {count: vt.testdata_annot_metadata(fpath) for count, fpath in enumerate(fpath_list)}
-        >>> aids_list = np.array([(0, 1), (0, 2), (1, 2), (2, 3)])
-        >>> fms = np.array([[0, 1], [0, 1], [0, 1], [0, 1]])
+        >>> aids_list = np.array([(3, 2), (0, 2), (1, 2), (2, 3)])
+        >>> fms       = np.array([[2, 5], [2, 3], [2, 1], [3, 4]])
         >>> keys_list = aids_list.T
         >>> subkeys_list = fms.T
         >>> def custom_func(lazydict, key, subkeys):

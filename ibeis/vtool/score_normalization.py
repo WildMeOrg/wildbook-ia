@@ -561,7 +561,8 @@ class ScoreNormalizer(ut.Cachable):
         other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
 
         if 'target_tpr' in other_kw:
-            score_thresh = encoder.learn_threshold(verbose=True, **other_kw)
+            verbose = ut.VERBOSE
+            score_thresh = encoder.learn_threshold(verbose=verbose, **other_kw)
             prob_thresh = encoder.learned_thresh
             #prob_thresh = encoder.normalize_scores(score_thresh)
         else:
