@@ -55,7 +55,7 @@ try:
                                    test_main, opendb, opendb_in_background, opendb_bg_web)
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
-    from ibeis.algo.hots.chip_match import ChipMatch2
+    from ibeis.algo.hots.chip_match import ChipMatch
     from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
     from ibeis.init import main_helpers
 

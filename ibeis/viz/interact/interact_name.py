@@ -170,7 +170,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.qreq_ = kwargs.get('qreq_', None)
         if self.cm is not None:
             from ibeis.algo.hots import chip_match
-            assert isinstance(self.cm, chip_match.ChipMatch2)
+            assert isinstance(self.cm, chip_match.ChipMatch)
             assert self.qreq_ is not None
         self.infer_data()
         if dodraw:

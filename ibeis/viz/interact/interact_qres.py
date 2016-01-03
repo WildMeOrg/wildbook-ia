@@ -81,7 +81,7 @@ class InteractQres(BASE_CLASS):
             print('clicked none')
         self.kwargs['annot_mode'] = self.kwargs.get('annot_mode', 0) + toggle
         self.kwargs['fnum'] = self.fnum
-        if isinstance(self.cm, chip_match.ChipMatch2):
+        if isinstance(self.cm, chip_match.ChipMatch):
             fig = self.cm.show_analysis(self.qreq_, **self.kwargs)
         else:
             fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)
@@ -100,7 +100,7 @@ class InteractQres(BASE_CLASS):
         if self.verbose:
             print('clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
-        if isinstance(self.cm, chip_match.ChipMatch2):
+        if isinstance(self.cm, chip_match.ChipMatch):
             self.cm.ishow_match(self.qreq_, aid2, fnum=fnum_)
         else:
             self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)

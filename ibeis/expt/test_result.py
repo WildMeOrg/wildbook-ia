@@ -8,9 +8,12 @@ import six
 import numpy as np
 from six.moves import zip, range, map  # NOQA
 import vtool as vt
+import copy
 import utool as ut
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
+import operator
+from functools import partial
 #print, rrr, profile = ut.inject2(
 #    __name__, '[expt_harn]')
 
@@ -308,7 +311,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
             >>> bins = u'dense'
@@ -1011,8 +1014,11 @@ class TestResult(object):
 
     def case_sample2(testres, filt_cfg, return_mask=False, verbose=None):
         r"""
+        Filters individual test result cases based on how they performed, what
+        tags they had, and various other things.
+
         Args:
-            filt_cfg (?):
+            filt_cfg (dict):
 
         Returns:
             list: case_pos_list (list of (qx, cfgx)) or isvalid mask
@@ -1026,7 +1032,7 @@ class TestResult(object):
             python -m ibeis --tf TestResult.case_sample2:2 --db PZ_Master1
 
         Example0:
-            >>> # SLOW_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> # The same results is achievable with different filter config settings
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
@@ -1075,12 +1081,17 @@ class TestResult(object):
         if verbose is None:
             verbose = ut.NOT_QUIET
 
+        if isinstance(filt_cfg, six.string_types):
+            filt_cfg = [filt_cfg]
+
+        if isinstance(filt_cfg, list):
+            from ibeis.expt import cfghelpers
+            _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
+            filt_cfg = ut.flatten(_combos)[0]
+
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         # Initialize isvalid flags to all true
         is_valid = np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
-
-        import operator
-        from functools import partial
 
         def unflat_tag_filterflags(tags_list, **kwargs):
             from ibeis import tag_funcs
@@ -1140,7 +1151,6 @@ class TestResult(object):
                   (is_valid.size, cfghelpers.get_cfg_lbl(filt_cfg)))
             print('  * is_valid.shape = %r' % (is_valid.shape,))
 
-        import copy
         filt_cfg = copy.deepcopy(filt_cfg)
 
         for key, rule in rule_list:
@@ -1247,22 +1257,22 @@ class TestResult(object):
 
         if return_mask:
             return is_valid
+        else:
+            index = filt_cfg.pop('index', None)
+            if index is not None:
+                print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
+                if isinstance(index, six.string_types):
+                    index = ut.smart_cast(index, slice)
+                qx_list = ut.list_take(qx_list, index)
+                cfgx_list = ut.list_take(cfgx_list, index)
 
-        index = filt_cfg.pop('index', None)
-        if index is not None:
-            print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
-            if isinstance(index, six.string_types):
-                index = ut.smart_cast(index, slice)
-            qx_list = ut.list_take(qx_list, index)
-            cfgx_list = ut.list_take(cfgx_list, index)
+            ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
 
-        ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
+            if len(filt_cfg) > 0:
+                raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
 
-        if len(filt_cfg) > 0:
-            raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg.keys()))
-
-        case_pos_list = np.vstack((qx_list, cfgx_list)).T
-        return case_pos_list
+            case_pos_list = np.vstack((qx_list, cfgx_list)).T
+            return case_pos_list
 
     def case_type_sample(testres, num_per_group=1, with_success=True,
                          with_failure=True, min_success_diff=0):
@@ -1964,7 +1974,7 @@ class TestResult(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
         """
         ibs = testres.ibs
         qaids = testres.get_common_qaids()
@@ -2035,6 +2045,15 @@ class TestResult(object):
         #cfgx2_qres
         pass
 
+    def draw_score_pdfs(testres):
+        from ibeis.expt.test_result import *  # NOQA
+        from ibeis.init import main_helpers
+        ibs, testres = main_helpers.testdata_expts(
+            defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
+        encoder = testres.draw_feat_scoresep(f='fail=False', disttypes=['ratio'])
+        # TODO:
+        return encoder
+
     def draw_feat_scoresep(testres, f=None, disttypes=None):
         r"""
         SeeAlso:
@@ -2066,10 +2085,13 @@ class TestResult(object):
 
             python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 -a timectrl --acfginfo --verbtd  --veryverbtd --nocache-aid
 
+            python -m ibeis --tf TestResult.draw_feat_scoresep --show --db PZ_MTEST --disttypes=ratio
+
         Example:
             >>> # SCRIPT
-            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
+            >>> disttypes = ut.get_argval('--disttypes', type_=list, default=None)
             >>> ibs, testres = main_helpers.testdata_expts(
             >>>     defaultdb='PZ_MTEST', a=['timectrl'], t=['best'])
             >>> f = ut.get_argval(('--filt', '-f'), type_=list, default=[''])
@@ -2085,11 +2107,12 @@ class TestResult(object):
 
         testres.print_pcfg_info()
 
+        valid_mask = testres.case_sample2(filt_cfg=f, return_mask=True)
+        valid_mask = valid_mask.T[0]
+
         print('Loading cached chipmatches')
         import ibeis  # NOQA
         from os.path import dirname, join  # NOQA
-
-        disttypes_ = ut.get_argval('--disttypes', type_=list, default=disttypes)
 
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_query=True)
@@ -2098,26 +2121,25 @@ class TestResult(object):
         fsvx = ut.get_argval('--fsvx', type_='fuzzy_subset',
                              default=slice(None, None, None))
         threshx = ut.get_argval('--threshx', type_=int, default=None)
-        thresh = .9
-        cache_name = (
-            'get_cfgx_feat_scores_' +
-            ut.hashstr27(
-                cfgstr +
-                str(disttypes_) +
-                str(namemode) +
-                str(fsvx) +
-                str(threshx) +
-                str(thresh)
-            ))
+        thresh = ut.get_argval('--thresh', type_=float, default=.9)
+        num = ut.get_argval('--num', type_=int, default=1)
+        cfg_components = [cfgstr, disttypes, namemode, fsvx, threshx, thresh, f, num]
+        cache_cfgstr = ','.join(ut.lmap(six.text_type, cfg_components))
+        cache_hashid = ut.hashstr27(cache_cfgstr)
+        cache_name = ('get_cfgx_feat_scores_' + cache_hashid)
         @ut.cached_func(cache_name, cache_dir=cache_dir, key_argx=[],
                         use_cache=None)
         def get_cfgx_feat_scores(qreq_):
             from ibeis.algo.hots import scorenorm
             cm_list = qreq_.load_cached_chipmatch()
+            cm_list = ut.compress(cm_list, valid_mask)
             print('Done loading cached chipmatches')
-            return scorenorm.get_training_featscores(qreq_, cm_list,
-                                                     disttypes_, namemode,
-                                                     fsvx, threshx, thresh)
+            tup = scorenorm.get_training_featscores(qreq_, cm_list, disttypes,
+                                                    namemode, fsvx, threshx,
+                                                    thresh, num=num)
+            # print(ut.depth_profile(tup))
+            tp_scores, tn_scores, scorecfg = tup
+            return tp_scores, tn_scores, scorecfg
 
         tp_scores, tn_scores, scorecfg = get_cfgx_feat_scores(qreq_)
         #fsv_tp = 1 - fsv_tp
@@ -2153,6 +2175,7 @@ class TestResult(object):
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
             pt.adjust_subplots2(use_argv=True)
+        return encoder
 
 
 if __name__ == '__main__':

@@ -101,7 +101,7 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
     return qreq_
 
 
-def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None):
+def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     r"""
     CommandLine:
         python -m ibeis.init.main_helpers --test-testdata_cm
@@ -117,7 +117,7 @@ def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None):
         >>> ut.show_if_requested()
     """
     print('[main_helpers] testdata_cm')
-    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p)
+    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
     qaids = qreq_.get_external_qaids()
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
@@ -178,7 +178,7 @@ def testdata_expts(defaultdb='testdb1',
     # Hack a cache here
     use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
     use_bigtest_cache3 &= ut.is_developer()
-    use_bigtest_cache3 &= False
+    # use_bigtest_cache3 &= False
     if use_bigtest_cache3:
         from os.path import dirname, join
         cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))

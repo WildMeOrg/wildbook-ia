@@ -218,6 +218,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     # TODO: allow for reweighting of feature matches to happen.
     cm_list_SVER = spatial_verification(qreq_, cm_list_FILT,
                                         verbose=verbose)
+    if cm_list_FILT[0].filtnorm_aids is not None:
+        assert cm_list_SVER[0].filtnorm_aids is not None
 
     # We might just put this check inside the function like it is for SVER.
     # or just not do that and use some good pipeline framework
@@ -856,8 +858,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
     # Switch nested list structure from [filt, qaid] to [qaid, filt]
     nInternAids = len(nns_list)
-    # import utool
-    # with utool.embed_on_exception_context:
     filtweights_list = [ut.get_list_column(_filtweight_list, index)
                         for index in range(nInternAids)]
     filtvalids_list = [[
@@ -972,14 +972,14 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         assert np.all(external_daids == internal_qaids)
         # build vsone dict output
         qaid = external_qaids[0]
-        cm = chip_match.ChipMatch2.from_vsone_match_tup(
+        cm = chip_match.ChipMatch.from_vsone_match_tup(
             vmt_list, daid_list=external_daids, qaid=qaid,
             fsv_col_lbls=filtkey_list)
         cm_list = [cm]
     else:
         # VSMANY build many cmtup_olds
         cm_list = [
-            chip_match.ChipMatch2.from_vsmany_match_tup(
+            chip_match.ChipMatch.from_vsmany_match_tup(
                 vmt, qaid=qaid, fsv_col_lbls=filtkey_list)
             for vmt, qaid in zip(vmt_list, intern_qaid_iter)]
     return cm_list
@@ -1016,7 +1016,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> ut.quit_if_noshow()
         >>> daid_list = [daid]
         >>> vmt_list = [vmt]
-        >>> cm = chip_match.ChipMatch2.from_vsone_match_tup(vmt_list, daid_list=daid_list, qaid=qaid)
+        >>> cm = chip_match.ChipMatch.from_vsone_match_tup(vmt_list, daid_list=daid_list, qaid=qaid)
         >>> cm.assert_self(verbose=False)
         >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
@@ -1035,7 +1035,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list,
         >>> assert ut.list_allsame(list(map(len, vmt[:-2]))), 'need same num rows'
         >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
         >>> ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))
-        >>> cm = chip_match.ChipMatch2.from_vsmany_match_tup(vmt, qaid=qaid)
+        >>> cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)
         >>> cm.assert_self(verbose=False)
         >>> ut.quit_if_noshow()
         >>> cm.show_single_annotmatch(qreq_)
@@ -1201,11 +1201,10 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     #    cm.evaluate_dnids(qreq_.ibs)
     #prescore_method = 'csum'
     scoring.score_chipmatch_list(qreq_, cm_list, prescore_method)
-    with ut.embed_on_exception_context:
-        cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list,
-                                                         nNameShortList,
-                                                         nAnnotPerName,
-                                                         score_method)
+    cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list,
+                                                     nNameShortList,
+                                                     nAnnotPerName,
+                                                     score_method)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist),
                                   prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
@@ -1225,10 +1224,10 @@ def sver_single_chipmatch(qreq_, cm):
 
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
-        cm (ChipMatch2):
+        cm (ChipMatch):
 
     Returns:
-        ibeis.ChipMatch2: cmSV
+        ibeis.ChipMatch: cmSV
 
     CommandLine:
         python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] -a timectrlhard ---acfginfo --veryverbtd
@@ -1417,7 +1416,7 @@ def sver_single_chipmatch(qreq_, cm):
         fk_list_SV  = ut.get_list_column(sver_matchtup_list, 2)
         H_list_SV   = ut.get_list_column(sver_matchtup_list, 3)
 
-        cmSV = chip_match.ChipMatch2(
+        cmSV = chip_match.ChipMatch(
             qaid=cm.qaid, daid_list=daid_list,
             fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
             H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,

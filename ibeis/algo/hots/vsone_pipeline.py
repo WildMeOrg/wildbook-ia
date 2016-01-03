@@ -157,7 +157,6 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list_SVER,
                                                      nNameShortlist,
                                                      nAnnotPerName)
-    #return {cm.qaid: cm.to_cmtup_old() for cm in cm_shortlist }
     # Execute vsone reranking
     _prog = functools.partial(ut.ProgressIter, nTotal=len(cm_shortlist),
                               lbl='VSONE RERANKING', freq=1)
@@ -443,7 +442,7 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
     cm_vsone = ibs.query_chips(qreq_=vsone_qreq_, return_cm=True)[0]
     cm_vsone = cm_vsone.extend_results(vsone_qreq_)
-    #cm_vsone = chip_match.ChipMatch2.from_qres(vsone_qres)
+    #cm_vsone = chip_match.ChipMatch.from_qres(vsone_qres)
     #cm_vsone.ishow_analysis(vsone_qreq_)
     cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2)
     #qres_vsone.ishow_analysis(ibs=ibs)
@@ -634,7 +633,7 @@ def refine_matches(qreq_, prior_cm, config={}):
     #return prior_cm
     if qreq_.ibs.get_annot_num_feats(prior_cm.qaid, config2_=qreq_.qparams) == 0:
         num_daids = len(prior_cm.daid_list)
-        empty_unscored_cm = chip_match.ChipMatch2.from_unscored(
+        empty_unscored_cm = chip_match.ChipMatch.from_unscored(
             prior_cm, ut.alloc_lists(num_daids), ut.alloc_lists(num_daids),
             ut.alloc_lists(num_daids))
         return empty_unscored_cm
@@ -700,7 +699,7 @@ def refine_matches(qreq_, prior_cm, config={}):
     # apply linear combination
     fs_list = [(np.nan_to_num(fsv) * coeffs[None, :]).sum(axis=1) for fsv in fsv_list]
 
-    unscored_cm = chip_match.ChipMatch2.from_unscored(prior_cm, fm_list, fs_list, H_list)
+    unscored_cm = chip_match.ChipMatch.from_unscored(prior_cm, fm_list, fs_list, H_list)
     return unscored_cm
 
 
@@ -1015,7 +1014,7 @@ def gridsearch_single_vsone_rerank():
     def onclick_func(fm_list, fs_list, fm_norm_list):
         from ibeis.viz.interact import interact_matches
         aid2 = daid_list[index]
-        cm = chip_match.ChipMatch2(qaid=qaid, daid_list=daid_list,
+        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
         interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
@@ -1068,7 +1067,7 @@ def gridsearch_constrained_matches():
     def onclick_func(fm_list, fs_list, fm_norm_list):
         from ibeis.viz.interact import interact_matches
         aid2 = daid_list[index]
-        cm = chip_match.ChipMatch2(qaid=qaid, daid_list=daid_list,
+        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
         interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
@@ -1142,7 +1141,7 @@ def gridsearch_unconstrained_matches():
     def onclick_func(fm_list, fs_list, fm_norm_list):
         from ibeis.viz.interact import interact_matches
         aid2 = daid_list[index]
-        cm = chip_match.ChipMatch2(qaid=qaid, daid_list=daid_list,
+        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
         interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
@@ -1189,7 +1188,7 @@ def show_matches(ibs, qaid, daid, fm, fs=None, fm_norm=None,
                               H1=H1, fnum=fnum, pnum=pnum, show_name=False, **kwargs)
     #else:
     #    from ibeis.viz.interact import interact_matches
-    #    cm = chip_match.ChipMatch2(qaid, [daid], [fm], [fs])
+    #    cm = chip_match.ChipMatch(qaid, [daid], [fm], [fs])
     #    interact_matches.MatchInteraction(ibs, cm, fnum=None, aid2=daid)
 
     #pt.set_title('score = %.3f' % (score,))

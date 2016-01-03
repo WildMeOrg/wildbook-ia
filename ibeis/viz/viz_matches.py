@@ -104,7 +104,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> from ibeis.viz.viz_matches import *  # NOQA
         >>> from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
         >>> import numpy as np
-        >>> func = chip_match.ChipMatch2.show_single_namematch
+        >>> func = chip_match.ChipMatch.show_single_namematch
         >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
         >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
         >>> homog = False
@@ -452,11 +452,11 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                   H1=None, H2=None, qreq_=None, **kwargs):
     """
     TODO: use this as the main function.
-    Integrate ChipMatch2
+    Integrate ChipMatch
 
     CommandLine:
         python -m ibeis.viz.viz_matches --exec-show_matches2 --show
-        python -m ibeis --tf ChipMatch2.ishow_single_annotmatch show_matches2 --show
+        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
 
     Example:
         >>> # DISABLE_DOCTEST

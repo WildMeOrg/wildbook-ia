@@ -6090,6 +6090,50 @@ def get_annot_primary_encounter(ibs, aid_list=None):
     eid_list = ut.get_list_column(eids_list, 0)
     return eid_list
 
+
+@register_ibs_method
+def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, config2_=None):
+    """
+    unflat_aids = cm.filtnorm_aids[0]
+    unflat_fxs  = cm.filtnorm_fxs[0]
+    """
+    aids = np.unique(ut.flatten(unflat_aids))
+    annots = {}
+    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=config2_) for aid in aids}
+    def extract_vecs(annots, aid, fxs):
+        """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
+        vecs = annots[aid]['vecs'].take(fxs, axis=0)
+        return vecs
+    unflat_vecs1 = vt.multigroup_lookup(annots, unflat_aids, unflat_fxs, extract_vecs)
+    # HACK
+    # FIXME: naive and regular multigroup still arnt equivalent
+    unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
+    # unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)
+    # import utool
+    # with utool.embed_on_exception_context:
+    # vt.sver_c_wrapper.assert_output_equal(unflat_vecs1, unflat_vecs2)
+    # unflat_vecs = unflat_vecs2
+    unflat_vecs = unflat_vecs1
+    # import utool
+    # utool.embed()
+
+    return unflat_vecs
+
+
+@register_ibs_method
+def get_annot_vecs_subset(ibs, aid_list, fxs_list, config2_=None):
+    vecs_list = ibs.get_annot_vecs(aid_list, config2_=config2_)
+    vecs_list = vt.ziptake(vecs_list, fxs_list, axis=0)
+    return vecs_list
+
+
+@register_ibs_method
+def get_annot_fgweights_subset(ibs, aid_list, fxs_list, config2_=None):
+    fgweight_list = ibs.get_annot_fgweights(aid_list, config2_=config2_)
+    vecs_list = vt.ziptake(fgweight_list, fxs_list, axis=0)
+    return vecs_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

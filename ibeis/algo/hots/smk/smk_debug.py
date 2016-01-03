@@ -1040,7 +1040,7 @@ def convert_smkmatch_to_chipmatch(qaid2_chipmatch, qaid2_scores):
         for (aid2_fm, aid2_fs, aid2_fk), aid2_score in zip(chipmatch_smk_list, score_smk_list)
     ]
     cm_list = [
-        chip_match.ChipMatch2.from_cmtup_old(cmtup_old, qaid=qaid)
+        chip_match.ChipMatch.from_cmtup_old(cmtup_old, qaid=qaid)
         for qaid, cmtup_old in zip(qaid_list, cmtup_old_list)
     ]
     return cm_list

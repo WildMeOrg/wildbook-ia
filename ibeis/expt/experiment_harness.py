@@ -281,7 +281,7 @@ def get_qres_name_result_info(ibs, qres, qreq_):
 
     """
     from ibeis.algo.hots import chip_match
-    if isinstance(qres, chip_match.ChipMatch2):
+    if isinstance(qres, chip_match.ChipMatch):
         cm = qres
         qaid = cm.qaid
         qnid = cm.qnid
@@ -301,7 +301,7 @@ def get_qres_name_result_info(ibs, qres, qreq_):
     gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
 
     if gt_rank is None or gf_rank is None:
-        if isinstance(qres, chip_match.ChipMatch2):
+        if isinstance(qres, chip_match.ChipMatch):
             gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.get_external_daids())
             #gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.get_external_daids())
         else:

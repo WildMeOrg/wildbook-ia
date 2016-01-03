@@ -1306,11 +1306,11 @@ class IBEISController(BASE_CLASS):
                 one is not already specified
             verbose (bool): default=False, turns on verbose printing
             return_cm (bool): default=True, if true converts QueryResult
-                objects into serializable ChipMatch2 objects (in the future
+                objects into serializable ChipMatch objects (in the future
                 this will be defaulted to True)
 
         Returns:
-            list: a list of ChipMatch2 objects containing the matching
+            list: a list of ChipMatch objects containing the matching
                 annotations, scores, and feature matches
 
         Returns(2):

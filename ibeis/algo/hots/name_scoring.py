@@ -35,7 +35,7 @@ def testdata_chipmatch():
         np.array([(1,), (1,), (1,), (1,)], dtype=hstypes.FS_DTYPE),
         np.array([(1,), (1,), (1,), (1,), (1, )], dtype=hstypes.FS_DTYPE),
     ]
-    cm = chip_match.ChipMatch2(
+    cm = chip_match.ChipMatch(
         qaid=1,
         daid_list=np.array([1, 2, 3, 4, 5], dtype=np.int32),
         fm_list=fm_list,
@@ -58,7 +58,7 @@ def compute_nsum_score(cm, qreq_=None):
     nsum
 
     Args:
-        cm (ChipMatch2):
+        cm (ChipMatch):
 
     Returns:
         tuple: (unique_nids, nsum_score_list)

@@ -59,7 +59,7 @@ def testdata_match_interact(**kwargs):
     #                                       defaultdb='testdb1',
     #                                       cmdline_ok=True)
     cm = ibs.query_chips(qreq_=qreq_)[0]
-    #cm = chip_match.ChipMatch2.from_qres(qres)
+    #cm = chip_match.ChipMatch.from_qres(qres)
     #cm.score_nsum(qreq_)
     cm.sortself()
     aid2 = None
@@ -89,9 +89,9 @@ class MatchInteraction(object):
         """
         old begin function for working with qres objects
         """
-        if not isinstance(qres, chip_match.ChipMatch2):
+        if not isinstance(qres, chip_match.ChipMatch):
             self.qres = qres
-            cm = chip_match.ChipMatch2.from_qres(self.qres)
+            cm = chip_match.ChipMatch.from_qres(self.qres)
         else:
             cm = qres
             self.qres = qres
@@ -101,7 +101,7 @@ class MatchInteraction(object):
                  figtitle='Match Interaction',
                  same_fig=True, qreq_=None, **kwargs):
         r"""
-        new init function for use with ChipMatch2 class
+        new init function for use with ChipMatch class
         """
         self.ibs = ibs
         self.cm = cm

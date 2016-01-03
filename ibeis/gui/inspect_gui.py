@@ -43,7 +43,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         ibs (ibeis.IBEISController):  ibeis controller object
         aid1 (int):  annotation id
         aid2 (int):  annotation id
-        cm (ibeis.ChipMatch2):  object of feature correspondences and scores
+        cm (ibeis.ChipMatch):  object of feature correspondences and scores
         qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)
         aid_list (list):  list of annotation rowids(default = None)
 
@@ -923,7 +923,7 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     else:
         # TODO: just draw the image at the correct thumbnail size
         # TODO: draw without matplotlib?
-        if isinstance(cm, chip_match.ChipMatch2):
+        if isinstance(cm, chip_match.ChipMatch):
             fpath = cm.imwrite_single_annotmatch(
                 qreq_, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
                 notitle=True, verbose=False)
@@ -1309,7 +1309,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         cm_list = list(cm_list.values())
 
     for cm in cm_list:
-        if isinstance(cm, chip_match.ChipMatch2):
+        if isinstance(cm, chip_match.ChipMatch):
             daids  = cm.get_top_aids(ntop=ranks_lt)
             scores = cm.get_top_scores(ntop=ranks_lt)
             ranks  = np.arange(len(daids))

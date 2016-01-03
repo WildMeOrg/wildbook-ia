@@ -22,7 +22,7 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
     """
     N = kwargs.get('N', DEFAULT_NTOP)
     name_scoring = kwargs.get('name_scoring', False)
-    if isinstance(cm, chip_match.ChipMatch2):
+    if isinstance(cm, chip_match.ChipMatch):
         top_aids = cm.get_top_aids(N)
     else:
         top_aids = cm.get_top_aids(num=N, ibs=ibs, name_scoring=name_scoring)
@@ -51,7 +51,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        cm (ChipMatch2):  object of feature correspondences and scores
+        cm (ChipMatch):  object of feature correspondences and scores
         qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
 
     Kwargs:
@@ -119,7 +119,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     if show_gt:
         # Get the missed groundtruth annotations
         # cm.daids comes from qreq_.get_external_daids()
-        if isinstance(cm, chip_match.ChipMatch2):
+        if isinstance(cm, chip_match.ChipMatch):
             assert qreq_ is not None
             matchable_aids = qreq_.get_external_daids()
             #matchable_aids = cm.daid_list
@@ -286,7 +286,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     fig = pt.figure(fnum=fnum, docla=True, doclf=True)
 
     if isinstance(top_aids, int):
-        if isinstance(cm, chip_match.ChipMatch2):
+        if isinstance(cm, chip_match.ChipMatch):
             top_aids = cm.get_top_aids(top_aids)
         else:
             top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
@@ -361,7 +361,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     _color_list = pt.distinct_colors(nTop)
     aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
 
-    assert isinstance(cm, chip_match.ChipMatch2), 'qres is no longer supported'
+    assert isinstance(cm, chip_match.ChipMatch), 'qres is no longer supported'
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -405,10 +405,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             if sidebyside:
                 # Draw each match side by side the query
                 if viz_name_score:
-                    if isinstance(cm, chip_match.ChipMatch2):
+                    if isinstance(cm, chip_match.ChipMatch):
                         cm_ = cm
                     else:
-                        cm_ = chip_match.ChipMatch2.from_qres(cm)
+                        cm_ = chip_match.ChipMatch.from_qres(cm)
                         cm_.score_nsum(qreq_)
                     cm_.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:

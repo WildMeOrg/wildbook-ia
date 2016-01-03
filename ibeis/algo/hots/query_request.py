@@ -1091,7 +1091,7 @@ class QueryRequest(object):
         #external_dnids = qreq_.ibs.get_annot_name_rowids(external_daids)
         # FIXME: hacky
         cm_list = [
-            chip_match.ChipMatch2(qaid, [], qnid=qreq_.ibs.get_annot_name_rowids(qaid))
+            chip_match.ChipMatch(qaid, [], qnid=qreq_.ibs.get_annot_name_rowids(qaid))
             for qaid in (external_qaids)
         ]
         for cm in cm_list:

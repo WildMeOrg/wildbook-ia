@@ -170,22 +170,25 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
         python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> learnkw = {}
         >>> datakw = dict(
-        >>>     disttypes_=None,
+        >>>     disttypes_=ut.get_argval('--disttypes', type_=list, default=None),
         >>>     namemode=ut.get_argval('--namemode', default=True),
         >>>     fsvx=ut.get_argval('--fsvx', type_='fuzzy_subset',
         >>>                          default=slice(None, None, None)),
         >>>     threshx=ut.get_argval('--threshx', type_=int, default=None),
         >>>     thresh=ut.get_argval('--thresh', type_=float, default=.9),
+        >>>     num=ut.get_argval('--num', type_=int, default=5),
         >>> )
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
-        >>> encoder = learn_featscore_normalizer(qreq_)
+        >>> encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
         >>> ut.quit_if_noshow()
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())
         >>> ut.show_if_requested()
@@ -270,7 +273,8 @@ def get_training_annotscores(qreq_, cm_list):
 
 
 def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
-                            fsvx=slice(None, None, None), threshx=None, thresh=.9):
+                            fsvx=slice(None, None, None), threshx=None,
+                            thresh=.9, num=None):
     """
     Returns the flattened set of feature scores between each query and the
     correct groundtruth annotations as well as the top scoring false
@@ -329,12 +333,12 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
                 # Use precomputed fsv distances
                 fsv_col_lbls = cm.fsv_col_lbls
                 tp_fsv, tn_fsv = chip_match.get_training_fsv(
-                    cm, namemode=namemode, num=1000)
+                    cm, namemode=namemode, num=num)
             else:
                 # Investigate independant computed dists
                 fsv_col_lbls = disttypes_
-                tp_fsv, tn_fsv = chip_match.get_training_desc_dist(
-                    cm, qreq_, fsv_col_lbls, namemode=namemode)
+                # print('fsv_col_lbls = %r' % (fsv_col_lbls,))
+                tp_fsv, tn_fsv = chip_match.get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=namemode)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
         except chip_match.UnbalancedExampleException:
