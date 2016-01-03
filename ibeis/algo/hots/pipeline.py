@@ -236,7 +236,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         if qreq_.qparams.score_normalization:
             normalizer = qreq_.normalizer
             for cm in cm_list:
-                cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+                # cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+                cm.score_list = normalizer.normalize_score_list(cm.score_list)
 
     # <HACK>
     # FOR VSMANY DISTINCTIVENSS
@@ -1359,7 +1360,7 @@ def sver_single_chipmatch(qreq_, cm):
                 inliers_list.append(homog_inliers)
 
         indicies_list = inliers_list
-        cmSV = cm.take_feature_matches(indicies_list)
+        cmSV = cm.take_feature_matches(indicies_list, keepscores=False)
 
         # NOTE: It is not very clear explicitly, but the way H_list and
         # homog_err_weight_list are built will correspond with the daid_list in

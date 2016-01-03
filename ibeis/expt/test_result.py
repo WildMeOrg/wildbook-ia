@@ -1078,6 +1078,7 @@ class TestResult(object):
             >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
+        from ibeis.expt import cfghelpers
         if verbose is None:
             verbose = ut.NOT_QUIET
 
@@ -1085,7 +1086,6 @@ class TestResult(object):
             filt_cfg = [filt_cfg]
 
         if isinstance(filt_cfg, list):
-            from ibeis.expt import cfghelpers
             _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
             filt_cfg = ut.flatten(_combos)[0]
 

@@ -70,25 +70,25 @@ class _OldStyleChipMatchSimulator(object):
 
     @property
     def aid2_fm(cm):
-        return ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.fm_list)
+        return ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.fm_list)
 
     @property
     def aid2_fsv(cm):
-        return ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.fsv_list)
+        return ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.fsv_list)
 
     @property
     def aid2_fk(cm):
-        return ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.fk_list)
+        return ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.fk_list)
 
     @property
     def aid2_H(cm):
         return (None if cm.H_list is None else
-                ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.H_list))
+                ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.H_list))
 
     @property
     def aid2_score(cm):
         return ({} if cm.score_list is None else
-                ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.score_list))
+                ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, cm.score_list))
 
     # qres compatibility
 
@@ -103,12 +103,12 @@ class _OldStyleChipMatchSimulator(object):
             fs_list = cm.get_fsv_prod_list()
         else:
             fs_list = cm.fs_list
-        return ut.DefaultDictProxy(cm.daid2_idx, cm.daid_list, fs_list)
+        return ut.AlignedListDictProxy(cm.daid2_idx, cm.daid_list, fs_list)
 
     @property
     def nid2_name_score(cm):
         return ({} if cm.score_list is None else
-                ut.DefaultDictProxy(cm.nid2_nidx, cm.unique_nids, cm.name_score_list))
+                ut.AlignedListDictProxy(cm.nid2_nidx, cm.unique_nids, cm.name_score_list))
 
     def get_nscoretup(cm):
         return cm.get_ranked_nids_and_aids()

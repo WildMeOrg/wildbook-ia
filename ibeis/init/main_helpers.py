@@ -3,6 +3,8 @@
 This module defines helper functions to access common input needed to test many
 functions. These functions give a rich command line interface to specifically
 select subsets of annotations, pipeline configurations, and other filters.
+
+TODO: standardize function signatures
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -46,7 +48,7 @@ def testdata_pipecfg(p=None, t=None):
     if p is None:
         p = ['default']
     from ibeis.expt import experiment_helpers
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=t)
+    test_cfg_name_list = ut.get_argval('-t', type_=list, default=p)
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
     pcfgdict = pcfgdict_list[0]

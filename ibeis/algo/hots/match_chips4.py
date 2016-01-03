@@ -150,7 +150,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             # Try and load directly from a big cache
             try:
                 qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            except IOError:
+            except (IOError, AttributeError):
                 pass
             else:
                 return qaid2_cm

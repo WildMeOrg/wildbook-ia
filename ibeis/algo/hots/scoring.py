@@ -550,7 +550,7 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     (woff, hoff) = offset_tup[1]
     wh1 = weight_mask_m.shape[0:2][::-1]
     wh2 = weight_mask.shape[0:2][::-1]
-    pt.imshow(255 * (stacked_weights), fnum=fnum, pnum=pnum_(0))
+    pt.imshow(255 * (stacked_weights), fnum=fnum, pnum=pnum_(0), title='(query image) What did match vs what should match')
     pt.draw_bbox((   0,    0) + wh1, bbox_color=(0, 0, 1))
     pt.draw_bbox((woff, hoff) + wh2, bbox_color=(0, 0, 1))
     # Get contributing matches
