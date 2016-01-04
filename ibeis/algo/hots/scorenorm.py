@@ -31,7 +31,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 import six  # NOQA
-from ibeis.algo.hots import chip_match
+from functools import partial
 print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
 
 
@@ -171,6 +171,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 
         python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=lnbnn
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -329,25 +330,29 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
     cm_list_ = ut.compress(cm_list, trainable)
     print('training using %d chipmatches' % (len(cm_list)))
 
+    if disttypes_ is None:
+        fsv_col_lbls = cm.fsv_col_lbls
+        train_getter = get_training_fsv
+    else:
+        fsv_col_lbls = disttypes_
+        # annots = {}  # Hack for cached vector lookups
+        ibs = qreq_.ibs
+        data_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.data_config2_)
+        query_annots = ut.KeyedDefaultDict(ibs.get_annot_lazy_dict, config2_=qreq_.query_config2_)
+
+        train_getter = partial(get_training_desc_dist,
+                               fsv_col_lbls=fsv_col_lbls, qreq_=qreq_,
+                               data_annots=data_annots,
+                               query_annots=query_annots)
+
     for cm in ut.ProgIter(cm_list_, lbl='building train featscores',
                           adjust=True, freq=1):
         try:
-            if disttypes_ is None:
-                # Use precomputed fsv distances
-                fsv_col_lbls = cm.fsv_col_lbls
-                tp_fsv, tn_fsv = chip_match.get_training_fsv(
-                    cm, namemode=namemode, num=num)
-            else:
-                # Investigate independant computed dists
-                fsv_col_lbls = disttypes_
-                # print('fsv_col_lbls = %r' % (fsv_col_lbls,))
-                tp_fsv, tn_fsv = chip_match.get_training_desc_dist(cm, qreq_,
-                                                                   fsv_col_lbls,
-                                                                   namemode=namemode,
-                                                                   top_percent=.5)
+            tp_fsv, tn_fsv = train_getter(
+                cm, namemode=namemode, top_percent=.5)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
-        except chip_match.UnbalancedExampleException:
+        except UnbalancedExampleException:
             continue
     fsv_tp = np.vstack(tp_fsvs_list)
     fsv_tn = np.vstack(tn_fsvs_list)
@@ -367,6 +372,262 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
         scorecfg = '*'.join(fsv_col_lbls_)
 
     return tp_scores, tn_scores, scorecfg
+
+
+class UnbalancedExampleException(Exception):
+    pass
+
+
+def get_topannot_training_idxs(cm, num=2):
+    """ top annots version
+
+    Args:
+        cm (ibeis.ChipMatch):  object of feature correspondences and scores
+        num (int): number of top annots per TP/TN (default = 2)
+
+    CommandLine:
+        python -m ibeis.algo.hots.scorenorm --exec-get_topannot_training_idxs --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> num = 2
+        >>> cm.score_csum(qreq_)
+        >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
+        >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
+        >>> print(result)
+        (tp_idxs, tn_idxs) = (
+            np.array([0, 1], dtype=np.int64),
+            np.array([2, 3], dtype=np.int64),
+        )
+    """
+    if num is None:
+        num = 2
+    sortx = cm.argsort()
+    sorted_nids = cm.dnid_list.take(sortx, axis=0)
+    mask = sorted_nids == cm.qnid
+    tp_idxs_ = np.where(mask)[0]
+    if len(tp_idxs_) == 0:
+        if ut.STRICT:
+            raise Exception('tp_idxs_=0')
+        else:
+            raise UnbalancedExampleException('tp_idxs_=0')
+    tn_idxs_ = np.where(~mask)[0]
+    if len(tn_idxs_) == 0:
+        if ut.STRICT:
+            raise Exception('tn_idxs_=0')
+        else:
+            raise UnbalancedExampleException('tn_idxs_=0')
+    tp_idxs = tp_idxs_[0:num]
+    tn_idxs = tn_idxs_[0:num]
+    return tp_idxs, tn_idxs
+
+
+def get_topname_training_idxs(cm, num=5):
+    """
+    gets the index of the annots in the top groundtrue name and the top
+    groundfalse names.
+
+    Args:
+        cm (ibeis.ChipMatch):  object of feature correspondences and scores
+        num(int): number of false names (default = 5)
+
+    Returns:
+        tuple: (tp_idxs, tn_idxs)
+            cm.daid_list[tp_idxs] are all of the
+               annotations in the correct name.
+            cm.daid_list[tn_idxs] are all of the
+               annotations in the top `num_false` incorrect names.
+
+    CommandLine:
+        python -m ibeis --tf get_topname_training_idxs --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
+        >>> num = 1
+        >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num)
+        >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
+        >>> print(result)
+        (tp_idxs, tn_idxs) = (
+            np.array([16, 17, 18, 19], dtype=np.int64),
+            [101, 99, 100, 97, 98],
+        )
+    """
+    if num is None:
+        num = 5
+    sortx = cm.name_argsort()
+    sorted_nids = vt.take2(cm.unique_nids, sortx)
+    sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+    # name ranks of the groundtrue name
+    tp_ranks = np.where(sorted_nids == cm.qnid)[0]
+    if len(tp_ranks) == 0:
+        if ut.STRICT:
+            raise Exception('tp_ranks=0')
+        else:
+            raise UnbalancedExampleException('tp_ranks=0')
+
+    # name ranks of the top groundfalse names
+    tp_rank = tp_ranks[0]
+    tn_ranks = [rank for rank in range(num + 1)
+                if rank != tp_rank and rank < len(sorted_groupxs)]
+    if len(tn_ranks) == 0:
+        if ut.STRICT:
+            raise Exception('tn_ranks=0')
+        else:
+            raise UnbalancedExampleException('tn_ranks=0')
+    # annot idxs of the examples
+    tp_idxs = sorted_groupxs[tp_rank]
+    tn_idxs = ut.flatten(ut.list_take(sorted_groupxs, tn_ranks))
+    return tp_idxs, tn_idxs
+
+
+def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.scorenorm --exec-get_training_fsv --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best')
+        >>> (tp_fsv, tn_fsv) = get_training_fsv(cm, namemode=False)
+        >>> result = ('(tp_fsv, tn_fsv) = %s' % (ut.repr2((tp_fsv, tn_fsv), nl=1),))
+        >>> print(result)
+    """
+    if namemode:
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm, num=num)
+    else:
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm, num=num)
+
+    # Keep only the top scoring half of the feature matches
+    cm_orig = cm
+    tophalf_indicies = [
+        ut.take_percentile(fs.argsort()[::-1], top_percent)
+        for fs in cm.get_fsv_prod_list()
+    ]
+    cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
+
+    tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
+    tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
+    return tp_fsv, tn_fsv
+
+
+@profile
+def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
+                           top_percent=.5, data_annots=None,
+                           query_annots=None):
+    r"""
+    computes custom distances on prematched descriptors
+
+    CommandLine:
+        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist:0 --show
+
+    SeeAlso:
+        # python -m ibeis --tf learn_featscore_normalizer --show
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.scorenorm import *  # NOQA
+        >>> import ibeis
+        >>> cm, qreq_ = testdata_cm()
+        >>> fsv_col_lbls = ['ratio', 'lnbnn', 'L2_sift']
+        >>> namemode = False
+        >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls,
+        >>>                                           namemode=namemode)
+        >>> result = ut.repr2((tp_fsv.T, tn_fsv.T), nl=1)
+        >>> print(result)
+    """
+    ibs = qreq_.ibs
+    query_config2_ = qreq_.extern_query_config2
+    data_config2_ = qreq_.extern_data_config2
+    special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn'])
+    dist_lbls = ut.list_take(fsv_col_lbls, dist_xs)
+    special_lbls = ut.list_take(fsv_col_lbls, special_xs)
+    cm_orig = cm
+
+    # Keep only the top scoring half of the feature matches
+    tophalf_indicies = [
+        ut.take_percentile(fs.argsort()[::-1], top_percent)
+        for fs in cm.get_fsv_prod_list()
+    ]
+    cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
+    qaid = cm.qaid
+    # cm.assert_self(qreq_=qreq_)
+
+    if namemode:
+        tp_idxs, tn_idxs = get_topname_training_idxs(cm)
+    else:
+        tp_idxs, tn_idxs = get_topannot_training_idxs(cm)
+
+    fsv_list = []
+    for idxs in [tp_idxs, tn_idxs]:
+        daid_list = cm.daid_list.take(idxs)
+
+        # Matching indices in query / databas images
+        qfxs_list = ut.take(cm.qfxs_list, idxs)
+        dfxs_list = ut.take(cm.dfxs_list, idxs)
+
+        need_norm = len(ut.setintersect_ordered(['ratio', 'lnbnn'], special_lbls)) > 0
+        need_dists = len(dist_xs) > 0
+
+        if need_dists or need_norm:
+            qaid_list = [qaid] * len(qfxs_list)
+            qvecs_flat_m = np.vstack(ibs.get_annot_vecs_subset(qaid_list, qfxs_list, config2_=query_config2_))
+            dvecs_flat_m = np.vstack(ibs.get_annot_vecs_subset(daid_list, dfxs_list, config2_=data_config2_))
+
+        if need_norm:
+            assert any(x is not None for x in  cm.filtnorm_aids), 'no normalizer known'
+            naids_list = ut.take(cm.naids_list, idxs)
+            nfxs_list  = ut.take(cm.nfxs_list, idxs)
+            nvecs_flat = ibs.lookup_annot_vecs_subset(naids_list, nfxs_list, config2_=data_config2_,
+                                                      annots=data_annots)
+            nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
+            vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
+            ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
+
+        if len(special_xs) > 0:
+            special_dist_list = []
+            # assert special_lbls[0] == 'fg'
+            if 'fg' in special_lbls:
+                # hack for fgweights (could get them directly from fsv)
+                qfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset([qaid] * len(qfxs_list), qfxs_list, config2_=query_config2_))
+                dfgweights_flat_m = np.hstack(ibs.get_annot_fgweights_subset(daid_list, qfxs_list, config2_=query_config2_))
+                fgweights = np.sqrt(qfgweights_flat_m * dfgweights_flat_m)
+                special_dist_list.append(fgweights)
+
+            if 'ratio' in special_lbls:
+                # Integrating ratio test
+                ratio_dist = (vdist / ndist)
+                special_dist_list.append(ratio_dist)
+
+            if 'lnbnn' in special_lbls:
+                lnbnn_dist = ndist - vdist
+                special_dist_list.append(lnbnn_dist)
+
+            special_dists = np.vstack(special_dist_list).T
+        else:
+            special_dists = np.empty((0, 0))
+
+        if len(dist_xs) > 0:
+            # Get descriptors
+            # Compute descriptor distnaces
+            _dists = vt.compute_distances(qvecs_flat_m, dvecs_flat_m, dist_lbls)
+            dists = np.vstack(_dists.values()).T
+        else:
+            dists = np.empty((0, 0))
+
+        fsv = vt.rebuild_partition(special_dists.T, dists.T,
+                                      special_xs, dist_xs)
+        fsv = np.array(fsv).T
+        fsv_list.append(fsv)
+    tp_fsv, tn_fsv = fsv_list
+    return tp_fsv, tn_fsv
 
 
 if __name__ == '__main__':

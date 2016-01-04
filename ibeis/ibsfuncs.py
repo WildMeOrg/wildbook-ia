@@ -6092,14 +6092,23 @@ def get_annot_primary_encounter(ibs, aid_list=None):
 
 
 @register_ibs_method
-def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, config2_=None):
+@profile
+def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_=None):
     """
     unflat_aids = cm.filtnorm_aids[0]
     unflat_fxs  = cm.filtnorm_fxs[0]
     """
     aids = np.unique(ut.flatten(unflat_aids))
-    annots = {}
-    annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=config2_) for aid in aids}
+    if annots is None:
+        annots = {}
+        annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=config2_) for aid in aids}
+    else:
+        for aid in set(aids) - set(annots.keys()):
+            annots[aid] = ibs.get_annot_lazy_dict(aid, config2_=config2_)
+
+    for annot in annots.values():
+        annot.eager_eval('vecs')
+
     def extract_vecs(annots, aid, fxs):
         """ custom_func(lazydict, key, subkeys) for multigroup_lookup """
         vecs = annots[aid]['vecs'].take(fxs, axis=0)
@@ -6107,13 +6116,13 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, config2_=None):
     unflat_vecs1 = vt.multigroup_lookup(annots, unflat_aids, unflat_fxs, extract_vecs)
     # HACK
     # FIXME: naive and regular multigroup still arnt equivalent
-    unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
-    # unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)
+    unflat_vecs = unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
+    # unflat_vecs =  unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)
     # import utool
     # with utool.embed_on_exception_context:
     # vt.sver_c_wrapper.assert_output_equal(unflat_vecs1, unflat_vecs2)
     # unflat_vecs = unflat_vecs2
-    unflat_vecs = unflat_vecs1
+    # unflat_vecs = unflat_vecs1
     # import utool
     # utool.embed()
 
