@@ -1601,6 +1601,7 @@ def safe_min(arr):
     return np.nan if arr is None or len(arr) == 0 else arr.min()
 
 
+@profile
 def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Slow version of multigroup_lookup. Makes a call to custom_func for each
@@ -1619,6 +1620,7 @@ def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     return data_lists
 
 
+@profile
 def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Efficiently calls custom_func for each item in zip(keys_list, subkeys_list)
