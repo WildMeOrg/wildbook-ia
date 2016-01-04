@@ -320,11 +320,14 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
     tp_fsvs_list = []
     tn_fsvs_list = []
 
+    # Train on only positive examples
     trainable = [
-        qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list)
+        qreq_.ibs.get_annot_has_groundtruth(cm.qaid, daid_list=cm.daid_list) and
+        cm.get_top_nids()[0] == cm.qnid
         for cm in cm_list
     ]
     cm_list_ = ut.compress(cm_list, trainable)
+    print('training using %d chipmatches' % (len(cm_list)))
 
     for cm in ut.ProgIter(cm_list_, lbl='building train featscores',
                           adjust=True, freq=1):
@@ -338,7 +341,10 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
                 # Investigate independant computed dists
                 fsv_col_lbls = disttypes_
                 # print('fsv_col_lbls = %r' % (fsv_col_lbls,))
-                tp_fsv, tn_fsv = chip_match.get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=namemode)
+                tp_fsv, tn_fsv = chip_match.get_training_desc_dist(cm, qreq_,
+                                                                   fsv_col_lbls,
+                                                                   namemode=namemode,
+                                                                   top_percent=.5)
             tp_fsvs_list.extend(tp_fsv)
             tn_fsvs_list.extend(tn_fsv)
         except chip_match.UnbalancedExampleException:

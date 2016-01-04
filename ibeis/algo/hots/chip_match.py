@@ -2334,7 +2334,7 @@ def get_training_fsv(cm, namemode=True, num=None):
     return tp_fsv, tn_fsv
 
 
-def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True):
+def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True, top_percent=.5):
     r"""
     computes custom distances on prematched descriptors
 
@@ -2342,8 +2342,9 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True):
         python -m ibeis.algo.hots.chip_match --exec-get_training_desc_dist:0 --show
         python -m ibeis.algo.hots.chip_match --exec-get_training_desc_dist:1 --show
 
-    SeeAlso
-        python -m ibeis --tf learn_featscore_normalizer --show
+    SeeAlso:
+        # python -m ibeis --tf learn_featscore_normalizer --show
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2376,7 +2377,12 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True):
     special_lbls = ut.list_take(fsv_col_lbls, special_xs)
     cm_orig = cm
 
-    tophalf_indicies = [fs.argsort()[0:min(len(fs) // 2 + 1, len(fs))]
+    def take_fraction(arr, percent):
+        size = len(arr)
+        stop = min(int(size * percent), len(arr))
+        return arr[0:stop]
+
+    tophalf_indicies = [take_fraction(fs.argsort()[::-1], top_percent)
                         for fs in cm.get_fsv_prod_list()]
     cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
     qaid = cm.qaid
@@ -2423,7 +2429,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls, namemode=True):
 
             if 'ratio' in special_lbls:
                 # Integrating ratio test
-                ratio_dist = vdist / ndist
+                ratio_dist = (vdist / ndist)
                 special_dist_list.append(ratio_dist)
 
             if 'lnbnn' in special_lbls:
