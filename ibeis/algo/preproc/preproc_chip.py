@@ -33,6 +33,8 @@ from ibeis import constants as const
 )
 def generate_chip_properties2(depc, aid_list, config=None):
     r"""
+    Example of using the dependency cache.
+
     Args:
         depc (ibeis.depends_cache.DependencyCache):
         aid_list (list):  list of annotation rowids

@@ -108,14 +108,18 @@ def make_config_metaclass():
                 itemstr_list = [pi.get_itemstr(cfg)
                                 for pi in cfg.get_param_info_list()]
         else:
-            item_list = parse_config_items(cfg)
-            if ignore_keys is not None:
-                itemstr_list = [key + '=' + str(val)
-                                for key, val in item_list]
-            else:
-                itemstr_list = [key + '=' + str(val)
-                                for key, val in item_list
-                                if key not in ignore_keys]
+            try:
+                item_list = parse_config_items(cfg)
+                assert item_list is not None
+                if ignore_keys is None:
+                    itemstr_list = [key + '=' + str(val) for key, val in item_list]
+                else:
+                    itemstr_list = [key + '=' + str(val) for key, val in item_list if key not in ignore_keys]
+            except Exception as ex:
+                print(ignore_keys is None)
+                print(ignore_keys)
+                ut.printex(ex, keys=['item_list', 'ignore_keys'])
+                raise
         filtered_itemstr_list = list(filter(len, itemstr_list))
         config_name = cfg.get_config_name()
         body = ','.join(filtered_itemstr_list)
@@ -1193,6 +1197,7 @@ class OtherConfig(ConfigBase):
         other_cfg.thumb_size      = 221
         other_cfg.thumb_bare_size = 700
         other_cfg.ranks_lt        = 2
+        other_cfg.filter_reviewed = True
         other_cfg.auto_localize   = True
         # maximum number of exemplars per name
         other_cfg.max_exemplars   = 6
