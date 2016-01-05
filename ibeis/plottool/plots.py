@@ -1670,8 +1670,8 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
     text_hist = ut.dict_hist(text_list, weight_list=weight_list)
     text_vals = list(text_hist.values())
     sortx = ut.list_argsort(text_vals)[::-1]
-    bin_labels = ut.list_take(list(text_hist.keys()), sortx)
-    freq = np.array(ut.list_take(text_vals, sortx))
+    bin_labels = ut.take(list(text_hist.keys()), sortx)
+    freq = np.array(ut.take(text_vals, sortx))
     xints = np.arange(len(bin_labels))
 
     width = .95
