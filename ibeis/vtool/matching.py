@@ -412,8 +412,8 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm_col]
     # IMAGE 2 Matching Features
     fx2_match = np.where(fx2_to_hasmatch)[0].astype(index_dtype)
-    match_col_list = np.array(ut.list_take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
-    norm_col_list = np.array(ut.list_take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
+    match_col_list = np.array(ut.take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
+    norm_col_list = np.array(ut.take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
 
     # We now have 2d coordinates into fx2_to_fx1
     # Covnert into 1d coordinates for flat indexing into fx2_to_fx1

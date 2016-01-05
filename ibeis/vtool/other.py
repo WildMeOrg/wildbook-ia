@@ -182,7 +182,7 @@ def pdist_argsort(x):
         compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)]
                                    for r in range(num_rows)])
         sortx = x.argsort()
-        sortx_2d = ut.list_take(compare_idxs, sortx)
+        sortx_2d = ut.take(compare_idxs, sortx)
     return sortx_2d
 
 
@@ -591,7 +591,7 @@ def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
     else:
-        return ut.list_take(list_, index_list)
+        return ut.take(list_, index_list)
 
 
 def compress2(arr, flag_list, axis=None, out=None):
@@ -679,8 +679,8 @@ def rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes):
         >>> item_list = ['dist', 'fg', 'distinctiveness']
         >>> part1_items = ['fg', 'distinctiveness']
         >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
-        >>> part1_vals = ut.list_take(item_list, part1_indexes)
-        >>> part2_vals = ut.list_take(item_list, part2_indexes)
+        >>> part1_vals = ut.take(item_list, part1_indexes)
+        >>> part2_vals = ut.take(item_list, part2_indexes)
         >>> val_list = rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes)
         >>> assert val_list == item_list, 'incorrect inversin'
         >>> print(val_list)
@@ -1659,6 +1659,10 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
         >>> data_lists1 = multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func)
         >>> data_lists2 = multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func)
         >>> vt.sver_c_wrapper.assert_output_equal(data_lists1, data_lists2)
+
+    Example:
+        >>> keys_list = [np.array([]), np.array([]), np.array([])]
+        >>> subkeys_list = [np.array([]), np.array([]), np.array([])]
     """
     import vtool as vt
     # Group the keys in each multi-list individually
@@ -1668,6 +1672,8 @@ def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     nested_order = ut.dict_stack2(dict_list, default=[])
     # Use keys and values for explicit ordering
     group_key_list = list(nested_order.keys())
+    if len(group_key_list) == 0:
+        return multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func)
     group_subxs_list = list(nested_order.values())
     # Extract unique and flat subkeys.
     # Maintain an information to invert back into multi-list form

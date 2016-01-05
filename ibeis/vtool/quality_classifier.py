@@ -137,7 +137,7 @@ def test_average_contrast():
     y_list = avecontrast_list[sortx]
     x_list = np.arange(0, nCols) + .5
     pt.plot(x_list, y_list, 'bo-')
-    sorted_imgs = ut.list_take(img_list, sortx)
+    sorted_imgs = ut.take(img_list, sortx)
     for px, img in ut.ProgressIter(enumerate(sorted_imgs, start=1)):
         pt.imshow(img, fnum=fnum, pnum=(2, nCols, nCols + px))
 
