@@ -1943,7 +1943,7 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         )
     if verbose:
         fmt_list  = list(zip(ext_format_list, pil_foramt_list))
-        invalid_format_list = ut.list_compress(fmt_list, ut.not_list(isvalid_list))
+        invalid_format_list = ut.compress(fmt_list, ut.not_list(isvalid_list))
         invalid_format_hist = ut.dict_hist(invalid_format_list)
         print('The following (ext,pil): count formats were marked as invalid')
         print(ut.dict_str(invalid_format_hist))

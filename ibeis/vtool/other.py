@@ -613,7 +613,7 @@ def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
     else:
-        return ut.list_compress(list_, flag_list)
+        return ut.compress(list_, flag_list)
 
 
 def index_partition(item_list, part1_items):

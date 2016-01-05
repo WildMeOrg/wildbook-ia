@@ -1104,7 +1104,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> print('aff_inliers = %r' % (aff_inliers,))
         >>> print('refined_inliers = %r' % (refined_inliers,))
         >>> #print('refined_errors = %r' % (refined_errors,))
-        >>> result = ut.list_type_profile(svtup)
+        >>> result = ut.list_type_profile(svtup, with_dtype=False)
         >>> #result = ut.list_str(svtup, precision=3)
         >>> print(result)
         >>> ut.quit_if_noshow()
