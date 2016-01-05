@@ -136,9 +136,9 @@ class CustomAPI(object):
             # slopply colname definitions
             flag_list = [colname in col_getter_dict for colname in col_name_list]
             if not all(flag_list):
-                invalid_colnames = ut.list_compress(col_name_list, ut.not_list(flag_list))
+                invalid_colnames = ut.compress(col_name_list, ut.not_list(flag_list))
                 print('[api_item_widget] Warning: colnames=%r have no getters' % (invalid_colnames,))
-                col_name_list = ut.list_compress(col_name_list, flag_list)
+                col_name_list = ut.compress(col_name_list, flag_list)
             # sloppy type inference
             for colname in col_name_list:
                 getter_ = col_getter_dict[colname]
