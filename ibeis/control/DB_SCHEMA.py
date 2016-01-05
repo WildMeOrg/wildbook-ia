@@ -1177,6 +1177,81 @@ def post_1_4_7(db, ibs=None):
     )
 
 
+def pre_1_4_8(db, ibs=None):
+    """
+    Args:
+        ibs (ibeis.IBEISController):
+    """
+    if ibs is not None:
+        from ibeis import tag_funcs
+
+        annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+        id_iter = annotmatch_rowids
+        annotmatch_is_photobomb_list = ibs.db.get(
+            const.ANNOTMATCH_TABLE, ('annotmatch_is_photobomb',), id_iter,
+            id_colname='rowid')
+        annotmatch_is_nondistinct = ibs.db.get(
+            const.ANNOTMATCH_TABLE, ('annotmatch_is_nondistinct',), id_iter,
+            id_colname='rowid')
+        annotmatch_is_hard = ibs.db.get(
+            const.ANNOTMATCH_TABLE, ('annotmatch_is_hard',), id_iter,
+            id_colname='rowid')
+        annotmatch_is_scenerymatch = ibs.db.get(
+            const.ANNOTMATCH_TABLE, ('annotmatch_is_scenerymatch',), id_iter,
+            id_colname='rowid')
+
+        #ibs.get_annotmatch_note(annotmatch_rowids)
+        annotmatch_note_list = ibs.db.get(
+            const.ANNOTMATCH_TABLE, ('annotmatch_note',), annotmatch_rowids,
+            id_colname='rowid')
+        new_notes_list = annotmatch_note_list
+        new_notes_list = tag_funcs.set_tags_in_textformat(
+            'photobomb', new_notes_list, annotmatch_is_photobomb_list)
+        new_notes_list = tag_funcs.set_tags_in_textformat(
+            'nondistinct', new_notes_list, annotmatch_is_nondistinct)
+        new_notes_list = tag_funcs.set_tags_in_textformat(
+            'hard', new_notes_list, annotmatch_is_hard)
+        new_notes_list = tag_funcs.set_tags_in_textformat(
+            'scenerymatch', new_notes_list, annotmatch_is_scenerymatch)
+
+        ibs.db.set(const.ANNOTMATCH_TABLE, ('annotmatch_note',),
+                   new_notes_list,
+                   annotmatch_rowids)
+
+
+def update_1_4_8(db, ibs=None):
+    """
+    change notes to tag_text_data
+    add configuration that made the match
+    add the score of the match
+    add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE
+
+    Probably want a separate table for the config_rowid matching results
+    because the primary key needs to be (config_rowid, aid1, aid2) OR just
+    (config_rowid, annotmatch_rowid)
+    """
+    db.modify_table(
+        const.ANNOTATION_TABLE, [
+            # HACK: add a column for parsable tags, this should later be
+            # replaced with a tag table and a tag-annot relation table
+            ('annot_tags', 'annot_tag_text',    'TEXT', None),
+        ]
+    )
+    db.modify_table(
+        const.ANNOTMATCH_TABLE, [
+            ('annotmatch_note', 'annotmatch_tag_text', 'TEXT', None),
+            (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
+            (None, 'annotmatch_pairwise_prob',  'REAL', None),
+            (None, 'config_hashid',  'TEXT', None),
+            # Remove explicit case tags in favor of consistency
+            ('annotmatch_is_photobomb', None,  None, None),
+            ('annotmatch_is_nondistinct', None,  None, None),
+            ('annotmatch_is_hard', None,  None, None),
+            ('annotmatch_is_scenerymatch', None,  None, None),
+        ]
+    )
+
+
 def pre_1_4_9(db, ibs=None):
     if ibs is not None:
         remapping_dict = {
@@ -1304,53 +1379,6 @@ def post_1_4_9(db, ibs=None):
     )
 
 
-def update_1_4_10(db, ibs=None):
-    """
-    Need to;
-        change notes to tag_text_data
-        add configuration that made the match
-        add the score of the match
-        add concept of: DEFINIATELY MATCHES, DOES NOT MATCH, CAN NOT DECIDE
-
-    Probably want a separate table for the config_rowid matching results
-    because the primary key needs to be (config_rowid, aid1, aid2) OR just
-    (config_rowid, annotmatch_rowid)
-    """
-    pass
-    #db.modify_table(
-    #    const.ANNOTMATCH_TABLE, [
-    #        (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
-    #        (None, 'annotmatch_score',  'REAL', None),
-    #        (None, 'config_rowid',  'INTEGER', None),
-    #    ]
-    #)
-
-r"""
-#def update_lost_to_time(db, ibs=None):
-#    #db.modify_table(
-#    #    const.ANNOTMATCH_TABLE, [
-#    #        (None, 'annotmatch_is_interesting',      'INTEGER', None),
-#    #        (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
-#    #        (None, 'annotmatch_score',  'REAL', None),
-#    #        (None, 'config_rowid',  'INTEGER', None),
-#    #    ]
-#    #)
-#    # Maybe we want the notation of each annotation having having a set of
-#    # classes with probabilities (c, p). Or an annotation label with a
-#    # confidence.
-#    db.modify_table(
-#        const.ANNOTATION_TABLE, [
-#            (None, 'annot_mask_uri',    'TEXT', None),
-#        ]
-#    )
-#    db.modify_table(
-#        const.NAME_TABLE, [
-#            (None, 'name_nickname_text',    'TEXT', None),
-#        ]
-#    )
-"""
-
-
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1387,10 +1415,14 @@ VALID_VERSIONS = ut.odict([
     ('1.4.5',    (None,                 update_1_4_5,       None                )),
     ('1.4.6',    (None,                 update_1_4_6,       None                )),
     ('1.4.7',    (None,                 update_1_4_7,       post_1_4_7          )),
-    # ('1.4.8',    (None,                 update_1_4_8,       None                )),
+    ('1.4.8',    (pre_1_4_8,            update_1_4_8,       None                )),
     ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
-    #('1.4.10',    (None,                 update_1_4_10,       None                )),
 ])
+"""
+SeeAlso:
+    When updating versions need to test and modify in
+    IBEISController._init_sqldbcore
+"""
 
 
 LEGACY_UPDATE_FUNCTIONS = [

@@ -57,6 +57,13 @@ def testdata_depcache():
         for rowid in parent_rowids:
             yield (0, 0), 'chip.jpg'
 
+    def dummy_manual_proc_mask(depc, parent_rowids, config=None):
+        if config is None:
+            config = {}
+        print('Requesting user defined chip mask')
+        for rowid in parent_rowids:
+            yield (0, 0), 'chip.jpg'
+
     def dummy_preproc_probchip(depc, parent_rowids, config=None):
         if config is None:
             config = {}

@@ -171,6 +171,11 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('Mark as &False Match.',
              lambda:  set_annot_pair_as_negative_match_(
                  ibs, aid1, aid2, cm, qreq_, **kwargs)),
+
+            #('Mark Disjoint Viewpoints.',
+            # lambda:  set_annot_pair_as_unknown_match_(
+            #     ibs, aid1, aid2, cm, qreq_, **kwargs)),
+
             ('Inspect Match Candidates',
              lambda: review_match(
                  ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)),
@@ -1105,22 +1110,14 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
 
-    USE_BOOLS = True
+    USE_BOOLS = False
     if USE_BOOLS:
+        # DEPRICATED use tag funcs
         boolean_annotmatch_columns = [
             'is_hard',
             'is_nondistinct',
             'is_scenerymatch',
             'is_photobomb',
-        ]
-
-        boolean_annot_columns = [
-            'is_occluded',
-            'is_shadowed',
-            'is_washedout',
-            'is_blury',
-            'is_novelpose',
-            'is_commonpose',
         ]
 
         def make_annotmatch_boolean_getter_wrapper(ibs, colname):
@@ -1158,10 +1155,6 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
                 ibs, colname)
             col_width_dict[colname] = 70
             editable_colnames.append(colname)
-
-        for colname_ in boolean_annot_columns:
-            # TODO
-            pass
 
     sortby = 'score'
 

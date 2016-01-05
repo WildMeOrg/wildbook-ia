@@ -5649,6 +5649,9 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
 @register_ibs_method
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwargs):
     r"""
+
+    USEFUL DEVELOPER FUNCTION
+
     Args:
         ibs (IBEISController):  ibeis controller object
         qaids (list):  query annotation ids

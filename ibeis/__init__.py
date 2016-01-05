@@ -11,9 +11,6 @@ import utool
 import utool as ut
 import sys
 
-#__version__ = '0.1.0.dev1'
-#__version__ = '1.4.8'
-
 utool.noinject(__name__, '[ibeis.__init__]')
 if ut.VERBOSE:
     print('[ibeis] importing ibeis __init__')
@@ -296,7 +293,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.4.8'
+__version__ = '1.4.9'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

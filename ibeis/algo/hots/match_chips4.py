@@ -262,13 +262,28 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         fpath_iter = ut.ProgressIter(
             fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
             lbl='loading cache hits', adjust=True, freq=1)
-        cm_hit_list = [
-            chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
-            for fpath in fpath_iter
-        ]
-        assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), 'inconsistent'
-        qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
-        #qaid2_cm_hit = {qaid: cm for qaid, cm in zip(qaids_hit, cm_hit_list)}
+        try:
+            cm_hit_list = [
+                chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
+                for fpath in fpath_iter
+            ]
+            assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), 'inconsistent'
+            qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
+        except chip_match.NeedRecomputeError:
+            print('NeedRecomputeError: Some cached chips need to recompute')
+            fpath_iter = ut.ProgressIter(
+                fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+                lbl='checking chipmatch cache', adjust=True, freq=1)
+            # Recompute those that fail loading
+            qaid2_cm_hit = {}
+            for fpath in fpath_iter:
+                try:
+                    cm = chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
+                except chip_match.NeedRecomputeError:
+                    pass
+                else:
+                    qaid2_cm_hit[cm.qaid] = cm
+            print('%d / %d cached matches need to be recomputed' % (len(qaid2_cm_hit), len(qaids_hit)))
         if len(qaid2_cm_hit) == len(external_qaids):
             return qaid2_cm_hit
         else:
