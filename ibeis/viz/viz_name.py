@@ -315,7 +315,7 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
         assert ut.list_all_eq_to(ibs.get_annot_nids(aid_list), nid)
 
     if index_list is not None:
-        aid_list = ut.list_take(aid_list, index_list)
+        aid_list = ut.take(aid_list, index_list)
 
     name = ibs.get_name_texts((nid,))
     print('[viz_name] * name=%r aid_list=%r' % (name, aid_list))

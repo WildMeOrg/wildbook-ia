@@ -655,7 +655,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back = testdata_guiback()
             >>> ibs = back.ibs
             >>> eid_list = back.ibs.get_valid_eids()
-            >>> eid = ut.list_take(eid_list, ut.list_argmax(list(map(len, back.ibs.get_encounter_gids(eid_list)))))
+            >>> eid = ut.take(eid_list, ut.list_argmax(list(map(len, back.ibs.get_encounter_gids(eid_list)))))
             >>> back.front.select_encounter_tab(eid)
             >>> gid = back.ibs.get_encounter_gids(eid)[0]
             >>> # add a test annotation to delete

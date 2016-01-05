@@ -1230,7 +1230,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         total_value, items_subset = ut.knapsack_greedy(knapsack_items,
                                                        sample_size)
         group_idx_sample = ut.get_list_column(items_subset, 2)
-        subgroup_aids = ut.list_take(grouped_aids, group_idx_sample)
+        subgroup_aids = ut.take(grouped_aids, group_idx_sample)
 
         with VerbosityContext('sample_size'):
             avail_aids = ut.flatten(subgroup_aids)
@@ -1256,7 +1256,7 @@ def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
     if aidcfg['shuffle']:
         rand_idx = ut.random_indexes(len(avail_aids), seed=SEED2)
         with VerbosityContext('shuffle', SEED2=SEED2):
-            avail_aids = ut.list_take(avail_aids, rand_idx)
+            avail_aids = ut.take(avail_aids, rand_idx)
 
     if aidcfg['index'] is not None:
         indicies = ensure_flatlistlike(aidcfg['index'])

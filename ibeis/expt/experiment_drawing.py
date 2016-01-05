@@ -291,7 +291,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_keep_order(case_pos_list.T[0])
-    selected_tags = ut.list_take(all_tags, case_qx_list)
+    selected_tags = ut.take(all_tags, case_qx_list)
     flat_tags_list = list(map(ut.flatten, selected_tags))
     WITH_NOTAGS = False
     if WITH_NOTAGS:
@@ -456,7 +456,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
     qaids = testres.get_common_qaids()
     # Ensure semantic uuids are in the APP cache.
-    ibs.get_annot_semantic_uuids(ut.list_take(qaids, sel_rows))
+    ibs.get_annot_semantic_uuids(ut.take(qaids, sel_rows))
     #samplekw = dict(per_group=5)
     #case_pos_list = testres.get_case_positions('failure', samplekw=samplekw)
     #failure_qx_list = ut.unique_keep_order(case_pos_list.T[0])
@@ -508,7 +508,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             except IndexError:
                 print('flat_case_labels are known to be messed up')
                 pass
-        qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
+        qreq_list = ut.take(cfgx2_qreq_, sel_cols)
         # TODO: try to get away with not reloading query results or loading
         # them in batch if possible
         # It actually doesnt take that long. the drawing is what hurts
@@ -929,11 +929,11 @@ def get_individual_result_sample(testres, filt_cfg=None, **kwargs):
     sel_colxs = ut.get_argval('-c', type_=list, default=None)
 
     if sel_rowxs is not None:
-        sel_rows = ut.list_take(sel_rows, sel_rowxs)
+        sel_rows = ut.take(sel_rows, sel_rowxs)
         print('sel_rows = %r' % (sel_rows,))
 
     if sel_colxs is not None:
-        sel_cols = ut.list_take(sel_cols, sel_colxs)
+        sel_cols = ut.take(sel_cols, sel_colxs)
 
     if ut.NOT_QUIET:
         print('Returning Case Selection')
@@ -1064,7 +1064,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
             print('const_val = %r' % (const_val,))
             print('const_idx = %r' % (const_idx,))
         const_basis_cfgx_list = const_basis_cfgx_lists[const_idx]
-        rank_list = ut.list_take(percent_le1_list, const_basis_cfgx_list)
+        rank_list = ut.take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
         agree_param_vals = dict([
             (key, [testres.get_param_val_from_cfgx(cfgx, key)
@@ -1220,18 +1220,18 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None, do_per_anno
                                     default=test_cfgx_slice)
     if test_cfgx_slice is not None:
         print('test_cfgx_slice = %r' % (test_cfgx_slice,))
-        cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent,
+        cfgx2_cumhist_percent = np.array(ut.take(cfgx2_cumhist_percent,
                                                       test_cfgx_slice))
-        label_list = ut.list_take(label_list, test_cfgx_slice)
-        color_list = ut.list_take(color_list, test_cfgx_slice)
-        marker_list = ut.list_take(marker_list, test_cfgx_slice)
+        label_list = ut.take(label_list, test_cfgx_slice)
+        color_list = ut.take(color_list, test_cfgx_slice)
+        marker_list = ut.take(marker_list, test_cfgx_slice)
     # Order cdf list by rank0
     #sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
     sortx = vt.argsort_multiarray(cfgx2_cumhist_percent.T)[::-1]
-    label_list = ut.list_take(label_list, sortx)
-    cfgx2_cumhist_percent = np.array(ut.list_take(cfgx2_cumhist_percent, sortx))
-    color_list = ut.list_take(color_list, sortx)
-    marker_list = ut.list_take(marker_list, sortx)
+    label_list = ut.take(label_list, sortx)
+    cfgx2_cumhist_percent = np.array(ut.take(cfgx2_cumhist_percent, sortx))
+    color_list = ut.take(color_list, sortx)
+    marker_list = ut.take(marker_list, sortx)
     #
 
     figtitle = testres.make_figtitle('Cumulative Rank Histogram')

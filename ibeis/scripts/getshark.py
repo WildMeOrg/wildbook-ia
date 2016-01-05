@@ -124,7 +124,7 @@ def download_sharks(XMLdata, number):
     grouped_idxs = ut.group_items(list(range(len(parsed_info['nameid_list']))),
                                   parsed_info['nameid_list'])
     keep_idxs = sorted(ut.flatten([idxs for key, idxs in grouped_idxs.items() if len(idxs) >= 2]))
-    parsed_info = {key: ut.list_take(list_, keep_idxs) for key, list_ in parsed_info.items()}
+    parsed_info = {key: ut.take(list_, keep_idxs) for key, list_ in parsed_info.items()}
 
     print('Moving imagse to secondary directory')
     named_outputdir = 'named-left-sharkimages'

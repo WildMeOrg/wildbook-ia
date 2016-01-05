@@ -144,8 +144,8 @@ def make_metadata_custom_api(metadata):
                         'qx2_gt_raw_score', 'qx2_gf_raw_score']
     colname_priority += sorted(ut.setdiff_ordered(col_name_list, colname_priority))
     sortx = ut.priority_argsort(col_name_list, colname_priority)
-    col_name_list = ut.list_take(col_name_list, sortx)
-    column_list = ut.list_take(column_list, sortx)
+    col_name_list = ut.take(col_name_list, sortx)
+    column_list = ut.take(column_list, sortx)
 
     col_lens = list(map(len, column_list))
     print('col_name_list = %r' % (col_name_list,))

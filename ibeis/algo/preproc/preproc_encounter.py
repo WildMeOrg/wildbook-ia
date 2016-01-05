@@ -339,7 +339,7 @@ def group_images_by_label(label_arr, gid_arr):
     labels_, groupxs_ = vt.group_indices(label_arr)
     sortx = np.array(list(map(len, groupxs_))).argsort()[::-1]
     labels  = labels_.take(sortx, axis=0)
-    groupxs = ut.list_take(groupxs_, sortx)
+    groupxs = ut.take(groupxs_, sortx)
     label_gids = vt.apply_grouping(gid_arr, groupxs)
     return labels, label_gids
 
@@ -360,7 +360,7 @@ def filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None)
         # sort by time instead
         unixtime_arr = np.array(enc_unixtimes)
         # Reorder encounters so the oldest has the lowest number
-        enc_gids = ut.list_take(label_gids, unixtime_arr.argsort())
+        enc_gids = ut.take(label_gids, unixtime_arr.argsort())
     enc_ids = list(range(len(enc_gids)))
     return enc_ids, enc_gids
 

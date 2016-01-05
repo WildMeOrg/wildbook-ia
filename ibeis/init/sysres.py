@@ -625,7 +625,7 @@ def ensure_pz_mtest_mergesplit_test():
 
     total_names = num_merge_names + num_split_names + num_combo_names
 
-    modify_aids = ut.list_take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+    modify_aids = ut.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
 
     merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
     merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')

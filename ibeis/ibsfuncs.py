@@ -667,9 +667,9 @@ def check_image_uuid_consistency(ibs, gid_list):
         >>> gpath_list_ = ibs.get_image_paths(gid_list_)
         >>> bytes_list_ = [ut.get_file_nBytes(path) for path in gpath_list_]
         >>> sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
-        >>> gpath_list = ut.list_take(gpath_list_, sortx)
-        >>> bytes_list = ut.list_take(bytes_list_, sortx)
-        >>> gid_list   = ut.list_take(gid_list_, sortx)
+        >>> gpath_list = ut.take(gpath_list_, sortx)
+        >>> bytes_list = ut.take(bytes_list_, sortx)
+        >>> gid_list   = ut.take(gid_list_, sortx)
         >>> ibeis.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
@@ -949,7 +949,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
     dupaids_list = []
     if len(ibs_dup_annots):
         for key, dupxs in six.iteritems(ibs_dup_annots):
-            aids = ut.list_take(aid_list, dupxs)
+            aids = ut.take(aid_list, dupxs)
             dupaids_list.append(aids[1:])
 
         toremove_aids = ut.flatten(dupaids_list)
@@ -3013,7 +3013,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0, num2=None, i
         extended_index_list = sorted(list(set(other_index_list1 + other_index_list2 + [index])))
     else:
         extended_index_list = sorted(list(set(other_index_list1 + other_index_list2)))
-    extended_yaws = ut.list_take(yawtext_list, extended_index_list)
+    extended_yaws = ut.take(yawtext_list, extended_index_list)
     return extended_yaws
 
 
@@ -3101,7 +3101,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     #best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
     #assert len(best_hourdists_list) == len(best_multitons)
     #best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]
-    #best_pairs = ut.list_take(best_multitons, best_multitons_sortx)
+    #best_pairs = ut.take(best_multitons, best_multitons_sortx)
     #best_multis = ut.flatten(best_pairs)
 
     # process singletons
@@ -4911,7 +4911,7 @@ def search_annot_notes(ibs, pattern, aid_list=None):
         pattern = '|'.join(['(%s)' % pat for pat in pattern])
     valid_index_list, valid_match_list = ut.search_list(notes_list, pattern, flags=re.IGNORECASE)
     #[match.group() for match in valid_match_list]
-    valid_aid_list = ut.list_take(aid_list, valid_index_list)
+    valid_aid_list = ut.take(aid_list, valid_index_list)
     return valid_aid_list
 
 
@@ -5852,9 +5852,9 @@ def find_unlabeled_name_members(ibs, **kwargs):
 
     def find_missing(props_list, flags_list):
         missing_idx_list = ut.list_where([any(flags) and not all(flags) for flags in flags_list])
-        missing_flag_list = ut.list_take(flags_list, missing_idx_list)
-        missing_aids_list = ut.list_take(aids_list, missing_idx_list)
-        #missing_prop_list = ut.list_take(props_list, missing_idx_list)
+        missing_flag_list = ut.take(flags_list, missing_idx_list)
+        missing_aids_list = ut.take(aids_list, missing_idx_list)
+        #missing_prop_list = ut.take(props_list, missing_idx_list)
         missing_aid_list = vt.zipcompress(missing_aids_list, missing_flag_list)
 
         if False:

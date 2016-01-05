@@ -43,8 +43,8 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
             data_list[index] = data
         except IOError:
             failed_index_list.append(index)
-    failed_rowids    = ut.list_take(rowid_list, failed_index_list)
-    failed_fpaths    = ut.list_take(fpath_list, failed_index_list)
+    failed_rowids    = ut.take(rowid_list, failed_index_list)
+    failed_fpaths    = ut.take(fpath_list, failed_index_list)
     exists_list      = [exists(fpath) for fpath in failed_fpaths]
     missing_rowids   = ut.list_compress(failed_rowids, exists_list)  # NOQA
     corrupted_rowids = ut.filterfalse_items(failed_rowids, exists_list)  # NOQA

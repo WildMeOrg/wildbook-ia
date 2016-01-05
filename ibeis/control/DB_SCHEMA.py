@@ -529,7 +529,7 @@ def pre_1_3_1(db, ibs=None):
         dupaids_list = []
         if len(ibs_dup_annots):
             for key, dupxs in six.iteritems(ibs_dup_annots):
-                aids = ut.list_take(aid_list, dupxs)
+                aids = ut.take(aid_list, dupxs)
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)
             print('About to delete toremove_aids=%r' % (toremove_aids,))

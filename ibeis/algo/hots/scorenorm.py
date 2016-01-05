@@ -359,7 +359,7 @@ def get_training_featscores(qreq_, cm_list, disttypes_=None, namemode=True,
     fsv_tp = np.vstack(tp_fsvs_list)
     fsv_tn = np.vstack(tn_fsvs_list)
 
-    fsv_col_lbls_ = ut.list_take(fsv_col_lbls, fsvx)
+    fsv_col_lbls_ = ut.take(fsv_col_lbls, fsvx)
     fsv_tp_ = fsv_tp.T[fsvx].T
     fsv_tn_ = fsv_tn.T[fsvx].T
 
@@ -464,7 +464,7 @@ def get_topname_training_idxs(cm, num=5):
         num = 5
     sortx = cm.name_argsort()
     sorted_nids = vt.take2(cm.unique_nids, sortx)
-    sorted_groupxs = ut.list_take(cm.name_groupxs, sortx)
+    sorted_groupxs = ut.take(cm.name_groupxs, sortx)
     # name ranks of the groundtrue name
     tp_ranks = np.where(sorted_nids == cm.qnid)[0]
     if len(tp_ranks) == 0:
@@ -484,7 +484,7 @@ def get_topname_training_idxs(cm, num=5):
             raise UnbalancedExampleException('tn_ranks=0')
     # annot idxs of the examples
     tp_idxs = sorted_groupxs[tp_rank]
-    tn_idxs = ut.flatten(ut.list_take(sorted_groupxs, tn_ranks))
+    tn_idxs = ut.flatten(ut.take(sorted_groupxs, tn_ranks))
     return tp_idxs, tn_idxs
 
 
@@ -515,8 +515,8 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=.5):
     ]
     cm = cm_orig.take_feature_matches(tophalf_indicies, keepscores=True)
 
-    tp_fsv = ut.list_take(cm.fsv_list, tp_idxs)
-    tn_fsv = ut.list_take(cm.fsv_list, tn_idxs)
+    tp_fsv = ut.take(cm.fsv_list, tp_idxs)
+    tn_fsv = ut.take(cm.fsv_list, tn_idxs)
     return tp_fsv, tn_fsv
 
 
@@ -550,8 +550,8 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     query_config2_ = qreq_.extern_query_config2
     data_config2_ = qreq_.extern_data_config2
     special_xs, dist_xs = vt.index_partition(fsv_col_lbls, ['fg', 'ratio', 'lnbnn'])
-    dist_lbls = ut.list_take(fsv_col_lbls, dist_xs)
-    special_lbls = ut.list_take(fsv_col_lbls, special_xs)
+    dist_lbls = ut.take(fsv_col_lbls, dist_xs)
+    special_lbls = ut.take(fsv_col_lbls, special_xs)
     cm_orig = cm
 
     # Keep only the top scoring half of the feature matches

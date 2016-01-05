@@ -345,7 +345,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     #acfg_slice = ut.get_argval('--acfg_slice', type_=slice, default=None)
     # HACK: Sliceing happens before expansion (dependenceis get)
     combo_slice = ut.get_argval('--combo_slice', type_='fuzzy_subset', default=slice(None))
-    acfg_combo_list = [ut.list_take(acfg_combo_, combo_slice)
+    acfg_combo_list = [ut.take(acfg_combo_, combo_slice)
                        for acfg_combo_ in acfg_combo_list]
 
     if ut.get_argflag('--consistent'):
@@ -368,8 +368,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
     # Slicing happens after expansion (but the labels get screwed up)
     acfg_slice = ut.get_argval('--acfg_slice', type_='fuzzy_subset', default=None)
     if acfg_slice is not None:
-        acfg_list = ut.list_take(acfg_list, acfg_slice)
-        expanded_aids_list = ut.list_take(expanded_aids_list, acfg_slice)
+        acfg_list = ut.take(acfg_list, acfg_slice)
+        expanded_aids_list = ut.take(expanded_aids_list, acfg_slice)
 
     # + --- Hack: Override qaids ---
     _qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=qaid_override)

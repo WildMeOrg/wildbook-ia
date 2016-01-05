@@ -335,7 +335,7 @@ def find_requested_hrefs(all_href_list, py_version, pkg_list):
             dist_list = [0 if (href.find(pkg) > -1) else 100 for href in all_href_list]
             closest_matche_xs = ut.list_argsort(dist_list)[::1]
             print('Perhaps pkg=%r could match one of these?' % (pkg,))
-            closest_hrefs = ut.list_take(all_href_list, closest_matche_xs[0:3])
+            closest_hrefs = ut.take(all_href_list, closest_matche_xs[0:3])
             print(ut.indentjoin(closest_hrefs, '\n   '))
 
     href_list = href_list1 + href_list2 + href_list3 + href_list4

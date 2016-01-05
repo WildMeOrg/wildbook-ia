@@ -230,7 +230,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> # Find index in daids of correct matches
                 >>> cm = qres_vsone
                 >>> correct_indices = np.where(np.array(all_nids_t) == qnid_t)[0]
-                >>> correct_aids2 = ut.list_take(daids, correct_indices)
+                >>> correct_aids2 = ut.take(daids, correct_indices)
                 >>> qaid = cm.qaid
                 >>> aid = correct_aids2[0]
                 >>> # Report visual uuid for inclusion or exclusion in script

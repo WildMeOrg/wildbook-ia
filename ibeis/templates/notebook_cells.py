@@ -163,7 +163,7 @@ detection_summary = ('# Detection Summary', ut.codeblock(
     gids_sorted = ut.sortedby(gids, nAids_list)[::-1]
     samplex = list(range(5))
     print(samplex)
-    gids_sample = ut.list_take(gids_sorted, samplex)
+    gids_sample = ut.take(gids_sorted, samplex)
 
     import ibeis.viz
     for gid in ut.ProgressIter(gids_sample, lbl='drawing image'):

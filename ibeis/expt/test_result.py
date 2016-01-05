@@ -604,7 +604,7 @@ class TestResult(object):
             a_label_groups = []
             from ibeis.expt import annotation_configs
             for groupx in a_groupxs:
-                acfg_list = ut.list_take(testres.cfgx2_acfg, groupx)
+                acfg_list = ut.take(testres.cfgx2_acfg, groupx)
                 #varied_lbls = cfghelpers.get_varied_cfg_lbls(acfg_list)
                 varied_lbls = annotation_configs.get_varied_acfg_labels(
                     acfg_list, mainkey='_cfgstr')
@@ -615,7 +615,7 @@ class TestResult(object):
             unique_hashes, p_groupxs = vt.group_indices(pcfg_hashes)
             p_label_groups = []
             for groupx in p_groupxs:
-                pcfg_list = ut.list_take(testres.cfgx2_pcfg, groupx)
+                pcfg_list = ut.take(testres.cfgx2_pcfg, groupx)
                 varied_lbls = cfghelpers.get_varied_cfg_lbls(pcfg_list, mainkey='_cfgstr')
                 p_label_groups.append(varied_lbls)
             pcfg_lbls = vt.invert_apply_grouping(p_label_groups, p_groupxs)
@@ -968,7 +968,7 @@ class TestResult(object):
             >>> filt_cfg = main_helpers.testdata_filtcfg()
             >>> case_pos_list = testres.case_sample2(filt_cfg)
             >>> all_tags = testres.get_all_tags()
-            >>> selected_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> selected_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
             >>> print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
             >>> ut.quit_if_noshow()
@@ -1060,7 +1060,7 @@ class TestResult(object):
             >>> print(result)
             >>> # Extra stuff
             >>> all_tags = testres.get_all_tags()
-            >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> selcted_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
 
         Example1:
@@ -1075,7 +1075,7 @@ class TestResult(object):
             >>> print(result)
             >>> # Extra stuff
             >>> all_tags = testres.get_all_tags()
-            >>> selcted_tags = ut.list_take(all_tags, case_pos_list.T[0])
+            >>> selcted_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
         """
         from ibeis.expt import cfghelpers
@@ -1263,8 +1263,8 @@ class TestResult(object):
                 print('Taking index sample from len(qx_list) = %r' % (len(qx_list),))
                 if isinstance(index, six.string_types):
                     index = ut.smart_cast(index, slice)
-                qx_list = ut.list_take(qx_list, index)
-                cfgx_list = ut.list_take(cfgx_list, index)
+                qx_list = ut.take(qx_list, index)
+                cfgx_list = ut.take(cfgx_list, index)
 
             ut.delete_keys(filt_cfg, ['_cfgstr', '_cfgindex', '_cfgname', '_cfgtype'])
 
@@ -1317,8 +1317,8 @@ class TestResult(object):
         print('Sampled categories = %s' % (
             ut.list_str(ut.list_compress(sample_keys, has_sample))))
 
-        sampled_type_list = ut.list_take(sample_keys, has_sample_idx)
-        sampled_cases_list = ut.list_take(sample_vals, has_sample_idx)
+        sampled_type_list = ut.take(sample_keys, has_sample_idx)
+        sampled_cases_list = ut.take(sample_vals, has_sample_idx)
 
         sampled_lbl_list = ut.flatten([[lbl] * len(cases)
                                        for lbl, cases in zip(sampled_type_list, sampled_cases_list)])
@@ -1698,7 +1698,7 @@ class TestResult(object):
         #print("INTERSETING MEASURE")
         #print(interesting_qx_list)
         #print(row_rankcategory_std)
-        #print(ut.list_take(qaids, row_sortx))
+        #print(ut.take(qaids, row_sortx))
         #print(diff_rank.take(row_sortx, axis=0))
         return interesting_qx_list
 
@@ -1706,7 +1706,7 @@ class TestResult(object):
         #qaids = testres.get_common_qaids()
         ibs = testres.ibs
         cfgx_list = ut.ensure_iterable(cfgx)
-        qreq_list = ut.list_take(testres.cfgx2_qreq_, cfgx_list)
+        qreq_list = ut.take(testres.cfgx2_qreq_, cfgx_list)
         # Preload any requested configs
         qres_list = [qreq_.load_cached_qres(qaid) for qreq_ in qreq_list]
         cfgx2_shortlbl = testres.get_short_cfglbls()
@@ -1915,7 +1915,7 @@ class TestResult(object):
             ' - ' + label
             for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
         sortx = cfgx2_cumhist_percent.T[0].argsort()[::-1]
-        label_list = ut.list_take(label_list, sortx)
+        label_list = ut.take(label_list, sortx)
         return label_list
 
     def find_score_thresh_cutoff(testres):

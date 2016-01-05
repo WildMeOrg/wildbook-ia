@@ -127,8 +127,8 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
     aligned_name_score_list = name_score_list.take(ut.dict_take(nid2_nidx, unique_nids))
     # Sort each group by the name score
     group_sortx             = aligned_name_score_list.argsort()[::-1]
-    _top_daid_groups        = ut.list_take(grouped_daids, group_sortx)
-    _top_annot_score_groups = ut.list_take(grouped_annot_scores, group_sortx)
+    _top_daid_groups        = ut.take(grouped_daids, group_sortx)
+    _top_annot_score_groups = ut.take(grouped_annot_scores, group_sortx)
     top_daid_groups         = ut.listclip(_top_daid_groups, nNameShortList)
     top_annot_score_groups  = ut.listclip(_top_annot_score_groups, nNameShortList)
     # Sort within each group by the annotation score
@@ -556,8 +556,8 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     # Get contributing matches
     qaid = cm.qaid
     daid_list = daids
-    fm_list = ut.list_take(cm.fm_list, idx_list)
-    fs_list = ut.list_take(cm.fs_list, idx_list)
+    fm_list = ut.take(cm.fm_list, idx_list)
+    fs_list = ut.take(cm.fs_list, idx_list)
     # Draw matches
     for px, (daid, fm, fs) in enumerate(zip(daid_list, fm_list, fs_list), start=1):
         viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs,

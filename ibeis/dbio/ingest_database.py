@@ -989,7 +989,7 @@ def ingest_serengeti_mamal_cameratrap(species):
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(
         [serengeti_sepcies == species_ for species_ in species_class_species_list])
-    chosen_eventid_list = ut.list_take(species_class_eventid_list, species_class_chosen_idx_list)
+    chosen_eventid_list = ut.take(species_class_eventid_list, species_class_chosen_idx_list)
 
     print('Number of chosen species:')
     print(' * len(species_class_chosen_idx_list) = %r' % (len(species_class_chosen_idx_list),))

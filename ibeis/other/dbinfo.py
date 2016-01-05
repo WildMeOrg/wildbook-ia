@@ -238,14 +238,14 @@ def get_dbinfo(ibs, verbose=True,
     # Annot Info
     if verbose:
         print('Checking Annot Info')
-    multiton_aids_list = ut.list_take(nx2_aids, multiton_nxs)
+    multiton_aids_list = ut.take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
         multiton_aids = np.array([], dtype=np.int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
         assert len(set(multiton_aids)) == len(multiton_aids), 'duplicate annot'
-    singleton_aids = ut.list_take(nx2_aids, singleton_nxs)
+    singleton_aids = ut.take(nx2_aids, singleton_nxs)
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
 
     # Image size stats
@@ -570,7 +570,7 @@ def hackshow_names(ibs, aid_list, fnum=None):
     #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
 
     # Sort by num members
-    #ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
+    #ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
     xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
     #markers = ut.flatten(markers_list)
     #yaws = np.array(ut.flatten(yaws_list))

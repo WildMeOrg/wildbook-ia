@@ -337,7 +337,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
     #ut.get_argval('--qshuffle')
     if QSHUFFLE:
         # Determenistic shuffling
-        available_qaids = ut.list_take(available_qaids, ut.random_indexes(len(available_qaids), seed=42))
+        available_qaids = ut.take(available_qaids, ut.random_indexes(len(available_qaids), seed=42))
         qaid_request_info['shuffled'] = True
 
     # Sample a large pool of chosen query qindexes
@@ -493,7 +493,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
     #ut.get_argval('--qshuffle')
     if DSHUFFLE:
         # Determenistic shuffling
-        available_daids = ut.list_take(available_daids, ut.random_indexes(len(available_daids), seed=43))
+        available_daids = ut.take(available_daids, ut.random_indexes(len(available_daids), seed=43))
         daid_request_info['shuffled'] = True
 
     if DINDEX is not None:

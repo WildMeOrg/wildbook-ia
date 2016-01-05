@@ -1730,8 +1730,8 @@ def check_database_overlap(ibs1, ibs2):
     image_uuids2 = ibs2.get_image_uuids(gids2)
     gx_list1, gx_list2 = print_intersection(
         image_uuids1, image_uuids2, 'images')
-    gids_isect1 = ut.list_take(gids1, gx_list1)
-    gids_isect2 = ut.list_take(gids2, gx_list2)
+    gids_isect1 = ut.take(gids1, gx_list1)
+    gids_isect2 = ut.take(gids2, gx_list2)
     SHOW_ISECT_GIDS = False
     if SHOW_ISECT_GIDS:
         if len(gx_list1) > 0:
@@ -1771,8 +1771,8 @@ def check_database_overlap(ibs1, ibs2):
     if len(changed_image_xs) > 0:
         print('There are %d images with changes in annotation visual information' % (
             len(changed_image_xs),))
-        changed_gids1 = ut.list_take(gids_isect1, changed_image_xs)
-        changed_gids2 = ut.list_take(gids_isect2, changed_image_xs)
+        changed_gids1 = ut.take(gids_isect1, changed_image_xs)
+        changed_gids2 = ut.take(gids_isect2, changed_image_xs)
 
         SHOW_CHANGED_GIDS = False
         if SHOW_CHANGED_GIDS:
@@ -1809,11 +1809,11 @@ def check_database_overlap(ibs1, ibs2):
     changed_ax_list1 = ut.setdiff_ordered(avx_list1, asx_list1)
     changed_ax_list2 = ut.setdiff_ordered(avx_list2, asx_list2)
     assert len(changed_ax_list1) == len(changed_ax_list2)
-    assert ut.list_take(annot_vuuids1, changed_ax_list1) == ut.list_take(
+    assert ut.take(annot_vuuids1, changed_ax_list1) == ut.take(
         annot_vuuids2, changed_ax_list2)
 
-    changed_aids1 = np.array(ut.list_take(aids1, changed_ax_list1))
-    changed_aids2 = np.array(ut.list_take(aids2, changed_ax_list2))
+    changed_aids1 = np.array(ut.take(aids1, changed_ax_list1))
+    changed_aids2 = np.array(ut.take(aids2, changed_ax_list2))
 
     changed_sinfo1 = ibs1.get_annot_semantic_uuid_info(changed_aids1)
     changed_sinfo2 = ibs2.get_annot_semantic_uuid_info(changed_aids2)

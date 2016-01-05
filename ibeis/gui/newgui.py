@@ -1591,7 +1591,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         #isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
-        #ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
+        #ut.take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
 
         # Applies annotation based filtering to the annotation table
         #filter_kw = dict(any_matches='.*error.*', been_adjusted=True)
