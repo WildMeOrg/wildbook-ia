@@ -211,6 +211,28 @@ def imwrite(img_fpath, imgBGR, fallback=False):
     """
     References:
         http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html
+
+    Args:
+        img_fpath (str):  file path string
+        imgBGR (ndarray[uint8_t, ndim=2]):  image data in opencv format (blue, green, red)
+        fallback (bool): (default = False)
+
+    CommandLine:
+        python -m vtool.image --exec-imwrite
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> img_fpath1 = ut.grab_test_imgpath('zebra.png')
+        >>> imgBGR = vt.imread(img_fpath1)
+        >>> img_dpath = ut.ensure_app_resource_dir('vtool', 'testwrite')
+        >>> img_fpath2 = ut.unixjoin(img_dpath, 'zebra.png')
+        >>> fallback = False
+        >>> imwrite(img_fpath2, imgBGR, fallback=fallback)
+        >>> imgBGR2 = vt.imread(img_fpath2)
+        >>> assert np.all(imgBGR2 == imgBGR)
     """
     try:
         cv2.imwrite(img_fpath, imgBGR)
