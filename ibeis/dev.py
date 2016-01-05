@@ -52,7 +52,7 @@ from ibeis.init import main_helpers  # NOQA
 from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
 from ibeis.expt import experiment_harness  # NOQA
-from ibeis import params, constants  # NOQA
+from ibeis import params  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
@@ -385,7 +385,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 def dev_snippets(main_locals):
     """ Common variables for convineince when interacting with IPython """
     print('[dev] dev_snippets')
-    species = constants.Species.ZEB_GREVY
+    species = 'zebra_grevys'
     quick = True
     fnum = 1
     # Get reference to IBEIS Controller

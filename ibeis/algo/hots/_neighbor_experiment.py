@@ -56,7 +56,6 @@ def augment_nnindexer_experiment():
     """
     import ibeis
     # build test data
-    ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
     #ibs = ibeis.opendb('PZ_MTEST')
     ibs = ibeis.opendb(defaultdb='PZ_Master0')
     if ibs.get_dbname() == 'PZ_MTEST':
@@ -74,7 +73,7 @@ def augment_nnindexer_experiment():
         #max_ceiling = 600
     else:
         assert False
-    all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
+    all_daids = ibs.get_valid_aids(species='zebra_plains')
     qreq_ = ibs.new_query_request(all_daids, all_daids)
     max_num = min(max_ceiling, len(all_daids))
 

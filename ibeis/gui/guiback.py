@@ -896,7 +896,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.edit_prefs_wgt:
             back.edit_prefs_wgt.close()
         if species_text == 'none':
-            cfgname = const.Species.UNKNOWN  # 'cfg'
+            cfgname = const.UNKNOWN  # 'cfg'
         else:
             cfgname = species_text
         #
@@ -917,8 +917,7 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs.cfg.save()
 
         # TODO: incorporate this as a signal in guiback which connects to a slot in guifront
-        from ibeis import species
-        back.front.detect_button.setEnabled(species.species_has_detector(species_text))
+        back.front.detect_button.setEnabled(ibs.has_species_detector(species_text))
 
     def get_selected_species(back):
         species_text = back.ibs.cfg.detect_cfg.species_text
@@ -1044,7 +1043,9 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> print(result)
         """
         ibs = back.ibs
-        species_dict = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
+        species_text = ibs.get_all_species_texts()
+        species_nice = ibs.get_all_species_nice()
+        species_dict = dict(zip(species_text, species_nice))
 
         def get_unique_species_phrase(aid_list):
             def boldspecies(species):

@@ -29,7 +29,7 @@ def choose_vsmany_K(num_names, qaids, daids):
         >>> import ibeis
         >>> from ibeis import constants as const
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> valid_aids = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+        >>> valid_aids = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> num_names = np.arange(0, 1000)
         >>> num_names_slope = .1
         >>> K_max = 10

@@ -28,8 +28,8 @@ DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
 DISTINCTIVENESS_NORMALIZER_CACHE = {}
 BASELINE_DISTINCTIVNESS_URLS = {
     # TODO: Populate
-    const.Species.ZEB_GREVY: const.ZIPPED_URLS.GZ_DISTINCTIVE,
-    const.Species.ZEB_PLAIN: const.ZIPPED_URLS.PZ_DISTINCTIVE,
+    'zebra_grevys': const.ZIPPED_URLS.GZ_DISTINCTIVE,
+    'zebra_plains': const.ZIPPED_URLS.PZ_DISTINCTIVE,
 }
 PUBLISH_DIR = ut.unixpath('~/Dropbox/IBEIS')
 
@@ -51,7 +51,7 @@ def testdata_distinctiveness():
         species = ibs.get_annot_species_texts(aid)
     if species is None:
         if db == 'testdb1':
-            species = ibeis.const.Species.ZEB_PLAIN
+            species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
     daids = ibs.get_valid_aids(species=species)
     qaids = [aid] if aid is not None else daids
     qreq_ = ibs.new_query_request(qaids, daids)
@@ -399,8 +399,8 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> daids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(qaids, daids)
         >>> # execute function
         >>> dstcnvs_normer = request_ibeis_distinctiveness_normalizer(qreq_)
@@ -587,16 +587,15 @@ def dev_train_distinctiveness(species=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> import ibeis
-        >>> species_code = ut.get_argval('--species', str, 'GZ')
-        >>> species = sysres.resolve_species(species_code)
+        >>> species = ut.get_argval('--species', str, 'zebra_grevys')
         >>> dev_train_distinctiveness(species)
     """
     import ibeis
     #if 'species' not in vars() or species is None:
-    #    species = const.Species.ZEB_GREVY
-    if species == const.Species.ZEB_GREVY:
+    #    species = 'zebra_grevys'
+    if species == 'zebra_grevys':
         dbname = 'GZ_ALL'
-    elif species == const.Species.ZEB_PLAIN:
+    elif species == 'zebra_plains':
         dbname = 'PZ_Master0'
     ibs = ibeis.opendb(dbname)
     global_distinctdir = ibs.get_global_distinctiveness_modeldir()

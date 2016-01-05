@@ -67,7 +67,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import ibeis
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)

@@ -51,7 +51,7 @@ def empty_query(ibs, qaids):
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
         >>> # execute function
         >>> (qaid2_cm, qreq_) = empty_query(ibs, qaids)
         >>> # verify results

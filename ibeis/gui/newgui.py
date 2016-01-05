@@ -19,7 +19,6 @@ from six.moves import zip, map, filter  # NOQA
 from os.path import isdir
 import sys
 from ibeis import constants as const
-from ibeis import species
 import functools
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -474,15 +473,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         back = ibswgt.back
 
-        # TODO: update these options depending on ibs.get_species_with_detectors
-        # when a controller is attached to the gui
-        detection_combo_box_options = [
-            # Text              # Value
-            #('Select Species',  'none'),
-            ('Select Species',  const.Species.UNKNOWN),
-            #'none'),
-        ] + species.get_working_species_set()
-
+        detection_combo_box_options = []
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
@@ -692,6 +683,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 else:
                     #with ut.Indenter('[SET NEG1 ENC]'):
                     ibswgt._change_enc(-1)
+            # Update species with ones enabled in database
+
+            # TODO: update these options depending on ibs.get_species_with_detectors
+            # when a controller is attached to the gui
+            detection_combo_box_options = [
+                # Text              # Value
+                #('Select Species',  'none'),
+                ('Select Species',  const.UNKNOWN),
+                #'none'),
+            ] + sorted(list(ibs.get_working_species()))
+            ibswgt.species_combo.options = detection_combo_box_options
+            ibswgt.species_combo.updateOptions()
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()

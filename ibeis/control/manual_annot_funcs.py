@@ -140,12 +140,12 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> include_only_gid_list = None
         >>> yaw = 'no-filter'
         >>> is_exemplar = None
-        >>> species = const.Species.ZEB_PLAIN
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> is_known = False
         >>> # execute function
         >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, yaw, is_exemplar, species, is_known)
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
-        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, 'bad species')
+        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, 'bad species')
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
         >>> # verify results
         >>> result = str(aid_list)

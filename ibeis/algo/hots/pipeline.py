@@ -279,7 +279,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
         >>> qreq_ = ibs.new_query_request(qaids, daids,
@@ -862,8 +862,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     filtweights_list = [ut.get_list_column(_filtweight_list, index)
                         for index in range(nInternAids)]
     filtvalids_list = [[
-            None if filtvalid is None else filtvalid[index]
-            for filtvalid in _filtvalid_list
+        None if filtvalid is None else filtvalid[index]
+        for filtvalid in _filtvalid_list
     ] for index in range(nInternAids) ]
     # print('ut.depth_profile(_filtweight_list) = %r' % (ut.depth_profile(_filtweight_list),))
     # print('ut.depth_profile(filtweights_list) = %r' % (ut.depth_profile(filtweights_list),))

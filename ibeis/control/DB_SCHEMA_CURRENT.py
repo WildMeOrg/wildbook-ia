@@ -15,7 +15,7 @@ from ibeis import constants as const
 # =======================
 
 
-VERSION_CURRENT = '1.4.7'
+VERSION_CURRENT = '1.4.8'
 
 
 def update_current(db, ibs=None):

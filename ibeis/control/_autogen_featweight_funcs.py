@@ -119,7 +119,7 @@ def add_feat_featweights(ibs, feat_rowid_list, config2_=None, verbose=not ut.QUI
         >>> from ibeis.control._autogen_featweight_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> from ibeis import constants as const
-        >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)[:2]
+        >>> aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)[:2]
         >>> if 'annot' != 'feat':
         ...     feat_rowid_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)
         >>> featweight_rowid_list = ibs.add_feat_featweights(feat_rowid_list, config2_=config2_)
@@ -131,7 +131,7 @@ def add_feat_featweights(ibs, feat_rowid_list, config2_=None, verbose=not ut.QUI
         >>> from ibeis.control._autogen_featweight_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs('PZ_MTEST')
         >>> from ibeis import constants as const
-        >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)[0:7]
+        >>> aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)[0:7]
         >>> if 'annot' != 'feat':
         ...     feat_rowid_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)
         >>> sub_feat_rowid_list1 = feat_rowid_list[0:6]

@@ -12,7 +12,7 @@ import utool as ut
 import sys
 
 #__version__ = '0.1.0.dev1'
-#__version__ = '1.4.7'
+#__version__ = '1.4.8'
 
 utool.noinject(__name__, '[ibeis.__init__]')
 if ut.VERBOSE:
@@ -40,7 +40,6 @@ try:
     from ibeis import constants as const
     from ibeis import params
     from ibeis import main_module
-    from ibeis import species
     from ibeis import other
     from ibeis.init import sysres
     #main_module._preload()
@@ -297,7 +296,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.4.7'
+__version__ = '1.4.8'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

@@ -411,8 +411,9 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
     if ut.NO_ASSERTS:
         return
     try:
+        valid_species = ibs.get_all_species_texts()
         isvalid_list = [
-            species in const.VALID_SPECIES  # or species == const.UNKNOWN
+            species in valid_species  # or species == const.UNKNOWN
             for species in species_list
         ]
         assert all(isvalid_list), 'invalid species found in %r: %r' % (
@@ -1543,26 +1544,27 @@ def set_annot_names_to_next_name(ibs, aid_list):
 
 @register_ibs_method
 def _overwrite_annot_species_to_plains(ibs, aid_list):
-    species_list = [const.Species.ZEB_PLAIN] * len(aid_list)
+    species_list = ['zebra_plains'] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @register_ibs_method
 def _overwrite_annot_species_to_grevys(ibs, aid_list):
-    species_list = [const.Species.ZEB_GREVY] * len(aid_list)
+    species_list = ['zebra_grevys'] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @register_ibs_method
 def _overwrite_annot_species_to_giraffe(ibs, aid_list):
-    species_list = [const.Species.GIR] * len(aid_list)
+    species_list = ['giraffe_reticulated'] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @register_ibs_method
 def _overwrite_all_annot_species_to(ibs, species):
     """ THIS OVERWRITES A LOT OF INFO """
-    assert species in const.VALID_SPECIES, repr(species) + 'is not in ' + repr(const.VALID_SPECIES)
+    valid_species = ibs.get_all_species_texts()
+    assert species in valid_species, repr(species) + 'is not in ' + repr(valid_species)
     aid_list = ibs.get_valid_aids()
     species_list = [species] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
@@ -2328,11 +2330,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     unique_species_rowids_list = list(map(ut.unique_keep_order, species_rowids_list))
-    # TODO: ibs.duplicate_map
-    unique_species_texts_list = ibs.unflat_map(ibs.get_species_texts, unique_species_rowids_list)
-    species_codes = [
-        list(map(const.get_species_code, texts))
-        for texts in unique_species_texts_list]
+    species_codes = ibs.get_species_code(unique_species_rowids_list)
     code_list = ['_'.join(codes) for codes in species_codes]
 
     _code2_count = ut.ddict(lambda: 0)
@@ -2419,7 +2417,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> next_name1 = make_next_name(ibs1, num, str_format)
         >>> next_name2 = make_next_name(ibs2, num, str_format)
         >>> next_name3 = make_next_name(ibs3, num, str_format)
-        >>> next_name4 = make_next_name(ibs1, num, str_format, const.Species.ZEB_GREVY)
+        >>> next_name4 = make_next_name(ibs1, num, str_format, const.TEST_SPECIES.ZEB_GREVY)
         >>> name_list = [next_name1, next_name2, next_name3, next_name4]
         >>> next_name_list1 = make_next_name(ibs2, 5, str_format)
         >>> temp_nids = ibs2.add_names(['IBEIS_PZ_0045', 'IBEIS_PZ_0048'])
@@ -2463,7 +2461,8 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
             timestamp_prefix = ''
             name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
         elif str_format == 2:
-            species_code = const.get_species_code(species_text)
+            species_rowid = ibs.get_species_rowids_from_text(species_text)
+            species_code = ibs.get_species_code(species_rowid)
             name_prefix = location_text + '_' + species_code + '_'
         else:
             raise ValueError('Invalid str_format supplied')
@@ -2949,15 +2948,15 @@ def get_primary_species_viewpoint(species, plus=0):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> aid_subset = get_primary_species_viewpoint(species, 0)
         >>> result = ('aid_subset = %s' % (str(aid_subset),))
         >>> print(result)
         aid_subset = left
     """
-    if species == const.Species.ZEB_PLAIN:
+    if species == 'zebra_plains':
         primary_viewpoint = 'left'
-    elif species == const.Species.ZEB_GREVY:
+    elif species == 'zebra_grevys':
         primary_viewpoint = 'right'
     else:
         primary_viewpoint = 'left'
@@ -3053,16 +3052,16 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         >>> print(result)
     """
     species = get_primary_database_species(ibs, ibs.get_valid_aids())
-    #aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN, is_known=True)
+    #aid_list = ibs.get_valid_aids(species='zebra_plains', is_known=True)
     aid_list = ibs.get_valid_aids(species=species, is_known=True)
     # FILTER OUT UNUSABLE ANNOTATIONS
     # Get annots with timestamps
     aid_list = filter_aids_without_timestamps(ibs, aid_list)
     minqual = 'ok'
     #valid_yaws = {'left', 'frontleft', 'backleft'}
-    if species == ibs.const.Species.ZEB_PLAIN:
+    if species == 'zebra_plains':
         valid_yawtexts = {'left', 'frontleft'}
-    elif species == ibs.const.Species.ZEB_GREVY:
+    elif species == 'zebra_grevys':
         valid_yawtexts = {'right', 'frontright'}
     else:
         valid_yawtexts = {'left', 'frontleft'}
@@ -3301,19 +3300,19 @@ def get_primary_database_species(ibs, aid_list=None):
     SPEED_HACK = True
     if SPEED_HACK:
         if ibs.get_dbname() == 'PZ_MTEST':
-            return const.Species.ZEB_PLAIN
+            return 'zebra_plains'
         elif ibs.get_dbname() == 'PZ_Master0':
-            return const.Species.ZEB_PLAIN
+            return 'zebra_plains'
         elif ibs.get_dbname() == 'NNP_Master':
-            return const.Species.ZEB_PLAIN
+            return 'zebra_plains'
         elif ibs.get_dbname() == 'GZ_ALL':
-            return const.Species.ZEB_GREVY
+            return 'zebra_grevys'
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
     species_hist = ut.dict_hist(species_list)
     if len(species_hist) == 0:
-        primary_species = const.Species.UNKNOWN
+        primary_species = const.UNKNOWN
     else:
         frequent_species = sorted(species_hist.items(), key=lambda item: item[1], reverse=True)
         primary_species = frequent_species[0][0]
@@ -5066,7 +5065,7 @@ def filter_aids_to_species(ibs, aid_list, species):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species = ibeis.const.Species.ZEB_GREVY
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)

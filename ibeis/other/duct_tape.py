@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 from six.moves import zip
-from ibeis import constants
+from ibeis import constants as const
 (print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')
 
 
@@ -29,7 +29,7 @@ def fix_compname_configs(ibs):
             UPDATE {AL_RELATION_TABLE}
             SET config_rowid=?
             WHERE config_rowid=?
-            '''.format(**constants.__dict__),
+            '''.format(**const.__dict__),
             params=(ibs.MANUAL_CONFIGID, rowid))
 
         # Delete the bad config_suffixes
@@ -38,7 +38,7 @@ def fix_compname_configs(ibs):
             DELETE
             FROM {CONFIG_TABLE}
             WHERE config_rowid=?
-            '''.format(**constants.__dict__),
+            '''.format(**const.__dict__),
             params=(rowid,))
 
 
@@ -68,7 +68,7 @@ def remove_database_slag(ibs,
             FROM {ANNOTATION_TABLE}
             WHERE
                 image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
 
     if delete_image_labels_for_missing_types:
         ibs.db.executeone(
@@ -77,7 +77,7 @@ def remove_database_slag(ibs,
             FROM {LBLIMAGE_TABLE}
             WHERE
                 lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
 
     if delete_annot_labels_for_missing_types:
         ibs.db.executeone(
@@ -86,7 +86,7 @@ def remove_database_slag(ibs,
             FROM {LBLANNOT_TABLE}
             WHERE
                 lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
 
     # SECOND ORDER
     if delete_chips_for_missing_annotations:
@@ -96,7 +96,7 @@ def remove_database_slag(ibs,
             FROM {CHIP_TABLE}
             WHERE
                 annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
         # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
 
     if delete_features_for_missing_annotations:
@@ -106,7 +106,7 @@ def remove_database_slag(ibs,
             FROM {FEATURE_TABLE}
             WHERE
                 chip_rowid NOT IN (SELECT rowid FROM {CHIP_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
         # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
 
     if delete_invalid_eg_relations:
@@ -117,7 +117,7 @@ def remove_database_slag(ibs,
             WHERE
                 image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR
                 encounter_rowid NOT IN (SELECT rowid FROM {ENCOUNTER_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
 
     # THIRD ORDER
     if delete_invalid_gl_relations:
@@ -128,7 +128,7 @@ def remove_database_slag(ibs,
             WHERE
                 image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR
                 lblimage_rowid NOT IN (SELECT rowid FROM {LBLIMAGE_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
         # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
 
     if delete_invalid_al_relations:
@@ -139,14 +139,14 @@ def remove_database_slag(ibs,
             WHERE
                 annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE}) OR
                 lblannot_rowid NOT IN (SELECT rowid FROM {LBLANNOT_TABLE})
-            '''.format(**constants.__dict__))
+            '''.format(**const.__dict__))
         # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
 
 
 def enforce_unkonwn_name_is_explicit(ibs):
     nid_list = ibs.get_valid_nids()
     text_list = ibs.get_name_texts(nid_list)
-    problem_nids = [text for text, nid in zip(text_list, nid_list) if text == constants.UNKNOWN]
+    problem_nids = [text for text, nid in zip(text_list, nid_list) if text == const.UNKNOWN]
     unknown_aids = ibs.get_name_aids(problem_nids)
     assert len(ut.flatten(unknown_aids)) == 0
     # TODO Take unknown_aids and remove any name relationships to make unknown

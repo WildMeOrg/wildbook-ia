@@ -1171,13 +1171,140 @@ def post_1_4_7(db, ibs=None):
     db.modify_table(
         const.IMAGE_TABLE,
         [
-            # change type of annot_visual_uuid
+            # change type of image_uri_original
             ('image_uri_original', '', 'TEXT NOT NULL', None),
         ],
     )
 
 
-def update_1_4_8(db, ibs=None):
+def pre_1_4_9(db, ibs=None):
+    if ibs is not None:
+        remapping_dict = {
+            'frogs'               : 'frog',
+            'giraffe'             : 'giraffe_reticulated',
+            'seals_spotted'       : 'seal_spotted',
+            'seals_saimma_ringed' : 'seal_saimma_ringed',
+        }
+        from os.path import join
+        species_rowid_list = ibs._get_all_species_rowids()
+        species_text_list = ibs.get_species_texts(species_rowid_list)
+        for rowid, text in zip(species_rowid_list, species_text_list):
+            if text in remapping_dict:
+                # Update record for reticulated giraffe
+                ibs._set_species_texts([rowid], [remapping_dict[text]])
+
+                # Delete obsolete cPkl file on disk
+                cPlk_path = join(ibs.get_dbdir(), '%s.cPkl' % (text, ))
+                ut.delete(cPlk_path)
+
+                # Recompute all effected annotation's semantic UUIDs
+                aid_list = ibs._get_all_aids()
+                annot_species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+                flag_list = [
+                    annot_species_rowid == rowid
+                    for annot_species_rowid in annot_species_rowid_list
+                ]
+                aid_list_ = ut.filter_items(aid_list, flag_list)
+                ibs.update_annot_semantic_uuids(aid_list_)
+
+        # Add missing "required" species
+        species_nice_list = [
+            'Giraffe (Masai)',
+            'Giraffe (Reticulated)',
+            'Other',
+            'Zebra (Grevy\'s)',
+            'Zebra (Hybrid)',
+            'Zebra (Plains)'
+        ]
+        species_text_list = [
+            'giraffe_masai',
+            'giraffe_reticulated',
+            'other',
+            'zebra_grevys',
+            'zebra_hybrid',
+            'zebra_plains',
+        ]
+        species_code_list = [
+            'GIRM',
+            'GIR',
+            'OTHER',
+            'GZ',
+            'HZ',
+            'PZ',
+        ]
+        ibs.add_species(species_nice_list, species_text_list, species_code_list)
+
+
+def update_1_4_9(db, ibs=None):
+    db.modify_table(const.SPECIES_TABLE, (
+        (3, 'species_nice', 'TEXT', None),
+        (4, 'species_code', 'TEXT', None),
+        (None, 'species_toggle_enabled', 'INTEGER DEFAULT 1', None),
+    ))
+
+
+def post_1_4_9(db, ibs=None):
+    species_mapping = {
+        'bear_polar'          :       ('PB', 'Polar Bear'),
+        'building'            : ('BUILDING', 'Building'),
+        'cheetah'             :     ('CHTH', 'Cheetah'),
+        'elephant_savanna'    :     ('ELEP', 'Elephant (Savanna)'),
+        'frog'                :     ('FROG', 'Frog'),
+        'giraffe_masai'       :     ('GIRM', 'Giraffe (Masai)'),
+        'giraffe_reticulated' :      ('GIR', 'Giraffe (Reticulated)'),
+        'hyena'               :    ('HYENA', 'Hyena'),
+        'jaguar'              :      ('JAG', 'Jaguar'),
+        'leopard'             :     ('LOEP', 'Leopard'),
+        'lion'                :     ('LION', 'Lion'),
+        'lionfish'            :       ('LF', 'Lionfish'),
+        'lynx'                :     ('LYNX', 'Lynx'),
+        'nautilus'            :     ('NAUT', 'Nautilus'),
+        'other'               :    ('OTHER', 'Other'),
+        'rhino_black'         :   ('BRHINO', 'Rhino (Black)'),
+        'rhino_white'         :   ('WRHINO', 'Rhino (White)'),
+        'seal_saimma_ringed'  :    ('SEAL2', 'Seal (Siamaa Ringed)'),
+        'seal_spotted'        :    ('SEAL1', 'Seal (Spotted)'),
+        'snail'               :    ('SNAIL', 'Snail'),
+        'snow_leopard'        :    ('SLEOP', 'Snow Leopard'),
+        'tiger'               :    ('TIGER', 'Tiger'),
+        'toads_wyoming'       :   ('WYTOAD', 'Toad (Wyoming)'),
+        'water_buffalo'       :     ('BUFF', 'Water Buffalo'),
+        'wildebeest'          :       ('WB', 'Wildebeest'),
+        'wild_dog'            :       ('WD', 'Wild Dog'),
+        'whale_fluke'         :       ('WF', 'Whale Fluke'),
+        'whale_humpback'      :       ('HW', 'Humpback Whale'),
+        'whale_shark'         :       ('WS', 'Whale Shark'),
+        'zebra_grevys'        :       ('GZ', 'Zebra (Grevy\'s)'),
+        'zebra_hybrid'        :       ('HZ', 'Zebra (Hybrid)'),
+        'zebra_plains'        :       ('PZ', 'Zebra (Plains)'),
+        const.UNKNOWN         :  ('UNKNOWN', 'Unknown'),
+    }
+
+    if ibs is not None:
+        species_rowid_list = ibs._get_all_species_rowids()
+        species_text_list = ibs.get_species_texts(species_rowid_list)
+        for rowid, text in zip(species_rowid_list, species_text_list):
+            if text in species_mapping:
+                species_code, species_nice = species_mapping[text]
+            else:
+                print('Found an unknown species...')
+                species_nice = raw_input('Input a NICE name for %r: ' % (text, ))
+                species_code = raw_input('Input a CODE name for %r: ' % (text, ))
+                assert len(species_code) > 0 and len(species_nice) > 0
+            ibs._set_species_nice([rowid], [species_nice])
+            ibs._set_species_code([rowid], [species_code])
+
+    db.modify_table(
+        const.SPECIES_TABLE,
+        [
+            # change type of species_nice
+            ('species_nice', '', 'TEXT NOT NULL', None),
+            ('species_code', '', 'TEXT NOT NULL', None),
+        ],
+    )
+
+
+def update_1_4_10(db, ibs=None):
     """
     Need to;
         change notes to tag_text_data
@@ -1260,7 +1387,9 @@ VALID_VERSIONS = ut.odict([
     ('1.4.5',    (None,                 update_1_4_5,       None                )),
     ('1.4.6',    (None,                 update_1_4_6,       None                )),
     ('1.4.7',    (None,                 update_1_4_7,       post_1_4_7          )),
-    #('1.4.8',    (None,                 update_1_4_8,       None                )),
+    # ('1.4.8',    (None,                 update_1_4_8,       None                )),
+    ('1.4.9',    (pre_1_4_9,            update_1_4_9,       post_1_4_9          )),
+    #('1.4.10',    (None,                 update_1_4_10,       None                )),
 ])
 
 

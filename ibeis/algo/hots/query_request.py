@@ -410,7 +410,7 @@ class QueryRequest(object):
             >>> import ibeis
             >>> # build test data
             >>> ibs = ibeis.opendb('testdb1')
-            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
             >>> daids = ibs.get_valid_aids(species=species, is_exemplar=True)
             >>> qaids = ibs.get_valid_aids(species=species, is_exemplar=False)
             >>> qreq_ = ibs.new_query_request(qaids, daids)
@@ -771,7 +771,7 @@ class QueryRequest(object):
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
             >>> daids = ibs.get_valid_aids(species=species)
             >>> qaids = ibs.get_valid_aids(species=species)
             >>> qreq_ = ibs.new_query_request(qaids, daids)

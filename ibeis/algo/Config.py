@@ -1122,8 +1122,8 @@ class DetectionConfig(ConfigBase):
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
-        #detect_cfg.species_text = const.Species.ZEB_GREVY
-        detect_cfg.species_text = const.Species.UNKNOWN
+        #detect_cfg.species_text = 'zebra_grevys'
+        detect_cfg.species_text = const.UNKNOWN
         detect_cfg.detector = 'rf'
         detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
         detect_cfg.trees_path  = ''
@@ -1373,7 +1373,7 @@ def _default_named_config(cfg, cfgname):
     """
     if cfgname == 'cfg':
         cfg.detect_cfg.species_text = 'none'
-    elif cfgname == const.Species.ZEB_PLAIN:
+    elif cfgname == 'zebra_plains':
         cfg.detect_cfg.species_text = cfgname
         #speedup': 46.90769958496094,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
@@ -1394,13 +1394,13 @@ def _default_named_config(cfg, cfgname):
         #'speedup': 65.54280090332031,
         #'target_precision': 0.9800000190734863,
 
-    elif cfgname == const.Species.ZEB_GREVY:
+    elif cfgname == 'zebra_grevys':
         cfg.detect_cfg.species_text = cfgname
         #speedup': 224.7425994873047,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 4
         cfg.query_cfg.nn_cfg.checks = 896
-    elif cfgname == const.Species.GIRAFFE:
+    elif cfgname == 'giraffe_reticulated':
         cfg.detect_cfg.species_text = cfgname
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8

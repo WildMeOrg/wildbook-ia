@@ -196,7 +196,7 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> gid_list = ibs.get_valid_gids()
         >>> downsample = True
         >>> kwargs = {}
@@ -327,7 +327,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         >>> from ibeis.algo.detect.randomforest import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> cfg_override = True
         >>> verbose = False

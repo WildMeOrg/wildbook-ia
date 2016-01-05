@@ -44,7 +44,7 @@ def get_species_trees_paths(species, modeldir='default'):
         >>> from ibeis.algo.detect.grabmodels import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> # execute function
         >>> trees_path = get_species_trees_paths(species, modeldir)

@@ -5,7 +5,7 @@ TODO: Rename to ibeis/init/commands.py
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import sys
-from ibeis import constants
+from ibeis import constants as const
 from ibeis import params
 from ibeis import ibsfuncs
 from ibeis.init import sysres
@@ -15,7 +15,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')
 
 def vdq(dbdir):
     """view directory and quit"""
-    _ibsdb = constants.PATH_NAMES._ibsdb
+    _ibsdb = const.PATH_NAMES._ibsdb
     ut.util_cplat.view_directory(join(dbdir, _ibsdb))
     sys.exit(1)
 
@@ -131,7 +131,6 @@ def postload_commands(ibs, back):
                                                     allow_table_change=True)
 
     if params.args.query_aid is not None:
-        import ibeis.constants as const
         qaid_list = params.args.query_aid
         # fix stride case
         if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
