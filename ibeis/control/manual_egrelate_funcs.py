@@ -41,7 +41,7 @@ def delete_empty_eids(ibs):
     eid_list = ibs.get_valid_eids(min_num_gids=0)
     nGids_list = ibs.get_encounter_num_gids(eid_list)
     is_invalid = [nGids == 0 for nGids in nGids_list]
-    invalid_eids = ut.list_compress(eid_list, is_invalid)
+    invalid_eids = ut.compress(eid_list, is_invalid)
     ibs.delete_encounters(invalid_eids)
 
 

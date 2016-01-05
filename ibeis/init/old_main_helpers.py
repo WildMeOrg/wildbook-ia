@@ -252,7 +252,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * Including hard qaids')
         is_hard_list = ibs.get_annot_is_hard(valid_aids)
-        hard_aids = ut.list_compress(valid_aids, is_hard_list)
+        hard_aids = ut.compress(valid_aids, is_hard_list)
         available_qaids.extend(hard_aids)
         qaid_request_info['hard_cases'] = True
 
@@ -260,7 +260,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * Including groundtruth qaids')
         has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
-        hasgt_aids = ut.list_compress(valid_aids, has_gt_list)
+        hasgt_aids = ut.compress(valid_aids, has_gt_list)
         print('[get_test_qaids] Adding all %d/%d ground-truthed test cases' % (len(hasgt_aids), len(valid_aids)))
         available_qaids.extend(hasgt_aids)
         qaid_request_info['gt_cases'] = True
@@ -325,7 +325,7 @@ def get_test_qaids(ibs, default_qaids=None, return_annot_info=False, aidcfg=None
         if VERB_MAIN_HELPERS:
             print('[get_test_qaids] * Filtering to species=%r' % (species,))
         isvalid_list = np.array(ibs.get_annot_species(available_qaids)) == species
-        available_qaids = ut.list_compress(available_qaids, isvalid_list)
+        available_qaids = ut.compress(available_qaids, isvalid_list)
         qaid_request_info['species_filter'] = species
 
     if VERB_MAIN_HELPERS:
@@ -483,7 +483,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None, return_annot_info=F
             print('[get_test_daids] * Filtering to species=%r' % (species,))
         import numpy as np
         isvalid_list = np.array(ibs.get_annot_species(available_daids)) == species
-        available_daids = ut.list_compress(available_daids, isvalid_list)
+        available_daids = ut.compress(available_daids, isvalid_list)
 
     # ---- SUBINDEXING STEP
     if VERB_MAIN_HELPERS:

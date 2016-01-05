@@ -130,7 +130,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
         >>> if REMOVE_EMPTY_MATCHES:
         >>>     isvalid_list = [len(fm) > 0 for fm in name_fm_list]
-        >>>     name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
+        >>>     name_fm_list = ut.compress(name_fm_list, isvalid_list)
         >>>     sorted_groupxs = sorted_groupxs.compress(isvalid_list)
         >>> name_H1_list   = None if not homog or cm.H_list is None else ut.take(cm.H_list, sorted_groupxs)
         >>> name_fsv_list  = None if cm.fsv_list is None else ut.take(cm.fsv_list, sorted_groupxs)

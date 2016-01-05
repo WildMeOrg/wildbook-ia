@@ -225,7 +225,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         is_name1 = [nid == self.nid1 for nid in unique_nid_list]
         is_name2 = [nid == self.nid2 for nid in unique_nid_list]
         is_other = ut.and_lists(*tuple(map(ut.not_list, (is_name1, is_name2, is_unknown))))
-        other_nid_list = ut.list_compress(unique_nid_list, is_other)
+        other_nid_list = ut.compress(unique_nid_list, is_other)
         return other_nid_list
 
     def get_rotating_columns(self, rowx):
@@ -637,7 +637,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         aid_list    = self.all_aid_list
         is_unknown  = ibs.is_aid_unknown(aid_list)
-        aid_list_filtered = ut.list_compress(aid_list, is_unknown)
+        aid_list_filtered = ut.compress(aid_list, is_unknown)
         # Rename annotations
         ibs.set_annot_names_to_different_new_names(aid_list_filtered)
         self.update_callback()

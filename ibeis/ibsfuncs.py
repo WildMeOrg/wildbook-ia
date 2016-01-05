@@ -231,7 +231,7 @@ def get_image_time_statstr(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     unixtime_list_ = ibs.get_image_unixtime(gid_list)
     utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.list_compress(unixtime_list_, utvalid_list)
+    unixtime_list  = ut.compress(unixtime_list_, utvalid_list)
     unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
     return unixtime_statstr
 
@@ -445,11 +445,11 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
         assert not any(isinvalid_list), 'invalid gids: %r' % (
-            ut.list_compress(gid_list, isinvalid_list),)
+            ut.compress(gid_list, isinvalid_list),)
         isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES)
                           for gid in gid_list]
         assert not any(isinvalid_list), 'invalidly typed gids: %r' % (
-            ut.list_compress(gid_list, isinvalid_list),)
+            ut.compress(gid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -509,12 +509,12 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     try:
         assert not any(isinvalid_list), '%d/%d invalid aids: %r' % (
             sum(isinvalid_list), len(aid_list),
-            ut.list_compress(aid_list, isinvalid_list),)
+            ut.compress(aid_list, isinvalid_list),)
         isinvalid_list = [
             not ut.is_int(aid) for aid in aid_list]
         assert not any(isinvalid_list), '%d/%d invalidly typed aids: %r' % (
             sum(isinvalid_list), len(aid_list),
-            ut.list_compress(aid_list, isinvalid_list),)
+            ut.compress(aid_list, isinvalid_list),)
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
@@ -719,7 +719,7 @@ def check_annot_consistency(ibs, aid_list=None):
     cfpath_list = ibs.get_chip_fpath(cid_list)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
-    invalid_cids = ut.list_compress(cid_list, invalid_list)
+    invalid_cids = ut.compress(cid_list, invalid_list)
     if len(invalid_cids) > 0:
         print('found %d inconsistent chips attempting to fix' % len(invalid_cids))
         ibs.delete_chips(invalid_cids, verbose=True)
@@ -728,7 +728,7 @@ def check_annot_consistency(ibs, aid_list=None):
     exemplar_flag = ibs.get_annot_exemplar_flags(aid_list)
     is_unknown = ibs.is_aid_unknown(aid_list)
     # Exemplars should all be known
-    unknown_exemplar_flags = ut.list_compress(exemplar_flag, is_unknown)
+    unknown_exemplar_flags = ut.compress(exemplar_flag, is_unknown)
     is_error = [not flag for flag in unknown_exemplar_flags]
     assert all(is_error), 'Unknown annotations are set as exemplars'
     ut.debug_duplicate_items(visual_uuid_list)
@@ -912,7 +912,7 @@ def check_annotmatch_consistency(ibs):
     exists1_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid1_list)
     exists2_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid2_list)
     invalid_list = ut.not_list(ut.and_lists(exists1_list, exists2_list))
-    invalid_annotmatch_rowids = ut.list_compress(annomatch_rowids, invalid_list)
+    invalid_annotmatch_rowids = ut.compress(annomatch_rowids, invalid_list)
     print('There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),))
     return invalid_annotmatch_rowids
 
@@ -967,7 +967,7 @@ def fix_zero_features(ibs):
     aid_list = ibs.get_valid_aids()
     nfeat_list = ibs.get_annot_num_feats(aid_list, ensure=False)
     haszero_list = [nfeat == 0 for nfeat in nfeat_list]
-    haszero_aids = ut.list_compress(aid_list, haszero_list)
+    haszero_aids = ut.compress(aid_list, haszero_list)
     ibs.delete_annot_chips(haszero_aids)
 
 
@@ -1040,8 +1040,8 @@ def fix_exif_data(ibs, gid_list):
         exif_prop_list = [exif_getter(_dict, None) for _dict in exif_dict_list]
         hasprop_list = [prop is not None for prop in exif_prop_list]
 
-        exif_prop_list_ = ut.list_compress(exif_prop_list, hasprop_list)
-        gid_list_       = ut.list_compress(gid_list, hasprop_list)
+        exif_prop_list_ = ut.compress(exif_prop_list, hasprop_list)
+        gid_list_       = ut.compress(gid_list, hasprop_list)
         ibs_prop_list   = ibs_getter(gid_list_)
         isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
@@ -1051,8 +1051,8 @@ def fix_exif_data(ibs, gid_list):
         if False and sum(isdirty_list)  > 0:
             assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
             #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
-            new_exif_prop_list = ut.list_compress(exif_prop_list_, isdirty_list)
-            dirty_gid_list = ut.list_compress(gid_list_, isdirty_list)
+            new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
+            dirty_gid_list = ut.compress(gid_list_, isdirty_list)
             ibs_setter(dirty_gid_list, new_exif_prop_list)
 
     FIX_GPS = True
@@ -1061,8 +1061,8 @@ def fix_exif_data(ibs, gid_list):
         #latlon_list = [vt.get_lat_lon(_dict, None) for _dict in exif_dict_list]
         #hasprop_list = [latlon is not None for latlon in latlon_list]
 
-        #latlon_list_ = ut.list_compress(latlon_list, hasprop_list)
-        #gid_list_    = ut.list_compress(gid_list, hasprop_list)
+        #latlon_list_ = ut.compress(latlon_list, hasprop_list)
+        #gid_list_    = ut.compress(gid_list, hasprop_list)
         #gps_list = ibs.get_image_gps(gid_list_)
         #isdirty_list = [gps == (-1, -1) for gps in gps_list]
 
@@ -1073,8 +1073,8 @@ def fix_exif_data(ibs, gid_list):
         #    assert sum(isdirty_list) == len(isdirty_list), (
         #        'safety. remove and evaluate if hit')
         #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
-        #    latlon_list__ = ut.list_compress(latlon_list_, isdirty_list)
-        #    gid_list__ = ut.list_compress(gid_list_, isdirty_list)
+        #    latlon_list__ = ut.compress(latlon_list_, isdirty_list)
+        #    gid_list__ = ut.compress(gid_list_, isdirty_list)
         #    ibs.set_image_gps(gid_list__, latlon_list__)
 
     FIX_UNIXTIME = True
@@ -1088,8 +1088,8 @@ def fix_exif_data(ibs, gid_list):
         #exif_prop_list = [vt.get_unixtime(_dict, None) for _dict in exif_dict_list]
         #hasprop_list = [prop is not None for prop in exif_prop_list]
 
-        #exif_prop_list_ = ut.list_compress(exif_prop_list, hasprop_list)
-        #gid_list_       = ut.list_compress(gid_list, hasprop_list)
+        #exif_prop_list_ = ut.compress(exif_prop_list, hasprop_list)
+        #gid_list_       = ut.compress(gid_list, hasprop_list)
         #ibs_prop_list   = ibs.get_image_unixtime(gid_list_)
         #isdirty_list    = [prop == dirty_ibs_val for prop in ibs_prop_list]
 
@@ -1099,8 +1099,8 @@ def fix_exif_data(ibs, gid_list):
         #if False and sum(isdirty_list)  > 0:
         #    assert sum(isdirty_list) == len(isdirty_list), 'safety. remove and evaluate if hit'
         #    #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
-        #    new_exif_prop_list = ut.list_compress(exif_prop_list_, isdirty_list)
-        #    dirty_gid_list = ut.list_compress(gid_list_, isdirty_list)
+        #    new_exif_prop_list = ut.compress(exif_prop_list_, isdirty_list)
+        #    dirty_gid_list = ut.compress(gid_list_, isdirty_list)
         #    ibs.set_image_unixtime(dirty_gid_list, new_exif_prop_list)
 
 
@@ -1137,8 +1137,8 @@ def fix_invalid_nids(ibs):
     name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
     is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
     if any(is_invalid_nid_list):
-        invalid_nids = ut.list_compress(nid_list, is_invalid_nid_list)
-        invalid_texts = ut.list_compress(name_text_list, is_invalid_nid_list)
+        invalid_nids = ut.compress(nid_list, is_invalid_nid_list)
+        invalid_texts = ut.compress(name_text_list, is_invalid_nid_list)
         if (len(invalid_nids) == 0 and
               invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
               invalid_texts[0] == const.UNKNOWN):
@@ -1185,8 +1185,8 @@ def fix_invalid_name_texts(ibs):
     is_invalid_name_text_list = [name_text in invalid_name_set
                                  for name_text in name_text_list]
     if any(is_invalid_name_text_list):
-        invalid_nids = ut.list_compress(nid_list, is_invalid_name_text_list)
-        invalid_texts = ut.list_compress(name_text_list, is_invalid_name_text_list)
+        invalid_nids = ut.compress(nid_list, is_invalid_name_text_list)
+        invalid_texts = ut.compress(name_text_list, is_invalid_name_text_list)
         for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
             conflict_set = invalid_name_set.union(
                 set(ibs.get_name_texts(nid_list, apply_fix=False)))
@@ -1255,8 +1255,8 @@ def fix_unknown_exemplars(ibs):
     flag_list = ibs.get_annot_exemplar_flags(aid_list)
     unknown_list = ibs.is_aid_unknown(aid_list)
     # Exemplars should all be known
-    unknown_exemplar_flags = ut.list_compress(flag_list, unknown_list)
-    unknown_aid_list = ut.list_compress(aid_list, unknown_list)
+    unknown_exemplar_flags = ut.compress(flag_list, unknown_list)
+    unknown_aid_list = ut.compress(aid_list, unknown_list)
     print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
     ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
     #is_error = [not flag for flag in unknown_exemplar_flags]
@@ -1484,7 +1484,7 @@ def get_annot_is_hard(ibs, aid_list):
 @register_ibs_method
 def get_hard_annot_rowids(ibs):
     valid_aids = ibs.get_valid_aids()
-    hard_aids = ut.list_compress(valid_aids, ibs.get_annot_is_hard(valid_aids))
+    hard_aids = ut.compress(valid_aids, ibs.get_annot_is_hard(valid_aids))
     return hard_aids
 
 
@@ -1492,7 +1492,7 @@ def get_hard_annot_rowids(ibs):
 def get_easy_annot_rowids(ibs):
     hard_aids = ibs.get_hard_annot_rowids()
     easy_aids = ut.setdiff_ordered(ibs.get_valid_aids(), hard_aids)
-    easy_aids = ut.list_compress(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
+    easy_aids = ut.compress(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
     return easy_aids
 
 
@@ -1912,7 +1912,7 @@ def get_ungrouped_gids(ibs):
     gid_list = ibs.get_valid_gids()
     eids_list = ibs.get_image_eids(gid_list)
     has_eids = [special_eids.issuperset(set(eids)) for eids in eids_list]
-    ungrouped_gids = ut.list_compress(gid_list, has_eids)
+    ungrouped_gids = ut.compress(gid_list, has_eids)
     return ungrouped_gids
 
 
@@ -3067,7 +3067,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     else:
         valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
-    aid_list = ut.list_compress(aid_list, flags_list)
+    aid_list = ut.compress(aid_list, flags_list)
     #print('print subset info')
     #print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
     #print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
@@ -3161,7 +3161,7 @@ def get_aids_with_groundtruth(ibs):
     """ returns aids with valid groundtruth """
     valid_aids = ibs.get_valid_aids()
     has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
-    hasgt_aids = ut.list_compress(valid_aids, has_gt_list)
+    hasgt_aids = ut.compress(valid_aids, has_gt_list)
     return hasgt_aids
 
 
@@ -3228,7 +3228,7 @@ def get_species_dbs(species_prefix):
     from ibeis.init import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
-    return ut.list_compress(ibs_dblist, isvalid_list)
+    return ut.compress(ibs_dblist, isvalid_list)
 
 
 @register_ibs_method
@@ -3562,8 +3562,8 @@ def inspect_nonzero_yaws(ibs):
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
-    aids = ut.list_compress(aids, isnone_list)
-    yaws = ut.list_compress(yaws, isnone_list)
+    aids = ut.compress(aids, isnone_list)
+    yaws = ut.compress(yaws, isnone_list)
     for aid, yaw in zip(aids, yaws):
         print(yaw)
         # We seem to be storing FULL paths in
@@ -3680,7 +3680,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> eid = None
         >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
         >>> old_flag_list = ibs.get_annot_exemplar_flags(new_aid_list)
-        >>> new_exemplar_aids = ut.list_compress(new_aid_list, new_flag_list)
+        >>> new_exemplar_aids = ut.compress(new_aid_list, new_flag_list)
         >>> new_exemplar_qualtexts = ibs.get_annot_quality_texts(new_exemplar_aids)
         >>> assert 'junk' not in new_exemplar_qualtexts, 'should not have junk exemplars'
         >>> assert 'poor' not in new_exemplar_qualtexts, 'should not have poor exemplars'
@@ -3846,7 +3846,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
-        >>> aid_list = ut.list_compress(aid_list, ibs.is_aid_unknown(aid_list))
+        >>> aid_list = ut.compress(aid_list, ibs.is_aid_unknown(aid_list))
         >>> annots_per_name = 2
         >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
         >>> qualtexts = ibs.get_annot_quality_texts(aid_list)
@@ -4060,7 +4060,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
 #    aid_list = ibs.get_valid_aids(eid=eid)
 #    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
 #        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
-#    qaids = ut.list_compress(new_aid_list, new_flag_list)
+#    qaids = ut.compress(new_aid_list, new_flag_list)
 #    daids = ibs.get_valid_aids(is_exemplar=True, minqual='poor')
 #    cfgdict = dict(can_match_samename=False)
 #    #, use_k_padding=True)
@@ -4435,7 +4435,7 @@ def filter_aids_custom(ibs, aid_list):
         return aid_list
     flags_list = ibs.get_annot_custom_filterflags(aid_list)
     aid_list_ = list(ut.iter_compress(aid_list, flags_list))
-    #aid_list_ = list(ut.list_compress(aid_list, flags_list))
+    #aid_list_ = list(ut.compress(aid_list, flags_list))
     return aid_list_
 
 
@@ -4524,7 +4524,7 @@ def filterflags_unflat_aids_custom(ibs, aids_list):
 def filter_nids_custom(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_nid_list = ut.list_compress(nid_list, isvalid_list)
+    filtered_nid_list = ut.compress(nid_list, isvalid_list)
     return filtered_nid_list
 
 
@@ -4532,7 +4532,7 @@ def filter_nids_custom(ibs, nid_list):
 def filter_gids_custom(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_gid_list = ut.list_compress(gid_list, isvalid_list)
+    filtered_gid_list = ut.compress(gid_list, isvalid_list)
     return filtered_gid_list
 
 
@@ -4553,9 +4553,9 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
         >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
-        >>> ut.list_compress(nid_list, nonempty_list)
-        >>> ut.list_compress(gps_track_list, nonempty_list)
-        >>> ut.list_compress(aid_track_list, nonempty_list)
+        >>> ut.compress(nid_list, nonempty_list)
+        >>> ut.compress(gps_track_list, nonempty_list)
+        >>> ut.compress(aid_track_list, nonempty_list)
         >>> result = str(aid_track_list)
         >>> print(result)
         [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
@@ -4571,9 +4571,9 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 
     isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
                      for gpss in gpss_list]
-    gps_track_list = [ut.list_compress(gpss, isvalids) for gpss, isvalids in
+    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
                       zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.list_compress(aids, isvalids) for aids, isvalids in
+    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
                        zip(aids_list, isvalids_list)]
     return nid_list, gps_track_list, aid_track_list
 
@@ -4649,7 +4649,7 @@ def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
     ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1
                        for aids in ibs.get_name_aids(nid_list_)]
-    nid_list = ut.list_compress(nid_list_, ismultiton_list)
+    nid_list = ut.compress(nid_list_, ismultiton_list)
     return nid_list
 
 
@@ -4885,7 +4885,7 @@ def remove_groundtrue_aids(ibs, aid_list, ref_aid_list):
     ref_nids = set(ibs.get_annot_name_rowids(ref_aid_list))
     nid_list = ibs.get_annot_name_rowids(aid_list)
     flag_list = [nid not in ref_nids for nid in nid_list]
-    aid_list_ = ut.list_compress(aid_list, flag_list)
+    aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -4918,7 +4918,7 @@ def search_annot_notes(ibs, pattern, aid_list=None):
 @register_ibs_method
 def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
     qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
-    aid_list_ = ut.list_compress(aid_list, qual_flags)
+    aid_list_ = ut.compress(aid_list, qual_flags)
     return aid_list_
 
 
@@ -4947,7 +4947,7 @@ def filter_aids_to_viewpoint(ibs, aid_list, valid_yaws, unknown_ok=True):
     valid_yaws = [rectify_view_category(view) for view in valid_yaws]
 
     yaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, valid_yaws, unknown_ok=unknown_ok))
-    aid_list_ = ut.list_compress(aid_list, yaw_flags)
+    aid_list_ = ut.compress(aid_list, yaw_flags)
     return aid_list_
 
 
@@ -4960,7 +4960,7 @@ def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
     """
     notyaw_flags = list(ibs.get_viewpoint_filterflags(aid_list, invalid_yaws, unknown_ok=False))
     yaw_flags = ut.not_list(notyaw_flags)
-    aid_list_ = ut.list_compress(aid_list, yaw_flags)
+    aid_list_ = ut.compress(aid_list, yaw_flags)
     return aid_list_
 
 
@@ -4973,7 +4973,7 @@ def filter_aids_without_name(ibs, aid_list, invert=False):
         flag_list = ibs.is_aid_unknown(aid_list)
     else:
         flag_list = ut.not_list(ibs.is_aid_unknown(aid_list))
-    aid_list_ = ut.list_compress(aid_list, flag_list)
+    aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -5042,7 +5042,7 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
     flag_list = [unixtime != -1 for unixtime in unixtime_list]
     if invert:
         flag_list = ut.not_list(flag_list)
-    aid_list_ = ut.list_compress(aid_list, flag_list)
+    aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -5075,9 +5075,9 @@ def filter_aids_to_species(ibs, aid_list, species):
     species_rowid      = ibs.get_species_rowids_from_text(species)
     species_rowid_list = ibs.get_annot_species_rowids(aid_list)
     is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
-    aid_list_           = ut.list_compress(aid_list, is_valid_species)
+    aid_list_           = ut.compress(aid_list, is_valid_species)
     #flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
-    #aid_list_ = ut.list_compress(aid_list, flag_list)
+    #aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -5155,11 +5155,11 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
     flag_list = [x > 0 for x in map(len, gropued_aids2)]
 
     # Corresonding lists of aids groups
-    gt_grouped_aids1 = ut.list_compress(grouped_aids1, flag_list)
-    gt_grouped_aids2 = ut.list_compress(gropued_aids2, flag_list)
+    gt_grouped_aids1 = ut.compress(grouped_aids1, flag_list)
+    gt_grouped_aids2 = ut.compress(gropued_aids2, flag_list)
 
     # Non-corresponding lists of aids groups
-    gf_grouped_aids1 = ut.list_compress(grouped_aids1, ut.not_list(flag_list))
+    gf_grouped_aids1 = ut.compress(grouped_aids1, ut.not_list(flag_list))
     #gf_aids1 = ut.flatten(gf_grouped_aids1)
     gf_aids2 = ut.setdiff_ordered(aid_list2, ut.flatten(gt_grouped_aids2))
     gf_grouped_aids2 = [aids.tolist() for aids in
@@ -5694,9 +5694,9 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
         # The aids that should not match any query
         nonquery_daids = np.setdiff1d(np.setdiff1d(daids, qaids), groundtruth_daids)
         # The query aids that should not get any match
-        unmatchable_queries = ut.list_compress(qaids, ut.not_list(hasgt_list))
+        unmatchable_queries = ut.compress(qaids, ut.not_list(hasgt_list))
         # The query aids that should not have a match
-        matchable_queries = ut.list_compress(qaids, hasgt_list)
+        matchable_queries = ut.compress(qaids, hasgt_list)
 
         # Intersection on a per name basis
         imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)
@@ -5848,7 +5848,7 @@ def find_unlabeled_name_members(ibs, **kwargs):
     """
     aid_list = ibs.get_valid_aids()
     aids_list, nids = ibs.group_annots_by_name(aid_list)
-    aids_list = ut.list_compress(aids_list, [len(aids) > 1 for aids in aids_list])
+    aids_list = ut.compress(aids_list, [len(aids) > 1 for aids in aids_list])
 
     def find_missing(props_list, flags_list):
         missing_idx_list = ut.list_where([any(flags) and not all(flags) for flags in flags_list])
@@ -5894,15 +5894,15 @@ def find_unlabeled_name_members(ibs, **kwargs):
             for unixtime_arr in time_list])
         flags = max_timedelta_list > 60 * 60 * 1
 
-        aids1 = ut.list_compress(aids_list, flags)
+        aids1 = ut.compress(aids_list, flags)
         max_yawdiff_list = np.array([
             np.nanmax(ut.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
-            for yaws in ut.list_compress(yaws_list, flags)
+            for yaws in ut.compress(yaws_list, flags)
         ])
 
         # Find annots with large timedeltas but 0 viewpoint difference
         flags2 = max_yawdiff_list == 0
-        selected_aids_list.append(ut.list_compress(aids1, flags2))
+        selected_aids_list.append(ut.compress(aids1, flags2))
 
     x = ut.flatten(selected_aids_list)
     y = ut.sortedby2(x, list(map(len, x)))

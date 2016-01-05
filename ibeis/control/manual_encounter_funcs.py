@@ -65,15 +65,15 @@ def get_valid_eids(ibs, min_num_gids=0, processed=None, shipped=None):
     if min_num_gids > 0:
         num_gids_list = ibs.get_encounter_num_gids(eid_list)
         flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
-        eid_list  = ut.list_compress(eid_list, flag_list)
+        eid_list  = ut.compress(eid_list, flag_list)
     if processed is not None:
         flag_list = ibs.get_encounter_processed_flags(eid_list)
         isvalid_list = [ flag == 1 if processed else flag == 0 for flag in flag_list]
-        eid_list  = ut.list_compress(eid_list, isvalid_list)
+        eid_list  = ut.compress(eid_list, isvalid_list)
     if shipped is not None:
         flag_list = ibs.get_encounter_shipped_flags(eid_list)
         isvalid_list = [ flag == 1 if shipped else flag == 0 for flag in flag_list]
-        eid_list  = ut.list_compress(eid_list, isvalid_list)
+        eid_list  = ut.compress(eid_list, isvalid_list)
 
     return eid_list
 
@@ -748,8 +748,8 @@ def update_encounter_info(ibs, encounter_rowid_list):
     """
     gids_list_ = ibs.get_encounter_gids(encounter_rowid_list)
     hasgids_list = [len(gids) > 0 for gids in gids_list_]
-    gids_list = ut.list_compress(gids_list_, hasgids_list)
-    eid_list = ut.list_compress(encounter_rowid_list, hasgids_list)
+    gids_list = ut.compress(gids_list_, hasgids_list)
+    eid_list = ut.compress(encounter_rowid_list, hasgids_list)
     unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, gids_list)
     encounter_end_time_posix_list = [max(unixtimes) for unixtimes in unixtimes_list]
     encounter_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]

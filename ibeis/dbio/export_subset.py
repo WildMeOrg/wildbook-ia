@@ -309,7 +309,7 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
     gid_list = ibs_src.get_contributor_gids(contributor_rowid)
     if valid_gid_list is not None:
         isvalid_list = [gid in valid_gid_list for gid in gid_list]
-        gid_list = ut.list_compress(gid_list, isvalid_list)
+        gid_list = ut.compress(gid_list, isvalid_list)
     image_td = export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list,
                                           nid_list, species_rowid_list)
     # Create Contributor TransferData
@@ -1528,7 +1528,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     flags2_list = [
         aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(annotmatch_rowid_list)]
     flag_list = ut.and_lists(flags1_list, flags2_list)
-    annotmatch_rowid_list = ut.list_compress(annotmatch_rowid_list, flag_list)
+    annotmatch_rowid_list = ut.compress(annotmatch_rowid_list, flag_list)
     #annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())
 
     rowid_subsets = {

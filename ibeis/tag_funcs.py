@@ -268,7 +268,7 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
         aid_list = ibs._get_all_aids()
     tags_list = ibs.get_annot_all_tags(aid_list)
     flags = filterflags_general_tags(tags_list, **kwargs)
-    aid_list = ut.list_compress(aid_list, flags)
+    aid_list = ut.compress(aid_list, flags)
     return aid_list
 
 
@@ -403,7 +403,7 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
     tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowids)
 
     flags = filterflags_general_tags(tags_list, **kwargs)
-    filtered_annotmatch_rowids = ut.list_compress(annotmatch_rowids, flags)
+    filtered_annotmatch_rowids = ut.compress(annotmatch_rowids, flags)
     return filtered_annotmatch_rowids
 
 
@@ -445,7 +445,7 @@ def filterflags_general_tags(tags_list,
         >>> print('kwargs = %r' % (kwargs,))
         >>> flags = filterflags_general_tags(tags_list, **kwargs)
         >>> print(flags)
-        >>> result = ut.list_compress(tags_list, flags)
+        >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
     Example1:
@@ -455,7 +455,7 @@ def filterflags_general_tags(tags_list,
         >>> has_all = 'n'
         >>> min_num = 1
         >>> flags = filterflags_general_tags(tags_list, has_all=has_all, min_num=min_num)
-        >>> result = ut.list_compress(tags_list, flags)
+        >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
     Example2:
@@ -474,7 +474,7 @@ def filterflags_general_tags(tags_list,
         >>>     'none_match': ['P'],
         >>> }
         >>> flags = filterflags_general_tags(tags_list, **kwargs)
-        >>> filtered = ut.list_compress(tags_list, flags)
+        >>> filtered = ut.compress(tags_list, flags)
         >>> result = ('result = %s' % (ut.repr2(filtered),))
         result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
@@ -607,7 +607,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     #else:
     #    for case in standard:
     #        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
-    #        for tags in ut.list_compress(tags_list, flag_list):
+    #        for tags in ut.compress(tags_list, flag_list):
     #            tags.append(case)
     tags_list = [[six.text_type(t) for t in tags] for tags in tags_list]
     #if ut.get_argval('--consol') or True:
@@ -848,8 +848,8 @@ def get_annot_case_tags(ibs, aid_list):
         aid_list = ibs.get_valid_aids()
         notes_list = ibs.get_annot_notes(aid_list)
         flags = [len(notes) > 0 for notes in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         import re
         notes_list = [note.replace('rfdetect', '') for note in notes_list]
@@ -863,26 +863,26 @@ def get_annot_case_tags(ibs, aid_list):
         notes_list = [note.strip() for note in notes_list]
 
         flags = [len(notes) < 70 and len(notes) > 0 for notes in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         flags = ['M;' not in notes and 'F;' not in notes and 'H1' not in notes for notes in notes_list]
         flags = [ 'M;' not in notes and 'F;' not in notes and 'H1' not in notes for notes in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         flags = ['aliases' not in notes for notes in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         #flags = [not re.match(';\d*;', note) for note  in notes_list]
         flags = [not re.match(r'\d\d*', note) for note  in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         flags = [not notes.startswith('Foal;') for notes in notes_list]
-        aid_list = ut.list_compress(aid_list, flags)
-        notes_list = ut.list_compress(notes_list, flags)
+        aid_list = ut.compress(aid_list, flags)
+        notes_list = ut.compress(notes_list, flags)
 
         old_tags_list = [_parse_note(note) for note in notes_list]
 

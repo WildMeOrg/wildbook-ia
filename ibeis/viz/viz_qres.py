@@ -134,7 +134,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
             _gtnids = ibs.get_annot_name_rowids(_gtaids)
             top_nids = ibs.get_annot_name_rowids(top_aids)
             _valids = ~np.in1d(_gtnids, top_nids)
-            _gtaids = ut.list_compress(_gtaids, _valids)
+            _gtaids = ut.compress(_gtaids, _valids)
 
         # No need to display highly ranked groundtruth. It will already show up
         _gtaids = np.setdiff1d(_gtaids, top_aids)
@@ -175,7 +175,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     if viz_name_score:
         # Make sure that there is only one of each name in the list
         top_nids = ibs.get_annot_name_rowids(top_aids)
-        top_aids = ut.list_compress(top_aids, ut.flag_unique_items(top_nids))
+        top_aids = ut.compress(top_aids, ut.flag_unique_items(top_nids))
 
     #ut.embed()
     return show_qres(ibs, cm, gt_aids=showgt_aids, top_aids=top_aids,

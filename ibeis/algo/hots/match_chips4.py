@@ -257,8 +257,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         external_qaids = qreq_.get_external_qaids()
         fpath_list = qreq_.get_chipmatch_fpaths(external_qaids)
         exists_flags = [exists(fpath) for fpath in fpath_list]
-        qaids_hit = ut.list_compress(external_qaids, exists_flags)
-        fpaths_hit = ut.list_compress(fpath_list, exists_flags)
+        qaids_hit = ut.compress(external_qaids, exists_flags)
+        fpaths_hit = ut.compress(fpath_list, exists_flags)
         fpath_iter = ut.ProgressIter(
             fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
             lbl='loading cache hits', adjust=True, freq=1)

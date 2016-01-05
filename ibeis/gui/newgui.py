@@ -1647,7 +1647,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))
         #nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))
         #flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)
-        #annotmatch_rowid_list_ = ut.list_compress(annotmatch_rowid_list, flags)
+        #annotmatch_rowid_list_ = ut.compress(annotmatch_rowid_list, flags)
 
         #aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)
         #aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)

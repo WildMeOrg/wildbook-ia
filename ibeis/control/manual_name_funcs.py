@@ -525,7 +525,7 @@ def get_name_exemplar_aids(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    exemplar_aids_list = [ut.list_compress(aids, flags) for aids, flags in
+    exemplar_aids_list = [ut.compress(aids, flags) for aids, flags in
                           zip(aids_list, flags_list)]
     return exemplar_aids_list
 
@@ -946,7 +946,7 @@ def get_valid_nids(ibs, eid=None, filter_empty=False, min_pername=None):
     if min_pername is not None:
         nAnnot_list = ibs.get_name_num_annotations(nid_list)
         flag_list = np.array(nAnnot_list) >= min_pername
-        nid_list = ut.list_compress(nid_list, flag_list)
+        nid_list = ut.compress(nid_list, flag_list)
     return nid_list
 
 

@@ -1121,8 +1121,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
             nonconst_basis = np.array(basis_dict[nonconst_key])
             nonconst_covers_basis = np.in1d(nonconst_basis, nonconst_basis_vals)
             # I dont remember what was trying to happen here
-            nonconst_color_list = ut.list_compress(color_list, nonconst_covers_basis)
-            nonconst_marker_list = ut.list_compress(marker_list, nonconst_covers_basis)
+            nonconst_color_list = ut.compress(color_list, nonconst_covers_basis)
+            nonconst_marker_list = ut.compress(marker_list, nonconst_covers_basis)
 
             pt.plot_multiple_scores(known_nd_data, known_target_points,
                                     nd_labels, target_label, title=title,
@@ -1500,8 +1500,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
             pt.figure(fnum=fnum, pnum=pnum_())
             mask = freq > 0
             masked_freq   = freq.compress(mask, axis=0)
-            masked_lbls   = ut.list_compress(bin_labels, mask)
-            masked_colors = ut.list_compress(colors, mask)
+            masked_lbls   = ut.compress(bin_labels, mask)
+            masked_colors = ut.compress(colors, mask)
             explode = [0] * len(masked_freq)
             size = masked_freq.sum()
             masked_percent = (masked_freq * 100 / size)

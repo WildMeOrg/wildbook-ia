@@ -13,7 +13,7 @@ def shark_misc():
     ibs = ibeis.opendb('WS_ALL')
     aid_list = ibs.get_valid_aids()
     flag_list = ibs.get_annot_been_adjusted(aid_list)
-    adjusted_aids = ut.list_compress(aid_list, flag_list)
+    adjusted_aids = ut.compress(aid_list, flag_list)
     return adjusted_aids
 
 
@@ -81,7 +81,7 @@ def download_sharks(XMLdata, number):
     # Filter based on image type (keep only jpgs)
     ext_flags = [_fname.endswith('.jpg') or _fname.endswith('.jpg')
                   for _fname in parsed_info['new_fname_list']]
-    parsed_info = {key: ut.list_compress(list_, ext_flags) for key, list_ in parsed_info.items()}
+    parsed_info = {key: ut.compress(list_, ext_flags) for key, list_ in parsed_info.items()}
 
     # Filter to only images matching the appropriate tags
     from ibeis import tag_funcs
@@ -91,7 +91,7 @@ def download_sharks(XMLdata, number):
         has_any=['view-left'],
         none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
     )
-    parsed_info = {key: ut.list_compress(list_, tag_flags) for key, list_ in parsed_info.items()}
+    parsed_info = {key: ut.compress(list_, tag_flags) for key, list_ in parsed_info.items()}
     print('Tags in chosen images:')
     print(ut.dict_hist(ut.flatten(parsed_info['tags_list'] )))
 
@@ -109,7 +109,7 @@ def download_sharks(XMLdata, number):
     import vtool as vt
     noncorrupt_flags = vt.filterflags_valid_images(parsed_info['new_fpath_list'])
     parsed_info = {
-        key: ut.list_compress(list_, noncorrupt_flags)
+        key: ut.compress(list_, noncorrupt_flags)
         for key, list_ in parsed_info.items()
     }
 
@@ -118,7 +118,7 @@ def download_sharks(XMLdata, number):
     imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed_info['new_fpath_list']])
     sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
     areq_flags_list = sqrt_area_list >= 750
-    parsed_info = {key: ut.list_compress(list_, areq_flags_list)
+    parsed_info = {key: ut.compress(list_, areq_flags_list)
                    for key, list_ in parsed_info.items()}
 
     grouped_idxs = ut.group_items(list(range(len(parsed_info['nameid_list']))),

@@ -20,7 +20,7 @@ def get_diffranks(rank_mat, qaids):
     FIXME: duplicated
     """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-    diff_aids    = ut.list_compress(qaids, isdiff_flags)
+    diff_aids    = ut.compress(qaids, isdiff_flags)
     diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
     diff_qxs     = np.where(isdiff_flags)[0]
     return diff_aids, diff_rank, diff_qxs

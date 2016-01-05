@@ -1253,11 +1253,11 @@ class MainWindowBackend(GUIBACK_BASE):
             if not HACK:
                 new_aid_list, new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
                     aid_list=qaid_list, annots_per_view=2, verbose=True)
-                qaid_list = ut.list_compress(new_aid_list, new_flag_list)
+                qaid_list = ut.compress(new_aid_list, new_flag_list)
             else:
                 qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
             query_title += ' priority_subset'
-            #qaid_list = ut.list_compress(
+            #qaid_list = ut.compress(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
         if daids_mode == const.VS_EXEMPLARS_KEY:

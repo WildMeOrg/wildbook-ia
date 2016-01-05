@@ -143,7 +143,7 @@ class _ChipMatchVisualization(object):
             isvalid_list = np.array([len(fm) > 0 for fm in name_fm_list])
             MAX_MATCHES = 3
             isvalid_list = ut.make_at_least_n_items_valid(isvalid_list, MAX_MATCHES)
-            name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
+            name_fm_list = ut.compress(name_fm_list, isvalid_list)
             sorted_groupxs = sorted_groupxs.compress(isvalid_list)
 
         name_H1_list   = (None if not homog or cm.H_list is None else

@@ -235,7 +235,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                 # END HACK
                 if any(ismiss_list):
                     miss_indices = ut.list_where(ismiss_list)
-                    miss_rowids  = ut.list_compress(rowid_list, ismiss_list)
+                    miss_rowids  = ut.compress(rowid_list, ismiss_list)
                     # call wrapped function
                     miss_vals = getter_func(ibs, miss_rowids, **kwargs)
                     # overwrite missed output
@@ -249,7 +249,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
 
             def handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs):
                 miss_indices = ut.list_where(ismiss_list)
-                miss_rowids  = ut.list_compress(rowid_list, ismiss_list)
+                miss_rowids  = ut.compress(rowid_list, ismiss_list)
                 # call wrapped function
                 miss_vals = getter_func(ibs, miss_rowids, **kwargs)
                 # overwrite missed output

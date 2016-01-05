@@ -113,7 +113,7 @@ def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_n
     initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
-    dirty_aid_list = ut.list_compress(aid_list, isdirty_list)
+    dirty_aid_list = ut.compress(aid_list, isdirty_list)
     num_dirty = len(dirty_aid_list)
     num_total = len(aid_list)
     if num_dirty > 0:
@@ -740,7 +740,7 @@ def check_chip_external_storage(ibs, cid_list):
     chip_fpath_list = get_chip_fpath(ibs, cid_list, check_external_storage=False)
     notexists_flags = [not exists(cfpath) for cfpath in chip_fpath_list]
     if any(notexists_flags):
-        invalid_cids = ut.list_compress(cid_list, notexists_flags)
+        invalid_cids = ut.compress(cid_list, notexists_flags)
         print('ERROR: %d CHIPS DO NOT EXIST' % (len(invalid_cids)))
         print('ATTEMPING TO FIX %d / %d non-existing chip paths' % (len(invalid_cids), len(cid_list)))
         ibs.delete_chips(invalid_cids)

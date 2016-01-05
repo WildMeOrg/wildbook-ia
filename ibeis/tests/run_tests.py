@@ -140,7 +140,7 @@ def run_tests():
         import re
         is_ok = [all([re.search(pat, name) is None for pat in exclude_doctest_pattern])
                  for name in doctest_modname_list_]
-        doctest_modname_list = ut.list_compress(doctest_modname_list_, is_ok)
+        doctest_modname_list = ut.compress(doctest_modname_list_, is_ok)
     else:
         doctest_modname_list = doctest_modname_list_
 

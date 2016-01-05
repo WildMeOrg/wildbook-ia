@@ -487,7 +487,7 @@ def vsone_independant(qreq_):
     #    import utool as ut
     #    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
     #    flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
-    #    annotmatch_rowids_ = ut.list_compress(annotmatch_rowids, flags)
+    #    annotmatch_rowids_ = ut.compress(annotmatch_rowids, flags)
     #    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
     #    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
     #    aid_pair_list = list(zip(aid1_list, aid2_list))

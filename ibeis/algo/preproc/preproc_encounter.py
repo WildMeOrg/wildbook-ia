@@ -351,9 +351,9 @@ def filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None)
     """
     label_nGids = np.array(list(map(len, label_gids)))
     label_isvalid = label_nGids >= min_imgs_per_enc
-    enc_gids = ut.list_compress(label_gids, label_isvalid)
+    enc_gids = ut.compress(label_gids, label_isvalid)
     if enc_unixtimes is not None:
-        enc_unixtimes = ut.list_compress(enc_unixtimes, label_isvalid)
+        enc_unixtimes = ut.compress(enc_unixtimes, label_isvalid)
         # Rebase ids so encounter0 has the most images
         #enc_ids  = list(range(label_isvalid.sum()))
         #else:

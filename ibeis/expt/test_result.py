@@ -842,8 +842,8 @@ class TestResult(object):
         # Get unique annotation configs
         cfgx2_acfg_label = annotation_configs.get_varied_acfg_labels(testres.cfgx2_acfg)
         flags = ut.flag_unique_items(cfgx2_acfg_label)
-        qreq_list = ut.list_compress(testres.cfgx2_qreq_, flags)
-        acfg_list = ut.list_compress(testres.cfgx2_acfg, flags)
+        qreq_list = ut.compress(testres.cfgx2_qreq_, flags)
+        acfg_list = ut.compress(testres.cfgx2_acfg, flags)
         expanded_aids_list = [(qreq_.qaids, qreq_.daids) for qreq_ in qreq_list]
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs, **kwargs)
 
@@ -868,7 +868,7 @@ class TestResult(object):
             ibs = testres.ibs
         cfx2_dannot_hashid = [ibs.get_annot_hashid_visual_uuid(daids)
                               for daids in testres.cfgx2_daids]
-        unique_daids = ut.list_compress(testres.cfgx2_daids,
+        unique_daids = ut.compress(testres.cfgx2_daids,
                                         ut.flag_unique_items(cfx2_dannot_hashid))
         with ut.Indenter('[acfgstats]'):
             print('+====')
@@ -1313,9 +1313,9 @@ class TestResult(object):
         has_sample_idx = np.nonzero(has_sample)[0]
 
         print('Unsampled categories = %s' % (
-            ut.list_str(ut.list_compress(sample_keys, ~has_sample))))
+            ut.list_str(ut.compress(sample_keys, ~has_sample))))
         print('Sampled categories = %s' % (
-            ut.list_str(ut.list_compress(sample_keys, has_sample))))
+            ut.list_str(ut.compress(sample_keys, has_sample))))
 
         sampled_type_list = ut.take(sample_keys, has_sample_idx)
         sampled_cases_list = ut.take(sample_vals, has_sample_idx)
@@ -1676,7 +1676,7 @@ class TestResult(object):
         rank_mat = test_results.get_rank_mat()
         # Find rows which scored differently over the various configs FIXME: duplicated
         isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-        #diff_aids    = ut.list_compress(test_results.qaids, isdiff_flags)
+        #diff_aids    = ut.compress(test_results.qaids, isdiff_flags)
         diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
         diff_qxs     = np.where(isdiff_flags)[0]
         if False:

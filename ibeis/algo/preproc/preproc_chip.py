@@ -46,7 +46,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
     failed_rowids    = ut.take(rowid_list, failed_index_list)
     failed_fpaths    = ut.take(fpath_list, failed_index_list)
     exists_list      = [exists(fpath) for fpath in failed_fpaths]
-    missing_rowids   = ut.list_compress(failed_rowids, exists_list)  # NOQA
+    missing_rowids   = ut.compress(failed_rowids, exists_list)  # NOQA
     corrupted_rowids = ut.filterfalse_items(failed_rowids, exists_list)  # NOQA
     # FINISHME
 
@@ -126,7 +126,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, config2_=None):
     # Mark which aid's need their chips computed
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     missing_flags = [not exists(cfpath) for cfpath in cfpath_list]
-    invalid_aids = ut.list_compress(aid_list, missing_flags)
+    invalid_aids = ut.compress(aid_list, missing_flags)
     if ut.VERBOSE:
         print('[preproc_chip] %d / %d chips need to be computed' %
               (len(invalid_aids), len(aid_list)))
@@ -196,8 +196,8 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         # Remove bad annotations from the sql database
         aid_list = ibs.get_chip_aids(cid_list)
         valid_list    = [cid is not None for cid in cid_list]
-        valid_aids    = ut.list_compress(aid_list, valid_list)
-        valid_cfpaths = ut.list_compress(cfpath_list, valid_list)
+        valid_aids    = ut.compress(aid_list, valid_list)
+        valid_cfpaths = ut.compress(cfpath_list, valid_list)
         invalid_aids  = ut.filterfalse_items(valid_aids, map(exists, valid_cfpaths))
         ibs.delete_annot_chips(invalid_aids)
         # Try readding things
