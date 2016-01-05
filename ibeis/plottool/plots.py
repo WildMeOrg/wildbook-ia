@@ -1633,8 +1633,8 @@ def draw_timedelta_pie(timedeltas, bins=None, fnum=None, pnum=(1, 1, 1), label='
     mask = freq > 0
     masked_freq   = freq.compress(mask, axis=0)
     size = masked_freq.sum()
-    masked_lbls   = ut.list_compress(bin_labels, mask)
-    masked_colors = ut.list_compress(colors, mask)
+    masked_lbls   = ut.compress(bin_labels, mask)
+    masked_colors = ut.compress(colors, mask)
     explode = [0] * len(masked_freq)
     masked_percent = (masked_freq * 100 / size)
     pt.plt.pie(masked_percent, explode=explode, autopct='%1.1f%%',
