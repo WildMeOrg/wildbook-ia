@@ -412,15 +412,15 @@ def get_topannot_training_idxs(cm, num=2):
     mask = sorted_nids == cm.qnid
     tp_idxs_ = np.where(mask)[0]
     if len(tp_idxs_) == 0:
-        if ut.STRICT:
-            raise Exception('tp_idxs_=0')
-        else:
+        #if ut.STRICT:
+        #    raise Exception('tp_idxs_=0')
+        #else:
             raise UnbalancedExampleException('tp_idxs_=0')
     tn_idxs_ = np.where(~mask)[0]
     if len(tn_idxs_) == 0:
-        if ut.STRICT:
-            raise Exception('tn_idxs_=0')
-        else:
+        #if ut.STRICT:
+        #    raise Exception('tn_idxs_=0')
+        #else:
             raise UnbalancedExampleException('tn_idxs_=0')
     tp_idxs = tp_idxs_[0:num]
     tn_idxs = tn_idxs_[0:num]
@@ -468,9 +468,9 @@ def get_topname_training_idxs(cm, num=5):
     # name ranks of the groundtrue name
     tp_ranks = np.where(sorted_nids == cm.qnid)[0]
     if len(tp_ranks) == 0:
-        if ut.STRICT:
-            raise Exception('tp_ranks=0')
-        else:
+        #if ut.STRICT:
+        #    raise Exception('tp_ranks=0')
+        #else:
             raise UnbalancedExampleException('tp_ranks=0')
 
     # name ranks of the top groundfalse names
@@ -478,9 +478,9 @@ def get_topname_training_idxs(cm, num=5):
     tn_ranks = [rank for rank in range(num + 1)
                 if rank != tp_rank and rank < len(sorted_groupxs)]
     if len(tn_ranks) == 0:
-        if ut.STRICT:
-            raise Exception('tn_ranks=0')
-        else:
+        #if ut.STRICT:
+        #    raise Exception('tn_ranks=0')
+        #else:
             raise UnbalancedExampleException('tn_ranks=0')
     # annot idxs of the examples
     tp_idxs = sorted_groupxs[tp_rank]
@@ -590,7 +590,10 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
             nfxs_list  = ut.take(cm.nfxs_list, idxs)
             nvecs_flat = ibs.lookup_annot_vecs_subset(naids_list, nfxs_list, config2_=data_config2_,
                                                       annots=data_annots)
-            nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
+            import utool
+            with utool.embed_on_exception_context:
+                #nvecs_flat_m = np.vstack(ut.compress(nvecs_flat, nvecs_flat))
+                nvecs_flat_m = vt.safe_vstack(ut.compress(nvecs_flat, nvecs_flat), qvecs_flat_m.shape, qvecs_flat_m.dtype)
             vdist = vt.L2_sift(qvecs_flat_m, dvecs_flat_m)
             ndist = vt.L2_sift(qvecs_flat_m, nvecs_flat_m)
 
