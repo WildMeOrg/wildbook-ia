@@ -324,7 +324,7 @@ class APIItemModel(API_MODEL_BASE):
                 #sort_stride = (-reverse * 2) + 1
                 #sortx = sorting_records.argsort()[::sort_stride]
                 # </NUMPY MULTIARRAY SORT>
-                nodes = ut.list_take(children, sortx)
+                nodes = ut.take(children, sortx)
 
             #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
             #nodes = [child for (value, id_, child) in sorted_pairs]
