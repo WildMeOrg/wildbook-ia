@@ -32,7 +32,7 @@ ANNOT_NOTE               = 'annot_note'
 ANNOT_NUM_VERTS          = 'annot_num_verts'
 ANNOT_PARENT_ROWID       = 'annot_parent_rowid'
 ANNOT_ROWID              = 'annot_rowid'
-ANNOT_TAGS               = 'annot_tags'
+ANNOT_TAG_TEXT           = 'annot_tag_text'
 ANNOT_SEMANTIC_UUID      = 'annot_semantic_uuid'
 ANNOT_THETA              = 'annot_theta'
 ANNOT_VERTS              = 'annot_verts'
@@ -3150,7 +3150,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_tags(ibs, aid_list, eager=True, nInput=None):
+def get_annot_tag_text(ibs, aid_list, eager=True, nInput=None):
     r""" annot_tags_list <- annot.annot_tags[aid_list]
 
     gets data from the "native" column "annot_tags" in the "annot" table
@@ -3172,11 +3172,11 @@ def get_annot_tags(ibs, aid_list, eager=True, nInput=None):
         >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
-        >>> annot_tags_list = ibs.get_annot_tags(aid_list, eager=eager)
+        >>> annot_tags_list = ibs.get_annot_tag_text(aid_list, eager=eager)
         >>> assert len(aid_list) == len(annot_tags_list)
     """
     id_iter = aid_list
-    colnames = (ANNOT_TAGS,)
+    colnames = (ANNOT_TAG_TEXT,)
     annot_tags_list = ibs.db.get(
         const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
     return annot_tags_list
@@ -3184,7 +3184,7 @@ def get_annot_tags(ibs, aid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.setter
-def set_annot_tags(ibs, aid_list, annot_tags_list, duplicate_behavior='error'):
+def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error'):
     r""" annot_tags_list -> annot.annot_tags[aid_list]
 
     Args:
@@ -3197,7 +3197,7 @@ def set_annot_tags(ibs, aid_list, annot_tags_list, duplicate_behavior='error'):
         col = annot_tags
     """
     id_iter = aid_list
-    colnames = (ANNOT_TAGS,)
+    colnames = (ANNOT_TAG_TEXT,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_tags_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 

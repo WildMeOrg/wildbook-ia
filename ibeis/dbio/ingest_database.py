@@ -285,6 +285,19 @@ def ingest_testdb1(dbname):
         ibs.append_annot_case_tags([4], ['quality:washedout'])
         ibs.append_annot_case_tags([4], ['lighting'])
 
+        aidgroups = ibs.group_annots_by_name(
+            ibs.filter_annots_general(min_pername=2, verbose=True))[0]
+        aid1_list = ut.take_column(aidgroups, 0)
+        aid2_list = ut.take_column(aidgroups, 1)
+        annotmatch_rowids = ibs.add_annotmatch(aid1_list, aid2_list)
+
+        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
+        ibs.set_annotmatch_truth(annotmatch_rowids, [True] * len(annotmatch_rowids))
+        ibs.set_annotmatch_prop('photobomb', annotmatch_rowids, [True] * len(annotmatch_rowids))
+
+        for aids in aidgroups:
+            pass
+
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
@@ -309,6 +322,18 @@ def ingest_polar_bears(dbname):
     return Ingestable(dbname, ingest_type='named_folders',
                       adjust_percent=0.00,
                       fmtkey='name')
+
+
+@__standard('wd_peter_blinston')
+def ingest_wilddog_peter(dbname):
+    """
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
+    """
+    return Ingestable(dbname, ingest_type='unknown',
+                      img_dir='/raid/raw_rsync/african-dogs',
+                      adjust_percent=0.01,
+                      species=const.Species.WILDDOG)
 
 
 @__standard('lynx')

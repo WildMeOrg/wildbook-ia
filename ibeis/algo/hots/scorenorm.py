@@ -173,6 +173,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         python -m ibeis --tf learn_featscore_normalizer --show --disttypes=ratio
         python -m ibeis --tf learn_featscore_normalizer --show --disttypes=lnbnn
 
+        python -m ibeis --tf learn_featscore_normalizer --show --disttypes=lnbnn --db PZ_Master1 -a timectrl -t best
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
@@ -391,7 +393,8 @@ def get_topannot_training_idxs(cm, num=2):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
-        >>> cm, qreq_ = testdata_cm()
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
         >>> num = 2
         >>> cm.score_csum(qreq_)
         >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
@@ -399,7 +402,7 @@ def get_topannot_training_idxs(cm, num=2):
         >>> print(result)
         (tp_idxs, tn_idxs) = (
             np.array([0, 1], dtype=np.int64),
-            np.array([2, 3], dtype=np.int64),
+            np.array([3, 4], dtype=np.int64),
         )
     """
     if num is None:
@@ -453,8 +456,8 @@ def get_topname_training_idxs(cm, num=5):
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
         (tp_idxs, tn_idxs) = (
-            np.array([16, 17, 18, 19], dtype=np.int64),
-            [101, 99, 100, 97, 98],
+            np.array([0, 1, 2], dtype=np.int64),
+            [3, 4, 5, 6],
         )
     """
     if num is None:
@@ -525,7 +528,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
     computes custom distances on prematched descriptors
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist:0 --show
+        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist
 
     SeeAlso:
         # python -m ibeis --tf learn_featscore_normalizer --show
@@ -535,7 +538,7 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
-        >>> cm, qreq_ = testdata_cm()
+        >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
         >>> fsv_col_lbls = ['ratio', 'lnbnn', 'L2_sift']
         >>> namemode = False
         >>> (tp_fsv, tn_fsv) = get_training_desc_dist(cm, qreq_, fsv_col_lbls,

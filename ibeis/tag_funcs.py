@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import vtool as vt
@@ -10,20 +10,26 @@ print, rrr, profile = ut.inject2(__name__, '[tag_funcs]')
 
 
 # Create dectorator to inject functions in this module into the IBEISController
-CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
+    __name__)
 
 
 # TODO : make a annot_tags file
 
 
 ANNOTMATCH_PROPS_STANDARD = [
+    #'SceneryMatch',
+    #'Photobomb',
+    #'Hard',
+    #'NonDistinct',
+]
+
+ANNOTMATCH_PROPS_OTHER = [
     'SceneryMatch',
     'Photobomb',
     'Hard',
     'NonDistinct',
-]
 
-ANNOTMATCH_PROPS_OTHER = [
     'Occlusion',
     'Viewpoint',
     'MildViewpoint',
@@ -69,7 +75,7 @@ PROP_MAPPING = {
     'success': None,
     'GoodCoverage':  None,
 
-    'Hard'           : 'NeedsWork',
+    #'Hard'           : 'NeedsWork',
     'shouldhavemore' : 'NeedsWork',
     'BadCoverage'    : 'NeedsWork',
     'ScoringIssue'   : 'NeedsWork',
@@ -580,30 +586,30 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
         tags_list = [[u'occlusion', u'pose', 'Hard', 'NonDistinct'], [], ['Hard']]
     """
     standard, other = get_cate_categories()
-    annotmatch_notes_list = ibs.get_annotmatch_note(annotmatch_rowids)
-    tags_list = [[] if note is None else _parse_note(note) for note in annotmatch_notes_list]
-    NEW = True
-    if NEW:
-        # hack for faster tag parsing
-        from ibeis.control import _autogen_annotmatch_funcs as _aaf
-        import itertools
-        colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,
-                    _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)
-        id_iter = annotmatch_rowids
-        annotmatch_is_col = ibs.db.get(
-            ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid',
-            eager=True, nInput=None, unpack_scalars=True)
-        annotmatch_is_col = [col if col is not None else [None] * len(colnames)
-                             for col in annotmatch_is_col]
-        standardtags = [x[len('annotmatch_is_'):] for x in colnames]
-        standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)
-        tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]
-    else:
-        for case in standard:
-            flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
-            for tags in ut.list_compress(tags_list, flag_list):
-                tags.append(case)
-    tags_list = [[ibs.const.__STR__(t) for t in tags] for tags in tags_list]
+    annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
+    tags_list = [[] if note is None else _parse_note(note) for note in annotmatch_tag_texts_list]
+    #NEW = False
+    #if NEW:
+    #    # hack for faster tag parsing
+    #    from ibeis.control import _autogen_annotmatch_funcs as _aaf
+    #    import itertools
+    #    colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,
+    #                _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)
+    #    id_iter = annotmatch_rowids
+    #    annotmatch_is_col = ibs.db.get(
+    #        ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname='rowid',
+    #        eager=True, nInput=None, unpack_scalars=True)
+    #    annotmatch_is_col = [col if col is not None else [None] * len(colnames)
+    #                         for col in annotmatch_is_col]
+    #    standardtags = [x[len('annotmatch_is_'):] for x in colnames]
+    #    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)
+    #    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]
+    #else:
+    #    for case in standard:
+    #        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
+    #        for tags in ut.list_compress(tags_list, flag_list):
+    #            tags.append(case)
+    tags_list = [[six.text_type(t) for t in tags] for tags in tags_list]
     #if ut.get_argval('--consol') or True:
     #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
@@ -683,7 +689,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
         return set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags)
     else:
-        raise NotImplementedError('Unknown prop=%r' % (prop,))
+        raise NotImplementedError('Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET))
 
 
 def _parse_note(note):
@@ -702,8 +708,8 @@ def _remove_tag(tags, prop):
 
 @profile
 def get_annotmatch_other_prop(ibs, prop, annotmatch_rowids):
-    annotmatch_notes_list = ibs.get_annotmatch_note(annotmatch_rowids)
-    flag_list = get_tags_in_textformat(prop, annotmatch_notes_list)
+    annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
+    flag_list = get_tags_in_textformat(prop, annotmatch_tag_texts_list)
     return flag_list
 
 
@@ -711,9 +717,9 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
     """
     sets nonstandard properties using the notes column
     """
-    annotmatch_notes_list = ibs.get_annotmatch_note(annotmatch_rowids)
-    new_notes_list = set_tags_in_textformat(prop, annotmatch_notes_list, flags)
-    ibs.set_annotmatch_note(annotmatch_rowids, new_notes_list)
+    annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
+    new_notes_list = set_tags_in_textformat(prop, annotmatch_tag_texts_list, flags)
+    ibs.set_annotmatch_tag_text(annotmatch_rowids, new_notes_list)
 
 
 @profile
@@ -780,7 +786,7 @@ def get_annot_prop(ibs, prop, aid_list):
     """
     Annot tags
     """
-    text_list = ibs.get_annot_tags(aid_list)
+    text_list = ibs.get_annot_tag_text(aid_list)
     flag_list = get_tags_in_textformat(prop, text_list)
     return flag_list
 
@@ -792,9 +798,9 @@ def set_annot_prop(ibs, prop, aid_list, flags):
 
     http://localhost:5000/group_review/?aid_list=1,2,3,4
     """
-    text_list = ibs.get_annot_tags(aid_list)
+    text_list = ibs.get_annot_tag_text(aid_list)
     new_text_list = set_tags_in_textformat(prop, text_list, flags)
-    ibs.set_annot_tags(aid_list, new_text_list)
+    ibs.set_annot_tag_text(aid_list, new_text_list)
 
 
 @register_ibs_method
@@ -804,17 +810,17 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     random tags. Maybe we should just let that happen and introduce tag-aliases
     """
     tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
-    text_list = ibs.get_annot_tags(aid_list)
+    text_list = ibs.get_annot_tag_text(aid_list)
     orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
     new_tags_list = [t1 + t2 for t1, t2 in zip(tags_list, orig_tags_list)]
     new_text_list = [';'.join(tags) for tags in new_tags_list]
-    ibs.set_annot_tags(aid_list, new_text_list)
+    ibs.set_annot_tag_text(aid_list, new_text_list)
 
 
 @register_ibs_method
 def get_annot_case_tags(ibs, aid_list):
     r"""
-    returns list of tags. Use instead of get_annot_tags
+    returns list of tags. Use instead of get_annot_tag_text
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -894,7 +900,7 @@ def get_annot_case_tags(ibs, aid_list):
         python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
 
     """
-    text_list = ibs.get_annot_tags(aid_list)
+    text_list = ibs.get_annot_tag_text(aid_list)
     tags_list = [[] if note is None else _parse_note(note) for note in text_list]
     return tags_list
 

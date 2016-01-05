@@ -30,7 +30,7 @@ CLASS_INJECT_KEY, register_ibs_method = _tup
 
 
 @register_ibs_method
-def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
+def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -86,15 +86,17 @@ def filter_annots_general(ibs, aid_list, filter_kw={}, **kwargs):
         >>> ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list_)
         >>> ut.show_if_requested()
     """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
     filter_kw_ = get_default_annot_filter_form()
-    filter_kw_.update(filter_kw)
-    filter_kw_.update(kwargs)
-    filter_kw = filter_kw_
+    ut.update_existing(filter_kw_, filter_kw, iswarning=True, assert_exists=True)
+    ut.update_existing(filter_kw_, kwargs, iswarning=True, assert_exists=True)
     aid_list_ = aid_list
     #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
-    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw)
+    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_, verbose=verbose)
+    aid_list_ = filter_annots_intragroup(ibs, aid_list, filter_kw_, verbose=verbose)
     return aid_list_
 
 

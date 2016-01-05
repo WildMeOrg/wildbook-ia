@@ -15,6 +15,10 @@ from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[chip_match]', DEBUG=False)
 
 
+class NeedRecomputeError(Exception):
+    pass
+
+
 DEBUG_CHIPMATCH = False
 
 #import six
@@ -1551,6 +1555,8 @@ class ChipMatch(AnnotMatch,
     def load_from_fpath(cls, fpath, verbose=None):
         #state_dict = ut.load_data(fpath, verbose=verbose)
         state_dict = ut.load_cPkl(fpath, verbose=verbose)
+        if 'filtnorm_aids' not in state_dict:
+            raise NeedRecomputeError('old version of chipmatch')
         cm = cls()
         cm.__setstate__(state_dict)
         return cm

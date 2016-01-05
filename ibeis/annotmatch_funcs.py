@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-#import six
-#import vtool as vt
-from six.moves import zip, map
 import numpy as np
+from six.moves import zip, map, filter, range  # NOQA
+from functools import partial  # NOQA
 from ibeis.control import controller_inject
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[annotmatch_funcs]')
+print, rrr, profile = ut.inject2(__name__, '[annotmatch_funcs]')
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -68,7 +67,8 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None, force_method=None):
+def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
+                                    force_method=None):
     """
     # This one is slow because aid2 is the second part of the index
 
@@ -88,7 +88,6 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None, for
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
         >>> aid2_list = ibs.get_valid_aids()
-        >>> from functools import partial
         >>> func_list = [
         >>>     partial(ibs.get_annotmatch_rowids_from_aid2, force_method=1),
         >>>     partial(ibs.get_annotmatch_rowids_from_aid2, force_method=2),
@@ -153,7 +152,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
         >>> aid_list = ibs.get_valid_aids()[0:4]
         >>> eager = True
         >>> nInput = None
-        >>> annotmatch_rowid_list = get_annotmatch_rowids_from_aid(ibs, aid_list, eager, nInput)
+        >>> annotmatch_rowid_list = get_annotmatch_rowids_from_aid(ibs, aid_list,
+        >>>                                                        eager, nInput)
         >>> result = ('annotmatch_rowid_list = %s' % (str(annotmatch_rowid_list),))
         >>> print(result)
 
@@ -189,7 +189,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
 
     if force_method != 2 and (nInput < 256 or (force_method == 1)):
         rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
-        rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)  # This one is slow because aid2 is the second part of the index
+        # This one is slow because aid2 is the second part of the index
+        rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)
         annotmatch_rowid_list = list(map(ut.flatten, zip(rowids1, rowids2)))  # NOQA
     else:
         # This is much much faster than the other methods for large queries
@@ -225,7 +226,6 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
 
 def get_annotmatch_subgraph(ibs):
     r"""
-
     http://bokeh.pydata.org/en/latest/
     https://github.com/jsexauer/networkx_viewer
 
@@ -264,7 +264,6 @@ def get_annotmatch_subgraph(ibs):
     #rowids = ibs._get_all_annotmatch_rowids()
     #aids1 = ibs.get_annotmatch_aid1(rowids)
     #aids2 = ibs.get_annotmatch_aid2(rowids)
-
     #
     #
     nids = ibs.get_valid_nids()
@@ -349,7 +348,8 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
 
 
 @register_ibs_method
-def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
+def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
+                                     on_nontrivial_merge=None):
     """
     Safe way to perform links. Errors on invalid operations.
 
@@ -501,6 +501,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivia
 
 
 @register_ibs_method
+def set_annot_pair_as_unknown_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
+    pass
+
+
+@register_ibs_method
 def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
     r"""
     Args:
@@ -518,7 +523,6 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> from six.moves import filter
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
         >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
@@ -656,12 +660,11 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         >>> print(result)
         104
     """
-    flag_non_None_items = lambda list_: (item_ is not None for item_ in list_)
     annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
     annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
     annotmatch_truth_list = ut.or_lists(
-        flag_non_None_items(annotmatch_truth_list1),
-        flag_non_None_items(annotmatch_truth_list2))
+        ut.flag_not_None_items(annotmatch_truth_list1),
+        ut.flag_not_None_items(annotmatch_truth_list2))
     #annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
     return annotmatch_truth_list
 

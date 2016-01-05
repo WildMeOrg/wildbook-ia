@@ -143,6 +143,9 @@ class QueryParams(collections.Mapping):
         state_dict = qparams.__dict__.copy()
         return state_dict
 
+    def copy(qparams):
+        return qparams.__dict__.copy()
+
     def __setstate__(qparams, state_dict):
         qparams.__dict__.update(state_dict)
 
