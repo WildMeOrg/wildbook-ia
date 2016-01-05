@@ -234,6 +234,7 @@ class IBEISController(BASE_CLASS):
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const
+        ibs.depc = None
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         # observer_weakref_list keeps track of the guibacks connected to this
@@ -485,6 +486,16 @@ class IBEISController(BASE_CLASS):
             dobackup=False,  # Everything in dbcache can be regenerated.
             verbose=ut.VERBOSE,
         )
+
+        # Initialize dependency cache
+        from ibeis import depends_cache
+        ibs.depc = depends_cache.DependencyCache(
+            root_tablename='annot',   # const.ANNOTATION_TABLE
+            default_fname='default_dbcache',
+            cache_dpath=ibs.get_cachedir(),
+            parent_controller=ibs
+        )
+        ibs.depc.initialize()
 
     def _close_sqldbcache(ibs):
         ibs.dbcache.close()
