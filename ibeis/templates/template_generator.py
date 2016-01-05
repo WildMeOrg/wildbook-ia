@@ -57,7 +57,7 @@ TODO:
    * consistency check that all chips in the sql table exist
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import utool  # NOQA
 import utool as ut
@@ -130,65 +130,6 @@ readonly_set = {
     #const.FEATURE_WEIGHT_TABLE,
     #const.RESIDUAL_TABLE
 }
-
-
-# HACK
-#class SHORTNAMES(object):
-#    ANNOT      = 'annot'
-#    CHIP       = 'chip'
-#    PROBCHIP   = 'probchip'
-#    FEAT       = 'feat'
-#    FEATWEIGHT = 'featweight'
-#    RVEC       = 'residual'  # 'rvec'
-#    VOCABTRAIN = 'vocabtrain'
-#    DETECT     = 'detect'
-#    ENCOUNTER  = 'encounter'
-#    IMAGE      = 'image'
-#    MATCH      = 'annotmatch'
-#    EGR        = 'egr'
-#    PCR        = 'party_contrib_relation'
-#    CONTRIB    = 'contributor'
-#    PARTY      = 'party'
-
-#depends_map = {
-#    #SHORTNAMES.MATCH     : None,
-#    #SHORTNAMES.EGR       : None,
-#    #SHORTNAMES.PCR       : None,
-#    #SHORTNAMES.IMAGE     : None,
-#    #SHORTNAMES.ENCOUNTER : None,
-#    #SHORTNAMES.ANNOT     : None,
-#    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
-#    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
-#    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
-#    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
-#    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
-#}
-
-#relationship_map = {
-#    SHORTNAMES.EGR: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
-#    SHORTNAMES.PCR: (SHORTNAMES.PARTY, SHORTNAMES.CONTRIB),
-#    SHORTNAMES.MATCH: (SHORTNAMES.ANNOT, SHORTNAMES.ANNOT),
-#}
-
-# shortened tablenames
-# Maps full table names to short table names
-
-#tablename2_tbl = {
-#    const.MATCH_TABLE                  : SHORTNAMES.MATCH,
-#    const.ANNOTATION_TABLE             : SHORTNAMES.ANNOT,
-#    const.CHIP_TABLE                   : SHORTNAMES.CHIP,
-#    const.PROBCHIP_TABLE               : SHORTNAMES.PROBCHIP,
-#    const.FEATURE_TABLE                : SHORTNAMES.FEAT,
-#    const.FEATURE_WEIGHT_TABLE         : SHORTNAMES.FEATWEIGHT,
-#    const.RESIDUAL_TABLE               : SHORTNAMES.RVEC,
-#    const.ENCOUNTER_TABLE              : SHORTNAMES.ENCOUNTER,
-#    const.IMAGE_TABLE                  : SHORTNAMES.IMAGE,
-#    #
-#    const.EG_RELATION_TABLE            : SHORTNAMES.EGR,
-#    const.PARTY_TABLE                  : SHORTNAMES.PARTY,
-#    const.PARTY_CONTRIB_RELATION_TABLE : SHORTNAMES.PCR,
-#    const.CONTRIBUTOR_TABLE            : SHORTNAMES.CONTRIB,
-#}
 
 
 # FIXME: keys might conflict and need to be ordered

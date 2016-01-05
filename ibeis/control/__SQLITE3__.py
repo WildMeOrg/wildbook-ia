@@ -96,6 +96,7 @@ def REGISTER_SQLITE3_TYPES():
         if VERBOSE_SQL:
             print('Register NUMPY with SQLite3')
         register_converter('NUMPY', _read_numpy_from_sqlite3)
+        register_converter('NDARRAY', _read_numpy_from_sqlite3)
         register_adapter(np.ndarray, _write_numpy_to_sqlite3)
 
     def register_uuid():

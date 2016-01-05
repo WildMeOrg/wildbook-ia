@@ -96,7 +96,7 @@ class SQLDatabaseController(object):
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
-                 text_factory=__STR__, inmemory=None):
+                 text_factory=__STR__, inmemory=None, simple=False, fpath=None):
         """ Creates db and opens connection """
         # standard metadata table keys for each docstr
         # TODO: generalize the places that use this so to add a new cannonical
@@ -113,29 +113,35 @@ class SQLDatabaseController(object):
             'primary_superkey',
         ]
         # Get SQL file path
-        db.dir_  = sqldb_dpath
-        db.fname = sqldb_fname
-        assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
-        db.fpath = join(db.dir_, db.fname)
-        db.text_factory = text_factory
-        if not exists(db.fpath):
-            print('[sql] Initializing new database')
-        # Open the SQL database connection with support for custom types
-        #lite.enable_callback_tracebacks(True)
-        #db.fpath = ':memory:'
-        db.connection = lite.connect2(db.fpath)
-        db.connection.text_factory = db.text_factory
-        #db.connection.isolation_level = None  # turns sqlite3 autocommit off
-        #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
-        if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
-            db.squeeze()
-            db._copy_to_memory()
-            db.connection.text_factory = text_factory
-        # Get a cursor which will preform sql commands / queries / executions
-        db.cur = db.connection.cursor()
-        # Optimize the database (if anything is set)
-        db.optimize()
-        db._ensure_metadata_table()
+        if simple:
+            db.fpath = fpath
+            db.connection = lite.connect2(db.fpath)
+            db.cur = db.connection.cursor()
+            db._ensure_metadata_table()
+        else:
+            db.dir_  = sqldb_dpath
+            db.fname = sqldb_fname
+            assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
+            db.fpath = join(db.dir_, db.fname)
+            db.text_factory = text_factory
+            if not exists(db.fpath):
+                print('[sql] Initializing new database')
+            # Open the SQL database connection with support for custom types
+            #lite.enable_callback_tracebacks(True)
+            #db.fpath = ':memory:'
+            db.connection = lite.connect2(db.fpath)
+            db.connection.text_factory = db.text_factory
+            # Get a cursor which will preform sql commands / queries / executions
+            db.cur = db.connection.cursor()
+            #db.connection.isolation_level = None  # turns sqlite3 autocommit off
+            #db.connection.isolation_level = lite.IMMEDIATE  # turns sqlite3 autocommit off
+            if inmemory is True or (inmemory is None and COPY_TO_MEMORY):
+                db.squeeze()
+                db._copy_to_memory()
+                db.connection.text_factory = text_factory
+            # Optimize the database (if anything is set)
+            db.optimize()
+            db._ensure_metadata_table()
 
     def get_fpath(db):
         return db.fpath
@@ -1226,7 +1232,7 @@ class SQLDatabaseController(object):
                 file_.write(table_csv)
 
     @default_decor
-    def get_schema_current_autogeneration_str(db, autogen_cmd):
+    def get_schema_current_autogeneration_str(db, autogen_cmd=''):
         """ Convenience: Autogenerates the most up-to-date database schema
 
         CommandLine:
@@ -1242,7 +1248,6 @@ class SQLDatabaseController(object):
         db_version_current = db.get_db_version()
         # Define what tab space we want to save
         tab1 = ' ' * 4
-        tab2 = ' ' * 8
         line_list = []
         #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema
         #--force-incremental-db-update --dump-autogen-schema'
@@ -1272,66 +1277,74 @@ class SQLDatabaseController(object):
                 first = False
             else:
                 line_list.append('%s' % '')
-            # Hack to find the name of the constant variable
-            constant_name = None
-            for variable, value in const.__dict__.iteritems():
-                if value == tablename:
-                    constant_name = variable
-                    break
-            # assert constant_name is not None, "Table name does not exists in constants"
-            if constant_name is not None:
-                line_list.append(tab1 + 'db.add_table(const.%s, [' % (constant_name, ))
-            else:
-                line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
-            column_list = db.get_columns(tablename)
-            for column in column_list:
-                col_name = ('%s,' % ut.repr2(__STR__(column[1]))).ljust(32)
-                col_type = str(column[2])
-                if column[5] == 1:  # Check if PRIMARY KEY
-                    col_type += ' PRIMARY KEY'
-                elif column[3] == 1:  # Check if NOT NULL
-                    col_type += ' NOT NULL'
-                elif column[4] is not None:
-                    col_type += ' DEFAULT ' + __STR__(column[4])  # Specify default value
-                line_list.append(tab2 + '(%s%s),' % (col_name, ut.repr2(col_type), ))
-            line_list.append(tab1 + '],')
-            superkeys = db.get_table_superkey_colnames(tablename)
-            docstr = db.get_table_docstr(tablename)
-            # Append metadata values
-            specially_handled_table_metakeys = ['docstr', 'superkeys',
-                                                #'constraint',
-                                                'dependsmap']
-            def quote_docstr(docstr):
-                import textwrap
-                wraped_docstr = '\n'.join(textwrap.wrap(ut.textblock(docstr)))
-                indented_docstr = ut.indent(wraped_docstr.strip(), tab2)
-                _TSQ = ut.TRIPLE_SINGLE_QUOTE
-                quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
-                return quoted_docstr
-            line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
-            line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys), ))
-            #line_list.append(tab2 + 'constraint=%r,' %
-            #(db.get_metadata_val(tablename + '_constraint'),))
-            # Hack out docstr and superkeys for now
-            for suffix in db.table_metadata_keys:
-                if suffix in specially_handled_table_metakeys:
-                    continue
-                key = tablename + '_' + suffix
-                val = db.get_metadata_val(key, eval_=True, default=None)
-                if val is not None:
-                    #ut.embed()
-                    line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
-            dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
-            if dependsmap is not None:
-                _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
-                depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
-                # hack for formatting
-                depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')
-                line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
-            line_list.append(tab1 + ')')
+            line_list += db.get_table_autogen_str(tablename)
+            pass
 
         line_list.append('')
         return '\n'.join(line_list)
+
+    def get_table_autogen_str(db, tablename):
+        # Hack to find the name of the constant variable
+        line_list = []
+        tab1 = ' ' * 4
+        tab2 = ' ' * 8
+        constant_name = None
+        for variable, value in const.__dict__.iteritems():
+            if value == tablename:
+                constant_name = variable
+                break
+        # assert constant_name is not None, "Table name does not exists in constants"
+        if constant_name is not None:
+            line_list.append(tab1 + 'db.add_table(const.%s, [' % (constant_name, ))
+        else:
+            line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
+        column_list = db.get_columns(tablename)
+        for column in column_list:
+            col_name = ('%s,' % ut.repr2(__STR__(column[1]))).ljust(32)
+            col_type = str(column[2])
+            if column[5] == 1:  # Check if PRIMARY KEY
+                col_type += ' PRIMARY KEY'
+            elif column[3] == 1:  # Check if NOT NULL
+                col_type += ' NOT NULL'
+            elif column[4] is not None:
+                col_type += ' DEFAULT ' + __STR__(column[4])  # Specify default value
+            line_list.append(tab2 + '(%s%s),' % (col_name, ut.repr2(col_type), ))
+        line_list.append(tab1 + '],')
+        superkeys = db.get_table_superkey_colnames(tablename)
+        docstr = db.get_table_docstr(tablename)
+        # Append metadata values
+        specially_handled_table_metakeys = ['docstr', 'superkeys',
+                                            #'constraint',
+                                            'dependsmap']
+        def quote_docstr(docstr):
+            import textwrap
+            wraped_docstr = '\n'.join(textwrap.wrap(ut.textblock(docstr)))
+            indented_docstr = ut.indent(wraped_docstr.strip(), tab2)
+            _TSQ = ut.TRIPLE_SINGLE_QUOTE
+            quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
+            return quoted_docstr
+        line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
+        line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys), ))
+        #line_list.append(tab2 + 'constraint=%r,' %
+        #(db.get_metadata_val(tablename + '_constraint'),))
+        # Hack out docstr and superkeys for now
+        for suffix in db.table_metadata_keys:
+            if suffix in specially_handled_table_metakeys:
+                continue
+            key = tablename + '_' + suffix
+            val = db.get_metadata_val(key, eval_=True, default=None)
+            if val is not None:
+                #ut.embed()
+                line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
+        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+        if dependsmap is not None:
+            _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
+            depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
+            # hack for formatting
+            depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')
+            line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
+        line_list.append(tab1 + ')')
+        return line_list
 
     @default_decor
     def dump_schema(db):

@@ -438,7 +438,7 @@ def get_chip_feat_rowid(ibs, chip_rowid_list, config2_=None, ensure=True, eager=
 @getter_1to1
 def get_chip_feat_rowids_(ibs, chip_rowid_list, config2_=None, eager=True, nInput=None):
     """
-    equivalent to get_chip_feat_rowids_ except ensure is constrained
+    equivalent to get_chip_feat_rowids except ensure is constrained
     to be False.
 
     Also you save a stack frame because get_chip_feat_rowid just
