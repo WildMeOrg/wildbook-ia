@@ -498,19 +498,19 @@ def sanitize_sql(db, tablename, columns=None):
     tablename = re.sub('[^a-z_0-9]', '', tablename)
     valid_tables = db.get_table_names()
     if tablename not in valid_tables:
-        raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
+        raise Exception('UNSAFE TABLE: tablename=%r. Column names and table names should be different' % tablename)
     if columns is None:
         return tablename
     else:
         def _sanitize_sql_helper(column):
-            column = re.sub('[^a-z_0-9]', '', column)
+            column_ = re.sub('[^a-z_0-9]', '', column)
             valid_columns = db.get_column_names(tablename)
-            if column not in valid_columns:
-                raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %
+            if column_ not in valid_columns:
+                raise Exception('UNSAFE COLUMN: must be all lowercase. tablename=%r column=%r' %
                                 (tablename, column))
                 return None
             else:
-                return column
+                return column_
 
         columns = [_sanitize_sql_helper(column) for column in columns]
         columns = [column for column in columns if columns is not None]

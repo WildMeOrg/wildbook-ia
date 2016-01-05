@@ -490,10 +490,11 @@ class IBEISController(BASE_CLASS):
         # Initialize dependency cache
         from ibeis import depends_cache
         ibs.depc = depends_cache.DependencyCache(
-            root_tablename='annot',   # const.ANNOTATION_TABLE
+            #root_tablename='annot',   # const.ANNOTATION_TABLE
+            root_tablename=const.ANNOTATION_TABLE,
             default_fname='default_dbcache',
             cache_dpath=ibs.get_cachedir(),
-            parent_controller=ibs
+            controller=ibs
         )
         ibs.depc.initialize()
 

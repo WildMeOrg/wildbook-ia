@@ -101,6 +101,7 @@ class SQLDatabaseController(object):
         # standard metadata table keys for each docstr
         # TODO: generalize the places that use this so to add a new cannonical
         # metadata field it is only necessary to append to this list.
+        db._tablenames = None
         db.table_metadata_keys = [
             #'constraint',
             'dependson',
@@ -115,6 +116,7 @@ class SQLDatabaseController(object):
         # Get SQL file path
         if simple:
             db.fpath = fpath
+            db.text_factory = text_factory
             db.connection = lite.connect2(db.fpath)
             db.cur = db.connection.cursor()
             db._ensure_metadata_table()
@@ -1378,6 +1380,11 @@ class SQLDatabaseController(object):
         db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tablename_list = db.cur.fetchall()
         return [str(tablename[0]) for tablename in tablename_list]
+
+    def has_table(db, tablename, colnames=None, lazy=True):
+        if not lazy or db._tablenames is None:
+            db._tablenames = db.get_table_names()
+        return tablename in db._tablenames
 
     @default_decor
     def get_table_constraints(db, tablename):

@@ -9,12 +9,13 @@ import numpy as np
 import uuid
 import six
 from ibeis.control.SQLDatabaseControl import SQLDatabaseController
+(print, rrr, profile) = ut.inject2(__name__, '[depcache]')
 
 
-CONFIG_TABLE = '_CONFIG_'
+CONFIG_TABLE = 'config'
 CONFIG_ROWID = 'config_rowid'
 CONFIG_HASHID = 'config_hashid'
-EXTERN_SUFFIX = '_EXTERN_URI'
+EXTERN_SUFFIX = '_extern_uri'
 
 
 TYPE_TO_SQLTYPE = {
@@ -54,8 +55,8 @@ def register_preproc(tablename, parents=None, colnames=None, coltypes=None, docs
 
 if False:
     # Example of global preproc function
-
-    @register_preproc(tablename='dummy', parents=['annot'], colnames=['data'], coltypes=[str])
+    dummy_root_tablename = 'annot'
+    @register_preproc(tablename='dummy', parents=[dummy_root_tablename], colnames=['data'], coltypes=[str])
     def dummy_global_preproc_func(depc, parent_rowids, config=None):
         if config is None:
             config = {}
@@ -68,11 +69,12 @@ def testdata_depc(fname=None):
     import vtool as vt
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(), verbose=False)
 
-    depc = DependencyCache(root_tablename='annot', default_fname=fname)
+    dummy_root = 'annot'
+    depc = DependencyCache(root_tablename=dummy_root, default_fname=fname)
     _register_preproc = depc.register_preproc
 
     @_register_preproc(
-        tablename='chipmask', parents=['annot'], colnames=['size', 'mask'],
+        tablename='chipmask', parents=[dummy_root], colnames=['size', 'mask'],
         coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
     def dummy_manual_chipmask(depc, parent_rowids, config=None):
         import vtool as vt
@@ -92,7 +94,7 @@ def testdata_depc(fname=None):
 
     @_register_preproc(
         tablename='chip',
-        parents=['annot'],
+        parents=[dummy_root],
         colnames=['size', 'chip'],
         coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)])
     def dummy_preproc_chip(depc, parent_rowids, config=None):
@@ -106,7 +108,7 @@ def testdata_depc(fname=None):
 
     @_register_preproc(
         'probchip',
-        ['annot'],
+        [dummy_root],
         ['size', 'probchip'],
         coltypes=[(int, int), ('extern', vt.imread, vt.imwrite)],
     )
@@ -161,7 +163,7 @@ def testdata_depc(fname=None):
 
     @_register_preproc(
         'notch',
-        ['annot'],
+        [dummy_root],
         ['notchdata'],
     )
     def dummy_preproc_notch(depc, parent_rowids, config=None):
@@ -354,11 +356,11 @@ def get_levels(dict_, n=0, levels=None):
 
 class DependencyCache(object):
     def __init__(depc, root_tablename=None, cache_dpath='./DEPCACHE',
-                 parent_controller=None, default_fname=None):
+                 controller=None, default_fname=None):
         depc.root_tablename = root_tablename
         depc.cachetable_dict = {}
         depc.fname_to_db = {}
-        depc.parent_controller = parent_controller
+        depc.controller = controller
         depc.cache_dpath = cache_dpath
         if default_fname is None:
             default_fname = ':memory:'
@@ -371,15 +373,16 @@ class DependencyCache(object):
             return func
         return register_preproc_wrapper
 
+    @profile
     def initialize(depc):
         print('[depc] INITIALIZE DEPCACHE')
 
-        print('regsitering global preprocs')
+        print(' * regsitering global preprocs')
         for kw in GLOBAL_PREPROC_REGISTER:
             depc.register_property(**kw)
 
         ut.ensuredir(depc.cache_dpath)
-        print('depc.cache_dpath = %r' % (depc.cache_dpath,))
+        #print('depc.cache_dpath = %r' % (depc.cache_dpath,))
         config_addtable_kw = ut.odict(
             [
                 ('tablename', CONFIG_TABLE,),
@@ -392,21 +395,22 @@ class DependencyCache(object):
                 ('dependson', [])
             ]
         )
-        print(ut.repr3(config_addtable_kw))
+        #print(ut.repr3(config_addtable_kw))
 
-        print('depc.fname_to_db.keys = %r' % (depc.fname_to_db,))
+        #print('depc.fname_to_db.keys = %r' % (depc.fname_to_db,))
         for fname in depc.fname_to_db.keys():
-            print('fname = %r' % (fname,))
+            #print('fname = %r' % (fname,))
             if fname == ':memory:':
                 fpath = fname
             else:
                 fname_ = ut.ensure_ext(fname, '.sqlite')
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
-            print('fpath = %r' % (fpath,))
+            #print('fpath = %r' % (fpath,))
             db = SQLDatabaseController(fpath=fpath, simple=True)
-            print('db = %r' % (db,))
-            db.add_table(**config_addtable_kw)
+            if not db.has_table(CONFIG_TABLE):
+                db.add_table(**config_addtable_kw)
             depc.fname_to_db[fname] = db
+        print('[depc] Finished initialization')
 
         for table in depc.cachetable_dict.values():
             table.initialize()
@@ -415,6 +419,19 @@ class DependencyCache(object):
         edges = [(parent, key) for key, table in  depc.cachetable_dict.items()
                  for parent in table.parents]
         return edges
+
+    def print_schemas(depc):
+        for fname, db in depc.fname_to_db.items():
+            print('fname = %r' % (fname,))
+            db.print_schema()
+
+    def print_table_csv(depc, tablename):
+        depc[tablename]
+
+    def print_all_tables(depc):
+        for tablename, table in depc.cachetable_dict.items():
+            db = table.db
+            db.print_table_csv(tablename)
 
     def make_digraph(depc):
         import networkx as nx
@@ -428,12 +445,16 @@ class DependencyCache(object):
     def register_property(depc, tablename, parents=None, colnames=None,
                           coltypes=None, preproc_func=None, docstr=None,
                           fname=None):
-        if docstr is None:
-            docstr = 'no docstr'
+        if parents is None:
+            parents = [depc.root]
+        if colnames is None:
+            colnames = ['data']
         if coltypes is None:
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
             fname = depc.default_fname
+        if docstr is None:
+            docstr = 'no docstr'
 
         depc.fname_to_db[fname] = None
         table = DependencyCacheTable(
@@ -587,9 +608,6 @@ class DependencyCacheTable(object):
                 assert len(args) == 1, 'varargs and kwargs must have one arg for depcache'
             else:
                 if len(args) < 3:
-                    import utool
-                    utool.embed()
-
                     print('args = %r' % (args,))
                     assert False, 'preproc func must have a depcache arg, at least one parent rowid arg, and a config arg'
                 rowid_args = args[1:-1]
@@ -668,7 +686,8 @@ class DependencyCacheTable(object):
 
     def initialize(table):
         table.db = table.depc.fname_to_db[table.fname]
-        table.db.add_table(**table.get_addtable_kw())
+        if not table.db.has_table(table.tablename):
+            table.db.add_table(**table.get_addtable_kw())
 
     def print_schemadef(table):
         print('\n'.join(table.db.get_table_autogen_str(table.tablename)))
@@ -932,11 +951,14 @@ class DependencyCacheTable(object):
             data_list = []
             for uri in prop_listT[extern_colx]:
                 try:
-                    data = read_func(uri)
+                    # FIXME: only do this for a localpath
+                    uri1 = ut.unixjoin(table.depc.cache_dpath, uri)
+                    data = read_func(uri1)
                 except Exception as ex:
-                    ut.printex(ex, 'failed to load external data', iswarning=True)
+                    ut.printex(ex, 'failed to load external data', iswarning=False)
+                    raise
                     # FIXME
-                    data = None
+                    #data = None
                 data_list.append(data)
             prop_listT[extern_colx] = data_list
 
