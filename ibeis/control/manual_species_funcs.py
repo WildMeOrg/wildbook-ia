@@ -13,7 +13,6 @@ from six.moves import range, zip, map  # NOQA
 #import numpy as np
 #import vtool as vt
 from ibeis import constants as const
-from ibeis import ibsfuncs
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -108,31 +107,30 @@ def sanitize_species_texts(ibs, species_text_list):
         >>> print(result)
         ['____', '____', 'zebra_plains']
     """
-    # valid_species = ibs.get_all_species_texts()
-    # ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
-    # def _sanitize_species_text(species_text):
-    #     if species_text is None:
-    #         return None
-    #     elif species_text in valid_species:
-    #         return species_text
-    #     else:
-    #         return const.UNKNOWN
-    # species_text_list_ = [_sanitize_species_text(species_text)
-    #                       for species_text in species_text_list]
-    # # old but same logic
-    # #species_text_list_ = [None if species_text is None else
-    # #                      species_text if species_text in valid_species else
-    # #                      const.UNKNOWN
-    # #                      for species_text in species_text_list]
-    # # oldest different logic
-    # #species_text_list_ = [None
-    # #                      if species_text is None or species_text == const.UNKNOWN
-    # #                      else species_text.lower()
-    # #                      for species_text in species_text_list]
-    # #species_text_list_ = [species_text if species_text in valid_species else None
-    # #                      for species_text in species_text_list_]
-    # return species_text_list_
-    return species_text_list
+    valid_species = ibs.get_all_species_texts()
+    ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
+    def _sanitize_species_text(species_text):
+        if species_text is None:
+            return None
+        elif species_text in valid_species:
+            return species_text
+        else:
+            return const.UNKNOWN
+    species_text_list_ = [_sanitize_species_text(species_text)
+                          for species_text in species_text_list]
+    # old but same logic
+    #species_text_list_ = [None if species_text is None else
+    #                      species_text if species_text in valid_species else
+    #                      const.UNKNOWN
+    #                      for species_text in species_text_list]
+    # oldest different logic
+    #species_text_list_ = [None
+    #                      if species_text is None or species_text == const.UNKNOWN
+    #                      else species_text.lower()
+    #                      for species_text in species_text_list]
+    #species_text_list_ = [species_text if species_text in valid_species else None
+    #                      for species_text in species_text_list_]
+    return species_text_list_
 
 
 @register_ibs_method

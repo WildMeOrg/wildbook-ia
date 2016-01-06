@@ -1356,15 +1356,20 @@ def post_1_4_9(db, ibs=None):
     }
 
     if ibs is not None:
+        from six.moves import input as raw_input_
         species_rowid_list = ibs._get_all_species_rowids()
         species_text_list = ibs.get_species_texts(species_rowid_list)
         for rowid, text in zip(species_rowid_list, species_text_list):
             if text in species_mapping:
                 species_code, species_nice = species_mapping[text]
             else:
+                flag = '--allow-keyboard-database-update'
                 print('Found an unknown species...')
-                species_nice = raw_input('Input a NICE name for %r: ' % (text, ))
-                species_code = raw_input('Input a CODE name for %r: ' % (text, ))
+                if not ut.get_argflag(flag):
+                    print('    cannot resolve, re-run with flag %r' % (flag, ))
+                    raise RuntimeError('Cannot resolve unknown species')
+                species_nice = raw_input_('Input a NICE name for %r: ' % (text, ))
+                species_code = raw_input_('Input a CODE name for %r: ' % (text, ))
                 assert len(species_code) > 0 and len(species_nice) > 0
             ibs._set_species_nice([rowid], [species_nice])
             ibs._set_species_code([rowid], [species_code])
