@@ -166,7 +166,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         vtool.ScoreNormalizer: encoder
 
     CommandLine:
-        python -m ibeis --tf learn_featscore_normalizer --show
+        python -m ibeis --tf learn_featscore_normalizer --show -t default:
         python -m ibeis --tf learn_featscore_normalizer --show --fsvx=0 --threshx=1 --show
         python -m ibeis --tf learn_featscore_normalizer --show -a default:size=40 -t default:fg_on=False,lnbnn_on=False,ratio_thresh=1.0,K=1,Knorm=6,sv_on=False,normalizer_rule=name --fsvx=0 --threshx=1 --show
 

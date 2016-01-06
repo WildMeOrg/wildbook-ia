@@ -49,7 +49,7 @@ def run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list,
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> default_acfgstrs = ['controlled:qsize=20,dpername=1,dsize=10', 'controlled:qsize=20,dpername=10,dsize=100']
         >>> acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list, default=default_acfgstrs)
-        >>> test_cfg_name_list = ut.get_argval('-t', type_=list, default=['custom', 'custom:fg_on=False'])
+        >>> test_cfg_name_list = ut.get_argval(('-t', '-p')), type_=list, default=['custom', 'custom:fg_on=False'])
         >>> use_cache = False
         >>> testres_list = run_test_configurations2(ibs, acfg_name_list, test_cfg_name_list, use_cache)
     """

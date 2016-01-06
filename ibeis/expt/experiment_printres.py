@@ -4,7 +4,7 @@ displays results from experiment_harness
 
 TODO: save a testres variable so reloading and regenration becomes easier.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import six
 import utool as ut
@@ -12,7 +12,7 @@ import utool as ut
 #from ibeis.expt import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_printres]')
+print, rrr, profile = ut.inject2(__name__, '[expt_printres]')
 
 
 def get_diffranks(rank_mat, qaids):
