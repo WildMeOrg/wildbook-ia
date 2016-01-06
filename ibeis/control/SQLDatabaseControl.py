@@ -101,6 +101,7 @@ class SQLDatabaseController(object):
         # standard metadata table keys for each docstr
         # TODO: generalize the places that use this so to add a new cannonical
         # metadata field it is only necessary to append to this list.
+        db._tablenames = None
         db.table_metadata_keys = [
             #'constraint',
             'dependson',
@@ -115,6 +116,7 @@ class SQLDatabaseController(object):
         # Get SQL file path
         if simple:
             db.fpath = fpath
+            db.text_factory = text_factory
             db.connection = lite.connect2(db.fpath)
             db.cur = db.connection.cursor()
             db._ensure_metadata_table()
@@ -374,7 +376,7 @@ class SQLDatabaseController(object):
         if not any(needsadd_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        dirty_params = ut.list_compress(params_list, needsadd_list)
+        dirty_params = ut.compress(params_list, needsadd_list)
         if ut.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
@@ -521,8 +523,8 @@ class SQLDatabaseController(object):
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
             isunique_list = ut.flag_unique_items(id_list)
-            id_list  = ut.list_compress(id_list, isunique_list)
-            val_list = ut.list_compress(val_list, isunique_list)
+            id_list  = ut.compress(id_list, isunique_list)
+            val_list = ut.compress(val_list, isunique_list)
         else:
             raise AssertionError(
                 ('unknown duplicate_behavior=%r. '
@@ -1379,6 +1381,11 @@ class SQLDatabaseController(object):
         tablename_list = db.cur.fetchall()
         return [str(tablename[0]) for tablename in tablename_list]
 
+    def has_table(db, tablename, colnames=None, lazy=True):
+        if not lazy or db._tablenames is None:
+            db._tablenames = db.get_table_names()
+        return tablename in db._tablenames
+
     @default_decor
     def get_table_constraints(db, tablename):
         constraint = db.get_metadata_val(tablename + '_constraint', default=None)
@@ -1611,7 +1618,7 @@ class SQLDatabaseController(object):
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.list_compress(all_column_names, isvalid_list)
+        column_names = ut.compress(all_column_names, isvalid_list)
         column_list = [db.get_column(tablename, name)
                        for name in column_names if name not in exclude_columns]
         return column_list, column_names
@@ -1776,7 +1783,7 @@ class SQLDatabaseController(object):
         """
         all_column_names = db.get_column_names(tablename)
         isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.list_compress(all_column_names, isvalid_list)
+        column_names = ut.compress(all_column_names, isvalid_list)
         column_list = [db.get_column(tablename, name)
                        for name in column_names if name not in exclude_columns]
 
@@ -2044,9 +2051,9 @@ class SQLDatabaseController(object):
             if rowid_subsets is not None and tablename in rowid_subsets:
                 valid_rowids = set(rowid_subsets[tablename])
                 isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
-                valid_old_rowid_list = ut.list_compress(old_rowid_list, isvalid_list)
-                valid_column_list_ = [ut.list_compress(col, isvalid_list) for col in column_list_]
-                valid_extern_superkey_colval_list =  [ut.list_compress(col, isvalid_list)
+                valid_old_rowid_list = ut.compress(old_rowid_list, isvalid_list)
+                valid_column_list_ = [ut.compress(col, isvalid_list) for col in column_list_]
+                valid_extern_superkey_colval_list =  [ut.compress(col, isvalid_list)
                                                       for col in extern_superkey_colval_list]
                 print(' * filtered number of rows from %d to %d.' % (
                     len(valid_rowids), len(valid_old_rowid_list)))

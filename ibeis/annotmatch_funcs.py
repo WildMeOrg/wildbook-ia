@@ -25,8 +25,8 @@ def setup_pzmtest_subgraph():
 
     rng = np.random.RandomState(0)
     flags = rng.rand(len(aids1)) > .878
-    aids1 = ut.list_compress(aids1, flags)
-    aids2 = ut.list_compress(aids2, flags)
+    aids1 = ut.compress(aids1, flags)
+    aids2 = ut.compress(aids2, flags)
 
     for aid1, aid2 in zip(aids1, aids2):
         ibs.set_annot_pair_as_positive_match(aid1, aid2)
@@ -287,9 +287,9 @@ def get_annotmatch_subgraph(ibs):
     # (dont show all the aids if you dont have to)
     thresh = .5
     flags = edge_props['weight'] > thresh
-    aids1 = ut.list_compress(aids1, flags)
-    aids2 = ut.list_compress(aids2, flags)
-    edge_props = {key: ut.list_compress(val, flags) for key, val in edge_props.items()}
+    aids1 = ut.compress(aids1, flags)
+    aids2 = ut.compress(aids2, flags)
+    edge_props = {key: ut.compress(val, flags) for key, val in edge_props.items()}
 
     edge_keys = list(edge_props.keys())
     edge_vals = ut.dict_take(edge_props, edge_keys)
@@ -526,7 +526,7 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
         >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
-        >>> aid_list = ut.list_compress(aid_list, np.array(unixtimes) != -1)
+        >>> aid_list = ut.compress(aid_list, np.array(unixtimes) != -1)
         >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
         >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
         >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
@@ -655,7 +655,7 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         >>> # execute function
         >>> annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)
         >>> # verify results
-        >>> reviewed_pairs = ut.list_compress(pairs, annotmatch_reviewed_list)
+        >>> reviewed_pairs = ut.compress(pairs, annotmatch_reviewed_list)
         >>> result = len(reviewed_pairs)
         >>> print(result)
         104
@@ -685,7 +685,7 @@ def review_tagged_splits():
         >>> # Find aids that still need splits
         >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
         >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
-        >>> _aid_list = ut.list_compress(aid_pair_list, truth_list)
+        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
         >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
         >>> _nid_list = ut.get_list_column(_nids_list, 0)
         >>> import vtool as vt
@@ -758,7 +758,7 @@ def review_tagged_joins():
         >>>     aid_pair_list = [[1, 2]]
         >>> truth_list_ = ibs.get_aidpair_truths(*zip(*aid_pair_list))
         >>> truth_list = truth_list_ != 1
-        >>> _aid_list = ut.list_compress(aid_pair_list, truth_list)
+        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
         >>> _nids_list = np.array(ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list))
         >>> edge_ids = vt.get_undirected_edge_ids(_nids_list)
         >>> edge_ids = np.array(edge_ids)

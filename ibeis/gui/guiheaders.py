@@ -95,7 +95,7 @@ def make_table_declarations(ibs):
             #'rdconf',
             #'nGt',  # ## <put back in
             'annotnotes',  # ## <put back in
-            'annot_tags',  # < Hack should have actual tag structure
+            'annot_tag_text',  # < Hack should have actual tag structure
             #'annot_visual_uuid',
             #'annot_semantic_uuid',
             #'nFeats',

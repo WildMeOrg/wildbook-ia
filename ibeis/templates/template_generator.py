@@ -411,10 +411,10 @@ def postprocess_and_combine_templates(autogen_modname, autogen_key,
     # sort by multiple values
     #sorted_indexes = ut.list_argsort(func_tbl_list, func_name_list, func_type_list)
     sorted_indexes = ut.list_argsort(func_name_list, func_tbl_list, func_type_list)
-    sorted_func_code = ut.list_take(func_code_list, sorted_indexes)
-    #sorted_func_name = ut.list_take(func_name_list, sorted_indexes)
-    #sorted_func_type = ut.list_take(func_type_list, sorted_indexes)
-    #sorted_func_tbl = ut.list_take(func_tbl_list, sorted_indexes)
+    sorted_func_code = ut.take(func_code_list, sorted_indexes)
+    #sorted_func_name = ut.take(func_name_list, sorted_indexes)
+    #sorted_func_type = ut.take(func_type_list, sorted_indexes)
+    #sorted_func_tbl = ut.take(func_tbl_list, sorted_indexes)
 
     #functype_set.add(functype)
     #functype_list = sorted(list(functype_set))

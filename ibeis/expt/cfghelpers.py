@@ -261,7 +261,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                         cfg_combos_list.append(cfg_combo)
             # SUBX Cannot work here because of acfg hackiness
             #if subx is not None:
-            #    cfg_combo = ut.list_take(cfg_combo, subx)
+            #    cfg_combo = ut.take(cfg_combo, subx)
             if expand_nested:
                 cfg_combos_list.append(cfg_combos)
         #    print('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))

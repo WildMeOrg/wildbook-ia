@@ -216,7 +216,7 @@ def filterannots_by_tags(ibs, aid_list, filter_kw):
         >>> # TODO: show special annot group in GUI
     """
     flags = get_annot_tag_filterflags(ibs, aid_list, filter_kw)
-    aid_list_ = ut.list_compress(aid_list, flags)
+    aid_list_ = ut.compress(aid_list, flags)
     return aid_list_
 
 
@@ -417,9 +417,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None
                 unknown_noterror_flags = list(map(all, unknown_flags))
 
                 filtered_queries = ut.flatten(
-                    ut.list_compress(query_group, query_noterror_flags))
+                    ut.compress(query_group, query_noterror_flags))
                 filtered_unknown = ut.flatten(
-                    ut.list_compress(unknown_group, unknown_noterror_flags))
+                    ut.compress(unknown_group, unknown_noterror_flags))
 
                 filtered_qaids_ = sorted(filtered_queries + filtered_unknown)
 
@@ -775,7 +775,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         # value set by dbio.ingest_database
         flag_list = ibs.get_annot_been_adjusted(avail_aids)
         with VerbosityContext('been_adjusted'):
-            avail_aids = ut.list_compress(avail_aids, flag_list)
+            avail_aids = ut.compress(avail_aids, flag_list)
 
     if aidcfg.get('contrib_contains', None):
         contrib_contains = aidcfg['contrib_contains']
@@ -783,7 +783,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         tag_list = ibs.get_image_contributor_tag(gid_list)
         flag_list = [contrib_contains in tag for tag in tag_list]
         with VerbosityContext('contrib_contains'):
-            avail_aids = ut.list_compress(avail_aids, flag_list)
+            avail_aids = ut.compress(avail_aids, flag_list)
 
     if aidcfg['minqual'] is not None or aidcfg['require_quality']:
         minqual = 'junk' if aidcfg['minqual'] is None else aidcfg['minqual']
@@ -805,7 +805,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             numfeat_list >= min_numfeat,
             numfeat_list <= max_numfeat)
         with VerbosityContext('max_numfeat', 'min_numfeat'):
-            avail_aids = ut.list_compress(avail_aids, flags_list)
+            avail_aids = ut.compress(avail_aids, flags_list)
 
     if aidcfg['view'] is not None or aidcfg['require_viewpoint']:
         # Resolve base viewpoint
@@ -845,7 +845,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         filterkw = ut.dict_subset(aidcfg, ['has_any', 'has_none'], None)
         flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
         with VerbosityContext('has_any', 'has_none'):
-            avail_aids = ut.list_compress(avail_aids, flags)
+            avail_aids = ut.compress(avail_aids, flags)
             #avail_aids = ibs.filter_aids_without_name(
             #    avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
@@ -1230,7 +1230,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         total_value, items_subset = ut.knapsack_greedy(knapsack_items,
                                                        sample_size)
         group_idx_sample = ut.get_list_column(items_subset, 2)
-        subgroup_aids = ut.list_take(grouped_aids, group_idx_sample)
+        subgroup_aids = ut.take(grouped_aids, group_idx_sample)
 
         with VerbosityContext('sample_size'):
             avail_aids = ut.flatten(subgroup_aids)
@@ -1256,7 +1256,7 @@ def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
     if aidcfg['shuffle']:
         rand_idx = ut.random_indexes(len(avail_aids), seed=SEED2)
         with VerbosityContext('shuffle', SEED2=SEED2):
-            avail_aids = ut.list_take(avail_aids, rand_idx)
+            avail_aids = ut.take(avail_aids, rand_idx)
 
     if aidcfg['index'] is not None:
         indicies = ensure_flatlistlike(aidcfg['index'])

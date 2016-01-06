@@ -60,6 +60,8 @@ try:
     from ibeis import expt
     from ibeis import templates
     from ibeis.templates import generate_notebook
+    from ibeis import depends_cache
+    from ibeis.depends_cache import register_preproc
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise

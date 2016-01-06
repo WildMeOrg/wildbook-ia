@@ -76,7 +76,7 @@ def get_unconverted_hsdbs(workdir=None):
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     needs_convert = list(map(check_unconverted_hsdb, dbpath_list))
-    needs_convert_hsdbs  = ut.list_compress(dbpath_list, needs_convert)
+    needs_convert_hsdbs  = ut.compress(dbpath_list, needs_convert)
     return needs_convert_hsdbs
 
 

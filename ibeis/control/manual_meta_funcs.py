@@ -352,7 +352,7 @@ def get_all_uncontributed_images(ibs):
     gid_list = ibs.get_valid_gids()
     contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
     is_unassigned = [contrib_rowid is None for contrib_rowid in contrib_rowid_list]
-    unassigned_gid_list = ut.list_compress(gid_list, is_unassigned)
+    unassigned_gid_list = ut.compress(gid_list, is_unassigned)
     #sum(is_unassigned)
     #len(is_unassignd)
     #unassigned_gid_list = [
@@ -376,7 +376,7 @@ def get_all_uncontributed_configs(ibs):
     config_rowid_list = ibs.get_valid_configids()
     contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
     isunassigned_list = [_contrib_rowid is None for _contrib_rowid in contrib_rowid_list]
-    unassigned_config_rowid_list = ut.list_compress(contrib_rowid_list, isunassigned_list)
+    unassigned_config_rowid_list = ut.compress(contrib_rowid_list, isunassigned_list)
     #unassigned_config_rowid_list = [
     #    config_rowid
     #    for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
@@ -409,7 +409,7 @@ def ensure_encounter_configs_populated(ibs):
     eid_list = ibs.get_valid_eids()
     config_rowid_list = ibs.get_encounter_configid(eid_list)
     isunassigned_list = [config_rowid is None for config_rowid in config_rowid_list]
-    unassigned_eid_list = ut.list_compress(eid_list, isunassigned_list)
+    unassigned_eid_list = ut.compress(eid_list, isunassigned_list)
     #unassigned_eid_list = [
     #    eid
     #    for eid, config_rowid in zip(eid_list, config_rowid_list)
@@ -893,7 +893,7 @@ def delete_contributors(ibs, contrib_rowid_list):
     #eid_list = ibs.get_valid_eids()
     #eid_config_list = ibs.get_encounter_configid(eid_list)
     #valid_list = [config in config_rowid_list for config in eid_config_list ]
-    #eid_list = ut.list_compress(eid_list, valid_list)
+    #eid_list = ut.compress(eid_list, valid_list)
     #ibs.delete_encounters(eid_list)
     # Remote image contributors ~~~Delete images~~~~
     gid_list = ut.flatten(ibs.get_contributor_gids(contrib_rowid_list))

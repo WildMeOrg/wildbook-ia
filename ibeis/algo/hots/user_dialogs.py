@@ -29,7 +29,7 @@ def convert_name_suggestion_to_aids(ibs, choicetup, name_suggest_tup):
     comp_aids     = ut.listclip(comp_aids_all, num_top)
     comp_names    = ibs.get_annot_names(comp_aids)
     issuggested   = ut.list_cover(comp_names, chosen_names)
-    suggest_aids  = ut.list_compress(comp_aids, issuggested)
+    suggest_aids  = ut.compress(comp_aids, issuggested)
     return comp_aids, suggest_aids
 
 

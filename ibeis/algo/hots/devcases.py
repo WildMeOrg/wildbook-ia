@@ -367,7 +367,7 @@ def find_close_incorrect_match(ibs, qaids):
     qaid = qaids[0]
     qnid = ibs.get_annot_nids(qaid)
     is_groundfalse = [nid != qnid for nid in top_nids]
-    top_gf_aids = ut.list_compress(top_aids, is_groundfalse)
+    top_gf_aids = ut.compress(top_aids, is_groundfalse)
     #top_gt_aids = ut.filterfalse_items(top_aids, is_groundfalse)
     top_gf_vuuids = ibs.get_annot_visual_uuids(top_gf_aids)
     qvuuid = ibs.get_annot_visual_uuids(qaid)

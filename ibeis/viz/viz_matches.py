@@ -126,19 +126,19 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
         >>> sorted_groupxs = groupxs.take(group_sortx)
         >>> # get the info for this name
-        >>> name_fm_list  = ut.list_take(cm.fm_list, sorted_groupxs)
+        >>> name_fm_list  = ut.take(cm.fm_list, sorted_groupxs)
         >>> REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
         >>> if REMOVE_EMPTY_MATCHES:
         >>>     isvalid_list = [len(fm) > 0 for fm in name_fm_list]
-        >>>     name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
+        >>>     name_fm_list = ut.compress(name_fm_list, isvalid_list)
         >>>     sorted_groupxs = sorted_groupxs.compress(isvalid_list)
-        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
-        >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
+        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.take(cm.H_list, sorted_groupxs)
+        >>> name_fsv_list  = None if cm.fsv_list is None else ut.take(cm.fsv_list, sorted_groupxs)
         >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
-        >>> name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
+        >>> name_daid_list = ut.take(cm.daid_list, sorted_groupxs)
         >>> # find features marked as invalid by name scoring
         >>> featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
-        >>> name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
+        >>> name_featflag_list = ut.take(featflag_list, sorted_groupxs)
         >>> # Get the scores for names and chips
         >>> name_score = cm.name_score_list[nidx]
         >>> name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)

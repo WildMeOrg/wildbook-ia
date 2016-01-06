@@ -172,7 +172,7 @@ def get_dbinfo(ibs, verbose=True,
         valid_gids = valid_gids_
         valid_nids = valid_nids_
         valid_aids = valid_aids_
-        #associated_nids = ut.list_compress(associated_nids, map(any,
+        #associated_nids = ut.compress(associated_nids, map(any,
         #ibs.unflat_map(ibs.get_annot_custom_filterflags,
         #               ibs.get_name_aids(associated_nids))))
 
@@ -202,7 +202,7 @@ def get_dbinfo(ibs, verbose=True,
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
         nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
-    associated_nids = ut.list_compress(valid_nids, map(len, nx2_aids))
+    associated_nids = ut.compress(valid_nids, map(len, nx2_aids))
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
@@ -219,7 +219,7 @@ def get_dbinfo(ibs, verbose=True,
     #
     if verbose:
         print('Checking Annot Species')
-    unknown_aids = ut.list_compress(valid_aids, ibs.is_aid_unknown(valid_aids))
+    unknown_aids = ut.compress(valid_aids, ibs.is_aid_unknown(valid_aids))
     species_list = ibs.get_annot_species_texts(valid_aids)
     species2_aids = ut.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
@@ -238,14 +238,14 @@ def get_dbinfo(ibs, verbose=True,
     # Annot Info
     if verbose:
         print('Checking Annot Info')
-    multiton_aids_list = ut.list_take(nx2_aids, multiton_nxs)
+    multiton_aids_list = ut.take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
         multiton_aids = np.array([], dtype=np.int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
         assert len(set(multiton_aids)) == len(multiton_aids), 'duplicate annot'
-    singleton_aids = ut.list_take(nx2_aids, singleton_nxs)
+    singleton_aids = ut.take(nx2_aids, singleton_nxs)
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
 
     # Image size stats
@@ -311,7 +311,7 @@ def get_dbinfo(ibs, verbose=True,
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
-    gps_list  = ut.list_compress(gps_list_, gpsvalid_list)
+    gps_list  = ut.compress(gps_list_, gpsvalid_list)
 
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
@@ -570,7 +570,7 @@ def hackshow_names(ibs, aid_list, fnum=None):
     #ydatas_list = vt.argsort_groups(unixtimes_list, reverse=False)
 
     # Sort by num members
-    #ydatas_list = ut.list_take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
+    #ydatas_list = ut.take(ydatas_list, np.argsort(list(map(len, ydatas_list))))
     xdatas_list = [np.zeros(len(ydatas)) + count for count, ydatas in enumerate(ydatas_list)]
     #markers = ut.flatten(markers_list)
     #yaws = np.array(ut.flatten(yaws_list))

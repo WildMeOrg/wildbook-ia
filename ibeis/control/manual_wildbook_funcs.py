@@ -957,7 +957,7 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True,
         assert len(aid_list) > 0, (
             'Encounter eid=%r cannot be shipped with0 annots' % (eid,))
         unknown_flags = ibs.is_aid_unknown(aid_list)
-        unnamed_aid_list = ut.list_compress(aid_list, unknown_flags)
+        unnamed_aid_list = ut.compress(aid_list, unknown_flags)
         assert len(unnamed_aid_list) == 0, (
             ('Encounter eid=%r cannot be shipped becuase '
              'annotation(s) %r are not named') % (eid, unnamed_aid_list, ))

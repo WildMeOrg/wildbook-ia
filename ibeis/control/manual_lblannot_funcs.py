@@ -313,8 +313,8 @@ def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
     aid_list_to_add = ut.get_dirty_items(aid_list, setflag_list)
     lblannot_rowid_list_to_add = ut.get_dirty_items(lblannot_rowid_list, setflag_list)
     # set the existing relationship if one already exists
-    alrids_list_to_set = ut.list_compress(alrids_list, setflag_list)
-    lblannot_rowid_list_to_set = ut.list_compress(lblannot_rowid_list, setflag_list)
+    alrids_list_to_set = ut.compress(alrids_list, setflag_list)
+    lblannot_rowid_list_to_set = ut.compress(lblannot_rowid_list, setflag_list)
     # Assert each annot has only one relationship of this type
     ibsfuncs.assert_singleton_relationship(ibs, alrids_list_to_set)
     alrid_list_to_set = ut.flatten(alrids_list_to_set)
@@ -344,8 +344,8 @@ def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, ensure=Tr
     notdefault_list = [value != DEFAULT_VALUE for value in value_list_]
     aid_list_to_delete = ut.get_dirty_items(aid_list, notdefault_list)
     # Set all the valid valids
-    aids_to_set   = ut.list_compress(aid_list, notdefault_list)
-    values_to_set = ut.list_compress(value_list_, notdefault_list)
+    aids_to_set   = ut.compress(aid_list, notdefault_list)
+    values_to_set = ut.compress(value_list_, notdefault_list)
     ibs.delete_annot_relations_oftype(aid_list_to_delete, _lbltype)
     # remove the relationships that have now been unnamed
     # Convert names into lblannot_rowid
@@ -415,7 +415,7 @@ def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
     lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
     # only want the nids of individuals, not species, for example
     valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-    alrids_list = [ut.list_compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
+    alrids_list = [ut.compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
     if configid is None:
         def resolution_func_first(alrid_list):
             return [ alrid_list[0] ]

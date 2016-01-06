@@ -509,7 +509,7 @@ def ensure_pz_mtest_batchworkflow_test():
     aid_list = ibs.get_valid_aids()
 
     unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
-    untimed_aids = ut.list_compress(aid_list, [t == -1 for t in unixtime_list])
+    untimed_aids = ut.compress(aid_list, [t == -1 for t in unixtime_list])
 
     ibs.get_annot_groundtruth(untimed_aids, aid_list)
 
@@ -625,7 +625,7 @@ def ensure_pz_mtest_mergesplit_test():
 
     total_names = num_merge_names + num_split_names + num_combo_names
 
-    modify_aids = ut.list_take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+    modify_aids = ut.take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
 
     merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
     merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')

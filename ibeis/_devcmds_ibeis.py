@@ -53,7 +53,7 @@ def test_openworkdirs():
     dbname_list = os.listdir(workdir)
     dbpath_list = [join(workdir, name) for name in dbname_list]
     is_hsdb_list    = list(map(ingest_hsdb.is_hsdb, dbpath_list))
-    hsdb_list = ut.list_compress(dbpath_list, is_hsdb_list)
+    hsdb_list = ut.compress(dbpath_list, is_hsdb_list)
     #is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
     regen_cmds = []
     for hsdb_dpath in hsdb_list:

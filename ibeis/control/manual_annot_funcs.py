@@ -207,7 +207,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         if is_exemplar is True:
             # corresponding unoptimized hack for is_exemplar
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.list_compress(aid_list, flag_list)
+            aid_list  = ut.compress(aid_list, flag_list)
         elif is_exemplar is False:
             flag_list = ibs.get_annot_exemplar_flags(aid_list)
             aid_list  = ut.filterfalse_items(aid_list, flag_list)
@@ -227,11 +227,11 @@ def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
     if include_only_gid_list is not None:
         gid_list     = ibs.get_annot_gids(aid_list)
         is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
-        aid_list     = ut.list_compress(aid_list, is_valid_gid)
+        aid_list     = ut.compress(aid_list, is_valid_gid)
     if yaw != 'no-filter':
         yaw_list     = ibs.get_annot_yaws(aid_list)
         is_valid_yaw = [yaw == flag for flag in yaw_list]
-        aid_list     = ut.list_compress(aid_list, is_valid_yaw)
+        aid_list     = ut.compress(aid_list, is_valid_yaw)
     if species is not None:
         aid_list = ibs.filter_aids_to_species(aid_list, species)
     if is_known is not None:
@@ -244,7 +244,7 @@ def filter_annotation_set(ibs, aid_list, include_only_gid_list=None,
         aid_list = ibs.filter_annots_using_minimum_timedelta(aid_list, min_timedelta)
     if hasgt:
         hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
-        aid_list = ut.list_compress(aid_list, hasgt_list)
+        aid_list = ut.compress(aid_list, hasgt_list)
     aid_list = sorted(aid_list)
     return aid_list
 
@@ -994,7 +994,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
                             for _ in other_verts_list]
         flags_list = [[p1.intersects(p2) for p2 in p2_list]
                       for p1, p2_list in zip(poly_list, other_polys_list)]
-        contact_aids = [ut.list_compress(other_aids, flags)
+        contact_aids = [ut.compress(other_aids, flags)
                         for other_aids, flags in zip(other_aids_list, flags_list)]
     else:
         contact_aids = other_aids_list
@@ -1151,7 +1151,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         # Filter out non-exemplars
         exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
         isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
-        groundtruth_list_ = [ut.list_compress(aids, isvalids)
+        groundtruth_list_ = [ut.compress(aids, isvalids)
                              for aids, isvalids in zip(aids_list, isvalids_list)]
     if noself:
         # Remove yourself from the set
@@ -2360,7 +2360,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     will_be_unknown_flag_list = [nid == const.UNKNOWN_NAME_ROWID for nid in name_rowid_list]
     if any(will_be_unknown_flag_list):
         # remove exemplar status from any annotations that will become unknown
-        will_be_unknown_aids = ut.list_compress(aid_list, will_be_unknown_flag_list)
+        will_be_unknown_aids = ut.compress(aid_list, will_be_unknown_flag_list)
         ibs.set_annot_exemplar_flags(will_be_unknown_aids, [False] * len(will_be_unknown_aids))
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
@@ -2799,8 +2799,8 @@ def set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None):
     """
     nid_list = ibs.get_annot_nids(aid_list)
     flag_list = [ nid is not None for nid in nid_list ]
-    nid_list = ut.list_compress(nid_list, flag_list)
-    name_sex_list = ut.list_compress(name_sex_list, flag_list)
+    nid_list = ut.compress(nid_list, flag_list)
+    name_sex_list = ut.compress(name_sex_list, flag_list)
     ibs.set_name_sex(nid_list, name_sex_list)
 
 
@@ -2816,8 +2816,8 @@ def set_annot_sex_texts(ibs, aid_list, name_sex_text_list, eager=True, nInput=No
     """
     nid_list = ibs.get_annot_nids(aid_list)
     flag_list = [ nid is not None for nid in nid_list ]
-    nid_list = ut.list_compress(nid_list, flag_list)
-    name_sex_text_list = ut.list_compress(name_sex_text_list, flag_list)
+    nid_list = ut.compress(nid_list, flag_list)
+    name_sex_text_list = ut.compress(name_sex_text_list, flag_list)
     ibs.set_name_sex_text(nid_list, name_sex_text_list)
 
 

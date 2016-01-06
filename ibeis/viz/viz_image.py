@@ -102,7 +102,7 @@ def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
         >>> gid_list = ibs.get_valid_gids()
         >>> aids_list = ibs.get_image_aids(gid_list)
         >>> index_list = ut.list_argsort(list(map(len, aids_list)))[::-1]
-        >>> gid_list = ut.list_take(gid_list, index_list[0:8])
+        >>> gid_list = ut.take(gid_list, index_list[0:8])
         >>> print(','.join(map(str, gid_list)))
 
     Example:

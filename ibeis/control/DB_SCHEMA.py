@@ -308,7 +308,7 @@ def post_1_2_0(db, ibs=None):
             lbltype_rowids_list = ibs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
             # only want the nids of individuals, not species, for example
             valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-            alrids_list = [ut.list_compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
+            alrids_list = [ut.compress(alrids, valids) for alrids, valids in zip(alrids_list, valids_list)]
             alrids_list = [
                 alrid_list[0:1]
                 if len(alrid_list) > 1 else
@@ -529,7 +529,7 @@ def pre_1_3_1(db, ibs=None):
         dupaids_list = []
         if len(ibs_dup_annots):
             for key, dupxs in six.iteritems(ibs_dup_annots):
-                aids = ut.list_take(aid_list, dupxs)
+                aids = ut.take(aid_list, dupxs)
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)
             print('About to delete toremove_aids=%r' % (toremove_aids,))

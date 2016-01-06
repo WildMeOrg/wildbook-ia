@@ -20,7 +20,7 @@ def get_diffranks(rank_mat, qaids):
     FIXME: duplicated
     """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-    diff_aids    = ut.list_compress(qaids, isdiff_flags)
+    diff_aids    = ut.compress(qaids, isdiff_flags)
     diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
     diff_qxs     = np.where(isdiff_flags)[0]
     return diff_aids, diff_rank, diff_qxs
@@ -193,7 +193,7 @@ def print_results(ibs, testres):
             # FIXME
             best_rankscore += rankscore_str(X, max_nLessX, cfgx2_nQuery[bestX_cfgx_list[0]])
             best_rankscore_summary += [best_rankscore]
-            #to_intersect_list.append(ut.list_take(cfgx2_lbl, max_nLessX))
+            #to_intersect_list.append(ut.take(cfgx2_lbl, max_nLessX))
 
         #intersected = to_intersect_list[0] if len(to_intersect_list) > 0 else []
         #for ix in range(1, len(to_intersect_list)):
@@ -244,9 +244,9 @@ def print_results(ibs, testres):
         failed = testres.rank_mat > 0
         colx2_failed = [np.nonzero(failed_col)[0] for failed_col in failed.T]
         #failed_col2_only = np.setdiff1d(colx2_failed[1], colx2_failed[0])
-        #failed_col2_only_aids = ut.list_take(testres.qaids, failed_col2_only)
+        #failed_col2_only_aids = ut.take(testres.qaids, failed_col2_only)
         failed_col1_only = np.setdiff1d(colx2_failed[0], colx2_failed[1])
-        failed_col1_only_aids = ut.list_take(testres.qaids, failed_col1_only)
+        failed_col1_only_aids = ut.take(testres.qaids, failed_col1_only)
         gt_aids1 = ibs.get_annot_groundtruth(failed_col1_only_aids, daid_list=testres.cfgx2_qreq_[0].daids)
         gt_aids2 = ibs.get_annot_groundtruth(failed_col1_only_aids, daid_list=testres.cfgx2_qreq_[1].daids)
 
@@ -584,7 +584,7 @@ def print_results(ibs, testres):
         # Treat infinite as nan
         stat_dict = ut.get_jagged_stats(arr, use_nan=True, use_sum=True)
         sel_stat_dict, sel_indices = ut.find_interesting_stats(stat_dict, col_lbls)
-        sel_col_lbls = ut.list_take(col_lbls, sel_indices)
+        sel_col_lbls = ut.take(col_lbls, sel_indices)
         statstr_kw   = dict(precision=3, newlines=True, lbl=lbl, align=True)
         stat_str     = ut.get_stats_str(stat_dict=stat_dict, **statstr_kw)
         sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)

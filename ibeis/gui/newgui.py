@@ -1594,7 +1594,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         #annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         #isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
-        #ut.list_take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
+        #ut.take(isscenerymatch_list, ut.list_where(isscenerymatch_list))
 
         # Applies annotation based filtering to the annotation table
         #filter_kw = dict(any_matches='.*error.*', been_adjusted=True)
@@ -1650,7 +1650,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))
         #nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))
         #flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)
-        #annotmatch_rowid_list_ = ut.list_compress(annotmatch_rowid_list, flags)
+        #annotmatch_rowid_list_ = ut.compress(annotmatch_rowid_list, flags)
 
         #aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)
         #aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)

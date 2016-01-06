@@ -474,7 +474,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, verbose):
     internal_qaids = qreq_.get_internal_qaids()
     # Get only the data that needs to be computed
     internal_qaids = internal_qaids.compress(flags_list)
-    Kpad_list = ut.list_compress(Kpad_list, flags_list)
+    Kpad_list = ut.compress(Kpad_list, flags_list)
     # do computation
     num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
     qvecs_list = qreq_.ibs.get_annot_vecs(
