@@ -1,9 +1,17 @@
 """
 helpers for painting on top of images for groundtruthing
+
+References:
+    http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
 """
 
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import numpy as np
+import cv2
+import math
 from six.moves import range, zip  # NOQA
 ut.noinject('impaint')
 
@@ -214,6 +222,109 @@ def demo():
             break
 
     cv2.destroyAllWindows()
+
+
+class Painter(object):
+    """
+    References:
+        http://sta:koverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv2-update-image
+    """
+    def __init__(self, fig, ax, img):
+        self.showverts = True
+        self.button_pressed = False
+        self.img = img
+        self.brush_size = 50
+        self.ax = ax
+        self.fig = fig
+        self.color = 255
+        self.background = None
+
+        canvas = self.fig.canvas
+        canvas.mpl_connect('button_press_event', self.button_press_callback)
+        canvas.mpl_connect('button_release_event', self.button_release_callback)
+        canvas.mpl_connect('motion_notify_event', self.on_move)
+        canvas.mpl_connect('draw_event', self.draw_callback)
+
+    def draw(self):
+        self.fig.canvas.draw()
+        #print('draw')
+        #plt.draw()
+
+    def do_blit(self):
+        if self.background is  None:
+            self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+        else:
+            self.fig.canvas.restore_region(self.background)
+            pass
+        self.fig.canvas.blit(self.ax.bbox)
+
+    def draw_callback(self, event):
+        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+
+    def button_press_callback(self, event):
+        if(event.button == 1):
+            self.button_pressed = True
+            x = int(math.floor(event.xdata))
+            y = int(math.floor(event.ydata))
+            cv2.circle(self.img, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+        self.update_image()
+        #update the image
+        self.do_blit()
+
+    def update_image(self):
+        self.ax.images.pop()
+        self.ax.imshow(self.img, interpolation='nearest', alpha=0.6)
+
+    def button_release_callback(self, event):
+        self.button_pressed = False
+        self.update_image()
+        self.draw()
+        #cv2.imwrite('test.png', self.img)
+        self.do_blit()
+
+    def on_move(self, event):
+        if(self.button_pressed):
+            x = int(math.floor(event.xdata))
+            y = int(math.floor(event.ydata))
+            cv2.circle(self.img, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+            self.update_image()
+        self.draw()
+        self.do_blit()
+
+
+def impaint_mask2(img):
+    fig = plt.figure(1)
+    ax = plt.subplot(111)
+    imgOver = np.zeros(img.shape, np.uint8)
+    ax.imshow(img, interpolation='nearest', alpha=1)
+    ax.imshow(imgOver, interpolation='nearest', alpha=0.6)
+    ax.grid(False)
+
+    pntr = Painter(fig, ax, imgOver)
+    plt.title('Click on the image to draw. exit to finish')
+    plt.show()
+    return pntr.img
+
+
+def draw_demo():
+    r"""
+    CommandLine:
+        python -m plottool.interact_impaint --exec-draw_demo --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.interact_impaint import *  # NOQA
+        >>> result = draw_demo()
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    fpath = ut.grab_test_imgpath('zebra.png')
+    img = mpimg.imread(fpath)
+    mask = impaint_mask2(img)
+    print('mask = %r' % (mask,))
+    print('mask.sum() = %r' % (mask.sum(),))
 
 
 if __name__ == '__main__':
