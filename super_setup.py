@@ -347,6 +347,42 @@ if ut.get_argflag('--cnn'):
         'https://github.com/bluemellophone/ibeis_cnn',
     ]
 
+if ut.get_argflag('--cnn-deps'):
+    # TODO: Integrate properly
+    tpl_repo_urls2 = [
+        'https://github.com/Theano/Theano.git',
+        'git://github.com/lisa-lab/pylearn2.git',
+        'https://github.com/Erotemic/Lasagne.git',
+    ]
+    tpl_repo_dirs2 = ut.ensure_repos(tpl_repo_urls2, checkout_dir=CODE_DIR)
+    ut.setup_develop_repos(tpl_repo_dirs2)
+    """
+    export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
+
+    set THEANO_FLAGS=device=cpu,print_active_device=True,enable_initial_driver_test=True,print_test_value=True
+
+    python -c "import theano; print(theano.__file__)"
+    python -c "import pylearn2; print(pylearn2.__file__)"
+    python -c "import lasagne; print(lasagne.__file__)"
+
+    python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
+    """
+    #(repo_urls2, rep_dirs2) = ut.repo_list(tpl_repos2, CODE_DIR)
+
+    #co
+    #git clone
+    #git clone
+    #git clone
+    #cd ~/code/Theano
+    #python setup.py develop
+    #cd ~/code/pylearn2
+    #python setup.py develop
+    #cd ~/code/Lasagne/
+    #python setup.py develop
+
+
+    # TODO: add to third party
+
 _repo_list += [
     #'https://github.com/bluemellophone/ibeis_cnn',
     #'https://github.com/bluemellophone/pybing.git',

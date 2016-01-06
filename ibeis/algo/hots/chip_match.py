@@ -23,7 +23,7 @@ DEBUG_CHIPMATCH = False
 
 #import six
 
-MAX_FNAME_LEN = 64 if ut.WIN32 else 200
+MAX_FNAME_LEN = 80 if ut.WIN32 else 200
 TRUNCATE_UUIDS = ut.get_argflag(('--truncate-uuids', '--trunc-uuids'))
 #or ( ut.is_developer() and not ut.get_argflag(('--notrunc-uuids',)))
 

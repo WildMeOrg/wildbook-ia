@@ -48,7 +48,7 @@ def testdata_pipecfg(p=None, t=None):
     if p is None:
         p = ['default']
     from ibeis.expt import experiment_helpers
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=p)
+    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=p)
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
     pcfgdict = pcfgdict_list[0]
@@ -173,7 +173,7 @@ def testdata_expts(defaultdb='testdb1',
     ibs = ibeis.opendb(defaultdb=defaultdb)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
-    test_cfg_name_list = ut.get_argval('-t', type_=list, default=default_test_cfg_name_list)
+    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=default_test_cfg_name_list)
     daid_override = ut.get_argval('--daids-override', type_=list, default=daid_override)
     qaid_override = ut.get_argval(('--qaid', '--qaids-override'), type_=list, default=qaid_override)
 
