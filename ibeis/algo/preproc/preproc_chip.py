@@ -63,6 +63,54 @@ def generate_chip_properties2(depc, aid_list, config=None):
         yield uri1, w, h
 
 
+#@depends_cache.register_preproc(
+#    'annotmask',
+#    parents=[const.ANNOTATION_TABLE],
+#    colnames=['mask', 'width', 'height'],
+#    coltypes=[('extern', vt.imread), int, int],
+#    docstr='Used to store *processed* annots as chips',
+#    fname='chipcache2'
+#)
+#def generate_annotmask_properties(depc, aid_list, config=None):
+#    r"""
+#    Example of using the dependency cache.
+
+#    Args:
+#        depc (ibeis.depends_cache.DependencyCache):
+#        aid_list (list):  list of annotation rowids
+#        config2_ (dict): (default = None)
+
+#    Yields:
+#        (uri, int, int): tup
+
+#    CommandLine:
+#        python -m ibeis.algo.preproc.preproc_chip --exec-generate_chip_properties2 --show
+
+#    Example:
+#        >>> # DISABLE_DOCTEST
+#        >>> from ibeis.algo.preproc.preproc_chip import *  # NOQA
+#        >>> import ibeis
+#        >>> ibs = ibeis.opendb('testdb1')
+#        >>> depc = ibs.depc
+#        >>> depc.print_all_tables()
+#        >>> aid_list = ibs.get_valid_aids()[0:2]
+#        >>> depc.get_property('annotmask', aid_list)
+#        >>> depc.print_all_tables()
+#    """
+#    if config is None:
+#        config = {}
+#    mask_dpath = ut.unixjoin(depc.cache_dpath, 'ManualChipMask')
+#    ibs = depc.controller
+#    for uri, w, h in generate_chip_properties(ibs, aid_list, config2_=config):
+#    for aid in aid_list:
+#        img = vt.imread(gpath_list[rowid])
+#        mask = interact_impaint.impaint_mask2(img)
+#        mask_fpath = ut.unixjoin(mask_dpath, 'mask%d.png' % (rowid,))
+#        vt.imwrite(mask_fpath, mask)
+#        #uri1 = join(relpath(ibs.get_chipdir(), depc.cache_dpath), uri)
+#        #yield uri1, w, h
+
+
 # TODO in template version
 #def read_chip_fpath(ibs, cid_list, **kwargs):
 #    """ T_ExternFileGetter """

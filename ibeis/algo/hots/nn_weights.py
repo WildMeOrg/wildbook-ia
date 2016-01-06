@@ -447,6 +447,9 @@ def lnbnn_fn(vdist, ndist):
     r"""
     Locale Naive Bayes Nearest Neighbor weighting
 
+    References:
+        http://www.cs.ubc.ca/~lowe/papers/12mccannCVPR.pdf
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
