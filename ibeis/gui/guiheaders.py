@@ -120,7 +120,6 @@ def make_table_declarations(ibs):
         ],
 
         ENCOUNTER_TABLE : [
-            #'eid',
             'enctext',
             'nImgs',
             #'num_imgs_reviewed',
@@ -128,6 +127,7 @@ def make_table_declarations(ibs):
             #'encounter_end_datetime',
             # 'encounter_processed_flag',
             # 'encounter_shipped_flag',
+            'eid',
         ],
 
         NAMES_TREE      : [

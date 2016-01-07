@@ -455,7 +455,7 @@ class QueryResultsWidget(APIItemWidget):
 
     def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
                           qreq_=None, **kwargs):
-        print('[qres_wgt] Change QueryResultsWidget data')
+        print('[qres_wgt] set_query_results()')
         tblnice = 'Query Results: ' + kwargs.get('query_title', '')
         ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
 
