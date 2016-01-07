@@ -609,9 +609,17 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             combo.options = options
             combo.changed = changed
             combo.setEditable(True)
-            combo.addItems( [ option[0] for option in combo.options ] )
+            combo.updateOptions()
             combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
             combo.setDefault(default)
+
+        def updateOptions(combo, reselect=False, reselect_index=None):
+            if reselect_index is None:
+                reselect_index = combo.currentIndex()
+            combo.clear()
+            combo.addItems( [ option[0] for option in combo.options ] )
+            if reselect and reselect_index < len(combo.options):
+                combo.setCurrentIndex(reselect_index)
 
         def setOptionText(combo, option_text_list):
             for index, text in enumerate(option_text_list):
