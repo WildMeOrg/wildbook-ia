@@ -450,6 +450,22 @@ def lnbnn_fn(vdist, ndist):
     References:
         http://www.cs.ubc.ca/~lowe/papers/12mccannCVPR.pdf
 
+    Sympy:
+        >>> import sympy
+        >>> #https://github.com/sympy/sympy/pull/10247
+        >>> from sympy import log
+        >>> from sympy.stats import P, E, variance, Die, Normal, FiniteRV
+        >>> C, Cbar = sympy.symbols('C Cbar')
+        >>> d_i = Die(sympy.symbols('di'), 6)
+        >>> log(P(di, C) / P(di, Cbar))
+        >>> #
+        >>> PdiC, PdiCbar = sympy.symbols('PdiC, PdiCbar')
+        >>> oddsC = log(PdiC / PdiCbar)
+        >>> sympy.simplify(oddsC)
+        >>> import vtool as vt
+        >>> vt.check_expr_eq(oddsC, log(PdiC) - log(PdiCbar))
+
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA

@@ -25,7 +25,7 @@ def default_decor(func):
 
 
 @default_decor
-def _results_gen(cur, get_last_id=False):
+def _results_gen(cur, get_last_id=False, keepwrap=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
     Basically: Dont call this twice.
@@ -42,14 +42,19 @@ def _results_gen(cur, get_last_id=False):
             raise StopIteration()
         else:
             # Results are always returned wraped in a tuple
-            result_ = result[0] if len(result) == 1 else result
+            if keepwrap:
+                result_ = result
+            else:
+                result_ = result[0] if len(result) == 1 else result
             #if get_last_id and result == 0:
             #    result = None
             yield result_
 
 
 def _unpacker(results_):
-    """ HELPER: Unpacks results if unpack_scalars is True """
+    """ HELPER: Unpacks results if unpack_scalars is True.
+    FIXME: hacky function
+    """
     results = None if len(results_) == 0 else results_[0]
     assert len(results_) < 2, 'throwing away results! { %r }' % (results_,)
     return results
@@ -383,7 +388,7 @@ class SQLExecutionContext(object):
 
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
-                 start_transaction=False, verbose=VERBOSE_SQL):
+                 start_transaction=False, keepwrap=False, verbose=VERBOSE_SQL):
         context.auto_commit = auto_commit
         context.db = db  # Reference to sqldb
         context.operation = operation
@@ -393,6 +398,7 @@ class SQLExecutionContext(object):
         context.operation_type = get_operation_type(operation)  # Parse the optype
         context.verbose = verbose
         context.is_insert = context.operation_type.startswith('INSERT')
+        context.keepwrap = keepwrap
 
     @default_decor
     def __enter__(context):
@@ -435,7 +441,8 @@ class SQLExecutionContext(object):
             #print('[sql.Error] %r' % (type(ex),))
             #print('[sql.Error] params=<%r>' % (params,))
             raise
-        return _results_gen(context.cur, get_last_id=context.is_insert)
+        return _results_gen(context.cur, get_last_id=context.is_insert,
+                            keepwrap=context.keepwrap)
 
     @default_decor
     def __exit__(context, type_, value, trace):
