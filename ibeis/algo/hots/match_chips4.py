@@ -283,7 +283,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
                     pass
                 else:
                     qaid2_cm_hit[cm.qaid] = cm
-            print('%d / %d cached matches need to be recomputed' % (len(qaid2_cm_hit), len(qaids_hit)))
+            print('%d / %d cached matches need to be recomputed' % (len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit)))
         if len(qaid2_cm_hit) == len(external_qaids):
             return qaid2_cm_hit
         else:

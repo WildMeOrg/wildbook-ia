@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 TODO: Rename to ibeis/init/commands.py
+
+TODO; remove params module
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -100,6 +102,9 @@ def postload_commands(ibs, back):
         ibs._overwrite_all_annot_species_to(params.args.set_all_species)
     if params.args.dump_schema:
         ibs.db.print_schema()
+
+    if ut.get_argflag('--ipynb'):
+        back.launch_ipy_notebook()
 
     select_eid = ut.get_argval(('--select-eid', '--eid',), None)
     if select_eid is not None:

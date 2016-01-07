@@ -123,7 +123,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> groupxs = groupxs.compress(daids != cm.qaid)
         >>> # </GET NAME GROUPXS>
         >>> # sort annots in this name by the chip score
-        >>> group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        >>> group_sortx = cm.algo_annot_scores['csum'].take(groupxs).argsort()[::-1]
         >>> sorted_groupxs = groupxs.take(group_sortx)
         >>> # get the info for this name
         >>> name_fm_list  = ut.take(cm.fm_list, sorted_groupxs)
@@ -142,7 +142,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> # Get the scores for names and chips
         >>> name_score = cm.name_score_list[nidx]
         >>> name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
-        >>> name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
+        >>> name_annot_scores = cm.algo_annot_scores['csum'].take(sorted_groupxs)
         >>> # L___ COPIED SECTION
         >>> kwargs = {}
         >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)

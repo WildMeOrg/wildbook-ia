@@ -373,11 +373,11 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> cm.evaluate_csum_score(qreq_)
         >>> cm.evaluate_nsum_score(qreq_)
         >>> # Annot aligned lists
-        >>> annot_score_list = cm.csum_score_list
+        >>> annot_score_list = cm.algo_annot_scores['csum']
         >>> annot_aid_list   = cm.daid_list
         >>> daid2_idx        = cm.daid2_idx
         >>> # Name aligned lists
-        >>> name_score_list  = cm.nsum_score_list
+        >>> name_score_list  = cm.algo_name_scores['nsum']
         >>> name_groupxs     = cm.name_groupxs
         >>> # Execute Function
         >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)

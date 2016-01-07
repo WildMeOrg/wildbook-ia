@@ -219,7 +219,7 @@ def netx_draw_images_at_positions(img_list, pos_list, zoom=.4):
     TODO: look into DraggableAnnotation
     """
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-    print('[encounter] drawing %d images' % len(img_list))
+    print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
     ax  = pt.gca()
     artist_list = []
@@ -343,7 +343,7 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=ZOOM)
         fnum = pt.next_fnum()
 
     #zoom = .8
-    print('[encounter] drawing chip graph')
+    print('[viz_graph] drawing chip graph')
     pt.figure(fnum=fnum, pnum=(1, 1, 1))
     ax = pt.gca()
     #pos = netx.spring_layout(graph)
